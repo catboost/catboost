@@ -400,8 +400,6 @@ migrations:
     - disk/admin/robot_switcher
     - dj/services/alisa_skills/tools/bass_to_dialogs_image_uploader
     - dj/tools/viewer/custom/entity
-    - education/infrastructure/ci/enigma/app
-    - education/infrastructure/ci/enigma/app/handlers
     - education/infrastructure/nirvana/operations/yt_nodes_deep_diff
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-515
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
@@ -1541,8 +1539,6 @@ migrations:
     - education/checking_system/marker_checker/lib
     - education/checking_system/marker_checker/lib/markers/columncalc_helpers
     - education/checking_system/marker_checker/lib/operations/arithmetic_operations/ut
-    - education/infrastructure/ci/enigma/app
-    - education/infrastructure/ci/enigma/app/handlers
     - education/lib/common
     - education/media_platform/services/api/it
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
@@ -1554,7 +1550,6 @@ migrations:
     - entity/ugc/nirvana/ugcdb/support_hidden_import/lib/ut
     - entity/ugc/robot/tools/reviews_to_saas/lib/ut
     - entity/ugc/tools/update_photos
-    - extsearch/audio/generative/py/backend
     - extsearch/audio/generative/py/uploader
     - extsearch/images/tools/nirvana/download_serps
     - extsearch/video/robot/cm/library/ut
@@ -2259,7 +2254,6 @@ migrations:
     - arc/ci/tests
     - balancer/test/functional/rate_limiter
     - billing/apikeys/tests
-    - billing/log_tariffication/py/tests/integration/core_tariff
     - billing/log_tariffication/py/tests/integration/partner_tariff
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
@@ -2301,7 +2295,6 @@ migrations:
     - education/checking_system/api/app
     - education/checking_system/marker_checker/it
     - education/checking_system/marker_checker/lib
-    - education/infrastructure/ci/enigma/app
     - education/lib/contrib/glove_python
     - education/schoolbook/analytics/ml/blender/ut
     - education/schoolbook/analytics/ml/repetition/ut
@@ -2814,15 +2807,6 @@ migrations:
     prefixes:
     - datalens/backend/bi-common
     - datalens/backend/bi-common/bicommon
-    - education/flow/infrastructure/enigma_api
-    - education/flow/infrastructure/migrant
-    - education/flow/infrastructure/migrant/src
-    - education/flow/infrastructure/nirvana_operations/flow_create_stand
-    - education/infrastructure/ci/enigma/app
-    - education/infrastructure/ci/enigma/app/operation
-    - education/infrastructure/ci/enigma/lib/docker
-    - education/infrastructure/ci/enigma/lib/ydeploy
-    - education/lib/yql/it
     - education/media_platform/services/api/it
     - education/schoolbook/analytics/ml/boosting/lib
     - education/schoolbook/analytics/ml/boosting/ut
@@ -2841,7 +2825,6 @@ migrations:
     - education/services/sections/app/handlers
     - education/services/sections/app/schemas
     - education/services/sections/it
-    - extsearch/audio/generative/py/backend
     - logbroker/config-manager/watchdog
     - logbroker/juggler/bundle/checks
     - logbroker/juggler/deploy_checks_generator
@@ -2925,15 +2908,6 @@ migrations:
     - maps_adv/statistics/dashboard/server/lib
     - maps_adv/statistics/dashboard/server/tests
     - maps_adv/statistics/dashboard/server/tests/data_manager
-    - market/idx/devtools/quick_pipelines_monitorings
-    - market/idx/export/awaps/prepare_partition/lib
-    - market/opsmode/delivery_report_parser/src
-    - market/opsmode/delivery_report_parser/src/xls_parsing
-    - market/pylibrary/report_control
-    - market/replenishment/data_preparation_v2/common
-    - market/sre/tools/resource_usage/src/bot
-    - market/sre/tools/resource_usage/src/conductor
-    - market/sre/tools/resource_usage/src/export
     - mssngr/tools/tests
     - search/alice/research/src/models_compare
     - search/horadric2/cli
@@ -3186,7 +3160,6 @@ migrations:
     - market/idx/promos/yt_promo_indexer/test/yatf
     - market/idx/tools/subzero
     - market/pylibrary/async_publishing/tests
-    - market/pylibrary/report_control/tests
     - mds/mastermind/mastermind-cache/tests/http_tests/drooz_like_server
     - mds/nscfg/server
     - mds/walle_cms/cms/lib/tests
