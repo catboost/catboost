@@ -21,7 +21,7 @@
     </licenses>
 
     <properties>
-        <scala.version>2.11.11</scala.version>
+        <scala.version>2.11.12</scala.version>
         <scala.compat.version>2.11</scala.compat.version>
     </properties>
 
