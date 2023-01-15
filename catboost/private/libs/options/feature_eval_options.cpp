@@ -1,7 +1,7 @@
 #include "feature_eval_options.h"
 #include "json_helper.h"
 
-#include <math.h>
+#include <cmath>
 
 NCatboostOptions::TFeatureEvalOptions::TFeatureEvalOptions()
     : FeaturesToEvaluate("features_to_evaluate", TVector<TVector<ui32>>())
