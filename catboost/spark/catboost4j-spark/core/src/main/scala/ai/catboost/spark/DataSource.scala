@@ -526,7 +526,7 @@ private[spark] object CatBoostPairsDataLoader {
    * @return [[DataFrame]] containing loaded pairs.
    */
   def load(spark: SparkSession, pairsDataPathWithScheme: String) : DataFrame = {
-        val pairsPathParts = pairsDataPathWithScheme.split("://", 2)
+    val pairsPathParts = pairsDataPathWithScheme.split("://", 2)
     val (pairsDataScheme, pairsDataPath) = if (pairsPathParts.size == 1) {
         ("dsv-flat", pairsPathParts(0)) 
       } else { 
