@@ -195,15 +195,6 @@ migrations:
       - copyproto
       - deepequalproto
     packages:
-      - a.yandex-team.ru/alice/gamma/sdk/golang
-      - a.yandex-team.ru/alice/gamma/sdk/golang_test
-      - a.yandex-team.ru/alice/gamma/server/sdk
-      - a.yandex-team.ru/alice/gamma/server/sdk_test
-      - a.yandex-team.ru/alice/iot/bulbasaur/dto/megamind
-      - a.yandex-team.ru/alice/iot/bulbasaur/dto/megamind_test
-      - a.yandex-team.ru/alice/iot/bulbasaur/megamind
-      - a.yandex-team.ru/alice/iot/bulbasaur/server
-      - a.yandex-team.ru/alice/iot/bulbasaur/server_test
       - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client
       - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/kikimr
@@ -230,8 +221,6 @@ migrations:
       - a.yandex-team.ru/edadeal/backend/go/charm/internal/pkg/store/pg
       - a.yandex-team.ru/edadeal/backend/go/gluon/internal/pkg/models
       - a.yandex-team.ru/edadeal/backend/go/gluon/internal/pkg/models_test
-      - a.yandex-team.ru/extsearch/video/content_id/ban
-      - a.yandex-team.ru/extsearch/video/content_id/import/sqs_importer
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/dler
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/gfront
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/comb
@@ -244,7 +233,6 @@ migrations:
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/testutil
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/util
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/webhookbin
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/nitc
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/preview-builder-yt/go_bin
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/preview-builder/handler
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/qproxy
@@ -298,7 +286,6 @@ migrations:
       - a.yandex-team.ru/travel/buses/backend/internal/common/resourcestorage/tests
       - a.yandex-team.ru/travel/buses/backend/internal/common/utils
       - a.yandex-team.ru/travel/rasp/wizards/go/wizard_proxy_api/internal/storage
-      - a.yandex-team.ru/web/app_host/api/service/go/test_daemon
       - a.yandex-team.ru/yabs/telephony/platform/distributor/api/grpc
       - a.yandex-team.ru/yabs/telephony/platform/distributor/api/grpc_test
       - a.yandex-team.ru/yabs/telephony/platform/spn/api/grpc
