@@ -3,7 +3,7 @@ LIBRARY()
 
 
 SRCS(
-    terminate_handler.cpp
+    GLOBAL terminate_handler.cpp
     segv_handler.cpp
 )
 
