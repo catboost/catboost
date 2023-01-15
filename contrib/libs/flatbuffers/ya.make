@@ -6,6 +6,8 @@ LICENSE(
     APACHE2
 )
 
+VERSION(1.10.0)
+
 NO_UTIL()
 
 ADDINCL(

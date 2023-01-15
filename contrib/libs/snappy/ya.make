@@ -4,6 +4,8 @@ LICENSE(
     BSD
 )
 
+VERSION(1.0.5)
+
 
 
 NO_COMPILER_WARNINGS()
