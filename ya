@@ -186,6 +186,8 @@ def main():
     with open(_get(URLS, MD5), 'r') as fp:
         meta = json.load(fp)['data']
     my_platform = platform.system().lower()
+    if my_platform == 'linux':
+        my_platform = 'linux-ppc64le' if 'ppc64le' in platform.platform() else 'linux_musl'
 
     # match by max prefix length
     best_key = max(meta.keys(), key=lambda x: len(os.path.commonprefix([my_platform, x])))
