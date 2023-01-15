@@ -12,9 +12,8 @@
 #include <cstdio>
 #include <cstdarg>
 
-template <class E>
-static inline TString FormatExc(const E& e) {
-    return TString::Join(AsStringBuf("("), TypeName(&e), AsStringBuf(") "), e.what());
+TString FormatExc(const std::exception &exception) {
+    return TString::Join(AsStringBuf("("), TypeName(&exception), AsStringBuf(") "), exception.what());
 }
 
 TString CurrentExceptionMessage() {
