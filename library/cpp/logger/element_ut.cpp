@@ -22,7 +22,7 @@ UNIT_TEST_SUITE_REGISTRATION(TLogElementTest);
 
 void TLogElementTest::TestMoveCtor() {
     TStringStream output;
-    TLog log(new TStreamLogBackend(&output));
+    TLog log(MakeHolder<TStreamLogBackend>(&output));
 
     THolder<TLogElement> src = MakeHolder<TLogElement>(&log);
 
