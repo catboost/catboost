@@ -4535,6 +4535,7 @@ namespace {
 TVector<THolder<IMetric>> TQueryCrossEntropyMetric::Create(const TMetricConfig& config) {
     auto it = config.GetParamsMap().find("alpha");
     config.ValidParams->insert("alpha");
+    config.ValidParams->insert("raw_values_scale");
     return AsVector(MakeHolder<TQueryCrossEntropyMetric>(
         config.Params,
         it != config.GetParamsMap().end() ? FromString<float>(it->second) : DefaultAlpha));
