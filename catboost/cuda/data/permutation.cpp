@@ -6,7 +6,7 @@
 
 void NCatboostCuda::TDataPermutation::FillOrder(TVector<ui32>& order) const {
     if (Index != IdentityPermutationId()) {
-        if (DataProvider->MetaInfo.HasGroupId) {
+        if (DataProvider->MetaInfo.HasGroupId && !DataProvider->ObjectsGrouping->IsTrivial()) {
             GenerateQueryDocsOrder(GetSeed(), BlockSize, DataProvider->ObjectsGrouping->GetNonTrivialGroups(), &order);
         } else {
             Shuffle(GetSeed(), BlockSize, DataProvider->GetObjectCount(), &order);
