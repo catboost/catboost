@@ -669,10 +669,11 @@ def convert_to_onnx_object(model, export_parameters=None, **kwargs):
         raise CatBoostError(
             "There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
 
-    for kwarg in kwargs:
-        if kwarg in ['initial_types', 'target_opset', 'custom_conversion_functions', 'custom_shape_calculators'] \
-                and kwargs[kwarg] is not None:
-            warnings.warn(str(kwarg + " argument is not supported"))
+    for name, value in kwargs.items():
+        if name == 'target_opset' and value not in [None, 2]:
+            warnings.warn('target_opset argument is not supported. Default target_opset is 2 (ai.onnx.ml domain)')
+        elif name == 'initial_types' and value is not None:
+            warnings.warn('initial_types argument is not supported')
 
     params_string = ""
     if export_parameters:
