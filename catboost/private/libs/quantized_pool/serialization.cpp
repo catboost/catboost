@@ -791,6 +791,35 @@ NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchemaFromPool(const TSt
     return quantizationSchema;
 }
 
+size_t NCB::EstimateIdsLength(const TStringBuf path) {
+    const auto file = TBlob::FromFile(TString(path));
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
+
+    TPoolMetainfo poolMetainfo;
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
+    TVector<TVector<NCB::TQuantizedPool::TChunkDescription>> stringColumnChunks;
+    bool isFakeColumn = false;
+    auto parseColumn = [&] (ui32 columnIndex) {
+        isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(columnIndex, poolMetainfo);
+    };
+    size_t estimatedIdsLength = 0;
+    auto parseChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
+        if (isFakeColumn && docOffset == 0) {
+            estimatedIdsLength += 1 + bytes.size() / (docsInChunkCount + 1);
+        }
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        /*parseSchema*/ Nothing(),
+        parseColumn,
+        parseChunk,
+        blob);
+    return estimatedIdsLength;
+}
+
 NCB::NIdl::TPoolMetainfo NCB::LoadPoolMetainfo(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
     const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
