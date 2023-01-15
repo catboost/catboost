@@ -1657,6 +1657,16 @@
                         "os": "LINUX"
                     },
                     "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
@@ -1739,6 +1749,16 @@
                     "target": {
                         "os": "LINUX",
                         "arch": "ppc64le"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
                     },
                     "default": true
                 },
@@ -1840,6 +1860,17 @@
                     "target": {
                         "os": "LINUX",
                         "arch": "ppc64le"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
                     },
                     "default": true
                 }
@@ -2411,6 +2442,16 @@
                         "os": "LINUX"
                     },
                     "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
@@ -2493,6 +2534,16 @@
                     "target": {
                         "os": "LINUX",
                         "arch": "ppc64le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
                     },
                     "default": false
                 },
