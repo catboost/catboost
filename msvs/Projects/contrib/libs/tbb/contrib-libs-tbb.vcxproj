@@ -125,6 +125,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\critical_section.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\flow_graph_abstractions.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\global_control.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\info.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_aggregator_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_allocator_traits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_concurrent_queue_impl.h"/>
