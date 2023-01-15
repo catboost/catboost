@@ -520,7 +520,7 @@ bool IsNotSocketClosedByOtherSide(SOCKET s) {
 
 #if defined(_win_)
 static ssize_t DoSendMsg(SOCKET sock, const struct iovec* iov, int iovcnt) {
-    return writev(sock, const_cast<iovec*>(iov), iovcnt);
+    return writev(sock, iov, iovcnt);
 }
 #else
 static ssize_t DoSendMsg(SOCKET sock, const struct iovec* iov, int iovcnt) {
