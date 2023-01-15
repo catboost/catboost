@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</ProjectGUID>
+    <ProjectGUID>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-langmask</ProjectName>
+    <ProjectName>library-cpp-langmask</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-langmask</TargetName>
+    <TargetName>library-cpp-langmask</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\langmask\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\langmask\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\1E76F603-7AB0-A560-A16D-D6FDEE84CA84\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\langmask\langmask.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\langmask\langmask.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\langmask\langmask.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\langmask\langmask.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

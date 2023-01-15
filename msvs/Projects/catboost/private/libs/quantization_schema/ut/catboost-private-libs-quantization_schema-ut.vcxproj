@@ -225,6 +225,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langmask\library-cpp-langmask.vcxproj">
+      <Project>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langs\library-cpp-langs.vcxproj">
       <Project>{7A259257-161F-BD3F-016E-D02C15A4826D}</Project>
     </ProjectReference>
@@ -284,9 +287,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\main\cpp-unittest-main.vcxproj">
       <Project>{FCE80D39-1C22-515D-5496-00EC1DCE2551}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
-      <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
