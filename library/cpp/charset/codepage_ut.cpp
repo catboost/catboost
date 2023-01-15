@@ -59,7 +59,7 @@ public:
         const CodePage* cp = CodePageByCharset(CODES_ASCII);
         char tmp[100];
 
-        TStringBuf s = AsStringBuf("abcde");
+        TStringBuf s = "abcde";
 
         TStringBuf upper(tmp, cp->ToUpper(s.begin(), s.end(), tmp));
         UNIT_ASSERT_VALUES_EQUAL(upper, AsStringBuf("ABCDE"));

@@ -197,7 +197,7 @@ namespace NCatboostOptions {
     template <>
     class TJsonFieldHelper<TLossParams, false> {
     public:
-        constexpr static TStringBuf ParamsKeyOrderRecord = AsStringBuf("__params_key_order");
+        constexpr static TStringBuf ParamsKeyOrderRecord = "__params_key_order";
     public:
         static Y_NO_INLINE void Read(const NJson::TJsonValue& src, TLossParams* dst) {
             CB_ENSURE(dst, "Error: can't write to nullptr");

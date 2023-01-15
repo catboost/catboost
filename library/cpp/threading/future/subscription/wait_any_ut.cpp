@@ -27,7 +27,7 @@ Y_UNIT_TEST_SUITE(TWaitAnyTest) {
         auto w = NWait::WaitAny(p1.GetFuture(), p2.GetFuture());
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
-        constexpr auto message = AsStringBuf("Test exception");
+        constexpr TStringBuf message = "Test exception";
         p2.SetException(std::make_exception_ptr(yexception() << message));
         UNIT_ASSERT_EXCEPTION_SATISFIES(w.TryRethrow(), yexception, [message](auto const& e) {
             return message == e.what();
@@ -47,7 +47,7 @@ Y_UNIT_TEST_SUITE(TWaitAnyTest) {
 
     Y_UNIT_TEST(TestOneUnsignaledOneSignaledWithException) {
         auto p = NewPromise();
-        constexpr auto message = AsStringBuf("Test exception 2");
+        constexpr TStringBuf message = "Test exception 2";
         auto f = MakeErrorFuture<void>(std::make_exception_ptr(yexception() << message));
         auto w = NWait::WaitAny(f, p.GetFuture());
         UNIT_ASSERT_EXCEPTION_SATISFIES(w.TryRethrow(), yexception, [message](auto const& e) {
@@ -81,7 +81,7 @@ Y_UNIT_TEST_SUITE(TWaitAnyTest) {
         auto w = NWait::WaitAny(TVector<TFuture<void>>{ p.GetFuture() });
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
-        constexpr auto message = AsStringBuf("Test exception 3");
+        constexpr TStringBuf message = "Test exception 3";
         p.SetException(std::make_exception_ptr(yexception() << message));
         UNIT_ASSERT_EXCEPTION_SATISFIES(w.TryRethrow(), yexception, [message](auto const& e) {
             return message == e.what();
@@ -121,7 +121,7 @@ Y_UNIT_TEST_SUITE(TWaitAnyTest) {
         auto w = NWait::WaitAny(TVector<TFuture<void>>{ p1.GetFuture(), p2.GetFuture(), p3.GetFuture() });
         UNIT_ASSERT(!w.HasValue() && !w.HasException());
 
-        constexpr auto message = AsStringBuf("Test exception 4");
+        constexpr TStringBuf message = "Test exception 4";
         p2.SetException(std::make_exception_ptr(yexception() << message));
         UNIT_ASSERT_EXCEPTION_SATISFIES(w.TryRethrow(), yexception, [message](auto const& e) {
             return message == e.what();

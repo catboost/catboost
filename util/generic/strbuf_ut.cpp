@@ -223,7 +223,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
     }
 
     Y_UNIT_TEST(TestRFind) {
-        TStringBuf buf1 = AsStringBuf("123123456");
+        TStringBuf buf1 = "123123456";
         UNIT_ASSERT_EQUAL(buf1.rfind('3'), 5);
         UNIT_ASSERT_EQUAL(buf1.rfind('4'), 6);
         UNIT_ASSERT_EQUAL(buf1.rfind('7'), TStringBuf::npos);
