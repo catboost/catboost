@@ -50,6 +50,10 @@ public:
     using TStringView::data;
 
     using TStringView::operator[];
+    using TBase::operator==;
+    bool operator== (TBasicStringBuf other) const noexcept {
+        return TBase::operator==(other);
+    }
     /*
      * WARN:
      * TBase::at silently return 0 in case of range error,
