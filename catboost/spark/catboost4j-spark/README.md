@@ -257,7 +257,6 @@ Known limitations
 * GPU is not supported. Work in progress.
 * Text features are not supported. Work in progress.
 * Model analysis like feature importance and feature statistics with datasets on Spark is not supported. But it is possible to run such analysis with models exported to local files in usual CatBoost format.
-* Model export in non-default formats is not supported. But it is possible to convert models exported to local files in usual CatBoost format using other CatBoost APIs.
 * Generic string class labels are not supported. String class labels can be used only if these strings represent integer indices.
 * ``boosting_type=Ordered`` is not supported.
 * Training of models with non-symmetric trees is not supported. But such models can be loaded and applied on datasets in Spark.
