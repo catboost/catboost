@@ -485,7 +485,7 @@ def do_link_exe(args):
         if args.musl:
             cmd.append('-linkmode=external')
             extldflags.append('-static')
-            filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
+            filter_musl = lambda x: x not in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
         extldflags += [x for x in args.extldflags if filter_musl(x)]
     cgo_peers = []
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:

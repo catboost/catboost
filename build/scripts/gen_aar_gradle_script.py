@@ -267,6 +267,7 @@ private def extractClassesJar(aarPath, outputPath) {{
 
 """
 
+
 def gen_build_script(args):
 
     def wrap(items):
