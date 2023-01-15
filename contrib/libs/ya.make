@@ -42,6 +42,7 @@ RECURSE(
     re2
     snappy
     sqlite3
+    tbb
     tensorboard
     xxhash
     zlib
