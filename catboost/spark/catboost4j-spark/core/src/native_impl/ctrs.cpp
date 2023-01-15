@@ -3,6 +3,7 @@
 #include "quantized_features_info.h"
 
 #include <catboost/private/libs/algo/index_hash_calcer.h>
+#include <catboost/private/libs/algo_helpers/scratch_cache.h>
 #include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/system_options.h>
 
@@ -214,6 +215,8 @@ void ComputeEstimatedCtrFeatures(
 
     TEstimatedColumnsDataWriter dataWriter(dataSizes);
 
+    NCB::TScratchCache scratchCache;
+
     const auto& featuresLayout = *(learnData->GetFeaturesLayout());
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&] (TCatFeatureIdx catFeatureIdx) {
@@ -229,6 +232,7 @@ void ComputeEstimatedCtrFeatures(
                 targetStats.TargetClassesCount,
                 catBoostOptions.CatFeatureParams,
                 localExecutor,
+                &scratchCache,
                 &dataWriter
             );
         }

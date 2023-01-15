@@ -16,6 +16,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/bitops.h>
+#include <util/generic/scope.h>
 #include <util/generic/utility.h>
 #include <util/generic/variant.h>
 #include <util/generic/xrange.h>
@@ -65,56 +66,38 @@ TConstArrayRef<ui8> TPrecomputedOnlineCtr::GetData(const TCtr& ctr, ui32 dataset
     return TConstArrayRef<ui8>(*arraySubset.GetSrc(), dataProvider.GetObjectCount());
 }
 
-
-struct TCtrCalcer {
-    template <typename T>
-    T* Alloc(size_t count) {
-        static_assert(std::is_pod<T>::value, "expected POD type");
-        const size_t neededSize = count * sizeof(T);
-        if (neededSize > Storage.size()) {
-            Storage.yresize(neededSize);
-        }
-        Fill(Storage.begin(), Storage.end(), 0);
-        return (T*)Storage.data();
-    }
-    static inline TArrayRef<TCtrMeanHistory> GetCtrMeanHistoryArr(size_t maxCount) {
-        return TArrayRef<TCtrMeanHistory>(
-            FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrMeanHistory>(maxCount), maxCount);
-    }
-    static inline TArrayRef<int> GetIntArr(size_t maxCount) {
-        return TArrayRef<int>(FastTlsSingleton<TCtrCalcer>()->Alloc<int>(maxCount), maxCount);
-    }
-    static inline int* GetCtrArrTotal(size_t maxCount) {
-        return FastTlsSingleton<TCtrCalcer>()->Alloc<int>(maxCount);
-    }
-
-private:
-    TVector<char> Storage;
-};
-
+namespace {
 struct TBucketsView {
     size_t MaxElem = 0;
     size_t BorderCount = 0;
-    int* Data = 0;
-    int* BucketData = 0;
+    TAtomicSharedPtr<TVector<ui8>> DataPtr;
+    TArrayRef<int> Data;
+    TArrayRef<int> BucketData;
+    NCB::TScratchCache& ScratchCacheRef;
 
 public:
-    TBucketsView(size_t maxElem, size_t borderCount)
+    TBucketsView(size_t maxElem, size_t borderCount, NCB::TScratchCache* scratchCache)
         : MaxElem(maxElem)
-        , BorderCount(borderCount) {
-
-        Data = FastTlsSingleton<TCtrCalcer>()->Alloc<int>(MaxElem * (BorderCount + 1));
-        BucketData = Data + MaxElem;
+        , BorderCount(borderCount)
+        , DataPtr(scratchCache->GetScratchBlob())
+        , ScratchCacheRef(*scratchCache)
+    {
+        Data = PrepareScratchBlob<int>(MaxElem * (BorderCount + 1), DataPtr.Get());
+        BucketData = MakeArrayRef<int>(Data.data() + MaxElem, MaxElem * BorderCount);
+    }
+    ~TBucketsView() {
+        ScratchCacheRef.ReleaseScratchBlob(DataPtr);
     }
     inline int& GetTotal(size_t i) {
         Y_ASSERT(i < MaxElem);
-        return *(Data + i);
+        return Data[i];
     }
     inline TArrayRef<int> GetBorders(size_t i) {
         Y_ASSERT(i < MaxElem);
-        return TArrayRef<int>(BucketData + BorderCount * i, BorderCount);
+        return TArrayRef<int>(BucketData.data() + BorderCount * i, BorderCount);
     }
 };
+}
 
 void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVector<float>* norm) {
     shift->yresize(priors.size());
@@ -160,7 +143,7 @@ namespace {
 
 static void CalcOnlineCTRClasses(
     const TVector<size_t>& testOffsets,
-    const TVector<ui64>& enumeratedCatFeatures,
+    TConstArrayRef<ui64> enumeratedCatFeatures,
     size_t leafCount,
     const TVector<int>& permutedTargetClass,
     int targetClassesCount,
@@ -169,6 +152,7 @@ static void CalcOnlineCTRClasses(
     int ctrBorderCount,
     ECtrType ctrType,
     ui32 ctrIdx,
+    NCB::TScratchCache* scratchCache,
     IOnlineCtrProjectionDataWriter* writer) {
 
     TVector<float> shift;
@@ -179,7 +163,7 @@ static void CalcOnlineCTRClasses(
     const int blockSize = (1000 + targetBorderCount - 1) / targetBorderCount + 100;
     TVector<int> totalCountByDoc(blockSize);
     TVector<TVector<int>> goodCountByBorderByDoc(targetBorderCount, TVector<int>(blockSize));
-    TBucketsView bv(leafCount, targetClassesCount);
+    TBucketsView bv(leafCount, targetClassesCount, scratchCache);
 
     auto calcGoodCounts = [&](int blockStart, int nextBlockStart, int datasetIdx) {
         auto docOffset = datasetIdx ? testOffsets[datasetIdx - 1] : 0;
@@ -293,6 +277,7 @@ static void CalcQuantizedCtrs(
     TConstArrayRef<float> norms,
     int ctrBorderCount,
     NPar::ILocalExecutor* localExecutor,
+    NCB::TScratchCache* scratchCache,
     TArrayRef<TVector<TCtrHistory>> perBlockCtrs,
     ui32 ctrIdx,
     IOnlineCtrProjectionDataWriter* writer
@@ -306,11 +291,13 @@ static void CalcQuantizedCtrs(
     localExecutor->ExecRange(
         [&] (int blockIdx) {
             const TArrayRef<TCtrHistory> ctrArrSimple(perBlockCtrs[blockIdx]);
-            auto totalCount = TCtrCalcer::GetIntArr(2 * BlockSize).data();
-            auto goodCount = totalCount + BlockSize;
+            auto totalCountPtr = scratchCache->GetScratchBlob();
+            Y_DEFER { scratchCache->ReleaseScratchBlob(totalCountPtr); };
+            auto totalCount = PrepareScratchBlob<int>(2 * BlockSize, totalCountPtr.Get());
+            auto goodCount = totalCount.data() + BlockSize;
 
             int docOffset = blockSize * blockIdx;
-            auto calcGoodCount = [&](int blockStart, int nextBlockStart, int /*datasetIdx*/) {
+            auto calcGoodCount = [&, totalCount = totalCount](int blockStart, int nextBlockStart, int /*datasetIdx*/) {
                 for (int docIdx : xrange(blockStart, nextBlockStart)) {
                     auto& elem = ctrArrSimple[enumeratedCatFeatures[docOffset + docIdx]].N;
                     goodCount[docIdx - blockStart] = elem[1];
@@ -319,24 +306,25 @@ static void CalcQuantizedCtrs(
                 }
             };
 
-            auto calcCtrs = [&](int blockStart, int nextBlockStart, int datasetIdx) {
+            auto calcCtrs = [&, totalCount = totalCount](int blockStart, int nextBlockStart, int datasetIdx) {
                 for (int priorIdx : xrange(priors.ysize())) {
                     const float prior = priors[priorIdx];
                     const float shift = shifts[priorIdx];
                     const float norm = norms[priorIdx];
+                    const int borderCount = ctrBorderCount;
                     ui8* featureData = writer->GetDataBuffer(
                         ctrIdx,
                         /*targetBorderIdx*/ 0,
                         priorIdx,
                         datasetIdx).data();
-                    for (int docIdx : xrange(blockStart, nextBlockStart)) {
+                    for (auto docIdx : xrange(blockStart, nextBlockStart)) {
                         featureData[docOffset + docIdx] = CalcCTR(
                             goodCount[docIdx - blockStart],
                             totalCount[docIdx - blockStart],
                             prior,
                             shift,
                             norm,
-                            ctrBorderCount);
+                            borderCount);
                     }
                 }
             };
@@ -355,13 +343,14 @@ static void CalcQuantizedCtrs(
 
 static void CalcOnlineCTRSimple(
     const TVector<size_t>& testOffsets,
-    const TVector<ui64>& enumeratedCatFeatures,
+    TConstArrayRef<ui64> enumeratedCatFeatures,
     size_t uniqueValuesCount,
     const TVector<int>& permutedTargetClass,
     const TVector<float>& priors,
     int ctrBorderCount,
     ui32 ctrIdx,
     NPar::ILocalExecutor* localExecutor,
+    NCB::TScratchCache* scratchCache,
     IOnlineCtrProjectionDataWriter* writer) {
 
     const int learnSampleCount = testOffsets[0];
@@ -393,16 +382,19 @@ static void CalcOnlineCTRSimple(
         norms,
         ctrBorderCount,
         localExecutor,
+        scratchCache,
         perBlockCtrs,
         ctrIdx,
         writer);
 
     constexpr int BlockSize = 1000;
     const TArrayRef<TCtrHistory> ctrArrSimple(ctrsForTest);
-    auto totalCount = TCtrCalcer::GetIntArr(2 * BlockSize).data();
-    auto goodCount = totalCount + BlockSize;
+    auto totalCountPtr = scratchCache->GetScratchBlob();
+    Y_DEFER { scratchCache->ReleaseScratchBlob(totalCountPtr); };
+    auto totalCount = NCB::PrepareScratchBlob<int>(2 * BlockSize, totalCountPtr.Get());
+    auto goodCount = totalCount.data() + BlockSize;
 
-    auto calcGoodCount = [&](int blockStart, int nextBlockStart, int datasetIdx) {
+    auto calcGoodCount = [&, totalCount = totalCount](int blockStart, int nextBlockStart, int datasetIdx) {
         Y_ASSERT(datasetIdx >= 1);
         auto docOffset = testOffsets[datasetIdx - 1];
         for (int docIdx : xrange(blockStart, nextBlockStart)) {
@@ -412,7 +404,7 @@ static void CalcOnlineCTRSimple(
         }
     };
 
-    auto calcCtrs = [&](int blockStart, int nextBlockStart, int datasetIdx) {
+    auto calcCtrs = [&, totalCount = totalCount](int blockStart, int nextBlockStart, int datasetIdx) {
         for (int priorIdx : xrange(priors.ysize())) {
             const float prior = priors[priorIdx];
             const float shift = shifts[priorIdx];
@@ -444,13 +436,14 @@ static void CalcOnlineCTRSimple(
 
 static void CalcOnlineCTRMean(
     const TVector<size_t>& testOffsets,
-    const TVector<ui64>& enumeratedCatFeatures,
+    TConstArrayRef<ui64> enumeratedCatFeatures,
     size_t leafCount,
     const TVector<int>& permutedTargetClass,
     int targetBorderCount,
     const TVector<float>& priors,
     int ctrBorderCount,
     ui32 ctrIdx,
+    NCB::TScratchCache* scratchCache,
     IOnlineCtrProjectionDataWriter* writer) {
 
     TVector<float> shift;
@@ -460,7 +453,9 @@ static void CalcOnlineCTRMean(
     const int blockSize = 1000;
     TVector<float> sum(blockSize);
     TVector<int> count(blockSize);
-    auto ctrArrMean = TCtrCalcer::GetCtrMeanHistoryArr(leafCount);
+    auto ctrArrMeanPtr = scratchCache->GetScratchBlob();
+    Y_DEFER { scratchCache->ReleaseScratchBlob(ctrArrMeanPtr); };
+    auto ctrArrMean = NCB::PrepareScratchBlob<TCtrMeanHistory>(leafCount, ctrArrMeanPtr.Get());
 
     auto calcCount = [&](int blockStart, int nextBlockStart, int datasetIdx) {
         auto docOffset = datasetIdx == 0 ? 0 : testOffsets[datasetIdx - 1];
@@ -508,20 +503,24 @@ static void CalcOnlineCTRMean(
 static void CalcOnlineCTRCounter(
     const TVector<size_t>& testOffsets,
     const TVector<int>& counterCTRTotal,
-    const TVector<ui64>& enumeratedCatFeatures,
+    TConstArrayRef<ui64> enumeratedCatFeatures,
     int denominator,
     const TVector<float>& priors,
     int ctrBorderCount,
     ui32 ctrIdx,
+    NCB::TScratchCache* scratchCache,
     IOnlineCtrProjectionDataWriter* writer) {
 
     TVector<float> shift;
     TVector<float> norm;
     CalcNormalization(priors, &shift, &norm);
 
-    const int blockSize = 1000;
-    auto ctrTotal = TCtrCalcer::GetCtrArrTotal(blockSize);
-    auto calcTotal = [&](int blockStart, int nextBlockStart, int datasetIdx) {
+    constexpr int BlockSize = 1000;
+    auto ctrTotalPtr = scratchCache->GetScratchBlob();
+    Y_DEFER { scratchCache->ReleaseScratchBlob(ctrTotalPtr); };
+    auto ctrTotal = PrepareScratchBlob<int>(BlockSize, ctrTotalPtr.Get());
+
+    auto calcTotal = [&, ctrTotal = ctrTotal](int blockStart, int nextBlockStart, int datasetIdx) {
         auto docOffset = datasetIdx ? testOffsets[datasetIdx - 1] : 0;
         for (int docId = blockStart; docId < nextBlockStart; ++docId) {
             const auto elemId = enumeratedCatFeatures[docOffset + docId];
@@ -529,11 +528,13 @@ static void CalcOnlineCTRCounter(
         }
     };
 
-    auto calcCTRs = [&](int blockStart, int nextBlockStart, int datasetIdx) {
+    auto calcCTRs = [&, ctrTotal = ctrTotal](int blockStart, int nextBlockStart, int datasetIdx) {
         for (int prior = 0; prior < priors.ysize(); ++prior) {
             const float priorX = priors[prior];
             const float shiftX = shift[prior];
             const float normX = norm[prior];
+            const int totalCount = denominator;
+            const int borderCount = ctrBorderCount;
             ui8* featureData = writer->GetDataBuffer(
                 ctrIdx,
                 /*targetBorderIdx*/ 0,
@@ -542,16 +543,16 @@ static void CalcOnlineCTRCounter(
             for (int docId = blockStart; docId < nextBlockStart; ++docId) {
                 featureData[docId] = CalcCTR(
                     ctrTotal[docId - blockStart],
-                    denominator,
+                    totalCount,
                     priorX,
                     shiftX,
                     normX,
-                    ctrBorderCount);
+                    borderCount);
             }
         }
     };
 
-    TBlockedCalcer calcer(blockSize);
+    TBlockedCalcer calcer(BlockSize);
     const size_t learnSampleCount = testOffsets[0];
     calcer.Calc(calcTotal, calcCTRs, 0, learnSampleCount);
     for (size_t testIdx = 0; testIdx < testOffsets.size() - 1; ++testIdx) {
@@ -561,7 +562,7 @@ static void CalcOnlineCTRCounter(
 }
 
 static inline void CountOnlineCTRTotal(
-    const TVector<ui64>& hashArr,
+    TConstArrayRef<ui64> hashArr,
     int sampleCount,
     TVector<int>* counterCTRTotal) {
 
@@ -605,6 +606,7 @@ void ComputeOnlineCTRs(
     const TVector<int>& foldTargetClassesCount,
     const NCatboostOptions::TCatFeatureParams& catFeatureParams,
     NPar::ILocalExecutor* localExecutor,
+    NCB::TScratchCache* scratchCache,
     IOnlineCtrProjectionDataWriter* writer) {
 
     const auto& ctrInfo = ctrHelper.GetCtrInfo(proj);
@@ -615,12 +617,11 @@ void ComputeOnlineCTRs(
 
     const auto& quantizedFeaturesInfo = *data.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
-    using THashArr = TVector<ui64>;
-    using TRehashHash = TDenseHash<ui64, ui32>;
-    Y_STATIC_THREAD(THashArr) tlsHashArr;
-    Y_STATIC_THREAD(TRehashHash) rehashHashTlsVal;
-    TVector<ui64>& hashArr = tlsHashArr.Get();
-    hashArr.yresize(totalSampleCount);
+    auto hashArrPtr = scratchCache->GetScratchBlob();
+    Y_DEFER { scratchCache->ReleaseScratchBlob(hashArrPtr); };
+    auto hashArr = NCB::GrowScratchBlob<ui64>(totalSampleCount, hashArrPtr.Get());
+    auto rehashHashVal = scratchCache->GetScratchHash();
+    Y_DEFER { scratchCache->ReleaseScratchHash(rehashHashVal); };
 
     if (proj.IsSingleCatFeature()) {
         // Shortcut for simple ctrs
@@ -648,7 +649,7 @@ void ComputeOnlineCTRs(
             );
             docOffset += testSampleCount;
         }
-        rehashHashTlsVal.Get().MakeEmpty(
+        rehashHashVal->MakeEmpty(
             quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(proj.CatFeatures[0])).OnLearnOnly
         );
     } else {
@@ -683,7 +684,7 @@ void ComputeOnlineCTRs(
                 break;
             }
         }
-        rehashHashTlsVal.Get().MakeEmpty(Min(learnSampleCount, approxBucketsCount));
+        rehashHashVal->MakeEmpty(Min(learnSampleCount, approxBucketsCount));
     }
     ui64 topSize = catFeatureParams.CtrLeafCountLimit;
     if (proj.IsSingleCatFeature() && catFeatureParams.StoreAllSimpleCtrs) {
@@ -691,7 +692,7 @@ void ComputeOnlineCTRs(
     }
     auto leafCount = ComputeReindexHash(
         topSize,
-        rehashHashTlsVal.GetPtr(),
+        rehashHashVal.Get(),
         hashArr.begin(),
         hashArr.begin() + learnSampleCount);
 
@@ -704,7 +705,7 @@ void ComputeOnlineCTRs(
     {
         const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
         leafCount = UpdateReindexHash(
-            rehashHashTlsVal.GetPtr(),
+            rehashHashVal.Get(),
             hashArr.begin() + docOffset,
             hashArr.begin() + docOffset + testSampleCount);
         docOffset += testSampleCount;
@@ -721,7 +722,7 @@ void ComputeOnlineCTRs(
         int sampleCount = learnSampleCount;
         if (catFeatureParams.CounterCalcMethod == ECounterCalc::Full) {
             uniqValuesCounts.CounterCount = leafCount;
-            sampleCount = hashArr.ysize();
+            sampleCount = hashArr.size();
         }
         CountOnlineCTRTotal(hashArr, sampleCount, &counterCTRTotal);
         counterCTRDenominator = *MaxElement(counterCTRTotal.begin(), counterCTRTotal.end());
@@ -749,6 +750,7 @@ void ComputeOnlineCTRs(
                     ctrBorderCount,
                     ctrIdx,
                     localExecutor,
+                    scratchCache,
                     writer);
 
             } else if (ctrType == ECtrType::BinarizedTargetMeanValue) {
@@ -761,6 +763,7 @@ void ComputeOnlineCTRs(
                     priors,
                     ctrBorderCount,
                     ctrIdx,
+                    scratchCache,
                     writer);
 
             } else if (ctrType == ECtrType::Buckets ||
@@ -776,6 +779,7 @@ void ComputeOnlineCTRs(
                     ctrBorderCount,
                     ctrType,
                     ctrIdx,
+                    scratchCache,
                     writer);
             } else {
                 Y_ASSERT(ctrType == ECtrType::Counter);
@@ -787,6 +791,7 @@ void ComputeOnlineCTRs(
                     priors,
                     ctrBorderCount,
                     ctrIdx,
+                    scratchCache,
                     writer);
             }
         },
@@ -845,7 +850,7 @@ void ComputeOnlineCTRs(
     const TTrainingDataProviders& data,
     const TFold& fold,
     const TProjection& proj,
-    const TLearnContext* ctx,
+    TLearnContext* ctx,
     TOwnedOnlineCtr* onlineCtrStorage) {
 
     TOnlineCtrPerProjectionDataWriter onlineCtrWriter(
@@ -862,6 +867,7 @@ void ComputeOnlineCTRs(
         fold.TargetClassesCount,
         ctx->Params.CatFeatureParams.Get(),
         ctx->LocalExecutor,
+        &ctx->ScratchCache,
         &onlineCtrWriter
     );
 }
