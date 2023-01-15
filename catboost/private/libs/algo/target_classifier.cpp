@@ -56,6 +56,7 @@ TTargetClassifier BuildTargetClassifier(
         "target in train should not be constant");
 
     switch (loss) {
+        case ELossFunction::Cox:
         case ELossFunction::RMSE:
         case ELossFunction::MultiRMSE:
         case ELossFunction::SurvivalAft:

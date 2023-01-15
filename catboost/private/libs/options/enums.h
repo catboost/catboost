@@ -133,6 +133,7 @@ enum class ELossFunction {
     SMAPE,
     Huber,
     Tweedie,
+    Cox,
 
     RMSEWithUncertainty,
 

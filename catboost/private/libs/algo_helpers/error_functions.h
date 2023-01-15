@@ -328,6 +328,35 @@ private:
     }
 };
 
+class TCoxError final : public IDerCalcer {
+public:
+    explicit TCoxError(bool isExpApprox, ui32 maxDerivativeOrder = 3)
+        : IDerCalcer(isExpApprox, maxDerivativeOrder)
+    {
+    }
+
+    void CalcDersRange(
+        int start,
+        int count,
+        bool calcThirdDer,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        TDers* ders
+    ) const;
+
+    void CalcFirstDerRange(
+        int start,
+        int count,
+        const double* approxes,
+        const double* approxDeltas,
+        const float* targets,
+        const float* weights,
+        double* firstDers
+    ) const;
+};
+
 class TQuantileError final : public IDerCalcer {
 public:
     static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;

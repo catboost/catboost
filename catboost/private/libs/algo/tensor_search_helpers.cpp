@@ -184,6 +184,8 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TCrossEntropyError>(isStoreExpApprox);
         case ELossFunction::RMSE:
             return MakeHolder<TRMSEError>(isStoreExpApprox);
+        case ELossFunction::Cox:
+            return MakeHolder<TCoxError>(isStoreExpApprox);
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
@@ -641,21 +643,32 @@ void CalcWeightedDerivatives(
                 blockParams.GetBlockCount(),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
         } else if (approxDimension == 1) {
-            localExecutor->ExecRangeWithThrow(
-                [&](int blockId) {
-                    const int blockOffset = blockId * blockParams.GetBlockSize();
-                    error.CalcFirstDerRange(
-                        blockOffset,
-                        Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
-                        approx[0].data(),
-                        nullptr, // no approx deltas
-                        target.data(),
-                        weight.data(),
-                        (*weightedDerivatives)[0].data());
-                },
-                0,
-                blockParams.GetBlockCount(),
-                NPar::TLocalExecutor::WAIT_COMPLETE);
+            if (dynamic_cast<const TCoxError*>(&error) == nullptr) {
+                localExecutor->ExecRangeWithThrow(
+                    [&](int blockId) {
+                        const int blockOffset = blockId * blockParams.GetBlockSize();
+                        error.CalcFirstDerRange(
+                            blockOffset,
+                            Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
+                            approx[0].data(),
+                            nullptr, // no approx deltas
+                            target.data(),
+                            weight.data(),
+                            (*weightedDerivatives)[0].data());
+                    },
+                    0,
+                    blockParams.GetBlockCount(),
+                    NPar::TLocalExecutor::WAIT_COMPLETE);
+            } else {
+                error.CalcFirstDerRange(
+                    /*start*/ 0,
+                    /*count*/ target.size(),
+                    /*approx*/ approx[0].data(),
+                    /*approx deltas*/ nullptr,
+                    /*targets*/ target.data(),
+                    /*weights*/ weight.data(),
+                    /*first ders*/ (*weightedDerivatives)[0].data());
+            }
         } else {
             localExecutor->ExecRangeWithThrow(
                 [&](int blockId) {

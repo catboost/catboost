@@ -4998,6 +4998,58 @@ def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_cox_regression():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_calc_path = yatest.common.test_output_path('test.calc')
+    output_metric_path = yatest.common.test_output_path('test.metric')
+
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', 'Cox',
+        '-f', data_file('patients', 'train'),
+        '-t', data_file('patients', 'test'),
+        '--column-description', data_file('patients', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '1',
+        '--bootstrap-type', 'No',
+        '--random-strength', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--column-description', data_file('patients', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('patients', 'test'),
+        '-o', output_calc_path  
+    )
+    yatest.common.execute(cmd_calc)
+
+    cmd_metric = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--column-description', data_file('patients', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('patients', 'test'),
+        '-o', output_metric_path,
+        '--metrics', 'Cox'
+    )
+    yatest.common.execute(cmd_metric)
+
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(output_calc_path),
+        local_canonical_file(output_metric_path)
+    ]
+
+
 def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', test_schema='', dev_score_calc_obj_block_size=None, other_options=()):
     pool_path = schema + data_file(pool, train)
     test_path = test_schema + data_file(pool, test)

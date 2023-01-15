@@ -683,6 +683,113 @@ void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
+/* Cox partial loss */
+
+namespace {
+    struct TCoxMetric final: public TNonAdditiveMetric {
+        explicit TCoxMetric(const TLossParams& params)
+            : TNonAdditiveMetric(ELossFunction::Cox, params)
+        {}
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder Eval(
+            const TVector<TVector<double>>& approx,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end,
+            NPar::ILocalExecutor& executor) const override {
+                return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+        }
+        TMetricHolder Eval(
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end,
+            NPar::ILocalExecutor& executor) const override;
+
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    };
+}
+
+TVector<THolder<IMetric>> TCoxMetric::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TCoxMetric>(config.Params));
+}
+
+TMetricHolder TCoxMetric::Eval(
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
+            bool isExpApprox,
+            TConstArrayRef<float> targets,
+            TConstArrayRef<float> /*weight*/,
+            TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+            int /*begin*/,
+            int /*end*/,
+            NPar::ILocalExecutor& /*executor*/) const {
+    Y_ASSERT(!isExpApprox);
+
+    TMetricHolder error(2);
+    error.Stats[1] = 1;
+
+    TVector<size_t> labelOrder(targets.ysize());
+    std::iota(labelOrder.begin(), labelOrder.end(), 0);
+    std::sort(labelOrder.begin(), labelOrder.end(), [&]
+        (size_t lhs, size_t rhs){
+            return std::abs(targets[lhs]) < std::abs(targets[rhs]);
+        }
+    );
+
+    const yssize_t ndata = targets.ysize();
+    double expPSum = 0;
+    for (yssize_t i = 0; i < ndata; ++i) {
+        expPSum += std::exp(approx[0][i]);
+    }
+
+    double lastExpP = 0.0;
+    double lastAbsY = 0.0;
+    double accumulatedSum = 0;
+    for (yssize_t i = 0; i < ndata; ++i) {
+        const size_t ind = labelOrder[i];
+
+        const double y = targets[ind];
+        const double absY = std::abs(y);
+
+        const double p = approx[0][ind];
+        const double expP = std::exp(p);
+
+        accumulatedSum += lastExpP;
+        if (lastAbsY < absY) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
+        }
+
+        if (y > 0) {
+            error.Stats[0] += p - std::log(expPSum);
+        }
+
+        lastAbsY = absY;
+        lastExpP = expP;
+    }
+    error.Stats[0] = - error.Stats[0];
+
+    return error;
+}
+
+double TCoxMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[0];
+}
+
+void TCoxMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* Lq */
 
 namespace {
@@ -5273,6 +5380,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
             break;
         case ELossFunction::Combination:
             AppendTemporaryMetricsVector(TCombinationLoss::Create(config), &result);
+            break;
+        case ELossFunction::Cox:
+            AppendTemporaryMetricsVector(TCoxMetric::Create(config), &result);
             break;
         default: {
             result = CreateCachingMetrics(config);
