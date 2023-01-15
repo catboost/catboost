@@ -3981,7 +3981,6 @@ class CatBoost(_CatBoostBase):
             fig = plot_features_selection_loss_graph(summary)
             fig.show()
 
-        summary.pop('loss_graph')  # required only for graph plotting
         return summary
 
     def _convert_to_asymmetric_representation(self):
