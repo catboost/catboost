@@ -203,8 +203,8 @@ def hardlink_or_copy(src, lnk):
     def should_fallback_to_copy(exc):
         if WindowsError is not None and isinstance(exc, WindowsError) and exc.winerror == 1142:  # too many hardlinks
             return True
-        # cross-device hardlink or too many hardlinks
-        if isinstance(exc, OSError) and (exc.errno == errno.EXDEV or exc.errno == errno.EMLINK or exc.errno == errno.EINVAL or exc.errno == errno.EACCES):
+        # cross-device hardlink or too many hardlinks, or some known WSL error
+        if isinstance(exc, OSError) and exc.errno in (errno.EXDEV, errno.EMLINK, errno.EINVAL, errno.EACCES, errno.EPERM, ):
             return True
         return False
 
