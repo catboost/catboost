@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY23_TEST()
 
 TEST_SRCS(test_strings.py)
 
