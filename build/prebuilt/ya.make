@@ -2,6 +2,7 @@
 
 RECURSE(
     cpp_styleguide
+    enum_parser
     grpc_cpp
     grpc_java
     grpc_python

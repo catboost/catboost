@@ -1,30 +1,22 @@
-PROGRAM()
 
 
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/enum_parser/ya.make.prebuilt)
+ENDIF()
 
-SRCS(
-    main.cpp
-)
+IF (NOT PREBUILT)
+    PROGRAM()
 
-INDUCED_DEPS(h+cpp
-    ${ARCADIA_ROOT}/util/generic/typetraits.h
-    ${ARCADIA_ROOT}/util/generic/singleton.h
-    ${ARCADIA_ROOT}/util/generic/string.h
-    ${ARCADIA_ROOT}/util/generic/vector.h
-    ${ARCADIA_ROOT}/util/generic/map.h
-    ${ARCADIA_ROOT}/util/string/cast.h
-    ${ARCADIA_ROOT}/util/stream/output.h
-    ${ARCADIA_ROOT}/tools/enum_parser/enum_serialization_runtime/enum_runtime.h
-    ${ARCADIA_ROOT}/tools/enum_parser/enum_parser/stdlib_deps.h
-)
+    SRCS(
+        main.cpp
+    )
 
-INDUCED_DEPS(h
-    ${ARCADIA_ROOT}/util/generic/serialized_enum.h
-)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/enum_parser/ya.make.induced_deps)
 
-PEERDIR(
-    library/cpp/getopt/small
-    tools/enum_parser/parse_enum
-)
+    PEERDIR(
+        library/cpp/getopt/small
+        tools/enum_parser/parse_enum
+    )
 
-END()
+    END()
+ENDIF()
