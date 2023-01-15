@@ -1,14 +1,10 @@
 
 
-IF (USE_PREBUILT_TOOLS AND VALID_HOST_PLATFORM_FOR_COMMON_PREBUILT_TOOLS)
-    PREBUILT_PROGRAM()
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/grpc_java/ya.make.prebuilt)
+ENDIF()
 
-    PEERDIR(build/external_resources/arcadia_grpc_java)
-
-    PRIMARY_OUTPUT(${ARCADIA_GRPC_JAVA_RESOURCE_GLOBAL}/grpc_java${MODULE_SUFFIX})
-
-    END()
-ELSE()
+IF (NOT PREBUILT)
     PROGRAM()
 
     NO_COMPILER_WARNINGS()
