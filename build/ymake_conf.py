@@ -92,11 +92,8 @@ class Platform(object):
         self.is_cygwin = self.os == 'cygwin'
         self.is_freebsd = self.os == 'freebsd'
         self.is_yocto = self.os == 'yocto'
-        self.is_yocto_lg_wk7y = self.os == 'yocto_lg_wk7y' and self.is_armv7
-        self.is_yocto_jbl_portable_music = self.os == 'yocto_jbl_portable_music' and self.is_armv7
-        self.is_yocto_aacrh64_lightcomm_mt8516 = self.os == 'yocto_lightcomm' and self.is_armv8
 
-        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto or self.is_yocto_lg_wk7y or self.is_yocto_jbl_portable_music or self.is_yocto_aacrh64_lightcomm_mt8516
+        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto
 
     @staticmethod
     def from_json(data):
@@ -1029,7 +1026,7 @@ class GnuToolchain(Toolchain):
         def get_os_sdk(target):
             if target.is_macos:
                 return '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk'
-            elif target.is_yocto or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516:
+            elif target.is_yocto:
                 return '$YOCTO_SDK_RESOURCE_GLOBAL'
             return '$OS_SDK_ROOT_RESOURCE_GLOBAL'
 
@@ -1165,16 +1162,6 @@ class GnuToolchain(Toolchain):
 
                 if target.is_yocto:
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
-        elif self.tc.is_gcc and self.tc.version_at_least(6, 3):
-            if self.tc.is_from_arcadia:
-                if target.is_yocto_lg_wk7y:
-                    self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
-                    self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_lg_wk7y_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
-                elif target.is_yocto_jbl_portable_music:
-                    self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
-                    self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_jbl_portable_music_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
-                elif target.is_yocto_aacrh64_lightcomm_mt8516:
-                    self.setup_sdk(project='build/platform/yocto_sdk/yocto_aarch64_lightcomm_mt8516', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -1242,7 +1229,7 @@ class GnuCompiler(Compiler):
             # Arcadia have API 16 for 32-bit Androids.
             self.c_defines.append('-D_FILE_OFFSET_BITS=64')
 
-        if self.target.is_linux or self.target.is_cygwin or self.target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or self.target.is_yocto_aacrh64_lightcomm_mt8516:
+        if self.target.is_linux or self.target.is_cygwin:
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
@@ -1547,7 +1534,7 @@ class Linker(object):
             if self.tc.is_clang:
                 # DEVTOOLSSUPPORT-47 LLD cannot deal with extsearch/images/saas/base/imagesrtyserver
                 self.type = Linker.GOLD if is_positive('USE_LTO') and not is_positive('MUSL') else Linker.LLD
-            elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg_wk7y or self.build.target.is_yocto_jbl_portable_music or self.build.target.is_yocto_aacrh64_lightcomm_mt8516):
+            elif self.tc.is_gcc and self.build.target.is_linux_armv7:
                 self.type = Linker.BFD
             else:
                 self.type = Linker.GOLD
@@ -1664,7 +1651,7 @@ class LD(Linker):
                 self.ld_flags.append('-Wl,-no_compact_unwind')
 
         self.thread_library = select([
-            (target.is_linux or target.is_macos or target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516, '-lpthread'),
+            (target.is_linux or target.is_macos, '-lpthread'),
             (target.is_freebsd, '-lthr')
         ])
 
@@ -1683,7 +1670,7 @@ class LD(Linker):
             self.rdynamic = '-rdynamic'
             self.use_stdlib = '-nodefaultlibs'
 
-        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516:
+        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin:
             self.start_group = '-Wl,--start-group'
             self.end_group = '-Wl,--end-group'
             self.whole_archive = '-Wl,--whole-archive'
