@@ -23,7 +23,9 @@
 #elif defined(__linux__) && defined(__arm__)
 #   include "opensslconf-linux_arm.h"
 #elif defined(_MSC_VER) && defined(_M_X64)
-#   include "opensslconf-win.h"
+#   include "opensslconf-win-x86_64.h"
+#elif defined(_MSC_VER) && defined(_M_IX86)
+#   include "opensslconf-win-i686.h"
 #else
 #   include "opensslconf-linux.h"
 #endif
