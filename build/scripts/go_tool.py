@@ -767,7 +767,7 @@ if __name__ == '__main__':
     parser.add_argument('++output-root', required=True)
     parser.add_argument('++toolchain-root', required=True)
     parser.add_argument('++host-os', choices=['linux', 'darwin', 'windows'], required=True)
-    parser.add_argument('++host-arch', choices=['amd64'], required=True)
+    parser.add_argument('++host-arch', choices=['amd64', 'arm64'], required=True)
     parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
     parser.add_argument('++targ-arch', choices=['amd64', 'x86', 'arm64'], required=True)
     parser.add_argument('++peers', nargs='*')
