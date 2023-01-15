@@ -1903,6 +1903,61 @@ def _assign_with_converter(attr_name, value_var, has_on_setattr):
     )
 
 
+if PY2:
+
+    def _unpack_kw_only_py2(attr_name, default=None):
+        """
+        Unpack *attr_name* from _kw_only dict.
+        """
+        if default is not None:
+            arg_default = ", %s" % default
+        else:
+            arg_default = ""
+        return "%s = _kw_only.pop('%s'%s)" % (
+            attr_name,
+            attr_name,
+            arg_default,
+        )
+
+    def _unpack_kw_only_lines_py2(kw_only_args):
+        """
+        Unpack all *kw_only_args* from _kw_only dict and handle errors.
+        Given a list of strings "{attr_name}" and "{attr_name}={default}"
+        generates list of lines of code that pop attrs from _kw_only dict and
+        raise TypeError similar to builtin if required attr is missing or
+        extra key is passed.
+        >>> print("\n".join(_unpack_kw_only_lines_py2(["a", "b=42"])))
+        try:
+            a = _kw_only.pop('a')
+            b = _kw_only.pop('b', 42)
+        except KeyError as _key_error:
+            raise TypeError(
+                ...
+        if _kw_only:
+            raise TypeError(
+                ...
+        """
+        lines = ["try:"]
+        lines.extend(
+            "    " + _unpack_kw_only_py2(*arg.split("="))
+            for arg in kw_only_args
+        )
+        lines += """\
+except KeyError as _key_error:
+    raise TypeError(
+        '__init__() missing required keyword-only argument: %s' % _key_error
+    )
+if _kw_only:
+    raise TypeError(
+        '__init__() got an unexpected keyword argument %r'
+        % next(iter(_kw_only))
+    )
+""".split(
+            "\n"
+        )
+        return lines
+
+
 def _attrs_to_init_script(
     attrs,
     frozen,
@@ -2155,16 +2210,17 @@ def _attrs_to_init_script(
         lines.append("BaseException.__init__(self, %s)" % (vals,))
 
     args = ", ".join(args)
+
     if kw_only_args:
         if PY2:
-            raise PythonTooOldError(
-                "Keyword-only arguments only work on Python 3 and later."
-            )
+            lines = _unpack_kw_only_lines_py2(kw_only_args) + lines
 
-        args += "{leading_comma}*, {kw_only_args}".format(
-            leading_comma=", " if args else "",
-            kw_only_args=", ".join(kw_only_args),
-        )
+            args += "%s**_kw_only" % (", " if args else "",)  # leading comma
+        else:
+            args += "%s*, %s" % (
+                ", " if args else "",  # leading comma
+                ", ".join(kw_only_args),  # kw_only args
+            )
     return (
         """\
 def __init__(self, {args}):
