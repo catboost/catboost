@@ -868,6 +868,13 @@
                 },
                 {
                     "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -6343,6 +6350,13 @@
                 },
                 {
                     "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -6378,6 +6392,13 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
                     },
                     "default": true
                 },
