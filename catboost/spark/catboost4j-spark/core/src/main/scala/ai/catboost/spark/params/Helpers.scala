@@ -143,6 +143,31 @@ class OrderedStringMapParam[V](
 
 
 private[spark] object Helpers {
+  // difference with Params.getOrDefault is that if default value is undefined this function returns None
+  def getOrDefault(params: Params, param: Param[_]) : Option[_] = {
+    if (params.isSet(param)) {
+      params.get(param)
+    } else {
+      params.getDefault(param)
+    }
+  }
+
+  /** If param is set in both rParams and lParams check that values are equal */
+  def checkParamsCompatibility(lParamsName: String, lParams: Params, rParamsName: String, rParams: Params) = {
+    for (lParam <- lParams.params) {
+      if (rParams.hasParam(lParam.name)) {
+        (getOrDefault(lParams, lParam), getOrDefault(rParams, rParams.getParam(lParam.name))) match {
+          case (Some(lValue), Some(rValue)) if (!lValue.equals(rValue)) =>
+            throw new CatBoostError(
+              s"Both $lParamsName and $rParamsName have parameter ${lParam.name} specified "
+              + s"but with different values: $lValue and $rValue respectively."
+            )
+          case _ => ()
+        }
+      }
+    }
+  }
+
   def checkIncompatibleParams(params: mutable.HashMap[String, Any]) = {
     if (params.contains("ignoredFeaturesIndices") && params.contains("ignoredFeaturesNames")) {
       throw new CatBoostError("params cannot contain both ignoredFeaturesIndices and ignoredFeaturesNames")

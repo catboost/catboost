@@ -47,10 +47,7 @@ trait CatBoostPredictorTrait[
 
   protected override def train(dataset: Dataset[_]): Model = {
     val pool = new Pool(dataset.asInstanceOf[DataFrame])
-      .setLabelCol(getLabelCol)
-      .setFeaturesCol(getFeaturesCol)
-      .setWeightCol(getWeightCol)
-
+    this.copyValues(pool)
     fit(pool)
   }
 
@@ -66,6 +63,21 @@ trait CatBoostPredictorTrait[
    * @return trained model
    */
   def fit(trainPool: Pool, evalPools: Array[Pool] = Array[Pool]()): Model = {
+    ai.catboost.spark.params.Helpers.checkParamsCompatibility(
+      this.getClass.getName,
+      this,
+      "trainPool",
+      trainPool
+    )
+    for (i <- 0 until evalPools.length) {
+      ai.catboost.spark.params.Helpers.checkParamsCompatibility(
+        this.getClass.getName,
+        this,
+        s"evalPool #$i",
+        evalPools(i)
+      )
+    }
+
     val spark = trainPool.data.sparkSession
 
     val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
