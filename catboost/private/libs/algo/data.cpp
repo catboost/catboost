@@ -69,7 +69,7 @@ namespace NCB {
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
         TMaybe<float>* targetBorder,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         TMaybe<TFullModel*> initModel) {
 
@@ -260,7 +260,7 @@ namespace NCB {
     static TTextDataSetPtr CreateTextDataSet(
         const TQuantizedObjectsDataProvider& dataProvider,
         ui32 tokenizedTextFeatureIdx,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const TTextDigitizers& digitizers = dataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers();
         auto dictionary = digitizers.GetDigitizer(tokenizedTextFeatureIdx).Dictionary;
@@ -280,7 +280,7 @@ namespace NCB {
     static TEmbeddingDataSetPtr CreateEmbeddingDataSet(
         const TQuantizedObjectsDataProvider& dataProvider,
         ui32 embeddingFeatureIdx,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const TEmbeddingValuesHolder* embeddingColumn = *dataProvider.GetEmbeddingFeature(embeddingFeatureIdx);
 
@@ -318,7 +318,7 @@ namespace NCB {
     static TFeatureEstimatorsPtr CreateEstimators(
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TTrainingDataProviders pools,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         auto tokenizedFeaturesDescription = quantizedFeaturesInfo->GetTextProcessingOptions().GetTokenizedFeatureDescriptions();
 
@@ -416,7 +416,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         TMaybe<TFullModel*> initModel) {
 

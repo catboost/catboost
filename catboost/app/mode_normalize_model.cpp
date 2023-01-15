@@ -154,7 +154,7 @@ namespace {
             const TFullModel& model,
             const TPathWithScheme& poolPath,
             const TModeParams& modeParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             TMinMax<double> result{+DBL_MAX, -DBL_MAX};
             TMutex result_guard;

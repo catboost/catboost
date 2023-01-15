@@ -5,7 +5,7 @@
 #include "estimated_features_calcer.h"
 
 NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount,
-                                                                                                  NPar::TLocalExecutor* localExecutor) {
+                                                                                                  NPar::ILocalExecutor* localExecutor) {
     TDocParallelDataSetsHolder dataSetsHolder(DataProvider,
                                               FeaturesManager,
                                               LinkedTest);
@@ -175,7 +175,7 @@ void NCatboostCuda::TDocParallelDataSetBuilder::WriteCtrsAndEstimatedFeatures(
     const TVector<ui32>& permutationIndependent,
     const TVector<ui32>& permutationDependent,
     NCatboostCuda::TSharedCompressedIndexBuilder<NCatboostCuda::TDocParallelLayout>* compressedIndexBuilder,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     auto ctrsTarget = BuildCtrTarget(FeaturesManager,
                                         DataProvider,

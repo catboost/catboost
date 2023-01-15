@@ -38,7 +38,7 @@ namespace NCatboostCuda {
 
         class TDirectionEstimator {
         public:
-            TDirectionEstimator(TPointWithFuncInfo&& point, NPar::TLocalExecutor* localExecutor)
+            TDirectionEstimator(TPointWithFuncInfo&& point, NPar::ILocalExecutor* localExecutor)
                 : CurrentPoint(std::move(point))
                 , LocalExecutor(localExecutor)
             {
@@ -120,13 +120,13 @@ namespace NCatboostCuda {
             TPointWithFuncInfo CurrentPoint;
             TVector<float> MoveDirection;
 
-            NPar::TLocalExecutor* LocalExecutor;
+            NPar::ILocalExecutor* LocalExecutor;
         };
     }
 
     TVector<float> TNewtonLikeWalker::Estimate(
         TVector<float> startPoint,
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::ILocalExecutor* localExecutor) {
         startPoint.resize(Oracle.PointDim());
         const int hessianBlockSize = Oracle.HessianBlockSize();
 

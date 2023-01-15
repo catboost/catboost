@@ -94,7 +94,7 @@ namespace NCB {
 
         TCommonObjectsData GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
         void Load(TFeaturesLayoutPtr featuresLayout, ui32 objectCount, IBinSaver* binSaver);
@@ -146,13 +146,13 @@ namespace NCB {
             const TObjectsGroupingSubset& objectsGroupingSubset,
             TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const = 0;
 
         TIntrusivePtr<TObjectsDataProvider> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             return GetSubsetImpl(
                 objectsGroupingSubset,
@@ -164,7 +164,7 @@ namespace NCB {
 
         TIntrusivePtr<TObjectsDataProvider> GetFeaturesSubset(
             const TVector<ui32>& ignoredFeatures,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
         // The following Get* functions are common for all implementations, so they're in this base class
@@ -249,7 +249,7 @@ namespace NCB {
 
             // can be nullptr is there's no categorical features
             const TVector<THashMap<ui32, TString>>* catFeaturesHashToString,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
     };
 
@@ -266,7 +266,7 @@ namespace NCB {
             bool skipCheck,
 
             // needed for check parallelization, can pass Nothing() if skipCheck is true
-            TMaybe<NPar::TLocalExecutor*> localExecutor
+            TMaybe<NPar::ILocalExecutor*> localExecutor
         )
             : TObjectsDataProvider(std::move(objectsGrouping), std::move(commonData), skipCheck)
         {
@@ -293,7 +293,7 @@ namespace NCB {
             const TObjectsGroupingSubset& objectsGroupingSubset,
             TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override;
 
         bool HasDenseData() const override;
@@ -383,7 +383,7 @@ namespace NCB {
         void Check(
             ui32 objectCount,
             const TFeaturesLayout& featuresLayout,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
         void Load(
@@ -410,7 +410,7 @@ namespace NCB {
             bool skipCheck,
 
             // needed for check, can pass Nothing() if skipCheck is true
-            TMaybe<NPar::TLocalExecutor*> localExecutor
+            TMaybe<NPar::ILocalExecutor*> localExecutor
         )
             : TObjectsDataProvider(std::move(objectsGrouping), std::move(commonData), skipCheck)
         {
@@ -433,7 +433,7 @@ namespace NCB {
             const TObjectsGroupingSubset& objectsGroupingSubset,
             TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override;
 
         bool HasDenseData() const override;
@@ -472,7 +472,7 @@ namespace NCB {
             return Data.QuantizedFeaturesInfo;
         }
 
-        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const;
+        ui32 CalcFeaturesCheckSum(NPar::ILocalExecutor* localExecutor) const;
 
     protected:
         friend class TObjectsSerialization;
@@ -529,7 +529,7 @@ namespace NCB {
             TExclusiveFeatureBundlesData* subsetData
         ) const;
 
-        void Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const;
+        void Save(NPar::ILocalExecutor* localExecutor, IBinSaver* binSaver) const;
         void Load(const TArraySubsetIndexing<ui32>* subsetIndexing, IBinSaver* binSaver);
     };
 
@@ -558,7 +558,7 @@ namespace NCB {
             TFeatureGroupsData* subsetData
         ) const;
 
-        void Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const;
+        void Save(NPar::ILocalExecutor* localExecutor, IBinSaver* binSaver) const;
         void Load(const TArraySubsetIndexing<ui32>* subsetIndexing, IBinSaver* binSaver);
     };
 
@@ -591,7 +591,7 @@ namespace NCB {
             TPackedBinaryFeaturesData* subsetData
         ) const;
 
-        void Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const;
+        void Save(NPar::ILocalExecutor* localExecutor, IBinSaver* binSaver) const;
         void Load(const TArraySubsetIndexing<ui32>* subsetIndexing, IBinSaver* binSaver);
     };
 
@@ -642,7 +642,7 @@ namespace NCB {
             bool skipCheck,
 
             // needed for check, can pass Nothing() if skipCheck is true
-            TMaybe<NPar::TLocalExecutor*> localExecutor
+            TMaybe<NPar::ILocalExecutor*> localExecutor
         );
 
         TQuantizedForCPUObjectsDataProvider(
@@ -653,13 +653,13 @@ namespace NCB {
             const TObjectsGroupingSubset& objectsGroupingSubset,
             TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override;
 
         /* needed for effective calculation with Permutation blocks on CPU
          * sparse data is unaffected
          */
-        void EnsureConsecutiveIfDenseFeaturesData(NPar::TLocalExecutor* localExecutor);
+        void EnsureConsecutiveIfDenseFeaturesData(NPar::ILocalExecutor* localExecutor);
 
         // needed for low-level optimizations in CPU training code
         const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {

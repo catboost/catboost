@@ -17,7 +17,7 @@ struct TSplitTree;
 struct TNonSymmetricTreeStructure;
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -35,7 +35,7 @@ void GetObjectsDataAndIndexing(
     bool isOnline,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     TIndexedSubsetCache* indexedSubsetCache,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     NCB::TQuantizedObjectsDataProviderPtr* objectsData,
     const ui32** columnIndexing // can return nullptr
 );
@@ -46,9 +46,9 @@ void SetPermutedIndices(
     int curDepth,
     const TFold& fold,
     TVector<TIndexType>* indices,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::ILocalExecutor* localExecutor);
 
-TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::TLocalExecutor* localExecutor);
+TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor);
 
 int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty);
 
@@ -65,7 +65,7 @@ TVector<TIndexType> BuildIndices(
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     const NCB::TTrainingDataProviders& trainingData,
     EBuildIndicesDataParts dataParts,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::ILocalExecutor* localExecutor);
 
 TVector<TIndexType> BuildIndicesForBinTree(
     const TFullModel& model,

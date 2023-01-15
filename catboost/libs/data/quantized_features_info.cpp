@@ -265,7 +265,7 @@ namespace NCB {
     }
 
     TPerfectHashedToHashedCatValuesMap TQuantizedFeaturesInfo::CalcPerfectHashedToHashedCatValuesMap(
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const {
         // load once and then work with all features in parallel
         LoadCatFeaturePerfectHashToRam();

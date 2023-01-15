@@ -14,12 +14,12 @@
 TVector<TVector<double>> GetPredictionDiff(
     const TFullModel& model,
     const NCB::TDataProvider& dataProvider,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );
 
 void CalcAndOutputPredictionDiff(
     const TFullModel& model,
     const NCB::TDataProvider& dataProvider,
     const TString& outputPath,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );

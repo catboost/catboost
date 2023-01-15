@@ -66,7 +66,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override {
             return MakeHolder<TPackedBinaryValuesHolderImpl>(
                 this->GetId(),
@@ -154,7 +154,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override {
             return MakeHolder<TBundlePartValuesHolderImpl>(
                 this->GetId(),
@@ -254,7 +254,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override {
             return MakeHolder<TFeaturesGroupPartValuesHolderImpl>(
                 this->GetId(),

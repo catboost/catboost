@@ -21,7 +21,7 @@ TMetricHolder TUserDefinedPerObjectMetric::Eval(
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& /*executor*/
+    NPar::ILocalExecutor& /*executor*/
 ) const {
     TMetricHolder error;
     for (int k = begin; k < end; ++k) {

@@ -375,7 +375,7 @@ static void CreateFoldData(
     const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
     TVector<TTrainingDataProviders>* foldsData,
     TVector<TTrainingDataProviders>* testFoldsData,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE_INTERNAL(trainSubsets.size() == testSubsets.size(), "Number of train and test subsets do not match");
     const NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
@@ -432,7 +432,7 @@ static void PrepareTimeSplitFolds(
     ui64 cpuUsedRamLimit,
     TVector<TTrainingDataProviders>* foldsData,
     TVector<TTrainingDataProviders>* testFoldsData,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE(srcData->ObjectsData->GetGroupIds(), "Timesplit feature evaluation requires dataset with groups");
     CB_ENSURE(srcData->ObjectsData->GetTimestamp(), "Timesplit feature evaluation requires dataset with timestamps");
@@ -496,7 +496,7 @@ static void PrepareFolds(
     ui64 cpuUsedRamLimit,
     TVector<TTrainingDataProviders>* foldsData,
     TVector<TTrainingDataProviders>* testFoldsData,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const int foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
     CB_ENSURE(foldCount > 0, "Fold count must be positive integer");

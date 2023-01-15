@@ -74,7 +74,7 @@ void CalcShapValuesByLeaf(
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     bool calcInternalValues,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
@@ -87,7 +87,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
     EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
@@ -100,7 +100,7 @@ TVector<TVector<double>> CalcShapValues(
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
     EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
@@ -114,7 +114,7 @@ TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
     const size_t documentCount,
     int logPeriod,
     TShapPreparedTrees* preparedTrees,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
@@ -125,7 +125,7 @@ void CalcAndOutputShapValues(
     const TString& outputPath,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
@@ -138,7 +138,7 @@ void CalcShapValuesInternalForFeature(
     ui32 featuresCount,
     const NCB::TObjectsDataProvider& objectsData,
     TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 

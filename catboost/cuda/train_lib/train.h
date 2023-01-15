@@ -37,7 +37,7 @@ namespace NCatboostCuda {
             TGpuAwareRandom& random,
             ui32 approxDimension,
             ITrainingCallbacks* trainingCallbacks,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 
@@ -49,7 +49,7 @@ namespace NCatboostCuda {
             const NCB::TTrainingDataProvider& test,
             TGpuAwareRandom& random,
             ui32 approxDimension,
-            NPar::TLocalExecutor* localExecutor) const = 0;
+            NPar::ILocalExecutor* localExecutor) const = 0;
 
         virtual ~IGpuTrainer() = default;
     };

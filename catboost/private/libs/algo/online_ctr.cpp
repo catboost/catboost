@@ -190,10 +190,10 @@ static void CalcOnlineCTRClasses(
 }
 
 static void CalcStatsForEachBlock(
-    const NPar::TLocalExecutor::TExecRangeParams& ctrParallelizationParams,
+    const NPar::ILocalExecutor::TExecRangeParams& ctrParallelizationParams,
     TConstArrayRef<ui64> enumeratedCatFeatures,
     TConstArrayRef<int> permutedTargetClass,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TVector<TCtrHistory>> perBlockCtrs
 ) {
     const int blockCount = ctrParallelizationParams.GetBlockCount();
@@ -215,8 +215,8 @@ static void CalcStatsForEachBlock(
 }
 
 static void SumCtrsFromBlocks(
-    const NPar::TLocalExecutor::TExecRangeParams& valueBlockParams,
-    NPar::TLocalExecutor* localExecutor,
+    const NPar::ILocalExecutor::TExecRangeParams& valueBlockParams,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TVector<TCtrHistory>> perBlockCtrs,
     TArrayRef<TCtrHistory> ctrs
 ) {
@@ -244,14 +244,14 @@ static void SumCtrsFromBlocks(
 }
 
 static void CalcQuantizedCtrs(
-    const NPar::TLocalExecutor::TExecRangeParams& ctrParallelizationParams,
+    const NPar::ILocalExecutor::TExecRangeParams& ctrParallelizationParams,
     TConstArrayRef<ui64> enumeratedCatFeatures,
     TConstArrayRef<int> permutedTargetClass,
     TConstArrayRef<float> priors,
     TConstArrayRef<float> shifts,
     TConstArrayRef<float> norms,
     int ctrBorderCount,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TVector<TCtrHistory>> perBlockCtrs,
     TArray2D<TVector<ui8>>* feature
 ) {
@@ -314,10 +314,10 @@ static void CalcOnlineCTRSimple(
     const TVector<float>& priors,
     int ctrBorderCount,
     TArray2D<TVector<ui8>>* feature,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     const int learnSampleCount = testOffsets[0];
-    NPar::TLocalExecutor::TExecRangeParams ctrParallelizationParams(0, learnSampleCount);
+    NPar::ILocalExecutor::TExecRangeParams ctrParallelizationParams(0, learnSampleCount);
     ctrParallelizationParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
 
     const int bigBlockCount = ctrParallelizationParams.GetBlockCount();
@@ -325,7 +325,7 @@ static void CalcOnlineCTRSimple(
     ResizeRank2(bigBlockCount, uniqueValuesCount, perBlockCtrs);
     CalcStatsForEachBlock(ctrParallelizationParams, enumeratedCatFeatures, permutedTargetClass, localExecutor, perBlockCtrs);
 
-    NPar::TLocalExecutor::TExecRangeParams valueBlockParams(0, uniqueValuesCount);
+    NPar::ILocalExecutor::TExecRangeParams valueBlockParams(0, uniqueValuesCount);
     valueBlockParams.SetBlockSize(1 + 1000 / (localExecutor->GetThreadCount() + 1));
 
     TVector<TCtrHistory> ctrsForTest;
@@ -511,7 +511,7 @@ template <typename TValueType>
 static void CopyCatColumnToHash(
     const IQuantizedCatValuesHolder& catColumn,
     const TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TValueType* hashArrView
 ) {
     TCloningParams cloningParams;
@@ -806,7 +806,7 @@ static void CalcFinalCtrs(
     bool storeAllSimpleCtr,
     ECounterCalc counterCalcMethod,
     TCtrValueTable* result,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     ui32 learnSampleCount = datasetDataForFinalCtrs.Data.Learn->GetObjectCount();
     ui32 totalSampleCount = learnSampleCount;
@@ -922,7 +922,7 @@ void CalcFinalCtrsAndSaveToModel(
     ECounterCalc counterCalcMethod,
     const TVector<TModelCtrBase>& usedCtrBases,
     std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     CATBOOST_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
 

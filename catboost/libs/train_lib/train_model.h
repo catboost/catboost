@@ -87,7 +87,7 @@ public:
          * that's why this additional parameter is necessary
          */
         NCB::TDataProviders initModelApplyCompatiblePools,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         const TMaybe<TRestorableFastRng64*> rand,
         TFullModel* dstModel,
         const TVector<TEvalResult*>& evalResultPtrs,
@@ -100,7 +100,7 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const = 0;
 
     virtual ~IModelTrainer() = default;

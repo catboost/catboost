@@ -68,7 +68,7 @@ namespace NCB {
         }
 
         template <class F>
-        void ForEach(F&& visitor, NPar::TLocalExecutor* localExecutor) const {
+        void ForEach(F&& visitor, NPar::ILocalExecutor* localExecutor) const {
             NPar::ParallelFor(
                 *localExecutor,
                 0,
@@ -100,7 +100,7 @@ namespace NCB {
         }
 
         template <class F>
-        void ForEach(F&& visitor, NPar::TLocalExecutor* localExecutor) const {
+        void ForEach(F&& visitor, NPar::ILocalExecutor* localExecutor) const {
             TextFeature->ParallelForEach(visitor, localExecutor);
         }
 

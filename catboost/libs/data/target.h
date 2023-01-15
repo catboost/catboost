@@ -83,7 +83,7 @@ namespace NCB {
             GroupWeights = TWeights<float>(objectCount);
         }
 
-        void Check(const TObjectsGrouping& objectsGrouping, NPar::TLocalExecutor* localExecutor) const;
+        void Check(const TObjectsGrouping& objectsGrouping, NPar::ILocalExecutor* localExecutor) const;
 
         void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailSize);
     };
@@ -101,7 +101,7 @@ namespace NCB {
             bool skipCheck,
 
             // used only if skipCheck == false, it's ok to pass nullptr if skipCheck is true
-            TMaybe<NPar::TLocalExecutor*> localExecutor
+            TMaybe<NPar::ILocalExecutor*> localExecutor
         ) {
             if (!skipCheck) {
                 data.Check(*objectsGrouping, *localExecutor);
@@ -196,7 +196,7 @@ namespace NCB {
 
         TRawTargetDataProvider GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
     private:
@@ -271,7 +271,7 @@ namespace NCB {
 
         TIntrusivePtr<TTargetDataProvider> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const;
 
 
@@ -368,7 +368,7 @@ namespace NCB {
     void GetGroupInfosSubset(
         TConstArrayRef<TQueryInfo> src,
         const TObjectsGroupingSubset& objectsGroupingSubset,
-        NPar::TLocalExecutor* localExecutor,
+        NPar::ILocalExecutor* localExecutor,
         TVector<TQueryInfo>* dstSubset
     );
 

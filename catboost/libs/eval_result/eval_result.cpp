@@ -158,7 +158,7 @@ namespace NCB {
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
-        NPar::TLocalExecutor* executor,
+        NPar::ILocalExecutor* executor,
         const TVector<TString>& outputColumns,
         const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,
@@ -332,7 +332,7 @@ namespace NCB {
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
-        NPar::TLocalExecutor* const executor,
+        NPar::ILocalExecutor* const executor,
         const TVector<TString>& outputColumns,
         const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,

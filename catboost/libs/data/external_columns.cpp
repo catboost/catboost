@@ -13,7 +13,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalFloatValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
         return MakeHolder<TExternalFloatValuesHolder>(
@@ -61,7 +61,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalCatValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
         return MakeHolder<TExternalCatValuesHolder>(
@@ -214,7 +214,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalFloatSparseValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
 
@@ -284,7 +284,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalCatSparseValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
 

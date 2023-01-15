@@ -42,7 +42,7 @@ namespace NCatboostCuda {
         using TIndex = TSharedCompressedIndex<TLayoutPolicy>;
 
         TSharedCompressedIndexBuilder(TIndex& compressedIndex,
-                                      NPar::TLocalExecutor* localExecutor)
+                                      NPar::ILocalExecutor* localExecutor)
             : CompressedIndex(compressedIndex)
             , LocalExecutor(localExecutor)
         {
@@ -299,7 +299,7 @@ namespace NCatboostCuda {
         TIndex& CompressedIndex;
         TVector<TSet<ui32>> SeenFeatures;
         TVector<TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing>> GatherIndex;
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
     };
 
     extern template class TSharedCompressedIndexBuilder<TFeatureParallelLayout>;

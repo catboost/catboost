@@ -46,7 +46,7 @@ namespace NCB {
     public:
         TRawObjectsOrderDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         )
             : InBlock(false)
             , ObjectCount(0)
@@ -633,7 +633,7 @@ namespace NCB {
             bool HasSparseData = false;
             bool DataCanBeReusedForNextBlock = false;
 
-            NPar::TLocalExecutor* LocalExecutor = nullptr;
+            NPar::ILocalExecutor* LocalExecutor = nullptr;
 
             TVector<TPerFeatureData> PerFeatureData; // [perTypeFeatureIdx]
 
@@ -706,7 +706,7 @@ namespace NCB {
             TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>> CreateSparseArrays(
                 ui32 objectCount,
                 ESparseArrayIndexingType sparseArrayIndexingType,
-                NPar::TLocalExecutor* localExecutor
+                NPar::ILocalExecutor* localExecutor
             ) {
                 TVector<size_t> sizesForBuilders(PerFeatureData.size());
                 auto builderCount = PerFeatureData.size();
@@ -833,7 +833,7 @@ namespace NCB {
                 ui32 objectCount,
                 ui32 prevTailSize,
                 bool dataCanBeReusedForNextBlock,
-                NPar::TLocalExecutor* localExecutor
+                NPar::ILocalExecutor* localExecutor
             ) {
                 ui32 prevObjectCount = ObjectCount;
                 ObjectCount = objectCount;
@@ -1033,7 +1033,7 @@ namespace NCB {
 
         TDataProviderBuilderOptions Options;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
 
         bool InProcess;
         bool ResultTaken;
@@ -1048,7 +1048,7 @@ namespace NCB {
 
         TRawFeaturesOrderDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         )
             : ObjectCount(0)
             , Options(options)
@@ -1073,7 +1073,7 @@ namespace NCB {
 
 
             ObjectCalcParams.Reset(
-                new NPar::TLocalExecutor::TExecRangeParams(0, SafeIntegerCast<int>(ObjectCount))
+                new NPar::ILocalExecutor::TExecRangeParams(0, SafeIntegerCast<int>(ObjectCount))
             );
             ObjectCalcParams->SetBlockSize(OBJECT_CALC_BLOCK_SIZE);
 
@@ -1359,10 +1359,10 @@ namespace NCB {
 
         TDataProviderBuilderOptions Options;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
 
-        // have to make it THolder because NPar::TLocalExecutor::TExecRangeParams is unassignable/unmoveable
-        THolder<NPar::TLocalExecutor::TExecRangeParams> ObjectCalcParams;
+        // have to make it THolder because NPar::ILocalExecutor::TExecRangeParams is unassignable/unmoveable
+        THolder<NPar::ILocalExecutor::TExecRangeParams> ObjectCalcParams;
 
         bool InProcess;
         bool ResultTaken;
@@ -1376,7 +1376,7 @@ namespace NCB {
         TQuantizedFeaturesDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
             TDatasetSubset loadSubset,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         )
             : ObjectCount(0)
             , Options(options)
@@ -2088,7 +2088,7 @@ namespace NCB {
                 ui32 objectOffset,
                 ui8 bitsPerDocumentFeature,
                 TMaybeOwningConstArrayHolder<ui8> featuresPart,
-                NPar::TLocalExecutor* localExecutor
+                NPar::ILocalExecutor* localExecutor
             ) {
                 if (!IsAvailable[*perTypeFeatureIdx]) {
                     return;
@@ -2255,7 +2255,7 @@ namespace NCB {
         TDataProviderBuilderOptions Options;
         TDatasetSubset DatasetSubset;
 
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
 
         bool InProcess;
         bool ResultTaken;
@@ -2267,7 +2267,7 @@ namespace NCB {
     public:
         TLazyQuantizedFeaturesDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         )
             : TQuantizedFeaturesDataProviderBuilder(options, TDatasetSubset::MakeColumns(/*hasFeatures*/false), localExecutor)
             , Options(options)
@@ -2327,7 +2327,7 @@ namespace NCB {
     private:
         TDataProviderBuilderOptions Options;
         TAtomicSharedPtr<IQuantizedPoolLoader> PoolLoader;
-        NPar::TLocalExecutor* const LocalExecutor;
+        NPar::ILocalExecutor* const LocalExecutor;
     };
 
 
@@ -2335,7 +2335,7 @@ namespace NCB {
         EDatasetVisitorType visitorType,
         const TDataProviderBuilderOptions& options,
         TDatasetSubset loadSubset,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         switch (visitorType) {
             case EDatasetVisitorType::RawObjectsOrder:

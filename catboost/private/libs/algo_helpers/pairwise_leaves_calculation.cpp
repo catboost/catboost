@@ -56,7 +56,7 @@ TArray2D<double> ComputePairwiseWeightSums(
     int leafCount,
     int querycount,
     const TVector<TIndexType>& indices,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const auto mapQueries = [&](const NCB::TIndexRange<int>& range, TArray2D<double>* rangeSum) {
         rangeSum->SetSizes(leafCount, leafCount);

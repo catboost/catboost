@@ -51,6 +51,9 @@ cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespa
         TLocalExecutor() nogil
         void RunAdditionalThreads(int threadCount) nogil except +ProcessException
 
+    cdef cppclass ILocalExecutor:
+        pass
+
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
     cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException

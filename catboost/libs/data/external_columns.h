@@ -35,7 +35,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override;
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
@@ -68,7 +68,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override;
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
@@ -101,7 +101,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override;
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
@@ -132,7 +132,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override;
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;

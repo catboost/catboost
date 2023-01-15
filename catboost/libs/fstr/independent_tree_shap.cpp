@@ -534,7 +534,7 @@ void TIndependentTreeShapParams::InitTransformedData(
     const TFullModel& model,
     const TDataProvider& dataset,
     const NCatboostOptions::TLossDescription& metricDescription,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     switch (ModelOutputType)
     {
@@ -561,7 +561,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     const TDataProvider& dataset,
     const TDataProvider& referenceDataset,
     EExplainableModelOutput modelOutputType,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     ModelOutputType = modelOutputType;
     Weights = CalcWeightsForIndependentTreeShap(model);

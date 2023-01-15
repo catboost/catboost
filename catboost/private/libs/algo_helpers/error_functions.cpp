@@ -358,7 +358,7 @@ void TStochasticRankError::CalcDersForQueries(
     const TVector<TQueryInfo>& queriesInfo,
     TArrayRef<TDers> ders,
     ui64 randomSeed,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     auto start = queriesInfo[queryStartIndex].Begin;
     NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {

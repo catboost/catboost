@@ -181,7 +181,7 @@ namespace NCB {
     class TEvalPrinter: public IColumnPrinter {
     public:
         TEvalPrinter(
-            NPar::TLocalExecutor* executor,
+            NPar::ILocalExecutor* executor,
             const TVector<TVector<TVector<double>>>& rawValues,
             const EPredictionType predictionType,
             const TString& lossFunctionName,

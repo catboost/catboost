@@ -51,7 +51,7 @@ namespace NCatboostCuda {
                                       const NCB::TTrainingDataProvider& dataProvider,
                                       const ui32 dataSetId,
                                       bool skipExclusiveFeatureBundles,
-                                      NPar::TLocalExecutor* localExecutor)
+                                      NPar::ILocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
@@ -186,7 +186,7 @@ namespace NCatboostCuda {
         ui32 DataSetId = -1;
         bool SkipExclusiveFeatureBundles = false;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
-        NPar::TLocalExecutor* LocalExecutor;
+        NPar::ILocalExecutor* LocalExecutor;
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>

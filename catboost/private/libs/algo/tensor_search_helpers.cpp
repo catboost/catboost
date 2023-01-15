@@ -274,7 +274,7 @@ static void GenerateRandomWeights(
     int learnSampleCount,
     float baggingTemperature,
     ESamplingUnit samplingUnit,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
 ) {
@@ -287,7 +287,7 @@ static void GenerateRandomWeights(
     const ui64 randSeed = rand->GenRand();
     const int sampleCount = (samplingUnit == ESamplingUnit::Group) ? groupCount : learnSampleCount;
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, sampleCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, sampleCount);
     blockParams.SetBlockSize(1000);
     localExecutor->ExecRange(
         [&](int blockIdx) {
@@ -315,7 +315,7 @@ static void GenerateRandomWeights(
 static void GenerateBayesianWeightsForPairs(
     float baggingTemperature,
     ESamplingUnit samplingUnit,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
 ) {
@@ -323,7 +323,7 @@ static void GenerateBayesianWeightsForPairs(
         return;
     }
     const ui64 randSeed = rand->GenRand();
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
     blockParams.SetBlockSize(1000);
     localExecutor->ExecRange(
         [&](int blockIdx) {
@@ -350,7 +350,7 @@ static void GenerateBayesianWeightsForPairs(
 static void GenerateBernoulliWeightsForPairs(
     float takenFraction,
     ESamplingUnit samplingUnit,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
 ) {
@@ -358,7 +358,7 @@ static void GenerateBernoulliWeightsForPairs(
         return;
     }
     const ui64 randSeed = rand->GenRand();
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
     blockParams.SetBlockSize(1000);
     localExecutor->ExecRange(
         [&](int blockIdx) {
@@ -388,7 +388,7 @@ static void GenerateBernoulliWeightsForPairs(
 static void CalcWeightedData(
     int learnSampleCount,
     EBoostingType boostingType,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TFold* fold
 ) {
     TFold& ff = *fold;
@@ -407,7 +407,7 @@ static void CalcWeightedData(
                 [=](int z) {
                     samplePairwiseWeightsData[z] = pairwiseWeightsData[z] * sampleWeightsData[z];
                 },
-                NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
+                NPar::ILocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
         }
         for (int dim = 0; dim < approxDimension; ++dim) {
@@ -417,7 +417,7 @@ static void CalcWeightedData(
                 [=](int z) {
                     sampleWeightedDerivativesData[z] = weightedDerivativesData[z] * sampleWeightsData[z];
                 },
-                NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
+                NPar::ILocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
         }
     }
@@ -437,7 +437,7 @@ void Bootstrap(
     const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     bool shouldSortByLeaf,
     ui32 leavesCount
@@ -517,7 +517,7 @@ void CalcWeightedDerivatives(
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
     TFold* takenFold,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailIdx];
     const TVector<TVector<double>>& approx = bt.Approx;
@@ -568,7 +568,7 @@ void CalcWeightedDerivatives(
     } else {
         const int tailFinish = bt.TailFinish;
         const int approxDimension = approx.ysize();
-        NPar::TLocalExecutor::TExecRangeParams blockParams(0, tailFinish);
+        NPar::ILocalExecutor::TExecRangeParams blockParams(0, tailFinish);
         blockParams.SetBlockSize(1000);
 
         Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);

@@ -103,7 +103,7 @@ namespace {
             TConstArrayRef<float> weight,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const final {
             const auto evalMetric = [&](int from, int to) {
                 return EvalSingleThread(
@@ -138,7 +138,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const final {
             return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
@@ -152,7 +152,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const final {
             const auto evalMetric = [&](int from, int to) {
                 return EvalSingleThread(
@@ -1403,7 +1403,7 @@ namespace {
                 TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end,
-                NPar::TLocalExecutor& executor) const override {
+                NPar::ILocalExecutor& executor) const override {
                     return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
                 }
         TMetricHolder Eval(
@@ -1415,7 +1415,7 @@ namespace {
                 TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end,
-                NPar::TLocalExecutor& executor) const override;
+                NPar::ILocalExecutor& executor) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
@@ -1434,7 +1434,7 @@ TMetricHolder TMedianAbsoluteErrorMetric::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& /*executor*/
+    NPar::ILocalExecutor& /*executor*/
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric Median absolute error supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
@@ -2436,7 +2436,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const override {
             return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
@@ -2450,7 +2450,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const;
         double GetFinalError(const TMetricHolder& error) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
@@ -2511,7 +2511,7 @@ TMetricHolder TR2Metric::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& executor
+    NPar::ILocalExecutor& executor
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric R2 supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
@@ -2595,7 +2595,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor) const override {
+            NPar::ILocalExecutor& executor) const override {
                 return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
         TMetricHolder Eval(
@@ -2607,7 +2607,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor) const override;
+            NPar::ILocalExecutor& executor) const override;
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
@@ -2688,7 +2688,7 @@ TMetricHolder TAUCMetric::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& executor
+    NPar::ILocalExecutor& executor
 ) const {
     Y_ASSERT(!isExpApprox);
     Y_ASSERT((approx.size() > 1) == (Type == EAucType::Mu || Type == EAucType::OneVsAll));
@@ -2818,7 +2818,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor) const override {
+            NPar::ILocalExecutor& executor) const override {
                 return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
         TMetricHolder Eval(
@@ -2830,7 +2830,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor) const override;
+            NPar::ILocalExecutor& executor) const override;
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
@@ -2861,7 +2861,7 @@ TMetricHolder TNormalizedGini::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& executor
+    NPar::ILocalExecutor& executor
 ) const {
     Y_ASSERT(!isExpApprox);
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
@@ -3610,7 +3610,7 @@ namespace {
                 TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end,
-                NPar::TLocalExecutor& executor) const override {
+                NPar::ILocalExecutor& executor) const override {
                     return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
                 }
         TMetricHolder Eval(
@@ -3622,7 +3622,7 @@ namespace {
                 TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end,
-                NPar::TLocalExecutor& executor) const override;
+                NPar::ILocalExecutor& executor) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
         private:
@@ -3679,7 +3679,7 @@ TMetricHolder TPRAUCMetric::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& /*executor*/
+    NPar::ILocalExecutor& /*executor*/
 ) const {
     Y_ASSERT(!isExpApprox);
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
@@ -3784,7 +3784,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const override;
         TMetricHolder Eval(
             const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3795,7 +3795,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const override {
             CB_ENSURE(!isExpApprox && approxDelta.empty(), "Custom metrics do not support approx deltas and exponentiated approxes");
             TVector<TVector<double>> localApprox;
@@ -3837,7 +3837,7 @@ TMetricHolder TCustomMetric::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& /* executor */
+    NPar::ILocalExecutor& /* executor */
 ) const {
     auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
     TMetricHolder result = (*(Descriptor.EvalFunc))(approx, target, weight, begin, end, Descriptor.CustomData);
@@ -3893,7 +3893,7 @@ namespace {
             TConstArrayRef<float> weight,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const override {
             CB_ENSURE(approxDelta.empty(), "Custom metrics do not support approx deltas and exponentiated approxes");
             return Eval_(
@@ -3924,7 +3924,7 @@ namespace {
             TConstArrayRef<float> weight,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const;
 
         TCustomMetricDescriptor Descriptor;
@@ -3945,7 +3945,7 @@ TMetricHolder TMultiRegressionCustomMetric::Eval_(
     TConstArrayRef<float> weightIn,
     int begin,
     int end,
-    NPar::TLocalExecutor& /*executor*/
+    NPar::ILocalExecutor& /*executor*/
 ) const {
     auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
     TMetricHolder result = (*(Descriptor.EvalMultiregressionFunc))(approx, target, weight, begin, end, Descriptor.CustomData);
@@ -3994,7 +3994,7 @@ namespace {
             TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
-            NPar::TLocalExecutor& executor
+            NPar::ILocalExecutor& executor
         ) const override;
         TMetricHolder Eval(
             const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
@@ -4005,7 +4005,7 @@ namespace {
             TConstArrayRef<TQueryInfo> /*queriesInfo*/,
             int /*begin*/,
             int /*end*/,
-            NPar::TLocalExecutor& /*executor*/
+            NPar::ILocalExecutor& /*executor*/
         ) const override {
             CB_ENSURE(
                 false,
@@ -4041,7 +4041,7 @@ TMetricHolder TUserDefinedPerObjectMetric::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int /*begin*/,
     int /*end*/,
-    NPar::TLocalExecutor& /*executor*/
+    NPar::ILocalExecutor& /*executor*/
 ) const {
     CB_ENSURE(false, "Not implemented for TUserDefinedPerObjectMetric metric.");
     TMetricHolder metric(2);
@@ -5039,7 +5039,7 @@ TMetricHolder EvalErrors(
         TConstArrayRef<float> weight,
         TConstArrayRef<TQueryInfo> queriesInfo,
         const IMetric& error,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
 ) {
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         int begin = 0, end = target.size();
@@ -5061,7 +5061,7 @@ TMetricHolder EvalErrors(
         TConstArrayRef<float> weight,
         TConstArrayRef<TQueryInfo> queriesInfo,
         const IMetric& error,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
 ) {
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         int begin = 0, end = target.size();
@@ -5083,7 +5083,7 @@ TMetricHolder EvalErrors(
         TConstArrayRef<float> weight,
         TConstArrayRef<TQueryInfo> queriesInfo,
         const IMetric& error,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
 ) {
     if (const auto multiMetric = dynamic_cast<const TMultiRegressionMetric*>(&error)) {
         CB_ENSURE(!isExpApprox, "Exponentiated approxes are not supported for multi-regression");

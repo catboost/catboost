@@ -20,17 +20,17 @@
 
 
 using namespace NCB;
-using NPar::TLocalExecutor;
+using NPar::ILocalExecutor;
 
 
-static TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int treeCount) {
+static ILocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int treeCount) {
     const int threadCount = executorThreadCount + 1; // one for current thread
 
     // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
     const int minBlockSize = ceil(10000.0 / sqrt(treeCount + 1));
     const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
 
-    TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    ILocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockCount(effectiveBlockCount);
     return blockParams;
 };
@@ -130,7 +130,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin, /*= 0*/
     int end,   /*= 0*/
-    TLocalExecutor* executor)
+    ILocalExecutor* executor)
 {
     const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
     const int approxesDimension = model.GetDimensionsCount();
@@ -151,7 +151,7 @@ TVector<TVector<double>> ApplyModelMulti(
             BlockedEvaluation(model, objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
         };
         if (executor) {
-            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), ILocalExecutor::WAIT_COMPLETE);
         } else {
             applyOnBlock(0);
         }
@@ -223,7 +223,7 @@ TMinMax<double> ApplyModelForMinMax(
     const NCB::TObjectsDataProvider& objectsData,
     int treeBegin,
     int treeEnd,
-    NPar::TLocalExecutor* executor)
+    NPar::ILocalExecutor* executor)
 {
     CB_ENSURE(model.GetTreeCount(), "Bad usage: empty model");
     CB_ENSURE(model.GetDimensionsCount() == 1, "Bad usage: multiclass/multiregression model, dim=" << model.GetDimensionsCount());
@@ -317,7 +317,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
 TModelCalcerOnPool::TModelCalcerOnPool(
     const TFullModel& model,
     TObjectsDataProviderPtr objectsData,
-    NPar::TLocalExecutor* executor)
+    NPar::ILocalExecutor* executor)
     : Model(&model)
     , ModelEvaluator(model.GetCurrentEvaluator())
     , ObjectsData(objectsData)
@@ -446,7 +446,7 @@ TVector<ui32> CalcLeafIndexesMulti(
     NCB::TObjectsDataProviderPtr objectsData,
     int treeStart,
     int treeEnd,
-    NPar::TLocalExecutor* executor /* = nullptr */)
+    NPar::ILocalExecutor* executor /* = nullptr */)
 {
     FixupTreeEnd(model.GetTreeCount(), treeStart, &treeEnd);
     const size_t objCount = objectsData->GetObjectCount();
@@ -467,7 +467,7 @@ TVector<ui32> CalcLeafIndexesMulti(
             BlockedEvaluation(model, *objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
         };
         if (executor) {
-            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), ILocalExecutor::WAIT_COMPLETE);
         } else {
             applyOnBlock(0);
         }
@@ -497,7 +497,7 @@ void ApplyVirtualEnsembles(
     size_t end,
     size_t virtualEnsemblesCount,
     TVector<TVector<double>>* rawValuesPtr,
-    NPar::TLocalExecutor* executor
+    NPar::ILocalExecutor* executor
 ) {
     auto& rawValues = *rawValuesPtr;
     size_t begin = 0;

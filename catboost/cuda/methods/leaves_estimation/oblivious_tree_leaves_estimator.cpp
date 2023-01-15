@@ -138,7 +138,7 @@ namespace NCatboostCuda {
         }
     }
 
-    void TObliviousTreeLeavesEstimator::Estimate(NPar::TLocalExecutor* localExecutor) {
+    void TObliviousTreeLeavesEstimator::Estimate(NPar::ILocalExecutor* localExecutor) {
         CreatePartStats();
         ComputePartWeights();
 

@@ -706,7 +706,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
         TModelCalcerOnPool(
             const TFullModel& model,
             TIntrusivePtr[TObjectsDataProvider] objectsData,
-            TLocalExecutor* executor
+            ILocalExecutor* executor
         ) nogil except +ProcessException
         void ApplyModelMulti(
             const EPredictionType predictionType,
@@ -931,7 +931,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TConstArrayRef[ui32] indices,
         TConstArrayRef[bool_t] catFeaturesMask,
         IRawObjectsOrderDataVisitor* builderVisitor,
-        TLocalExecutor* localExecutor) nogil except +ProcessException
+        ILocalExecutor* localExecutor) nogil except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -2684,7 +2684,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.float64_t:
         data_np = cast_to_nparray(data, np.float64)
@@ -2694,7 +2694,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.int8_t:
         data_np = cast_to_nparray(data, np.int8)
@@ -2704,7 +2704,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.uint8_t:
         data_np = cast_to_nparray(data, np.uint8)
@@ -2714,7 +2714,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.int16_t:
         data_np = cast_to_nparray(data, np.int16)
@@ -2724,7 +2724,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.uint16_t:
         data_np = cast_to_nparray(data, np.uint16)
@@ -2734,7 +2734,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.int32_t:
         data_np = cast_to_nparray(data, np.int32)
@@ -2744,7 +2744,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.uint32_t:
         data_np = cast_to_nparray(data, np.uint32)
@@ -2754,7 +2754,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.int64_t:
         data_np = cast_to_nparray(data, np.int64)
@@ -2764,7 +2764,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     if numpy_num_dtype == np.uint64_t:
         data_np = cast_to_nparray(data, np.uint64)
@@ -2774,7 +2774,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            &py_builder_visitor.local_executor)
+            <ILocalExecutor*>&py_builder_visitor.local_executor)
 
     assert False, "CSR sparse arrays support only numeric data types"
 
@@ -3792,7 +3792,7 @@ cdef class _PoolBase:
         self,
         TRawObjectsDataProvider* raw_objects_data_provider,
         factor_idx,
-        TLocalExecutor* local_executor,
+        ILocalExecutor* local_executor,
         dst_data):
 
         cdef TMaybeData[const TFloatValuesHolder*] maybe_factor_data = raw_objects_data_provider[0].GetFloatFeature(factor_idx)
@@ -3831,7 +3831,7 @@ cdef class _PoolBase:
         data = np.empty(self.shape, dtype=np.float32)
 
         for factor in range(self.num_col()):
-            self._get_feature(raw_objects_data_provider, factor, &local_executor, data)
+            self._get_feature(raw_objects_data_provider, factor, <ILocalExecutor*>&local_executor, data)
 
         return data
 
@@ -5115,7 +5115,7 @@ cdef class _StagedPredictIterator:
         self.__modelCalcerOnPool = new TModelCalcerOnPool(
             dereference(self.__model),
             pool.__pool.Get()[0].ObjectsData,
-            &self.__executor
+            <ILocalExecutor*>&self.__executor
         )
 
     def __dealloc__(self):

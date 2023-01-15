@@ -23,7 +23,7 @@ namespace NCB {
 }
 
 namespace NPar {
-    class TLocalExecutor;
+    class ILocalExecutor;
 }
 
 
@@ -95,5 +95,5 @@ void CalcFinalCtrsAndSaveToModel(
     ECounterCalc counterCalcMethod,
     const TVector<TModelCtrBase>& usedCtrBases,
     std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 );

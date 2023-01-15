@@ -91,7 +91,7 @@ void SetTrainDataFromQuantizedPool(
 void SetTrainDataFromMaster(
     const TTrainingDataProviders& trainData,
     ui64 cpuUsedRamLimit,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
     auto workerParts = Split(*trainData.Learn->ObjectsGrouping, (ui32)workerCount);

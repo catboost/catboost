@@ -124,7 +124,7 @@ namespace NCB {
             return nullptr;
         }
 
-        virtual ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const = 0;
+        virtual ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const = 0;
         virtual bool IsSparse() const = 0;
 
         virtual ui64 EstimateMemoryForCloning(
@@ -133,7 +133,7 @@ namespace NCB {
 
         virtual THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const = 0;
 
     private:
@@ -152,11 +152,11 @@ namespace NCB {
         ITypedFeatureValuesHolder(ui32 featureId, ui32 size)
             : IFeatureValuesHolder(ValuesType, featureId, size)
         {}
-        virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const = 0;
+        virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::ILocalExecutor* localExecutor) const = 0;
 
         virtual IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const = 0;
 
-        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
             const auto repackedHolder = ExtractValues(localExecutor);
             return UpdateCheckSum(0, *repackedHolder);
         }
@@ -185,7 +185,7 @@ namespace NCB {
         {}
 
         template <typename TExtractType>
-        TVector<TExtractType> ExtractValues(NPar::TLocalExecutor* localExecutor, size_t copyBlockSize = 1024) const {
+        TVector<TExtractType> ExtractValues(NPar::ILocalExecutor* localExecutor, size_t copyBlockSize = 1024) const {
             TVector<TExtractType> result;
             result.yresize(this->GetSize());
             ParallelForEachBlock(
@@ -222,8 +222,8 @@ namespace NCB {
         }
 
         template<class TBlockCallable>
-        void ParallelForEachBlock(NPar::TLocalExecutor* localExecutor, TBlockCallable&& blockCallable, size_t blockSize = 1024) const {
-            NPar::TLocalExecutor::TExecRangeParams blockParams(0, this->GetSize());
+        void ParallelForEachBlock(NPar::ILocalExecutor* localExecutor, TBlockCallable&& blockCallable, size_t blockSize = 1024) const {
+            NPar::ILocalExecutor::TExecRangeParams blockParams(0, this->GetSize());
             blockParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
             // round per-thread block size to iteration block size
             blockParams.SetBlockSize(Min<int>(this->GetSize(), CeilDiv<int>(blockParams.GetBlockSize(), blockSize) * blockSize));
@@ -236,7 +236,7 @@ namespace NCB {
             );
         }
 
-        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
             Y_UNUSED(localExecutor);
             ui32 checkSum = 0;
             auto blockFunc = [&checkSum] (size_t /*blockStartIdx*/, auto block) {
@@ -285,7 +285,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override {
             Y_UNUSED(localExecutor);
             CB_ENSURE_INTERNAL(
@@ -298,7 +298,7 @@ namespace NCB {
             );
         }
 
-        TMaybeOwningArrayHolder<TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
+        TMaybeOwningArrayHolder<TValueType> ExtractValues(NPar::ILocalExecutor* localExecutor) const override {
             TVector<TValueType> result;
             result.yresize(Data->GetSize());
             TArrayRef<TValueType> resultRef = result;
@@ -347,7 +347,7 @@ namespace NCB {
             return false;
         }
 
-        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
             TConstCompressedArraySubset compressedDataSubset = GetCompressedData();
 
             auto consecutiveSubsetBegin = compressedDataSubset.GetSubsetIndexing()->GetConsecutiveSubsetBegin();
@@ -379,7 +379,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const override {
             if (!cloningParams.MakeConsecutive) {
                 return MakeHolder<TCompressedValuesHolderImpl>(

@@ -59,7 +59,7 @@ TVector<double> SumLeafWeights(
     TConstArrayRef<TIndexType> leafIndices,
     TConstArrayRef<ui32> learnPermutation,
     TConstArrayRef<float> learnWeights, // can be empty
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     TVector<double> weightSum;
     NCB::MapMerge(

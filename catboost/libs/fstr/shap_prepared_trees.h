@@ -50,7 +50,7 @@ public:
         const NCB::TDataProvider& dataset,
         const NCB::TDataProvider& referenceDataset,
         EExplainableModelOutput modelOutputType,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
 private:
@@ -58,7 +58,7 @@ private:
         const TFullModel& model,
         const NCB::TDataProvider& dataset,
         const NCatboostOptions::TLossDescription& metricDescription,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 };
 
@@ -87,28 +87,28 @@ public:
     {
     }
 
-    Y_SAVELOAD_DEFINE(	
-        ShapValuesByLeafForAllTrees,	
-        MeanValuesForAllTrees,	
-        AverageApproxByTree,	
-        BinFeatureCombinationClass,	
-        CombinationClassFeatures,	
-        CalcShapValuesByLeafForAllTrees,	
-        CalcInternalValues,	
-        LeafWeightsForAllTrees,	
-        SubtreeWeightsForAllTrees,	
+    Y_SAVELOAD_DEFINE(
+        ShapValuesByLeafForAllTrees,
+        MeanValuesForAllTrees,
+        AverageApproxByTree,
+        BinFeatureCombinationClass,
+        CombinationClassFeatures,
+        CalcShapValuesByLeafForAllTrees,
+        CalcInternalValues,
+        LeafWeightsForAllTrees,
+        SubtreeWeightsForAllTrees,
         SubtreeValuesForAllTrees
     );
 };
 
-TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);
+TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::ILocalExecutor* localExecutor);
 
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
     const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     bool calcInternalValues = false,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
     EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw

@@ -37,7 +37,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     // for use from context where there's no localExecutor and proper logging handling is unimplemented
@@ -70,7 +70,7 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     );
 
     TDataProviders ReadTrainDatasets(
@@ -80,7 +80,7 @@ namespace NCB {
         bool readTestData,
         TDatasetSubset trainDatasetSubset,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::TLocalExecutor* executor,
+        NPar::ILocalExecutor* executor,
         TProfileInfo* profile
     );
 

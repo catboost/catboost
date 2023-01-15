@@ -459,7 +459,7 @@ namespace NCatboostCuda {
                                            const TVector<float>& target,
                                            const TVector<float>& weight,
                                            const TVector<TQueryInfo>& queriesInfo,
-                                           NPar::TLocalExecutor* localExecutor) const {
+                                           NPar::ILocalExecutor* localExecutor) const {
         const IMetric& metric = GetCpuMetric();
         const int start = 0;
         const int end = static_cast<const int>(metric.GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());

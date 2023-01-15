@@ -25,9 +25,9 @@ static void CalcLeafDer(
     ELeavesEstimation estimationMethod,
     TArrayRef<TDers> weightedDers,
     TSum* leafDer,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, objectsCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, objectsCount);
     blockParams.SetBlockCount(CB_THREAD_LIMIT);
 
     TVector<TDers> blockBucketDers(
@@ -147,14 +147,14 @@ static void UpdateApproxDeltas(
     bool storeExpApprox,
     int docCount,
     double leafDelta,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<double> deltas
 ) {
     if (storeExpApprox) {
         leafDelta = fast_exp(leafDelta);
     }
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(1000);
     const auto getUpdateApproxBlockLambda = [&](auto boolConst) -> std::function<void(int)> {
         return [=](int blockIdx) {
@@ -194,7 +194,7 @@ static void CalcLeafValuesSimple(
     const NCatboostOptions::TCatBoostOptions& params,
     TLeafStatistics* statistics,
     TArrayRef<TDers> weightedDers,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
     const auto& learnerOptions = params.ObliviousTreeOptions.Get();
@@ -309,7 +309,7 @@ void CalcLeafValues(
     const NCatboostOptions::TCatBoostOptions& params,
     TLeafStatistics* statistics,
     TRestorableFastRng64* rng,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TArrayRef<TDers> weightedDers
 ) {
     Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);

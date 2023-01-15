@@ -14,7 +14,7 @@ template <class TConsumer>
 inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingParams& params,
                                        ui32 blockSize,
                                        TConsumer&& poolConsumer,
-                                       NPar::TLocalExecutor* localExecutor) {
+                                       NPar::ILocalExecutor* localExecutor) {
 
     auto datasetLoader = NCB::GetProcessor<NCB::IDatasetLoader>(
         params.PoolPath, // for choosing processor

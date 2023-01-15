@@ -113,7 +113,7 @@ namespace NCB {
                   // if nanMode != ENanMode::Forbidden borders must include -min_float or +max_float
                   TConstArrayRef<float> borders,
                   TArrayRef<TQuantizedBin> quantizedData,
-                  NPar::TLocalExecutor* localExecutor) {
+                  NPar::ILocalExecutor* localExecutor) {
 
         srcFeatureData.ParallelForEach(
             [=] (ui32 idx, float srcValue) {
@@ -155,7 +155,7 @@ namespace NCB {
         TVector<TBinType> result;
         result.yresize(values.size());
 
-        NPar::TLocalExecutor::TExecRangeParams params(0, (int)values.size());
+        NPar::ILocalExecutor::TExecRangeParams params(0, (int)values.size());
         params.SetBlockSize(BINARIZATION_BLOCK_SIZE);
 
         NPar::LocalExecutor().ExecRange([&](int blockIdx) {

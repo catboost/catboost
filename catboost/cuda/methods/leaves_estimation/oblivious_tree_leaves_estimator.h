@@ -188,6 +188,6 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        void Estimate(NPar::TLocalExecutor* localExecutor);
+        void Estimate(NPar::ILocalExecutor* localExecutor);
     };
 }

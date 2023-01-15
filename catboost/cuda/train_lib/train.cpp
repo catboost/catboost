@@ -140,7 +140,7 @@ namespace NCatboostCuda {
     static inline void EstimatePriors(const NCB::TTrainingDataProvider& dataProvider,
                                       TBinarizedFeaturesManager& featureManager,
                                       NCatboostOptions::TCatFeatureParams& options,
-                                      NPar::TLocalExecutor* localExecutor) {
+                                      NPar::ILocalExecutor* localExecutor) {
         CB_ENSURE(&(featureManager.GetCatFeatureOptions()) == &options, "Error: for consistent catFeature options should be equal to one in feature manager");
 
         bool needSimpleCtrsPriorEstimation = NeedPriorEstimation(options.SimpleCtrs);
@@ -210,7 +210,7 @@ namespace NCatboostCuda {
                                                const NCB::TTrainingDataProvider* testProvider,
                                                NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                TBinarizedFeaturesManager& featuresManager,
-                                               NPar::TLocalExecutor* localExecutor) {
+                                               NPar::ILocalExecutor* localExecutor) {
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
         EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams, localExecutor);
         UpdateDataPartitionType(featuresManager, catBoostOptions);
@@ -234,7 +234,7 @@ namespace NCatboostCuda {
                                                                 TBinarizedFeaturesManager& featuresManager,
                                                                 ui32 approxDimension,
                                                                 ITrainingCallbacks* trainingCallbacks,
-                                                                NPar::TLocalExecutor* localExecutor,
+                                                                NPar::ILocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
@@ -273,7 +273,7 @@ namespace NCatboostCuda {
                             const TTrainingDataProvider& testProvider,
                             TBinarizedFeaturesManager& featuresManager,
                             ui32 approxDimension,
-                            NPar::TLocalExecutor* localExecutor) {
+                            NPar::ILocalExecutor* localExecutor) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         ConfigureCudaProfiler(trainCatBoostOptions.IsProfile, &profiler);
@@ -307,7 +307,7 @@ namespace NCatboostCuda {
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             NCB::TDataProviders initModelApplyCompatiblePools,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             const TMaybe<TRestorableFastRng64*> rand,
             TFullModel* dstModel,
             const TVector<TEvalResult*>& evalResultPtrs,
@@ -495,7 +495,7 @@ namespace NCatboostCuda {
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
-            NPar::TLocalExecutor* localExecutor) const override {
+            NPar::ILocalExecutor* localExecutor) const override {
 
             CB_ENSURE(trainingData.Test.size() == 1, "Model based evaluation requires exactly one eval set on GPU");
             CB_ENSURE(!IsMultiRegressionObjective(catboostOptions.LossFunctionDescription->LossFunction),

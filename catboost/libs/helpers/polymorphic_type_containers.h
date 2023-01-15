@@ -58,7 +58,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             TMaybe<ui32> approximateBlockSize = Nothing()
         ) const {
             TVector<IDynamicBlockIteratorPtr<T>> subRangeIterators;
@@ -112,7 +112,7 @@ namespace NCB {
 
     protected:
         virtual void CreateSubRangesIterators(
-            const NPar::TLocalExecutor& localExecutor,
+            const NPar::ILocalExecutor& localExecutor,
             TMaybe<ui32> approximateBlockSize,
             TVector<IDynamicBlockIteratorPtr<T>>* subRangeIterators,
             TVector<ui32>* subRangeStarts
@@ -270,7 +270,7 @@ namespace NCB {
         }
 
         void CreateSubRangesIterators(
-            const NPar::TLocalExecutor& localExecutor,
+            const NPar::ILocalExecutor& localExecutor,
             TMaybe<ui32> approximateBlockSize,
             TVector<IDynamicBlockIteratorPtr<TInterfaceValue>>* subRangeIterators,
             TVector<ui32>* subRangeStarts

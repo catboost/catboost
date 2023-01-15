@@ -301,7 +301,7 @@ bool TRawTargetData::operator==(const TRawTargetData& rhs) const {
 
 void TRawTargetData::Check(
     const TObjectsGrouping& objectsGrouping,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     ui32 objectCount = objectsGrouping.GetObjectCount();
 
@@ -414,7 +414,7 @@ void TRawTargetDataProvider::SetBaseline(TConstArrayRef<TConstArrayRef<float>> b
 static void GetRawTargetSubset(
     const TRawTarget& src,
     const TArraySubsetIndexing<ui32>& subset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TRawTarget* dst
 ) {
     if (const ITypedSequencePtr<float>* srcTypedSequence = GetIf<ITypedSequencePtr<float>>(&src)) {
@@ -438,7 +438,7 @@ static void GetRawTargetSubset(
 static void GetMultidimBaselineSubset(
     const TVector<TVector<float>>& src,
     const TArraySubsetIndexing<ui32>& subset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TVector<float>>* dst
 ) {
     if (src.empty()) {
@@ -491,7 +491,7 @@ static void GetPairsSubset(
 
 TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     const TArraySubsetIndexing<ui32>& objectsSubsetIndexing = objectsGroupingSubset.GetObjectsIndexing();
 
@@ -907,7 +907,7 @@ bool TTargetDataProvider::operator==(const TTargetDataProvider& rhs) const {
 static void GetObjectsFloatDataSubsetImpl(
     const TSharedVector<float> src,
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TSharedVector<float>* dstSubset
 ) {
     *dstSubset = MakeAtomicShared<TVector<float>>(
@@ -919,7 +919,7 @@ static void GetObjectsFloatDataSubsetImpl(
 static void GetObjectWeightsSubsetImpl(
     const TSharedWeights<float> src,
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TSharedWeights<float>* dstSubset
 ) {
     *dstSubset = MakeIntrusive<TWeights<float>>(
@@ -931,7 +931,7 @@ static void GetObjectWeightsSubsetImpl(
 void NCB::GetGroupInfosSubset(
     TConstArrayRef<TQueryInfo> src,
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TQueryInfo>* dstSubset
 ) {
     const TObjectsGrouping& dstSubsetGrouping = *(objectsGroupingSubset.GetSubsetGrouping());
@@ -1012,7 +1012,7 @@ void NCB::GetGroupInfosSubset(
 void GetGroupInfosSubsetImpl(
     const TSharedVector<TQueryInfo> src,
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TSharedVector<TQueryInfo>* dstSubset
 ) {
     TVector<TQueryInfo> dstSubsetData;
@@ -1053,7 +1053,7 @@ struct TSubsetTargetDataCache {
 // arguments are (srcPtr, objectsGroupingSubset, localExecutor, dstSubsetPtr)
 template <class TSharedDataPtr>
 using TGetSubsetFunction = std::function<
-        void (const TSharedDataPtr, const TObjectsGroupingSubset&, NPar::TLocalExecutor*, TSharedDataPtr*)
+        void (const TSharedDataPtr, const TObjectsGroupingSubset&, NPar::ILocalExecutor*, TSharedDataPtr*)
     >;
 
 
@@ -1062,7 +1062,7 @@ template <class TSharedDataPtr>
 static void FillSubsetTargetDataCacheSubType(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TGetSubsetFunction<TSharedDataPtr>&& getSubsetFunction,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TSrcToSubsetDataCache<TSharedDataPtr>* cache // access is exclusive to this function
 ) {
     // (srcPtr, dstPtr)
@@ -1099,7 +1099,7 @@ static void FillSubsetTargetDataCacheSubType(
 
 static void FillSubsetTargetDataCache(
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TSubsetTargetDataCache* subsetTargetDataCache
 ) {
     TVector<std::function<void()>> tasks;
@@ -1146,7 +1146,7 @@ static void FillSubsetTargetDataCache(
 
 TIntrusivePtr<TTargetDataProvider> TTargetDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     TSubsetTargetDataCache subsetTargetDataCache;
 

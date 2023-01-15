@@ -84,7 +84,7 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     TMaybe<ui32> foldIdx, // if Nothing() - return data for all folds, if defined - return only one fold
     bool oldCvStyleSplit,
     ui64 cpuUsedRamLimit,
-    NPar::TLocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor) {
 
     // group subsets, groups maybe trivial
     TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets;
@@ -164,7 +164,7 @@ void CrossValidate(
     const TLabelConverter& labelConverter,
     NCB::TTrainingDataProviderPtr trainingData,
     const TCrossValidationParams& cvParams,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<TCVResult>* results,
     bool isAlreadyShuffled = false);
 
@@ -221,7 +221,7 @@ void TrainBatch(
     ELoggingLevel loggingLevel,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TMaybe<ui32>* upToIteration);
 
 void Train(
@@ -235,7 +235,7 @@ void Train(
     ITrainingCallbacks* trainingCallbacks,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::ILocalExecutor* localExecutor);
 
 void UpdateMetricsAfterIteration(
     size_t iteration,

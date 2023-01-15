@@ -235,7 +235,7 @@ void NCB::TCommonObjectsData::Check(TMaybe<TObjectsGroupingPtr> objectsGrouping)
 
 NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     TCommonObjectsData result;
     result.ResourceHolders = ResourceHolders;
@@ -360,7 +360,7 @@ void NCB::TObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TSubgroupId> subgr
 
 TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::GetFeaturesSubset(
     const TVector<ui32>& ignoredFeatures,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     return GetSubsetImpl(
         ::GetGroupingSubsetFromObjectsSubset(
@@ -512,7 +512,7 @@ void NCB::TRawObjectsData::Check(
     ui32 objectCount,
     const TFeaturesLayout& featuresLayout,
     const TVector<THashMap<ui32, TString>>* catFeaturesHashToString,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
 
@@ -687,7 +687,7 @@ static void GetSubsetWithScheduling(
 
 static TResourceConstrainedExecutor CreateCpuRamConstrainedExecutor(
     ui64 cpuRamLimit,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     const ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
     OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, cpuRamLimit);
@@ -705,7 +705,7 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubsetImpl(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
@@ -866,7 +866,7 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
 void NCB::TQuantizedObjectsData::Check(
     ui32 objectCount,
     const TFeaturesLayout& featuresLayout,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     /* localExecutor is a parameter here to make
      * TQuantizedObjectsData::Check and TQuantizedObjectsData::Check have the same interface
@@ -886,7 +886,7 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
@@ -956,7 +956,7 @@ static ui32 CalcFeatureValuesCheckSum(
     ui32 init,
     const TFeaturesLayout& featuresLayout,
     const TVector<THolder<T>>& featuresData,
-    NPar::TLocalExecutor* localExecutor)
+    NPar::ILocalExecutor* localExecutor)
 {
     const ui32 emptyColumnDataForCrc = 0;
     TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
@@ -981,7 +981,7 @@ static ui32 CalcFeatureValuesCheckSum(
     return checkSum;
 }
 
-ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::ILocalExecutor* localExecutor) const {
     if (!Data.CachedFeaturesCheckSum) {
         ui32 checkSum = 0;
 
@@ -1218,7 +1218,7 @@ static void SaveAsCompressedArray(TConstArrayRef<T> values, IBinSaver* binSaver)
 template <class TColumn>
 static void SaveColumnData(
     const TColumn& column,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) {
     if (auto* packedBinaryValues
@@ -1248,7 +1248,7 @@ template <EFeatureType FeatureType, class TColumn>
 static void SaveFeatures(
     const TFeaturesLayout& featuresLayout,
     const TVector<THolder<TColumn>>& src,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) {
     featuresLayout.IterateOverAvailableFeatures<FeatureType>(
@@ -1364,7 +1364,7 @@ void NCB::TExclusiveFeatureBundlesData::GetSubsetWithScheduling(
 
 
 void NCB::TExclusiveFeatureBundlesData::Save(
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) const {
     Y_ASSERT(!binSaver->IsReading());
@@ -1454,7 +1454,7 @@ void NCB::TFeatureGroupsData::GetSubsetWithScheduling(
 
 
 void NCB::TFeatureGroupsData::Save(
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) const {
     Y_ASSERT(!binSaver->IsReading());
@@ -1557,7 +1557,7 @@ void NCB::TPackedBinaryFeaturesData::GetSubsetWithScheduling(
     );
 }
 
-void NCB::TPackedBinaryFeaturesData::Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const {
+void NCB::TPackedBinaryFeaturesData::Save(NPar::ILocalExecutor* localExecutor, IBinSaver* binSaver) const {
     Y_ASSERT(!binSaver->IsReading());
 
     SaveMulti(
@@ -1663,7 +1663,7 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
     TCommonObjectsData&& commonData,
     TQuantizedForCPUObjectsData&& data,
     bool skipCheck,
-    TMaybe<NPar::TLocalExecutor*> localExecutor
+    TMaybe<NPar::ILocalExecutor*> localExecutor
 )
     : TQuantizedObjectsDataProvider(
         std::move(objectsGrouping),
@@ -1728,7 +1728,7 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
@@ -1826,7 +1826,7 @@ template <class TColumn>
 static void MakeConsecutiveIfDenseColumnDataWithScheduling(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     const TColumn& src,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<std::function<void()>>* tasks,
     THolder<TColumn>* dst
 ) {
@@ -1872,7 +1872,7 @@ static void MakeConsecutiveIfDenseArrayFeatures(
     const TExclusiveFeatureBundlesData& newExclusiveFeatureBundlesData,
     const TPackedBinaryFeaturesData& newPackedBinaryFeaturesData,
     const TFeatureGroupsData& newFeatureGroupsData,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<THolder<TColumn>>* dst
 ) {
     if (&src != dst) {
@@ -1933,7 +1933,7 @@ static void MakeConsecutiveIfDenseArrayFeatures(
 
 static void EnsureConsecutiveIfDenseExclusiveFeatureBundles(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     NCB::TExclusiveFeatureBundlesData* exclusiveFeatureBundlesData
 ) {
     TVector<std::function<void()>> tasks;
@@ -1954,7 +1954,7 @@ static void EnsureConsecutiveIfDenseExclusiveFeatureBundles(
 
 static void EnsureConsecutiveIfDensePackedBinaryFeatures(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     TVector<THolder<IBinaryPacksArray>>* packedBinaryFeatures
 ) {
     TVector<std::function<void()>> tasks;
@@ -1975,7 +1975,7 @@ static void EnsureConsecutiveIfDensePackedBinaryFeatures(
 
 static void EnsureConsecutiveIfDenseFeatureGroups(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::ILocalExecutor* localExecutor,
     NCB::TFeatureGroupsData* featureGroupsData
 ) {
     TVector<std::function<void()>> tasks;
@@ -1995,7 +1995,7 @@ static void EnsureConsecutiveIfDenseFeatureGroups(
 
 
 void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     if (GetFeaturesArraySubsetIndexing().IsConsecutive()) {
         return;

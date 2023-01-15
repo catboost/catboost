@@ -22,7 +22,7 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* executor = nullptr);
+    NPar::ILocalExecutor* executor = nullptr);
 
 bool IsMulticlass(const TVector<TVector<double>>& approx);
 
@@ -39,14 +39,14 @@ void PrepareEval(
     const EPredictionType predictionType,
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* executor,
+    NPar::ILocalExecutor* executor,
     TVector<TVector<double>>* result);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* executor = nullptr);
+    NPar::ILocalExecutor* executor = nullptr);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,

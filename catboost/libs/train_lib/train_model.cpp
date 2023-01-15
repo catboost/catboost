@@ -85,7 +85,7 @@ static TDataProviders LoadPools(
     EObjectsOrder objectsOrder,
     TDatasetSubset trainDatasetSubset,
     TVector<NJson::TJsonValue>* classLabels,
-    NPar::TLocalExecutor* const executor,
+    NPar::ILocalExecutor* const executor,
     TProfileInfo* profile
 ) {
     const auto& cvParams = loadOptions.CvParams;
@@ -716,7 +716,7 @@ namespace {
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             TDataProviders initModelApplyCompatiblePools,
-            NPar::TLocalExecutor* localExecutor,
+            NPar::ILocalExecutor* localExecutor,
             const TMaybe<TRestorableFastRng64*> rand,
             TFullModel* dstModel,
             const TVector<TEvalResult*>& evalResultPtrs,
@@ -859,7 +859,7 @@ namespace {
             const NCatboostOptions::TOutputFilesOptions& /*outputOptions*/,
             TTrainingDataProviders /*trainingData*/,
             const TLabelConverter& /*labelConverter*/,
-            NPar::TLocalExecutor* /*localExecutor*/) const override {
+            NPar::ILocalExecutor* /*localExecutor*/) const override {
             CB_ENSURE(false, "Model based eval is not implemented for CPU");
         }
     };
@@ -904,7 +904,7 @@ static void TrainModel(
     const TVector<TEvalResult*>& evalResultPtrs,
     TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
     THolder<TLearnProgress>* dstLearnProgress,
-    NPar::TLocalExecutor* const executor)
+    NPar::ILocalExecutor* const executor)
 {
     CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
     CB_ENSURE(pools.Test.size() == evalResultPtrs.size());
@@ -1300,7 +1300,7 @@ static void ModelBasedEval(
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     TDataProviders pools,
-    NPar::TLocalExecutor* const executor)
+    NPar::ILocalExecutor* const executor)
 {
     CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
 

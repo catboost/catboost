@@ -164,7 +164,7 @@ static TVector<double> GetPredictionDiffSingle(
 TVector<TVector<double>> GetPredictionDiff(
     const TFullModel& model,
     const TDataProvider& dataProvider,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1,  "Is not supported for multiclass");
     CB_ENSURE(dataProvider.GetObjectCount() == 2, "PredictionDiff requires 2 documents for compare");
@@ -250,7 +250,7 @@ void CalcAndOutputPredictionDiff(
     const TFullModel& model,
     const NCB::TDataProvider& dataProvider,
     const TString& outputPath,
-    NPar::TLocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor
 ) {
     auto factorImpact = GetPredictionDiff(model, dataProvider, localExecutor);
     TVector<std::pair<double, int>> impacts;

@@ -94,7 +94,7 @@ namespace NCB {
         TIntrusivePtr<TDataProviderTemplate> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             ui64 cpuUsedRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             TVector<std::function<void()>> tasks;
 
@@ -210,7 +210,7 @@ namespace NCB {
         TMaybe<TObjectsGroupingPtr> objectsGrouping, // if undefined ObjectsGrouping created from data
         TBuilderData<typename TTObjectsDataProvider::TData>&& builderData,
         bool skipCheck,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         if (!skipCheck) {
             /* most likely have been already checked, but call it here for consistency with
@@ -330,7 +330,7 @@ namespace NCB {
         TIntrusivePtr<TProcessedDataProviderTemplate> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             ui64 cpuUsedRamLimit,
-            NPar::TLocalExecutor* localExecutor
+            NPar::ILocalExecutor* localExecutor
         ) const {
             TVector<std::function<void()>> tasks;
 
@@ -442,7 +442,7 @@ namespace NCB {
         NCB::TArraySubsetIndexing<ui32>&& trainIndices,
         NCB::TArraySubsetIndexing<ui32>&& testIndices,
         ui64 cpuUsedRamLimit,
-        NPar::TLocalExecutor* localExecutor
+        NPar::ILocalExecutor* localExecutor
     ) {
         const ui64 perTaskCpuUsedRamLimit = cpuUsedRamLimit / 2;
 
@@ -570,7 +570,7 @@ namespace NCB {
             return QuantizedEstimatedFeaturesInfo.QuantizedFeaturesInfo;
         }
 
-        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+        ui32 CalcFeaturesCheckSum(NPar::ILocalExecutor* localExecutor) const {
             ui32 checkSum = 0;
             if (Learn) {
                 checkSum += Learn->CalcFeaturesCheckSum(localExecutor);
@@ -617,7 +617,7 @@ namespace NCB {
             return Learn->MetaInfo.FeaturesLayout;
         }
 
-        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+        ui32 CalcFeaturesCheckSum(NPar::ILocalExecutor* localExecutor) const {
             ui32 checkSum = Learn->ObjectsData->CalcFeaturesCheckSum(localExecutor);
             for (const auto& testData : Test) {
                 checkSum += testData->ObjectsData->CalcFeaturesCheckSum(localExecutor);
