@@ -28,6 +28,7 @@ void CreateTrainingDataForWorker(
     CB_ENSURE(numThreads >= 1, "Non-positive number of threads specified");
 
     auto& localData = NCatboostDistributed::TLocalTensorSearchData::GetRef();
+    localData = NCatboostDistributed::TLocalTensorSearchData();
 
     TDataProviders pools;
     pools.Learn = trainDataProvider;
