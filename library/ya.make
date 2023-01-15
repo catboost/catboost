@@ -49,10 +49,6 @@ RECURSE(
     svnversion
     svnversion/java
     testing
-    token
-    token/serialization
-    token/serialization/ut
-    token/ut
 )
 
 IF (HAVE_CUDA)

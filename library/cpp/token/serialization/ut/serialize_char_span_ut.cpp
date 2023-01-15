@@ -1,7 +1,7 @@
 #include <library/cpp/unittest/registar.h>
-#include <library/token/serialization/serialize_char_span.h>
-#include <library/token/serialization/protos/char_span.pb.h>
-#include <library/token/token_structure.h>
+#include <library/cpp/token/serialization/serialize_char_span.h>
+#include <library/cpp/token/serialization/protos/char_span.pb.h>
+#include <library/cpp/token/token_structure.h>
 
 Y_UNIT_TEST_SUITE(CharSpanSaveTest) {
     TCharSpan GetCharSpan() {

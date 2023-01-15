@@ -9,8 +9,8 @@ SRCS(
 PEERDIR(
     library/cpp/json/writer
     library/cpp/protobuf/util
-    library/token/serialization/protos
-    library/token
+    library/cpp/token/serialization/protos
+    library/cpp/token
 )
 
 END()

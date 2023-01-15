@@ -3,8 +3,8 @@
 #include <util/generic/noncopyable.h>
 #include <util/generic/vector.h>
 #include <util/system/maxlen.h>
-#include <library/token/token_structure.h>
-#include <library/token/nlptypes.h>
+#include <library/cpp/token/token_structure.h>
+#include <library/cpp/token/nlptypes.h>
 #include "nlpparserbase.h"
 
 class ITokenHandler;

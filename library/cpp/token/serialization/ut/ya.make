@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/token/serialization)
+UNITTEST_FOR(library/cpp/token/serialization)
 
 
 

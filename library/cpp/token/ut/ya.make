@@ -3,13 +3,13 @@
 UNITTEST()
 
 PEERDIR(
-    ADDINCL library/token
+    ADDINCL library/cpp/token
     library/cpp/tokenizer
     kernel/reqerror
     kernel/qtree/request
 )
 
-SRCDIR(library/token)
+SRCDIR(library/cpp/token)
 
 SRCS(
     char_normalization_ut.cpp
