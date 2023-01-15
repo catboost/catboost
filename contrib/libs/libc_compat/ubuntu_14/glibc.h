@@ -11,8 +11,6 @@ namespace NUbuntuCompat {
         bool IsSecure() noexcept;
 
     private:
-        void* GlibcHandle;
-        TGetAuxVal GetAuxValPtr;
         void* AuxVectorBegin;
         void* AuxVectorEnd;
         bool Secure;
