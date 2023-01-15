@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(1.10.0)
+VERSION(1.12.0)
 
 LICENSE(Apache-2.0)
 
@@ -15,6 +15,10 @@ ADDINCL(
 NO_COMPILER_WARNINGS()
 
 NO_UTIL()
+
+CFLAGS(
+    -DFLATBUFFERS_LOCALE_INDEPENDENT=1
+)
 
 SRCS(
     src/idl_gen_text.cpp
