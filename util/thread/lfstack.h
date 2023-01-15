@@ -35,14 +35,14 @@ class TLockFreeStack : TNonCopyable {
                 EraseList(current);
         }
     }
-    void EraseList(TNode* volatile p) {
+    void EraseList(TNode* p) {
         while (p) {
             TNode* next = p->Next;
             delete p;
             p = next;
         }
     }
-    void EnqueueImpl(TNode* volatile head, TNode* volatile tail) {
+    void EnqueueImpl(TNode* head, TNode* tail) {
         for (;;) {
             tail->Next = AtomicGet(Head);
             if (AtomicCas(&Head, head, tail->Next))
@@ -51,7 +51,7 @@ class TLockFreeStack : TNonCopyable {
     }
     template <class U>
     void EnqueueImpl(U&& u) {
-        TNode* volatile node = new TNode(std::forward<U>(u));
+        TNode* node = new TNode(std::forward<U>(u));
         EnqueueImpl(node, node);
     }
 
@@ -85,8 +85,8 @@ public:
             return;
         }
         TIter i = dataBegin;
-        TNode* volatile node = new TNode(*i);
-        TNode* volatile tail = node;
+        TNode* node = new TNode(*i);
+        TNode* tail = node;
 
         for (++i; i != dataEnd; ++i) {
             TNode* nextNode = node;
