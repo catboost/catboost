@@ -12,6 +12,7 @@
 from __future__ import absolute_import, print_function
 
 import contextlib
+import errno
 import os
 import platform
 import shutil
@@ -144,9 +145,19 @@ def _main():
                 Copy jar with sources to target dir (needed for documentation generators)
             """
             print('copy sources jar to target', file=sys.stderr)
-            shutil.copy(
-                os.path.join(native_lib_build_dir, lib_name + '-sources.jar'),
-                os.path.join(base_dir, 'target'))
+
+            target_dir = os.path.join(base_dir, 'target')
+            """
+                ensure that target directory exists, can't use exist_ok flag because it is unavailable in
+                python 2.7
+            """
+            try:
+                os.makedirs(target_dir)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+
+            shutil.copy(os.path.join(native_lib_build_dir, lib_name + '-sources.jar'), target_dir)
 
         native_lib_name = {
             'darwin': 'lib{}.dylib',
