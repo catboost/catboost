@@ -17,8 +17,9 @@ namespace NCB {
 
         virtual void Compute(const TEmbeddingsArray& vector, TOutputFloatIterator outputFeaturesIterator) const = 0;
 
-        void Save(IOutputStream* stream) const;
-        void Load(IInputStream* stream);
+        //TODO: oganes
+        //void Save(IOutputStream* stream) const;
+        //void Load(IInputStream* stream);
 
         TGuid Id() const override {
             return Guid;

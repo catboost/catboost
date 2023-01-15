@@ -825,7 +825,8 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
 bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
         AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
-        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures) &&
+        AreFeaturesValuesEqual(EmbeddingFeatures, rhs.EmbeddingFeatures);
 }
 
 
@@ -845,6 +846,10 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
     TextFeatures.clear();
     const ui32 textFeatureCount = metaInfo.FeaturesLayout->GetTextFeatureCount();
     TextFeatures.resize(textFeatureCount);
+
+    EmbeddingFeatures.clear();
+    const ui32 embeddingFeatureCount = metaInfo.FeaturesLayout->GetEmbeddingFeatureCount();
+    EmbeddingFeatures.resize(embeddingFeatureCount);
 
     if (!QuantizedFeaturesInfo) {
         QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -873,6 +878,7 @@ void NCB::TQuantizedObjectsData::Check(
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
+    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Embedding, EmbeddingFeatures);
 }
 
 
@@ -916,6 +922,7 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
     getSubsetWithScheduling(Data.FloatFeatures, &subsetData.Data.FloatFeatures);
     getSubsetWithScheduling(Data.CatFeatures, &subsetData.Data.CatFeatures);
     getSubsetWithScheduling(Data.TextFeatures, &subsetData.Data.TextFeatures);
+    getSubsetWithScheduling(Data.EmbeddingFeatures, &subsetData.Data.EmbeddingFeatures);
 
     resourceConstrainedExecutor.ExecTasks();
 
@@ -933,13 +940,15 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
 bool NCB::TQuantizedObjectsDataProvider::HasDenseData() const {
     return ::HasDenseData(Data.FloatFeatures) ||
         ::HasDenseData(Data.CatFeatures) ||
-        ::HasDenseData(Data.TextFeatures);
+        ::HasDenseData(Data.TextFeatures) ||
+        ::HasDenseData(Data.EmbeddingFeatures);
 }
 
 bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
     return ::HasSparseData(Data.FloatFeatures) ||
         ::HasSparseData(Data.CatFeatures) ||
-        ::HasSparseData(Data.TextFeatures);
+        ::HasSparseData(Data.TextFeatures) ||
+        ::HasDenseData(Data.EmbeddingFeatures);
 }
 
 template <EFeatureType FeatureType, class T>

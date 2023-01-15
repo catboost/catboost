@@ -363,6 +363,7 @@ namespace NCB {
         TVector<THolder<IQuantizedFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<IQuantizedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
         TVector<THolder<TTokenizedTextValuesHolder>> TextFeatures; // [textFeatureIdx]
+        TVector<THolder<TEmbeddingValuesHolder>> EmbeddingFeatures; // [EmbeddingFeatureIdx]
 
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
 
@@ -461,6 +462,10 @@ namespace NCB {
          */
         TMaybeData<const TTokenizedTextValuesHolder*> GetTextFeature(ui32 textFeatureIdx) const {
             return MakeMaybeData<const TTokenizedTextValuesHolder>(Data.TextFeatures[textFeatureIdx]);
+        }
+
+        TMaybeData<const TEmbeddingValuesHolder*> GetEmbeddingFeature(ui32 embeddingFeatureIdx) const {
+            return MakeMaybeData<const TEmbeddingValuesHolder>(Data.EmbeddingFeatures[embeddingFeatureIdx]);
         }
 
         TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const {
