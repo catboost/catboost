@@ -79,7 +79,7 @@ public:
     _LIBCPP_CONSTEXPR_AFTER_CXX14
     static inline size_t StrLen(const TCharType* s) noexcept {
         if (Y_LIKELY(s)) {
-            return TTraits::GetLength(s);
+            return TTraits::length(s);
         }
         return 0;
     }

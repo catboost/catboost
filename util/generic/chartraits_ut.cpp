@@ -6,9 +6,6 @@
 Y_UNIT_TEST_SUITE(TCharTraits) {
     Y_UNIT_TEST(TestLength) {
         using T = TCharTraits<char>;
-        UNIT_ASSERT_EQUAL(T::GetLength(""), 0);
-        UNIT_ASSERT_EQUAL(T::GetLength("abc"), 3);
-
         UNIT_ASSERT_EQUAL(T::GetLength("", 0), 0);
         UNIT_ASSERT_EQUAL(T::GetLength("abc", 0), 0);
         UNIT_ASSERT_EQUAL(T::GetLength("abc", 1), 1);
@@ -17,11 +14,7 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::GetLength("abc", 1000), 3);
 
         // '\0'
-        UNIT_ASSERT_EQUAL(T::GetLength("\0"), 0);
         UNIT_ASSERT_EQUAL(T::GetLength("\0", 1000), 0);
-        UNIT_ASSERT_EQUAL(T::GetLength("\0abc"), 0);
-        UNIT_ASSERT_EQUAL(T::GetLength("a\0bc"), 1);
-        UNIT_ASSERT_EQUAL(T::GetLength("ab\0c"), 2);
         UNIT_ASSERT_EQUAL(T::GetLength("\0abc", 1000), 0);
         UNIT_ASSERT_EQUAL(T::GetLength("a\0bc", 1000), 1);
     }

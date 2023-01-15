@@ -833,7 +833,7 @@ public:
 
         // length()
         UNIT_ASSERT(s.length() == s.size());
-        UNIT_ASSERT(s.length() == traits_type::GetLength(s.data()));
+        UNIT_ASSERT(s.length() == traits_type::length(s.data()));
 
         // is_null()
         TStringType s1(Data.Empty());

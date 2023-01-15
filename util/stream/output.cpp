@@ -132,7 +132,7 @@ void Out<TUtf32StringBuf>(IOutputStream& o, const TUtf32StringBuf& p) {
 template <>
 void Out<const wchar16*>(IOutputStream& o, const wchar16* w) {
     if (w) {
-        WriteString(o, w, TCharTraits<wchar16>::GetLength(w));
+        WriteString(o, w, TCharTraits<wchar16>::length(w));
     } else {
         o.Write("(null)");
     }
@@ -141,7 +141,7 @@ void Out<const wchar16*>(IOutputStream& o, const wchar16* w) {
 template <>
 void Out<const wchar32*>(IOutputStream& o, const wchar32* w) {
     if (w) {
-        WriteString(o, w, TCharTraits<wchar32>::GetLength(w));
+        WriteString(o, w, TCharTraits<wchar32>::length(w));
     } else {
         o.Write("(null)");
     }
