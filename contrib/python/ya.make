@@ -46,7 +46,7 @@ IF (OS_LINUX)
     
 )
 
-    IF (NOT OS_SDK STREQUAL "ubuntu-12")
+    IF (OS_SDK != "ubuntu-12")
         RECURSE(
     
 )
