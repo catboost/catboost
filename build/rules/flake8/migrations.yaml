@@ -2227,7 +2227,6 @@ migrations:
     - extsearch/audio/deepdive/tools/deep_dive_rollback/bin
     - extsearch/collections/tools/polirovka/collections_gui
     - extsearch/geo/meta/tests/behavioral/bin_standalone
-    - extsearch/geo/meta/tests/behavioral/steps
     - extsearch/geo/tools/rubric_synonyms/automation
     - extsearch/geo/tools/rubric_synonyms_mining/metasearch
     - extsearch/geo/tools/similar_orgs/acceptance/similars_search
@@ -2448,7 +2447,6 @@ migrations:
     - maps/streetview/backoffice/tools/set_not_uploaded
     - maps/streetview/backoffice/tools/source_validator
     - maps/tools/chains_generator
-    - maps/tools/sitemaps
     - maps/wikimap/jams_arm2/dev/miror/import_db
     - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tests
     - maps/wikimap/mapspro/services/mrc/libs/unittest/tests/pyserver
@@ -2994,7 +2992,6 @@ migrations:
     - sandbox/projects/masstransit/MapsBicycleRouterShooting
     - sandbox/projects/masstransit/MapsMasstransitDataDeploymentStatistics
     - sandbox/projects/masstransit/MapsMasstransitMtinfoShooting
-    - sandbox/projects/masstransit/MapsMasstransitMtmatrixShooting
     - sandbox/projects/masstransit/MapsMasstransitMtrouterShooting
     - sandbox/projects/masstransit/MapsMasstransitSrcExportDownloader
     - sandbox/projects/mlp
@@ -3853,7 +3850,6 @@ migrations:
     - rtmapreduce/mrtasks/sessions2detector/tests
     - rtmapreduce/mrtasks/sessions2trender/tests
     - rtmapreduce/mrtasks/sp_count/tests
-    - rtmapreduce/mrtasks/united_geolog/tests
     - rtmapreduce/mrtasks/video_player_errors/tests
     - rtmapreduce/tests/create-sessions-mainservice-test/test
     - rtmapreduce/tests/pusher-test/tests
