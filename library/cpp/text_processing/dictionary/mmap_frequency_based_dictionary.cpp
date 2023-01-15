@@ -170,3 +170,13 @@ void TMMapDictionary::InitFromMemory(const void* data, size_t size) {
     Y_ENSURE(restSize + 16 + dictionaryMetaInfoBufferSize == totalSize, "Incorrect data");
     DictionaryImpl->InitFromMemory(ptr, restSize);
 }
+
+size_t TMMapDictionary::CalculateExpectedSize(const void *data, size_t size) {
+    const ui8* ptr = reinterpret_cast<const ui8*>(data);
+    Y_ENSURE(size >= 16 + 8); // проверяем, что можем прочитать total size и заголовок
+    Y_ENSURE(!std::memcmp(ptr, MAGIC, MAGIC_SIZE));
+    ptr += 16;
+    const ui64 totalSize = *reinterpret_cast<const ui64*>(ptr);
+    Y_ENSURE(totalSize + 16 <= size);
+    return totalSize + 16;
+}

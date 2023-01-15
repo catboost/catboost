@@ -50,6 +50,7 @@ namespace NTextProcessing::NDictionary {
 
         void InitFromMemory(const void* data, size_t size);
 
+        static size_t CalculateExpectedSize(const void* data, size_t size);
     private:
         THolder<IMMapDictionaryImpl> DictionaryImpl;
     };

@@ -62,4 +62,14 @@ namespace NCB {
         DictionaryImpl = std::move(dictionaryImpl);
     }
 
+    void TDictionaryProxy::LoadNonOwning(TMemoryInput *in) {
+        ReadMagic(DictionaryMagic.data(), MagicSize, Alignment, in);
+        Guid.Load(in);
+
+        auto dictionaryImpl = MakeIntrusive<TMMapDictionary>();
+        auto size = TMMapDictionary::CalculateExpectedSize(in->Buf(), in->Avail());
+        dictionaryImpl->InitFromMemory(in->Buf(), size);
+        DictionaryImpl = std::move(dictionaryImpl);
+    }
+
 }

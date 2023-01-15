@@ -233,20 +233,7 @@ namespace NCB {
         return readLen == sizeof(T);
     }
 
-    void TTextProcessingCollection::Load(IInputStream* s) {
-        TCountingInput stream(s);
-
-        std::array<char, IdentifierSize> stringIdentifier;
-        const auto identifierSize = stream.Load(stringIdentifier.data(), IdentifierSize);
-        CB_ENSURE(
-            IdentifierSize == identifierSize &&
-                stringIdentifier == StringIdentifier,
-            "Failed to deserialize: Couldn't load magic"
-        );
-        SkipPadding(&stream, SerializationAlignment);
-
-        LoadHeader(&stream);
-
+    THashMap<TGuid, ui32> TTextProcessingCollection::CreateComponentGuidsMapping() const {
         THashMap<TGuid, ui32> guidId;
         for (ui32 i = 0; i < TokenizerId.size(); i++) {
             CB_ENSURE_INTERNAL(!guidId.contains(TokenizerId[i]), "Failed to deserialize: Get duplicated guid");
@@ -262,15 +249,49 @@ namespace NCB {
             CB_ENSURE_INTERNAL(!guidId.contains(FeatureCalcerId[i]), "Failed to deserialize: Get duplicated guid");
             guidId[FeatureCalcerId[i]] = i;
         }
+        return guidId;
+    }
+
+    void TTextProcessingCollection::CheckForMissingParts() const {
+        CB_ENSURE(
+                AllOf(Digitizers, [](const TDigitizer& digitizer) {
+                    return digitizer.Tokenizer && digitizer.Dictionary;
+                }),
+                "Failed to deserialize: Some of tokenizers or dictionaries are missing"
+        );
+
+        CB_ENSURE(
+                AllOf(FeatureCalcers, [](const TTextFeatureCalcerPtr& calcerPtr) {
+                    return calcerPtr;
+                }),
+                "Failed to deserialize: Some of calcers are missing"
+        );
+    }
+
+    void TTextProcessingCollection::DefaultInit(TCountingInput s) {
+        std::array<char, IdentifierSize> stringIdentifier;
+        const auto identifierSize = s.Load(stringIdentifier.data(), IdentifierSize);
+        CB_ENSURE(
+                IdentifierSize == identifierSize &&
+                stringIdentifier == StringIdentifier,
+                "Failed to deserialize: Couldn't load magic"
+        );
+        SkipPadding(&s, SerializationAlignment);
+        LoadHeader(&s);
 
         CB_ENSURE(TokenizerId.size() == DictionaryId.size(), "Failed to deserialize: TokenizerId.size should be equal to DictionaryId.size");
         Digitizers.resize(TokenizerId.size());
         FeatureCalcers.resize(FeatureCalcerId.size());
+    }
+
+    void TTextProcessingCollection::Load(IInputStream* stream) {
+        DefaultInit(stream);
+        auto guidId = CreateComponentGuidsMapping();
 
         ui64 headerSize;
-        while (TryLoad(&stream, headerSize)) {
+        while (TryLoad(stream, headerSize)) {
             TArrayHolder<ui8> buffer(new ui8[headerSize]);
-            const ui32 loadedBytes = stream.Load(buffer.Get(), headerSize);
+            const ui32 loadedBytes = stream->Load(buffer.Get(), headerSize);
             CB_ENSURE(
                 loadedBytes == headerSize,
                 "Failed to deserialize: Failed to load collection part"
@@ -281,7 +302,7 @@ namespace NCB {
 
             if (collectionPart->PartType() == NCatBoostFbs::EPartType_Tokenizer) {
                 auto tokenizer = MakeIntrusive<TTokenizer>();
-                tokenizer->Load(&stream);
+                tokenizer->Load(stream);
                 CB_ENSURE(
                     partId == tokenizer->Id(),
                     "Failed to deserialize: TokenizerId not equal to PartId"
@@ -290,7 +311,7 @@ namespace NCB {
                 Digitizers[guidId[partId]].Tokenizer = std::move(tokenizer);
             } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_Dictionary) {
                 auto dictionary = MakeIntrusive<TDictionaryProxy>();
-                dictionary->Load(&stream);
+                dictionary->Load(stream);
                 CB_ENSURE(
                     partId == dictionary->Id(),
                     "Failed to deserialize: DictionaryId not equal to PartId"
@@ -298,7 +319,7 @@ namespace NCB {
 
                 Digitizers[guidId[partId]].Dictionary = std::move(dictionary);
             } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_FeatureCalcer) {
-                TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(&stream);
+                TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(stream);
                 FeatureCalcers[guidId[partId]] = calcer;
                 CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
             } else {
@@ -306,20 +327,55 @@ namespace NCB {
             }
         }
 
-        CB_ENSURE(
-            AllOf(Digitizers, [](const TDigitizer& digitizer) {
-                return digitizer.Tokenizer && digitizer.Dictionary;
-            }),
-            "Failed to deserialize: Some of tokenizers or dictionaries are missing"
-        );
+        CheckForMissingParts();
+        CalcRuntimeData();
+        CheckPerFeatureIdx();
+    }
 
-        CB_ENSURE(
-            AllOf(FeatureCalcers, [](const TTextFeatureCalcerPtr& calcerPtr) {
-                return calcerPtr;
-            }),
-            "Failed to deserialize: Some of calcers are missing"
-        );
+    void TTextProcessingCollection::LoadNonOwning(TMemoryInput* in) {
+        DefaultInit(in);
+        auto guidId = CreateComponentGuidsMapping();
 
+        ui64 headerSize;
+        while (TryLoad(in, headerSize)) {
+            CB_ENSURE(
+                    in->Avail() >= headerSize,
+                    "Failed to deserialize: Failed to load collection part"
+            );
+
+            auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::TCollectionPart>(in->Buf());
+            in->Skip(headerSize);
+
+            const auto partId = GuidFromFbs(collectionPart->Id());
+
+            if (collectionPart->PartType() == NCatBoostFbs::EPartType_Tokenizer) {
+                auto tokenizer = MakeIntrusive<TTokenizer>();
+                tokenizer->Load(in);
+                CB_ENSURE(
+                        partId == tokenizer->Id(),
+                        "Failed to deserialize: TokenizerId not equal to PartId"
+                );
+
+                Digitizers[guidId[partId]].Tokenizer = std::move(tokenizer);
+            } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_Dictionary) {
+                auto dictionary = MakeIntrusive<TDictionaryProxy>();
+                dictionary->LoadNonOwning(in);
+                CB_ENSURE(
+                        partId == dictionary->Id(),
+                        "Failed to deserialize: DictionaryId not equal to PartId"
+                );
+
+                Digitizers[guidId[partId]].Dictionary = std::move(dictionary);
+            } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_FeatureCalcer) {
+                TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(in);
+                FeatureCalcers[guidId[partId]] = calcer;
+                CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
+            } else {
+                CB_ENSURE(false, "Failed to deserialize: Unknown part type");
+            }
+        }
+
+        CheckForMissingParts();
         CalcRuntimeData();
         CheckPerFeatureIdx();
     }
@@ -511,5 +567,6 @@ namespace NCB {
         }
         return evaluatedFeatures;
     }
+
 
 } // NCB
