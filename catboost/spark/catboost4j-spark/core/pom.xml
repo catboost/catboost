@@ -12,7 +12,7 @@
     <parent>
         <groupId>ai.catboost</groupId>
         <artifactId>catboost-spark-aggregate_2.11</artifactId>
-        <version>0.25</version>
+        <version>0.25.1</version>
         <relativePath>..</relativePath>
     </parent>
 
