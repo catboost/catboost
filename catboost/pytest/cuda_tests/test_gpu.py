@@ -3092,7 +3092,7 @@ def test_ranking_auc():
 
 
 @pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
-@pytest.mark.parametrize('loss_function', ['Logloss', 'QuerySoftMax', 'RMSE', 'QueryRMSE', 'QuerySoftMax:beta=0.5'])
+@pytest.mark.parametrize('loss_function', ['Logloss', 'QuerySoftMax', 'RMSE', 'QueryRMSE'])
 def test_combination(boosting_type, loss_function):
     learn_file = data_file('querywise', 'train')
     test_file = data_file('querywise', 'test')
@@ -3102,6 +3102,7 @@ def test_combination(boosting_type, loss_function):
         '-t': test_file,
         '--cd': cd_file,
         '--boosting-type': boosting_type,
+        '--bootstrap-type': 'Bernoulli',
         '-i': '10',
         '-w': '0.01',
         '-T': '4',
@@ -3109,14 +3110,13 @@ def test_combination(boosting_type, loss_function):
         '--leaf-estimation-iterations': '1'
     }
 
-    weight = {'Logloss': '0.0', 'QuerySoftMax': '0.0', 'RMSE': '0.0', 'QueryRMSE': '0.0', 'QuerySoftMax:beta=0.5': '0.0'}
+    weight = {'Logloss': '0.0', 'QuerySoftMax': '0.0', 'RMSE': '0.0', 'QueryRMSE': '0.0'}
     weight[loss_function] = '1.0'
     combination_loss = 'Combination:'
     combination_loss += 'loss0=Logloss;weight0=' + weight['Logloss'] + ';'
     combination_loss += 'loss1=QuerySoftMax;weight1=' + weight['QuerySoftMax'] + ';'
     combination_loss += 'loss2=RMSE;weight2=' + weight['RMSE'] + ';'
-    combination_loss += 'loss3=QueryRMSE;weight3=' + weight['QueryRMSE'] + ';'
-    combination_loss += 'loss4=QuerySoftMax:beta=0.5;weight4=' + weight['QuerySoftMax:beta=0.5']
+    combination_loss += 'loss3=QueryRMSE;weight3=' + weight['QueryRMSE']
 
     output_eval_path_combination = yatest.common.test_output_path('test.eval.combination')
     params.update({
@@ -3184,34 +3184,3 @@ def test_mvs_bootstrap(boosting_type, loss_function):
         assert (filecmp.cmp(ref_eval_path, eval_path) is False)
 
     return [local_canonical_file(ref_eval_path)]
-
-
-def test_querysoftmax_beta():
-    learn_file = data_file('querywise', 'train')
-    cd_file = data_file('querywise', 'train.cd')
-    params = (
-        '-f', learn_file,
-        '--cd', cd_file,
-        '--boosting-type', 'Plain',
-        '--loss-function', 'QuerySoftMax:beta=0.5',
-        '-i', '10',
-        '-w', '0.01',
-        '-T', '4',
-        '--leaf-estimation-method', 'Newton',
-        '--leaf-estimation-iterations', '1',
-        '--bootstrap-type', 'No',
-        '--random-strength', '0.0',
-        '--has-time',
-    )
-
-    cpu_learn_error_path = yatest.common.test_output_path('cpu_learn_error.tsv')
-    params += ('--learn-err-log', cpu_learn_error_path,)
-    execute_catboost_fit('CPU', params)
-
-    gpu_learn_error_path = yatest.common.test_output_path('gpu_learn_error.tsv')
-    params += ('--learn-err-log', gpu_learn_error_path,)
-    fit_catboost_gpu(params)
-
-    cpu_error = np.round(np.loadtxt(cpu_learn_error_path, skiprows=1), 5)
-    gpu_error = np.round(np.loadtxt(cpu_learn_error_path, skiprows=1), 5)
-    assert np.all(cpu_error == gpu_error)

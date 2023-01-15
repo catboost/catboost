@@ -700,11 +700,11 @@
         "uri": "file://test.test_grow_policy_restriction_CPU-Lossguide_/predictions.npy"
     },
     "test.test_ignored_features[CPU]": {
-        "checksum": "f963f444143304544befaec05c8fd8f8",
+        "checksum": "e2e771586986941010671ec2b0077607",
         "uri": "file://test.test_ignored_features_CPU_/model.bin"
     },
     "test.test_ignored_features_names[CPU]": {
-        "checksum": "4f19b3ec9b4bcf30bd1e1d96301927a1",
+        "checksum": "a8127ab8374bc89e0b447c90649795ed",
         "uri": "file://test.test_ignored_features_names_CPU_/model.bin"
     },
     "test.test_interaction_feature_importance[CPU]": {

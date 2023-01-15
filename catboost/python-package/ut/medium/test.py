@@ -2343,15 +2343,16 @@ def test_priors(task_type):
 def test_ignored_features(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model1 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', max_ctr_complexity=1, ignored_features=[1, 2, 3])
-    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', max_ctr_complexity=1)
+    model1 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', max_ctr_complexity=1)
     model1.fit(train_pool)
+    fstr = model1.get_feature_importance()
+    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', max_ctr_complexity=1, ignored_features=np.argsort(fstr)[-2:])
     model2.fit(train_pool)
     predictions1 = model1.predict_proba(test_pool)
     predictions2 = model2.predict_proba(test_pool)
     assert not _check_data(predictions1, predictions2)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
-    model1.save_model(output_model_path)
+    model2.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
 
 
