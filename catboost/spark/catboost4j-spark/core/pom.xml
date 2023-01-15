@@ -12,12 +12,12 @@
     <parent>
         <groupId>ai.catboost</groupId>
         <artifactId>catboost-spark-aggregate_2.11</artifactId>
-        <version>0.25-rc3</version>
+        <version>0.25</version>
         <relativePath>..</relativePath>
     </parent>
 
     <properties>
-        <spark.version>2.4.7</spark.version>
+        <spark.version>2.4.0</spark.version>
         <hadoop.version>2.7.3</hadoop.version>
     </properties>
 
