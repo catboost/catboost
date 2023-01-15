@@ -25,7 +25,7 @@ static bool Fork(EParent parent) {
         while (waitpid(pid, &status, 0) < 0 && errno == EINTR) {
         }
         if (parent == callExitFromParent) {
-            exit(0);
+            _exit(0);
         } else {
             return true;
         }
@@ -40,7 +40,7 @@ static bool Fork(EParent parent) {
     pid = fork();
 
     if (pid > 0) {
-        exit(0);
+        _exit(0);
     } else if (pid < 0) {
         ythrow TSystemError() << "Cannot second fork";
     }
