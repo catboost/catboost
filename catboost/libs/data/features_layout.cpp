@@ -265,6 +265,10 @@ void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeature
     }
 }
 
+TConstArrayRef<ui32> TFeaturesLayout::GetFloatFeatureInternalIdxToExternalIdx() const {
+    return FloatFeatureInternalIdxToExternalIdx;
+}
+
 TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const {
     return CatFeatureInternalIdxToExternalIdx;
 }
