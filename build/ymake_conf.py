@@ -2815,7 +2815,7 @@ class Perl(object):
 
 
 class Setting(object):
-    def __init__(self, key, auto=None, convert=None):
+    def __init__(self, key, auto=None, convert=None, rewrite=False):
         self.key = key
 
         self.auto = auto
@@ -2823,6 +2823,7 @@ class Setting(object):
 
         self.preset = preset(key)
         self.from_user = self.preset is not None
+        self.rewrite = rewrite
 
         self._value = Setting.no_value
 
@@ -2845,7 +2846,7 @@ class Setting(object):
         self._value = value
 
     def emit(self):
-        if not self.from_user:
+        if not self.from_user or self.rewrite:
             emit(self.key, self.value)
 
     no_value = object()
@@ -2861,7 +2862,7 @@ class Cuda(object):
         self.have_cuda = Setting('HAVE_CUDA', auto=self.auto_have_cuda, convert=to_bool)
 
         self.cuda_root = Setting('CUDA_ROOT')
-        self.cuda_version = Setting('CUDA_VERSION', auto=self.auto_cuda_version)
+        self.cuda_version = Setting('CUDA_VERSION', auto=self.auto_cuda_version, convert=self.convert_major_version, rewrite=True)
         self.use_arcadia_cuda = Setting('USE_ARCADIA_CUDA', auto=self.auto_use_arcadia_cuda, convert=to_bool)
         self.use_arcadia_cuda_host_compiler = Setting('USE_ARCADIA_CUDA_HOST_COMPILER', auto=self.auto_use_arcadia_cuda_host_compiler, convert=to_bool)
         self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
@@ -2951,7 +2952,7 @@ class Cuda(object):
         if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2'):
             raise ConfigureError('CUDA versions 8.x and 9.x are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value in ('10', '10.0', '10.1', '11', '11.0', '11.1', '11.2', '11.3'):
+        if self.cuda_version.value in ('10.0', '10.1', '11.0', '11.1', '11.2', '11.3'):
             return True
 
         return False
@@ -2964,8 +2965,6 @@ class Cuda(object):
         return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
 
     def auto_cuda_version(self):
-        host, target = self.build.host_target
-
         if self.use_arcadia_cuda.value:
             return '10.1'
 
@@ -2981,6 +2980,14 @@ class Cuda(object):
         match = re.search(r'^Cuda compilation tools, release (\d+)\.\d+,', version_output, re.MULTILINE) or error()
 
         return match.group(1)
+
+    def convert_major_version(self, value):
+        if value == '10':
+            return '10.1'
+        elif value == '11':
+            return '11.3'
+        else:
+            return value
 
     def auto_use_arcadia_cuda(self):
         return not self.cuda_root.from_user
