@@ -98,8 +98,4 @@ migrations:
       - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/flight
       - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/flight_test
       - a.yandex-team.ru/travel/library/go/service_template/internal/schedule/service/schedule
-      - a.yandex-team.ru/yabs/telephony/platform/distributor/service
-      - a.yandex-team.ru/yabs/telephony/platform/distributor/service_test
-      - a.yandex-team.ru/yabs/telephony/platform/distributor/storage
-      - a.yandex-team.ru/yabs/telephony/platform/distributor/storage_test
       - a.yandex-team.ru/zootopia/analytics/drive/operations/orders
