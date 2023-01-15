@@ -272,20 +272,16 @@ namespace NCB {
         class TIncompleteData {
         public:
             TIncompleteData(
-                TTrainingDataProviders&& trainingData,
+                const TTrainingDataProviders& trainingData,
                 THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
                 const TVector<TTargetClassifier>& targetClassifiers,
-                ECounterCalc counterCalcMethod,
                 ui32 numThreads
             )
-                : TrainingData(std::move(trainingData))
+                : TrainingDataRef(trainingData)
                 , TargetClassifiers(targetClassifiers)
                 , NumThreads(numThreads)
                 , FeatureCombinationToProjection(std::move(featureCombinationToProjection))
             {
-                if (counterCalcMethod == ECounterCalc::SkipTest) {
-                    TrainingData.Test.clear();
-                }
             }
 
             void operator()(
@@ -293,7 +289,7 @@ namespace NCB {
                 TDatasetDataForFinalCtrs* outDatasetDataForFinalCtrs,
                 const THashMap<TFeatureCombination, TProjection>** outFeatureCombinationToProjection
             ) {
-                outDatasetDataForFinalCtrs->Data = std::move(TrainingData);
+                outDatasetDataForFinalCtrs->Data = TrainingDataRef;
                 outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
 
                 // since counters are not implemented for mult-dimensional target
@@ -323,7 +319,7 @@ namespace NCB {
             }
 
         private:
-            TTrainingDataProviders TrainingData;
+            const TTrainingDataProviders& TrainingDataRef;
 
             const TVector<TTargetClassifier>& TargetClassifiers;
             ui32 NumThreads;
@@ -390,16 +386,15 @@ namespace NCB {
     }
 
     TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithBinarizedDataComputedFrom(
-        TTrainingDataProviders&& trainingData,
+        const TTrainingDataProviders& trainingData,
         THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
         const TVector<TTargetClassifier>& targetClassifiers
     ) {
         if (FinalCtrComputationMode != EFinalCtrComputationMode::Skip) {
             GetBinarizedDataFunc = TIncompleteData(
-                std::move(trainingData),
+                trainingData,
                 std::move(featureCombinationToProjection),
                 targetClassifiers,
-                Options.CatFeatureParams.Get().CounterCalcMethod,
                 NumThreads
             );
         }
