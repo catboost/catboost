@@ -50,6 +50,7 @@ public:
     static constexpr size_t npos = size_t(-1);
 
     using const_iterator = const TCharType*;
+    using const_reference = const TCharType&;
 
     template <typename TBase>
     struct TReverseIteratorBase {

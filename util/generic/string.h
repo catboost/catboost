@@ -124,13 +124,13 @@ public:
     // TODO: Move to private section
     using TBase = TStringBase<TBasicString, TCharType, TTraits>;
 #ifdef TSTRING_IS_STD_STRING
-    using TCharRef = TCharType&;
     using TStorage = std::basic_string<TCharType>;
+    using reference = typename TStorage::reference;
 #else
     using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
     using TData = typename TDataTraits::TData;
 
-    using TCharRef = TBasicCharRef<TBasicString>; // TODO: reference
+    using reference = TBasicCharRef<TBasicString>;
 #endif
     using char_type = TCharType; // TODO: DROP
     using value_type = TCharType;
@@ -138,8 +138,9 @@ public:
 
     using iterator = TCharType*;
     using reverse_iterator = typename TBase::template TReverseIteratorBase<iterator>;
-    using const_iterator = typename TBase::const_iterator;
-    using const_reverse_iterator = typename TBase::const_reverse_iterator;
+    using typename TBase::const_iterator;
+    using typename TBase::const_reverse_iterator;
+    using typename TBase::const_reference;
 
     struct TUninitialized {
         explicit TUninitialized(size_t size)
@@ -231,45 +232,45 @@ protected:
 #endif
 
 public:
-    inline TCharType operator[](size_t pos) const noexcept {
+    inline const_reference operator[](size_t pos) const noexcept {
         Y_ASSERT(pos <= length());
 
         return this->data()[pos];
     }
 
-    inline TCharRef operator[](size_t pos) noexcept {
+    inline reference operator[](size_t pos) noexcept {
         Y_ASSERT(pos <= length());
 
 #ifdef TSTRING_IS_STD_STRING
         return Storage_[pos];
 #else
-        return TCharRef(*this, pos);
+        return reference(*this, pos);
 #endif
     }
 
     using TBase::back;
 
-    inline TCharRef back() noexcept {
+    inline reference back() noexcept {
         Y_ASSERT(!this->empty());
 
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.back();
 #else
         if (Y_UNLIKELY(this->empty())) {
-            return TCharRef(*this, 0);
+            return reference(*this, 0);
         }
-        return TCharRef(*this, length() - 1);
+        return reference(*this, length() - 1);
 #endif
     }
 
     using TBase::front;
 
-    inline TCharRef front() noexcept {
+    inline reference front() noexcept {
         Y_ASSERT(!this->empty());
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.front();
 #else
-        return TCharRef(*this, 0);
+        return reference(*this, 0);
 #endif
     }
 
@@ -512,7 +513,7 @@ public:
         Data_ = Allocate(1);
         Data_[0] = c;
     }
-    explicit TBasicString(const TCharRef& c) {
+    explicit TBasicString(const reference& c) {
         Data_ = Allocate(1);
         Data_[0] = c;
     }
