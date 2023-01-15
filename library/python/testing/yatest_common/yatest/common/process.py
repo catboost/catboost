@@ -85,6 +85,10 @@ class SignalInterruptionError(Exception):
         self.res = None
 
 
+class InvalidCommandError(Exception):
+    pass
+
+
 class _Execution(object):
 
     def __init__(self, command, process, out_file, err_file, process_progress_listener=None, cwd=None, collect_cores=True, check_sanitizer=True, started=0, user_stdout=False, user_stderr=False):
@@ -477,6 +481,16 @@ def execute(
     if shell:
         collect_cores = False
         check_sanitizer = False
+    else:
+        if isinstance(command, (list, tuple)):
+            executable = command[0]
+        else:
+            executable = command
+        if os.path.isabs(executable):
+            if not os.path.isfile(executable) and not os.path.isfile(executable + ".exe"):
+                raise InvalidCommandError("Target program is not a file: {}".format(executable))
+            if not os.access(executable, os.X_OK) and not os.access(executable + ".exe", os.X_OK):
+                raise InvalidCommandError("Target program is not executable: {}".format(executable))
 
     if check_sanitizer:
         env["LSAN_OPTIONS"] = environment.extend_env_var(os.environ, "LSAN_OPTIONS", "exitcode=100")
