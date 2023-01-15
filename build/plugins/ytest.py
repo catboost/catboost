@@ -150,7 +150,7 @@ def validate_test(unit, kw):
                     if req_value in ["0"]:
                         warnings.append("Requirement [[imp]]{}[[rst]] is dropped [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
                         del requirements[req_name]
-                    else:
+                    elif requirements[req_name] != req_value:
                         warnings.append("Requirement [[imp]]{}[[rst]] is redefined [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
                         requirements[req_name] = req_value
                 else:
