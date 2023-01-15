@@ -180,17 +180,6 @@ private:
     }
 
 public:
-    static size_t GetHash(const TCharType* s, size_t n) noexcept {
-        // reduce code bloat and cycled includes, declare functions here
-#if defined(_64_) && !defined(NO_CITYHASH)
-        extern ui64 CityHash64(const char* buf, size_t len) noexcept;
-        return CityHash64((const char*)s, n * sizeof(TCharType));
-#else
-        extern size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
-        return MurmurHashSizeT((const char*)s, n * sizeof(TCharType));
-#endif
-    }
-
     static TCharType ToLower(TCharType c) {
         return ::ToLower((wchar32)c);
     }
@@ -286,17 +275,6 @@ private:
     }
 
 public:
-    static size_t GetHash(const TCharType* s, size_t n) noexcept {
-        // reduce code bloat and cycled includes, declare functions here
-#if defined(_64_) && !defined(NO_CITYHASH)
-        extern ui64 CityHash64(const char* buf, size_t len) noexcept;
-        return CityHash64((const char*)s, n * sizeof(TCharType));
-#else
-        extern size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
-        return MurmurHashSizeT((const char*)s, n * sizeof(TCharType));
-#endif
-    }
-
     static TCharType* Move(TCharType* s1, const TCharType* s2, size_t n) {
         return ::MemMove(s1, s2, n);
     }
@@ -536,17 +514,6 @@ private:
     }
 
 public:
-    static size_t GetHash(const TCharType* s, size_t n) noexcept {
-        // reduce code bloat and cycled includes, declare functions here
-#if defined(_64_) && !defined(NO_CITYHASH)
-        extern ui64 CityHash64(const char* buf, size_t len) noexcept;
-        return CityHash64((const char*)s, n * sizeof(TCharType));
-#else
-        extern size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
-        return MurmurHashSizeT((const char*)s, n * sizeof(TCharType));
-#endif
-    }
-
     static TCharType ToLower(TCharType c) {
         return (TCharType)::ToLower((wchar32)c);
     }
@@ -740,17 +707,6 @@ private:
     }
 
 public:
-    static size_t GetHash(const TCharType* s, size_t n) noexcept {
-        // reduce code bloat and cycled includes, declare functions here
-#if defined(_64_) && !defined(NO_CITYHASH)
-        extern ui64 CityHash64(const char* buf, size_t len) noexcept;
-        return CityHash64((const char*)s, n * sizeof(TCharType));
-#else
-        extern size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
-        return MurmurHashSizeT((const char*)s, n * sizeof(TCharType));
-#endif
-    }
-
     static TCharType ToLower(TCharType c) {
         return ::ToLower((wchar32)c);
     }
