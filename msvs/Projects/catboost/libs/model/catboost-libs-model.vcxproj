@@ -219,6 +219,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_build_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_estimated_features.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_import_interface.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\scale_and_bias.h"/>
