@@ -15,6 +15,12 @@ ADDINCL(
 
 NO_COMPILER_WARNINGS()
 
+IF (WITH_VALGRIND)
+    CFLAGS(
+        GLOBAL -DRE2_ON_VALGRIND
+    )
+ENDIF()
+
 SRCS(
     re2/bitstate.cc
     re2/compile.cc
