@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers._tsql_builtins
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

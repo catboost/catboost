@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.styles.solarized
     ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,12 +57,15 @@ def make_style(colors):
 
         Number:              colors['cyan'],
 
+        Generic:             colors['base0'],
         Generic.Deleted:     colors['red'],
         Generic.Emph:        'italic',
         Generic.Error:       colors['red'],
         Generic.Heading:     'bold',
         Generic.Subheading:  'underline',
         Generic.Inserted:    colors['green'],
+        Generic.Output:      colors['base0'],
+        Generic.Prompt:      'bold ' + colors['blue'],
         Generic.Strong:      'bold',
         Generic.Traceback:   colors['blue'],
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.ruby
     ~~~~~~~~~~~~~~~~~~~~
@@ -330,9 +329,13 @@ class RubyLexer(ExtendedRegexLexer):
         ],
         'funcname': [
             (r'\(', Punctuation, 'defexpr'),
-            (r'(?:([a-zA-Z_]\w*)(\.))?'
-             r'([a-zA-Z_]\w*[!?]?|\*\*?|[-+]@?|'
-             r'[/%&|^`~]|\[\]=?|<<|>>|<=?>|>=?|===?)',
+            (r'(?:([a-zA-Z_]\w*)(\.))?'  # optional scope name, like "self."
+             r'('
+                r'[a-zA-Z\u0080-\uffff][a-zA-Z0-9_\u0080-\uffff]*[!?=]?'  # method name
+                r'|!=|!~|=~|\*\*?|[-+!~]@?|[/%&|^]|<=>|<[<=]?|>[>=]?|===?'  # or operator override
+                r'|\[\]=?'  # or element reference/assignment override
+                r'|`'  # or the undocumented backtick override
+             r')',
              bygroups(Name.Class, Operator, Name.Function), '#pop'),
             default('#pop')
         ],

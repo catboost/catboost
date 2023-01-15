@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.sql
     ~~~~~~~~~~~~~~~~~~~
@@ -102,8 +101,7 @@ def language_callback(lexer, match):
     yield (match.start(3), String, match.group(3))
     # 4 = string contents
     if lx:
-        for x in lx.get_tokens_unprocessed(match.group(4)):
-            yield x
+        yield from lx.get_tokens_unprocessed(match.group(4))
     else:
         yield (match.start(4), String, match.group(4))
     # 5 = $, 6 = delimiter, 7 = $
@@ -496,9 +494,6 @@ class SqlLexer(RegexLexer):
             (r'[/*]', Comment.Multiline)
         ]
     }
-
-    def analyse_text(text):
-        return 0.01
 
 
 class TransactSqlLexer(RegexLexer):

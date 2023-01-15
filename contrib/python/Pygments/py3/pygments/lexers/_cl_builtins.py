@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers._cl_builtins
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

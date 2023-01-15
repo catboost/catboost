@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.styles
     ~~~~~~~~~~~~~~~
@@ -22,6 +21,7 @@ STYLE_MAP = {
     'autumn':   'autumn::AutumnStyle',
     'murphy':   'murphy::MurphyStyle',
     'manni':    'manni::ManniStyle',
+    'material': 'material::MaterialStyle',
     'monokai':  'monokai::MonokaiStyle',
     'perldoc':  'perldoc::PerldocStyle',
     'pastie':   'pastie::PastieStyle',
@@ -51,6 +51,7 @@ STYLE_MAP = {
     'stata-light': 'stata_light::StataLightStyle',
     'stata-dark':  'stata_dark::StataDarkStyle',
     'inkpot':      'inkpot::InkPotStyle',
+    'zenburn': 'zenburn::ZenburnStyle',
 }
 
 

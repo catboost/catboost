@@ -4,7 +4,7 @@ LICENSE(BSD-3-Clause)
 
 
 
-VERSION(2.7.3)
+VERSION(2.8.0)
 
 PROVIDES(Pygments)
 
@@ -65,6 +65,7 @@ PY_SRCS(
     pygments/lexers/agile.py
     pygments/lexers/algebra.py
     pygments/lexers/ambient.py
+    pygments/lexers/amdgpu.py
     pygments/lexers/ampl.py
     pygments/lexers/apl.py
     pygments/lexers/archetype.py
@@ -79,6 +80,7 @@ PY_SRCS(
     pygments/lexers/c_cpp.py
     pygments/lexers/c_like.py
     pygments/lexers/capnproto.py
+    pygments/lexers/cddl.py
     pygments/lexers/chapel.py
     pygments/lexers/clean.py
     pygments/lexers/compiled.py
@@ -111,11 +113,13 @@ PY_SRCS(
     pygments/lexers/foxpro.py
     pygments/lexers/freefem.py
     pygments/lexers/functional.py
+    pygments/lexers/futhark.py
     pygments/lexers/gdscript.py
     pygments/lexers/go.py
     pygments/lexers/grammar_notation.py
     pygments/lexers/graph.py
     pygments/lexers/graphics.py
+    pygments/lexers/graphviz.py
     pygments/lexers/haskell.py
     pygments/lexers/haxe.py
     pygments/lexers/hdl.py
@@ -235,6 +239,7 @@ PY_SRCS(
     pygments/styles/inkpot.py
     pygments/styles/lovelace.py
     pygments/styles/manni.py
+    pygments/styles/material.py
     pygments/styles/monokai.py
     pygments/styles/murphy.py
     pygments/styles/native.py
@@ -253,6 +258,7 @@ PY_SRCS(
     pygments/styles/vim.py
     pygments/styles/vs.py
     pygments/styles/xcode.py
+    pygments/styles/zenburn.py
     pygments/token.py
     pygments/unistring.py
     pygments/util.py

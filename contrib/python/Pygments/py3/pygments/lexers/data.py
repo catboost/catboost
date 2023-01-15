@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.data
     ~~~~~~~~~~~~~~~~~~~~
@@ -691,7 +690,7 @@ class JsonLdLexer(JsonLexer):
     }
 
     def get_tokens_unprocessed(self, text):
-        for start, token, value in super(JsonLdLexer, self).get_tokens_unprocessed(text):
+        for start, token, value in super().get_tokens_unprocessed(text):
             if token is Name.Tag and value in self.json_ld_keywords:
                 yield start, Name.Decorator, value
             else:

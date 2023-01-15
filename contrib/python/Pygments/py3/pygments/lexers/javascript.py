@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.javascript
     ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,8 +99,7 @@ class JavascriptLexer(RegexLexer):
         ],
         'interp': [
             (r'`', String.Backtick, '#pop'),
-            (r'\\\\', String.Backtick),
-            (r'\\`', String.Backtick),
+            (r'\\.', String.Backtick),
             (r'\$\{', String.Interpol, 'interp-inside'),
             (r'\$', String.Backtick),
             (r'[^`\\$]+', String.Backtick),
@@ -488,8 +486,10 @@ class TypeScriptLexer(RegexLexer):
             (r'(for|in|while|do|break|return|continue|switch|case|default|if|else|'
              r'throw|try|catch|finally|new|delete|typeof|instanceof|void|of|'
              r'this|async|await|debugger|yield|abstract|static|import|export|'
-             r'implements|super|extends|private|protected|public|readonly)\b', Keyword, 'slashstartsregex'),
-            (r'(var|let|const|with|function|class|type|enum|interface)\b', Keyword.Declaration, 'slashstartsregex'),
+             r'implements|super|extends|private|protected|public|readonly)\b',
+                Keyword, 'slashstartsregex'),
+            (r'(var|let|const|with|function|class|type|enum|interface)\b',
+                Keyword.Declaration, 'slashstartsregex'),
             (r'(boolean|byte|char|double|final|float|goto|int|long|native|'
              r'package|short|synchronized|throws|transient|volatile)\b', Keyword.Reserved),
             (r'(true|false|null|NaN|Infinity|undefined)\b', Keyword.Constant),
@@ -530,8 +530,7 @@ class TypeScriptLexer(RegexLexer):
         # there should be reflected here as well.
         'interp': [
             (r'`', String.Backtick, '#pop'),
-            (r'\\\\', String.Backtick),
-            (r'\\`', String.Backtick),
+            (r'\\.', String.Backtick),
             (r'\$\{', String.Interpol, 'interp-inside'),
             (r'\$', String.Backtick),
             (r'[^`\\$]+', String.Backtick),

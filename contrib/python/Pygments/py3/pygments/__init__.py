@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Pygments
     ~~~~~~~~
@@ -28,7 +27,7 @@
 import sys
 from io import StringIO, BytesIO
 
-__version__ = '2.7.4'
+__version__ = '2.8.0'
 __docformat__ = 'restructuredtext'
 
 __all__ = ['lex', 'format', 'highlight']

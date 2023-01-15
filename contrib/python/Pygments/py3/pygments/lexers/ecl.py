@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.ecl
     ~~~~~~~~~~~~~~~~~~~
@@ -13,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, include, bygroups, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error
+    Number, Punctuation
 
 __all__ = ['ECLLexer']
 
@@ -56,7 +55,6 @@ class ECLLexer(RegexLexer):
             (r'0x[0-9a-f]+[lu]*', Number.Hex),
             (r'0[0-7]+[lu]*', Number.Oct),
             (r'\d+[lu]*', Number.Integer),
-            (r'\*/', Error),
             (r'[~!%^&*+=|?:<>/-]+', Operator),
             (r'[{}()\[\],.;]', Punctuation),
             (r'[a-z_]\w*', Name),
@@ -126,10 +124,10 @@ class ECLLexer(RegexLexer):
 
     def analyse_text(text):
         """This is very difficult to guess relative to other business languages.
-        <- in conjuction with BEGIN/END seems relatively rare though."""
+        -> in conjuction with BEGIN/END seems relatively rare though."""
         result = 0
 
-        if '<-' in text:
+        if '->' in text:
             result += 0.01
         if 'BEGIN' in text:
             result += 0.01

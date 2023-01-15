@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.int_fiction
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~

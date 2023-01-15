@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.jvm
     ~~~~~~~~~~~~~~~~~~~
@@ -1037,74 +1036,137 @@ class KotlinLexer(RegexLexer):
 
     kt_space_name = ('@?[_' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl') + ']' +
                '[' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl', 'Nd', 'Pc', 'Cf',
-                                 'Mn', 'Mc', 'Zs') + ',-]*')
+                                 'Mn', 'Mc', 'Zs')
+                + r'\'~!%^&*()+=|\[\]:;,.<>/\?-]*')
 
     kt_id = '(' + kt_name + '|`' + kt_space_name + '`)'
 
+    modifiers = (r'actual|abstract|annotation|companion|const|crossinline|'
+                r'data|enum|expect|external|final|infix|inline|inner|'
+                r'internal|lateinit|noinline|open|operator|override|private|'
+                r'protected|public|sealed|suspend|tailrec')
+
     tokens = {
         'root': [
-            (r'^\s*\[.*?\]', Name.Attribute),
+            # Whitespaces
             (r'[^\S\n]+', Text),
             (r'\s+', Text),
             (r'\\\n', Text),  # line continuation
+            (r'\n', Text),
+            # Comments
             (r'//.*?\n', Comment.Single),
             (r'^#!/.+?\n', Comment.Single),  # shebang for kotlin scripts
             (r'/[*].*?[*]/', Comment.Multiline),
-            (r'""".*?"""', String),
-            (r'\n', Text),
+            # Keywords
+            (r'as\?', Keyword),
+            (r'(as|break|by|catch|constructor|continue|do|dynamic|else|finally|'
+             r'get|for|if|init|[!]*in|[!]*is|out|reified|return|set|super|this|'
+             r'throw|try|typealias|typeof|vararg|when|where|while)\b', Keyword),
+            (r'it\b', Name.Builtin),
+            # Built-in types
+            (words(('Boolean?', 'Byte?', 'Char?', 'Double?', 'Float?',
+             'Int?', 'Long?', 'Short?', 'String?', 'Any?', 'Unit?')), Keyword.Type),
+            (words(('Boolean', 'Byte', 'Char', 'Double', 'Float',
+             'Int', 'Long', 'Short', 'String', 'Any', 'Unit'), suffix=r'\b'), Keyword.Type),
+            # Constants
+            (r'(true|false|null)\b', Keyword.Constant),
+            # Imports
+            (r'(package|import)(\s+)(\S+)', bygroups(Keyword, Text, Name.Namespace)),
+            # Dot access
+            (r'(\?\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Operator, Name.Attribute)),
+            (r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Punctuation, Name.Attribute)),
+            # Annotations
+            (r'@[^\W\d][\w.]*', Name.Decorator),
+            # Labels
+            (r'[^\W\d][\w.]+@', Name.Decorator),
+            # Object expression
+            (r'(object)(\s+)(:)(\s+)', bygroups(Keyword, Text, Punctuation, Text), 'class'),
+            # Types
+            (r'((?:(?:' + modifiers + r'|fun)\s+)*)(class|interface|object)(\s+)',
+             bygroups(using(this, state='modifiers'), Keyword.Declaration, Text), 'class'),
+            # Variables
+            (r'(var|val)(\s+)(\()', bygroups(Keyword.Declaration, Text, Punctuation),
+             'destructuring_assignment'),
+            (r'((?:(?:' + modifiers + r')\s+)*)(var|val)(\s+)',
+             bygroups(using(this, state='modifiers'), Keyword.Declaration, Text), 'variable'),
+            # Functions
+            (r'((?:(?:' + modifiers + r')\s+)*)(fun)(\s+)',
+             bygroups(using(this, state='modifiers'), Keyword.Declaration, Text), 'function'),
+            # Operators
             (r'::|!!|\?[:.]', Operator),
-            (r'[~!%^&*()+=|\[\]:;,.<>/?-]', Punctuation),
-            (r'[{}]', Punctuation),
-            (r'@"(""|[^"])*"', String),
-            (r'"(\\\\|\\[^\\]|[^"\\\n])*["\n]', String),
+            (r'[~^*!%&\[\]<>|+=/?-]', Operator),
+            # Punctuation
+            (r'[{}();:.,]', Punctuation),
+            # Strings
+            (r'"""', String, 'multiline_string'),
+            (r'"', String, 'string'),
             (r"'\\.'|'[^\\]'", String.Char),
+            # Numbers
             (r"[0-9](\.[0-9]*)?([eE][+-][0-9]+)?[flFL]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
-            (r'(object)(\s+)(:)(\s+)', bygroups(Keyword, Text, Punctuation, Text), 'class'),
-            (r'(companion)(\s+)(object)', bygroups(Keyword, Text, Keyword)),
-            (r'(class|interface|object)(\s+)', bygroups(Keyword, Text), 'class'),
-            (r'(package|import)(\s+)', bygroups(Keyword, Text), 'package'),
-            (r'(val|var)(\s+)([(])', bygroups(Keyword, Text, Punctuation), 'property_dec'),
-            (r'(val|var)(\s+)', bygroups(Keyword, Text), 'property'),
-            (r'(fun)(\s+)', bygroups(Keyword, Text), 'function'),
-            (r'(inline fun)(\s+)', bygroups(Keyword, Text), 'function'),
-            (r'(abstract|annotation|as|break|by|catch|class|companion|const|'
-             r'constructor|continue|crossinline|data|do|dynamic|else|enum|'
-             r'external|false|final|finally|for|fun|get|if|import|in|infix|'
-             r'inline|inner|interface|internal|is|lateinit|noinline|null|'
-             r'object|open|operator|out|override|package|private|protected|'
-             r'public|reified|return|sealed|set|super|tailrec|this|throw|'
-             r'true|try|val|var|vararg|when|where|while)\b', Keyword),
-            (kt_id, Name),
-        ],
-        'package': [
-            (r'\S+', Name.Namespace, '#pop')
+            # Identifiers
+            (r'' + kt_id + r'((\?[^.])?)', Name) # additionally handle nullable types
         ],
         'class': [
             (kt_id, Name.Class, '#pop')
         ],
-        'property': [
-            (kt_id, Name.Property, '#pop')
+        'variable': [
+            (kt_id, Name.Variable, '#pop')
         ],
-        'property_dec': [
-            (r'(,)(\s*)', bygroups(Punctuation, Text)),
-            (r'(:)(\s*)', bygroups(Punctuation, Text)),
-            (r'<', Punctuation, 'generic'),
-            (r'([)])', Punctuation, '#pop'),
-            (kt_id, Name.Property)
+        'destructuring_assignment': [
+            (r',', Punctuation),
+            (r'\s+', Text),
+            (kt_id, Name.Variable),
+            (r'(:)(\s+)(' + kt_id + ')', bygroups(Punctuation, Text, Name)),
+            (r'<', Operator, 'generic'),
+            (r'\)', Punctuation, '#pop')
         ],
         'function': [
-            (r'<', Punctuation, 'generic'),
-            (r''+kt_id+'([.])'+kt_id, bygroups(Name.Class, Punctuation, Name.Function), '#pop'),
+            (r'<', Operator, 'generic'),
+            (r'' + kt_id + r'(\.)' + kt_id, bygroups(Name, Punctuation, Name.Function), '#pop'),
             (kt_id, Name.Function, '#pop')
         ],
         'generic': [
-            (r'(>)(\s*)', bygroups(Punctuation, Text), '#pop'),
-            (r':',Punctuation),
+            (r'(>)(\s*)', bygroups(Operator, Text), '#pop'),
+            (r':', Punctuation),
             (r'(reified|out|in)\b', Keyword),
-            (r',',Text),
-            (r'\s+',Text),
-            (kt_id,Name)
+            (r',', Punctuation),
+            (r'\s+', Text),
+            (kt_id, Name)
+        ],
+        'modifiers': [
+            (r'\w+', Keyword.Declaration),
+            (r'\s+', Text),
+            default('#pop')
+        ],
+        'string': [
+            (r'"', String, '#pop'),
+            include('string_common')
+        ],
+        'multiline_string': [
+            (r'"""', String, '#pop'),
+            (r'"', String),
+            include('string_common')
+        ],
+        'string_common': [
+            (r'\\\\', String),  # escaped backslash
+            (r'\\"', String),  # escaped quote
+            (r'\\', String),  # bare backslash 
+            (r'\$\{', String.Interpol, 'interpolation'),
+            (r'(\$)(\w+)', bygroups(String.Interpol, Name)),
+            (r'[^\\"$]+', String)
+        ],
+        'interpolation': [
+            (r'"', String),
+            (r'\$\{', String.Interpol, 'interpolation'),
+            (r'\{', Punctuation, 'scope'),
+            (r'\}', String.Interpol, '#pop'),
+            include('root')
+        ],
+        'scope': [
+            (r'\{', Punctuation, 'scope'),
+            (r'\}', Punctuation, '#pop'),
+            include('root')
         ]
     }
 

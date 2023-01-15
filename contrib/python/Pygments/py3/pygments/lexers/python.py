@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.python
     ~~~~~~~~~~~~~~~~~~~~~~
@@ -122,13 +121,17 @@ class PythonLexer(RegexLexer):
         'expr': [
             # raw f-strings
             ('(?i)(rf|fr)(""")',
-             bygroups(String.Affix, String.Double), 'tdqf'),
+             bygroups(String.Affix, String.Double),
+             combined('rfstringescape', 'tdqf')),
             ("(?i)(rf|fr)(''')",
-             bygroups(String.Affix, String.Single), 'tsqf'),
+             bygroups(String.Affix, String.Single),
+             combined('rfstringescape', 'tsqf')),
             ('(?i)(rf|fr)(")',
-             bygroups(String.Affix, String.Double), 'dqf'),
+             bygroups(String.Affix, String.Double),
+             combined('rfstringescape', 'dqf')),
             ("(?i)(rf|fr)(')",
-             bygroups(String.Affix, String.Single), 'sqf'),
+             bygroups(String.Affix, String.Single),
+             combined('rfstringescape', 'sqf')),
             # non-raw f-strings
             ('([fF])(""")', bygroups(String.Affix, String.Double),
              combined('fstringescape', 'tdqf')),
@@ -316,9 +319,12 @@ class PythonLexer(RegexLexer):
             (uni_name, Name.Namespace),
             default('#pop'),
         ],
-        'fstringescape': [
+        'rfstringescape': [
             (r'\{\{', String.Escape),
             (r'\}\}', String.Escape),
+        ],
+        'fstringescape': [
+            include('rfstringescape'),
             include('stringescape'),
         ],
         'stringescape': [
@@ -372,7 +378,8 @@ class PythonLexer(RegexLexer):
     }
 
     def analyse_text(text):
-        return shebang_matches(text, r'pythonw?(3(\.\d)?)?')
+        return shebang_matches(text, r'pythonw?(3(\.\d)?)?') or \
+            'import ' in text[:1000]
 
 
 Python3Lexer = PythonLexer
@@ -596,8 +603,7 @@ class Python2Lexer(RegexLexer):
     }
 
     def analyse_text(text):
-        return shebang_matches(text, r'pythonw?2(\.\d)?') or \
-            'import ' in text[:1000]
+        return shebang_matches(text, r'pythonw?2(\.\d)?')
 
 
 class PythonConsoleLexer(Lexer):
@@ -1146,6 +1152,7 @@ class NumPyLexer(PythonLexer):
                 yield index, token, value
 
     def analyse_text(text):
+        ltext = text[:1000]
         return (shebang_matches(text, r'pythonw?(3(\.\d)?)?') or
-                'import ' in text[:1000]) \
-            and ('import numpy' in text or 'from numpy import' in text)
+                'import ' in ltext) \
+            and ('import numpy' in ltext or 'from numpy import' in ltext)

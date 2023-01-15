@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.css
     ~~~~~~~~~~~~~~~~~~~
@@ -689,6 +688,7 @@ class LessCssLexer(CssLexer):
         ],
         'content': [
             (r'\{', Punctuation, '#push'),
+            (r'//.*\n', Comment.Single),
             inherit,
         ],
     }

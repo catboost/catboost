@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.mime
     ~~~~~~~~~~~~~~~~~~~~
@@ -77,7 +76,7 @@ class MIMELexer(RegexLexer):
                 return 1
 
         except ValueError:
-            return 0.1
+            return 0
 
     def get_header_tokens(self, match):
         field = match.group(1)

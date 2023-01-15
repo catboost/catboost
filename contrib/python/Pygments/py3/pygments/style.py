@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     pygments.style
     ~~~~~~~~~~~~~~
@@ -177,10 +176,10 @@ class Style(metaclass=StyleMeta):
     highlight_color = '#ffffcc'
 
     #: line number font color
-    line_number_color = '#000000'
+    line_number_color = 'inherit'
 
     #: line number background color
-    line_number_background_color = '#f0f0f0'
+    line_number_background_color = 'transparent'
 
     #: special line number font color
     line_number_special_color = '#000000'
