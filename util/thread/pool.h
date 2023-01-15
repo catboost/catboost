@@ -82,6 +82,8 @@ struct TThreadPoolParams {
     bool Catching_ = true;
     bool Blocking_ = false;
     IThreadFactory* Factory_ = SystemThreadFactory();
+    TString ThreadName_;
+    bool EnumerateThreads_ = false;
 
     using TSelf = TThreadPoolParams;
 
@@ -91,6 +93,10 @@ struct TThreadPoolParams {
     TThreadPoolParams(IThreadFactory* factory)
         : Factory_(factory)
     {
+    }
+
+    TThreadPoolParams(const TString& name) {
+        SetThreadName(name);
     }
 
     TSelf& SetCatching(bool val) {
@@ -105,6 +111,18 @@ struct TThreadPoolParams {
 
     TSelf& SetFactory(IThreadFactory* factory) {
         Factory_ = factory;
+        return *this;
+    }
+
+    TSelf& SetThreadName(const TString& name) {
+        ThreadName_ = name;
+        EnumerateThreads_ = false;
+        return *this;
+    }
+
+    TSelf& SetThreadNamePrefix(const TString& prefix) {
+        ThreadName_ = prefix;
+        EnumerateThreads_ = true;
         return *this;
     }
 };
