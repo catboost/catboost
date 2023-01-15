@@ -1,5 +1,5 @@
-#include <library/json/writer/json_value.h>
-#include <library/json/writer/json.h>
+#include <library/cpp/json/writer/json_value.h>
+#include <library/cpp/json/writer/json.h>
 #include <library/cpp/getopt/small/last_getopt.h>
 
 #include <tools/enum_parser/parse_enum/parse_enum.h>
