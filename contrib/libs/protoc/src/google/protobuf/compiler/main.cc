@@ -30,14 +30,14 @@
 
 // Author: kenton@google.com (Kenton Varda)
 
-#include "compiler/command_line_interface.h"
-#include "compiler/cpp/cpp_generator.h"
+#include <google/protobuf/compiler/command_line_interface.h>
+#include <google/protobuf/compiler/cpp/cpp_generator.h>
 
 #ifndef OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
-#include "compiler/perlxs/perlxs_generator.h"
-#include "compiler/python/python_generator.h"
-#include "compiler/java/java_generator.h"
-#include "compiler/js/js_generator.h"
+#include <google/protobuf/compiler/perlxs/perlxs_generator.h>
+#include <google/protobuf/compiler/python/python_generator.h>
+#include <google/protobuf/compiler/java/java_generator.h>
+#include <google/protobuf/compiler/js/js_generator.h>
 #endif  // ! OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
 
 int main(int argc, char* argv[]) {

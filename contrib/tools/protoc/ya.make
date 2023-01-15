@@ -1,24 +1,25 @@
 
 
 IF (NOT USE_PREBUILT_PROTOC OR NOT HOST_OS_DARWIN AND NOT HOST_OS_LINUX AND NOT HOST_OS_WINDOWS)
+
     PROGRAM()
+
+    LICENSE(
+        BSD3
+    )
 
     NO_COMPILER_WARNINGS()
 
     PEERDIR(
-        ADDINCL contrib/libs/protobuf
-        contrib/libs/protobuf/protoc
+        contrib/libs/protoc
     )
-
     SRCDIR(
-        contrib/libs/protobuf/compiler
+        contrib/libs/protoc
     )
 
     SRCS(
-        main.cc
+        src/google/protobuf/compiler/main.cc
     )
-
-    SET(IDE_FOLDER "contrib/tools")
 
     END()
 ELSE()

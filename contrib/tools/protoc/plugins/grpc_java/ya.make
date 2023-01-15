@@ -1,22 +1,21 @@
 IF (NOT USE_PREBUILT_PROTOC OR NOT HOST_OS_DARWIN AND NOT HOST_OS_LINUX AND NOT HOST_OS_WINDOWS)
     PROGRAM()
+
     
-    
-    
+
     NO_COMPILER_WARNINGS()
-    
+
     PEERDIR(
-        contrib/libs/protobuf
-        contrib/libs/protobuf/protoc
+        contrib/libs/protoc
     )
-    
+
     SRCDIR(contrib/libs/grpc-java/compiler/src/java_plugin/cpp)
-    
+
     SRCS(
         java_plugin.cpp
         java_generator.cpp
     )
-    
+
     END()
 ELSE()
     PREBUILT_PROGRAM()

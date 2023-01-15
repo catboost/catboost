@@ -2,21 +2,17 @@
 
 IF (NOT USE_PREBUILT_PROTOC OR NOT HOST_OS_DARWIN AND NOT HOST_OS_LINUX AND NOT HOST_OS_WINDOWS)
     PROGRAM()
-    
+
     NO_COMPILER_WARNINGS()
-    
+
     PEERDIR(
-        contrib/libs/protobuf
-        contrib/libs/protobuf/protoc
+        contrib/libs/protoc
     )
-    
-    ADDINCL(contrib/libs/protobuf)
-    
+
     SRCS(
         cpp_styleguide.cpp
     )
-    SET(IDE_FOLDER "contrib/tools")
-    
+
     END()
 ELSE()
     PREBUILT_PROGRAM()
