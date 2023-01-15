@@ -640,9 +640,7 @@ bool AreZeroWeightsAfterBootstrap(EBootstrapType type) {
 
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType) {
     return (
-        estimatorType == EFeatureCalcerType::CosDistanceWithClassCenter ||
-        estimatorType == EFeatureCalcerType::GaussianHomoscedasticModel ||
-        estimatorType == EFeatureCalcerType::GaussianHeteroscedasticModel
+        estimatorType == EFeatureCalcerType::LDA
     );
 }
 

@@ -287,7 +287,7 @@ namespace NCB {
         return MakeIntrusive<TTextClassificationTarget>(std::move(classes), numClasses);
     }
 
-    static TFeatureEstimatorsPtr CreateEstimators(
+    static TFeatureEstimatorsPtr CreateTextEstimators(
         TVector<NCatboostOptions::TTokenizedFeatureDescription> tokenizedFeaturesDescription,
         TTrainingDataProviders pools,
         NPar::TLocalExecutor* localExecutor
@@ -314,10 +314,8 @@ namespace NCB {
                 }
 
                 const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx];
-                TEmbeddingPtr embedding;
-                auto offlineEstimators = CreateEstimators(
+                auto offlineEstimators = CreateTextEstimators(
                     featureDescription.FeatureEstimators.Get(),
-                    embedding,
                     learnTexts,
                     testTexts
                 );
@@ -328,9 +326,8 @@ namespace NCB {
                     estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
                 }
 
-                auto onlineEstimators = CreateEstimators(
+                auto onlineEstimators = CreateTextEstimators(
                     featureDescription.FeatureEstimators.Get(),
-                    embedding,
                     learnTarget,
                     learnTexts,
                     testTexts
@@ -406,7 +403,7 @@ namespace NCB {
                 IsClassificationObjective(params->LossFunctionDescription->LossFunction),
                 "Computation of online text features is supported only for classification task"
             );
-            trainingData.FeatureEstimators = CreateEstimators(
+            trainingData.FeatureEstimators = CreateTextEstimators(
                 quantizedFeaturesInfo->GetTextProcessingOptions().GetTokenizedFeatureDescriptions(),
                 trainingData,
                 localExecutor);

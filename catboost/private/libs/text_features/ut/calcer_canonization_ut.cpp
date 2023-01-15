@@ -1,9 +1,9 @@
 #include <catboost/private/libs/text_features/bm25.h>
 #include <catboost/private/libs/text_features/naive_bayesian.h>
-#include <catboost/private/libs/text_features/embedding_online_features.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 #include <util/random/fast.h>
+#include <util/generic/xrange.h>
 
 using namespace NCB;
 
@@ -144,98 +144,4 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcerCanonization) {
         }
     }
 
-    Y_UNIT_TEST(TestEmbeddingFeaturesCanonization) {
-        const ui32 numSamples = 10;
-        const ui32 dictionarySize = 30;
-        TFastRng<ui64> rng(42);
-
-        TVector<TText> texts = CreateRandomTextVector(rng, dictionarySize, numSamples);
-        TText testText = CreateRandomText(rng, dictionarySize, 10);
-
-        TEmbeddingPtr embeddingPtr;
-        const ui32 embeddingDim = dictionarySize;
-        {
-            TDenseHash<TTokenId, TVector<float>> hashVectors;
-            for (ui32 tokenId: xrange(dictionarySize)) {
-                TVector<float> vector(embeddingDim);
-                vector[tokenId] = 1.0;
-                hashVectors[TTokenId(tokenId)] = vector;
-            }
-            embeddingPtr = CreateEmbedding(std::move(hashVectors));
-        }
-
-        THashMap<ui32, TVector<float>> scores;
-
-        for (ui32 numClasses : {2, 6, 10}) {
-            TEmbeddingOnlineFeatures embeddingOnlineFeatures(CreateGuid(), numClasses, embeddingPtr);
-            TEmbeddingFeaturesVisitor visitor(numClasses, embeddingDim);
-            for (ui32 sampleId: xrange(numSamples)) {
-                visitor.Update(sampleId % numClasses, texts[sampleId], &embeddingOnlineFeatures);
-            }
-
-            scores[numClasses] = embeddingOnlineFeatures.TTextFeatureCalcer::Compute(testText);
-        }
-
-        const double epsilon = 1e-6;
-        Y_UNUSED(epsilon);
-        {
-            const ui32 numClasses = 2;
-            const auto& caseScores = scores[numClasses];
-
-            // CosDistance
-            UNIT_ASSERT_DOUBLES_EQUAL(0.7962321650, caseScores[0], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.7259065113, caseScores[1], epsilon);
-
-            // LDA features
-            UNIT_ASSERT_DOUBLES_EQUAL(0.4930330234, caseScores[2], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.4998014690, caseScores[3], epsilon);
-
-            UNIT_ASSERT_DOUBLES_EQUAL(0.5069669766, caseScores[4], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.5001985310, caseScores[5], epsilon);
-        }
-
-        {
-            const ui32 numClasses = 6;
-            const auto& caseScores = scores[numClasses];
-
-            // CosDistance
-            UNIT_ASSERT_DOUBLES_EQUAL(0.8384363095, caseScores[0], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.6407144896, caseScores[2], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.5457051607, caseScores[5], epsilon);
-
-            // LDA features
-            UNIT_ASSERT_DOUBLES_EQUAL(0.1754046068, caseScores[6], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.1865056705, caseScores[7], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.1892145501, caseScores[10], epsilon);
-
-            UNIT_ASSERT_DOUBLES_EQUAL(0.1856485121, caseScores[12], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.1315803611, caseScores[14], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.1252915611, caseScores[17], epsilon);
-        }
-
-        {
-            const ui32 numClasses = 10;
-            const auto& caseScores = scores[numClasses];
-
-            // CosDistance
-            UNIT_ASSERT_DOUBLES_EQUAL(0.764705887, caseScores[0], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.6507913778, caseScores[2], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.7399400782, caseScores[6], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.5009794371, caseScores[7], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.7058823575, caseScores[9], epsilon);
-
-            // LDA features
-            UNIT_ASSERT_DOUBLES_EQUAL(0.09541972041, caseScores[10], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.09987460737, caseScores[13], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.09977643617, caseScores[15], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.10143683600, caseScores[16], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.10034430050, caseScores[19], epsilon);
-
-            UNIT_ASSERT_DOUBLES_EQUAL(0.10158981290, caseScores[20], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.10304506590, caseScores[24], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.10493913550, caseScores[26], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.10052911200, caseScores[27], epsilon);
-            UNIT_ASSERT_DOUBLES_EQUAL(0.09968623802, caseScores[29], epsilon);
-        }
-    }
 }
