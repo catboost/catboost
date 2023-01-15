@@ -61,9 +61,9 @@
 # else
 // Not tested for gcc < 4... These setting can compile under 4.2.1 though.
 #  define GOOGLE_PROTOBUF_HASH_NAMESPACE __gnu_cxx
-#  include <ext/hash_map>
+#  error #include <ext/hash_map>
 #  define GOOGLE_PROTOBUF_HASH_MAP_CLASS hash_map
-#  include <ext/hash_set>
+#  error #include <ext/hash_set>
 #  define GOOGLE_PROTOBUF_HASH_SET_CLASS hash_set
 # endif
 
