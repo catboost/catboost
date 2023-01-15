@@ -4038,7 +4038,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_tags
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/organizations
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/pages
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/push
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/recipes
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/shares
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/stats
