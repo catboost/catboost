@@ -2,9 +2,9 @@
 
 LIBRARY()
 
+
+
 LICENSE(Apache-2.0)
-
-
 
 PEERDIR(
     contrib/libs/flatbuffers
