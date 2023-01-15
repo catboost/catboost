@@ -173,6 +173,97 @@ class CatBoostRegressorTest {
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
 
+  @Test
+  @throws(classOf[Exception])
+  def testApplyOnReorderedFeatures() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val featureNames = Array[String]("f1", "f2", "f3")
+    val srcDataSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", FloatType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true
+    )
+
+    val srcData = Seq(
+      Row(Vectors.dense(0.1, 0.2, 0.11), 0.12f),
+      Row(Vectors.dense(0.97, 0.82, 0.33), 1.1f),
+      Row(Vectors.dense(0.13, 0.22, 0.23), 2.1f),
+      Row(Vectors.dense(0.14, 0.18, 0.1), 0.0f),
+      Row(Vectors.dense(0.9, 0.67, 0.17), -1.0f),
+      Row(Vectors.dense(0.66, 0.1, 0.31), 0.62f)
+    )
+
+    val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
+
+    val featuresReorderedNames = Array[String]("f3", "f1", "f2")
+    val srcDataReorderedSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", FloatType)
+      ),
+      featuresReorderedNames,
+      /*addFeatureNamesMetadata*/ true
+    )
+
+    val srcDataReordered = Seq(
+      Row(Vectors.dense(0.11, 0.1, 0.2), 0.12f),
+      Row(Vectors.dense(0.33, 0.97, 0.82), 1.1f),
+      Row(Vectors.dense(0.23, 0.13, 0.22), 2.1f),
+      Row(Vectors.dense(0.1, 0.14, 0.18), 0.0f),
+      Row(Vectors.dense(0.17, 0.9, 0.67), -1.0f),
+      Row(Vectors.dense(0.31, 0.66, 0.1), 0.62f)
+    )
+
+    val dfFeaturesReordered = spark.createDataFrame(
+      spark.sparkContext.parallelize(srcDataReordered),
+      StructType(srcDataReorderedSchema)
+    )
+
+
+    val expectedPrediction = Seq(
+      0.05222253481760597,
+      0.9310698268032307,
+      1.6885733461810206,
+      0.017027222605587908,
+      -0.7782598974535129,
+      0.533743544402863
+    )
+    val expectedPredictionsData = mutable.Seq.concat(srcDataReordered)
+    for (i <- 0 until srcData.length) {
+      expectedPredictionsData(i) = TestHelpers.appendToRow(
+        expectedPredictionsData(i),
+        expectedPrediction(i)
+      )
+    }
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", FloatType),
+        ("prediction", DoubleType)
+      ),
+      featuresReorderedNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ Seq("prediction")
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    val regressor = new CatBoostRegressor()
+      .setIterations(20)
+      .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+    val model = regressor.fit(df)
+
+    val predictions = model.transform(dfFeaturesReordered)
+
+    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+  }
+
   @Test 
   @throws(classOf[Exception])
   def testFeaturesRenamed() {
