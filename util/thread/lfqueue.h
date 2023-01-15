@@ -69,7 +69,7 @@ class TLockFreeQueue: public TNonCopyable {
             n = keepNext;
         }
     }
-   
+
     alignas(64) TRootNode* volatile JobQueue;
     alignas(64) volatile TAtomic FreememCounter;
     alignas(64) volatile TAtomic FreeingTaskCounter;
@@ -177,7 +177,6 @@ class TLockFreeQueue: public TNonCopyable {
         AtomicSet(newRoot->PushQueue, head);
         for (;;) {
             TRootNode* curRoot = AtomicGet(JobQueue);
-            AtomicSet(newRoot->PushQueue, head);
             AtomicSet(tail->Next, AtomicGet(curRoot->PushQueue));
             AtomicSet(newRoot->PopQueue, AtomicGet(curRoot->PopQueue));
             newRoot->CopyCounter(curRoot);
