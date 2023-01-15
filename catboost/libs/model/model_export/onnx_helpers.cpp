@@ -12,7 +12,7 @@
 #include <library/cpp/svnversion/svnversion.h>
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
-#include <contrib/libs/protobuf/repeated_field.h>
+#include <google/protobuf/repeated_field.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/mapfindptr.h>
