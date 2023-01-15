@@ -22,6 +22,7 @@
   - aws/s3/model/GetObjectResult.h
   - aws/s3/S3Client.h
   - cpuinfo.h
+  - ldap.h
   - llvm/IR/IRBuilder.h
   - murmurhash2.h
   - murmurhash3.h
