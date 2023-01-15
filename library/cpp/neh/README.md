@@ -6,7 +6,7 @@
 
 Документация
 ============
-https://wiki.yandex-team.ru/development/poisk/arcadia/library/neh/
+https://wiki.yandex-team.ru/development/poisk/arcadia/library/cpp/neh/
 
 FAQ
 ===

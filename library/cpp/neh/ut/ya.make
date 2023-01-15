@@ -1,6 +1,6 @@
 
 
-UNITTEST_FOR(library/neh)
+UNITTEST_FOR(library/cpp/neh)
 
 SRCS(
     http_cancel_heap_use_after_free_ut.cpp

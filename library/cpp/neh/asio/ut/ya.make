@@ -1,6 +1,6 @@
 
 
-UNITTEST_FOR(library/neh/asio)
+UNITTEST_FOR(library/cpp/neh/asio)
 
 SRCS(
     asio_ut.cpp

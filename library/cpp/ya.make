@@ -80,6 +80,9 @@ RECURSE(
     logger/global/ut
     logger/ut
     malloc
+    neh
+    neh/asio/ut
+    neh/ut
     netliba
     object_factory
     object_factory/ut

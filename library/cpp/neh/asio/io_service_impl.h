@@ -3,8 +3,8 @@
 #include "asio.h"
 #include "poll_interrupter.h"
 
-#include <library/neh/lfqueue.h>
-#include <library/neh/pipequeue.h>
+#include <library/cpp/neh/lfqueue.h>
+#include <library/cpp/neh/pipequeue.h>
 
 #include <library/cpp/dns/cache.h>
 
