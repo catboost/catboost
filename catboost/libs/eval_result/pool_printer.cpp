@@ -14,15 +14,13 @@
 
 namespace NCB {
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
-        THolder<ILineDataReader>&& lineDataReader,
-        const TDsvFormatOptions& format,
-        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
+        TPoolColumnsPrinterPushArgs&& args
     )
-        : LineDataReader(std::move(lineDataReader))
-        , Delimiter(format.Delimiter)
+        : LineDataReader(std::move(args.Reader))
+        , Delimiter(args.Format.Delimiter)
         , DocId(-1)
     {
-        UpdateColumnTypeInfo(columnsMetaInfo);
+        UpdateColumnTypeInfo(args.ColumnsMetaInfo);
     }
 
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
@@ -30,10 +28,10 @@ namespace NCB {
         const TDsvFormatOptions& format,
         const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
     )
-        : TDSVPoolColumnsPrinter(
+        : TDSVPoolColumnsPrinter(TPoolColumnsPrinterPushArgs{
             GetLineDataReader(testSetPath, format),
             format,
-            columnsMetaInfo)
+            columnsMetaInfo})
     {}
 
 
@@ -189,5 +187,8 @@ namespace NCB {
         }
         return columnInfo.CurrentToken;
     }
+
+    TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DefPoolColumnsPrinter("");
+    TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DsvPoolColumnsPrinter("dsv");
 
 } // namespace NCB
