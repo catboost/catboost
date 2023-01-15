@@ -143,7 +143,7 @@ public:
             TAtomicSharedPtr<T> value = MakeAtomicShared<T>(std::forward<ConstructArgs>(args)...);
             with_lock(RegisterLock_) {
                 TIntrusivePtr<TStorage> oldState = Registered_.AtomicLoad();
-                THolder<TStorage> newState = new TStorage(*oldState);
+                THolder<TStorage> newState = MakeHolder<TStorage>(*oldState);
                 (*newState)[tid] = value;
                 Registered_.AtomicStore(newState.Release());
             }

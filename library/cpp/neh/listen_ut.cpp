@@ -157,7 +157,7 @@ Y_UNIT_TEST_SUITE(THttpListen) {
             TThreadPool pool;
             pool.Start(1);
 
-            THolder<TUnixSocketServer> server = new TUnixSocketServer(unixSocketPath);
+            THolder<TUnixSocketServer> server = MakeHolder<TUnixSocketServer>(unixSocketPath);
             if(!pool.Add(server.Get())) {
                 ythrow yexception() << "Can not create unix domain socket echo server";
             }
@@ -186,7 +186,7 @@ Y_UNIT_TEST_SUITE(THttpListen) {
             TString requestData = "sample";
             TUnixSocketPath unixSocketPath("./unixsocket");
 
-            THolder<TUnixSocketServer> server = new TUnixSocketServer(unixSocketPath);
+            THolder<TUnixSocketServer> server = MakeHolder<TUnixSocketServer>(unixSocketPath);
             server->Bind();
 
             auto handle = NNeh::Request(NNeh::TMessage{"full+unix://[" + unixSocketPath.Path + "]/echo", requestData});
