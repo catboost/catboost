@@ -19,7 +19,7 @@ namespace NCB {
             if (options.Has("ProjectionDimension")) {
                 ProjectionDim = FromString<int>(options["ProjectionDimension"].GetString());
             } else {
-                ProjectionDim = GetTarget().NumClasses - 1u;
+                ProjectionDim = Min(GetTarget().NumClasses - 1u, static_cast<ui32>(GetLearnDatasetPtr()->GetDimension()) - 1u);
             }
             if (options.Has("Regularization")) {
                 RegParam = FromString<float>(options["Regularization"].GetString());
