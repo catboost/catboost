@@ -45,7 +45,7 @@ def generate_dart(unit, as_lib=False):
     else:
         docs_dir = module_dir
 
-    build_tool = unit.get('DOCSBUILDER') or 'mkdocs'
+    build_tool = unit.get('DOCSBUILDER')
 
     if build_tool not in ['mkdocs', 'yfm']:
         unit.message(['error', 'Unsupported build tool {}'.format(build_tool)])
