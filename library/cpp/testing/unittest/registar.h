@@ -18,6 +18,7 @@
 #include <util/string/printf.h>
 
 #include <util/system/defaults.h>
+#include <util/system/demangle.h>
 #include <util/system/spinlock.h>
 #include <util/system/src_location.h>
 
