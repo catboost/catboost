@@ -32,7 +32,7 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "compiler/cpp/cpp_file.h"
+#include <google/protobuf/compiler/cpp/cpp_file.h>
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
@@ -41,15 +41,15 @@
 #include <set>
 #include <vector>
 
-#include "compiler/cpp/cpp_enum.h"
-#include "compiler/cpp/cpp_service.h"
-#include "compiler/cpp/cpp_extension.h"
-#include "compiler/cpp/cpp_helpers.h"
-#include "compiler/cpp/cpp_message.h"
-#include "compiler/cpp/cpp_field.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/cpp/cpp_enum.h>
+#include <google/protobuf/compiler/cpp/cpp_service.h>
+#include <google/protobuf/compiler/cpp/cpp_extension.h>
+#include <google/protobuf/compiler/cpp/cpp_helpers.h>
+#include <google/protobuf/compiler/cpp/cpp_message.h>
+#include <google/protobuf/compiler/cpp/cpp_field.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {
@@ -311,11 +311,11 @@ void FileGenerator::GenerateSource(io::Printer* printer) {
     "\n"
     "#include <algorithm>\n"    // for swap()
     "\n"
-    "#include <contrib/libs/protobuf/stubs/common.h>\n"
-    "#include <contrib/libs/protobuf/stubs/port.h>\n"
-    "#include <contrib/libs/protobuf/stubs/once.h>\n"
-    "#include <contrib/libs/protobuf/io/coded_stream.h>\n"
-    "#include <contrib/libs/protobuf/wire_format_lite_inl.h>\n",
+    "#include <google/protobuf/stubs/common.h>\n"
+    "#include <google/protobuf/stubs/port.h>\n"
+    "#include <google/protobuf/stubs/once.h>\n"
+    "#include <google/protobuf/io/coded_stream.h>\n"
+    "#include <google/protobuf/wire_format_lite_inl.h>\n",
     "filename", file_->name(),
     "header", header,
     "left", use_system_include ? "<" : "\"",
@@ -324,15 +324,15 @@ void FileGenerator::GenerateSource(io::Printer* printer) {
   // Unknown fields implementation in lite mode uses StringOutputStream
   if (!UseUnknownFieldSet(file_, options_) && !message_generators_.empty()) {
     printer->Print(
-      "#include <contrib/libs/protobuf/io/zero_copy_stream_impl_lite.h>\n");
+      "#include <google/protobuf/io/zero_copy_stream_impl_lite.h>\n");
   }
 
   if (HasDescriptorMethods(file_, options_)) {
     printer->Print(
-      "#include <contrib/libs/protobuf/descriptor.h>\n"
-      "#include <contrib/libs/protobuf/generated_message_reflection.h>\n"
-      "#include <contrib/libs/protobuf/reflection_ops.h>\n"
-      "#include <contrib/libs/protobuf/wire_format.h>\n");
+      "#include <google/protobuf/descriptor.h>\n"
+      "#include <google/protobuf/generated_message_reflection.h>\n"
+      "#include <google/protobuf/reflection_ops.h>\n"
+      "#include <google/protobuf/wire_format.h>\n");
   }
 
   if (options_.proto_h) {
@@ -995,7 +995,7 @@ void FileGenerator::GenerateBottomHeaderGuard(
 void FileGenerator::GenerateLibraryIncludes(io::Printer* printer) {
 
   printer->Print(
-    "#include <contrib/libs/protobuf/stubs/common.h>\n"
+    "#include <google/protobuf/stubs/common.h>\n"
     "\n");
 
   // Verify the protobuf library header version is compatible with the protoc
@@ -1018,71 +1018,71 @@ void FileGenerator::GenerateLibraryIncludes(io::Printer* printer) {
 
   // OK, it's now safe to #include other files.
   printer->Print(
-      "#include <contrib/libs/protobuf/io/coded_stream.h>\n"
-      "#include <contrib/libs/protobuf/arena.h>\n"
-      "#include <contrib/libs/protobuf/arenastring.h>\n"
-      "#include <contrib/libs/protobuf/generated_message_table_driven.h>\n"
-      "#include <contrib/libs/protobuf/generated_message_util.h>\n");
+      "#include <google/protobuf/io/coded_stream.h>\n"
+      "#include <google/protobuf/arena.h>\n"
+      "#include <google/protobuf/arenastring.h>\n"
+      "#include <google/protobuf/generated_message_table_driven.h>\n"
+      "#include <google/protobuf/generated_message_util.h>\n");
 
   if (HasDescriptorMethods(file_, options_)) {
     printer->Print(
-      "#include <contrib/libs/protobuf/metadata.h>\n");
+      "#include <google/protobuf/metadata.h>\n");
   } else {
     printer->Print(
-      "#include <contrib/libs/protobuf/metadata_lite.h>\n");
+      "#include <google/protobuf/metadata_lite.h>\n");
   }
 
   if (!message_generators_.empty()) {
     if (HasDescriptorMethods(file_, options_)) {
       printer->Print(
-        "#include <contrib/libs/protobuf/message.h>\n");
+        "#include <google/protobuf/message.h>\n");
     } else {
       printer->Print(
-        "#include <contrib/libs/protobuf/message_lite.h>\n");
+        "#include <google/protobuf/message_lite.h>\n");
     }
   }
   printer->Print(
-    "#include <contrib/libs/protobuf/repeated_field.h>"
+    "#include <google/protobuf/repeated_field.h>"
     "  // IWYU pragma: export\n"
-    "#include <contrib/libs/protobuf/extension_set.h>"
+    "#include <google/protobuf/extension_set.h>"
     "  // IWYU pragma: export\n");
   if (HasMapFields(file_)) {
     printer->Print(
-        "#include <contrib/libs/protobuf/map.h>"
+        "#include <google/protobuf/map.h>"
         "  // IWYU pragma: export\n");
     if (HasDescriptorMethods(file_, options_)) {
-      printer->Print("#include <contrib/libs/protobuf/map_entry.h>\n");
-      printer->Print("#include <contrib/libs/protobuf/map_field_inl.h>\n");
+      printer->Print("#include <google/protobuf/map_entry.h>\n");
+      printer->Print("#include <google/protobuf/map_field_inl.h>\n");
     } else {
-      printer->Print("#include <contrib/libs/protobuf/map_entry_lite.h>\n");
-      printer->Print("#include <contrib/libs/protobuf/map_field_lite.h>\n");
+      printer->Print("#include <google/protobuf/map_entry_lite.h>\n");
+      printer->Print("#include <google/protobuf/map_field_lite.h>\n");
     }
   }
 
   if (HasEnumDefinitions(file_)) {
     if (HasDescriptorMethods(file_, options_)) {
       printer->Print(
-          "#include <contrib/libs/protobuf/generated_enum_reflection.h>\n");
+          "#include <google/protobuf/generated_enum_reflection.h>\n");
     } else {
       printer->Print(
-          "#include <contrib/libs/protobuf/generated_enum_util.h>\n");
+          "#include <google/protobuf/generated_enum_util.h>\n");
     }
   }
 
   if (HasGenericServices(file_, options_)) {
     printer->Print(
-      "#include <contrib/libs/protobuf/service.h>\n");
+      "#include <google/protobuf/service.h>\n");
   }
 
   if (UseUnknownFieldSet(file_, options_) && !message_generators_.empty()) {
     printer->Print(
-      "#include <contrib/libs/protobuf/unknown_field_set.h>\n");
+      "#include <google/protobuf/unknown_field_set.h>\n");
   }
 
 
   if (IsAnyMessage(file_)) {
     printer->Print(
-      "#include <contrib/libs/protobuf/any.h>\n");
+      "#include <google/protobuf/any.h>\n");
   }
 }
 
