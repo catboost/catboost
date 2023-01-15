@@ -672,47 +672,32 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>BC62290A-1F8B-7962-8C00-63BFE8DAE2A0</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\py3core-src-multiarray.vcxproj">
-      <Project>FEA69238-D2EC-4AE3-926D-D03AD349111E</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\include\python-numpy-include.vcxproj">
+      <Project>09FC0446-04FA-A4E9-2AB6-23078034F2BC</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\pycore-src-multiarray.vcxproj">
       <Project>6515DD6B-BC89-50EC-5FCA-6FEF911562B9</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\umath\py3core-src-umath.vcxproj">
-      <Project>4EA22FCC-1DB1-1180-5487-4E11E503694D</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\umath\pycore-src-umath.vcxproj">
       <Project>F8D33EBE-BB23-75AD-E114-60F75D8AC8A2</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\f2py\src\py3numpy-f2py-src.vcxproj">
-      <Project>08B68BA3-7391-5320-58F2-F16F20012234</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\f2py\src\pynumpy-f2py-src.vcxproj">
-      <Project>7C160397-4FD3-F623-E149-738A7EA58CBB</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\fft\py3py2-numpy-fft.vcxproj">
-      <Project>171AE7AB-9F34-DEE9-820F-A7D1505E9705</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\fft\pypy2-numpy-fft.vcxproj">
       <Project>79555D72-58A3-8DCF-B7C1-526929BA16B4</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\linalg\py3py2-numpy-linalg.vcxproj">
-      <Project>782D23BC-E7CD-71C2-FFA4-3CBC511D1886</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\linalg\pypy2-numpy-linalg.vcxproj">
       <Project>BB89FDA4-798A-F454-B1AD-D4603CF461F6</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\random\mtrand\py3numpy-random-mtrand.vcxproj">
-      <Project>107914D9-77F3-6D37-CA7C-D6DFEC1861CB</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\random\mtrand\pynumpy-random-mtrand.vcxproj">
       <Project>D31E0F48-5EC7-F485-2DE5-8D4C8A5E28DD</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\py3python-numpy-py2.vcxproj">
-      <Project>12AF6E85-5FEE-C2DF-98ED-5B38D3EBFC01</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\pypython-numpy-py2.vcxproj">
       <Project>760187CD-FC5B-2BEB-FFEB-2113975BE8B4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3\numpy\random\pypy3-numpy-random.vcxproj">
+      <Project>DC98EAE1-4D76-69B0-D9BF-98DDC47441E4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3\pypython-numpy-py3.vcxproj">
+      <Project>4C768B5F-FB7F-6E27-3B8E-E6A1A6C9D67C</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3contrib-python-numpy.vcxproj">
       <Project>FA301ACA-9DC7-C37A-FCD9-C0464CED7425</Project>

@@ -138,23 +138,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\py3core-src-multiarray.vcxproj">
-      <Project>{FEA69238-D2EC-4AE3-926D-D03AD349111E}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3\numpy\random\pypy3-numpy-random.vcxproj">
+      <Project>{DC98EAE1-4D76-69B0-D9BF-98DDC47441E4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\umath\py3core-src-umath.vcxproj">
-      <Project>{4EA22FCC-1DB1-1180-5487-4E11E503694D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\fft\py3py2-numpy-fft.vcxproj">
-      <Project>{171AE7AB-9F34-DEE9-820F-A7D1505E9705}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\linalg\py3py2-numpy-linalg.vcxproj">
-      <Project>{782D23BC-E7CD-71C2-FFA4-3CBC511D1886}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\random\mtrand\py3numpy-random-mtrand.vcxproj">
-      <Project>{107914D9-77F3-6D37-CA7C-D6DFEC1861CB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\py3python-numpy-py2.vcxproj">
-      <Project>{12AF6E85-5FEE-C2DF-98ED-5B38D3EBFC01}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3\pypython-numpy-py3.vcxproj">
+      <Project>{4C768B5F-FB7F-6E27-3B8E-E6A1A6C9D67C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>

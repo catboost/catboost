@@ -130,6 +130,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\npysort\selection.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\f2py\src\fortranobject.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\join_3d12a4b720c3d7401dd3a24cf3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\_5ff068b7fb18510bcc0763b0ac.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
