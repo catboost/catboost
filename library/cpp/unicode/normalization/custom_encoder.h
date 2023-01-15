@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/charset/codepage.h>
+#include <library/cpp/charset/codepage.h>
 
 struct TCustomEncoder: public Encoder {
     void Create(const CodePage* target, bool extended = false);

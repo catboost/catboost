@@ -1,7 +1,7 @@
 #include "main.h"
 
 #ifndef CATBOOST_OPENSOURCE
-#include <library/charset/recyr.hh>
+#include <library/cpp/charset/recyr.hh>
 #endif
 
 #include <library/cpp/containers/comptrie/comptrie.h>

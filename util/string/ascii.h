@@ -155,7 +155,7 @@ inline ::NPrivate::TDereferenced<T> AsciiToUpper(T c) noexcept {
 
 /**
  * ASCII case-insensitive string comparison (for proper UTF8 strings
- * case-insensitive comparison consider using @c library/charset).
+ * case-insensitive comparison consider using @c library/cpp/charset).
  *
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
@@ -165,7 +165,7 @@ static inline bool AsciiEqualsIgnoreCase(const char* s1, const char* s2) noexcep
 
 /**
  * ASCII case-insensitive string comparison (for proper UTF8 strings
- * case-insensitive comparison consider using @c library/charset).
+ * case-insensitive comparison consider using @c library/cpp/charset).
  *
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
@@ -175,7 +175,7 @@ static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s
 
 /**
  * ASCII case-insensitive string comparison (for proper UTF8 strings
- * case-insensitive comparison consider using @c library/charset).
+ * case-insensitive comparison consider using @c library/cpp/charset).
  *
  * @return                              0 if strings are equal, negative if @c s1 < @c s2
  *                                      and positive otherwise.
@@ -187,7 +187,7 @@ static inline int AsciiCompareIgnoreCase(const char* s1, const char* s2) noexcep
 
 /**
  * ASCII case-insensitive string comparison (for proper UTF8 strings
- * case-insensitive comparison consider using @c library/charset).
+ * case-insensitive comparison consider using @c library/cpp/charset).
  *
  * @return
  * - zero if strings are equal
@@ -203,7 +203,7 @@ int AsciiCompareIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept;
 
 /**
   * ASCII case-sensitive string comparison (for proper UTF8 strings
-  * case-sensitive comparison consider using @c library/charset).
+  * case-sensitive comparison consider using @c library/cpp/charset).
   *
   * @return                              true iff @c s2 are case-sensitively prefix of @c s1.
   */
@@ -213,7 +213,7 @@ static inline bool AsciiHasPrefix(const TStringBuf s1, const TStringBuf s2) noex
 
 /**
   * ASCII case-insensitive string comparison (for proper UTF8 strings
-  * case-insensitive comparison consider using @c library/charset).
+  * case-insensitive comparison consider using @c library/cpp/charset).
   *
   * @return                              true iff @c s2 are case-insensitively prefix of @c s1.
   */
@@ -223,7 +223,7 @@ static inline bool AsciiHasPrefixIgnoreCase(const TStringBuf s1, const TStringBu
 
 /**
   * ASCII case-insensitive string comparison (for proper UTF8 strings
-  * case-insensitive comparison consider using @c library/charset).
+  * case-insensitive comparison consider using @c library/cpp/charset).
   *
   * @return                              true iff @c s2 are case-insensitively suffix of @c s1.
   */

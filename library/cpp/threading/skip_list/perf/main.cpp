@@ -2,7 +2,7 @@
 
 #include <library/cpp/getopt/small/last_getopt.h>
 
-#include <library/charset/ci_string.h>
+#include <library/cpp/charset/ci_string.h>
 #include <util/datetime/base.h>
 #include <util/generic/map.h>
 #include <util/generic/vector.h>

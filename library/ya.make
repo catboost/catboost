@@ -4,8 +4,6 @@ RECURSE(
     blockcodecs
     blockcodecs/fuzz
     blockcodecs/ut
-    charset
-    charset/ut
     chromium_trace
     chromium_trace/benchmark
     chromium_trace/examples
