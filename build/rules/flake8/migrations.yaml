@@ -9,7 +9,6 @@ migrations:
     - adfox/amacs/tests/functional/tests_amacs/dynamic_monetization/v2
     - adfox/amacs/tests/functional/tests_amacs/targeting/referrer
     - adfox/amacs/tests/functional/tests_amacs/targeting/targeting_logic_tree_puids
-    - adfox/amacs/tests/functional/tests_amacs/template
     - adfox/amacs/tests/functional/utils
     - adfox/amacs/tests/functional/utils/db
     - adfox/amacs/tests/functional/utils/tools
@@ -531,7 +530,6 @@ migrations:
     - passport/python/adm_api/views/meltingpot
     - passport/python/core
     - passport/python/core/builders/frodo
-    - passport/python/core/builders/social_broker
     - passport/python/core/builders/yasms
     - passport/python/core/conf
     - passport/python/core/cookies/utils
@@ -1359,7 +1357,6 @@ migrations:
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
     - ydo/server/extract_backend_request_source/lib
-    - yt/idm-integration/integration
     - yt/skynet/test
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
     - yweb/antispam/cid/analytics/pushes/push_sender/args
@@ -1824,7 +1821,6 @@ migrations:
     - yp/eviction_alerter/libs
     - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
-    - yt/idm-integration/integration
     - yweb/animals/admin_service/lib
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/cp_conv/text_classif/bin
@@ -2279,7 +2275,6 @@ migrations:
     - health/turbo_articles/parser/manual_tests
     - health/yamd/libs/cross_links/tests/common
     - htf/predictions/common_data/blackbox_markup_puids
-    - infra/awacs/awacsctl2/src
     - infra/awacs/tools/awacsalerting/bin
     - infra/awacs/tools/awacsalerting/src
     - infra/awacs/tools/awacscertsctl
@@ -2376,7 +2371,6 @@ migrations:
     - library/python/django_template_common
     - library/python/django_tools_log_context
     - library/python/dssclient
-    - library/python/errorboosterclient
     - library/python/filelock
     - library/python/golovan_stats_aggregator
     - library/python/granular_settings
@@ -3044,7 +3038,6 @@ migrations:
     - sandbox/projects/yp/BuildYpPodEvictionMonitoring
     - sandbox/projects/yp/BuildYpUnknownPodMonitoring
     - sandbox/projects/yql
-    - sandbox/projects/zora
     - sandbox/proxy/flask_uwsgi_websocket
     - sandbox/proxy/websocket
     - sandbox/yasandbox/controller
@@ -3688,7 +3681,6 @@ migrations:
     - nirvana/valhalla/tests
     - ofd/notifier/tests/test_unit/test_sender/test_event_types
     - ofd/notifier/tests/test_unit/test_sender/test_notification_types
-    - passport/python/dbscripts/tests
     - passport/python/logbroker_client/account_events/tests
     - passport/python/logbroker_client/oauth/tests
     - passport/python/logbroker_client/xiva/tests
