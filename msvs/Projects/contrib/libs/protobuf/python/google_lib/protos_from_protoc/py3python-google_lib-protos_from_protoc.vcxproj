@@ -79,7 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\de9b31391ebbaee6e0a4318bcd.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\join_x6cx4pkz67jmkksvhy2nv3pgly.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\_de9b31391ebbaee6e0a4318bcd.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
@@ -173,45 +172,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\de9b31391ebbaee6e0a4318bcd.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/join_x6cx4pkz67jmkksvhy2nv3pgly.cpp" "--ya-start-command-file" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.h" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.cc" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/join_x6cx4pkz67jmkksvhy2nv3pgly.cpp" "--ya-start-command-file" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.h" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.cc" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/protos_from_protoc/join_x6cx4pkz67jmkksvhy2nv3pgly.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin.pb.cc;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\join_x6cx4pkz67jmkksvhy2nv3pgly.cpp;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.proto"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -225,12 +191,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\pro
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--cpp_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.proto"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -239,9 +199,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.h	$B/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;$(SolutionDir)..\build\scripts\gen_py_protos.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py;</Outputs>
+      <Message>$B/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.proto;$(SolutionDir)..\build\scripts\gen_py_protos.py;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -294,9 +254,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.vcxproj">
-      <Project>{0D24EC99-8508-5906-E120-5A68AEB033F8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\protoc.vcxproj">
       <Project>{855A73D1-3E50-6765-A6D8-DB4F6F2EA5F8}</Project>
