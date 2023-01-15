@@ -302,6 +302,7 @@ ALLOW contrib/tools/unbound -> contrib/tools/unbound
 DENY .* -> contrib/tools/unbound
 
 # https://st.yandex-team.ru/CONTRIB-2042
+ALLOW addappter/backend/addappter_backoffice -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW addappter/backend/addappter/monitoring/juggler -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW addappter/backend/addappter -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW addappter/backend/migrations -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -364,7 +365,6 @@ ALLOW contrib/python/flask_admin/flask_admin/tests -> contrib/python/sqlalchemy/
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/graphene_sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/marshmallow-sqlalchemy/py2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqltap -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -655,6 +655,7 @@ ALLOW yaphone/newpdater/src/core -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yaphone/newpdater/src/health -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yaphone/newpdater/src/prebuilt -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yaphone/newpdater/src/store -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW yaphone/newpdater/src/subscription -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yaphone/newpdater/src/updates -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yql/library/python/yql/sqlalchemy/examples -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yql/udfs/common/python/python3.incl -> contrib/python/sqlalchemy/sqlalchemy-1.2
