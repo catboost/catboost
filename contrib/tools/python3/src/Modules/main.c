@@ -62,6 +62,7 @@ pymain_init(const _PyArgv *args)
 
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
+    config.pathconfig_warnings = 0;   /* Suppress errors from getpath.c */
 
     /* pass NULL as the config: config is read from command line arguments,
        environment variables, configuration files */
