@@ -1149,7 +1149,6 @@ migrations:
     - mail/python/theatre/app/log_helpers
     - mail/tools/sql_execute_per_shard/lib
     - maps/analytics/legacy/nile/statadhoc-8703-site-api-report
-    - maps/analyzer/pylibs/envkit
     - maps/automotive/carwashes/tests/src
     - maps/automotive/qa/metrics/common/ut
     - maps/automotive/tools/statistics_auto/pylib/track_match_finder
@@ -3693,7 +3692,6 @@ migrations:
     - quality/click_machine/tests
     - quality/functionality/chats/common/feedback_client/tests
     - quality/functionality/content_plugins/runner/tests
-    - quality/functionality/content_plugins/scripts/tests
     - quality/functionality/content_plugins/tools/cut_snippets/tests
     - quality/functionality/entity_search/factqueries/facts_builder_mr/tests/medium
     - quality/functionality/ideal_snippets/release_data/tests
