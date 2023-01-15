@@ -82,7 +82,6 @@ ALLOW mssngr/router -> contrib/restricted/cmph
 # http-parser is a low-level parser for http bytestream.
 # Consider using high-level alternatives.
 ALLOW contrib/libs/libgit2 -> contrib/restricted/http-parser
-ALLOW contrib/libs/nodejs_8 -> contrib/restricted/http-parser
 ALLOW contrib/libs/nodejs_12 -> contrib/restricted/http-parser
 ALLOW contrib/python/aiohttp -> contrib/restricted/http-parser
 ALLOW contrib/python/http_parser -> contrib/restricted/http-parser

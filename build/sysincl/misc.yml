@@ -213,10 +213,6 @@
   includes:
     - util.h:        contrib/libs/libgit2/src/util.h
 
-- source_filter: "^contrib/libs/nodejs_8"
-  includes:
-    - util.h:        contrib/libs/nodejs_8/src/util.h
-
 - source_filter: "^contrib/libs/nodejs_12"
   includes:
     - util.h:        contrib/libs/nodejs_12/src/util.h
