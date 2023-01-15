@@ -17,9 +17,9 @@
 #include <functional>
 #include <limits>
 #include <string>
-#include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/idl.h"
-#include "flatbuffers/util.h"
+#include "flatbuffers.h"
+#include "idl.h"
+#include "util.h"
 
 #ifndef FLATC_H_
 #  define FLATC_H_

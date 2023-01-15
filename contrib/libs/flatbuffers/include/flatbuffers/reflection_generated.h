@@ -4,7 +4,7 @@
 #ifndef FLATBUFFERS_GENERATED_REFLECTION_REFLECTION_H_
 #define FLATBUFFERS_GENERATED_REFLECTION_REFLECTION_H_
 
-#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers.h"
 
 namespace reflection {
 
