@@ -13,6 +13,9 @@
 #include <cstdlib>
 
 namespace {
+
+    constexpr size_t MD5_HEX_DIGEST_LENGTH = 32;
+
     struct TMd5Stream: public IOutputStream {
         inline TMd5Stream(MD5* md5)
             : M_(md5)
@@ -39,14 +42,39 @@ char* MD5::File(const char* filename, char* buf) {
 }
 
 TString MD5::File(const TString& filename) {
-    char buf[33] = {0}; // 32 characters and \0
-    return MD5::File(filename.data(), buf);
+    TString buf;
+    buf.ReserveAndResize(MD5_HEX_DIGEST_LENGTH);
+    auto result = MD5::File(filename.data(), buf.begin());
+    if (result == nullptr) {
+        buf.clear();
+    }
+    return buf;
 }
 
 char* MD5::Data(const void* data, size_t len, char* buf) {
     MD5 md5;
     md5.Update(data, len);
     return md5.End(buf);
+}
+
+TString MD5::Data(TArrayRef<ui8> data) {
+    MD5 md5;
+    md5.Update(data.data(), data.size());
+
+    TString buf;
+    buf.ReserveAndResize(MD5_HEX_DIGEST_LENGTH);
+    md5.End(buf.begin());
+    return buf;
+}
+
+TString MD5::Data(TStringBuf data) {
+    MD5 md5;
+    md5.Update(data.data(), data.size());
+
+    TString buf;
+    buf.ReserveAndResize(MD5_HEX_DIGEST_LENGTH);
+    md5.End(buf.begin());
+    return buf;
 }
 
 char* MD5::Stream(IInputStream* in, char* buf) {
