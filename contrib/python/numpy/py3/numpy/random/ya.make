@@ -6,11 +6,11 @@ LICENSE(BSD-3-Clause)
 
 ADDINCL(
     FOR cython contrib/python/numpy/py3
-    contrib/python/numpy/py3/numpy/core/include
-    contrib/python/numpy/py3/numpy/core/include/numpy
-    contrib/python/numpy/py3/numpy/core/src/common
-    contrib/python/numpy/py3/numpy/core/src/npymath
-    contrib/python/numpy/py3/numpy/random
+    contrib/python/numpy/include/numpy/core/include
+    contrib/python/numpy/include/numpy/core/include/numpy
+    contrib/python/numpy/include/numpy/core/src/common
+    contrib/python/numpy/include/numpy/core/src/npymath
+    contrib/python/numpy/include/numpy/random
 )
 
 CFLAGS(

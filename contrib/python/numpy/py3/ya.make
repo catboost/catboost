@@ -16,16 +16,16 @@ PEERDIR(
 )
 
 ADDINCL(
-    contrib/python/numpy/py3/numpy/core
-    contrib/python/numpy/py3/numpy/core/include
-    FOR cython contrib/python/numpy/py3/numpy/core/include
-    contrib/python/numpy/py3/numpy/core/include/numpy
-    contrib/python/numpy/py3/numpy/core/src
-    contrib/python/numpy/py3/numpy/core/src/common
-    contrib/python/numpy/py3/numpy/core/src/multiarray
-    contrib/python/numpy/py3/numpy/core/src/npymath
-    contrib/python/numpy/py3/numpy/core/src/npysort
-    contrib/python/numpy/py3/numpy/core/src/umath
+    contrib/python/numpy/include/numpy/core
+    contrib/python/numpy/include/numpy/core/include
+    FOR cython contrib/python/numpy/include/numpy/core/include
+    contrib/python/numpy/include/numpy/core/include/numpy
+    contrib/python/numpy/include/numpy/core/src
+    contrib/python/numpy/include/numpy/core/src/common
+    contrib/python/numpy/include/numpy/core/src/multiarray
+    contrib/python/numpy/include/numpy/core/src/npymath
+    contrib/python/numpy/include/numpy/core/src/npysort
+    contrib/python/numpy/include/numpy/core/src/umath
 )
 
 CFLAGS(
