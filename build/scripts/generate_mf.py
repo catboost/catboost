@@ -60,7 +60,7 @@ def validate_mf(mf, module_type):
 
         bad_contribs = [dep['path'] + '/ya.make' for dep in mf['dependencies'] if dep['path'].startswith('contrib/') and not dep['licenses']]
         if bad_contribs:
-            logging.warn("[[warn]]Can't check NO_GPL properly[[rst]] because the following project(s) has no [[imp]]LICENSE[[rst]] macro:\n%s", '\n'.join(bad_contribs))
+            logging.warning("[[warn]]Can't check NO_GPL properly[[rst]] because the following project(s) has no [[imp]]LICENSE[[rst]] macro:\n%s", '\n'.join(bad_contribs))
 
 
 def generate_mf():

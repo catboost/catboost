@@ -146,7 +146,7 @@ def report_to_snowden(value):
     try:
         inner()
     except Exception as e:
-        logging.error(e)
+        logging.warning('report_to_snowden failed: %s', e)
 
 
 def copy_stream(read, *writers, **kwargs):
