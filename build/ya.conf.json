@@ -149,6 +149,10 @@
             "description": "Run wine64",
             "visible": false
         },
+        "wine32": {
+            "description": "Run wine",
+            "visible": false
+        },
         "deploy": {
             "description": "Run Samogon",
             "visible": false
@@ -4447,6 +4451,22 @@
                 }
             ]
         },
+        "wine32": {
+            "tools": {
+                "wine32": {
+                    "bottle": "wine32",
+                    "executable": "wine"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "deploy": {
             "tools": {
                 "deploy": {
@@ -8165,6 +8185,18 @@
                 "wine": [
                     "bin",
                     "wine64"
+                ]
+            }
+        },
+        "wine32": {
+            "formula": {
+                "sandbox_id": 1010959442,
+                "match": "Wine"
+            },
+            "executable": {
+                "wine": [
+                    "bin",
+                    "wine"
                 ]
             }
         },
