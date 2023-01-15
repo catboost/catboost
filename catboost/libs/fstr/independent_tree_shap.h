@@ -14,7 +14,7 @@ void PostProcessingIndependent(
     size_t flatFeatureCount,
     size_t documentIdx,
     bool calcInternalValues,
-    double bias,
+    const TVector<double>& bias,
     TVector<TVector<double>>* shapValues
 );
 

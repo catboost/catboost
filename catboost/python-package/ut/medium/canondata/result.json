@@ -11,6 +11,9 @@
     "test.test_approximate_shap_feature_importance_multiclass[CPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
     },
+    "test.test_approximate_shap_feature_importance_multirmse[CPU]": {
+        "uri": "file://test.test_approximate_shap_feature_importance_multirmse_CPU_/feature_importance.npy"
+    },
     "test.test_approximate_shap_feature_importance_ranking[CPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_ranking_CPU_/feature_importance.npy"
     },
@@ -353,6 +356,9 @@
     },
     "test.test_exact_shap_feature_importance_multiclass[CPU]": {
         "uri": "file://test.test_exact_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
+    },
+    "test.test_exact_shap_feature_importance_multirmse[CPU]": {
+        "uri": "file://test.test_exact_shap_feature_importance_multirmse_CPU_/feature_importance.npy"
     },
     "test.test_exact_shap_feature_importance_ranking[CPU]": {
         "uri": "file://test.test_exact_shap_feature_importance_ranking_CPU_/feature_importance.npy"
@@ -770,6 +776,12 @@
     },
     "test.test_shap_feature_importance_multiclass[CPU-TreeSHAP]": {
         "uri": "file://test.test_shap_feature_importance_multiclass_CPU-TreeSHAP_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_multirmse[CPU-IndependentTreeSHAP]": {
+        "uri": "file://test.test_shap_feature_importance_multirmse_CPU-IndependentTreeSHAP_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_multirmse[CPU-TreeSHAP]": {
+        "uri": "file://test.test_shap_feature_importance_multirmse_CPU-TreeSHAP_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_ranking[CPU]": {
         "uri": "file://test.test_shap_feature_importance_ranking_CPU_/feature_importance.npy"
