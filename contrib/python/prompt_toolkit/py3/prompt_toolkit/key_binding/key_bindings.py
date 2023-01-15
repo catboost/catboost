@@ -485,13 +485,13 @@ class _Proxy(KeyBindingsBase):
         self._update_cache()
         return self._last_version
 
-    def get_bindings_for_keys(self, *a, **kw):
+    def get_bindings_for_keys(self, keys: KeysTuple) -> List[Binding]:
         self._update_cache()
-        return self._bindings2.get_bindings_for_keys(*a, **kw)
+        return self._bindings2.get_bindings_for_keys(keys)
 
-    def get_bindings_starting_with_keys(self, *a, **kw):
+    def get_bindings_starting_with_keys(self, keys: KeysTuple) -> List[Binding]:
         self._update_cache()
-        return self._bindings2.get_bindings_starting_with_keys(*a, **kw)
+        return self._bindings2.get_bindings_starting_with_keys(keys)
 
 
 class ConditionalKeyBindings(_Proxy):
@@ -522,7 +522,7 @@ class ConditionalKeyBindings(_Proxy):
         self.filter = to_filter(filter)
 
     def _update_cache(self) -> None:
-        " If the original key bindings was changed. Update our copy version. "
+        "If the original key bindings was changed. Update our copy version."
         expected_version = self.key_bindings._version
 
         if self._last_version != expected_version:

@@ -80,7 +80,7 @@ def display_completions_like_readline(event: E) -> None:
 
 
 def _display_completions_like_readline(
-    app: "Application", completions: List[Completion]
+    app: "Application[object]", completions: List[Completion]
 ) -> "asyncio.Task[None]":
     """
     Display the list of completions in columns above the prompt.
@@ -141,7 +141,7 @@ def _display_completions_like_readline(
 
     # User interaction through an application generator function.
     async def run_compl() -> None:
-        " Coroutine. "
+        "Coroutine."
         async with in_terminal(render_cli_done=True):
             if len(completions) > completions_per_page:
                 # Ask confirmation if it doesn't fit on the screen.
@@ -171,7 +171,7 @@ def _display_completions_like_readline(
     return app.create_background_task(run_compl())
 
 
-def _create_more_session(message: str = "--MORE--") -> "PromptSession":
+def _create_more_session(message: str = "--MORE--") -> "PromptSession[bool]":
     """
     Create a `PromptSession` object for displaying the "--MORE--".
     """
@@ -198,6 +198,6 @@ def _create_more_session(message: str = "--MORE--") -> "PromptSession":
 
     @bindings.add(Keys.Any)
     def _ignore(event: E) -> None:
-        " Disable inserting of text. "
+        "Disable inserting of text."
 
     return PromptSession(message, key_bindings=bindings, erase_when_done=True)

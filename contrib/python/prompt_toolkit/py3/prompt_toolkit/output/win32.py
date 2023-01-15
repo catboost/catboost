@@ -1,19 +1,17 @@
 import os
-from ctypes import (
-    ArgumentError,
-    byref,
-    c_char,
-    c_long,
-    c_uint,
-    c_ulong,
-    pointer,
-    windll,
-)
+from ctypes import ArgumentError, byref, c_char, c_long, c_uint, c_ulong, pointer
+
+from ..utils import SPHINX_AUTODOC_RUNNING
+
+# Do not import win32-specific stuff when generating documentation.
+# Otherwise RTD would be unable to generate docs for this module.
+if not SPHINX_AUTODOC_RUNNING:
+    from ctypes import windll
+
 from ctypes.wintypes import DWORD, HANDLE
-from typing import Dict, List, Optional, TextIO, Tuple
+from typing import Callable, Dict, List, Optional, TextIO, Tuple, Type, TypeVar, Union
 
 from prompt_toolkit.data_structures import Size
-from prompt_toolkit.renderer import Output
 from prompt_toolkit.styles import ANSI_COLOR_NAMES, Attrs
 from prompt_toolkit.utils import get_cwidth
 from prompt_toolkit.win32_types import (
@@ -24,6 +22,7 @@ from prompt_toolkit.win32_types import (
     STD_OUTPUT_HANDLE,
 )
 
+from .base import Output
 from .color_depth import ColorDepth
 
 __all__ = [
@@ -31,7 +30,7 @@ __all__ = [
 ]
 
 
-def _coord_byval(coord):
+def _coord_byval(coord: COORD) -> c_long:
     """
     Turns a COORD object into a c_long.
     This will cause it to be passed by value instead of by reference. (That is what I think at least.)
@@ -79,6 +78,9 @@ class NoConsoleScreenBufferError(Exception):
         super().__init__(message)
 
 
+_T = TypeVar("_T")
+
+
 class Win32Output(Output):
     """
     I/O abstraction for rendering to Windows consoles.
@@ -111,11 +113,11 @@ class Win32Output(Output):
             self.LOG = open(_DEBUG_RENDER_OUTPUT_FILENAME, "ab")
 
     def fileno(self) -> int:
-        " Return file descriptor. "
+        "Return file descriptor."
         return self.stdout.fileno()
 
     def encoding(self) -> str:
-        " Return encoding used for stdout. "
+        "Return encoding used for stdout."
         return self.stdout.encoding
 
     def write(self, data: str) -> None:
@@ -125,7 +127,7 @@ class Win32Output(Output):
         self._buffer.append(data)
 
     def write_raw(self, data: str) -> None:
-        " For win32, there is no difference between write and write_raw. "
+        "For win32, there is no difference between write and write_raw."
         self.write(data)
 
     def get_size(self) -> Size:
@@ -148,7 +150,7 @@ class Win32Output(Output):
         # Create `Size` object.
         return Size(rows=height, columns=width)
 
-    def _winapi(self, func, *a, **kw):
+    def _winapi(self, func: Callable[..., _T], *a, **kw) -> _T:
         """
         Flush and call win API function.
         """
@@ -174,7 +176,9 @@ class Win32Output(Output):
                     ("    Error in %r %r %s\n" % (func.__name__, e, e)).encode("utf-8")
                 )
 
-    def get_win32_screen_buffer_info(self):
+            raise
+
+    def get_win32_screen_buffer_info(self) -> CONSOLE_SCREEN_BUFFER_INFO:
         """
         Return Screen buffer info.
         """
@@ -244,7 +248,7 @@ class Win32Output(Output):
 
         self._erase(start, length)
 
-    def _erase(self, start, length):
+    def _erase(self, start: COORD, length: int) -> None:
         chars_written = c_ulong()
 
         self._winapi(
@@ -268,7 +272,7 @@ class Win32Output(Output):
         )
 
     def reset_attributes(self) -> None:
-        " Reset the console foreground/background color. "
+        "Reset the console foreground/background color."
         self._winapi(
             windll.kernel32.SetConsoleTextAttribute, self.hconsole, self.default_attrs
         )
@@ -532,8 +536,10 @@ class BACKGROUND_COLOR:
     INTENSITY = 0x0080  # Background color is intensified.
 
 
-def _create_ansi_color_dict(color_cls) -> Dict[str, int]:
-    " Create a table that maps the 16 named ansi colors to their Windows code. "
+def _create_ansi_color_dict(
+    color_cls: Union[Type[FOREGROUND_COLOR], Type[BACKGROUND_COLOR]]
+) -> Dict[str, int]:
+    "Create a table that maps the 16 named ansi colors to their Windows code."
     return {
         "ansidefault": color_cls.BLACK,
         "ansiblack": color_cls.BLACK,

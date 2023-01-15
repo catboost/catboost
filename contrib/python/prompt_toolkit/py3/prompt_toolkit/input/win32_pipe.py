@@ -1,4 +1,5 @@
 from ctypes import windll
+from ctypes.wintypes import HANDLE
 from typing import Callable, ContextManager, List
 
 from prompt_toolkit.eventloop.win32 import create_win32_event
@@ -60,8 +61,8 @@ class Win32PipeInput(_Win32InputBase, PipeInput):
         raise NotImplementedError
 
     @property
-    def handle(self):
-        " The handle used for registering this pipe in the event loop. "
+    def handle(self) -> HANDLE:
+        "The handle used for registering this pipe in the event loop."
         return self._event
 
     def attach(self, input_ready_callback: Callable) -> ContextManager[None]:
@@ -79,7 +80,7 @@ class Win32PipeInput(_Win32InputBase, PipeInput):
         return detach_win32_input(self)
 
     def read_keys(self) -> List[KeyPress]:
-        " Read list of KeyPress. "
+        "Read list of KeyPress."
 
         # Return result.
         result = self._buffer
@@ -105,11 +106,11 @@ class Win32PipeInput(_Win32InputBase, PipeInput):
         return result
 
     def send_bytes(self, data: bytes) -> None:
-        " Send bytes to the input. "
+        "Send bytes to the input."
         self.send_text(data.decode("utf-8", "ignore"))
 
     def send_text(self, text: str) -> None:
-        " Send text to the input. "
+        "Send text to the input."
         # Pass it through our vt100 parser.
         self.vt100_parser.feed(text)
 
@@ -123,7 +124,7 @@ class Win32PipeInput(_Win32InputBase, PipeInput):
         return DummyContext()
 
     def close(self) -> None:
-        " Close pipe handles. "
+        "Close pipe handles."
         windll.kernel32.CloseHandle(self._event)
         self._closed = True
 
