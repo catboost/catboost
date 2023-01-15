@@ -39,7 +39,7 @@ namespace NCatboostCuda {
             auto& cursor = TParent::Cursor;
             auto der = TStripeBuffer<float>::CopyMapping(cursor);
 
-            Target->ApproximateAt(cursor,
+            Target->ApproximateAt(cursor.AsConstBuf(),
                                   SupportPairs,
                                   PairWeights,
                                   ScatterDersOrder,
@@ -57,10 +57,11 @@ namespace NCatboostCuda {
 
         static THolder<ILeavesEstimationOracle> Create(const TPairwiseTarget& target,
                                                        TStripeBuffer<const float>&& baseline,
-                                                       TStripeBuffer<const ui32>&& bins,
+                                                       TStripeBuffer<ui32>&& binsBuf,
                                                        ui32 binCount,
                                                        const TLeavesEstimationConfig& estimationConfig,
                                                        TGpuAwareRandom& random) {
+            auto bins = binsBuf.AsConstBuf();
             TStripeBuffer<uint2> pairs;
             TStripeBuffer<float> pairWeights;
 
@@ -91,7 +92,7 @@ namespace NCatboostCuda {
 
             return THolder<ILeavesEstimationOracle>(new TOracle(target,
                                std::move(baseline),
-                               std::move(bins),
+                               bins.AsConstBuf(),
                                leafWeights,
                                pairPartsLeafWeights,
                                estimationConfig,

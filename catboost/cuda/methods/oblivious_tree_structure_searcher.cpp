@@ -159,14 +159,14 @@ namespace NCatboostCuda {
                 }
                 {
                     if (featuresScoreCalcer) {
-                        featuresScoreCalcer->ComputeOptimalSplit(partitionsStats,
-                                                                 featureWeights,
+                        featuresScoreCalcer->ComputeOptimalSplit(partitionsStats.AsConstBuf(),
+                                                                 featureWeights.AsConstBuf(),
                                                                  ScoreStdDev,
                                                                  GetRandom().NextUniformL());
                     }
                     if (simpleCtrScoreCalcer) {
-                        simpleCtrScoreCalcer->ComputeOptimalSplit(partitionsStats,
-                                                                  featureWeights,
+                        simpleCtrScoreCalcer->ComputeOptimalSplit(partitionsStats.AsConstBuf(),
+                                                                  featureWeights.AsConstBuf(),
                                                                   ScoreStdDev,
                                                                   GetRandom().NextUniformL());
                     }
@@ -220,7 +220,7 @@ namespace NCatboostCuda {
                         std::function<void(const TTreeCtrDataSet&)> treeCtrDataSetScoreCalcer = [&](
                                                                                                     const TTreeCtrDataSet& ctrDataSet) {
                             ctrDataSetVisitor.Accept(ctrDataSet,
-                                                     partitionsStats,
+                                                     partitionsStats.AsConstBuf(),
                                                      inverseIndices,
                                                      directObservationIndices,
                                                      maxUniqueValues,

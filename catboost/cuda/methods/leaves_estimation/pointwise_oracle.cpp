@@ -202,7 +202,7 @@ namespace NCatboostCuda {
     TVector<float> TBinOptimizedOracle::EstimateExact() {
         auto values = TStripeBuffer<float>::CopyMapping(Bins);
         auto weights = TStripeBuffer<float>::CopyMapping(Bins);
-        DerCalcer->ComputeExactValue(Cursor, &values, &weights);
+        DerCalcer->ComputeExactValue(Cursor.AsConstBuf(), &values, &weights);
 
         TVector<float> point(BinCount * SingleBinDim());
         ComputeExactApprox(Bins, values, weights, BinCount, point, LeavesEstimationConfig.LossDescription);

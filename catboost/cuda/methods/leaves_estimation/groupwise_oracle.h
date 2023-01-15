@@ -27,7 +27,7 @@ namespace NCatboostCuda {
             {
                 auto der = TStripeBuffer<float>::CopyMapping(cursor);
 
-                Target->ApproximateAt(cursor,
+                Target->ApproximateAt(cursor.AsConstBuf(),
                                       score,
                                       &der,
                                       &DiagDer2,
@@ -86,10 +86,11 @@ namespace NCatboostCuda {
 
         static THolder<ILeavesEstimationOracle> Create(const TGroupwiseTarget& target,
                                                        TStripeBuffer<const float>&& baseline,
-                                                       TStripeBuffer<const ui32>&& bins,
+                                                       TStripeBuffer<ui32>&& binsBuf,
                                                        ui32 binCount,
                                                        const TLeavesEstimationConfig& estimationConfig,
                                                        TGpuAwareRandom& random) {
+            auto bins = binsBuf.AsConstBuf();
             //order and metadata used in Approximate
             auto docOrder = target.GetApproximateDocOrder();
             auto qids = target.GetApproximateQids();
@@ -133,8 +134,8 @@ namespace NCatboostCuda {
                                       &leafWeights);
 
             return THolder<ILeavesEstimationOracle>(new TOracle(target,
-                               orderedBaseline,
-                               orderBins,
+                               orderedBaseline.AsConstBuf(),
+                               orderBins.AsConstBuf(),
                                leafWeights,
                                pairLeafWeights,
                                estimationConfig,

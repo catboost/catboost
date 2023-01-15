@@ -27,8 +27,8 @@ namespace NCatboostCuda {
         scoreHelper.SubmitCompute(Subsets.DeviceView(devId),
                                   subsetDocs.DeviceView(devId));
 
-        scoreHelper.ComputeOptimalSplit(partStats,
-                                        ctrDataSet.GetCtrWeights(maxUniqueValues, modelSizeReg),
+        scoreHelper.ComputeOptimalSplit(partStats.AsConstBuf(),
+                                        ctrDataSet.GetCtrWeights(maxUniqueValues, modelSizeReg).AsConstBuf(),
                                         ScoreStdDev,
                                         taskSeed);
 

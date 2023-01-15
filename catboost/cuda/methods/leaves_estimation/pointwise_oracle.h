@@ -99,7 +99,7 @@ namespace NCatboostCuda {
             Gather(cursor, baseline, indices);
             UpdatePartitionOffsets(bins, offsets);
 
-            auto derCalcer = CreatePermutationDerCalcer(TObjective(target), std::move(indices));
+            auto derCalcer = CreatePermutationDerCalcer(TObjective(target), indices.AsConstBuf());
 
             return THolder<ILeavesEstimationOracle>(new TOracle(estimationConfig,
                                std::move(derCalcer),
