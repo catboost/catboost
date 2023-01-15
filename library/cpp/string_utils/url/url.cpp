@@ -7,13 +7,10 @@
 #include <util/string/strip.h>
 
 #include <util/charset/unidata.h> // for ToLower
-#include <util/system/maxlen.h>
 #include <util/system/defaults.h>
-#include <util/memory/tempbuf.h>
 #include <util/generic/chartraits.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/hash_set.h>
-#include <util/generic/ptr.h>
 #include <util/generic/yexception.h>
 #include <util/generic/singleton.h>
 
@@ -21,14 +18,14 @@
 
 namespace {
     struct TUncheckedSize {
-        bool Has(size_t) const {
+        static bool Has(size_t) {
             return true;
         }
     };
 
     struct TKnownSize {
         size_t MySize;
-        TKnownSize(size_t sz)
+        explicit TKnownSize(size_t sz)
             : MySize(sz)
         {
         }
@@ -320,14 +317,14 @@ static inline bool IsSchemeChar(char c) noexcept {
 
 static bool HasPrefix(const TStringBuf url) noexcept {
     TStringBuf scheme, unused;
-    if (!url.TrySplit("://", scheme, unused))
+    if (!url.TrySplit(AsStringBuf("://"), scheme, unused))
         return false;
 
     return AllOf(scheme, IsSchemeChar);
 }
 
 TString AddSchemePrefix(const TString& url) {
-    return AddSchemePrefix(url, "http");
+    return AddSchemePrefix(url, AsStringBuf("http"));
 }
 
 TString AddSchemePrefix(const TString& url, TStringBuf scheme) {
@@ -335,7 +332,7 @@ TString AddSchemePrefix(const TString& url, TStringBuf scheme) {
         return url;
     }
 
-    return TString::Join(scheme, "://", url);
+    return TString::Join(scheme, AsStringBuf("://"), url);
 }
 
 #define X(c) (c >= 'A' ? ((c & 0xdf) - 'A') + 10 : (c - '0'))
