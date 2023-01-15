@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)..\library\json\json_prettifier.h"/>
     <ClInclude Include="$(SolutionDir)..\library\json\json_reader.h"/>
     <ClInclude Include="$(SolutionDir)..\library\json\json_value.h"/>
     <ClInclude Include="$(SolutionDir)..\library\json\json_writer.h"/>
