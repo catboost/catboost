@@ -423,4 +423,25 @@ class Pool (
     }
     createQuantized(quantizedFeaturesInfo)
   }
+  
+  def repartition(partitionCount: Int, byGroupColumnsIfPresent: Boolean = true) : Pool = {
+    val maybeGroupIdCol = get(groupIdCol)
+    val newData = if (byGroupColumnsIfPresent && maybeGroupIdCol.isDefined) {
+      val maybeSubgroupIdCol = get(subgroupIdCol)
+      if (maybeSubgroupIdCol.isDefined) {
+        data.repartition(partitionCount, new Column(maybeGroupIdCol.get)).sortWithinPartitions(
+          new Column(maybeGroupIdCol.get),
+          new Column(maybeSubgroupIdCol.get)
+        )
+      } else {
+        data.repartition(partitionCount, new Column(maybeGroupIdCol.get)).sortWithinPartitions(
+          new Column(maybeGroupIdCol.get)
+        )
+      }
+    } else {
+      data.repartition(partitionCount)
+    }
+    val result = new Pool(newData, this.quantizedFeaturesInfo)
+    copyValues(result)
+  }
 }
