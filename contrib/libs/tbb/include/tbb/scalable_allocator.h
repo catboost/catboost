@@ -212,7 +212,7 @@ size_t pool_msize(MemoryPool *memPool, void *object);
 #endif
 
 #if __TBB_CPP17_MEMORY_RESOURCE_PRESENT
-#include <memory_resource>
+#error #include <memory_resource>
 #endif
 
 namespace tbb {

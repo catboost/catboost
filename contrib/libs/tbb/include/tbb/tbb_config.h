@@ -351,9 +351,7 @@
                                                             || _LIBCPP_VERSION >= 3700 && (!__TBB_MACOS_TARGET_VERSION || __TBB_MACOS_TARGET_VERSION >= 101200))
 // TODO: wait when memory_resource will be fully supported in clang and define the right macro
 // Currently it is in experimental stage since 6 version.
-// TODO(kirillovs): disabled __TBB_CPP17_MEMORY_RESOURCE_PRESENT due to lack of support for memory_resource header
-#define __TBB_CPP17_MEMORY_RESOURCE_PRESENT                 0 && (_MSC_VER >= 1913 && (_MSVC_LANG > 201402L || __cplusplus > 201402L) || \
-                                                            __GLIBCXX__ && __cpp_lib_memory_resource >= 201603)
+#define __TBB_CPP17_MEMORY_RESOURCE_PRESENT                 0
 #define __TBB_CPP17_HW_INTERFERENCE_SIZE_PRESENT            (_MSC_VER >= 1911)
 // std::swap is in <utility> only since C++11, though MSVC had it at least since VS2005
 #if _MSC_VER>=1400 || _LIBCPP_VERSION || __GXX_EXPERIMENTAL_CXX0X__

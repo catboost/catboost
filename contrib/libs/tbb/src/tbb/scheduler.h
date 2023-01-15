@@ -31,7 +31,7 @@
 #endif /* __TBB_SURVIVE_THREAD_SWITCH */
 
 #if __TBB_PREVIEW_RESUMABLE_TASKS
-#include "co_context.h"
+#error #include "co_context.h"
 #endif
 
 namespace tbb {
