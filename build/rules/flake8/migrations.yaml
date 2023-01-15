@@ -530,7 +530,6 @@ migrations:
     - travel/avia/shared_flights/tasks/sirena_parser
     - travel/cpa/collectors/avia/nabortu
     - travel/hotels/devops/slack_forwarder
-    - travel/hotels/tools/city_pages_builder/common
     - travel/hotels/tools/city_pages_builder/renderer/renderer
     - travel/library/python/sender
     - travel/rasp/morda_backend/tests
@@ -751,7 +750,6 @@ migrations:
     - datalens/backend/bi-common/bicommon/aio/web_app_services
     - datalens/backend/bi-common/bicommon/connection_executors/adapters
     - datalens/backend/bi-common/bicommon/data_processing
-    - datalens/backend/bi-common/bicommon/data_processing/processing/pg
     - datalens/backend/bi-common/bicommon/data_source
     - datalens/backend/bi-common/bicommon/services_registry
     - datalens/backend/bi-common/bicommon/uploads/data_adapters
@@ -904,7 +902,6 @@ migrations:
     - maps/infra/sedem/tools/update_configs
     - maps/pylibs/fixtures
     - maps/pylibs/infrastructure_api/awacs
-    - maps/routing/matrix_router/quality_reporter/pylib
     - maps_adv/adv_store/v2/tests
     - maps_adv/adv_store/v2/tests/api/campaigns
     - maps_adv/export
@@ -983,7 +980,6 @@ migrations:
     - payplatform/spirit/apply_solomon_alerts/lib/alerts
     - quasar/manufacturing/jangles/tests
     - release_machine/release_machine/tests
-    - release_machine/release_machine/tests/notifications
     - release_machine/release_machine/tests/proto_dispatcher
     - saas/tools/refresh_mon
     - saas/tools/refresh_mon/services
