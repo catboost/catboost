@@ -31,6 +31,10 @@ curl "https://git.musl-libc.org/cgit/musl/plain/include/uchar.h" --output "inclu
 # TODO: provide c16rtomb, mbrtoc16, c32rtomb, mbrtoc32 implementations for uchar
 # if any code actually needs them
 
+mkdir -p include/random/sys
+curl "https://git.musl-libc.org/cgit/musl/plain/include/sys/random.h" --output "include/random/sys/random.h"
+curl "https://git.musl-libc.org/cgit/musl/plain/src/linux/getrandom.c" --output "getrandom.c"
+
 # WARN: do not use github.com/morristech/android-ifaddrs, it is a long-ago abandoned fork
 curl "https://raw.githubusercontent.com/oliviertilmans/android-ifaddrs/master/ifaddrs.c" --output "ifaddrs.c"
 curl "https://raw.githubusercontent.com/oliviertilmans/android-ifaddrs/master/ifaddrs.h" --output "include/ifaddrs/ifaddrs.h"

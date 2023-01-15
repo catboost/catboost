@@ -83,6 +83,16 @@ IF (OS_LINUX AND NOT MUSL AND OS_SDK == "ubuntu-12")
     ADDINCL(GLOBAL contrib/libs/libc_compat/include/uchar)
 ENDIF()
 
+IF (OS_LINUX AND NOT MUSL)
+    IF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14")
+        ADDINCL(GLOBAL contrib/libs/libc_compat/include/random)
+        SRCS(
+            # getrandom was added in glibc=2.25
+            getrandom.c
+        )
+    ENDIF()
+ENDIF()
+
 IF (OS_LINUX AND NOT MUSL AND OS_SDK != "ubuntu-20")
     SRCS(
         # reallocarray was added in glibc=2.29
