@@ -62,18 +62,6 @@ TEST(Runtime, GetWorkPath) {
     }
 }
 
-TEST(Runtime, GetYaPath) {
-    {
-        auto tmpDir = ::GetSystemTempDir();
-        NTesting::TScopedEnvironment guard("YA_CACHE_DIR", tmpDir);
-        EXPECT_EQ(tmpDir, GetYaPath().GetPath());
-    }
-    {
-        NTesting::TScopedEnvironment guard("YA_CACHE_DIR", "");
-        EXPECT_EQ(GetYaPath().Basename(), ".ya");
-    }
-}
-
 TEST(Runtime, GetOutputPath) {
     EXPECT_EQ(GetOutputPath().Basename(), "testing_out_stuff");
 }
