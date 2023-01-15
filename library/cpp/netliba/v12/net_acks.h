@@ -7,7 +7,7 @@
 #include "net_test.h"
 #include "net_queue_stat.h"
 
-#include <library/netliba/socket/allocator.h>
+#include <library/cpp/netliba/socket/allocator.h>
 
 #include <util/system/spinlock.h>
 

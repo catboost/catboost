@@ -7,7 +7,7 @@
 #include <util/system/spinlock.h>
 #include <util/random/random.h>
 
-#include <library/netliba/socket/socket.h>
+#include <library/cpp/netliba/socket/socket.h>
 
 #include <errno.h>
 

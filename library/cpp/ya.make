@@ -76,6 +76,7 @@ RECURSE(
     logger/global/ut
     logger/ut
     malloc
+    netliba
     object_factory
     object_factory/ut
     on_disk

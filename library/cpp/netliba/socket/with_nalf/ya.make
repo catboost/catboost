@@ -13,7 +13,7 @@ ENDIF()
 
 CFLAGS(GLOBAL -DNETLIBA_WITH_NALF)
 
-SRCDIR(library/netliba/socket)
+SRCDIR(library/cpp/netliba/socket)
 
 SRCS(
     creators.cpp

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/netliba/v12/udp_address.h>
+#include <library/cpp/netliba/v12/udp_address.h>
 
 #include <util/generic/guid.h>
 #include <util/generic/maybe.h>

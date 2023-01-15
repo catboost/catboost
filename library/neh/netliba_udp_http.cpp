@@ -1,12 +1,12 @@
 #include "netliba_udp_http.h"
 #include "utils.h"
 
-#include <library/netliba/v6/cpu_affinity.h>
-#include <library/netliba/v6/stdafx.h>
-#include <library/netliba/v6/udp_client_server.h>
-#include <library/netliba/v6/udp_socket.h>
+#include <library/cpp/netliba/v6/cpu_affinity.h>
+#include <library/cpp/netliba/v6/stdafx.h>
+#include <library/cpp/netliba/v6/udp_client_server.h>
+#include <library/cpp/netliba/v6/udp_socket.h>
 
-#include <library/netliba/v6/block_chain.h> // depend on another headers
+#include <library/cpp/netliba/v6/block_chain.h> // depend on another headers
 
 #include <util/system/hp_timer.h>
 #include <util/system/shmat.h>

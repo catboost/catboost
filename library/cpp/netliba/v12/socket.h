@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/netliba/socket/socket.h>
+#include <library/cpp/netliba/socket/socket.h>
 
 namespace NNetliba_v12 {
     using NNetlibaSocket::AddSockAuxData;

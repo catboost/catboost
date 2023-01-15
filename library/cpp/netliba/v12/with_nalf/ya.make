@@ -2,7 +2,7 @@ LIBRARY()
 
 
 
-SRCDIR(library/netliba/v12)
+SRCDIR(library/cpp/netliba/v12)
 
 SRCS(
     block_chain.cpp
@@ -47,7 +47,7 @@ PEERDIR(
     library/cpp/threading/mux_event
     library/cpp/digest/crc32c
     library/cpp/binsaver
-    library/netliba/socket/with_nalf
+    library/cpp/netliba/socket/with_nalf
 )
 
 END()

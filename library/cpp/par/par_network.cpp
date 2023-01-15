@@ -9,8 +9,8 @@
 #include <library/neh/multiclient.h>
 #include <library/neh/neh.h>
 #include <library/neh/rpc.h>
-#include <library/netliba/v12/ib_low.h>
-#include <library/netliba/v12/udp_http.h>
+#include <library/cpp/netliba/v12/ib_low.h>
+#include <library/cpp/netliba/v12/udp_http.h>
 #include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/hash.h>

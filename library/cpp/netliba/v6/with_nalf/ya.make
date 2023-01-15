@@ -2,6 +2,8 @@ LIBRARY()
 
 
 
+SRCDIR(library/cpp/netliba/v6)
+
 SRCS(
     stdafx.cpp
     udp_address.cpp
@@ -25,22 +27,16 @@ SRCS(
     ib_memstream.cpp
 )
 
-IF (OS_LINUX AND NOT CATBOOST_OPENSOURCE)
+IF (OS_LINUX)
     PEERDIR(
         contrib/libs/ibdrv
     )
 ENDIF()
 
-IF (CATBOOST_OPENSOURCE)
-    CFLAGS(-DCATBOOST_OPENSOURCE=yes)
-ENDIF()
-
 PEERDIR(
-    library/cpp/binsaver
-    library/netliba/socket
-    library/cpp/string_utils/url
-    library/cpp/threading/atomic
     library/cpp/threading/mux_event
+    library/cpp/binsaver
+    library/cpp/netliba/socket/with_nalf
 )
 
 END()
