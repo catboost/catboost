@@ -15,6 +15,9 @@
         "clang-tidy": {
             "description": "Run Clang-Tidy source code linter"
         },
+        "clang-apply-replacements": {
+            "description": "Run clang-apply-replacements companion for clang-tidy"
+        },
         "cling": {
             "description": "Run cling"
         },
