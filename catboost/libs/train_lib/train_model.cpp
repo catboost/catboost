@@ -69,6 +69,7 @@ static THolder<NPar::ILocalExecutor> CreateLocalExecutor(const NCatboostOptions:
 
 static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgress* progress) {
     itCount += SafeIntegerCast<int>(progress->InitTreesSize);
+    Y_ASSERT(SafeIntegerCast<int>(progress->TreeStruct.size()) >= itCount);
     progress->LeafValues.resize(itCount);
     progress->TreeStruct.resize(itCount);
     progress->TreeStats.resize(itCount);
@@ -403,6 +404,18 @@ static void Train(
 
         TrainOneIteration(data, ctx);
 
+        if (HasInvalidValues(ctx->LearnProgress->LeafValues.back())) {
+            ctx->LearnProgress->LeafValues.pop_back();
+            ctx->LearnProgress->TreeStruct.pop_back();
+            if (!ctx->LearnProgress->ModelShrinkHistory.empty()) {
+                ctx->LearnProgress->ModelShrinkHistory.pop_back();
+            }
+            CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
+                << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
+            profile.FinishIteration();
+            break;
+        }
+
         CalcErrors(data, metricsData, iter, ctx);
 
         profile.AddOperation("Calc errors");
@@ -444,17 +457,6 @@ static void Train(
             ShouldCalcAllMetrics(iter, metricsData, *ctx),
             &loggingData.Logger
         );
-
-        if (HasInvalidValues(ctx->LearnProgress->LeafValues.back())) {
-            ctx->LearnProgress->LeafValues.pop_back();
-            ctx->LearnProgress->TreeStruct.pop_back();
-            if (!ctx->LearnProgress->ModelShrinkHistory.empty()) {
-                ctx->LearnProgress->ModelShrinkHistory.pop_back();
-            }
-            CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
-                << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
-            break;
-        }
 
         continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory)
                 && customCallbacks->AfterIteration(ctx->LearnProgress->MetricsAndTimeHistory);
