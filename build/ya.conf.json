@@ -3262,47 +3262,47 @@
             "name": "clang11",
             "tools": {
                 "cc": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "llvm-cov"
                 },
                 "strip": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "strip"
                 },
                 "objcopy": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "objcopy"
                 },
                 "nm": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "nm"
                 },
                 "clang-format": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "clang-format"
                 },
                 "clang-tidy": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "clang-tidy"
                 },
                 "llvm-cov": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "llvm-cov"
                 },
                 "llvm-profdata": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "llvm-profdata"
                 },
                 "llvm-symbolizer": {
-                    "bottle": "android-ndk-r22-beta1",
+                    "bottle": "android-ndk-r22",
                     "executable": "llvm-symbolizer"
                 }
             },
@@ -7067,11 +7067,11 @@
                 ]
             }
         },
-        "android-ndk-r22-beta1": {
+        "android-ndk-r22": {
             "formula": {
                 "sandbox_id": [
-                    808135517,
-                    808135171
+                    847367573,
+                    847367436
                 ],
                 "match": "NDK"
             },
