@@ -1898,6 +1898,9 @@ class MSVCToolchainOptions(ToolchainOptions):
 
         self.sdk_version = None
 
+        if build.host.is_windows:
+            self.under_wine = False
+
         if self.ide_msvs:
             bindir = '$(VC_ExecutablePath_x64_x64)\\'
             self.c_compiler = bindir + 'cl.exe'
@@ -2101,6 +2104,39 @@ class MSVCCompiler(MSVC, Compiler):
         flags_c_only = []
 
         if self.tc.use_clang:
+            flags.append('-fcase-insensitive-paths')
+
+            # Some warnings are getting triggered even when NO_COMPILER_WARNINGS is enabled
+            flags.extend((
+                '-Wno-c++11-narrowing',
+                '-Wno-register',
+            ))
+
+            c_warnings.extend((
+                '-Wno-absolute-value',
+                '-Wno-assume',
+                '-Wno-bitwise-op-parentheses',
+                '-Wno-dll-attribute-on-redeclaration',
+                '-Wno-extern-initializer',
+                '-Wno-format',
+                '-Wno-ignored-pragma-optimize',
+                '-Wno-incompatible-pointer-types-discards-qualifiers',
+                '-Wno-inconsistent-dllimport',
+                '-Wno-int-conversion',
+                '-Wno-int-to-void-pointer-cast',
+                '-Wno-invalid-noreturn',
+                '-Wno-logical-op-parentheses',
+                '-Wno-macro-redefined',
+                '-Wno-microsoft-extra-qualification',
+                '-Wno-microsoft-include',
+                '-Wno-parentheses',
+                '-Wno-pragma-pack',
+                '-Wno-return-type',
+                '-Wno-tautological-constant-out-of-range-compare',
+                '-Wno-unknown-argument',
+                '-Wno-unknown-warning-option',
+            ))
+
             cxx_warnings += [
                 '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
                 '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
@@ -2110,6 +2146,8 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-exceptions',
                 '-Wno-inconsistent-missing-override',
                 '-Wno-undefined-var-template',
+                '-Wno-ambiguous-delete',
+                '-Wno-microsoft-unqualified-friend',
             ]
             if self.tc.ide_msvs:
                 cxx_warnings += [
@@ -2191,8 +2229,10 @@ class MSVCCompiler(MSVC, Compiler):
 
         ucrt_include = os.path.join(self.tc.kit_includes, 'ucrt') if not self.tc.ide_msvs else "$(UniversalCRT_IncludePath.Split(';')[0].Replace('\\','/'))"
 
-        append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
-        append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
+        # clang-cl has '#include_next', and MSVC hasn't. It needs separately specified CRT and VC include directories for libc++ to include second in order standard C and C++ headers.
+        if not self.tc.use_clang:
+            append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
+            append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
 
         emit_big('''
             when ($NO_WSHADOW == "yes") {
@@ -2206,7 +2246,7 @@ class MSVCCompiler(MSVC, Compiler):
                 OPTIMIZE = /Od
             }''')
 
-        emit('SFDL_FLAG', ['/E', '/C', '/P', '/Fi$SFDL_TMP_OUT'])
+        emit('SFDL_FLAG', ['/E', '/C', '/P', '/TP', '/Fi$SFDL_TMP_OUT'])
         emit('WERROR_FLAG', '/WX')
         emit('WERROR_MODE', self.tc.werror_mode)
 
@@ -2227,7 +2267,7 @@ class MSVCCompiler(MSVC, Compiler):
             }
 
             macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {
-                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${OUTFILE} ${SRC} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${OUTFILE} ${SRC} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
@@ -2290,6 +2330,9 @@ class MSVCLinker(MSVC, Linker):
             flags_common += ['/INCREMENTAL']
         else:
             flags_common += ['/INCREMENTAL:NO']
+
+        if self.tc.use_clang:
+            flags_debug_only.append('/STACK:4194304')
 
         # TODO(nslus): DEVTOOLS-1868 remove restriction.
         if not self.tc.under_wine:
