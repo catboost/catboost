@@ -7,6 +7,7 @@
   - config_core.h
   - config_formats.h
   - config_functions.h
+  - config_tools.h
 
   # Protobuf is currently disabled in CH build, this allows dependency checker not to fail because of missing includes
   - google/protobuf/compiler/importer.h
@@ -25,5 +26,6 @@
   - murmurhash2.h
   - murmurhash3.h
   - re2_st/re2.h
+  - replxx.hxx
   - simdjson/jsonparser.h
   - turbob64.h
