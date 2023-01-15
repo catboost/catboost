@@ -912,11 +912,11 @@ class Ya(object):
         if os.name == "nt":
             if not path[-1].endswith(".exe"):
                 path[-1] += ".exe"
-        for binary_path in [os.path.join(self.build_root, "bin", *path), os.path.join(self.build_root, *path)]:
-            if os.path.exists(binary_path):
-                yatest_logger.debug("Binary was found by %s", binary_path)
-                return binary_path
-            yatest_logger.debug("%s not found", binary_path)
+        binary_path = os.path.join(self.build_root, *path)
+        if os.path.exists(binary_path):
+            yatest_logger.debug("Binary was found by %s", binary_path)
+            return binary_path
+
         error_message = "Cannot find binary '{binary}': make sure it was added in the DEPENDS section".format(binary=path)
         yatest_logger.debug(error_message)
         if self._mode == RunMode.Run:
