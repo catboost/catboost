@@ -2,9 +2,6 @@
 
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
-#include <util/generic/string.h>
-
-#include <string.h>
 
 #ifdef _win_
 
