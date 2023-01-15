@@ -1,4 +1,7 @@
 {
+    cluster=hahn;
+    pool="devtools";
+    cypress_root="//home/devtools/tmp/ytexec";
     "operation_spec" = {
         "scheduling_tag_filter" = "porto";
         "pool_trees" = [
