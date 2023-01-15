@@ -2185,7 +2185,6 @@ migrations:
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
     - clickhouse/utils/github
-    - cloud/mdb/internal/python/compute/iam/jwt
     - crypta/cm/services/common/test_utils
     - crypta/cm/services/quoter/bin/test
     - crypta/graph/fingerprint/match/lib
