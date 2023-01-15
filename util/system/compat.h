@@ -2,8 +2,6 @@
 
 #include "defaults.h"
 
-#include <cctype>
-#include <cstring>
 #include <cstdarg>
 
 #include <csignal>
@@ -30,8 +28,6 @@ inline unsigned int alarm(unsigned int /*seconds*/) {
 #define SIGALRM 14       //will not receive under win?
 #endif
 
-#include <contrib/libs/libc_compat/string.h>
-
 #if defined(__FreeBSD__) || defined(_darwin_)
 #define HAVE_NATIVE_GETPROGNAME
 #endif
@@ -50,26 +46,6 @@ void vwarn(const char* format, va_list ap);
 void verrx(int status, const char* format, va_list ap);
 #else
 #include <err.h>
-#endif
-
-#if !defined(_MSC_VER)
-char* strlwr(char*);
-char* strupr(char*);
-
-inline int stricmp(const char* s1, const char* s2) {
-    return strcasecmp(s1, s2);
-}
-inline int strnicmp(const char* s1, const char* s2, size_t len) {
-    return strncasecmp(s1, s2, len);
-}
-#endif
-
-#if !defined(__linux__) && !defined(__FreeBSD__)
-char* stpcpy(char* dst, const char* src);
-#endif
-
-#if defined(_MSC_VER) || defined(_sun_)
-char* strsep(char** stringp, const char* delim);
 #endif
 }
 
@@ -93,50 +69,6 @@ char* strsep(char** stringp, const char* delim);
 
 void sleep(i64 len);
 void usleep(i64 len);
-
-#endif
-
-#if defined(_win_) || defined(_cygwin_)
-template <class T>
-T* strcasestr(T* str1, T* str2) {
-    T* cp = str1;
-    T* s1;
-    T* s2;
-
-    if (!*str2)
-        return str1;
-
-    while (*cp) {
-        s1 = cp;
-        s2 = str2;
-
-        while (*s1 && *s2 && (tolower(*s1) == tolower(*s2))) {
-            ++s1;
-            ++s2;
-        }
-
-        if (!*s2)
-            return cp;
-
-        ++cp;
-    }
-
-    return nullptr;
-}
-#endif
-
-#if defined(_win_) || defined(_cygwin_) || defined(_darwin_)
-/* Copyright (c) 2007 Todd C. Miller <Todd.Miller@courtesan.com> */
-inline void* memrchr(const void* s, int c, size_t n) {
-    if (n != 0) {
-        const unsigned char* cp = (unsigned char*)s + n;
-        do {
-            if (*(--cp) == (unsigned char)c)
-                return ((void*)cp);
-        } while (--n != 0);
-    }
-    return nullptr;
-}
 
 #endif
 

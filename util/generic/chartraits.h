@@ -4,12 +4,14 @@
 #include "mem_copy.h"
 #include "ptr.h"
 
+#include <contrib/libs/libc_compat/string.h>
+
 #include <util/charset/unidata.h>
 #include <util/charset/wide_specific.h>
-#include <util/system/compat.h>
 #include <util/system/yassert.h>
 #include <util/system/platform.h>
 
+#include <cctype>
 #include <cstring>
 
 // Building blocks of TCharTraits:

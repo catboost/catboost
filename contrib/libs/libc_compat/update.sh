@@ -4,8 +4,18 @@ unweak() {
     sed --in-place --expression 's/DEF_WEAK(.\+);//g' "$1"
 }
 
-curl "https://raw.githubusercontent.com/openbsd/src/master/lib/libc/string/strlcpy.c" --output "strlcpy.c" && unweak "strlcpy.c"
-curl "https://raw.githubusercontent.com/openbsd/src/master/lib/libc/string/strlcat.c" --output "strlcat.c" && unweak "strlcat.c"
+get_string_method() {
+   curl "https://raw.githubusercontent.com/openbsd/src/master/lib/libc/string/$1" --output "$1" && unweak "$1"
+}
+
+get_string_method "strlcpy.c"
+get_string_method "strlcat.c"
+get_string_method "strsep.c"
+# strcasestr uses strncasecmp, which is platform dependent, so include local string.h
+get_string_method "strcasestr.c" && sed --in-place 's/#include <string.h>/#include "string.h"/g' "strcasestr.c"
+get_string_method "memrchr.c"
+get_string_method "stpcpy.c"
+
 mkdir -p include/windows/sys
 curl "https://raw.githubusercontent.com/openbsd/src/master/sys/sys/queue.h" --output "include/windows/sys/queue.h"
 patch -p1 -i patches/sys-queue.patch
