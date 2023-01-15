@@ -519,8 +519,6 @@ ALLOW market/sre/services/dist_meta_store/app -> vendor/github.com/jackc/pgx
 ALLOW market/sre/services/dist_meta_store/database -> vendor/github.com/jackc/pgx
 ALLOW mds/karl/pkg/mdb -> vendor/github.com/jackc/pgx
 ALLOW mds/valve/pkg/storage -> vendor/github.com/jackc/pgx
-ALLOW plus/morda/internal/common -> vendor/github.com/jackc/pgx
-ALLOW plus/morda/internal/events -> vendor/github.com/jackc/pgx
 ALLOW quasar/gackend/db -> vendor/github.com/jackc/pgx
 ALLOW quasar/tsup/db -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/cmd/load_generator -> vendor/github.com/jackc/pgx
