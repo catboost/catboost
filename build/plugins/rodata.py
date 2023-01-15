@@ -75,7 +75,7 @@ class ROData(iw.CustomCommand):
         return common.make_tuples([common.tobuilddir(common.stripext(self._path)) + '.o'])
 
     def requested_vars(self):
-        return [('includes', 'INCLUDE')]
+        return [('includes', '_ASM__INCLUDE')]
 
     def run(self, extra_args, binary):
         in_file = self.resolve_path(common.get(self.input, 0))
