@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ut\borders_io_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ut\columns_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ut\ctrs_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ut\data_provider_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ut\external_columns_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ut\features_layout_ut.cpp"/>
