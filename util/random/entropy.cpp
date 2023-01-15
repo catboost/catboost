@@ -23,11 +23,10 @@
 #include <util/generic/buffer.h>
 #include <util/generic/singleton.h>
 #include <util/digest/murmur.h>
-#include <util/datetime/cputimer.h>
 #include <util/ysaveload.h>
 
 namespace {
-    static inline void Permute(char* buf, size_t len) noexcept {
+    inline void Permute(char* buf, size_t len) noexcept {
         Shuffle(buf, buf + len, TReallyFastRng32(*buf + len));
     }
 
@@ -98,7 +97,7 @@ namespace {
         using TRnd = TMersenne<TKey>;
 
     public:
-        inline TMersenneInput(const TBuffer& rnd)
+        inline explicit TMersenneInput(const TBuffer& rnd)
             : Rnd_((const TKey*)rnd.Data(), rnd.Size() / sizeof(TKey))
         {
         }
@@ -127,7 +126,7 @@ namespace {
 
     class TEntropyPoolStream: public IInputStream {
     public:
-        inline TEntropyPoolStream(const TBuffer& buffer)
+        inline explicit TEntropyPoolStream(const TBuffer& buffer)
             : Mi_(buffer)
             , Bi_(&Mi_, 8192)
         {
