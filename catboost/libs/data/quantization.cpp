@@ -2547,44 +2547,6 @@ namespace NCB {
         );
     }
 
-    TQuantizedDataProviders Quantize(
-        const TQuantizationOptions& options,
-        const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
-        bool floatFeaturesAllowNansInTestOnly,
-        TConstArrayRef<ui32> ignoredFeatures,
-        TRawDataProviders rawDataProviders,
-        TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
-    ) {
-        TQuantizedDataProviders result;
-        auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-            *rawDataProviders.Learn->MetaInfo.FeaturesLayout,
-            ignoredFeatures,
-            dataProcessingOptions.FloatFeaturesBinarization.Get(),
-            dataProcessingOptions.PerFloatFeatureQuantization.Get(),
-            dataProcessingOptions.TextProcessingOptions.Get(),
-            floatFeaturesAllowNansInTestOnly
-        );
-
-        result.Learn = Quantize(
-            options,
-            std::move(rawDataProviders.Learn),
-            quantizedFeaturesInfo,
-            rand,
-            localExecutor
-        );
-
-        // TODO(akhropov): quantize test data in parallel
-        for (auto& rawTestData : rawDataProviders.Test) {
-            result.Test.push_back(
-                Quantize(options, std::move(rawTestData), quantizedFeaturesInfo, rand, localExecutor)
-            );
-        }
-
-        return result;
-    }
-
-
     TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(
         const NCatboostOptions::TCatBoostOptions& params,
         TDataProviderPtr srcData,

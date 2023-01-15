@@ -134,16 +134,6 @@ namespace NCB {
         const TInitialBorders& initialBorders = Nothing()
     );
 
-    TQuantizedDataProviders Quantize(
-        const TQuantizationOptions& options,
-        const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
-        bool floatFeaturesAllowNansInTestOnly,
-        TConstArrayRef<ui32> ignoredFeatures,
-        TRawDataProviders rawDataProviders,
-        TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
-    );
-
     TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(
         const NCatboostOptions::TCatBoostOptions& params,
         TDataProviderPtr srcData,
