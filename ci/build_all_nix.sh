@@ -63,12 +63,12 @@ cd ../python-package
 PY27=2.7.14
 pyenv install -s $PY27
 pyenv shell $PY27
-python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
+python mk_wheel.py --build-widget=no $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config 
 
 PY35=3.5.5
 pyenv install -s $PY35
 pyenv shell $PY35
-python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py --build-widget=no $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY36=3.6.6
 pyenv install -s $PY36
