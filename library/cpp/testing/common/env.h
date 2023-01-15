@@ -71,6 +71,7 @@ namespace NPrivate {
         TString BuildRoot;
         TString WorkPath;
         TString RamDrivePath;
+        TString YtHddPath;
         TString TestOutputRamDrivePath;
         TString GdbPath;
         TString CoreSearchFile;
