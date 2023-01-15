@@ -9,6 +9,7 @@ import argparse
 import errno
 
 import process_command_files as pcf
+import process_whole_archive_option as pwa
 
 
 procs = []
@@ -415,15 +416,16 @@ def run_main():
     parser.add_argument('arcadia_build_root', action='store')
     parser.add_argument('binary', action='store')
     parser.add_argument('free_args', nargs=argparse.REMAINDER)
-    args = parser.parse_args()
+    # By now just unpack. Ideally we should fix path and pack arguments back into command file
+    args = parser.parse_args(pcf.get_args(sys.argv[1:]))
 
     wine = args.wine
     mode = args.mode
     binary = args.binary
     version = args.version
     incl_paths = args.incl_paths
-    # By now just unpack. Ideally we should fix path and pack arguments back into command file
-    free_args = pcf.get_args(args.free_args)
+
+    free_args, wa_peers, wa_libs = pwa.get_whole_archive_peers_and_libs(args.free_args)
     wholearchive_args, other_free_args = split_whole_archive(free_args)
 
     bld_root = args.arcadia_build_root
@@ -461,6 +463,8 @@ def run_main():
 
     wholearchive_args = [add_whole_archive_prefix(fix_path(process_link(downsize_path(x, short_names)))) for x in wholearchive_args]
     other_free_args = [fix_path(process_link(downsize_path(x, short_names))) for x in other_free_args]
+    other_free_args = pwa.ProcessWholeArchiveOption('WINDOWS', wa_peers, wa_libs).construct_cmd(other_free_args)
+
     cmd = [binary] + wholearchive_args + other_free_args
 
     for x in ('/NOLOGO', '/nologo', '/FD'):

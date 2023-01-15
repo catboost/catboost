@@ -2,7 +2,7 @@ import sys
 import subprocess
 import optparse
 
-import process_whole_archive_option as pwa
+from process_whole_archive_option import ProcessWholeArchiveOption
 
 
 def get_leaks_suppressions(cmd):
@@ -50,13 +50,16 @@ def parse_args():
     parser.add_option('--custom-step')
     parser.add_option('--python')
     parser.add_option('--source-root')
+    parser.add_option('--arch')
+    parser.add_option('--whole-archive-peers', action='append')
+    parser.add_option('--whole-archive-libs', action='append')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     opts, args = parse_args()
     cmd = fix_cmd(opts.musl, args)
-    cmd = pwa.process_whole_archive_for_global_libs(cmd)
+    cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
     supp, cmd = get_leaks_suppressions(cmd)
     if opts.custom_step:
         assert opts.python
