@@ -194,8 +194,6 @@ migrations:
     - intranet/table_flow/tests
     - intranet/trip/src
     - intranet/trip/tests
-    - irt/bmgen/market_data
-    - irt/iron/options
     - jupytercloud/backend
     - kikimr/tools/dstool
     - kikimr/tools/ic_load
@@ -438,9 +436,6 @@ migrations:
     - robot/quality/robotrank/nirvana/compare_formulas
     - robot/rthub/test/turbo/medium/turbo-images-embeds
     - robot/selectionrank/sr_conduct_rules_experiment/graphs
-    - rt-research/bannerland/cron_jobs/cache_avatars
-    - rt-research/bannerland/lib
-    - rt-research/broadmatching/scripts/pylib
     - rtmapreduce/config/user_tasks
     - rtmapreduce/monitoring/checks/production
     - saas/rtyserver_test/local_saas
