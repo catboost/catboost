@@ -6,7 +6,7 @@ PEERDIR(
     library/python/symbols/registry
 )
 
-IF (OS_DARWIN)
+IF (GCC OR CLANG)
     CFLAGS(
         -Wno-deprecated-declarations # For sem_getvalue.
     )
