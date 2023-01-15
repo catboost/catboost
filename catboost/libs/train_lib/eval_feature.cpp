@@ -970,6 +970,10 @@ static void EvaluateFeaturesImpl(
             callbacks->FoldIndex = offsetInRange + foldIdx;
             callbacks->ResetIterationIndex();
             foldContext.OutputOptions.SetSaveSnapshotFlag(outputFileOptions.SaveSnapshot());
+            CATBOOST_NOTICE_LOG << "Learn dataset: " << foldContext.TrainingData.Learn->ObjectsGrouping->GetObjectCount() << " objects, "
+                << foldContext.TrainingData.Learn->ObjectsGrouping->GetGroupCount() << " groups" << Endl;
+            CATBOOST_NOTICE_LOG << "Test dataset: " << foldContext.TrainingData.Test[0]->ObjectsGrouping->GetObjectCount() << " objects, "
+                << foldContext.TrainingData.Test[0]->ObjectsGrouping->GetGroupCount() << " groups" << Endl;
             Train(
                 dataSpecificOptions,
                 JoinFsPaths(topLevelTrainDir, foldDir),
