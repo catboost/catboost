@@ -7168,9 +7168,9 @@
         "idea_style_config": {
             "formula": {
                 "sandbox_id": [
-                    441758406
+                    874273162
                 ],
-                "match": "idea_codestyle_config"
+                "match": "Intellij IDEA codestyle config"
             }
         },
         "error_prone": {
