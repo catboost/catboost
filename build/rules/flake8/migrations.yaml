@@ -1899,7 +1899,6 @@ migrations:
     - sandbox/projects/release_machine/components/configs
     - sandbox/projects/release_machine/components/custom
     - sandbox/projects/release_machine/helpers/deploy
-    - sandbox/projects/release_machine/release_engine/TestReleaseEngineBackend
     - sandbox/projects/runtime_models
     - sandbox/projects/runtime_models/BuildYabsRtModelsPackage
     - sandbox/projects/runtime_models/CreateWebRtModelsRequestsPlan
@@ -2515,7 +2514,6 @@ migrations:
     - metrika/admin/python/bishop/frontend/tests
     - metrika/admin/python/cms/agent/lib
     - metrika/admin/python/cms/frontend/cms
-    - metrika/admin/python/scripts/juggler_checks/metrica_infra
     - metrika/admin/python/strogg/frontend/strogg
     - metrika/core/monitoring/clickhouse-table-structure-check
     - metrika/core/programs/mobile_yt_to_yc_export
