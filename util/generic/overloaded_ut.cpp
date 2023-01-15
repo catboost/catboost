@@ -1,4 +1,4 @@
-#include <library/cpp/overloaded/overloaded.h>
+#include <util/generic/overloaded.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -36,7 +36,7 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
             [&](double) { res = -1; },
             [&](TType1) { res = -1; }
         }, v);
-        UNIT_ASSERT_EQUAL(res, 5);
+        UNIT_ASSERT_VALUES_EQUAL(res, 5);
     }
 
     Y_UNIT_TEST(TupleTest) {
@@ -49,6 +49,35 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
             [&](bool val) { res += "(bool) " + ToString(val) + ' '; },
         });
 
-        UNIT_ASSERT_EQUAL(res, "(int) 5 (double) 3.14 (bool) 1 (int) 20 ");
+        UNIT_ASSERT_VALUES_EQUAL(res, "(int) 5 (double) 3.14 (bool) 1 (int) 20 ");
+    }
+
+    Y_UNIT_TEST(ImplicitConversionsTest) {
+        using TTestVariant = TVariant<int, double, char>;
+
+        // Purposefully exhibit inexact overload matched with implicit type
+        // conversions
+
+        // All cases implicitly cast to int
+        auto matchAsInt = [](TTestVariant var) {
+            return Visit(TOverloaded{
+                [](int val) { return val; },
+            }, var);
+        };
+
+        UNIT_ASSERT_VALUES_EQUAL(matchAsInt(TTestVariant{17.77}), 17);
+        UNIT_ASSERT_VALUES_EQUAL(matchAsInt(TTestVariant{12345}), 12345);
+        UNIT_ASSERT_VALUES_EQUAL(matchAsInt(TTestVariant{'X'}), 88);
+
+        // All cases implicitly cast to double
+        auto matchAsDouble = [](TTestVariant var) {
+            return Visit(TOverloaded{
+                [](double val) { return val; },
+            }, var);
+        };
+
+        UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{17.77}), 17.77);
+        UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{12345}), 12345.0);
+        UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{'X'}), 88.0);
     }
 }
