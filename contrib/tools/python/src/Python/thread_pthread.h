@@ -277,6 +277,7 @@ PyThread_exit_thread(void)
     if (!initialized) {
         exit(0);
     }
+    pthread_exit(0);
 }
 
 #ifdef USE_SEMAPHORES
