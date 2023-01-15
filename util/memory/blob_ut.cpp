@@ -2,6 +2,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <util/system/mktemp.h>
+#include <util/folder/path.h>
 #include <util/stream/output.h>
 #include <util/stream/file.h>
 #include <util/generic/buffer.h>
@@ -68,5 +70,12 @@ Y_UNIT_TEST(TestFromFile) {
     testMode(TBlob::PrechargedFromFile(path));
     testMode(TBlob::LockedFromFile(path));
 }
+
+Y_UNIT_TEST(TestEmptyLockedFiles) {
+    TString path = MakeTempName();
+    TFsPath(path).Touch();
+    TBlob::LockedFromFile(path);
+}
+
 }
 ;
