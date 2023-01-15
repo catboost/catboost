@@ -254,7 +254,7 @@ void GetObjectsDataAndIndexing(
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     TIndexedSubsetCache* indexedSubsetCache,
     NPar::TLocalExecutor* localExecutor,
-    TQuantizedForCPUObjectsDataProviderPtr* objectsData,
+    TQuantizedObjectsDataProviderPtr* objectsData,
     const ui32** columnIndexing // can return nullptr
 ) {
     if (isEstimated) {
@@ -348,7 +348,7 @@ static void UpdateIndices(
                  }
             );
         } else {
-            TQuantizedForCPUObjectsDataProviderPtr objectsDataProvider;
+            TQuantizedObjectsDataProviderPtr objectsDataProvider;
             const ui32* columnIndexing;
             GetObjectsDataAndIndexing(
                 trainingData,

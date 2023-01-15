@@ -166,7 +166,7 @@ void UpdateIndices(
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TIndexType> indicesRef
 ) {
-    TQuantizedForCPUObjectsDataProviderPtr objectsDataProvider;
+    TQuantizedObjectsDataProviderPtr objectsDataProvider;
     const ui32* columnsIndexing;
     TIndexedSubsetCache indexedSubsetCache; // not really updated because it is used for test only
     GetObjectsDataAndIndexing(
@@ -232,7 +232,7 @@ void BuildIndicesForDataset(
     TVector<std::function<bool(ui32 objIdx)>> nodesSplitFunctions;
     nodesSplitFunctions.yresize(tree.GetNodesCount());
     for (auto nodeIdx : xrange(tree.GetNodesCount())) {
-        TQuantizedForCPUObjectsDataProviderPtr objectsDataProvider;
+        TQuantizedObjectsDataProviderPtr objectsDataProvider;
         const ui32* columnIndexing;
         GetObjectsDataAndIndexing(
             trainingData,
