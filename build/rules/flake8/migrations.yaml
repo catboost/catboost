@@ -2066,7 +2066,6 @@ migrations:
     - billing/snout/yb_snout_proxy
     - billing/statreports
     - browser/infra/avd_tools/avd_tools
-    - captcha/captcha_test_service/bin
     - catboost/python-package/catboost
     - cloud/ai/dataforge/lib
     - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics
