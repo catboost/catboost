@@ -854,6 +854,9 @@ ALLOW load/projects/pandora -> vendor/github.com/onsi/ginkgo
 # CONTRIB-2029
 ALLOW load/projects/pandora -> vendor/github.com/magiconair/properties/assert
 
+# CONTRIB-2224
+ALLOW .* -> vendor/github.com/segmentio/kafka-go
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
