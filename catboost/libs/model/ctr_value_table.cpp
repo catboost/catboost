@@ -83,6 +83,9 @@ void TCtrValueTable::LoadThin(TMemoryInput* in) {
     CounterDenominator = ctrValueTable->CounterDenominator();
     TargetClassesCount = ctrValueTable->TargetClassesCount();
 
-    thin.IndexBuckets = TConstArrayRef<NCatboost::TBucket>(reinterpret_cast<const NCatboost::TBucket*>(ctrValueTable->IndexHashRaw()->data()), ctrValueTable->IndexHashRaw()->size());
+    thin.IndexBuckets = TConstArrayRef<NCatboost::TBucket>(
+        reinterpret_cast<const NCatboost::TBucket*>(ctrValueTable->IndexHashRaw()->data()),
+        reinterpret_cast<const NCatboost::TBucket*>(ctrValueTable->IndexHashRaw()->data() + ctrValueTable->IndexHashRaw()->size())
+    );
     thin.CTRBlob = TConstArrayRef<ui8>(ctrValueTable->CTRBlob()->data(), ctrValueTable->CTRBlob()->size());
 }
