@@ -14,9 +14,11 @@ namespace NTesting {
     };
 
     class TPortHolder : private THolder<IPort> {
+        using TBase = THolder<IPort>;
     public:
-        using THolder<IPort>::THolder;
-        using THolder<IPort>::Release;
+        using TBase::THolder;
+        using TBase::Release;
+        using TBase::Reset;
 
         operator ui16() const& {
             return (*this)->Get();
