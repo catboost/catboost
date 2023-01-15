@@ -1336,6 +1336,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3contrib-python-dateutil.vcxproj">
       <Project>{D274033C-8742-EABF-10AB-335A323CB8E0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py3\pypython-graphviz-py3.vcxproj">
+      <Project>{36BED28F-165D-7F2F-F290-96288A3E77C6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py3contrib-python-graphviz.vcxproj">
       <Project>{330DC72E-A843-8BC7-F0CD-1868368EA271}</Project>
     </ProjectReference>
