@@ -31,7 +31,7 @@
 // Author: anuraag@google.com (Anuraag Agrawal)
 // Author: tibell@google.com (Johan Tibell)
 
-#include "pyext/message.h"
+#include <google/protobuf/pyext/message.h>
 
 #include <map>
 #include <memory>
@@ -57,15 +57,15 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/unknown_field_set.h>
-#include "pyext/descriptor.h"
-#include "pyext/descriptor_pool.h"
-#include "pyext/extension_dict.h"
-#include "pyext/repeated_composite_container.h"
-#include "pyext/repeated_scalar_container.h"
-#include "pyext/map_container.h"
-#include "pyext/message_factory.h"
-#include "pyext/safe_numerics.h"
-#include "pyext/scoped_pyobject_ptr.h"
+#include <google/protobuf/pyext/descriptor.h>
+#include <google/protobuf/pyext/descriptor_pool.h>
+#include <google/protobuf/pyext/extension_dict.h>
+#include <google/protobuf/pyext/repeated_composite_container.h>
+#include <google/protobuf/pyext/repeated_scalar_container.h>
+#include <google/protobuf/pyext/map_container.h>
+#include <google/protobuf/pyext/message_factory.h>
+#include <google/protobuf/pyext/safe_numerics.h>
+#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
 #include <google/protobuf/stubs/strutil.h>
 
 #if PY_MAJOR_VERSION >= 3

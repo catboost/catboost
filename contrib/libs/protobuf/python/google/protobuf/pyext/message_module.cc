@@ -28,7 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "pyext/message.h"
+#include <google/protobuf/pyext/message.h>
 
 static const char module_docstring[] =
 "python-proto2 is a module that can be used to enhance proto2 Python API\n"

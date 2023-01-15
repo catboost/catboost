@@ -26,7 +26,6 @@ PEERDIR(
 
 ADDINCL(
     contrib/libs/protobuf/python
-    contrib/libs/protobuf/python/google/protobuf
 )
 
 SRCDIR(
