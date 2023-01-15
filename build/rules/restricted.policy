@@ -3,6 +3,9 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+# aws-sdk-cpp parts are not meant to be used directly.
+ALLOW contrib/libs/aws-sdk-cpp -> contrib/restricted/aws
+
 # CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
 ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
 
@@ -10,7 +13,7 @@ ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
 ALLOW clickhouse -> contrib/restricted/dragonbox
 
 # fast_float is a faster alternative to double-conversion for float parsing.
-# ClickHouse uses the best libraries for performance, that's why it changes them with insane speed. 
+# ClickHouse uses the best libraries for performance, that's why it changes them with insane speed.
 # Arcadia is not ready for this, that's why we added this library in restricted.
 ALLOW clickhouse -> contrib/restricted/fast_float
 
