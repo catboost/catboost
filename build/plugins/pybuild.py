@@ -497,7 +497,7 @@ def py_register(unit, func, py3):
 
 def onpy_register(unit, *args):
     """
-    @usage: PY_REGISTER([package.]module_name[=module_name])
+    @usage: PY_REGISTER([package.]module_name)
 
     Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
     All modules from the sources listed in PY_SRCS() are registered automatically.
