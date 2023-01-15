@@ -1,25 +1,22 @@
 /* Python interpreter main program */
 
 #include "Python.h"
-#include "pycore_initconfig.h"
-#include "pycore_pylifecycle.h"
-#include "pycore_pymem.h"
-#include "pycore_pystate.h"
-
-#ifdef __FreeBSD__
-#  include <fenv.h>     /* fedisableexcept() */
-#endif
+#include "pycore_initconfig.h"    // _PyArgv
+#include "pycore_interp.h"        // _PyInterpreterState.sysdict
+#include "pycore_pathconfig.h"    // _PyPathConfig_ComputeSysPath0()
+#include "pycore_pylifecycle.h"   // _Py_PreInitializeFromPyArgv()
+#include "pycore_pystate.h"       // _PyInterpreterState_GET()
 
 /* Includes for exit_sigint() */
-#include <stdio.h>      /* perror() */
+#include <stdio.h>                // perror()
 #ifdef HAVE_SIGNAL_H
-#  include <signal.h>   /* SIGINT */
+#  include <signal.h>             // SIGINT
 #endif
 #if defined(HAVE_GETPID) && defined(HAVE_UNISTD_H)
-#  include <unistd.h>   /* getpid() */
+#  include <unistd.h>             // getpid()
 #endif
 #ifdef MS_WINDOWS
-#  include <windows.h>  /* STATUS_CONTROL_C_EXIT */
+#  include <windows.h>            // STATUS_CONTROL_C_EXIT
 #endif
 /* End of includes for exit_sigint() */
 
@@ -42,15 +39,6 @@ pymain_init(const _PyArgv *args)
     if (_PyStatus_EXCEPTION(status)) {
         return status;
     }
-
-    /* 754 requires that FP exceptions run in "no stop" mode by default,
-     * and until C vendors implement C99's ways to control FP exceptions,
-     * Python requires non-stop mode.  Alas, some platforms enable FP
-     * exceptions by default.  Here we disable them.
-     */
-#ifdef __FreeBSD__
-    fedisableexcept(FE_OVERFLOW);
-#endif
 
     PyPreConfig preconfig;
     PyPreConfig_InitPythonConfig(&preconfig);
@@ -291,7 +279,7 @@ pymain_run_module(const wchar_t *modname, int set_argv0)
         Py_DECREF(runmodule);
         return pymain_exit_err_print();
     }
-    runargs = Py_BuildValue("(Oi)", module, set_argv0);
+    runargs = PyTuple_Pack(2, module, set_argv0 ? Py_True : Py_False);
     if (runargs == NULL) {
         fprintf(stderr,
             "Could not create arguments for runpy._run_module_as_main\n");
@@ -318,7 +306,7 @@ pymain_run_module(const wchar_t *modname, int set_argv0)
 
 
 static int
-pymain_run_file(PyConfig *config, PyCompilerFlags *cf)
+pymain_run_file(const PyConfig *config, PyCompilerFlags *cf)
 {
     const wchar_t *filename = config->run_filename;
     if (PySys_Audit("cpython.run_file", "u", filename) < 0) {
@@ -555,9 +543,9 @@ pymain_repl(PyConfig *config, PyCompilerFlags *cf, int *exitcode)
 static void
 pymain_run_python(int *exitcode)
 {
-    PyInterpreterState *interp = _PyInterpreterState_GET_UNSAFE();
+    PyInterpreterState *interp = _PyInterpreterState_GET();
     /* pymain_run_stdin() modify the config */
-    PyConfig *config = &interp->config;
+    PyConfig *config = (PyConfig*)_PyInterpreterState_GetConfig(interp);
 
     PyObject *main_importer_path = NULL;
     if (config->run_filename != NULL) {

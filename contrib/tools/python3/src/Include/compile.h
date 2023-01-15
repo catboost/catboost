@@ -2,7 +2,6 @@
 #define Py_COMPILE_H
 
 #ifndef Py_LIMITED_API
-#include "code.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,6 +9,9 @@ extern "C" {
 
 /* Public interface */
 struct _node; /* Declare the existence of this type */
+#ifndef Py_BUILD_CORE
+Py_DEPRECATED(3.9)
+#endif
 PyAPI_FUNC(PyCodeObject *) PyNode_Compile(struct _node *, const char *);
 /* XXX (ncoghlan): Unprefixed type name in a public API! */
 
@@ -89,7 +91,12 @@ PyAPI_FUNC(PyObject*) _Py_Mangle(PyObject *p, PyObject *name);
 PyAPI_FUNC(int) PyCompile_OpcodeStackEffect(int opcode, int oparg);
 PyAPI_FUNC(int) PyCompile_OpcodeStackEffectWithJump(int opcode, int oparg, int jump);
 
-PyAPI_FUNC(int) _PyAST_Optimize(struct _mod *, PyArena *arena, int optimize);
+typedef struct {
+    int optimize;
+    int ff_features;
+} _PyASTOptimizeState;
+
+PyAPI_FUNC(int) _PyAST_Optimize(struct _mod *, PyArena *arena, _PyASTOptimizeState *state);
 
 #ifdef __cplusplus
 }
@@ -102,5 +109,8 @@ PyAPI_FUNC(int) _PyAST_Optimize(struct _mod *, PyArena *arena, int optimize);
 #define Py_file_input 257
 #define Py_eval_input 258
 #define Py_func_type_input 345
+
+/* This doesn't need to match anything */
+#define Py_fstring_input 800
 
 #endif /* !Py_COMPILE_H */

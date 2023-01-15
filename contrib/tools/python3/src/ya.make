@@ -85,6 +85,7 @@ SRCS(
     Objects/floatobject.c
     Objects/frameobject.c
     Objects/funcobject.c
+    Objects/genericaliasobject.c
     Objects/genobject.c
     Objects/interpreteridobject.c
     Objects/iterobject.c
@@ -114,6 +115,10 @@ SRCS(
     Parser/node.c
     Parser/parser.c
     Parser/parsetok.c
+    Parser/pegen/parse.c
+    Parser/pegen/parse_string.c
+    Parser/pegen/peg_api.c
+    Parser/pegen/pegen.c
     Parser/token.c
     Parser/tokenizer.c
     Python/Python-ast.c
@@ -144,6 +149,7 @@ SRCS(
     Python/getversion.c
     Python/graminit.c
     Python/hamt.c
+    Python/hashtable.c
     Python/import.c
     Python/importdl.c
     Python/initconfig.c

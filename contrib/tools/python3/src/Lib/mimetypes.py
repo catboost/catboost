@@ -401,6 +401,7 @@ def _default_mime_types():
         '.Z': 'compress',
         '.bz2': 'bzip2',
         '.xz': 'xz',
+        '.br': 'br',
         }
 
     # Before adding new types, make sure they are either registered with IANA,
@@ -447,7 +448,6 @@ def _default_mime_types():
         '.dvi'    : 'application/x-dvi',
         '.gtar'   : 'application/x-gtar',
         '.hdf'    : 'application/x-hdf',
-        '.h5'     : 'application/x-hdf5',
         '.latex'  : 'application/x-latex',
         '.mif'    : 'application/x-mif',
         '.cdf'    : 'application/x-netcdf',

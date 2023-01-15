@@ -9,6 +9,10 @@
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
+/* BUILD_GNU_TYPE + AIX_BUILDDATE are used to construct the PEP425 tag of the
+   build system. */
+/* #undef AIX_BUILDDATE */
+
 /* Define for AIX if your compiler is a genuine IBM xlC/xlC_r and you want
    support for AIX C++ shared extension modules. */
 /* #undef AIX_GENUINE_CPLUSPLUS */
@@ -44,10 +48,6 @@
 
 /* Define if getpgrp() must be called as getpgrp(0). */
 /* #undef GETPGRP_HAVE_ARG */
-
-/* Define if gettimeofday() does not have second (timezone) argument This is
-   the case on Motorola V4 (R40V4.2) */
-/* #undef GETTIMEOFDAY_NO_TZ */
 
 /* Define to 1 if you have the `accept4' function. */
 /* #undef HAVE_ACCEPT4 */
@@ -514,9 +514,6 @@
 /* Define to 1 if you have the `getspnam' function. */
 /* #undef HAVE_GETSPNAM */
 
-/* Define to 1 if you have the `gettimeofday' function. */
-#define HAVE_GETTIMEOFDAY 1
-
 /* Define to 1 if you have the `getwd' function. */
 #define HAVE_GETWD 1
 
@@ -626,11 +623,17 @@
 /* Define to 1 if you have the <linux/can.h> header file. */
 /* #undef HAVE_LINUX_CAN_H */
 
+/* Define to 1 if you have the <linux/can/j1939.h> header file. */
+/* #undef HAVE_LINUX_CAN_J1939_H */
+
 /* Define if compiling using Linux 3.6 or later. */
 /* #undef HAVE_LINUX_CAN_RAW_FD_FRAMES */
 
 /* Define to 1 if you have the <linux/can/raw.h> header file. */
 /* #undef HAVE_LINUX_CAN_RAW_H */
+
+/* Define if compiling using Linux 4.1 or later. */
+/* #undef HAVE_LINUX_CAN_RAW_JOIN_FILTERS */
 
 /* Define to 1 if you have the <linux/memfd.h> header file. */
 /* #undef HAVE_LINUX_MEMFD_H */
@@ -649,6 +652,9 @@
 
 /* Define to 1 if you have the <linux/vm_sockets.h> header file. */
 /* #undef HAVE_LINUX_VM_SOCKETS_H */
+
+/* Define to 1 if you have the <linux/wait.h> header file. */
+/* #undef HAVE_LINUX_WAIT_H */
 
 /* Define to 1 if you have the `lockf' function. */
 #define HAVE_LOCKF 1
@@ -773,6 +779,9 @@
 /* Define if you have the 'prlimit' functions. */
 /* #undef HAVE_PRLIMIT */
 
+/* Define if you have the '_dyld_shared_cache_contains_path' function. */
+/* #undef HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH */
+
 /* Define to 1 if you have the <process.h> header file. */
 /* #undef HAVE_PROCESS_H */
 
@@ -802,9 +811,6 @@
 
 /* Define to 1 if you have the <pty.h> header file. */
 /* #undef HAVE_PTY_H */
-
-/* Define to 1 if you have the `putenv' function. */
-#define HAVE_PUTENV 1
 
 /* Define to 1 if you have the `pwrite' function. */
 #define HAVE_PWRITE 1
@@ -1264,9 +1270,6 @@
 /* Define to 1 if you have the `unlinkat' function. */
 #define HAVE_UNLINKAT 1
 
-/* Define to 1 if you have the `unsetenv' function. */
-#define HAVE_UNSETENV 1
-
 /* Define if you have a useable wchar_t type defined in wchar.h; useable means
    wchar_t must be an unsigned type with at least 16 bits. (see
    Include/unicodeobject.h). */
@@ -1382,6 +1385,9 @@
 
 /* Define as the preferred size in bits of long digits */
 /* #undef PYLONG_BITS_IN_DIGIT */
+
+/* enabled builtin hash modules */
+/* #undef PY_BUILTIN_HASHLIB_HASHES */
 
 /* Define if you want to coerce the C locale to a UTF-8 based locale */
 #define PY_COERCE_C_LOCALE 1

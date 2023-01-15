@@ -367,13 +367,13 @@ atexit.register(_exit_function)
 
 class ForkAwareThreadLock(object):
     def __init__(self):
-        self._reset()
-        register_after_fork(self, ForkAwareThreadLock._reset)
-
-    def _reset(self):
         self._lock = threading.Lock()
         self.acquire = self._lock.acquire
         self.release = self._lock.release
+        register_after_fork(self, ForkAwareThreadLock._at_fork_reinit)
+
+    def _at_fork_reinit(self):
+        self._lock._at_fork_reinit()
 
     def __enter__(self):
         return self._lock.__enter__()
@@ -467,7 +467,7 @@ def spawnv_passfds(path, args, passfds):
         return _posixsubprocess.fork_exec(
             args, [os.fsencode(path)], True, passfds, None, _env_list(),
             -1, -1, -1, -1, -1, -1, errpipe_read, errpipe_write,
-            False, False, None)
+            False, False, None, None, None, -1, None)
     finally:
         os.close(errpipe_read)
         os.close(errpipe_write)

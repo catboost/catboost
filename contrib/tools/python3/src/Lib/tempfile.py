@@ -44,6 +44,7 @@ import shutil as _shutil
 import errno as _errno
 from random import Random as _Random
 import sys as _sys
+import types as _types
 import weakref as _weakref
 import _thread
 _allocate_lock = _thread.allocate_lock
@@ -642,6 +643,8 @@ class SpooledTemporaryFile:
                                    'encoding': encoding, 'newline': newline,
                                    'dir': dir, 'errors': errors}
 
+    __class_getitem__ = classmethod(_types.GenericAlias)
+
     def _check(self, file):
         if self._rolled: return
         max_size = self._max_size
@@ -736,10 +739,6 @@ class SpooledTemporaryFile:
     def seek(self, *args):
         return self._file.seek(*args)
 
-    @property
-    def softspace(self):
-        return self._file.softspace
-
     def tell(self):
         return self._file.tell()
 
@@ -829,3 +828,5 @@ class TemporaryDirectory(object):
     def cleanup(self):
         if self._finalizer.detach():
             self._rmtree(self.name)
+
+    __class_getitem__ = classmethod(_types.GenericAlias)

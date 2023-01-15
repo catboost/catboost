@@ -102,9 +102,9 @@ class IsolatedAsyncioTestCase(TestCase):
                 ret = await awaitable
                 if not fut.cancelled():
                     fut.set_result(ret)
-            except (SystemExit, KeyboardInterrupt):
+            except asyncio.CancelledError:
                 raise
-            except (BaseException, asyncio.CancelledError) as ex:
+            except Exception as ex:
                 if not fut.cancelled():
                     fut.set_exception(ex)
 

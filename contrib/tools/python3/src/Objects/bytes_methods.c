@@ -1,6 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-#include "bytes_methods.h"
+#include "pycore_abstract.h"   // _PyIndex_Check()
+#include "pycore_bytes_methods.h"
 
 PyDoc_STRVAR_shared(_Py_isspace__doc__,
 "B.isspace() -> bool\n\
@@ -466,7 +467,7 @@ parse_args_finds_byte(const char *function_name, PyObject *args,
         return 1;
     }
 
-    if (!PyIndex_Check(tmp_subobj)) {
+    if (!_PyIndex_Check(tmp_subobj)) {
         PyErr_Format(PyExc_TypeError,
                      "argument should be integer or bytes-like object, "
                      "not '%.200s'",
