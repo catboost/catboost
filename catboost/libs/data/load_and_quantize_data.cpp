@@ -294,6 +294,18 @@ namespace {
             DataVisitor->AddAllTextFeatures(sampleIdx, std::move(features));
         }
 
+        void AddEmbeddingFeature(
+            ui32 localObjectIdx,
+            ui32 flatFeatureIdx,
+            TMaybeOwningConstArrayHolder<float> feature) override {
+
+            const ui32 sampleIdx = GetSampleIdx(localObjectIdx);
+            if (sampleIdx == NotSet) {
+                return;
+            }
+            DataVisitor->AddEmbeddingFeature(sampleIdx, flatFeatureIdx, std::move(feature));
+        }
+
         void AddTarget(ui32 localObjectIdx, const TString& value) override {
             const ui32 sampleIdx = GetSampleIdx(localObjectIdx);
             if (sampleIdx == NotSet) {

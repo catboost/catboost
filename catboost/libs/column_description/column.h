@@ -19,11 +19,21 @@ enum class EColumn {
     Timestamp,
     Sparse,
     Prediction,
-    Text
+    Text,
+    NumVector
 };
 
 inline bool IsFactorColumn(EColumn column) {
-    return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse || column == EColumn::Text;
+    switch (column) {
+        case EColumn::Num:
+        case EColumn::Categ:
+        case EColumn::Sparse:
+        case EColumn::Text:
+        case EColumn::NumVector:
+            return true;
+        default:
+            return false;
+    }
 }
 
 inline bool CanBeOutputByColumnType(EColumn column) {

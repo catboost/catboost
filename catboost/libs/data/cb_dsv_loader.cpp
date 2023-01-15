@@ -11,6 +11,7 @@
 
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/stream/file.h>
 #include <util/string/split.h>
 #include <util/system/guard.h>
@@ -32,6 +33,7 @@ namespace NCB {
     TCBDsvDataLoader::TCBDsvDataLoader(TLineDataLoaderPushArgs&& args)
         : TAsyncProcDataLoaderBase<TString>(std::move(args.CommonArgs))
         , FieldDelimiter(Args.PoolFormat.Delimiter)
+        , NumVectorDelimiter(Args.PoolFormat.NumVectorDelimiter)
         , CsvSplitterQuote(Args.PoolFormat.IgnoreCsvQuoting ? '\0' : '"')
         , LineDataReader(std::move(args.Reader))
         , BaselineReader(Args.BaselineFilePath, ClassLabelsToStrings(args.CommonArgs.ClassLabels))
@@ -124,6 +126,23 @@ namespace NCB {
         );
     }
 
+    inline static TVector<float> ProcessNumVector(TStringBuf token, char delimiter, ui32 featureId) {
+        TVector<float> result;
+
+        ui32 fieldIdx = 0;
+        for (TStringBuf part: StringSplitter(token).Split(delimiter)) {
+            float value;
+            CB_ENSURE(
+                TryParseFloatFeatureValue(part, &value),
+                "Sub-field #" << fieldIdx << " of numeric vector for feature " << featureId
+                << " cannot be parsed as float. Check data contents or column description"
+            );
+            result.push_back(value);
+            ++fieldIdx;
+        }
+
+        return result;
+    }
 
     void TCBDsvDataLoader::ProcessBlock(IRawObjectsOrderDataVisitor* visitor) {
         visitor->StartNextBlock(AsyncRowProcessor.GetParseBufferSize());
@@ -145,6 +164,9 @@ namespace NCB {
 
             TVector<TString> textFeatures;
             textFeatures.yresize(featuresLayout.GetTextFeatureCount());
+
+            TVector<TVector<float>> embeddingFeatures;
+            embeddingFeatures.yresize(featuresLayout.GetEmbeddingFeatureCount());
 
             size_t tokenIdx = 0;
             try {
@@ -187,6 +209,19 @@ namespace NCB {
                                 if (!FeatureIgnored[featureId]) {
                                     const ui32 textFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
                                     textFeatures[textFeatureIdx] = TString(token);
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::NumVector: {
+                                if (!FeatureIgnored[featureId]) {
+                                    const ui32 embeddingFeatureIdx
+                                        = featuresLayout.GetInternalFeatureIdx(featureId);
+                                    embeddingFeatures[embeddingFeatureIdx] = ProcessNumVector(
+                                        token,
+                                        NumVectorDelimiter,
+                                        featureId
+                                    );
                                 }
                                 ++featureId;
                                 break;
@@ -257,6 +292,17 @@ namespace NCB {
                 }
                 if (!textFeatures.empty()) {
                     visitor->AddAllTextFeatures(lineIdx, textFeatures);
+                }
+                if (!embeddingFeatures.empty()) {
+                    for (auto embeddingFeatureIdx : xrange(embeddingFeatures.size())) {
+                        visitor->AddEmbeddingFeature(
+                            lineIdx,
+                            featuresLayout.GetEmbeddingFeatureInternalIdxToExternalIdx()[embeddingFeatureIdx],
+                            TMaybeOwningConstArrayHolder<float>::CreateOwning(
+                                std::move(embeddingFeatures[embeddingFeatureIdx])
+                            )
+                        );
+                    }
                 }
             } catch (yexception& e) {
                 throw TCatBoostException() << "Error in dsv data. Line " <<
