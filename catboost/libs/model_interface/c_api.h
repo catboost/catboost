@@ -97,7 +97,7 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
 /**
  * Set prediction type for model evaluation
 */
-CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, EApiPredictionType predictionType);
+CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, enum EApiPredictionType predictionType);
 
 /**
  * **Use this method only if you really understand what you want.**
