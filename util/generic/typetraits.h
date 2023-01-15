@@ -83,37 +83,15 @@ struct TPodTraits {
     };
 };
 
-namespace NTypeTrait {
-    enum ETypeFlag {
-        BITWISE_COPYABLE = 0x1,
-        BITWISE_SERIALIZABLE = 0x2
-    };
-}
-
-namespace NPrivate {
-    template <typename T>
-    struct TUserTypeTrait {
-        static constexpr ui64 TypeTraitFlags = 0;
-    };
-}
-
 template <class T>
 class TTypeTraitsBase {
 public:
-    enum {
-        IsPod = TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
-                TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod,
-        IsStdPod = std::is_pod<std::remove_cv_t<T>>::value,
-        TypeTraitFlags = ::NPrivate::TUserTypeTrait<std::remove_cv_t<T>>::TypeTraitFlags
-    };
-
-    enum {
-        IsBitwiseCopyable = TypeTraitFlags & NTypeTrait::BITWISE_COPYABLE || IsStdPod
-    };
-
-    enum {
-        IsBitwiseSerializable = TypeTraitFlags & NTypeTrait::BITWISE_SERIALIZABLE || IsStdPod
-    };
+    static constexpr bool IsPod = (
+        TPodTraits<std::remove_cv_t<T>>::IsPod || std::is_scalar<std::remove_all_extents_t<T>>::value ||
+        TPodTraits<std::remove_cv_t<std::remove_all_extents_t<T>>>::IsPod
+    );
+    static constexpr bool IsBitwiseCopyable = std::is_pod<std::remove_cv_t<T>>::value;
+    static constexpr bool IsBitwiseSerializable = std::is_pod<std::remove_cv_t<T>>::value;
 };
 
 namespace NPrivate {
@@ -146,14 +124,6 @@ public:
 
 template <>
 class TTypeTraits<void>: public TTypeTraitsBase<void> {};
-
-#define Y_DECLARE_TYPE_FLAGS(type, flags)                 \
-    namespace NPrivate {                                  \
-        template <>                                       \
-        struct TUserTypeTrait<type> {                     \
-            static constexpr ui64 TypeTraitFlags = flags; \
-        };                                                \
-    }
 
 #define Y_DECLARE_PODTYPE(type) \
     template <>                 \
