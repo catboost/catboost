@@ -3,12 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/json
-    library/yson
-)
-
-SRCS(
-    json2yson.cpp
+    library/cpp/json/yson
 )
 
 END()

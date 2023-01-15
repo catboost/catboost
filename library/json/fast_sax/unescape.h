@@ -1,5 +1,3 @@
 #pragma once
 
-#include <util/generic/strbuf.h>
-
-TStringBuf UnescapeJsonUnicode(TStringBuf data, char* scratch);
+#include <library/cpp/json/fast_sax/unescape.h>
