@@ -31,7 +31,7 @@ Calling `model.virtual_ensembles_predict(.., prediction_type='VirtEnsembles')` r
 * New loss function ```RMSEWithUncertainty``` - it allows to estimate data uncertainty for trained regression models. The trained model will give you a two-element vector for each object with the first element as regression model prediction and the second element as an estimation of data uncertainty for that prediction.
 
 ## Speedups
-* Our team and our contributors (Thanks @dmsivkov!) have made major speedups for CPU training: kdd98 -9%, higgs -18%, msrank -28%
+* Major speedups for CPU training: kdd98 -9%, higgs -18%, msrank -28%. We would like to recognize Intel software engineering team’s contributions to Catboost project. This was mutually beneficial activity, and we look forward to continuing joint cooperation. 
 
 ## Bugfixes:
 * Fixed CatBoost model export as Python code
