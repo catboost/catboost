@@ -8195,7 +8195,7 @@ def test_rmse_with_uncertainty_prediction_type():
     pred = np.transpose(regressor.predict(pool, prediction_type='RawFormulaVal'))
     exp_pred = np.transpose(regressor.predict(pool))
     assert np.allclose(exp_pred[0], pred[0])
-    assert np.allclose(exp_pred[1], np.exp(pred[1]))
+    assert np.allclose(exp_pred[1], np.exp(pred[1] * 2))
 
 
 def test_bad_uncertainty_prediction_types_usage():

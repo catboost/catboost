@@ -32,6 +32,22 @@ inline TVector<double> CalcExponent(TVector<double> approx) {
     return approx;
 }
 
+inline void CalcSquaredExponentInplace(TArrayRef<double> approx) {
+    constexpr size_t blockSize = 4096;
+    for (size_t i = 0; i < approx.size(); i += blockSize) {
+        size_t currBlockSize = Min<size_t>(blockSize, approx.size() - i);
+        double* blockStartPtr = approx.data() + i;
+        for (size_t j = 0; j < currBlockSize; ++j) {
+            blockStartPtr[j] *= 2.0f;
+        }
+        FastExpInplace(blockStartPtr, currBlockSize);
+    }
+}
+
+inline TVector<double> CalcSquaredExponent(TVector<double> approx) {
+    CalcSquaredExponentInplace(approx);
+    return approx;
+}
 
 inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     CalcSoftmax(approx, *softmax);
@@ -191,7 +207,7 @@ namespace NCB::NModelEvaluation {
                         auto blockView = GetResultBlockView(blockId, ApproxDimension);
                         for (size_t i = 1; i < blockView.size(); i += ApproxDimension) {
                             auto docView = blockView.Slice(i, 1);
-                            FastExpInplace(docView.data(), 1);
+                            CalcSquaredExponentInplace(MakeArrayRef<double>(docView.data(), 1));
                         }
                         break;
                     }
