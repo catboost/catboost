@@ -706,6 +706,7 @@ cdef extern from "catboost/private/libs/data_util/line_data_reader.h" namespace 
     cdef cppclass TDsvFormatOptions:
         bool_t HasHeader
         char Delimiter
+        bool_t IgnoreCsvQuoting
 
 cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatboostOptions":
     cdef cppclass TColumnarPoolFormatParams:
@@ -3538,7 +3539,7 @@ cdef class _PoolBase:
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
-    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, int thread_count, dict quantization_params):
+    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, bool_t ignore_csv_quoting, int thread_count, dict quantization_params):
         cdef TPathWithScheme pool_file_path
         pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pool_file), TStringBuf(<char*>'dsv'))
 
@@ -3553,6 +3554,7 @@ cdef class _PoolBase:
         cdef TColumnarPoolFormatParams columnarPoolFormatParams
         columnarPoolFormatParams.DsvFormat.HasHeader = has_header
         columnarPoolFormatParams.DsvFormat.Delimiter = ord(delimiter)
+        columnarPoolFormatParams.DsvFormat.IgnoreCsvQuoting = ignore_csv_quoting
         if len(cd_file):
             columnarPoolFormatParams.CdFilePath = TPathWithScheme(<TStringBuf>to_arcadia_string(cd_file), TStringBuf(<char*>'dsv'))
 
