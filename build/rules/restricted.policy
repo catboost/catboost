@@ -14,6 +14,11 @@ ALLOW clickhouse -> contrib/restricted/dragonbox
 # Arcadia is not ready for this, that's why we added this library in restricted.
 ALLOW clickhouse -> contrib/restricted/fast_float
 
+
+# ClickHouse uses hash-table from abseil-cpp for better performance in CacheDictionaries and SSDCacheDictionaries,
+# because it the best best open source hash table framework (swiss hash tables, hash functions)
+ALLOW clickhouse -> contrib/restricted/abseil-cpp
+
 # For HBase client: CONTRIB-1790
 ALLOW passport/cpp -> contrib/restricted/thrift
 
