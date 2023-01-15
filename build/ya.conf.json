@@ -318,9 +318,6 @@
         "sandboxctl": {
             "description": "Tool to run tasks in Sandbox"
         },
-        "golangci-lint": {
-            "description": "Linters Runner for Go"
-        },
         "qemu": {
             "description": "QEMU x86_64 machine emulator and virtualizer"
         },
@@ -1001,28 +998,6 @@
                 {
                     "host": {
                         "os": "WIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
-        "golangci-lint": {
-            "tools": {
-                "golangci-lint": {
-                    "bottle": "golangci-lint",
-                    "executable": "golangci-lint"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
                     },
                     "default": true
                 },
@@ -7370,20 +7345,6 @@
             "executable": {
                 "sandboxctl": [
                     "sandboxctl"
-                ]
-            }
-        },
-        "golangci-lint": {
-            "formula": {
-                "sandbox_id": [
-                    505159783,
-                    505158707
-                ],
-                "match": "golangci-lint"
-            },
-            "executable": {
-                "golangci-lint": [
-                    "golangci-lint"
                 ]
             }
         },
