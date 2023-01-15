@@ -7451,6 +7451,22 @@
                 ]
             }
         },
+        "lz4": {
+            "formula": {
+                "sandbox_id": [
+                    756420904
+                ],
+                "match": "infra/kernel/tools/lz4"
+            },
+            "executable": {
+                "lz4": [
+                    "lz4",
+                    "usr",
+                    "bin",
+                    "lz4"
+                ]
+            }
+        },
         "intel-cmt-cat": {
             "formula": {
                 "sandbox_id": [
