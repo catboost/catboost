@@ -1,14 +1,25 @@
 #include "network.h"
 
-#include <util/generic/singleton.h>
 #include <util/folder/dirut.h>
 #include <util/folder/path.h>
+#include <util/generic/singleton.h>
+#include <util/generic/utility.h>
+#include <util/generic/vector.h>
+#include <util/generic/ylimits.h>
 #include <util/network/address.h>
 #include <util/network/sock.h>
+#include <util/random/random.h>
+#include <util/stream/file.h>
+#include <util/string/split.h>
 #include <util/system/env.h>
 #include <util/system/error.h>
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
+
+#ifdef _darwin_
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
 
 namespace {
 #define Y_VERIFY_SYSERROR(expr)                                           \
@@ -39,36 +50,88 @@ namespace {
         ui16 Port_;
     };
 
+    std::pair<ui16, ui16> GetEphemeralRange() {
+        // IANA suggestion
+        std::pair<ui16, ui16> pair{(1 << 15) + (1 << 14), (1 << 16) - 1};
+    #ifdef _linux_
+        if (NFs::Exists("/proc/sys/net/ipv4/ip_local_port_range")) {
+                TIFStream fileStream("/proc/sys/net/ipv4/ip_local_port_range");
+                fileStream >> pair.first >> pair.second;
+            }
+    #endif
+    #ifdef _darwin_
+        ui32 first, last;
+        size_t size;
+        sysctlbyname("net.inet.ip.portrange.first", &first, &size, NULL, 0);
+        sysctlbyname("net.inet.ip.portrange.last", &last, &size, NULL, 0);
+        pair.first = first;
+        pair.second = last;
+    #endif
+        return pair;
+    }
+
+    TVector<std::pair<ui16, ui16>> GetPortRanges() {
+        TString givenRange = GetEnv("VALID_PORT_RANGE");
+        TVector<std::pair<ui16, ui16>> ranges;
+        if (givenRange.Contains(':')) {
+            auto res = StringSplitter(givenRange).Split(':').Limit(2).ToList<TString>();
+            ranges.emplace_back(FromString<ui16>(res.front()), FromString<ui16>(res.back()));
+        } else {
+            const ui16 firstValid = 1025;
+            const ui16 lastValid = Max<ui16>();
+
+            auto [firstEphemeral, lastEphemeral] = GetEphemeralRange();
+            const ui16 firstInvalid = Max(firstEphemeral, firstValid);
+            const ui16 lastInvalid = Min(lastEphemeral, lastValid);
+
+            if (firstInvalid > firstValid)
+                ranges.emplace_back(firstValid, firstInvalid - 1);
+            if (lastInvalid < lastValid)
+                ranges.emplace_back(lastInvalid + 1, lastValid);
+        }
+        return ranges;
+    }
+
     class TPortManager {
         static constexpr size_t Retries = 20;
     public:
         TPortManager()
             : SyncDir_(GetEnv("PORT_SYNC_PATH"))
+            , Ranges_(GetPortRanges())
+            , TotalCount_(0)
         {
             if (SyncDir_.empty()) {
                 SyncDir_ = TFsPath(GetSystemTempDir()) / "yandex_port_locks";
             }
             Y_VERIFY(!SyncDir_.empty());
             NFs::MakeDirectoryRecursive(SyncDir_);
+
+            for (auto [left, right] : Ranges_) {
+                TotalCount_ += right - left;
+            }
+            Y_VERIFY(0 != TotalCount_);
         }
 
         NTesting::TPortHolder GetFreePort() const {
-            for (size_t i = 0; i < Retries; ++i) {
-                TInetStreamSocket sock;
-                Y_VERIFY_SYSERROR(INVALID_SOCKET != sock);
-                Y_VERIFY_SYSERROR(0 == SetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR, 1));
+            ui16 salt = RandomNumber<ui16>();
+            for (ui16 attempt = 0; attempt < TotalCount_; ++attempt) {
+                ui16 probe = (salt + attempt) % TotalCount_;
 
-                TSockAddrInet addr{TIpHost{INADDR_ANY}, 0};
-                Y_VERIFY_SYSERROR(0 == sock.Bind(&addr));
-                auto saddr = NAddr::GetSockAddr(sock);
-                Y_VERIFY(AF_INET == saddr->Addr()->sa_family);
+                for (auto [left, right] : Ranges_) {
+                    if (probe >= right - left)
+                        probe -= right - left;
+                    else {
+                        probe += left;
+                        break;
+                    }
+                }
 
-                const TIpAddress ipaddr{*reinterpret_cast<const sockaddr_in*>(saddr->Addr())};
-                auto port = TryAcquirePort(static_cast<ui16>(ipaddr.Port()));
+                auto port = TryAcquirePort(probe);
                 if (port) {
                     return NTesting::TPortHolder{std::move(port)};
                 }
             }
+
             Y_FAIL("Cannot get free port!");
         }
 
@@ -76,43 +139,54 @@ namespace {
             Y_VERIFY(count > 0);
             TVector<NTesting::TPortHolder> ports(Reserve(count));
             for (size_t i = 0; i < Retries; ++i) {
-                ports.push_back(GetFreePort());
-
-                for (ui16 j = 1; j < count; ++j) {
-                    TInetStreamSocket sock(::socket(AF_INET, SOCK_STREAM, 0));
-                    Y_VERIFY_SYSERROR(INVALID_SOCKET != static_cast<SOCKET>(sock));
-                    Y_VERIFY_SYSERROR(0 == SetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR, 1));
-
-                    ui16 nextPort = static_cast<ui16>(ports.back()) + 1;
-                    TSockAddrInet addr{TIpHost{INADDR_ANY}, nextPort};
-                    if (0 != sock.Bind(&addr)) {
-                        break;
+                for (auto[left, right] : Ranges_) {
+                    if (right - left < count) {
+                        continue;
                     }
-                    auto port = TryAcquirePort(nextPort);
-                    if (!port) {
-                        break;
+                    ui16 start = left + RandomNumber<ui16>((right - left) / 2);
+                    if (right - start < count) {
+                        continue;
                     }
-                    ports.emplace_back(std::move(port));
+                    for (ui16 probe = start; probe < right; ++probe) {
+                        auto port = TryAcquirePort(probe);
+                        if (port) {
+                            ports.emplace_back(std::move(port));
+                        } else {
+                            ports.clear();
+                        }
+                        if (ports.size() == count) {
+                            return ports;
+                        }
+                    }
+                    // Can't find required number of ports without gap in the current range
+                    ports.clear();
                 }
-                if (ports.size() == count) {
-                    return ports;
-                }
-                ports.clear();
             }
             Y_FAIL("Cannot get range of %zu ports!", count);
         }
 
     private:
         THolder<NTesting::IPort> TryAcquirePort(ui16 port) const {
-            auto lock = MakeHolder<TFileLock>(TString(TFsPath(SyncDir_) / ::ToString(port)));
-            if (lock->TryAcquire()) {
-                return MakeHolder<TPortGuard>(port, std::move(lock));
+            TInet6StreamSocket sock;
+            Y_VERIFY_SYSERROR(INVALID_SOCKET != static_cast<SOCKET>(sock));
+
+            TSockAddrInet6 addr("::", port);
+            if (sock.Bind(&addr) != 0) {
+                Y_VERIFY(EADDRINUSE == LastSystemError(), "unexpected error: %d", LastSystemError());
+                return nullptr;
             }
-            return nullptr;
+
+            auto lock = MakeHolder<TFileLock>(TString(TFsPath(SyncDir_) / ::ToString(port)));
+            if (!lock->TryAcquire()) {
+                return nullptr;
+            }
+            return MakeHolder<TPortGuard>(port, std::move(lock));
         }
 
     private:
         TString SyncDir_;
+        TVector<std::pair<ui16, ui16>> Ranges_;
+        size_t TotalCount_;
     };
 }
 
