@@ -48,7 +48,6 @@ RECURSE(
     par
     python
     resource
-    resource/ut
     statistics
     statistics/ut
     svnversion
