@@ -21,8 +21,6 @@ migrations:
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - crm/crm-logbroker-consumer
     - cv/short2long/nirvana/lib
-    - datalens/backend/app/dls
-    - datalens/backend/app/dls/yadls
     - devtools/signer/signer
     - dict/ontodb/cmpy/lib
     - dict/ontodb/isa/libshorttext/converter/stemmer
@@ -58,11 +56,6 @@ migrations:
     - search/mon/rviewer/modules
     - search/mon/rviewer/modules/clients
     - search/mon/rviewer/modules/orchestrator
-    - travel/avia/admin
-    - travel/avia/admin/i18n
-    - travel/avia/admin/promosearch
-    - travel/avia/admin/stats
-    - travel/avia/admin/tests
     - travel/avia/avia_api
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/avia/v1/schemas
@@ -103,8 +96,6 @@ migrations:
     - ads/bsyeti/samogon/buzzard/plugin
     - ads/bsyeti/samogon/eagle/plugin
     - ads/bsyeti/samogon/plugin_lib
-    - ads/bsyeti/samogon/plugin_lib/hosts
-    - ads/bsyeti/samogon/plugin_lib/sandbox_resources
     - ads/bsyeti/samogon/plugin_lib/valid_resources
     - ads/bsyeti/servants/bot
     - ads/libs/py_autobudget
@@ -227,7 +218,6 @@ migrations:
     - billing/dcs/dcs
     - billing/dcs/dcs/temporary/butils
     - billing/dcs/dcs/temporary/butils/application
-    - build/plugins
     - catboost/yandex_specific/tools/performance_evaluation/lib
     - cloud/blockstore/tools/ops/release/tests
     - cloud/bootstrap/db/src/admin
@@ -1015,7 +1005,6 @@ migrations:
     - sandbox/projects/qafw
     - sandbox/projects/qafw/ansible
     - sandbox/projects/reconf
-    - sandbox/projects/release_machine/tests
     - sandbox/projects/sandbox_ci/managers
     - sandbox/projects/sandbox_ci/sandbox_ci_compare_load_test
     - sandbox/projects/sandbox_ci/task
@@ -1069,7 +1058,6 @@ migrations:
     - statbox/qb2/qb2_extensions/api/v1/extractors/pool
     - statbox/statkey/jam/jobs/cubes/desktop_installs/v2
     - strm/generate/lib/generate
-    - sup/ml/click_predictor/lib/features
     - sup/stat/find_pushes
     - talents/nlu/scripts/train/geoname
     - testenv/jobs/rtyserver
@@ -1149,7 +1137,6 @@ migrations:
     - yabs/server/infra/bstrbufbuf/plugin
     - yabs/server/infra/rtgraph
     - yabs/server/infra/trivial_cron
-    - yabs/server/infra/validator/hooks_bin/chkdb
     - yabs/server/infra/validator/hooks_bin/coredumps_cloud
     - yabs/server/infra/validator/hooks_bin/shoot_search
     - yabs/server/libs/config/helpers
@@ -1399,8 +1386,6 @@ migrations:
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
     - billing/dcsaap/backend/manage
-    - billing/hot/calculator/calculator
-    - billing/hot/calculator/calculator/utils
     - billing/refs/refs
     - browser/infra/yaml_merger/tests
     - cloud/blockstore/public/sdk/python/client
@@ -1414,8 +1399,6 @@ migrations:
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/augmenters
     - cv/short2long/training/yt_calc_factors
     - datacloud/log_reader/lib
-    - datalens/backend/app/dls
-    - datalens/backend/app/dls/yadls
     - devtools/contrib/statistics/auto_import
     - devtools/distbuild/dejavu/cache_requester/client/py
     - devtools/local_cache/ac/tests/perfac
@@ -1539,7 +1522,6 @@ migrations:
     - maps/doc/schemas/ymapsdf/tests
     - maps/infra/apiteka/config_uploader/tests
     - maps/infra/ecstatic/common/worker/lib
-    - maps/infra/quotateka/config_uploader/tests
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
     - maps/infra/sedem/machine/lib
@@ -1735,7 +1717,6 @@ migrations:
     - testenv/core/web_server
     - tools/mstand/mstand_structs
     - tools/mstand/session_squeezer
-    - travel/avia/admin
     - travel/avia/api_gateway
     - travel/avia/api_gateway/application/fetcher/flight_landing
     - travel/avia/revise
@@ -1780,8 +1761,6 @@ migrations:
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting/layers
     - weather/workers/warnings/push
     - web/app_host/tools/proto_converter
-    - web/app_host/tools/upper_template_generator/src/graph
-    - web/app_host/tools/upper_template_generator/src/web_graph
     - yabs/analytics/anomaly_analyzer/src
     - yabs/analytics/new_traffic_generation/src
     - yabs/analytics/traffic_generation/z_2_barnavig_click_counter
@@ -1848,7 +1827,6 @@ migrations:
     - F401
     prefixes:
     - ads/autobudget/ml_pipeline
-    - ads/bsyeti/samogon/resharder/plugin
     - ads/bsyeti/tests/eagle/ft
     - ads/emily/storage
     - ads/factor_check/workflow/lib
@@ -1928,7 +1906,6 @@ migrations:
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
-    - datalens/backend/app/bi_materializer
     - dict/mt/analytics/make/tools/toloka/simple_toloka
     - dict/mt/make/modules/bpe/tests
     - dict/mt/make/modules/corpus_generation/aligner/tests
@@ -2078,7 +2055,6 @@ migrations:
     - opensource/sync/bin/sync_ch/tasklet
     - orgvisits/orgs/preprocessing/lib
     - orgvisits/user/features/run/tests
-    - paysys/sre/tools/monitorings/configs/balance/dev
     - paysys/sre/tools/monitorings/configs/crm/stable
     - paysys/sre/tools/monitorings/configs/paysys/stable
     - paysys/sre/tools/monitorings/lib
@@ -2285,8 +2261,6 @@ migrations:
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
-    - web/app_host/tools/upper_template_generator/src/graph
-    - web/app_host/tools/upper_template_generator/src/web_graph
     - yabs/analytics/anomaly_analyzer/src
     - yabs/awaps_pvl/pvl/logic
     - yabs/indoor/mocks_generator/lib
@@ -2390,8 +2364,6 @@ migrations:
     - arc/tables_creation/tests
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - crm/crm-logbroker-consumer
-    - datalens/backend/app/dls
-    - datalens/backend/app/dls/yadls
     - devtools/signer/signer
     - dict/lm/sources/lib/launcher
     - dict/ontodb/isa/libshorttext/converter/stemmer
@@ -2444,11 +2416,6 @@ migrations:
     - search/rpslimiter/storage/src/model
     - skynet/kernel
     - skynet/kernel/util/sys/user
-    - travel/avia/admin
-    - travel/avia/admin/i18n
-    - travel/avia/admin/promosearch
-    - travel/avia/admin/stats
-    - travel/avia/admin/tests
     - travel/avia/avia_api
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/tests
