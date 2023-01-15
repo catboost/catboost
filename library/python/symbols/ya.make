@@ -3,4 +3,5 @@ RECURSE(
     registry
     libc
     python
+    win_unicode_console
 )

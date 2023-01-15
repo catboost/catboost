@@ -7548,7 +7548,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    840115953
+                    879827066
                 ],
                 "match": "yp_util"
             },
@@ -7561,7 +7561,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    840116164
+                    879803228
                 ],
                 "match": "yp"
             },
@@ -7587,7 +7587,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    873817761
+                    880513655
                 ],
                 "match": "dctl"
             },
@@ -7957,7 +7957,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 879331683,
+                "sandbox_id": 880257377,
                 "match": "horadric"
             },
             "executable": {
@@ -7979,7 +7979,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 879189228,
+                "sandbox_id": 880104223,
                 "match": "zcli"
             },
             "executable": {
@@ -8100,7 +8100,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 879331739,
+                "sandbox_id": 880257246,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8561,7 +8561,7 @@
         },
         "iceflame": {
             "formula": {
-                "sandbox_id": 878459992,
+                "sandbox_id": 880257295,
                 "match": "iceflame"
             },
             "executable": {
