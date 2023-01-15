@@ -20,8 +20,6 @@ migrations:
       - a.yandex-team.ru/cloud/compute/go-common/database/kikimr_test
       - a.yandex-team.ru/cloud/compute/go-common/logging
       - a.yandex-team.ru/cloud/compute/go-common/logging_test
-      - a.yandex-team.ru/cloud/compute/go-common/mon
-      - a.yandex-team.ru/cloud/compute/go-common/mon_test
       - a.yandex-team.ru/cloud/compute/go-common/pkg/logging
       - a.yandex-team.ru/cloud/compute/go-common/pkg/xrequestid
       - a.yandex-team.ru/cloud/compute/snapshot/internal/serializedlock
