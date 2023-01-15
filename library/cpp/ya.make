@@ -117,12 +117,12 @@ RECURSE(
     text_processing
     threading
     token
-    tokenizer
-    tokenizer/ut
     token/lite
     token/serialization
     token/serialization/ut
     token/ut
+    tokenizer
+    tokenizer/ut
     yson
     yson/node
     yson/node/pybind
