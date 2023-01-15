@@ -49,7 +49,7 @@ void TFloatFeature::FBDeserialize(const NCatBoostFbs::TFloatFeature* fbObj) {
         Borders.assign(fbObj->Borders()->begin(), fbObj->Borders()->end());
     }
     if (fbObj->FeatureId()) {
-        FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->Length());
+        FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
     }
 }
 
