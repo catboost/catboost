@@ -2833,6 +2833,9 @@ class Cuda(object):
 
         self.cuda_version_list = map(int, self.cuda_version.value.split('.')) if self.cuda_version.value else None
         self.nvcc_std = '-std=c++14' if self.cuda_version_list >= [9, 0] else '-std=c++11'
+        if self.build.tc.type == 'msvc':
+            self.nvcc_std = self.nvcc_std.replace('-std=', '/std:')
+
         self.nvcc_flags = []
 
         if not self.have_cuda.value:
