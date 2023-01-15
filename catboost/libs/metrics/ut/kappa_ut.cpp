@@ -1,7 +1,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(KappaMetricTest) {
     // use balanced_accuracy_score from sklearn to compute benchmark value

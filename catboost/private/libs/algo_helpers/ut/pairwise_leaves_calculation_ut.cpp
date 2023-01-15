@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <catboost/private/libs/algo_helpers/pairwise_leaves_calculation.h>
 
 static TArray2D<double> Convert(const TVector<TVector<double>>& matrix) {

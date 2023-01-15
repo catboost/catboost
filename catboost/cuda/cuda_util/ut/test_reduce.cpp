@@ -1,6 +1,6 @@
 #include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/libs/helpers/cpu_random.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <iostream>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>

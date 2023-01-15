@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
 #include <catboost/libs/helpers/exception.h>

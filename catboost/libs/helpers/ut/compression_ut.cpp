@@ -8,7 +8,7 @@
 #include <util/stream/buffer.h>
 #include <util/system/yassert.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 
 using namespace NCB;

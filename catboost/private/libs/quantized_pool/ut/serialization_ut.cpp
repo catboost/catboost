@@ -2,7 +2,7 @@
 #include "print.h"
 #include "serialization.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
 #include <contrib/libs/protobuf/util/message_differencer.h>

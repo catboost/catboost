@@ -20,7 +20,7 @@
 #include <util/string/printf.h>
 #include <util/system/mktemp.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 
 using namespace NCB;

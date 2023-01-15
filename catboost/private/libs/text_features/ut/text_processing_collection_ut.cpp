@@ -5,7 +5,7 @@
 #include <catboost/private/libs/text_processing/embedding.h>
 #include <catboost/private/libs/text_processing/text_column_builder.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 using namespace NCB;
 using namespace NCBTest;

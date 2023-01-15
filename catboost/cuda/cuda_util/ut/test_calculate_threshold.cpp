@@ -7,7 +7,7 @@
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/ymath.h>

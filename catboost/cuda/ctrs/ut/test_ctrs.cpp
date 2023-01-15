@@ -7,7 +7,7 @@
 #include <catboost/cuda/data/data_utils.h>
 #include <util/generic/hash.h>
 #include <util/random/shuffle.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 #include <iostream>
 

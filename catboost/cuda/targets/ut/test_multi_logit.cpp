@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
