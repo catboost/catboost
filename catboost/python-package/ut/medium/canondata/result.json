@@ -31,9 +31,9 @@
         "checksum": "d6e477ed1d6272de96b95c9a99ded78b",
         "uri": "file://test.test_class_names_CPU_/predictions.txt"
     },
-    "test.test_class_weights[CPU]": {
-        "checksum": "aa6942875621f21631f0ae45ff925d65",
-        "uri": "file://test.test_class_weights_CPU_/model.bin"
+    "test.test_class_weights_list_binclass[CPU]": {
+        "checksum": "550cab9f181b09597e1bb814fab0c3b7",
+        "uri": "file://test.test_class_weights_list_binclass_CPU_/model.bin"
     },
     "test.test_classification_ctr[CPU]": {
         "checksum": "0a8426dbf6780b375a91e72c03df87d0",

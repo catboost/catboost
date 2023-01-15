@@ -8,6 +8,8 @@ if sys.version_info >= (3, 3):
 else:
     from collections import Iterable, Sequence, Mapping, MutableMapping
 
+from collections import OrderedDict
+
 import warnings
 import numpy as np
 import ctypes
@@ -1030,6 +1032,27 @@ def _process_synonyms(params):
             raise CatBoostError('only one of the parameters scale_pos_weight, class_weights should be initialized.')
         params['class_weights'] = [1.0, params['scale_pos_weight']]
         del params['scale_pos_weight']
+    if ('class_weights' in params) and isinstance(params['class_weights'], (dict, OrderedDict)):
+        class_weights_dict = params['class_weights']
+        class_weights_list = []
+        if ('class_names' in params) and (params['class_names'] is not None):
+            if len(class_weights_dict) != len(params['class_names']):
+                raise CatBoostError('Number of classes in class_names and class_weights differ')
+            for class_label in params['class_names']:
+                if class_label not in class_weights_dict:
+                    raise CatBoostError(
+                        'class "{}" is present in "class_names" but not in "class_weights" dictionary'.format(
+                            class_label
+                        )
+                    )
+                class_weights_list.append(class_weights_dict[class_label])
+        else:
+            class_labels_list = []
+            for class_label, class_weight in class_weights_dict.items():
+                class_labels_list.append(class_label)
+                class_weights_list.append(class_weight)
+            params['class_names'] = class_labels_list
+        params['class_weights'] = class_weights_list
 
     _process_synonyms_groups(params)
 
@@ -3492,9 +3515,11 @@ class CatBoostClassifier(CatBoost):
         should be smaller than the given value.
         If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
         the numbers of classes specified by each of them must be equal.
-    class_weights : list of floats, [default=None]
+    class_weights : list or dict, [default=None]
         Classes weights. The values are used as multipliers for the object weights.
         If None, all classes are supposed to have weight one.
+        If list - class weights in order of class_names or sequential classes if class_names is undefined
+        If dict - dict of class_name -> class_weight.
         If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
         the numbers of classes specified by each of them must be equal.
     class_names: list of strings, [default=None]

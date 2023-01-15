@@ -2331,13 +2331,128 @@ def test_ignored_features_names(task_type):
     return compare_canonical_models(output_model_path)
 
 
-def test_class_weights(task_type):
+def test_class_weights_list_binclass(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, class_weights=[1, 2], task_type=task_type, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+@pytest.mark.parametrize(
+    'dict_type',
+    [dict, OrderedDict],
+    ids=['label_type=' + val for val in ['dict', 'OrderedDict']]
+)
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_class_weights_dict_binclass(dict_type, label_type):
+    if label_type is int:
+        uniq_labels = [0, 1]
+    elif label_type is str:
+        uniq_labels = ['a', 'b']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
+
+    class_weights_dict = dict_type(zip(uniq_labels, [0.5, 2.0]))
+
+    model_with_class_weights_as_list = CatBoostClassifier(
+        iterations=5,
+        class_names=class_weights_dict.keys(),
+        class_weights=class_weights_dict.values()
+    )
+    model_with_class_weights_as_list.fit(features, labels)
+
+    model_with_class_weights_as_dict = CatBoostClassifier(
+        iterations=5,
+        class_weights=class_weights_dict
+    )
+    model_with_class_weights_as_dict.fit(features, labels)
+
+    assert model_with_class_weights_as_list == model_with_class_weights_as_dict
+
+
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_bad_class_weights_dict_binclass(label_type):
+    if label_type is int:
+        uniq_labels = [0, 1, 2]
+    elif label_type is str:
+        uniq_labels = ['a', 'b', 'c']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels[:2])
+
+    model = CatBoostClassifier(
+        class_weights={uniq_labels[0]: 0.5, uniq_labels[1]: 2.0, uniq_labels[2]: 0.3}
+    )
+    with pytest.raises(CatBoostError):
+        model.fit(features, labels)
+
+
+@pytest.mark.parametrize(
+    'dict_type',
+    [dict, OrderedDict],
+    ids=['label_type=' + val for val in ['dict', 'OrderedDict']]
+)
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_class_weights_dict_multiclass(dict_type, label_type):
+    if label_type is int:
+        uniq_labels = [0, 1, 2, 3]
+    elif label_type is str:
+        uniq_labels = ['a', 'b', 'c', 'd']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
+
+    class_weights_dict = dict_type(zip(uniq_labels, [0.1, 2.0, 3.0, 0.4]))
+
+    model_with_class_weights_as_list = CatBoostClassifier(
+        loss_function='MultiClass',
+        iterations=5,
+        class_names=class_weights_dict.keys(),
+        class_weights=class_weights_dict.values()
+    )
+    model_with_class_weights_as_list.fit(features, labels)
+
+    model_with_class_weights_as_dict = CatBoostClassifier(
+        loss_function='MultiClass',
+        iterations=5,
+        class_weights=class_weights_dict
+    )
+    model_with_class_weights_as_dict.fit(features, labels)
+
+    assert model_with_class_weights_as_list == model_with_class_weights_as_dict
+
+
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_bad_class_weights_dict_multiclass(label_type):
+    if label_type is int:
+        uniq_labels = [0, 1, 2, 3]
+    elif label_type is str:
+        uniq_labels = ['a', 'b', 'c', 'd']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
+
+    model = CatBoostClassifier(
+        loss_function='MultiClass',
+        class_weights={uniq_labels[0]: 0.5, uniq_labels[1]: 2.0, uniq_labels[2]: 0.3}
+    )
+    with pytest.raises(CatBoostError):
+        model.fit(features, labels)
 
 
 def test_classification_ctr(task_type):
