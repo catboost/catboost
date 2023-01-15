@@ -423,16 +423,16 @@ class PoolLoadingTest {
         featureNames,
         Some(
           Seq(
-            Row(0xB337C6FEFE2E2F73L, 0, 1),
-            Row(0xD9DBDD3199D6518AL, 0, 2),
-            Row(0xD9DBDD3199D6518AL, 1, 2)
+            Row(0xB337C6FEFE2E2F73L, 0L, 1L),
+            Row(0xD9DBDD3199D6518AL, 0L, 2L),
+            Row(0xD9DBDD3199D6518AL, 1L, 2L)
           )
         ),
         Some(
           Seq(
             StructField("groupId", LongType, false),
-            StructField("winnerId", IntegerType, false),
-            StructField("loserId", IntegerType, false)
+            StructField("winnerId", LongType, false),
+            StructField("loserId", LongType, false)
           )
         ),
         compareByIds = true
@@ -508,16 +508,16 @@ class PoolLoadingTest {
         featureNames,
         Some(
           Seq(
-            Row(0xB337C6FEFE2E2F73L, 0, 1, 1.0f),
-            Row(0xD9DBDD3199D6518AL, 0, 2, 2.0f),
-            Row(0xD9DBDD3199D6518AL, 1, 2, 0.5f)
+            Row(0xB337C6FEFE2E2F73L, 0L, 1L, 1.0f),
+            Row(0xD9DBDD3199D6518AL, 0L, 2L, 2.0f),
+            Row(0xD9DBDD3199D6518AL, 1L, 2L, 0.5f)
           )
         ),
         Some(
           Seq(
             StructField("groupId", LongType, false),
-            StructField("winnerId", IntegerType, false),
-            StructField("loserId", IntegerType, false),
+            StructField("winnerId", LongType, false),
+            StructField("loserId", LongType, false),
             StructField("weight", FloatType, false)
           )
         ),
