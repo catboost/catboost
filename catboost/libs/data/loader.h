@@ -31,17 +31,17 @@ namespace NCB {
 
     struct TDatasetSubset {
         bool HasFeatures = true;
-        TIndexRange<ui32> Range = {0, Max<ui32>()};
+        TIndexRange<ui64> Range = {0, Max<ui64>()};
 
     public:
-        ui32 GetSize() const { return Range.GetSize(); }
+        ui64 GetSize() const { return Range.GetSize(); }
 
-        static TDatasetSubset MakeRange(ui32 start, ui32 end) {
+        static TDatasetSubset MakeRange(ui64 start, ui64 end) {
             return {true, {start, end}};
         }
 
         static TDatasetSubset MakeColumns(bool hasFeatures = true) {
-            return {hasFeatures, {0u, Max<ui32>()}};
+            return {hasFeatures, {0u, Max<ui64>()}};
         }
     };
 
