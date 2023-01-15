@@ -512,7 +512,7 @@ namespace NCatboostCuda {
             case ELossFunction::NumErrors:
             case ELossFunction::Poisson:
             case ELossFunction::Expectile: {
-                result.push_back(new TGpuPointwiseMetric(metricDescription, approxDim));
+                result.emplace_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;
             }
             case ELossFunction::TotalF1: {
@@ -604,7 +604,7 @@ namespace NCatboostCuda {
             case ELossFunction::QuerySoftMax:
             case ELossFunction::PairLogit:
             case ELossFunction::PairLogitPairwise: {
-                result.push_back(new TGpuQuerywiseMetric(metricDescription, approxDim));
+                result.emplace_back(new TGpuQuerywiseMetric(metricDescription, approxDim));
                 break;
             }
             case ELossFunction::Combination:
@@ -612,7 +612,7 @@ namespace NCatboostCuda {
                 CB_ENSURE(
                     targetObjective == ELossFunction::QueryCrossEntropy || targetObjective == ELossFunction::Combination,
                     "Error: metric " << metricType << " on GPU requires loss function QueryCrossEntropy or Combination");
-                result.push_back(new TTargetFallbackMetric(metricDescription, approxDim));
+                result.emplace_back(new TTargetFallbackMetric(metricDescription, approxDim));
                 break;
             }
             default: {

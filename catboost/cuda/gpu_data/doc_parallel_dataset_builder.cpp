@@ -32,13 +32,13 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(*DataProvider.TargetData)));
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
-        dataSetsHolder.PermutationDataSets[permutationId] = new TDocParallelDataSet(DataProvider,
+        dataSetsHolder.PermutationDataSets[permutationId] = THolder<TDocParallelDataSet>(new TDocParallelDataSet(DataProvider,
                                                                                     dataSetsHolder.CompressedIndex,
                                                                                     GetPermutation(DataProvider, permutationId),
                                                                                     learnLoadBalancingPermutation,
                                                                                     dataSetsHolder.LearnDocPerDevicesSplit->SamplesGrouping,
                                                                                     TTarget<NCudaLib::TStripeMapping>(targets.ConstCopyView(),
-                                                                                                                      weights.ConstCopyView()));
+                                                                                                                      weights.ConstCopyView())));
     }
 
     if (LinkedTest != nullptr) {
@@ -53,13 +53,13 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         testTargets.Write(testLoadBalancingPermutation.Gather(*LinkedTest->TargetData->GetOneDimensionalTarget()));
         testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(*LinkedTest->TargetData)));
 
-        dataSetsHolder.TestDataSet = new TDocParallelDataSet(*LinkedTest,
+        dataSetsHolder.TestDataSet = THolder<TDocParallelDataSet>(new TDocParallelDataSet(*LinkedTest,
                                                              dataSetsHolder.CompressedIndex,
                                                              GetIdentityPermutation(*LinkedTest),
                                                              testLoadBalancingPermutation,
                                                              dataSetsHolder.TestDocPerDevicesSplit->SamplesGrouping,
                                                              TTarget<NCudaLib::TStripeMapping>(testTargets.ConstCopyView(),
-                                                                                               testWeights.ConstCopyView()));
+                                                                                               testWeights.ConstCopyView())));
     }
 
     auto allFeatures = GetLearnFeatureIds(FeaturesManager);

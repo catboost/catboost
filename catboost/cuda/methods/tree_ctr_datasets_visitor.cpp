@@ -17,7 +17,7 @@ namespace NCatboostCuda {
 
         using TScoreCalcer = TScoresCalcerOnCompressedDataSet<TSingleDevLayout>;
         auto& scoreHelper = *ctrDataSet.GetCacheHolder().Cache(ctrDataSet, 0, [&]() -> THolder<TScoreCalcer> {
-            return new TScoreCalcer(ctrDataSet.GetCompressedDataSet(),
+            return MakeHolder<TScoreCalcer>(ctrDataSet.GetCompressedDataSet(),
                                     TreeConfig,
                                     FoldCount);
         });
