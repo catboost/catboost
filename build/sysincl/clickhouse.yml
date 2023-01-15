@@ -28,5 +28,6 @@
   - murmurhash3.h
   - re2_st/re2.h
   - replxx.hxx
+  - simdjson.h
   - simdjson/jsonparser.h
   - turbob64.h
