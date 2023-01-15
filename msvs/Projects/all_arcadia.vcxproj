@@ -288,6 +288,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embedding_features\private-libs-embedding_features.vcxproj">
       <Project>4EA54851-CD2B-B921-B7AC-E028819A1089</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embedding_features\ut\catboost-private-libs-embedding_features-ut.vcxproj">
+      <Project>0208A539-5837-4550-FAC8-7EB3DEDD4884</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embeddings\private-libs-embeddings.vcxproj">
       <Project>0A077A06-E60A-893B-9D6C-292EAD106DAF</Project>
     </ProjectReference>
