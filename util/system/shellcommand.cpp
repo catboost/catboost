@@ -59,7 +59,7 @@ namespace {
 #if defined(_unix_)
     void SetUserGroups(const passwd* pw) {
         int ngroups = 1;
-        THolder<gid_t, TFree> groups = static_cast<gid_t*>(malloc(ngroups * sizeof(gid_t)));
+        THolder<gid_t, TFree> groups = THolder<gid_t, TFree>(static_cast<gid_t*>(malloc(ngroups * sizeof(gid_t))));
         if (getgrouplist(pw->pw_name, pw->pw_gid, reinterpret_cast<TGetGroupListGid*>(groups.Get()), &ngroups) == -1) {
             groups.Reset(static_cast<gid_t*>(malloc(ngroups * sizeof(gid_t))));
             if (getgrouplist(pw->pw_name, pw->pw_gid, reinterpret_cast<TGetGroupListGid*>(groups.Get()), &ngroups) == -1) {

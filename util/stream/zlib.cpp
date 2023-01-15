@@ -207,7 +207,7 @@ public:
 
         // Create exactly the same files on all platforms by fixing OS field in the header.
         if (p.Type == ZLib::GZip) {
-            GZHeader_ = new gz_header{};
+            GZHeader_ = MakeHolder<gz_header>();
             GZHeader_->os = 3; // UNIX
             deflateSetHeader(Z(), GZHeader_.Get());
         }
