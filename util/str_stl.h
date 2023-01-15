@@ -73,35 +73,35 @@ struct hash<T*>: public ::hash<const T*> {
 };
 
 template <>
-struct hash<const char*> : ::NHashPrivate::TStringHash<char> {
+struct hash<const char*>: ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct THash<TStringBuf> : ::NHashPrivate::TStringHash<char> {
+struct THash<TStringBuf>: ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct hash<TString> : ::NHashPrivate::TStringHash<char> {
+struct hash<TString>: ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct hash<TUtf16String> : ::NHashPrivate::TStringHash<wchar16> {
+struct hash<TUtf16String>: ::NHashPrivate::TStringHash<wchar16> {
 };
 
 template <>
-struct THash<TWtringBuf> : ::NHashPrivate::TStringHash<wchar16> {
+struct THash<TWtringBuf>: ::NHashPrivate::TStringHash<wchar16> {
 };
 
 template <>
-struct hash<TUtf32String> : ::NHashPrivate::TStringHash<wchar32> {
+struct hash<TUtf32String>: ::NHashPrivate::TStringHash<wchar32> {
 };
 
 template <>
-struct THash<TUtf32StringBuf> : ::NHashPrivate::TStringHash<wchar32> {
+struct THash<TUtf32StringBuf>: ::NHashPrivate::TStringHash<wchar32> {
 };
 
 template <class C, class T, class A>
-struct hash<std::basic_string<C, T, A>> : ::NHashPrivate::TStringHash<C> {
+struct hash<std::basic_string<C, T, A>>: ::NHashPrivate::TStringHash<C> {
 };
 
 template <>

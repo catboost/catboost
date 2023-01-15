@@ -60,7 +60,7 @@ namespace NMaybe {
     };
 
     template <class T>
-    struct TCopyBase<T, false> : TStorageBase<T> {
+    struct TCopyBase<T, false>: TStorageBase<T> {
         using TStorageBase<T>::TStorageBase;
 
         constexpr TCopyBase() = default;
@@ -83,7 +83,7 @@ namespace NMaybe {
     };
 
     template <class T>
-    struct TMoveBase<T, false> : TCopyBase<T> {
+    struct TMoveBase<T, false>: TCopyBase<T> {
         using TCopyBase<T>::TCopyBase;
 
         constexpr TMoveBase() noexcept = default;
@@ -106,7 +106,7 @@ namespace NMaybe {
     };
 
     template <class T>
-    struct TCopyAssignBase<T, false> : TMoveBase<T> {
+    struct TCopyAssignBase<T, false>: TMoveBase<T> {
         using TMoveBase<T>::TMoveBase;
 
         constexpr TCopyAssignBase() noexcept = default;
@@ -137,7 +137,7 @@ namespace NMaybe {
     };
 
     template <class T>
-    struct TMoveAssignBase<T, false> : TCopyAssignBase<T> {
+    struct TMoveAssignBase<T, false>: TCopyAssignBase<T> {
         using TCopyAssignBase<T>::TCopyAssignBase;
 
         constexpr TMoveAssignBase() noexcept = default;

@@ -434,7 +434,7 @@ struct TTupleSerializer {
 };
 
 template <typename... TArgs>
-struct TSerializer<std::tuple<TArgs...>> : TTupleSerializer<std::tuple<TArgs...>> {
+struct TSerializer<std::tuple<TArgs...>>: TTupleSerializer<std::tuple<TArgs...>> {
 };
 
 template <>

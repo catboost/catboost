@@ -104,7 +104,7 @@ struct TAutoEmbedOrPtrPolicy: TPtrPolicy<std::remove_reference_t<T>> {
 };
 
 template <class T>
-struct TAutoEmbedOrPtrPolicy<T, false> : TEmbedPolicy<T> {
+struct TAutoEmbedOrPtrPolicy<T, false>: TEmbedPolicy<T> {
     using TBase = TEmbedPolicy<T>;
 
     TAutoEmbedOrPtrPolicy(T&& object)

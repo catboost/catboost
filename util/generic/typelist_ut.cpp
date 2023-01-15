@@ -48,13 +48,13 @@ public:
     struct TIs1ArgTemplate: std::false_type {};
 
     template <class T, template <class> class TT>
-    struct TIs1ArgTemplate<TT<T>> : std::true_type {};
+    struct TIs1ArgTemplate<TT<T>>: std::true_type {};
 
     template <class T>
     struct TIsNArgTemplate: std::false_type {};
 
     template <template <class...> class TT, class... R>
-    struct TIsNArgTemplate<TT<R...>> : std::true_type {};
+    struct TIsNArgTemplate<TT<R...>>: std::true_type {};
 
     template <class>
     struct TAnyType: std::true_type {};
