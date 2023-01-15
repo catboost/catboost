@@ -109,7 +109,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\reflection_ops.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\repeated_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\service.cc"/>
@@ -322,7 +321,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\metadata.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\metadata_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\reflection.h"/>
