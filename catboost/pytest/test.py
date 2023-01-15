@@ -8621,7 +8621,11 @@ def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
     assert filecmp.cmp(test_eval_path, calc_eval_path)
 
-    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+    return [
+        local_canonical_file(learn_error_path),
+        local_canonical_file(test_error_path),
+        local_canonical_file(test_eval_path)
+    ]
 
 
 @pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
@@ -8666,8 +8670,11 @@ def test_fit_multiclass_with_text_features(separator_type, feature_estimators, l
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
     assert filecmp.cmp(test_eval_path, calc_eval_path)
-
-    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+    return [
+        local_canonical_file(learn_error_path),
+        local_canonical_file(test_error_path),
+        local_canonical_file(test_eval_path)
+    ]
 
 
 @pytest.mark.parametrize('grow_policy', GROW_POLICIES)
