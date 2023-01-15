@@ -1,27 +1,27 @@
 package ai.catboost.spark;
 
-import java.util.{ArrayList,Collections};
+import java.nio.file.Path
+import java.util.{Arrays,ArrayList,Collections};
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer,ArrayBuilder}
 
 import org.apache.spark.ml.attribute._
-import org.apache.spark.ml.linalg.Vector
+import org.apache.spark.ml.linalg.{Vector,SparseVector,Vectors}
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.param.shared._
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
+import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types._
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._;
 
 import ai.catboost.CatBoostError
-import ai.catboost.spark.params.{Helpers,QuantizationParams}
+import ai.catboost.spark.params.{Helpers,PoolLoadParams,QuantizationParams}
 import ai.catboost.spark.params.macros.ParamGetterSetter
-
-
 
 
 class QuantizedRowsOutputIterator(
@@ -64,6 +64,88 @@ object QuantizedRowsOutputIterator {
 }
 
 object Pool {
+  private def updateSparseFeaturesSize(data: DataFrame) : DataFrame = {
+    val spark = data.sparkSession
+    import spark.implicits._
+    
+    // extract max feature count from data
+    val maxFeatureCountDF = data.mapPartitions {
+      rows => {
+        var maxFeatureCount = 0
+        rows.foreach {
+          row => {
+            // features is always the 1st column after loading
+            val featureCount = row.getAs[SparseVector](0).size
+            if (featureCount > maxFeatureCount) {
+              maxFeatureCount = featureCount
+            }
+          }
+        }
+        Iterator[Int](maxFeatureCount)
+      }
+    }
+    
+    var maxFeatureCount = 0
+    for (featureCount <- maxFeatureCountDF.collect()) {
+      if (featureCount > maxFeatureCount) {
+        maxFeatureCount = featureCount
+      }
+    }
+
+    val existingFeatureNames = getFeatureNames(data, "features")
+    val extendedFeatureNames = Arrays.copyOf[String](existingFeatureNames, maxFeatureCount)
+    Arrays.fill(extendedFeatureNames.asInstanceOf[Array[Object]], existingFeatureNames.length, maxFeatureCount, "")
+    
+    val updatedMetadata = DataHelpers.makeFeaturesMetadata(extendedFeatureNames)
+
+    val updateFeaturesSize = udf(
+      (features: Vector) => {
+        val sparseFeatures = features.asInstanceOf[SparseVector]
+        Vectors.sparse(maxFeatureCount, sparseFeatures.indices, sparseFeatures.values)
+      }
+    )
+
+    data.withColumn("features", updateFeaturesSize($"features").as("_", updatedMetadata))
+  }
+  
+  
+  def load(
+    spark: SparkSession,
+    dataPathWithScheme: String,
+    columnDescription: Path = null, // API for Java, so no Option[_] here.
+    params: PoolLoadParams = new PoolLoadParams()): Pool = {
+    
+    val pathParts = dataPathWithScheme.split("://", 2)
+    val (dataScheme, dataPath) =
+      if (pathParts.size == 1) ("dsv", pathParts(0)) else (pathParts(0), pathParts(1))
+      
+    val format = dataScheme match {
+      case "dsv" | "libsvm" => "ai.catboost.spark.CatBoostTextFileFormat"
+      case _ => throw new CatBoostError(s"Loading pool from scheme ${dataScheme} is not supported")
+    }
+    
+    val dataSourceOptions = mutable.Map[String,String]()
+    dataSourceOptions.update("dataScheme", dataScheme)
+    
+    params.extractParamMap.toSeq.foreach {
+      case ParamPair(param, value) => {
+        dataSourceOptions.update(param.name, value.toString)
+      }
+    }
+    if (columnDescription != null) {
+      dataSourceOptions.update("columnDescription", columnDescription.toString)
+    }
+    dataSourceOptions.update(
+        "catboostJsonParams",
+        Helpers.sparkMlParamsToCatBoostJsonParamsString(params)
+    )
+    dataSourceOptions.update("uuid", java.util.UUID.randomUUID().toString)
+    
+    val data = spark.read.format(format).options(dataSourceOptions).load(dataPath)
+
+    new Pool(if (dataScheme == "libsvm") updateSparseFeaturesSize(data) else data)
+  }
+  
   def getFeatureCount(data : DataFrame, featuresCol : String) : Int = {
     val attributeGroup = AttributeGroup.fromStructField(data.schema(featuresCol))
     val optNumAttributes = attributeGroup.numAttributes
@@ -86,7 +168,9 @@ object Pool {
     val featureCount = getFeatureCount(data, featuresCol)
     val attributes = AttributeGroup.fromStructField(data.schema(featuresCol)).attributes
     if (attributes.isEmpty) {
-      new Array[String](featureCount)
+      val featureNames = new Array[String](featureCount)
+      Arrays.fill(featureNames.asInstanceOf[Array[Object]], 0, featureCount, "")
+      featureNames
     } else {
       if (attributes.get.size != featureCount) {
         throw new CatBoostError(
@@ -245,7 +329,7 @@ class Pool (
     
   protected def createQuantized(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : Pool = {
     var featuresColumnIdx = data.schema.fieldIndex($(featuresCol));
-    val threadCountForTask = SparkHelpers.getThreadCountForTask(data)
+    val threadCountForTask = SparkHelpers.getThreadCountForTask(data.sparkSession)
     
     val featuresColumnName = $(featuresCol)
     
