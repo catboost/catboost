@@ -339,20 +339,6 @@ bool Generator::Generate(const FileDescriptor* file,
   ReplaceCharacters(&filename, ".", '/');
   filename += ".py";
 
-  // Yandex-specific: issue warning to console if Python module path is different from original source path
-  {
-    size_t dash_pos = file->name().find_first_of('-');
-#ifdef _win_
-    size_t slash_pos = file->name().find_last_of("/\\");
-#else
-    size_t slash_pos = file->name().find_last_of('/');
-#endif
-    if (dash_pos != string::npos && slash_pos != string::npos && dash_pos < slash_pos) {
-      GOOGLE_LOG(WARNING) << "Warning: Python module path will be different from source code path (\"-\" replaced with \"_\") : " << filename;
-    }
-  }
-  // End of Yandex-specific
-
   FileDescriptorProto fdp;
   file_->CopyTo(&fdp);
   fdp.SerializeToString(&file_descriptor_serialized_);
