@@ -11,7 +11,7 @@ Installation
 * Scala 2.11 or 2.12
 * Maven or SBT
 
-Get the appropriate `catboost_spark_version` (you can look up available versions at [Maven central](https://search.maven.org/search?q=a:catboost-spark))
+Get the appropriate `catboost_spark_version` (you can look up available versions at [Maven central](https://search.maven.org/search?q=catboost-spark))
 
 Add dependency with the appropriate `scala_compat_version` (`2.11` or `2.12`):
 
