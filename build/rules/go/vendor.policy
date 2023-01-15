@@ -485,7 +485,6 @@ ALLOW market/sre/services/rtcstats2graphite/src/internal/yasm -> vendor/github.c
 ALLOW market/sre/tools/ya-gde/src/cmd/getthefacts -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
-ALLOW toolbox/bunker -> vendor/github.com/pkg/errors
 ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/core -> vendor/github.com/pkg/errors
@@ -495,8 +494,6 @@ ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
 # IGNIETFERRO-1396
 
-ALLOW bunker/api/cmd/api -> vendor/github.com/jackc/pgx
-ALLOW bunker/api/internal/db -> vendor/github.com/jackc/pgx
 ALLOW cloud/blockstore/tests/hwlab/pg_test/pgshooter -> vendor/github.com/jackc/pgx
 ALLOW district/feed_reader/app/lib -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/charm/cmd/charm -> vendor/github.com/jackc/pgx
@@ -516,7 +513,6 @@ ALLOW market/sre/services/dist_meta_store/app -> vendor/github.com/jackc/pgx
 ALLOW market/sre/services/dist_meta_store/database -> vendor/github.com/jackc/pgx
 ALLOW mds/karl/pkg/mdb -> vendor/github.com/jackc/pgx
 ALLOW mds/valve/pkg/storage -> vendor/github.com/jackc/pgx
-ALLOW mediaplanner/internal/db-client -> vendor/github.com/jackc/pgx
 ALLOW plus/morda/internal/common -> vendor/github.com/jackc/pgx
 ALLOW plus/morda/internal/events -> vendor/github.com/jackc/pgx
 ALLOW quasar/gackend/db -> vendor/github.com/jackc/pgx
