@@ -4,15 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>catboost-spark</artifactId>
+    <artifactId>catboost-spark_2.11</artifactId>
     <packaging>jar</packaging>
     <name>CatBoost for Spark</name>
     <description>JVM module to use CatBoost on Spark</description>
 
     <parent>
         <groupId>ai.catboost</groupId>
-        <artifactId>catboost-spark-aggregator</artifactId>
-        <version>0.24</version>
+        <artifactId>catboost-spark-aggregate_2.11</artifactId>
+        <version>0.25-rc1</version>
+        <relativePath>..</relativePath>
     </parent>
 
     <distributionManagement>
@@ -169,7 +170,7 @@
 
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_2.11</artifactId>
+            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
             <version>3.5.3</version>
         </dependency>
         
@@ -180,39 +181,39 @@
         </dependency>
             <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_2.11</artifactId>
+            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
             <version>2.6.7.1</version>
         </dependency>
         
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>2.7.2</version>
+            <version>${hadoop.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>2.7.2</version>
+            <version>${hadoop.version}</version>
             <scope>provided</scope>
         </dependency>
     
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
-            <version>2.4.6</version>
+            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.11</artifactId>
-            <version>2.4.6</version>
+            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-mllib_2.11</artifactId>
-            <version>2.4.6</version>
+            <artifactId>spark-mllib_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         
@@ -220,12 +221,12 @@
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-common</artifactId>
-            <version>0.24</version>
+            <version>${project.version}</version>
         </dependency>
         
         <dependency>
             <groupId>ai.catboost</groupId>
-            <artifactId>catboost-spark-macros</artifactId>
+            <artifactId>catboost-spark-macros_${scala.compat.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -237,7 +238,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.11</artifactId>
+            <artifactId>scalatest_${scala.compat.version}</artifactId>
             <version>3.2.0</version>
             <scope>test</scope>
         </dependency>
