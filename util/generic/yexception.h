@@ -66,7 +66,8 @@ namespace NPrivateException {
     };
 
     template <class E, class T>
-    static inline E&& operator<<(E&& e, const T& t) {
+    static inline std::enable_if_t<std::is_base_of<yexception, std::decay_t<E>>::value, E&&>
+    operator<<(E&& e, const T& t) {
         e.Append(t);
 
         return std::forward<E>(e);
