@@ -407,12 +407,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cuda\wrappers\library-cuda-wrappers.vcxproj">
       <Project>{B83E09E6-36E4-BF0E-BBC4-CCC2D4B42CCC}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
-      <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
-      <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
     </ProjectReference>

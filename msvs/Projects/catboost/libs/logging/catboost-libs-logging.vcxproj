@@ -131,12 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\library-cpp-logger.vcxproj">
       <Project>{9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
-      <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
-      <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
