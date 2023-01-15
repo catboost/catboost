@@ -18,12 +18,12 @@ def main():
     for inp in inputs:
         if os.path.exists(inp) and inp.endswith("tidyjson"):
             with open(inp, 'r') as afile:
-                errors = json.load(afile)
+                file_content = afile.read().strip()
+                if not file_content:
+                    continue
+                errors = json.loads(file_content)
             testing_src = errors["file"]
-            if not os.path.isabs(testing_src) and os.path.exists(os.path.join(args.source_root, testing_src)):
-                result_json[testing_src] = errors
-            elif "_/" not in testing_src:
-                result_json[os.path.basename(testing_src)] = errors
+            result_json[testing_src] = errors
 
     with open(args.output_file, 'w') as afile:
         json.dump(result_json, afile, indent=4)  # TODO remove indent
