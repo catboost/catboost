@@ -1026,8 +1026,6 @@ migrations:
     - sandbox/projects/websearch/CheckPrechargeAfterMemoryMap
     - sandbox/projects/yabs/SysConstLifetime/const_proto
     - sandbox/projects/yabs/SysConstLifetime/sys_const
-    - sandbox/projects/yabs/auto_supbs/lib/issue_processor
-    - sandbox/projects/yabs/auto_supbs/lib/order_processor_lib
     - sandbox/projects/yabs/auto_supbs_2/lib/audit_issue_processor
     - sandbox/projects/yabs/auto_supbs_2/lib/distribution_issue_processor
     - sandbox/projects/yabs/auto_supbs_2/lib/order_processor_lib
@@ -1372,7 +1370,6 @@ migrations:
     - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/logos/libs/reactor_runner/ut
-    - ads/logos/tasks/learn_search_premium_profile
     - ads/logos/tasks/mediation_fast_lm_features
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/cross_check/lib
@@ -1475,7 +1472,6 @@ migrations:
     - devtools/distbuild/dejavu/cache_requester/client/py
     - devtools/local_cache/ac/tests/perfac
     - devtools/ya/core/imprint
-    - devtools/ya/test/programs/test_tool/ytexec_run_test
     - devtools/ya/yalibrary/makelists_resources
     - devtools/ya/yalibrary/pr
     - devtools/ya/yalibrary/resource_autoupdater
