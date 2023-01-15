@@ -95,6 +95,7 @@ def on_go_process_srcs(unit):
     c_files = []
     cxx_files = []
     ev_files = []
+    fbs_files = []
     go_files = []
     in_files = []
     proto_files = []
@@ -107,6 +108,7 @@ def on_go_process_srcs(unit):
         '.cpp': cxx_files,
         '.cxx': cxx_files,
         '.ev': ev_files,
+        '.fbs': fbs_files,
         '.go': go_files,
         '.in': in_files,
         '.proto': proto_files,
@@ -208,6 +210,10 @@ def on_go_process_srcs(unit):
     # Process .proto files
     for f in proto_files:
         unit.on_go_proto_cmd(f)
+
+    # Process .fbs files
+    for f in fbs_files:
+        unit.on_go_flatc_cmd([f, go_package_name(unit)])
 
     # Process .in files
     for f in in_files:
