@@ -28,6 +28,7 @@ ALLOW contrib/java/ru/yandex/market -> (market)|(maps/doc/proto/yandex/maps/prot
 ALLOW contrib/libs/tf -> library/python/testing/gtest
 ALLOW contrib/libs/tf/tests/test_vars_to_const/cpp_check_inference -> maps/libs/common
 ALLOW contrib/libs/tf/tests/test_vars_to_const/cpp_check_inference -> yandex/maps/common
+ALLOW contrib/restricted/libtorrent -> maps/libs/fastbone
 ALLOW contrib/python/transfer_manager_client -> transfer_manager/client
 ALLOW contrib/(deprecated/)?python/django -> library/python/django
 ALLOW contrib/(deprecated/)?python/django -> library/python/gunicorn
