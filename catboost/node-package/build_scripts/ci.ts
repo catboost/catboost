@@ -13,7 +13,7 @@ async function ci() {
     }
 
     const packageVersion = process.argv[6];
-    if (!/[2-9][0-9]*\.[0-9*]\.[0-9*](-[a-zA-Z\.0-9])?/.exec(packageVersion)) {
+    if (!/[0-9\.]*/.exec(packageVersion)) {
         throw new Error(`Version '${packageVersion}' is not a valid node-package version.`);
     }
 
