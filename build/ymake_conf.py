@@ -2956,14 +2956,10 @@ class Cuda(object):
         ))
 
     def cuda_windows_host_compiler(self):
+        vc_version_latest = '14.28.29910'
         vc_version = {
-            '11.1': '14.13.26128',  # (not latest)
-            '10.1': '14.13.26128',  # (not latest)
             '10.0': '14.13.26128',  # (not latest)
-            '9.2': '14.13.26128',
-            '9.1': '14.11.25503',
-            '9.0': '14.11.25503',
-        }[self.cuda_version.value]
+        }.get(self.cuda_version.value, vc_version_latest)
 
         env = {
             'Y_VC_Version': vc_version,
