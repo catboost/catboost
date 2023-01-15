@@ -106,8 +106,12 @@ def preprocess_args(args):
 
 
 def compare_versions(version1, version2):
-    v1 = tuple(str(int(x)).zfill(8) for x in version1.split('.'))
-    v2 = tuple(str(int(x)).zfill(8) for x in version2.split('.'))
+    def last_index(version):
+        index = version.find('beta')
+        return len(version) if index < 0 else index
+
+    v1 = tuple(x.zfill(8) for x in version1[:last_index(version1)].split('.'))
+    v2 = tuple(x.zfill(8) for x in version2[:last_index(version2)].split('.'))
     if v1 == v2:
         return 0
     return 1 if v1 < v2 else -1
@@ -387,6 +391,10 @@ def do_compile_asm(args):
     cmd += get_trimpath_args(args)
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
     cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output]
+    # TODO: This is just a quick fix to start work on 1.16 support
+    if compare_versions('1.16', args.goversion) >= 0:
+        if args.import_path in ('runtime', 'reflect') or args.import_path.startswith('runtime/internal/'):
+            cmd += ['-compiling-runtime']
     if args.asm_flags:
         cmd += args.asm_flags
     cmd += args.asm_srcs
