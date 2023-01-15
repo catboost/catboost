@@ -1,13 +1,12 @@
 #pragma once
 
-#include "utility.h"
 #include "mem_copy.h"
 #include "ptr.h"
+#include "utility.h"
 
 #include <contrib/libs/libc_compat/string.h>
 
 #include <util/charset/unidata.h>
-#include <util/charset/wide_specific.h>
 #include <util/system/yassert.h>
 #include <util/system/platform.h>
 
@@ -183,14 +182,6 @@ public:
     static TCharType ToLower(TCharType c) {
         return ::ToLower((wchar32)c);
     }
-
-    static void Reverse(TCharType* s, size_t n) {
-        TCharType* f = s;
-        TCharType* l = s + n - 1;
-        while (f < l) {
-            DoSwap(*f++, *l--);
-        }
-    }
 };
 
 template <>
@@ -267,14 +258,6 @@ private:
     }
 
 public:
-    static void Reverse(TCharType* s, size_t n) {
-        TCharType* f = s;
-        TCharType* l = s + n - 1;
-        while (f < l) {
-            DoSwap(*f++, *l--);
-        }
-    }
-
     // Overriden methods
 
     static size_t GetLength(const char* s, size_t maxlen) {
@@ -511,22 +494,6 @@ public:
     static bool Equal(const wchar16* s1, const wchar16* s2, size_t n) {
         return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar16)) == 0);
     }
-
-    static void Reverse(wchar16* start, size_t len) {
-        if (!len) {
-            return;
-        }
-        const wchar16* end = start + len;
-        TArrayHolder<wchar16> temp_buffer(new wchar16[len]);
-        wchar16* rbegin = temp_buffer.Get() + len;
-        for (wchar16* p = start; p < end;) {
-            const size_t symbol_size = W16SymbolSize(p, end);
-            rbegin -= symbol_size;
-            ::MemCopy(rbegin, p, symbol_size);
-            p += symbol_size;
-        }
-        ::MemCopy(start, temp_buffer.Get(), len);
-    }
 };
 
 template <>
@@ -685,14 +652,6 @@ private:
 public:
     static TCharType ToLower(TCharType c) {
         return ::ToLower((wchar32)c);
-    }
-
-    static void Reverse(TCharType* s, size_t n) {
-        TCharType* f = s;
-        TCharType* l = s + n - 1;
-        while (f < l) {
-            DoSwap(*f++, *l--);
-        }
     }
 
     // Overriden methods

@@ -1456,16 +1456,6 @@ private:
 #endif
 
 public:
-    // ~~~ Reversion ~~~~
-    void reverse() {
-#ifdef TSTRING_IS_STD_STRING
-        TTraits::Reverse(Storage_.data(), length());
-#else
-        Detach();
-        TTraits::Reverse(Data_, length());
-#endif
-    }
-
     void swap(TBasicString& s) noexcept {
 #ifdef TSTRING_IS_STD_STRING
         std::swap(Storage_, s.Storage_);
