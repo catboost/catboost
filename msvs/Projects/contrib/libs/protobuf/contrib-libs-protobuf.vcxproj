@@ -92,6 +92,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\empty.pb.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set_heavy.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_access_listener.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.cc"/>
@@ -297,12 +298,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\empty.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set_inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_access_listener.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_decl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\has_bits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\implicit_weak_message.h"/>
