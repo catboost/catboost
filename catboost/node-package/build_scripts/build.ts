@@ -1,7 +1,7 @@
 import {execProcess} from './common';
 import {linkSync, readFileSync, writeFileSync} from 'fs'
-import { downloadBinaryFile } from './download';
-import { readConfig } from './config';
+import {downloadBinaryFile} from './download';
+import {readConfig} from './config';
 
 async function compileTypeScript() {
     const result = await execProcess('npm run tsc');

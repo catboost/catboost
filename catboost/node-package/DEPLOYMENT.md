@@ -47,7 +47,10 @@ npm run compile_build_scripts
     ```
 2. Check generated `config.json` file, verify that the links and file checksums are correct.
 3. Update package version in `package.json`.
-4. TODO(not implemented yet): Run integration test
+4. Run integration deployment test (local docker required):
+    ```
+    npm run e2e
+    ```
 5. Publish package with
    ```
    npm publish

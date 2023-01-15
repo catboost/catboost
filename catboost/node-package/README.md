@@ -54,3 +54,7 @@ console.log(prediction);
  - [X] Switch to downloading and verifying the pre-built binary instead of building it from scratch.
  - [X] Publish the alpha version of the package.
  - [ ] Publish the generally available version of the package.
+
+### Release procedure
+
+See [DEMPLOYMENT.md](./DEPLOYMENT.md).
