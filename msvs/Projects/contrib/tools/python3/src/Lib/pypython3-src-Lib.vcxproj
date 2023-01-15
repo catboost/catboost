@@ -17903,9 +17903,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\murmurhash\contrib-restricted-murmurhash.vcxproj">
-      <Project>{05C15EEF-0F2F-5608-F7FE-89C83D3261ED}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
       <Project>{29D11B36-E190-930C-F04D-08E664A940A9}</Project>
     </ProjectReference>

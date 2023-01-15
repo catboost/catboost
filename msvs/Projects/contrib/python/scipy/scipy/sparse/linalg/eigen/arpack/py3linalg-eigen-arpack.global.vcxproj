@@ -219,9 +219,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\murmurhash\contrib-restricted-murmurhash.vcxproj">
-      <Project>{05C15EEF-0F2F-5608-F7FE-89C83D3261ED}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
       <Project>{65ED7A96-9AF7-8308-F3E6-7C54576A4963}</Project>
     </ProjectReference>

@@ -137,9 +137,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\murmurhash\contrib-restricted-murmurhash.vcxproj">
-      <Project>{05C15EEF-0F2F-5608-F7FE-89C83D3261ED}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
       <Project>{7F05579D-8DC8-3A03-111E-51A122F7DF49}</Project>
     </ProjectReference>
