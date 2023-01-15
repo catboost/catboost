@@ -97,10 +97,9 @@ class Platform(object):
             self.android_api = int(preset('ANDROID_API', default_android_api))
 
         self.is_cygwin = self.os == 'cygwin'
-        self.is_freebsd = self.os == 'freebsd'
         self.is_yocto = self.os == 'yocto'
 
-        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto
+        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_yocto
 
     @staticmethod
     def from_json(data):
@@ -601,7 +600,7 @@ class Build(object):
         swiftc.configure()
         swiftc.print_compiler()
 
-        if host.is_linux or host.is_freebsd or host.is_macos or host.is_cygwin:
+        if host.is_linux or host.is_macos or host.is_cygwin:
             if is_negative('USE_ARCADIA_PYTHON'):
                 python = Python(self.tc)
                 python.configure_posix()
@@ -733,21 +732,6 @@ when ($USE_PYTHON) {
 }'''
 
     @staticmethod
-    def print_freebsd_const():
-        emit('FREEBSD_VER', '9')
-        emit('FREEBSD_VER_MINOR', '0')
-
-        print '''
-when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
-    C_LIBRARY_PATH+=-L/usr/local/lib
-    C_SYSTEM_LIBRARIES_INTERCEPT+=-lc_mp
-}
-when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
-    C_DEFINES+= -DUSE_MPROF
-}
-'''
-
-    @staticmethod
     def print_linux_const():
         print '''
 when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
@@ -773,8 +757,6 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
             self.print_nix_target_const()
             if self.platform.is_linux:
                 self.print_linux_const()
-            elif self.platform.is_freebsd:
-                self.print_freebsd_const()
         elif self.platform.is_windows:
             self.print_windows_target_const()
 
@@ -1841,7 +1823,6 @@ class LD(Linker):
 
         self.thread_library = select([
             (target.is_linux or target.is_macos, '-lpthread'),
-            (target.is_freebsd, '-lthr')
         ])
 
         self.rdynamic = None
@@ -1855,11 +1836,11 @@ class LD(Linker):
         self.dwarf_command = None
         self.libresolv = '-lresolv' if target.is_linux or target.is_macos or target.is_android else None
 
-        if target.is_linux or target.is_android or target.is_freebsd:
+        if target.is_linux or target.is_android:
             self.rdynamic = '-rdynamic'
             self.use_stdlib = '-nodefaultlibs'
 
-        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin:
+        if target.is_linux or target.is_android or target.is_cygwin:
             self.start_group = '-Wl,--start-group'
             self.end_group = '-Wl,--end-group'
             self.whole_archive = '-Wl,--whole-archive'

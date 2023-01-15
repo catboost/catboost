@@ -662,12 +662,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -712,12 +706,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -1037,12 +1025,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -4161,12 +4143,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -4214,12 +4190,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -4250,12 +4220,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -4310,12 +4274,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -4339,12 +4297,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -4626,12 +4578,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -4779,11 +4725,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    }
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     }
                 },
@@ -4817,11 +4758,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     }
                 },
                 {
@@ -4939,12 +4875,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -4990,12 +4920,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -5411,12 +5335,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "DARWIN"
                     },
                     "default": true
@@ -5475,12 +5393,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -5503,12 +5415,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -5541,12 +5447,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -5574,12 +5474,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -5602,12 +5496,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -5696,12 +5584,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -5724,12 +5606,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
@@ -5864,12 +5740,6 @@
                 },
                 {
                     "host": {
-                        "os": "FREEBSD"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "DARWIN"
                     },
                     "default": true
@@ -5886,12 +5756,6 @@
                 {
                     "host": {
                         "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "FREEBSD"
                     },
                     "default": true
                 },
