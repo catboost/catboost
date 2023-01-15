@@ -421,6 +421,9 @@
         "jstyle": {
             "description": "Java styler"
         },
+        "ktlint": {
+            "description": "Run kotlin styler"
+        },
         "ya_sed": {
             "description": "This tool simplifies replacing of some text in Arcadia"
         },
@@ -6884,6 +6887,34 @@
                 }
             ]
         },
+        "ktlint_bundle": {
+            "tools": {
+                "ktlint": {
+                    "bottle": "ktlint_bundle",
+                    "executable": "ktlint"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "ya_sed": {
             "tools": {
                 "ya_sed": {
@@ -9590,6 +9621,21 @@
                     "idea-community",
                     "bin",
                     "format.bat"
+                ]
+            }
+        },
+        "ktlint_bundle": {
+            "formula": {
+                "sandbox_id": [
+                    1037460929,
+                    1037467384,
+                    1037471615
+                ],
+                "match": "ktlint"
+            },
+            "executable": {
+                "ktlint": [
+                    "run.bat"
                 ]
             }
         },
