@@ -4,6 +4,8 @@ INDUCED_DEPS(cpp
     ${ARCADIA_ROOT}/contrib/libs/protobuf_std/src/google/protobuf/io/zero_copy_stream_impl_lite.h
     ${ARCADIA_ROOT}/contrib/libs/protobuf_std/src/google/protobuf/port_def.inc
     ${ARCADIA_ROOT}/contrib/libs/protobuf_std/src/google/protobuf/port_undef.inc
+    ${ARCADIA_ROOT}/contrib/libs/protobuf_std/src/google/protobuf/reflection_ops.h
+    ${ARCADIA_ROOT}/contrib/libs/protobuf_std/src/google/protobuf/wire_format.h
     ${ARCADIA_ROOT}/contrib/libs/protobuf_std/src/google/protobuf/wire_format_lite.h
 )
 INDUCED_DEPS(h+cpp
