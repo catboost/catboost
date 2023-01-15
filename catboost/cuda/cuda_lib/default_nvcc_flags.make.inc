@@ -12,12 +12,12 @@ CUDA_NVCC_FLAGS(
     --ptxas-options=-v
 )
 
-IF (CUDA_VERSION VERSION_GE 11.0)
+IF (CUDA_VERSION VERSION_GE 11)
     CUDA_NVCC_FLAGS(
         -gencode=arch=compute_80,code=sm_80
     )
 ELSE()
     CUDA_NVCC_FLAGS(
         -gencode arch=compute_30,code=compute_30
-    )    
+    )
 ENDIF()
