@@ -588,10 +588,14 @@ namespace NCatboostCuda {
             for (featureSetIdx = 0; featureSetIdx < features.size(); ++featureSetIdx) {
                 TSet<ui32> ignoredFeatures = allEvaluatedFeatures;
                 for (ui32 feature : features[featureSetIdx]) {
-                    ignoredFeatures.erase(feature);
+                    if (FeaturesManager.HasBorders(feature)) {
+                        ignoredFeatures.erase(feature);
+                    } else {
+                        CATBOOST_WARNING_LOG << "Ignoring constant feature " << feature  << " in feature set " << featureSetIdx << Endl;
+                    }
                 }
                 TBinarizedFeaturesManager featureManager(FeaturesManager, {ignoredFeatures.begin(), ignoredFeatures.end()});
-                if (featureManager.GetDataProviderFeatureIds().empty()) {
+                if (featureManager.GetDataProviderFeatureIds().empty() || allEvaluatedFeatures == ignoredFeatures) {
                     CATBOOST_WARNING_LOG << "Feature set " << featureSetIdx
                         << " is not evaluated because it consists of ignored or constant features" << Endl;
                     continue;
