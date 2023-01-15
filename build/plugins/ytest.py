@@ -748,6 +748,11 @@ def onjava_test(unit, *args):
     if test_classpath_origins:
         test_record['TEST_CLASSPATH_ORIGINS'] = test_classpath_origins
         test_record['TEST_CLASSPATH'] = '${TEST_CLASSPATH_MANAGED}'
+    elif unit.get('YMAKE_JAVA_TEST') == 'yes':
+        test_record['TEST_CLASSPATH'] = '${DART_CLASSPATH}'
+        test_record['TEST_CLASSPATH_DEPS'] = '${DART_CLASSPATH_DEPS}'
+        test_record['TEST_JAR'] = '{}/{}.jar'.format(unit.get('MODDIR'), unit.get('REALPRJNAME'))
+        test_record['NO_JBUILD'] = 'yes'
 
     data = dump_test(unit, test_record)
     if data:
