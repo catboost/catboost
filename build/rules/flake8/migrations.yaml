@@ -524,7 +524,6 @@ migrations:
     - metrika/pylib/iptruler
     - metrika/pylib/utils
     - ml/nirvana/nope
-    - ml/pulsar/server/pulsar_app
     - ml/tensorflow/ytensorflow
     - ml/tensorflow/ytensorflow/ytensorflow/inference
     - ml/tensorflow/ytensorflow/ytensorflow/quantization
@@ -908,7 +907,6 @@ migrations:
     - yabs/server/cs/pylibs/settings
     - yabs/server/infra/bstr/config
     - yabs/server/infra/bstrbufbuf/plugin
-    - yabs/server/infra/rtgraph
     - yabs/server/infra/trivial_cron
     - yabs/server/infra/validator/hooks_bin/coredumps_cloud
     - yabs/server/infra/validator/hooks_bin/shoot_search
@@ -1695,7 +1693,6 @@ migrations:
     - modadvert/programs/monika/libs
     - modadvert/programs/multik/libs
     - modadvert/programs/supermoderation_admin/libs/services
-    - modadvert/programs/supermoderation_api/libs/handlers/add_objects
     - opensource/sync/bin/docs_sync/tasklet
     - opensource/sync/bin/sync_ch/tasklet
     - orgvisits/orgs/preprocessing/lib
@@ -1803,7 +1800,6 @@ migrations:
     - sandbox/projects/security/FetchNvdFeed
     - sandbox/projects/smarttv
     - sandbox/projects/taxi/BuildDispatcherPackage
-    - sandbox/projects/voicetech/common
     - sandbox/projects/wmc
     - sandbox/projects/yphone/AdvisorDeployToQloud
     - sandbox/projects/yphone/JafarBuildNirvanaLayer
@@ -1937,7 +1933,6 @@ migrations:
     - yweb/animals/admin_service/lib
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/cp_conv/text_classif/bin
-    - yweb/antispam/achievements/cbrf_import
     - yweb/antispam/cid/library/geo
     - yweb/antispam/clean_web/router
     - yweb/antispam/mascot/monitorings/check_table_age
@@ -2498,7 +2493,6 @@ migrations:
     - intranet/magiclinks/src
     - intranet/paste/src
     - intranet/plan/src
-    - intranet/plan/tests
     - intranet/table_flow/src/rules/migrations
     - intranet/table_flow/src/users/migrations
     - intranet/vconf/src
@@ -2551,7 +2545,6 @@ migrations:
     - library/python/solomon
     - library/python/startrek_python_client
     - library/python/statface_client
-    - library/python/testing/yatest_common
     - library/python/testing/yatest_lib
     - library/python/tools_mongodb_cache
     - library/python/tvm2
@@ -2579,7 +2572,6 @@ migrations:
     - mail/contrib/python/python-ipy
     - mail/contrib/python/vobject
     - mail/contrib/tatsu
-    - mail/python/sendr-qtools/src/sendr_core
     - mail/python/tvm_requests
     - mail/xiva/core
     - mapreduce/library/mr_packet_lib/mr_packet_lib
@@ -2680,7 +2672,6 @@ migrations:
     - metrika/core/programs/mobile_startup_admin/base
     - metrika/pylib/auth
     - metrika/pylib/log
-    - ml/pulsar/server/libs/arc
     - ml/tensorflow/tfnn/src
     - ml/tensorflow/ytensorflow/bin/ytf-local-inference
     - ml/tensorflow/ytensorflow/bin/ytf-yt-inference
@@ -4136,7 +4127,6 @@ migrations:
     - yabs/rmp/backend/tests/lib/zora
     - yabs/server/libs/internal_ver/advmachine_export_banners/test
     - yabs/server/libs/internal_ver/advmachine_export_phrase_info/test
-    - yabs/server/libs/internal_ver/cs_import/test
     - yabs/server/libs/internal_ver/lmcounters/test
     - yabs/server/libs/internal_ver/lmng/test
     - yabs/server/libs/internal_ver/order/test
@@ -4200,7 +4190,6 @@ migrations:
     - yql/tests/sql/kikimr_yt
     - yql/tests/sql/rtmr
     - yql/tests/sql/rtmr_kikimr
-    - yql/tests/sql/sql2yql
     - yt/admin/drive_monitor/tests/unit
     - yt/admin/perf_scraper/tests
     - yt/admin/shiva/tests/unit
