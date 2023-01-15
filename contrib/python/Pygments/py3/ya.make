@@ -4,9 +4,7 @@ LICENSE(BSD-3-Clause)
 
 
 
-VERSION(2.8.0)
-
-PROVIDES(Pygments)
+VERSION(2.8.1)
 
 PEERDIR(
     contrib/python/setuptools

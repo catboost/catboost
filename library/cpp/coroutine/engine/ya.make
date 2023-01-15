@@ -12,6 +12,7 @@ PEERDIR(
 
 SRCS(
     cont_poller.cpp
+    helper.cpp
     impl.cpp
     iostatus.cpp
     network.cpp

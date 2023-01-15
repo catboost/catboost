@@ -6,8 +6,6 @@ LICENSE(BSD-3-Clause)
 
 VERSION(2.5.2)
 
-PROVIDES(Pygments)
-
 PEERDIR(
     contrib/python/six
     contrib/python/setuptools
