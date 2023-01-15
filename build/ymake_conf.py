@@ -668,9 +668,9 @@ class YMake(object):
     def print_presets(self):
         presets = opts().presets
         if presets and 'YMAKE_JAVA_MODULES' in presets:
-            self._print_conf_content(self._find_conf('ymake.parts/java.ymake.conf'))
+            self._print_conf_content(self._find_conf('conf/java.ymake.conf'))
         else:
-            self._print_conf_content(self._find_conf('ymake.parts/jbuild.ymake.conf'))
+            self._print_conf_content(self._find_conf('conf/jbuild.ymake.conf'))
 
         if presets:
             print('# Variables set from command line by -D options')
