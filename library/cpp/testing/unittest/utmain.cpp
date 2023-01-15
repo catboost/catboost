@@ -6,6 +6,7 @@
 
 #include <library/cpp/json/writer/json.h>
 #include <library/cpp/json/writer/json_value.h>
+#include <library/cpp/testing/common/env.h>
 #include <library/cpp/testing/hook/hook.h>
 
 #include <util/datetime/base.h>
@@ -294,17 +295,6 @@ public:
         TraceProcessor = traceProcessor;
     }
 
-    inline void SetParam(const TString& key, const TString& value) override {
-        TestParams_[key] = value;
-    }
-
-    inline const TString& GetParam(const TString& key, const TString& def) const override {
-        if (!TestParams_.contains(key))
-            return def;
-
-        return TestParams_.at(key);
-    }
-
 private:
     void OnUnitStart(const TUnit* unit) override {
         TraceProcessor->UnitStart(*unit);
@@ -543,7 +533,6 @@ private:
     static const char* const ForkCorrectExitMsg;
     bool ForkExitedCorrectly;
     TAutoPtr<ITestSuiteProcessor> TraceProcessor;
-    THashMap<TString, TString> TestParams_;
 };
 
 const char* const TColoredProcessor::ForkCorrectExitMsg = "--END--";
@@ -742,7 +731,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     ++i;
                     TString param(argv[i]);
                     size_t assign = param.find('=');
-                    processor.SetParam(param.substr(0, assign), param.substr(assign + 1));
+                    Singleton<::NPrivate::TTestEnv>()->AddTestParam(param.substr(0, assign), param.substr(assign + 1));
                 } else if (TString(name).StartsWith("--")) {
                     return DoUsage(argv[0]), 1;
                 } else if (*name == '-') {
