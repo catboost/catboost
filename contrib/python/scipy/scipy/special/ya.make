@@ -16,7 +16,6 @@ ADDINCL(
 
 PEERDIR(
     contrib/python/numpy
-    contrib/python/numpy/numpy/f2py/src
 
     contrib/python/scipy/scipy/_lib
     contrib/python/scipy/scipy/linalg
@@ -28,6 +27,16 @@ PEERDIR(
     contrib/python/scipy/scipy/special/mach
     contrib/python/scipy/scipy/special/specfun
 )
+
+IF (PYTHON2)
+    PEERDIR(
+        contrib/python/numpy/py2/numpy/f2py/src
+    )
+ELSE()
+    PEERDIR(
+        contrib/python/numpy/py3/numpy/f2py/src
+    )
+ENDIF()
 
 NO_LINT()
 

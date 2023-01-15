@@ -7,7 +7,7 @@ import warnings
 import sys
 
 import numpy as np
-from numpy.testing.nosetester import import_nose
+from numpy.testing._private.nosetester import import_nose
 
 from scipy._lib._version import NumpyVersion
 
