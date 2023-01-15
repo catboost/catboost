@@ -16,7 +16,7 @@ using namespace CoreML::Specification;
 
 void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeatureIdxToInputIndex& perTypeFeatureIdxToInputIndex, TreeEnsembleParameters* ensemble) {
     const auto classesCount = static_cast<size_t>(model.ModelTrees->GetDimensionsCount());
-    auto& binFeatures = model.ModelTrees->GetBinFeatures();
+    const auto binFeatures = model.ModelTrees->GetBinFeatures();
     size_t currentSplitIndex = 0;
     auto currentTreeFirstLeafPtr = model.ModelTrees->GetLeafValues().data();
 

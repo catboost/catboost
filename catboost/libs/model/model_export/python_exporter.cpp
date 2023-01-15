@@ -25,7 +25,7 @@ namespace NCB {
     };
 
     static void WriteModelCTRs(IOutputStream& out, const TFullModel& model, TIndent& indent) {
-        const TVector<TModelCtr>& neededCtrs = model.ModelTrees->GetUsedModelCtrs();
+        const auto neededCtrs = model.ModelTrees->GetUsedModelCtrs();
         if (neededCtrs.empty()) {
             return;
         }
@@ -186,7 +186,7 @@ namespace NCB {
 
         Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ModelTrees->GetTreeSizes()) << "]" << '\n';
 
-        const TVector<TRepackedBin>& bins = model.ModelTrees->GetRepackedBins();
+        const auto bins = model.ModelTrees->GetRepackedBins();
         Out << indent << "tree_split_border = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "]" << '\n';
         Out << indent << "tree_split_feature_index = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].FeatureIndex; }, bins.size()) << "]" << '\n';
         Out << indent << "tree_split_xor_mask = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].XorMask; }, bins.size()) << "]" << '\n';

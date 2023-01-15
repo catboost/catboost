@@ -387,7 +387,7 @@ public:
      * List of all CTRs in model
      * @return
      */
-    const TVector<TModelCtr>& GetUsedModelCtrs() const {
+    TConstArrayRef<TModelCtr> GetUsedModelCtrs() const {
         CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
         return RuntimeData->UsedModelCtrs;
     }
@@ -395,17 +395,17 @@ public:
      * List all binary features corresponding to binary feature indexes in trees
      * @return
      */
-    const TVector<TModelSplit>& GetBinFeatures() const {
+    TConstArrayRef<TModelSplit> GetBinFeatures() const {
         CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
         return RuntimeData->BinFeatures;
     }
 
-    const TVector<TRepackedBin>& GetRepackedBins() const {
+    TConstArrayRef<TRepackedBin> GetRepackedBins() const {
         CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
         return RuntimeData->RepackedBins;
     }
 
-    const TVector<size_t>& GetFirstLeafOffsets() const {
+    TConstArrayRef<size_t> GetFirstLeafOffsets() const {
         CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
         return RuntimeData->TreeFirstLeafOffsets;
     }

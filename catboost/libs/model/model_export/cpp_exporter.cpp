@@ -123,7 +123,7 @@ namespace NCB {
         TSequenceCommaSeparator comma;
         out << indent++ << "struct TCatboostCPPExportModelCtrs modelCtrs = {" << '\n';
 
-        const TVector<TModelCtr>& neededCtrs = model.ModelTrees->GetUsedModelCtrs();
+        const auto neededCtrs = model.ModelTrees->GetUsedModelCtrs();
         if (neededCtrs.size() == 0) {
             out << --indent << "};" << '\n';
             return;

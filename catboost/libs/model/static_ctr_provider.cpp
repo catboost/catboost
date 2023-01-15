@@ -6,9 +6,9 @@
 #include <util/string/cast.h>
 
 
-void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
-                                  const TConstArrayRef<ui8>& binarizedFeatures,
-                                  const TConstArrayRef<ui32>& hashedCatFeatures,
+void TStaticCtrProvider::CalcCtrs(const TConstArrayRef<TModelCtr> neededCtrs,
+                                  const TConstArrayRef<ui8> binarizedFeatures,
+                                  const TConstArrayRef<ui32> hashedCatFeatures,
                                   size_t docCount,
                                   TArrayRef<float> result) {
     if (neededCtrs.empty()) {
@@ -121,7 +121,7 @@ void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
     }
 }
 
-bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const {
+bool TStaticCtrProvider::HasNeededCtrs(TConstArrayRef<TModelCtr> neededCtrs) const {
     for (const auto& ctr : neededCtrs) {
         if (!CtrData.LearnCtrs.contains(ctr.Base)) {
             return false;

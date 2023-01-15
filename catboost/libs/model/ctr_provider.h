@@ -22,12 +22,12 @@ public:
     virtual ~ICtrProvider() {
     }
 
-    virtual bool HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const = 0;
+    virtual bool HasNeededCtrs(TConstArrayRef<TModelCtr> neededCtrs) const = 0;
 
     virtual void CalcCtrs(
-        const TVector<TModelCtr>& neededCtrs,
-        const TConstArrayRef<ui8>& binarizedFeatures, // vector of binarized float & one hot features
-        const TConstArrayRef<ui32>& hashedCatFeatures,
+        const TConstArrayRef<TModelCtr> neededCtrs,
+        const TConstArrayRef<ui8> binarizedFeatures, // vector of binarized float & one hot features
+        const TConstArrayRef<ui32> hashedCatFeatures,
         size_t docCount,
         TArrayRef<float> result) = 0;
 

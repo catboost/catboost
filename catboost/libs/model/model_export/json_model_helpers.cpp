@@ -484,7 +484,7 @@ static void GetNonSymmetricModelTrees(const TJsonValue& jsonValue, TModelTrees* 
     modelTrees->SetNonSymmetricNodeIdToLeafId(std::move(nodeIdToLeafId));
 }
 
-static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider, const TVector<TModelCtr>& neededCtrs) {
+static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider, const TConstArrayRef<TModelCtr> neededCtrs) {
     NJson::TJsonValue jsonValue;
     if (neededCtrs.empty()) {
         return jsonValue;
