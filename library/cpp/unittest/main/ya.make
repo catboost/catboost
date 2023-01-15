@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/cpp/testing/unittest/main
+    library/cpp/testing/unittest_main
 )
 
 

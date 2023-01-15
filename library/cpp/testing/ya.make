@@ -5,7 +5,7 @@ RECURSE(
     benchmark/examples/metrics
     benchmark/main
     unittest
+    unittest_main
     unittest/fat
-    unittest/main
     unittest/ut
 )
