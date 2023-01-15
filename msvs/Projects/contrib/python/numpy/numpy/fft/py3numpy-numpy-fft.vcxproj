@@ -171,7 +171,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
@@ -186,7 +188,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
@@ -206,7 +210,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -217,7 +223,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -233,7 +241,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -244,7 +254,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -260,7 +272,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +285,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/numpy/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

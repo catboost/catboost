@@ -178,7 +178,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -193,7 +195,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,7 +213,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -220,7 +226,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,7 +244,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -247,7 +257,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

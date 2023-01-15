@@ -220,7 +220,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +237,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -251,7 +255,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -262,7 +268,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_bvp.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -278,7 +286,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -289,7 +299,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_ode.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -305,7 +317,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -316,7 +330,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/odepack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -332,7 +348,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -343,7 +361,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadpack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -359,7 +379,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -370,7 +392,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/scipy/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/quadrature.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -336,7 +336,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
@@ -351,7 +353,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
@@ -371,7 +375,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -382,7 +388,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -398,7 +406,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -409,7 +419,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -429,7 +441,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/dev_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/dev_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/dev_utils.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/dev_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/dev_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/dev_utils.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -444,7 +458,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/dev_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/dev_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/dev_utils.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/dev_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/dev_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/dev_utils.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -460,7 +476,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.sdqh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.sdqh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -471,7 +489,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.sdqh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.sdqh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -487,7 +507,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.ey73.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.ey73.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -498,7 +520,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.ey73.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.ey73.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -514,7 +538,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.crr5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.crr5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -525,7 +551,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.crr5.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.crr5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -541,7 +569,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.4l2g.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.4l2g.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -552,7 +582,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.4l2g.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.4l2g.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -572,7 +604,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.7tcn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.7tcn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -587,7 +621,9 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.7tcn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.7tcn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -603,7 +639,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.ju2n.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.ju2n.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -614,7 +652,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.ju2n.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.ju2n.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -630,7 +670,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.d4sd.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.d4sd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -641,7 +683,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.d4sd.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.d4sd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -657,7 +701,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.lt56.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.lt56.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -668,7 +714,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.lt56.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.lt56.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -684,7 +732,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.6v2p.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.6v2p.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -695,7 +745,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.6v2p.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.6v2p.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -711,7 +763,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.7bwa.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.7bwa.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -722,7 +776,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.7bwa.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.7bwa.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -738,7 +794,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.2uhy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.2uhy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -749,7 +807,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.2uhy.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.2uhy.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -765,7 +825,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/monoforest.py-" "$(SolutionDir)../catboost/python-package/catboost/monoforest.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/monoforest.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/monoforest.py-" "$(SolutionDir)../catboost/python-package/catboost/monoforest.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/monoforest.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -776,7 +838,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/monoforest.py-" "$(SolutionDir)../catboost/python-package/catboost/monoforest.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/monoforest.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/monoforest.py-" "$(SolutionDir)../catboost/python-package/catboost/monoforest.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/monoforest.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -792,7 +856,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/text_processing.py-" "$(SolutionDir)../catboost/python-package/catboost/text_processing.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/text_processing.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/text_processing.py-" "$(SolutionDir)../catboost/python-package/catboost/text_processing.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/text_processing.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -803,7 +869,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/text_processing.py-" "$(SolutionDir)../catboost/python-package/catboost/text_processing.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/text_processing.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/text_processing.py-" "$(SolutionDir)../catboost/python-package/catboost/text_processing.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/text_processing.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -819,7 +887,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -830,7 +900,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -846,7 +918,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -857,7 +931,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -873,7 +949,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.aurn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.aurn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -884,7 +962,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.aurn.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.aurn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -900,7 +980,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.vwqh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.vwqh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -911,7 +993,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.vwqh.yapyc3"
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.vwqh.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
