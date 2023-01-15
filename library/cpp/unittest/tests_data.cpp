@@ -73,6 +73,14 @@ TFsPath GetOutputPath() {
     return GetWorkPath() + "/testing_out_stuff";
 }
 
+TString GetRamDrivePath() {
+    return GetEnv("YA_TEST_RAM_DRIVE_PATH");
+}
+
+TString GetOutputRamDrivePath() {
+    return GetEnv("YA_TEST_OUTPUT_RAM_DRIVE_PATH");
+}
+
 class TPortManager::TPortManagerImpl {
     class TPortGuard {
     public:
