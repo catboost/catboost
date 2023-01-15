@@ -117,9 +117,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\on_disk\chunks\cpp-on_disk-chunks.vcxproj">
       <Project>{43AA153B-11A0-706A-C7A7-DD9001E90936}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
-      <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\packers\library-cpp-packers.vcxproj">
       <Project>{3032211A-5BEB-EC3D-0AD1-8904EC9DF338}</Project>
     </ProjectReference>
