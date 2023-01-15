@@ -57,14 +57,14 @@ def get_from_cache(experiment_name, train_file, test_file):
     train = np.fromfile(train_file, sep='\t')
 
     n_features = DATASET_CHARACTERISTIC[experiment_name][1] + 1
-    train = train.reshape((train.shape[0] / n_features, n_features))
+    train = train.reshape((train.shape[0] // n_features, n_features))
 
     X_train = train[:, 1:]
     y_train = train[:, 0]
 
     print('loading test')
     test = np.fromfile(test_file, sep='\t')
-    test = test.reshape((test.shape[0] / n_features, n_features))
+    test = test.reshape((test.shape[0] // n_features, n_features))
 
     X_test = test[:, 1:]
     y_test = test[:, 0]
@@ -135,11 +135,12 @@ def read_libsvm(file_obj, n_samples, n_features):
     regexp = re.compile(r'[A-Za-z0-9]+:(-?\d*\.?\d+)')
 
     for line in file_obj:
-        line = regexp.sub('\g<1>', line)
+        line = line if type(line) == str else line.decode('ascii')
+        line = regexp.sub(r'\g<1>', line)
         line = line.rstrip(" \n\r").split(' ')
 
         y[counter] = int(line[0])
-        X[counter] = map(float, line[1:])
+        X[counter] = [float(x) for x in line[1:]]
         if counter < 5:
             print(y)
             print(X[counter])

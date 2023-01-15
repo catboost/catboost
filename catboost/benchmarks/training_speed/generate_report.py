@@ -23,7 +23,7 @@ def calculate_statistics(tracks, niter):
     for track in tracks:
         cur_quality = track.get_best_score()
         time_per_iter = track.get_time_per_iter()
-        if time_per_iter.shape[0] < niter:
+        if not len(time_per_iter) or time_per_iter.shape[0] < niter:
             continue
 
         median.append(np.median(time_per_iter))
@@ -61,17 +61,17 @@ def get_experiment_stats(results_file, gpu, niter):
     stats = {}
     tracks = read_results(results_file)
 
-    for experiment_name in tracks.iterkeys():
+    for experiment_name in tracks:
         stats[experiment_name] = {}
 
         experiment_tracks = tracks[experiment_name]
         experiment_tracks = dict(filter(lambda track: gpu == ('GPU' in track[0]), experiment_tracks.items()))
 
-        for algorithm_name in experiment_tracks.iterkeys():
+        for algorithm_name in experiment_tracks:
             stats[experiment_name][algorithm_name] = {}
             table_tracks = split_tracks(experiment_tracks[algorithm_name])
 
-            for params, cur_tracks in table_tracks.iteritems():
+            for params, cur_tracks in table_tracks.items():
                 stat = calculate_statistics(cur_tracks, niter)
                 if stat == {}:
                     continue
@@ -83,7 +83,7 @@ def get_experiment_stats(results_file, gpu, niter):
 def get_table_header(experiment_stats):
     parameter_set = None
 
-    for algorithm_name in experiment_stats.iterkeys():
+    for algorithm_name in experiment_stats:
         alg_parameter_set = set(experiment_stats[algorithm_name].keys())
         if parameter_set is None:
             parameter_set = alg_parameter_set
@@ -119,9 +119,11 @@ def print_all_in_one_table(stats, gpu, params, output):
         else:
             algorithm_name += "-CPU"
 
-        for experiment_name in stats.iterkeys():
+        for experiment_name in stats:
             experiment_stats = stats[experiment_name]
 
+            if algorithm_name not in experiment_stats:
+                continue
             if params not in experiment_stats[algorithm_name]:
                 median_row.append(0.)
                 total_row.append(0.)
@@ -149,7 +151,7 @@ def print_all_in_one_table(stats, gpu, params, output):
 
 
 def print_experiment_table(stats, output):
-    for experiment_name in stats.iterkeys():
+    for experiment_name in stats:
         experiment_stats = stats[experiment_name]
 
         header = get_table_header(experiment_stats)
@@ -157,7 +159,7 @@ def print_experiment_table(stats, output):
         median_table = []
         total_table = []
 
-        for algorithm_name in experiment_stats.iterkeys():
+        for algorithm_name in experiment_stats:
             algorithm_stats = experiment_stats[algorithm_name]
             median_row = []
             total_row = []
