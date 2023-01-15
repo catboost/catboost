@@ -7011,7 +7011,7 @@ def test_equal_feature_names():
 
 
 @pytest.mark.parametrize('variance_power', [1.001, 1.42, 1.8, 1.999])
-def test_tweedie_loss_on_gpu(variance_power):
+def test_tweedie_loss_on_gpu(task_type, variance_power):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
 
@@ -7019,7 +7019,25 @@ def test_tweedie_loss_on_gpu(variance_power):
         {
             'iterations': 10,
             'loss_function': 'Tweedie:variance_power=' + str(variance_power),
-            'task_type': 'GPU',
+            'task_type': task_type,
+            'devices': '0-7'
+        }
+    )
+
+    model.fit(train_pool)
+    model.predict(test_pool)
+
+
+@pytest.mark.parametrize('delta', [0.01, 0.5, 1, 1.5])
+def test_huber_loss_on_gpu(task_type, delta):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost(
+        {
+            'iterations': 10,
+            'loss_function': 'Huber:delta=' + str(delta),
+            'task_type': task_type,
             'devices': '0-7'
         }
     )
