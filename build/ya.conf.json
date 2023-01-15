@@ -8352,7 +8352,7 @@
                 "sandbox_id": [
                     869037798
                 ],
-                "match": "infra/rsm/coroner/cmd/coronerctl/coronerctl"
+                "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
             "executable": {
                 "coronerctl": [
