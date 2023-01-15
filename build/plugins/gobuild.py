@@ -118,10 +118,13 @@ def on_go_process_srcs(unit):
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
+    is_test_module = unit.enabled('GO_TEST_MODULE')
+
     # Add gofmt style checks
     if unit.enabled('_GO_FMT_ADD_CHECK'):
         resolved_go_files = []
-        for path in itertools.chain(go_files, go_test_files, go_xtest_files):
+        go_source_files = [] if is_test_module and unit.get(['GO_TEST_FOR_DIR']) else go_files
+        for path in itertools.chain(go_source_files, go_test_files, go_xtest_files):
             if path.endswith('.go'):
                 resolved = unit.resolve_arc_path([path])
                 if resolved != path and need_lint(resolved):
@@ -135,8 +138,6 @@ def on_go_process_srcs(unit):
                 basedirs[basedir].append(f)
             for basedir in basedirs:
                 unit.onadd_check(['gofmt'] + basedirs[basedir])
-
-    is_test_module = unit.enabled('GO_TEST_MODULE')
 
     # Go coverage instrumentation (NOTE! go_files list is modified here)
     if is_test_module and unit.enabled('GO_TEST_COVER'):
