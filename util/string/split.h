@@ -796,8 +796,7 @@ namespace NStringSplitPrivate {
                     }
                     ++it;
                 }
-            },
-                        args...);
+            }, args...);
 
             return successfullyFilled == sizeof...(args) && it == this->end();
         }

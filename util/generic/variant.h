@@ -159,12 +159,9 @@ public:
                 ::Visit([&](const auto& src) -> void {
                     ::NVariant::CallIfSame<void>([](auto& x, const auto& y) {
                         x = y;
-                    },
-                                                 dst, src);
-                },
-                        rhs);
-            },
-                    *this);
+                    }, dst, src);
+                }, rhs);
+            }, *this);
         } else {
             // Strong exception guarantee.
             *this = TVariant{rhs};
@@ -183,12 +180,9 @@ public:
                 ::Visit([&](auto& src) -> void {
                     ::NVariant::CallIfSame<void>([](auto& x, auto& y) {
                         x = std::move(y);
-                    },
-                                                 dst, src);
-                },
-                        rhs);
-            },
-                    *this);
+                    }, dst, src);
+                }, rhs);
+            }, *this);
         } else {
             Destroy();
             try {
@@ -220,12 +214,9 @@ public:
                     ::Visit([&](auto& bVal) -> void {
                         ::NVariant::CallIfSame<void>([](auto& x, auto& y) {
                             DoSwap(x, y);
-                        },
-                                                     aVal, bVal);
-                    },
-                            rhs);
-                },
-                        *this);
+                        }, aVal, bVal);
+                    }, rhs);
+                }, *this);
             } else {
                 TVariant tmp(rhs);
                 rhs.Destroy();
@@ -286,8 +277,7 @@ private:
         ::Visit([](auto& value) {
             using T = std::decay_t<decltype(value)>;
             value.~T();
-        },
-                *this);
+        }, *this);
     }
 
     template <class T, class... TArgs>
@@ -302,8 +292,7 @@ private:
     void ForwardVariant(Variant&& rhs) {
         ::Visit([&](auto&& value) {
             new (this) TVariant(std::forward<decltype(value)>(value));
-        },
-                std::forward<Variant>(rhs));
+        }, std::forward<Variant>(rhs));
     }
 
 private:
@@ -333,12 +322,9 @@ bool operator==(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
                return ::Visit([&](const auto& bVal) -> bool {
                    return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                        return x == y;
-                   },
-                                                       aVal, bVal);
-               },
-                              b);
-           },
-                                                 a);
+                   }, aVal, bVal);
+               }, b);
+           }, a);
 }
 
 template <class... Ts>
@@ -352,12 +338,9 @@ bool operator!=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
         return ::Visit([&](const auto& bVal) -> bool {
             return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                 return x != y;
-            },
-                                                aVal, bVal);
-        },
-                       b);
-    },
-                                                  a);
+            }, aVal, bVal);
+        }, b);
+    }, a);
 }
 
 template <class... Ts>
@@ -373,12 +356,9 @@ bool operator<(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                     return x < y;
-                },
-                                                    aVal, bVal);
-            },
-                           b);
-        },
-                       a);
+                }, aVal, bVal);
+            }, b);
+        }, a);
     }
     return a.index() < b.index();
 }
@@ -398,12 +378,9 @@ bool operator>(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                     return x > y;
-                },
-                                                    aVal, bVal);
-            },
-                           b);
-        },
-                       a);
+                }, aVal, bVal);
+            }, b);
+        }, a);
     }
     return a.index() > b.index();
 }
@@ -423,12 +400,9 @@ bool operator<=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                     return x <= y;
-                },
-                                                    aVal, bVal);
-            },
-                           b);
-        },
-                       a);
+                }, aVal, bVal);
+            }, b);
+        }, a);
     }
     return a.index() < b.index();
 }
@@ -448,12 +422,9 @@ bool operator>=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                     return x >= y;
-                },
-                                                    aVal, bVal);
-            },
-                           b);
-        },
-                       a);
+                }, aVal, bVal);
+            }, b);
+        }, a);
     }
     return a.index() > b.index();
 }
@@ -581,8 +552,7 @@ public:
         const size_t valueHash = v.valueless_by_exception() ? 0 : Visit([](const auto& value) {
             using T = std::decay_t<decltype(value)>;
             return ::THash<T>{}(value);
-        },
-                                                                        v);
+        }, v);
         return CombineHashes(tagHash, valueHash);
     }
 };
