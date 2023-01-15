@@ -1,4 +1,5 @@
 %{
+#include <catboost/spark/catboost4j-spark/core/src/native_impl/model.h>
 #include <catboost/spark/catboost4j-spark/core/src/native_impl/vector_output.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/eval_processing.h>
@@ -133,6 +134,6 @@ public:
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TFullModel)
 };
 
-TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
-
 void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> softmax);
+
+%include "model.h"

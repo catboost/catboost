@@ -1,6 +1,7 @@
 %{
 #include <catboost/spark/catboost4j-spark/core/src/native_impl/features_layout.h>
 #include <catboost/libs/data/features_layout.h>
+#include <util/generic/yexception.h>
 %}
 
 %include "catboost_enums.i"
@@ -76,7 +77,7 @@ namespace NCB {
         ui32 GetExternalFeatureCount() const;
 
         %extend {
-            TVector<NCB::TFeatureMetaInfo> GetExternalFeaturesMetaInfoAsVector() const {
+            TVector<NCB::TFeatureMetaInfo> GetExternalFeaturesMetaInfoAsVector() const throw (yexception) {
                 TConstArrayRef<NCB::TFeatureMetaInfo> externalFeaturesMetaInfo
                     = self->GetExternalFeaturesMetaInfo();
                 return TVector<NCB::TFeatureMetaInfo>(
@@ -91,7 +92,14 @@ namespace NCB {
 
         %proxycode %{
             private void writeObject(ObjectOutputStream out) throws IOException {
-                TVector_TFeatureMetaInfo data = this.GetExternalFeaturesMetaInfoAsVector();
+                TVector_TFeatureMetaInfo data = null;
+                try {
+                    data = this.GetExternalFeaturesMetaInfoAsVector();
+                } catch (Exception e) {
+                    throw new IOException(
+                        "Error in TFeaturesLayout::GetExternalFeaturesMetaInfoAsVector: " + e.getMessage()
+                    );
+                }
                 out.writeUnshared(data);
             }
 
