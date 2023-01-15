@@ -197,7 +197,7 @@ class Map {
 #if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
         ::operator delete(p, n * sizeof(value_type));
 #else
-		(void) n;
+        (void)n;
         ::operator delete(p);
 #endif
       }
