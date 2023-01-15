@@ -2806,7 +2806,7 @@ migrations:
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
     - voicetech/asr/tools/language_model/tests/test_linear_merge
-    - web/app_host/daemons/horizon/agent/nora
+    - web/app_host/daemons/horizon/agent
     - yt/yt/tests/integration/tests
     - yweb/tellurium/tools/store_history_to_yt
     - yweb/tellurium/ui
