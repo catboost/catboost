@@ -290,7 +290,7 @@ ALLOW passport/python/adm_api -> contrib/python/MySQL-python
 ALLOW passport/python/api -> contrib/python/MySQL-python
 ALLOW passport/python/core/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/mailer/faker/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/tests/models -> contrib/python/MySQL-python
+ALLOW passport/python/core/models/tests -> contrib/python/MySQL-python
 ALLOW passport/python/dbscripts -> contrib/python/MySQL-python
 ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
 ALLOW passport/python/social -> contrib/python/MySQL-python
