@@ -110,7 +110,7 @@ void TDirectIOBufferedFile::Finish() {
     File.Close();
 }
 
-void TDirectIOBufferedFile::Write(const void* buffer, ui32 byteCount) {
+void TDirectIOBufferedFile::Write(const void* buffer, size_t byteCount) {
     WriteToBuffer(buffer, byteCount, DataLen);
     WritePosition += byteCount;
 }
@@ -146,45 +146,68 @@ void TDirectIOBufferedFile::WriteToFile(const void* buf, size_t len, ui64 positi
     }
 }
 
-ui32 TDirectIOBufferedFile::PreadSafe(void* buffer, ui32 byteCount, ui64 offset) {
+size_t TDirectIOBufferedFile::PreadSafe(void* buffer, size_t byteCount, ui64 offset) {
     if (FlushedToDisk < offset + byteCount) {
         File.FlushData();
         FlushedToDisk = FlushedBytes;
     }
 
-    i32 readed = File.RawPread(buffer, byteCount, offset);
+#ifdef _linux_
+    ssize_t readed = 0;
+    do {
+        readed = pread(File.GetHandle(), buffer, byteCount, offset);
+    } while (readed == -1 && errno == EINTR);
 
     if (readed < 0) {
         ythrow yexception() << "error while pread file: " << LastSystemError() << "(" << LastSystemErrorText() << ")";
     }
 
-    return (ui32)readed;
+    return readed;
+#else
+    return File.Pread(buffer, byteCount, offset);
+#endif
 }
 
-ui32 TDirectIOBufferedFile::ReadFromFile(void* buffer, ui32 byteCount, ui64 offset) {
-    if (!Alignment || IsAligned(buffer) && IsAligned(byteCount) && IsAligned(offset)) {
-        return PreadSafe(buffer, byteCount, offset);
+size_t TDirectIOBufferedFile::ReadFromFile(void* buffer, size_t byteCount, ui64 offset) {
+    SetDirectIO(true);
+
+    ui64 readed = 0;
+
+    while (byteCount) {
+        if (!Alignment || IsAligned(buffer) && IsAligned(byteCount) && IsAligned(offset)) {
+            if (const ui64 fromFile = PreadSafe(buffer, byteCount, offset)) {
+                buffer = (char*)buffer + fromFile;
+                byteCount -= fromFile;
+                offset += fromFile;
+                readed += fromFile;
+            } else {
+                return readed;
+            }
+        } else {
+            break;
+        }
     }
 
-    SetDirectIO(true);
+    if (!byteCount) {
+        return readed;
+    }
 
     ui64 bufSize = AlignUp(Min<size_t>(BufferStorage.Size(), byteCount + (Alignment << 1)), Alignment);
     TBuffer readBufferStorage(bufSize + Alignment);
     char* readBuffer = AlignUp((char*)readBufferStorage.Data(), Alignment);
-    ui32 readed = 0;
 
     while (byteCount) {
         ui64 begin = AlignDown(offset, (ui64)Alignment);
         ui64 end = AlignUp(offset + byteCount, (ui64)Alignment);
-        ui32 toRead = Min(end - begin, bufSize);
-        ui32 fromFile = PreadSafe(readBuffer, toRead, begin);
+        ui64 toRead = Min(end - begin, bufSize);
+        ui64 fromFile = PreadSafe(readBuffer, toRead, begin);
 
         if (!fromFile) {
             break;
         }
 
-        ui32 delta = offset - begin;
-        ui32 count = Min(fromFile - delta, byteCount);
+        ui64 delta = offset - begin;
+        ui64 count = Min<ui64>(fromFile - delta, byteCount);
 
         memcpy(buffer, readBuffer + delta, count);
         buffer = (char*)buffer + count;
@@ -195,40 +218,40 @@ ui32 TDirectIOBufferedFile::ReadFromFile(void* buffer, ui32 byteCount, ui64 offs
     return readed;
 }
 
-ui32 TDirectIOBufferedFile::Read(void* buffer, ui32 byteCount) {
-    ui32 readed = Pread(buffer, byteCount, ReadPosition);
+size_t TDirectIOBufferedFile::Read(void* buffer, size_t byteCount) {
+    size_t readed = Pread(buffer, byteCount, ReadPosition);
     ReadPosition += readed;
     return readed;
 }
 
-ui32 TDirectIOBufferedFile::Pread(void* buffer, ui32 byteCount, ui64 offset) {
+size_t TDirectIOBufferedFile::Pread(void* buffer, size_t byteCount, ui64 offset) {
     if (!byteCount) {
         return 0;
     }
 
-    ui32 readFromFile = 0;
+    size_t readFromFile = 0;
     if (offset < FlushedBytes) {
         readFromFile = Min<ui64>(byteCount, FlushedBytes - offset);
-        ui32 readed = ReadFromFile(buffer, readFromFile, offset);
+        size_t readed = ReadFromFile(buffer, readFromFile, offset);
         if (readed != readFromFile || readFromFile == byteCount) {
             return readed;
         }
     }
     ui64 start = offset > FlushedBytes ? offset - FlushedBytes : 0;
-    ui32 count = Min<ui64>(DataLen - start, byteCount - readFromFile);
+    ui64 count = Min<ui64>(DataLen - start, byteCount - readFromFile);
     if (count) {
         memcpy((char*)buffer + readFromFile, (const char*)Buffer + start, count);
     }
     return count + readFromFile;
 }
 
-void TDirectIOBufferedFile::Pwrite(const void* buffer, ui32 byteCount, ui64 offset) {
+void TDirectIOBufferedFile::Pwrite(const void* buffer, size_t byteCount, ui64 offset) {
     if (offset > WritePosition) {
         ythrow yexception() << "cannot frite to position" << offset;
     }
 
-    ui32 writeToBufer = byteCount;
-    ui32 writeToFile = 0;
+    size_t writeToBufer = byteCount;
+    size_t writeToFile = 0;
 
     if (FlushedBytes > offset) {
         writeToFile = Min<ui64>(byteCount, FlushedBytes - offset);
