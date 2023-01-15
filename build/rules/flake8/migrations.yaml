@@ -1223,7 +1223,6 @@ migrations:
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
     - market/forecast/feature_factory/graph_generator
-    - market/guru-models-dumper/generator
     - market/library/shiny/external/s3/beam
     - market/mobile_validator/mt/env
     - market/mstat/ch-cache/tests
@@ -1643,7 +1642,6 @@ migrations:
     - mail/github/calendar-attach-processor
     - maps/analyzer/pylibs/train_catboost
     - maps/analyzer/sandbox/jams_level_prediction/prepare_history_storage/lib
-    - maps/analyzer/sandbox/masstransit/quality/lib
     - maps/analyzer/tools/qyp_quota
     - maps/automotive/carwashes/tests/fake-env
     - maps/automotive/carwashes/tests/src
@@ -1793,7 +1791,6 @@ migrations:
     - sandbox/projects/news
     - sandbox/projects/quality/tasks
     - sandbox/projects/resource_types
-    - sandbox/projects/sandbox/build_sandbox_tasks
     - sandbox/projects/school/Load/MeduzaShooting
     - sandbox/projects/sdc
     - sandbox/projects/search_velocity/LightPageReviser
@@ -2662,8 +2659,6 @@ migrations:
     - mds/mastermind/state_builder
     - mds/nscfg/lib
     - mds/nscfg_old/lib
-    - mds/s3/goose/tests/s3tests
-    - mds/s3/goose/tests/s3tests_boto3
     - metrika/admin/python/bishop/config_api/base
     - metrika/admin/python/bishop/frontend/base
     - metrika/admin/python/clickhouse_backups/frontend/base
