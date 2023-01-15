@@ -1,24 +1,30 @@
-PY3_PROGRAM()
 
 
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/python3_pycc/ya.make.prebuilt)
+ENDIF()
 
-ENABLE(PYBUILD_NO_PYC)
+IF (NOT PREBUILT)
+    PY3_PROGRAM()
 
-DISABLE(PYTHON_SQLITE3)
+    ENABLE(PYBUILD_NO_PYC)
 
-PEERDIR(
-    library/python/runtime_py3
-    library/python/runtime_py3/main
-)
+    DISABLE(PYTHON_SQLITE3)
 
-NO_CHECK_IMPORTS()
+    PEERDIR(
+        library/python/runtime_py3
+        library/python/runtime_py3/main
+    )
 
-NO_PYTHON_INCLUDES()
+    NO_CHECK_IMPORTS()
 
-NO_PYTHON_COVERAGE()
+    NO_PYTHON_INCLUDES()
 
-PY_SRCS(
-    MAIN main.py
-)
+    NO_PYTHON_COVERAGE()
 
-END()
+    PY_SRCS(
+        MAIN main.py
+    )
+
+    END()
+ENDIF()

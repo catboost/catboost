@@ -3,9 +3,14 @@
 #    linux-x86_64
 #    windows-x86_64
 
+
+
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/yasm/ya.make.prebuilt)
+ENDIF()
+
+IF (NOT PREBUILT)
 PROGRAM()
-
-
 
 NO_CLANG_COVERAGE()
 
@@ -128,3 +133,4 @@ SRCS(
 )
 
 END()
+ENDIF()
