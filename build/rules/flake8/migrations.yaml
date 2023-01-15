@@ -847,7 +847,6 @@ migrations:
     - quality/webfresh/metrics/build_formulas_config
     - quality/yaqlib/yaqlint
     - regulargeo/tools
-    - release_machine/release_machine/tests
     - rnd_toolbox/deckard
     - rnd_toolbox/deckard/storage
     - rnd_toolbox/hwlib
@@ -1113,7 +1112,6 @@ migrations:
     - specsearches/lyrics/scripts/reindex
     - sport/backend/django_mds
     - sprav/mining/botanik_miner
-    - sprav/mining/bs/scripts/postprocess
     - statbox/nile/tests/unittests/common
     - statbox/qb2
     - statbox/qb2/qb2_extensions/api/v1/extractors
@@ -1354,7 +1352,6 @@ migrations:
     - yweb/antispam/scripts/script_lib
     - yweb/antispam/seo_masks/py/static_impl/ut
     - yweb/antispam/tmu/document_processor/http/server/lib
-    - yweb/antispam/tmu/kwdeploy
     - yweb/antispam/tools/yql
     - yweb/antispam/webspam/collections/vw_model_applier/bin
     - yweb/antispam/webspam/export/tries/tools/upper_tries
@@ -1539,7 +1536,6 @@ migrations:
     - datalens/backend/bi-billing/bi_billing/resources
     - datalens/backend/bi-billing/tests/db
     - datalens/backend/bi-common
-    - datalens/backend/bi-common/bicommon
     - datalens/backend/bi-common/tests/db
     - datalens/backend/bi-common/tests/db/aio
     - datalens/backend/bi-materializer
@@ -1865,7 +1861,6 @@ migrations:
     - quality/trailer/suggest/toloka_processor/report_yt
     - quality/webfresh/metrics/serpsets/raw_serpset_patcher/tests
     - quasar/manufacturing/jangles
-    - quasar/manufacturing/jangles/tests
     - quasar/quasmodrom/quasmodrom
     - rnd_toolbox/deckard
     - rnd_toolbox/nyamm
@@ -2198,7 +2193,6 @@ migrations:
     - dj/services/alisa_skills/server/tests
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/media_platform/services/api/it
     - education/services/sections/it
     - extsearch/geo/recommender/runtime/config/generation
     - extsearch/ymusic/quality/learning/lib
@@ -2817,7 +2811,6 @@ migrations:
     - weather/workers/common/outer_execution
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
-    - web/app_host/daemons/horizon/tests/nora
     - web/app_host/tools/upper_template_generator/src/graph
     - web/app_host/tools/upper_template_generator/src/web_graph
     - yabs/analytics/anomaly_analyzer/src
@@ -3119,8 +3112,6 @@ migrations:
     - ott/tv/webeka/proxy
     - ott/tv/webeka/proxy/api
     - quasar/manufacturing/jangles/tests
-    - release_machine/release_machine/tests
-    - release_machine/release_machine/tests/proto_dispatcher
     - saas/tools/refresh_mon
     - saas/tools/refresh_mon/services
     - sandbox/projects/ott/packager_management_system/lib
@@ -3154,9 +3145,6 @@ migrations:
     - search/mon/workplace/src/libs
     - search/mon/workplace/src/libs/report
     - search/scraper/parser_platform/parsers
-    - smart_devices/packages/tests/config
-    - sprav/assay/feedback_training
-    - sprav/assay/sunduk/update_workflows
     - strm/pinger/lib
     - strm/pinger/lib/settings
     - travel/devops/solomon
@@ -3192,20 +3180,6 @@ migrations:
     - voicetech/uniproxy2/tests/common
     - voicetech/vqe/pylibs
     - voicetech/vqe/tests/common
-    - web/app_host/daemons/horizon/agent
-    - web/app_host/daemons/horizon/agent/nora
-    - web/app_host/daemons/horizon/src/agent
-    - web/app_host/daemons/horizon/src/agent/transport/nora
-    - web/app_host/daemons/horizon/src/common
-    - web/app_host/daemons/horizon/src/common/services
-    - web/app_host/daemons/horizon/src/server
-    - web/app_host/daemons/horizon/src/server/reducers/verificators
-    - web/app_host/daemons/horizon/src/server/services
-    - web/app_host/daemons/horizon/src/server/services/monitoring
-    - yweb/antispam/mascot/samsara2sb/test
-    - yweb/antispam/tmu/kwdeploy
-    - yweb/antispam/webspam/export/tries/deploy
-    - yweb/antispam/ytgr/library
   F405:
     ignore:
     - F405
@@ -3232,7 +3206,6 @@ migrations:
     - dj/services/alisa_skills/server/tests
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/media_platform/services/api/it
     - education/services/sections/it
     - extsearch/geo/recommender/runtime/config/generation
     - extsearch/ymusic/quality/learning/lib
@@ -3495,7 +3468,6 @@ migrations:
     - quality/ab_testing/cofe/projects/eda_ab
     - quality/ab_testing/cofe/projects/mail
     - quality/ab_testing/cofe/projects/mail/features
-    - quality/ab_testing/cofe/projects/music
     - quality/ab_testing/cofe/projects/ott
     - quality/ab_testing/cofe/projects/uslugi/search
     - quality/ab_testing/scripts/ems
@@ -3517,7 +3489,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/lib
     - quality/relev_tools/choice_screen/vh_operations
     - quality/relev_tools/mx_ops/tests/fat
-    - release_machine/iceflame/src/lib/tests
     - robot/jupiter/cmpy/shards_prepare
     - sandbox/projects/market/checkout/MarketCheckouterLoadGenerateAmmoFullLoad
     - sandbox/projects/nmaps
