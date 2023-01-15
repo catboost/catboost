@@ -789,7 +789,7 @@ def onjava_test_deps(unit, *args):
         test_record['STRICT_CLASSPATH_CLASH'] = 'yes'
 
     if ymake_java_test:
-        test_record['CLASSPATH'] = '${DART_CLASSPATH}'
+        test_record['CLASSPATH'] = '$B/{}/{}.jar ${{DART_CLASSPATH}}'.format(unit.get('MODDIR'), unit.get('REALPRJNAME'))
 
     data = dump_test(unit, test_record)
     unit.set_property(['DART_DATA', data])
