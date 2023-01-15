@@ -79,6 +79,8 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput(), "hello" NL);
         UNIT_ASSERT(TShellCommand::SHELL_FINISHED == cmd.GetStatus());
         UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
+
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetQuotedCommand(), "echo hello");
     }
 
     Y_UNIT_TEST(TestOnlyNecessaryQuotes) {
