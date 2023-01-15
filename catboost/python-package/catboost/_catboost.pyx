@@ -4871,6 +4871,17 @@ cdef class _CatBoost:
     cpdef _convert_oblivious_to_asymmetric(self):
         self.__model.ModelTrees.GetMutable().ConvertObliviousToAsymmetric()
 
+    cpdef _get_nan_treatments(self):
+        cdef THashMap[int, ENanValueTreatment] nanTreatmentsMap = GetNanTreatments(dereference(self.__model))
+        nanTreatments = {}
+        for pair in nanTreatmentsMap:
+            if pair.second == ENanValueTreatment_AsIs:
+                nanTreatments[pair.first] = 'AsIs'
+            elif pair.second == ENanValueTreatment_AsFalse:
+                nanTreatments[pair.first] = 'AsFalse'
+            else:
+                nanTreatments[pair.first] = 'AsTrue'
+        return nanTreatments
 
 
 cdef class _MetadataHashProxy:
@@ -5322,7 +5333,7 @@ cpdef _eval_metric_util(
         for i in range(doc_count):
             get_id_object_bytes_string_representation(group_id_param[i], &group_id_strbuf)
             group_id[i] = CalcGroupIdFor(<TStringBuf>group_id_strbuf)
-    
+
     cdef TVector[float] group_weight
     if group_weight_param is not None:
         if (len(group_weight_param) != doc_count):

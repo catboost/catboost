@@ -46,6 +46,15 @@ from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
 
 
+cdef extern from "catboost/libs/model/features.h":
+    cdef cppclass ENanValueTreatment "TFloatFeature::ENanValueTreatment":
+        bool_t operator==(ENanValueTreatment)
+
+    cdef ENanValueTreatment ENanValueTreatment_AsIs "TFloatFeature::ENanValueTreatment::AsIs"
+    cdef ENanValueTreatment ENanValueTreatment_AsFalse "TFloatFeature::ENanValueTreatment::AsFalse"
+    cdef ENanValueTreatment ENanValueTreatment_AsTrue "TFloatFeature::ENanValueTreatment::AsTrue"
+
+
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFeaturePosition:
         int Index
@@ -130,3 +139,4 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
     void SetModelExternalFeatureNames(const TVector[TString]& featureNames, TFullModel* model) nogil except +ProcessException
     cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
+    cdef THashMap[int, ENanValueTreatment] GetNanTreatments(const TFullModel& model) nogil except +ProcessException
