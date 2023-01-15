@@ -1470,7 +1470,6 @@ migrations:
     - ads/yacontext/lib/dssm/inference/lib/model_test/python
     - ads/yacontext/tasks/CONTEXT-0663/yt_shuffle
     - alice/analytics/wer/g2p
-    - alice/cuttlefish/bin/cuttlefish/tests
     - alice/hollywood/library/python/hollywood_recipe
     - alice/hollywood/library/python/testing/run_request_generator
     - alice/hollywood/tests/perf_test
@@ -1486,12 +1485,10 @@ migrations:
     - alice/uniproxy/bin/uniproxy-delivery
     - alice/uniproxy/bin/uniproxy-subway
     - alice/uniproxy/bin/uniproxy-unistat
-    - alice/uniproxy/bin/uniproxy/tests
     - alice/uniproxy/bin/yabio-storage
     - alice/uniproxy/library/activation_storage
     - alice/uniproxy/library/async_http_client
     - alice/uniproxy/library/async_http_client/ut
-    - alice/uniproxy/library/auth
     - alice/uniproxy/library/backends_asr
     - alice/uniproxy/library/backends_asr/ut
     - alice/uniproxy/library/backends_bio
@@ -1515,10 +1512,8 @@ migrations:
     - alice/uniproxy/library/testing/mocks
     - alice/uniproxy/library/uaas
     - alice/uniproxy/library/unimemcached
-    - alice/uniproxy/library/vins/ut
     - alice/uniproxy/library/web_handlers
     - alice/uniproxy/tools/balancer_top
-    - alice/uniproxy/tools/proxycli/library/proxycli
     - alice/vins/core/vins_core/test
     - antirobot/daemon/arcadia_test
     - apphost/conf/tests/blackbox
@@ -1750,14 +1745,10 @@ migrations:
     - maps/b2bgeo/ya_courier/backend/tools/db_tool
     - maps/b2bgeo/ya_courier/backend/ya_courier_backend/logic
     - maps/doc/schemas/ymapsdf/tests
-    - maps/garden/perf/rest/lib
     - maps/infra/apiteka/config_uploader/tests
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/quotateka/config_uploader/tests
-    - maps/infra/sedem/cli/lib
-    - maps/infra/sedem/cli/lib/releaser2
     - maps/infra/sedem/cli/tests/release
-    - maps/infra/sedem/cli/tests/release/machine
     - maps/infra/sedem/cli/tests/release/utils
     - maps/infra/sedem/machine/lib
     - maps/infra/sedem/machine/lib/endpoints
@@ -1956,7 +1947,6 @@ migrations:
     - sandbox/projects/itditp
     - sandbox/projects/itditp/BuildModelsRealtimePackage
     - sandbox/projects/logbroker/tasks/BuildSeveralResources
-    - sandbox/projects/market/promocoordinator/PromocoordinatorCreator
     - sandbox/projects/masstransit/MapsMasstransitImportVehicleTasks
     - sandbox/projects/music/deployment/MusicRestoreMdb/YandexCloudDatabase
     - sandbox/projects/music/deployment/UpdateTestResources/helpers
@@ -2094,7 +2084,6 @@ migrations:
     - vcs/svn/hooks/pre_commit
     - vh/lib/sqs_watcher
     - vh/recommender/tools/delayed_view_stats
-    - voicetech/asr/fairarc/tests
     - voicetech/asr/markup/select
     - voicetech/asr/pipeline/vh
     - voicetech/asr/pipeline/vh/eou
@@ -2325,7 +2314,6 @@ migrations:
     - voicetech/asr/cloud_engine/cli/nirvana/normalize_texts
     - voicetech/asr/cloud_engine/cli/nirvana/recognize
     - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
-    - voicetech/asr/cloud_engine/cli/nirvana/upload_s3_yt
     - voicetech/asr/cloud_engine/server/client/common
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
@@ -2990,8 +2978,6 @@ migrations:
     ignore:
     - F541
     prefixes:
-    - alice/cuttlefish/bin/cuttlefish/tests
-    - alice/cuttlefish/bin/cuttlefish/tests/common
     - alice/hollywood/library/python/testing/integration
     - alice/hollywood/library/python/testing/run_request_generator
     - alice/hollywood/scripts/it_ammo_maker
@@ -3001,11 +2987,6 @@ migrations:
     - alice/tests/integration_tests
     - alice/tests/integration_tests/fm_radio
     - alice/tools/yasm/client/library
-    - alice/uniproxy/bin/uniproxy/tests
-    - alice/uniproxy/library/auth
-    - alice/uniproxy/library/subway/tests
-    - alice/uniproxy/library/vins
-    - alice/uniproxy/tools/proxycli/library/proxycli
     - billing/agency_rewards/agency_rewards
     - billing/agency_rewards/agency_rewards/main
     - billing/agency_rewards/agency_rewards/utils
@@ -3139,11 +3120,7 @@ migrations:
     - maps/infra/balancer_deployer
     - maps/infra/pycare/example/bin
     - maps/infra/sedem/cli/lib
-    - maps/infra/sedem/cli/lib/releaser2
-    - maps/infra/sedem/cli/lib/releaser2/components
     - maps/infra/sedem/cli/lib/schema
-    - maps/infra/sedem/cli/modules
-    - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/machine/client
     - maps/infra/sedem/machine/tests
     - maps/infra/sedem/tools/changelog_collector
@@ -3277,7 +3254,6 @@ migrations:
     - travel/hotels/tools/portal_permaroom_logs_builder
     - travel/hotels/tools/portal_polling_logs_builder
     - travel/hotels/tools/room_photos_uploader
-    - voicetech/asr/cloud_engine/cli/nirvana/upload_s3_yt
     - voicetech/asr/experiments/VOICE-6097-mt-g2p/get_transcription_from_align
     - voicetech/asr/markup/append_alignment_info
     - voicetech/asr/server/stress/bin/asr-stress-generator
@@ -3442,7 +3418,6 @@ migrations:
     - voicetech/asr/cloud_engine/cli/nirvana/normalize_texts
     - voicetech/asr/cloud_engine/cli/nirvana/recognize
     - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
-    - voicetech/asr/cloud_engine/cli/nirvana/upload_s3_yt
     - voicetech/asr/cloud_engine/server/client/common
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
@@ -3535,7 +3510,6 @@ migrations:
     - maps/infra/balancer_deployer
     - maps/infra/ecstatic/integration_tests
     - maps/infra/quotateka/client/fixture
-    - maps/infra/sedem/cli/commands
     - maps/infra/sedem/cli/tests/release/fixtures
     - maps/poi/notification/lib
     - maps/pylibs/infrastructure_api/awacs/tests
