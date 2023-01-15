@@ -10,4 +10,7 @@ async function install(): Promise<void> {
     await buildLocal(process.platform);
 }
 
-install();
+install().catch(err => {
+    console.error(err);
+    process.exit(1);
+});
