@@ -271,15 +271,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arena.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\dynamic_message.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\coded_stream_inl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\gzip_stream.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\printer.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\strtod.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\tokenizer.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\message.h"/>
