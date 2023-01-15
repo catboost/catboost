@@ -2,7 +2,7 @@ PROTO_LIBRARY()
 
 
 
-LICENSE(APACHE2)
+LICENSE(Apache-2.0)
 
 SRCS(
     event.proto
