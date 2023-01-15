@@ -264,6 +264,7 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe/", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe?", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("https://ya.ru/bebe", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/bebezzz", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/bebe.zzz", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru", "bebe"));
