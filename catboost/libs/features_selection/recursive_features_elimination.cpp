@@ -17,6 +17,8 @@
 
 #include <util/generic/hash_set.h>
 
+#include <limits>
+
 using namespace NCatboostOptions;
 
 
@@ -165,6 +167,8 @@ namespace NCB {
         const ECalcTypeShapValues shapCalcType,
         double currentLossValue,
         const TCalcLoss& calcLoss,
+        const EMetricBestValue lossBestValueType,
+        const float lossBestValue,
         TVector<TVector<double>> approx,
         THashSet<ui32>* featuresForSelectSet,
         TFeaturesSelectionSummary* summary,
@@ -204,10 +208,27 @@ namespace NCB {
                 }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
             }
             ui32 worstFeatureIdx = featureToLossValueChange.begin()->first;
+            double worstFeatureScore = std::numeric_limits<double>::max();
             for (auto [featureIdx, featureLossValueChange] : featureToLossValueChange) {
-                CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has loss function change " << featureLossValueChange << Endl;
-                if (featureLossValueChange < featureToLossValueChange[worstFeatureIdx]) {
+                double featureScore = featureLossValueChange;
+                switch(lossBestValueType) {
+                    case EMetricBestValue::Min:
+                        break;
+                    case EMetricBestValue::Max:
+                        featureScore = -featureScore;
+                        break;
+                    case EMetricBestValue::FixedValue:
+                        featureScore = abs(currentLossValue + featureLossValueChange - lossBestValue)
+                                     - abs(currentLossValue - lossBestValue);
+                        break;
+                    default:
+                        ythrow TCatBoostException() << "unsupported bestValue metric type";
+                }
+                CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has score " << featureScore << Endl;
+
+                if (featureScore < worstFeatureScore) {
                     worstFeatureIdx = featureIdx;
+                    worstFeatureScore = featureScore;
                 }
             }
             executor->ExecRange([&](ui32 docIdx) {
@@ -403,6 +424,10 @@ namespace NCB {
             );
         };
 
+        EMetricBestValue lossBestValueType;
+        float lossBestValue;
+        loss->GetBestValue(&lossBestValueType, &lossBestValue);
+
         for (auto step : xrange(alreadyPassedSteps, featuresSelectOptions.Steps.Get())) {
             CATBOOST_NOTICE_LOG << "Step #" << step + 1 << " out of " << featuresSelectOptions.Steps.Get() << Endl;
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-" + ToString(step));
@@ -421,6 +446,8 @@ namespace NCB {
                         featuresSelectOptions.ShapCalcType,
                         currentLossValue,
                         calcLoss,
+                        lossBestValueType,
+                        lossBestValue,
                         std::move(approx),
                         &featuresForSelectSet,
                         &summary,
