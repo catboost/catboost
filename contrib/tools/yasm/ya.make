@@ -6,7 +6,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/yasm/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/yasm/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)

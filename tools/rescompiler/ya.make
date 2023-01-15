@@ -1,7 +1,7 @@
 
 
 IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rescompiler/ya.make.prebuilt)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/tools/rescompiler/ya.make.prebuilt)
 ENDIF()
 
 IF (NOT PREBUILT)
@@ -15,7 +15,7 @@ IF (NOT PREBUILT)
         main.cpp
     )
 
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rescompiler/ya.make.induced_deps)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/tools/rescompiler/ya.make.induced_deps)
 
     END()
 ENDIF()
