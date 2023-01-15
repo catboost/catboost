@@ -161,9 +161,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest_main\cpp-testing-unittest_main.vcxproj">
       <Project>{A5C8D0A0-7CC3-5E2B-6D01-0262E6253DEA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\library-cpp-unittest.vcxproj">
-      <Project>{C72133F9-206D-B2D7-6A76-B25C00AB3D53}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
