@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,255 +17,209 @@
 // Do not include task.h directly. Use scheduler_common.h instead
 #include "scheduler_common.h"
 #include "governor.h"
-#include "scheduler.h"
+#include "arena.h"
+#include "thread_data.h"
+#include "task_dispatcher.h"
+#include "waiters.h"
 #include "itt_notify.h"
 
-#include "tbb/cache_aligned_allocator.h"
-#include "tbb/partitioner.h"
+#include "oneapi/tbb/detail/_task.h"
+#include "oneapi/tbb/partitioner.h"
+#include "oneapi/tbb/task.h"
 
-#include <new>
+#include <cstring>
 
 namespace tbb {
-
-namespace internal {
+namespace detail {
+namespace r1 {
 
 //------------------------------------------------------------------------
-// Methods of allocate_root_proxy
+// resumable tasks
 //------------------------------------------------------------------------
-task& allocate_root_proxy::allocate( size_t size ) {
-    internal::generic_scheduler* v = governor::local_scheduler_weak();
-    __TBB_ASSERT( v, "thread did not activate a task_scheduler_init object?" );
-#if __TBB_TASK_GROUP_CONTEXT
-    task_prefix& p = v->my_innermost_running_task->prefix();
+#if __TBB_RESUMABLE_TASKS
 
-    ITT_STACK_CREATE(p.context->itt_caller);
+void suspend(suspend_callback_type suspend_callback, void* user_callback) {
+    thread_data& td = *governor::get_thread_data();
+    td.my_task_dispatcher->suspend(suspend_callback, user_callback);
+    // Do not access td after suspend.
+}
+
+void resume(suspend_point_type* sp) {
+    assert_pointers_valid(sp, sp->m_arena);
+    task_dispatcher& task_disp = sp->m_resume_task.m_target;
+    __TBB_ASSERT(task_disp.m_thread_data == nullptr, nullptr);
+
+    // TODO: remove this work-around
+    // Prolong the arena's lifetime while all coroutines are alive
+    // (otherwise the arena can be destroyed while some tasks are suspended).
+    arena& a = *sp->m_arena;
+    a.my_references += arena::ref_external;
+
+    if (task_disp.m_properties.critical_task_allowed) {
+        // The target is not in the process of executing critical task, so the resume task is not critical.
+        a.my_resume_task_stream.push(&sp->m_resume_task, random_lane_selector(sp->m_random));
+    } else {
+#if __TBB_PREVIEW_CRITICAL_TASKS
+        // The target is in the process of executing critical task, so the resume task is critical.
+        a.my_critical_task_stream.push(&sp->m_resume_task, random_lane_selector(sp->m_random));
 #endif
-    // New root task becomes part of the currently running task's cancellation context
-    return v->allocate_task( size, __TBB_CONTEXT_ARG(NULL, p.context) );
-}
-
-void allocate_root_proxy::free( task& task ) {
-    internal::generic_scheduler* v = governor::local_scheduler_weak();
-    __TBB_ASSERT( v, "thread does not have initialized task_scheduler_init object?" );
-#if __TBB_TASK_GROUP_CONTEXT
-    // No need to do anything here as long as there is no context -> task connection
-#endif /* __TBB_TASK_GROUP_CONTEXT */
-    v->free_task<local_task>( task );
-}
-
-#if __TBB_TASK_GROUP_CONTEXT
-//------------------------------------------------------------------------
-// Methods of allocate_root_with_context_proxy
-//------------------------------------------------------------------------
-task& allocate_root_with_context_proxy::allocate( size_t size ) const {
-    internal::generic_scheduler* s = governor::local_scheduler_weak();
-    __TBB_ASSERT( s, "Scheduler auto-initialization failed?" );
-    __TBB_ASSERT( &my_context, "allocate_root(context) argument is a dereferenced NULL pointer" );
-    task& t = s->allocate_task( size, NULL, &my_context );
-    // Supported usage model prohibits concurrent initial binding. Thus we do not
-    // need interlocked operations or fences to manipulate with my_context.my_kind
-    if ( __TBB_load_relaxed(my_context.my_kind) == task_group_context::binding_required ) {
-        // If we are in the outermost task dispatch loop of a master thread, then
-        // there is nothing to bind this context to, and we skip the binding part
-        // treating the context as isolated.
-        if ( s->master_outermost_level() )
-            __TBB_store_relaxed(my_context.my_kind, task_group_context::isolated);
-        else
-            my_context.bind_to( s );
     }
-#if __TBB_FP_CONTEXT
-    if ( __TBB_load_relaxed(my_context.my_kind) == task_group_context::isolated &&
-            !(my_context.my_version_and_traits & task_group_context::fp_settings) )
-        my_context.copy_fp_settings( *s->default_context() );
-#endif
-    ITT_STACK_CREATE(my_context.itt_caller);
-    return t;
+
+    // Do not access target after that point.
+    a.advertise_new_work<arena::wakeup>();
+
+    // Release our reference to my_arena.
+    a.on_thread_leaving<arena::ref_external>();
 }
 
-void allocate_root_with_context_proxy::free( task& task ) const {
-    internal::generic_scheduler* v = governor::local_scheduler_weak();
-    __TBB_ASSERT( v, "thread does not have initialized task_scheduler_init object?" );
-    // No need to do anything here as long as unbinding is performed by context destructor only.
-    v->free_task<local_task>( task );
-}
-#endif /* __TBB_TASK_GROUP_CONTEXT */
-
-//------------------------------------------------------------------------
-// Methods of allocate_continuation_proxy
-//------------------------------------------------------------------------
-task& allocate_continuation_proxy::allocate( size_t size ) const {
-    task* t = (task*)this;
-    assert_task_valid(t);
-    generic_scheduler* s = governor::local_scheduler_weak();
-    task* parent = t->parent();
-    t->prefix().parent = NULL;
-    return s->allocate_task( size, __TBB_CONTEXT_ARG(parent, t->prefix().context) );
+suspend_point_type* current_suspend_point() {
+    thread_data& td = *governor::get_thread_data();
+    return td.my_task_dispatcher->get_suspend_point();
 }
 
-void allocate_continuation_proxy::free( task& mytask ) const {
-    // Restore the parent as it was before the corresponding allocate was called.
-    ((task*)this)->prefix().parent = mytask.parent();
-    governor::local_scheduler_weak()->free_task<local_task>(mytask);
+static task_dispatcher& create_coroutine(thread_data& td) {
+    // We may have some task dispatchers cached
+    task_dispatcher* task_disp = td.my_arena->my_co_cache.pop();
+    if (!task_disp) {
+        void* ptr = cache_aligned_allocate(sizeof(task_dispatcher));
+        task_disp = new(ptr) task_dispatcher(td.my_arena);
+        task_disp->init_suspend_point(td.my_arena, td.my_arena->my_market->worker_stack_size());
+    }
+    // Prolong the arena's lifetime until all coroutines is alive
+    // (otherwise the arena can be destroyed while some tasks are suspended).
+    // TODO: consider behavior if there are more than 4K external references.
+    td.my_arena->my_references += arena::ref_external;
+    return *task_disp;
 }
 
-//------------------------------------------------------------------------
-// Methods of allocate_child_proxy
-//------------------------------------------------------------------------
-task& allocate_child_proxy::allocate( size_t size ) const {
-    task* t = (task*)this;
-    assert_task_valid(t);
-    generic_scheduler* s = governor::local_scheduler_weak();
-    return s->allocate_task( size, __TBB_CONTEXT_ARG(t, t->prefix().context) );
+void task_dispatcher::suspend(suspend_callback_type suspend_callback, void* user_callback) {
+    __TBB_ASSERT(suspend_callback != nullptr, nullptr);
+    __TBB_ASSERT(user_callback != nullptr, nullptr);
+    __TBB_ASSERT(m_thread_data != nullptr, nullptr);
+
+    arena_slot* slot = m_thread_data->my_arena_slot;
+    __TBB_ASSERT(slot != nullptr, nullptr);
+
+    task_dispatcher& default_task_disp = slot->default_task_dispatcher();
+    // TODO: simplify the next line, e.g. is_task_dispatcher_recalled( task_dispatcher& )
+    bool is_recalled = default_task_disp.get_suspend_point()->m_is_owner_recalled.load(std::memory_order_acquire);
+    task_dispatcher& target = is_recalled ? default_task_disp : create_coroutine(*m_thread_data);
+
+    thread_data::suspend_callback_wrapper callback = { suspend_callback, user_callback, get_suspend_point() };
+    m_thread_data->set_post_resume_action(thread_data::post_resume_action::callback, &callback);
+    resume(target);
+
+    if (m_properties.outermost) {
+        recall_point();
+    }
 }
 
-void allocate_child_proxy::free( task& mytask ) const {
-    governor::local_scheduler_weak()->free_task<local_task>(mytask);
-}
+void task_dispatcher::resume(task_dispatcher& target) {
+    // Do not create non-trivial objects on the stack of this function. They might never be destroyed
+    {
+        thread_data* td = m_thread_data;
+        __TBB_ASSERT(&target != this, "We cannot resume to ourself");
+        __TBB_ASSERT(td != nullptr, "This task dispatcher must be attach to a thread data");
+        __TBB_ASSERT(td->my_task_dispatcher == this, "Thread data must be attached to this task dispatcher");
+        __TBB_ASSERT(td->my_post_resume_action != thread_data::post_resume_action::none, "The post resume action must be set");
+        __TBB_ASSERT(td->my_post_resume_arg, "The post resume action must have an argument");
 
-//------------------------------------------------------------------------
-// Methods of allocate_additional_child_of_proxy
-//------------------------------------------------------------------------
-task& allocate_additional_child_of_proxy::allocate( size_t size ) const {
-    parent.increment_ref_count();
-    generic_scheduler* s = governor::local_scheduler_weak();
-    return s->allocate_task( size, __TBB_CONTEXT_ARG(&parent, parent.prefix().context) );
-}
+        // Change the task dispatcher
+        td->detach_task_dispatcher();
+        td->attach_task_dispatcher(target);
+    }
+    __TBB_ASSERT(m_suspend_point != nullptr, "Suspend point must be created");
+    __TBB_ASSERT(target.m_suspend_point != nullptr, "Suspend point must be created");
+    // Swap to the target coroutine.
+    m_suspend_point->m_co_context.resume(target.m_suspend_point->m_co_context);
+    // Pay attention that m_thread_data can be changed after resume
+    {
+        thread_data* td = m_thread_data;
+        __TBB_ASSERT(td != nullptr, "This task dispatcher must be attach to a thread data");
+        __TBB_ASSERT(td->my_task_dispatcher == this, "Thread data must be attached to this task dispatcher");
+        td->do_post_resume_action();
 
-void allocate_additional_child_of_proxy::free( task& task ) const {
-    // Undo the increment.  We do not check the result of the fetch-and-decrement.
-    // We could consider be spawning the task if the fetch-and-decrement returns 1.
-    // But we do not know that was the programmer's intention.
-    // Furthermore, if it was the programmer's intention, the program has a fundamental
-    // race condition (that we warn about in Reference manual), because the
-    // reference count might have become zero before the corresponding call to
-    // allocate_additional_child_of_proxy::allocate.
-    parent.internal_decrement_ref_count();
-    governor::local_scheduler_weak()->free_task<local_task>(task);
-}
-
-//------------------------------------------------------------------------
-// Support for auto_partitioner
-//------------------------------------------------------------------------
-size_t get_initial_auto_partitioner_divisor() {
-    const size_t X_FACTOR = 4;
-    return X_FACTOR * governor::local_scheduler()->max_threads_in_arena();
-}
-
-//------------------------------------------------------------------------
-// Methods of affinity_partitioner_base_v3
-//------------------------------------------------------------------------
-void affinity_partitioner_base_v3::resize( unsigned factor ) {
-    // Check factor to avoid asking for number of workers while there might be no arena.
-    size_t new_size = factor ? factor*governor::local_scheduler()->max_threads_in_arena() : 0;
-    if( new_size!=my_size ) {
-        if( my_array ) {
-            NFS_Free( my_array );
-            // Following two assignments must be done here for sake of exception safety.
-            my_array = NULL;
-            my_size = 0;
-        }
-        if( new_size ) {
-            my_array = static_cast<affinity_id*>(NFS_Allocate(new_size,sizeof(affinity_id), NULL ));
-            memset( my_array, 0, sizeof(affinity_id)*new_size );
-            my_size = new_size;
+        // Remove the recall flag if the thread in its original task dispatcher
+        arena_slot* slot = td->my_arena_slot;
+        __TBB_ASSERT(slot != nullptr, nullptr);
+        if (this == slot->my_default_task_dispatcher) {
+            __TBB_ASSERT(m_suspend_point != nullptr, nullptr);
+            m_suspend_point->m_is_owner_recalled.store(false, std::memory_order_relaxed);
         }
     }
 }
 
-} // namespace internal
+void thread_data::do_post_resume_action() {
+    __TBB_ASSERT(my_post_resume_action != thread_data::post_resume_action::none, "The post resume action must be set");
+    __TBB_ASSERT(my_post_resume_arg, "The post resume action must have an argument");
 
-using namespace tbb::internal;
-
-//------------------------------------------------------------------------
-// task
-//------------------------------------------------------------------------
-
-void task::internal_set_ref_count( int count ) {
-    __TBB_ASSERT( count>=0, "count must not be negative" );
-    task_prefix &p = prefix();
-    __TBB_ASSERT(p.ref_count==1 && p.state==allocated && self().parent()==this
-        || !(p.extra_state & es_ref_count_active), "ref_count race detected");
-    ITT_NOTIFY(sync_releasing, &p.ref_count);
-    p.ref_count = count;
-}
-
-internal::reference_count task::internal_decrement_ref_count() {
-    ITT_NOTIFY( sync_releasing, &prefix().ref_count );
-    internal::reference_count k = __TBB_FetchAndDecrementWrelease( &prefix().ref_count );
-    __TBB_ASSERT( k>=1, "task's reference count underflowed" );
-    if( k==1 )
-        ITT_NOTIFY( sync_acquired, &prefix().ref_count );
-    return k-1;
-}
-
-task& task::self() {
-    generic_scheduler *v = governor::local_scheduler_weak();
-    v->assert_task_pool_valid();
-    __TBB_ASSERT( v->my_innermost_running_task, NULL );
-    return *v->my_innermost_running_task;
-}
-
-bool task::is_owned_by_current_thread() const {
-    return true;
-}
-
-void interface5::internal::task_base::destroy( task& victim ) {
-    // 1 may be a guard reference for wait_for_all, which was not reset because
-    // of concurrent_wait mode or because prepared root task was not actually used
-    // for spawning tasks (as in structured_task_group).
-    __TBB_ASSERT( (intptr_t)victim.prefix().ref_count <= 1, "Task being destroyed must not have children" );
-    __TBB_ASSERT( victim.state()==task::allocated, "illegal state for victim task" );
-    task* parent = victim.parent();
-    victim.~task();
-    if( parent ) {
-        __TBB_ASSERT( parent->state()!=task::freed && parent->state()!=task::ready,
-                      "attempt to destroy child of running or corrupted parent?" );
-        // 'reexecute' and 'executing' are also signs of a race condition, since most tasks
-        // set their ref_count upon entry but "es_ref_count_active" should detect this
-        parent->internal_decrement_ref_count();
-        // Even if the last reference to *parent is removed, it should not be spawned (documented behavior).
+    switch (my_post_resume_action) {
+    case post_resume_action::register_waiter:
+    {
+        static_cast<extended_concurrent_monitor::resume_context*>(my_post_resume_arg)->notify();
+        break;
     }
-    governor::local_scheduler_weak()->free_task<no_cache>( victim );
-}
-
-void task::spawn_and_wait_for_all( task_list& list ) {
-    generic_scheduler* s = governor::local_scheduler();
-    task* t = list.first;
-    if( t ) {
-        if( &t->prefix().next!=list.next_ptr )
-            s->local_spawn( t->prefix().next, *list.next_ptr );
-        list.clear();
+    case post_resume_action::resume:
+    {
+        r1::resume(static_cast<suspend_point_type*>(my_post_resume_arg));
+        break;
     }
-    s->local_wait_for_all( *this, t );
-}
-
-/** Defined out of line so that compiler does not replicate task's vtable.
-    It's pointless to define it inline anyway, because all call sites to it are virtual calls
-    that the compiler is unlikely to optimize. */
-void task::note_affinity( affinity_id ) {
-}
-
-#if __TBB_TASK_GROUP_CONTEXT
-void task::change_group ( task_group_context& ctx ) {
-    prefix().context = &ctx;
-    internal::generic_scheduler* s = governor::local_scheduler_weak();
-    if ( __TBB_load_relaxed(ctx.my_kind) == task_group_context::binding_required ) {
-        // If we are in the outermost task dispatch loop of a master thread, then
-        // there is nothing to bind this context to, and we skip the binding part
-        // treating the context as isolated.
-        if ( s->master_outermost_level() )
-            __TBB_store_relaxed(ctx.my_kind, task_group_context::isolated);
-        else
-            ctx.bind_to( s );
+    case post_resume_action::callback:
+    {
+        suspend_callback_wrapper callback = *static_cast<suspend_callback_wrapper*>(my_post_resume_arg);
+        callback();
+        break;
     }
-#if __TBB_FP_CONTEXT
-    if ( __TBB_load_relaxed(ctx.my_kind) == task_group_context::isolated &&
-            !(ctx.my_version_and_traits & task_group_context::fp_settings) )
-        ctx.copy_fp_settings( *s->default_context() );
-#endif
-    ITT_STACK_CREATE(ctx.itt_caller);
-}
-#endif /* __TBB_TASK_GROUP_CONTEXT */
+    case post_resume_action::cleanup:
+    {
+        task_dispatcher* to_cleanup = static_cast<task_dispatcher*>(my_post_resume_arg);
+        // Release coroutine's reference to my_arena.
+        my_arena->on_thread_leaving<arena::ref_external>();
+        // Cache the coroutine for possible later re-usage
+        my_arena->my_co_cache.push(to_cleanup);
+        break;
+    }
+    case post_resume_action::notify:
+    {
+        std::atomic<bool>& owner_recall_flag = *static_cast<std::atomic<bool>*>(my_post_resume_arg);
+        owner_recall_flag.store(true, std::memory_order_release);
+        // Do not access recall_flag because it can be destroyed after the notification.
+        break;
+    }
+    default:
+        __TBB_ASSERT(false, "Unknown post resume action");
+    }
 
+    my_post_resume_action = post_resume_action::none;
+    my_post_resume_arg = nullptr;
+}
+
+#else
+
+void suspend(suspend_callback_type, void*) {
+    __TBB_ASSERT_RELEASE(false, "Resumable tasks are unsupported on this platform");
+}
+
+void resume(suspend_point_type*) {
+    __TBB_ASSERT_RELEASE(false, "Resumable tasks are unsupported on this platform");
+}
+
+suspend_point_type* current_suspend_point() {
+    __TBB_ASSERT_RELEASE(false, "Resumable tasks are unsupported on this platform");
+    return nullptr;
+}
+
+#endif /* __TBB_RESUMABLE_TASKS */
+
+void notify_waiters(std::uintptr_t wait_ctx_addr) {
+    auto is_related_wait_ctx = [&] (extended_context context) {
+        return wait_ctx_addr == context.my_uniq_addr;
+    };
+
+    r1::governor::get_thread_data()->my_arena->my_market->get_wait_list().notify(is_related_wait_ctx);
+}
+
+} // namespace r1
+} // namespace detail
 } // namespace tbb
 

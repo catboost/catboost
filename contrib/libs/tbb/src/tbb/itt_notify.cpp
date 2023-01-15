@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-#if DO_ITT_NOTIFY
+#if __TBB_USE_ITT_NOTIFY
 
 #if _WIN32||_WIN64
     #ifndef UNICODE
@@ -43,7 +43,10 @@ extern "C" void MallocInitializeITT();
 #include "tools_api/ittnotify_static.c"
 
 namespace tbb {
-namespace internal {
+namespace detail {
+namespace r1 {
+
+/** This extra proxy method is necessary since __itt_init_lib is declared as static **/
 int __TBB_load_ittnotify() {
 #if !(_WIN32||_WIN64)
     // tool_api crashes without dlopen, check that it's present. Common case
@@ -59,37 +62,8 @@ int __TBB_load_ittnotify() {
                            ));
 }
 
-}} // namespaces
-
-#endif /* DO_ITT_NOTIFY */
-
-#define __TBB_NO_IMPLICIT_LINKAGE 1
-#include "itt_notify.h"
-
-namespace tbb {
-
-#if DO_ITT_NOTIFY
-    const tchar
-            *SyncType_GlobalLock = _T("TbbGlobalLock"),
-            *SyncType_Scheduler = _T("%Constant")
-            ;
-    const tchar
-            *SyncObj_SchedulerInitialization = _T("TbbSchedulerInitialization"),
-            *SyncObj_SchedulersList = _T("TbbSchedulersList"),
-            *SyncObj_WorkerLifeCycleMgmt = _T("TBB Scheduler"),
-            *SyncObj_TaskStealingLoop = _T("TBB Scheduler"),
-            *SyncObj_WorkerTaskPool = _T("TBB Scheduler"),
-            *SyncObj_MasterTaskPool = _T("TBB Scheduler"),
-            *SyncObj_TaskPoolSpinning = _T("TBB Scheduler"),
-            *SyncObj_Mailbox = _T("TBB Scheduler"),
-            *SyncObj_TaskReturnList = _T("TBB Scheduler"),
-            *SyncObj_TaskStream = _T("TBB Scheduler"),
-#if __TBB_PREVIEW_CRITICAL_TASKS
-            *SyncObj_CriticalTaskStream = _T("TBB Scheduler"),
-#endif
-            *SyncObj_ContextsList = _T("TBB Scheduler")
-            ;
-#endif /* DO_ITT_NOTIFY */
-
+} //namespace r1
+} //namespace detail
 } // namespace tbb
 
+#endif /* __TBB_USE_ITT_NOTIFY */

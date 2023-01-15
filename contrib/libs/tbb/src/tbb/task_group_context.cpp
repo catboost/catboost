@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2020 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,269 +14,212 @@
     limitations under the License.
 */
 
-#include "scheduler.h"
-
+#include "oneapi/tbb/detail/_config.h"
+#include "oneapi/tbb/tbb_allocator.h"
+#include "oneapi/tbb/task_group.h"
+#include "governor.h"
+#include "thread_data.h"
+#include "scheduler_common.h"
 #include "itt_notify.h"
+#include "task_dispatcher.h"
+
+#include <type_traits>
 
 namespace tbb {
-
-#if __TBB_TASK_GROUP_CONTEXT
-
-using namespace internal;
-
-//------------------------------------------------------------------------
-// captured_exception
-//------------------------------------------------------------------------
-
-inline char* duplicate_string ( const char* src ) {
-    char* dst = NULL;
-    if ( src ) {
-        size_t len = strlen(src) + 1;
-        dst = (char*)allocate_via_handler_v3(len);
-        strncpy (dst, src, len);
-    }
-    return dst;
-}
-
-captured_exception::~captured_exception () throw() {
-    clear();
-}
-
-void captured_exception::set ( const char* a_name, const char* info ) throw() {
-    my_exception_name = duplicate_string( a_name );
-    my_exception_info = duplicate_string( info );
-}
-
-void captured_exception::clear () throw() {
-    deallocate_via_handler_v3 (const_cast<char*>(my_exception_name));
-    deallocate_via_handler_v3 (const_cast<char*>(my_exception_info));
-}
-
-captured_exception* captured_exception::move () throw() {
-    captured_exception *e = (captured_exception*)allocate_via_handler_v3(sizeof(captured_exception));
-    if ( e ) {
-        ::new (e) captured_exception();
-        e->my_exception_name = my_exception_name;
-        e->my_exception_info = my_exception_info;
-        e->my_dynamic = true;
-        my_exception_name = my_exception_info = NULL;
-    }
-    return e;
-}
-
-void captured_exception::destroy () throw() {
-    __TBB_ASSERT ( my_dynamic, "Method destroy can be used only on objects created by clone or allocate" );
-    if ( my_dynamic ) {
-        this->captured_exception::~captured_exception();
-        deallocate_via_handler_v3 (this);
-    }
-}
-
-captured_exception* captured_exception::allocate ( const char* a_name, const char* info ) {
-    captured_exception *e = (captured_exception*)allocate_via_handler_v3( sizeof(captured_exception) );
-    if ( e ) {
-        ::new (e) captured_exception(a_name, info);
-        e->my_dynamic = true;
-    }
-    return e;
-}
-
-const char* captured_exception::name() const throw() {
-    return my_exception_name;
-}
-
-const char* captured_exception::what() const throw() {
-    return my_exception_info;
-}
-
+namespace detail {
+namespace r1 {
 
 //------------------------------------------------------------------------
 // tbb_exception_ptr
 //------------------------------------------------------------------------
-
-#if !TBB_USE_CAPTURED_EXCEPTION
-
-namespace internal {
-
-template<typename T>
-tbb_exception_ptr* AllocateExceptionContainer( const T& src ) {
-    tbb_exception_ptr *eptr = (tbb_exception_ptr*)allocate_via_handler_v3( sizeof(tbb_exception_ptr) );
-    if ( eptr )
-        new (eptr) tbb_exception_ptr(src);
-    return eptr;
+tbb_exception_ptr* tbb_exception_ptr::allocate() noexcept {
+    tbb_exception_ptr* eptr = (tbb_exception_ptr*)allocate_memory(sizeof(tbb_exception_ptr));
+    return eptr ? new (eptr) tbb_exception_ptr(std::current_exception()) : nullptr;
 }
 
-tbb_exception_ptr* tbb_exception_ptr::allocate () {
-    return AllocateExceptionContainer( std::current_exception() );
+void tbb_exception_ptr::destroy() noexcept {
+    this->~tbb_exception_ptr();
+    deallocate_memory(this);
 }
 
-tbb_exception_ptr* tbb_exception_ptr::allocate ( const tbb_exception& ) {
-    return AllocateExceptionContainer( std::current_exception() );
+void tbb_exception_ptr::throw_self() {
+    if (governor::rethrow_exception_broken()) fix_broken_rethrow();
+    std::rethrow_exception(my_ptr);
 }
-
-tbb_exception_ptr* tbb_exception_ptr::allocate ( captured_exception& src ) {
-    tbb_exception_ptr *res = AllocateExceptionContainer( src );
-    src.destroy();
-    return res;
-}
-
-void tbb_exception_ptr::destroy () throw() {
-    this->tbb_exception_ptr::~tbb_exception_ptr();
-    deallocate_via_handler_v3 (this);
-}
-
-} // namespace internal
-#endif /* !TBB_USE_CAPTURED_EXCEPTION */
-
 
 //------------------------------------------------------------------------
 // task_group_context
 //------------------------------------------------------------------------
 
-task_group_context::~task_group_context () {
-    if ( __TBB_load_relaxed(my_kind) == binding_completed ) {
-        if ( governor::is_set(my_owner) ) {
+void task_group_context_impl::destroy(d1::task_group_context& ctx) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+
+    auto ctx_lifetime_state = ctx.my_lifetime_state.load(std::memory_order_relaxed);
+    __TBB_ASSERT(ctx_lifetime_state != d1::task_group_context::lifetime_state::locked, nullptr);
+
+    if (ctx_lifetime_state == d1::task_group_context::lifetime_state::bound) {
+        // The owner can be destroyed at any moment. Access the associate data with caution.
+        thread_data* owner = ctx.my_owner.load(std::memory_order_relaxed);
+        if (governor::is_thread_data_set(owner)) {
+            thread_data::context_list_state& cls = owner->my_context_list_state;
+            // We are the owner, so cls is valid.
             // Local update of the context list
-            uintptr_t local_count_snapshot = my_owner->my_context_state_propagation_epoch;
-            my_owner->my_local_ctx_list_update.store<relaxed>(1);
-            // Prevent load of nonlocal update flag from being hoisted before the
-            // store to local update flag.
-            atomic_fence();
-            if ( my_owner->my_nonlocal_ctx_list_update.load<relaxed>() ) {
-                spin_mutex::scoped_lock lock(my_owner->my_context_list_mutex);
-                my_node.my_prev->my_next = my_node.my_next;
-                my_node.my_next->my_prev = my_node.my_prev;
-                my_owner->my_local_ctx_list_update.store<relaxed>(0);
-            }
-            else {
-                my_node.my_prev->my_next = my_node.my_next;
-                my_node.my_next->my_prev = my_node.my_prev;
+            std::uintptr_t local_count_snapshot = cls.epoch.load(std::memory_order_relaxed);
+            // The sequentially-consistent store to prevent load of nonlocal update flag
+            // from being hoisted before the store to local update flag.
+            cls.local_update = 1;
+            if (cls.nonlocal_update.load(std::memory_order_relaxed)) {
+                spin_mutex::scoped_lock lock(cls.mutex);
+                ctx.my_node.remove_relaxed();
+                cls.local_update.store(0, std::memory_order_relaxed);
+            } else {
+                ctx.my_node.remove_relaxed();
                 // Release fence is necessary so that update of our neighbors in
                 // the context list was committed when possible concurrent destroyer
                 // proceeds after local update flag is reset by the following store.
-                my_owner->my_local_ctx_list_update.store<release>(0);
-                if ( local_count_snapshot != the_context_state_propagation_epoch ) {
+                cls.local_update.store(0, std::memory_order_release);
+                if (local_count_snapshot != the_context_state_propagation_epoch.load(std::memory_order_relaxed)) {
                     // Another thread was propagating cancellation request when we removed
                     // ourselves from the list. We must ensure that it is not accessing us
                     // when this destructor finishes. We'll be able to acquire the lock
                     // below only after the other thread finishes with us.
-                    spin_mutex::scoped_lock lock(my_owner->my_context_list_mutex);
+                    spin_mutex::scoped_lock lock(cls.mutex);
                 }
             }
-        }
-        else {
-            // Nonlocal update of the context list
-            // Synchronizes with generic_scheduler::cleanup_local_context_list()
-            // TODO: evaluate and perhaps relax, or add some lock instead
-            if ( internal::as_atomic(my_kind).fetch_and_store(dying) == detached ) {
-                my_node.my_prev->my_next = my_node.my_next;
-                my_node.my_next->my_prev = my_node.my_prev;
+        } else {
+            d1::task_group_context::lifetime_state expected = d1::task_group_context::lifetime_state::bound;
+            if (
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER <= 1910
+                !((std::atomic<typename std::underlying_type<d1::task_group_context::lifetime_state>::type>&)ctx.my_lifetime_state).compare_exchange_strong(
+                    (typename std::underlying_type<d1::task_group_context::lifetime_state>::type&)expected,
+                    (typename std::underlying_type<d1::task_group_context::lifetime_state>::type)d1::task_group_context::lifetime_state::locked)
+#else
+                !ctx.my_lifetime_state.compare_exchange_strong(expected, d1::task_group_context::lifetime_state::locked)
+#endif
+                ) {
+                __TBB_ASSERT(expected == d1::task_group_context::lifetime_state::detached, nullptr);
+                // The "owner" local variable can be a dangling pointer here. Do not access it.
+                owner = nullptr;
+                spin_wait_until_eq(ctx.my_owner, nullptr);
+                // It is unsafe to remove the node because its neighbors might be already destroyed.
+                // TODO: reconsider the logic.
+                // ctx.my_node.remove_relaxed();
             }
             else {
-                //TODO: evaluate and perhaps relax
-                my_owner->my_nonlocal_ctx_list_update.fetch_and_increment<full_fence>();
-                //TODO: evaluate and perhaps remove
-                spin_wait_until_eq( my_owner->my_local_ctx_list_update, 0u );
-                my_owner->my_context_list_mutex.lock();
-                my_node.my_prev->my_next = my_node.my_next;
-                my_node.my_next->my_prev = my_node.my_prev;
-                my_owner->my_context_list_mutex.unlock();
-                //TODO: evaluate and perhaps relax
-                my_owner->my_nonlocal_ctx_list_update.fetch_and_decrement<full_fence>();
+                __TBB_ASSERT(expected == d1::task_group_context::lifetime_state::bound, nullptr);
+                __TBB_ASSERT(ctx.my_owner.load(std::memory_order_relaxed) != nullptr, nullptr);
+                thread_data::context_list_state& cls = owner->my_context_list_state;
+                __TBB_ASSERT(is_alive(cls.nonlocal_update.load(std::memory_order_relaxed)), "The owner should be alive.");
+
+                ++cls.nonlocal_update;
+                ctx.my_lifetime_state.store(d1::task_group_context::lifetime_state::dying, std::memory_order_release);
+                spin_wait_until_eq(cls.local_update, 0u);
+                {
+                    spin_mutex::scoped_lock lock(cls.mutex);
+                    ctx.my_node.remove_relaxed();
+                }
+                --cls.nonlocal_update;
             }
         }
     }
-#if __TBB_FP_CONTEXT
-    internal::punned_cast<cpu_ctl_env*>(&my_cpu_ctl_env)->~cpu_ctl_env();
+
+    if (ctx_lifetime_state == d1::task_group_context::lifetime_state::detached) {
+        spin_wait_until_eq(ctx.my_owner, nullptr);
+    }
+
+    d1::cpu_ctl_env* ctl = reinterpret_cast<d1::cpu_ctl_env*>(&ctx.my_cpu_ctl_env);
+#if _MSC_VER && _MSC_VER <= 1900 && !__INTEL_COMPILER
+    suppress_unused_warning(ctl);
 #endif
-    poison_value(my_version_and_traits);
-    if ( my_exception )
-        my_exception->destroy();
-    ITT_STACK(itt_caller != ITT_CALLER_NULL, caller_destroy, itt_caller);
+    ctl->~cpu_ctl_env();
+
+    if (ctx.my_exception)
+        ctx.my_exception->destroy();
+    ITT_STACK_DESTROY(ctx.my_itt_caller);
+
+    poison_pointer(ctx.my_parent);
+    poison_pointer(ctx.my_parent);
+    poison_pointer(ctx.my_owner);
+    poison_pointer(ctx.my_node.next);
+    poison_pointer(ctx.my_node.prev);
+    poison_pointer(ctx.my_exception);
+    poison_pointer(ctx.my_itt_caller);
 }
 
-void task_group_context::init () {
-#if DO_ITT_NOTIFY
-    // Check version of task group context to avoid reporting misleading identifier.
-    if( ( my_version_and_traits & version_mask ) < 3 )
-        my_name = internal::CUSTOM_CTX;
-#endif
-    ITT_TASK_GROUP(this, my_name, NULL);
-    __TBB_STATIC_ASSERT ( sizeof(my_version_and_traits) >= 4, "Layout of my_version_and_traits must be reconsidered on this platform" );
-    __TBB_STATIC_ASSERT ( sizeof(task_group_context) == 2 * NFS_MaxLineSize, "Context class has wrong size - check padding and members alignment" );
-    __TBB_ASSERT ( (uintptr_t(this) & (sizeof(my_cancellation_requested) - 1)) == 0, "Context is improperly aligned" );
-    __TBB_ASSERT ( __TBB_load_relaxed(my_kind) == isolated || __TBB_load_relaxed(my_kind) == bound, "Context can be created only as isolated or bound" );
-    my_parent = NULL;
-    my_node.my_next = NULL;
-    my_node.my_prev = NULL;
-    my_cancellation_requested = 0;
-    my_exception = NULL;
-    my_owner = NULL;
-    my_state = 0;
-    itt_caller = ITT_CALLER_NULL;
-#if __TBB_TASK_PRIORITY
-    my_priority = normalized_normal_priority;
-#endif /* __TBB_TASK_PRIORITY */
-#if __TBB_FP_CONTEXT
-    __TBB_STATIC_ASSERT( sizeof(my_cpu_ctl_env) == sizeof(internal::uint64_t), "The reserved space for FPU settings are not equal sizeof(uint64_t)" );
-    __TBB_STATIC_ASSERT( sizeof(cpu_ctl_env) <= sizeof(my_cpu_ctl_env), "FPU settings storage does not fit to uint64_t" );
-    suppress_unused_warning( my_cpu_ctl_env.space );
+void task_group_context_impl::initialize(d1::task_group_context& ctx) {
+    ITT_TASK_GROUP(&ctx, ctx.my_name, nullptr);
 
-    cpu_ctl_env &ctl = *internal::punned_cast<cpu_ctl_env*>(&my_cpu_ctl_env);
-    new ( &ctl ) cpu_ctl_env;
-    if ( my_version_and_traits & fp_settings )
-        ctl.get_env();
-#endif
+    ctx.my_cpu_ctl_env = 0;
+    ctx.my_cancellation_requested = 0;
+    ctx.my_state.store(0, std::memory_order_relaxed);
+    // Set the created state to bound at the first usage.
+    ctx.my_lifetime_state.store(d1::task_group_context::lifetime_state::created, std::memory_order_relaxed);
+    ctx.my_parent = nullptr;
+    ctx.my_owner = nullptr;
+    ctx.my_node.next.store(nullptr, std::memory_order_relaxed);
+    ctx.my_node.next.store(nullptr, std::memory_order_relaxed);
+    ctx.my_exception = nullptr;
+    ctx.my_itt_caller = nullptr;
+
+    static_assert(sizeof(d1::cpu_ctl_env) <= sizeof(ctx.my_cpu_ctl_env), "FPU settings storage does not fit to uint64_t");
+    d1::cpu_ctl_env* ctl = new (&ctx.my_cpu_ctl_env) d1::cpu_ctl_env;
+    if (ctx.my_traits.fp_settings)
+        ctl->get_env();
 }
 
-void task_group_context::register_with ( generic_scheduler *local_sched ) {
-    __TBB_ASSERT( local_sched, NULL );
-    my_owner = local_sched;
+void task_group_context_impl::register_with(d1::task_group_context& ctx, thread_data* td) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    __TBB_ASSERT(td, NULL);
+    ctx.my_owner.store(td, std::memory_order_relaxed);
+    thread_data::context_list_state& cls = td->my_context_list_state;
     // state propagation logic assumes new contexts are bound to head of the list
-    my_node.my_prev = &local_sched->my_context_list_head;
+    ctx.my_node.prev.store(&cls.head, std::memory_order_relaxed);
     // Notify threads that may be concurrently destroying contexts registered
     // in this scheduler's list that local list update is underway.
-    local_sched->my_local_ctx_list_update.store<relaxed>(1);
     // Prevent load of global propagation epoch counter from being hoisted before
     // speculative stores above, as well as load of nonlocal update flag from
     // being hoisted before the store to local update flag.
-    atomic_fence();
+    cls.local_update = 1;
     // Finalize local context list update
-    if ( local_sched->my_nonlocal_ctx_list_update.load<relaxed>() ) {
-        spin_mutex::scoped_lock lock(my_owner->my_context_list_mutex);
-        local_sched->my_context_list_head.my_next->my_prev = &my_node;
-        my_node.my_next = local_sched->my_context_list_head.my_next;
-        my_owner->my_local_ctx_list_update.store<relaxed>(0);
-        local_sched->my_context_list_head.my_next = &my_node;
-    }
-    else {
-        local_sched->my_context_list_head.my_next->my_prev = &my_node;
-        my_node.my_next = local_sched->my_context_list_head.my_next;
-        my_owner->my_local_ctx_list_update.store<release>(0);
+    if (cls.nonlocal_update.load(std::memory_order_relaxed)) {
+        spin_mutex::scoped_lock lock(cls.mutex);
+        d1::context_list_node* head_next = cls.head.next.load(std::memory_order_relaxed);
+        head_next->prev.store(&ctx.my_node, std::memory_order_relaxed);
+        ctx.my_node.next.store(head_next, std::memory_order_relaxed);
+        cls.local_update.store(0, std::memory_order_relaxed);
+        cls.head.next.store(&ctx.my_node, std::memory_order_relaxed);
+    } else {
+        d1::context_list_node* head_next = cls.head.next.load(std::memory_order_relaxed);
+        head_next->prev.store(&ctx.my_node, std::memory_order_relaxed);
+        ctx.my_node.next.store(head_next, std::memory_order_relaxed);
+        cls.local_update.store(0, std::memory_order_release);
         // Thread-local list of contexts allows concurrent traversal by another thread
-        // while propagating state change. To ensure visibility of my_node's members
+        // while propagating state change. To ensure visibility of ctx.my_node's members
         // to the concurrently traversing thread, the list's head is updated by means
         // of store-with-release.
-        __TBB_store_with_release(local_sched->my_context_list_head.my_next, &my_node);
+        cls.head.next.store(&ctx.my_node, std::memory_order_release);
     }
 }
 
-void task_group_context::bind_to ( generic_scheduler *local_sched ) {
-    __TBB_ASSERT ( __TBB_load_relaxed(my_kind) == binding_required, "Already bound or isolated?" );
-    __TBB_ASSERT ( !my_parent, "Parent is set before initial binding" );
-    my_parent = local_sched->my_innermost_running_task->prefix().context;
-#if __TBB_FP_CONTEXT
+void task_group_context_impl::bind_to_impl(d1::task_group_context& ctx, thread_data* td) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    __TBB_ASSERT(ctx.my_lifetime_state.load(std::memory_order_relaxed) == d1::task_group_context::lifetime_state::locked, "The context can be bound only under the lock.");
+    __TBB_ASSERT(!ctx.my_parent, "Parent is set before initial binding");
+
+    ctx.my_parent = td->my_task_dispatcher->m_execute_data_ext.context;
+    __TBB_ASSERT(ctx.my_parent, NULL);
+
     // Inherit FPU settings only if the context has not captured FPU settings yet.
-    if ( !(my_version_and_traits & fp_settings) )
-        copy_fp_settings(*my_parent);
-#endif
+    if (!ctx.my_traits.fp_settings)
+        copy_fp_settings(ctx, *ctx.my_parent);
 
     // Condition below prevents unnecessary thrashing parent context's cache line
-    if ( !(my_parent->my_state & may_have_children) )
-        my_parent->my_state |= may_have_children; // full fence is below
-    if ( my_parent->my_parent ) {
+    if (ctx.my_parent->my_state.load(std::memory_order_relaxed) != d1::task_group_context::may_have_children) {
+        ctx.my_parent->my_state.store(d1::task_group_context::may_have_children, std::memory_order_relaxed); // full fence is below
+    }
+    if (ctx.my_parent->my_parent) {
         // Even if this context were made accessible for state change propagation
-        // (by placing __TBB_store_with_release(s->my_context_list_head.my_next, &my_node)
+        // (by placing store_with_release(td->my_context_list_state.head.my_next, &ctx.my_node)
         // above), it still could be missed if state propagation from a grand-ancestor
         // was underway concurrently with binding.
         // Speculative propagation from the parent together with epoch counters
@@ -286,208 +229,265 @@ void task_group_context::bind_to ( generic_scheduler *local_sched ) {
         // Acquire fence is necessary to prevent reordering subsequent speculative
         // loads of parent state data out of the scope where epoch counters comparison
         // can reliably validate it.
-        uintptr_t local_count_snapshot = __TBB_load_with_acquire( my_parent->my_owner->my_context_state_propagation_epoch );
+        uintptr_t local_count_snapshot = ctx.my_parent->my_owner.load(std::memory_order_relaxed)->my_context_list_state.epoch.load(std::memory_order_acquire);
         // Speculative propagation of parent's state. The speculation will be
         // validated by the epoch counters check further on.
-        my_cancellation_requested = my_parent->my_cancellation_requested;
-#if __TBB_TASK_PRIORITY
-        my_priority = my_parent->my_priority;
-#endif /* __TBB_TASK_PRIORITY */
-        register_with( local_sched ); // Issues full fence
+        ctx.my_cancellation_requested.store(ctx.my_parent->my_cancellation_requested.load(std::memory_order_relaxed), std::memory_order_relaxed);
+        register_with(ctx, td); // Issues full fence
 
         // If no state propagation was detected by the following condition, the above
         // full fence guarantees that the parent had correct state during speculative
         // propagation before the fence. Otherwise the propagation from parent is
         // repeated under the lock.
-        if ( local_count_snapshot != the_context_state_propagation_epoch ) {
+        if (local_count_snapshot != the_context_state_propagation_epoch.load(std::memory_order_relaxed)) {
             // Another thread may be propagating state change right now. So resort to lock.
             context_state_propagation_mutex_type::scoped_lock lock(the_context_state_propagation_mutex);
-            my_cancellation_requested = my_parent->my_cancellation_requested;
-#if __TBB_TASK_PRIORITY
-            my_priority = my_parent->my_priority;
-#endif /* __TBB_TASK_PRIORITY */
+            ctx.my_cancellation_requested.store(ctx.my_parent->my_cancellation_requested.load(std::memory_order_relaxed), std::memory_order_relaxed);
         }
-    }
-    else {
-        register_with( local_sched ); // Issues full fence
+    } else {
+        register_with(ctx, td); // Issues full fence
         // As we do not have grand-ancestors, concurrent state propagation (if any)
         // may originate only from the parent context, and thus it is safe to directly
         // copy the state from it.
-        my_cancellation_requested = my_parent->my_cancellation_requested;
-#if __TBB_TASK_PRIORITY
-        my_priority = my_parent->my_priority;
-#endif /* __TBB_TASK_PRIORITY */
+        ctx.my_cancellation_requested.store(ctx.my_parent->my_cancellation_requested.load(std::memory_order_relaxed), std::memory_order_relaxed);
     }
-    __TBB_store_relaxed(my_kind, binding_completed);
+
+    ctx.my_lifetime_state.store(d1::task_group_context::lifetime_state::bound, std::memory_order_release);
+}
+
+void task_group_context_impl::bind_to(d1::task_group_context& ctx, thread_data* td) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    d1::task_group_context::lifetime_state state = ctx.my_lifetime_state.load(std::memory_order_acquire);
+    if (state <= d1::task_group_context::lifetime_state::locked) {
+        if (state == d1::task_group_context::lifetime_state::created &&
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER <= 1910
+            ((std::atomic<typename std::underlying_type<d1::task_group_context::lifetime_state>::type>&)ctx.my_lifetime_state).compare_exchange_strong(
+            (typename std::underlying_type<d1::task_group_context::lifetime_state>::type&)state,
+                (typename std::underlying_type<d1::task_group_context::lifetime_state>::type)d1::task_group_context::lifetime_state::locked)
+#else
+            ctx.my_lifetime_state.compare_exchange_strong(state, d1::task_group_context::lifetime_state::locked)
+#endif
+            ) {
+            // If we are in the outermost task dispatch loop of an external thread, then
+            // there is nothing to bind this context to, and we skip the binding part
+            // treating the context as isolated.
+            __TBB_ASSERT(td->my_task_dispatcher->m_execute_data_ext.context != nullptr, nullptr);
+            if (td->my_task_dispatcher->m_execute_data_ext.context == td->my_arena->my_default_ctx || !ctx.my_traits.bound) {
+                if (!ctx.my_traits.fp_settings) {
+                    copy_fp_settings(ctx, *td->my_arena->my_default_ctx);
+                }
+                ctx.my_lifetime_state.store(d1::task_group_context::lifetime_state::isolated, std::memory_order_release);
+            } else {
+                bind_to_impl(ctx, td);
+            }
+            ITT_STACK_CREATE(ctx.my_itt_caller);
+        }
+        spin_wait_while_eq(ctx.my_lifetime_state, d1::task_group_context::lifetime_state::locked);
+    }
+    __TBB_ASSERT(ctx.my_lifetime_state.load(std::memory_order_relaxed) != d1::task_group_context::lifetime_state::created, NULL);
+    __TBB_ASSERT(ctx.my_lifetime_state.load(std::memory_order_relaxed) != d1::task_group_context::lifetime_state::locked, NULL);
 }
 
 template <typename T>
-void task_group_context::propagate_task_group_state ( T task_group_context::*mptr_state, task_group_context& src, T new_state ) {
-    if (this->*mptr_state == new_state) {
+void task_group_context_impl::propagate_task_group_state(d1::task_group_context& ctx, std::atomic<T> d1::task_group_context::* mptr_state, d1::task_group_context& src, T new_state) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    if ((ctx.*mptr_state).load(std::memory_order_relaxed) == new_state) {
         // Nothing to do, whether descending from "src" or not, so no need to scan.
         // Hopefully this happens often thanks to earlier invocations.
         // This optimization is enabled by LIFO order in the context lists:
         // - new contexts are bound to the beginning of lists;
         // - descendants are newer than ancestors;
         // - earlier invocations are therefore likely to "paint" long chains.
-    }
-    else if (this == &src) {
+    } else if (&ctx == &src) {
         // This clause is disjunct from the traversal below, which skips src entirely.
         // Note that src.*mptr_state is not necessarily still equal to new_state (another thread may have changed it again).
         // Such interference is probably not frequent enough to aim for optimisation by writing new_state again (to make the other thread back down).
         // Letting the other thread prevail may also be fairer.
-    }
-    else {
-        for ( task_group_context *ancestor = my_parent; ancestor != NULL; ancestor = ancestor->my_parent ) {
-            __TBB_ASSERT(internal::is_alive(ancestor->my_version_and_traits), "context tree was corrupted");
-            if ( ancestor == &src ) {
-                for ( task_group_context *ctx = this; ctx != ancestor; ctx = ctx->my_parent )
-                    ctx->*mptr_state = new_state;
+    } else {
+        for (d1::task_group_context* ancestor = ctx.my_parent; ancestor != NULL; ancestor = ancestor->my_parent) {
+            if (ancestor == &src) {
+                for (d1::task_group_context* c = &ctx; c != ancestor; c = c->my_parent)
+                    (c->*mptr_state).store(new_state, std::memory_order_relaxed);
                 break;
             }
         }
     }
 }
 
-template <typename T>
-void generic_scheduler::propagate_task_group_state ( T task_group_context::*mptr_state, task_group_context& src, T new_state ) {
-    spin_mutex::scoped_lock lock(my_context_list_mutex);
-    // Acquire fence is necessary to ensure that the subsequent node->my_next load
-    // returned the correct value in case it was just inserted in another thread.
-    // The fence also ensures visibility of the correct my_parent value.
-    context_list_node_t *node = __TBB_load_with_acquire(my_context_list_head.my_next);
-    while ( node != &my_context_list_head ) {
-        task_group_context &ctx = __TBB_get_object_ref(task_group_context, my_node, node);
-        if ( ctx.*mptr_state != new_state )
-            ctx.propagate_task_group_state( mptr_state, src, new_state );
-        node = node->my_next;
-        __TBB_ASSERT( is_alive(ctx.my_version_and_traits), "Local context list contains destroyed object" );
+bool task_group_context_impl::cancel_group_execution(d1::task_group_context& ctx) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    __TBB_ASSERT(ctx.my_cancellation_requested.load(std::memory_order_relaxed) <= 1, "The cancellation state can be either 0 or 1");
+    if (ctx.my_cancellation_requested.load(std::memory_order_relaxed) || ctx.my_cancellation_requested.exchange(1)) {
+        // This task group and any descendants have already been canceled.
+        // (A newly added descendant would inherit its parent's ctx.my_cancellation_requested,
+        // not missing out on any cancellation still being propagated, and a context cannot be uncanceled.)
+        return false;
     }
-    // Sync up local propagation epoch with the global one. Release fence prevents
-    // reordering of possible store to *mptr_state after the sync point.
-    __TBB_store_with_release(my_context_state_propagation_epoch, the_context_state_propagation_epoch);
+    governor::get_thread_data()->my_arena->my_market->propagate_task_group_state(&d1::task_group_context::my_cancellation_requested, ctx, uint32_t(1));
+    return true;
+}
+
+bool task_group_context_impl::is_group_execution_cancelled(const d1::task_group_context& ctx) {
+    return ctx.my_cancellation_requested.load(std::memory_order_relaxed) != 0;
+}
+
+// IMPORTANT: It is assumed that this method is not used concurrently!
+void task_group_context_impl::reset(d1::task_group_context& ctx) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    //! TODO: Add assertion that this context does not have children
+    // No fences are necessary since this context can be accessed from another thread
+    // only after stealing happened (which means necessary fences were used).
+    if (ctx.my_exception) {
+        ctx.my_exception->destroy();
+        ctx.my_exception = NULL;
+    }
+    ctx.my_cancellation_requested = 0;
+}
+
+// IMPORTANT: It is assumed that this method is not used concurrently!
+void task_group_context_impl::capture_fp_settings(d1::task_group_context& ctx) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    //! TODO: Add assertion that this context does not have children
+    // No fences are necessary since this context can be accessed from another thread
+    // only after stealing happened (which means necessary fences were used).
+    d1::cpu_ctl_env* ctl = reinterpret_cast<d1::cpu_ctl_env*>(&ctx.my_cpu_ctl_env);
+    if (!ctx.my_traits.fp_settings) {
+        ctl = new (&ctx.my_cpu_ctl_env) d1::cpu_ctl_env;
+        ctx.my_traits.fp_settings = true;
+    }
+    ctl->get_env();
+}
+
+void task_group_context_impl::copy_fp_settings(d1::task_group_context& ctx, const d1::task_group_context& src) {
+    __TBB_ASSERT(!is_poisoned(ctx.my_owner), NULL);
+    __TBB_ASSERT(!ctx.my_traits.fp_settings, "The context already has FPU settings.");
+    __TBB_ASSERT(src.my_traits.fp_settings, "The source context does not have FPU settings.");
+
+    const d1::cpu_ctl_env* src_ctl = reinterpret_cast<const d1::cpu_ctl_env*>(&src.my_cpu_ctl_env);
+    new (&ctx.my_cpu_ctl_env) d1::cpu_ctl_env(*src_ctl);
+    ctx.my_traits.fp_settings = true;
 }
 
 template <typename T>
-bool market::propagate_task_group_state ( T task_group_context::*mptr_state, task_group_context& src, T new_state ) {
-    if ( !(src.my_state & task_group_context::may_have_children) )
+void thread_data::propagate_task_group_state(std::atomic<T> d1::task_group_context::* mptr_state, d1::task_group_context& src, T new_state) {
+    spin_mutex::scoped_lock lock(my_context_list_state.mutex);
+    // Acquire fence is necessary to ensure that the subsequent node->my_next load
+    // returned the correct value in case it was just inserted in another thread.
+    // The fence also ensures visibility of the correct ctx.my_parent value.
+    d1::context_list_node* node = my_context_list_state.head.next.load(std::memory_order_acquire);
+    while (node != &my_context_list_state.head) {
+        d1::task_group_context& ctx = __TBB_get_object_ref(d1::task_group_context, my_node, node);
+        if ((ctx.*mptr_state).load(std::memory_order_relaxed) != new_state)
+            task_group_context_impl::propagate_task_group_state(ctx, mptr_state, src, new_state);
+        node = node->next.load(std::memory_order_relaxed);
+    }
+    // Sync up local propagation epoch with the global one. Release fence prevents
+    // reordering of possible store to *mptr_state after the sync point.
+    my_context_list_state.epoch.store(the_context_state_propagation_epoch.load(std::memory_order_relaxed), std::memory_order_release);
+}
+
+template <typename T>
+bool market::propagate_task_group_state(std::atomic<T> d1::task_group_context::* mptr_state, d1::task_group_context& src, T new_state) {
+    if (src.my_state.load(std::memory_order_relaxed) != d1::task_group_context::may_have_children)
         return true;
     // The whole propagation algorithm is under the lock in order to ensure correctness
     // in case of concurrent state changes at the different levels of the context tree.
     // See comment at the bottom of scheduler.cpp
     context_state_propagation_mutex_type::scoped_lock lock(the_context_state_propagation_mutex);
-    if ( src.*mptr_state != new_state )
+    if ((src.*mptr_state).load(std::memory_order_relaxed) != new_state)
         // Another thread has concurrently changed the state. Back down.
         return false;
     // Advance global state propagation epoch
-    __TBB_FetchAndAddWrelease(&the_context_state_propagation_epoch, 1);
-    // Propagate to all workers and masters and sync up their local epochs with the global one
+    ++the_context_state_propagation_epoch;
+    // Propagate to all workers and external threads and sync up their local epochs with the global one
     unsigned num_workers = my_first_unused_worker_idx;
-    for ( unsigned i = 0; i < num_workers; ++i ) {
-        generic_scheduler *s = my_workers[i];
+    for (unsigned i = 0; i < num_workers; ++i) {
+        thread_data* td = my_workers[i];
         // If the worker is only about to be registered, skip it.
-        if ( s )
-            s->propagate_task_group_state( mptr_state, src, new_state );
+        if (td)
+            td->propagate_task_group_state(mptr_state, src, new_state);
     }
-    // Propagate to all master threads
+    // Propagate to all external threads
     // The whole propagation sequence is locked, thus no contention is expected
-    for( scheduler_list_type::iterator it = my_masters.begin(); it != my_masters.end(); it++  )
-        it->propagate_task_group_state( mptr_state, src, new_state );
+    for (thread_data_list_type::iterator it = my_masters.begin(); it != my_masters.end(); it++)
+        it->propagate_task_group_state(mptr_state, src, new_state);
     return true;
 }
 
-bool task_group_context::cancel_group_execution () {
-    __TBB_ASSERT ( my_cancellation_requested == 0 || my_cancellation_requested == 1, "Invalid cancellation state");
-    if ( my_cancellation_requested || as_atomic(my_cancellation_requested).compare_and_swap(1, 0) ) {
-        // This task group and any descendants have already been canceled.
-        // (A newly added descendant would inherit its parent's my_cancellation_requested,
-        // not missing out on any cancellation still being propagated, and a context cannot be uncanceled.)
-        return false;
-    }
-    governor::local_scheduler_weak()->my_market->propagate_task_group_state( &task_group_context::my_cancellation_requested, *this, (uintptr_t)1 );
-    return true;
+/*
+    Comments:
+
+1.  The premise of the cancellation support implementation is that cancellations are
+    not part of the hot path of the program execution. Therefore all changes in its
+    implementation in order to reduce the overhead of the cancellation control flow
+    should be done only in ways that do not increase overhead of the normal execution.
+
+    In general, contexts are used by all threads and their descendants are created in
+    different threads as well. In order to minimize impact of the cross-thread tree
+    maintenance (first of all because of the synchronization), the tree of contexts
+    is split into pieces, each of which is handled by a single thread. Such pieces
+    are represented as lists of contexts, members of which are contexts that were
+    bound to their parents in the given thread.
+
+    The context tree maintenance and cancellation propagation algorithms are designed
+    in such a manner that cross-thread access to a context list will take place only
+    when cancellation signal is sent (by user or when an exception happens), and
+    synchronization is necessary only then. Thus the normal execution flow (without
+    exceptions and cancellation) remains free from any synchronization done on
+    behalf of exception handling and cancellation support.
+
+2.  Consider parallel cancellations at the different levels of the context tree:
+
+        Ctx1 <- Cancelled by Thread1            |- Thread2 started processing
+         |                                      |
+        Ctx2                                    |- Thread1 started processing
+         |                                   T1 |- Thread2 finishes and syncs up local counters
+        Ctx3 <- Cancelled by Thread2            |
+         |                                      |- Ctx5 is bound to Ctx2
+        Ctx4                                    |
+                                             T2 |- Thread1 reaches Ctx2
+
+    Thread-propagator of each cancellation increments global counter. However the thread
+    propagating the cancellation from the outermost context (Thread1) may be the last
+    to finish. Which means that the local counters may be synchronized earlier (by Thread2,
+    at Time1) than it propagated cancellation into Ctx2 (at time Time2). If a new context
+    (Ctx5) is created and bound to Ctx2 between Time1 and Time2, checking its parent only
+    (Ctx2) may result in cancellation request being lost.
+
+    This issue is solved by doing the whole propagation under the lock.
+
+    If we need more concurrency while processing parallel cancellations, we could try
+    the following modification of the propagation algorithm:
+
+    advance global counter and remember it
+    for each thread:
+        scan thread's list of contexts
+    for each thread:
+        sync up its local counter only if the global counter has not been changed
+
+    However this version of the algorithm requires more analysis and verification.
+*/
+
+void __TBB_EXPORTED_FUNC initialize(d1::task_group_context& ctx) {
+    task_group_context_impl::initialize(ctx);
+}
+void __TBB_EXPORTED_FUNC destroy(d1::task_group_context& ctx) {
+    task_group_context_impl::destroy(ctx);
+}
+void __TBB_EXPORTED_FUNC reset(d1::task_group_context& ctx) {
+    task_group_context_impl::reset(ctx);
+}
+bool __TBB_EXPORTED_FUNC cancel_group_execution(d1::task_group_context& ctx) {
+    return task_group_context_impl::cancel_group_execution(ctx);
+}
+bool __TBB_EXPORTED_FUNC is_group_execution_cancelled(d1::task_group_context& ctx) {
+    return task_group_context_impl::is_group_execution_cancelled(ctx);
+}
+void __TBB_EXPORTED_FUNC capture_fp_settings(d1::task_group_context& ctx) {
+    task_group_context_impl::capture_fp_settings(ctx);
 }
 
-bool task_group_context::is_group_execution_cancelled () const {
-    return my_cancellation_requested != 0;
-}
-
-// IMPORTANT: It is assumed that this method is not used concurrently!
-void task_group_context::reset () {
-    //! TODO: Add assertion that this context does not have children
-    // No fences are necessary since this context can be accessed from another thread
-    // only after stealing happened (which means necessary fences were used).
-    if ( my_exception )  {
-        my_exception->destroy();
-        my_exception = NULL;
-    }
-    my_cancellation_requested = 0;
-}
-
-#if __TBB_FP_CONTEXT
-// IMPORTANT: It is assumed that this method is not used concurrently!
-void task_group_context::capture_fp_settings () {
-    //! TODO: Add assertion that this context does not have children
-    // No fences are necessary since this context can be accessed from another thread
-    // only after stealing happened (which means necessary fences were used).
-    cpu_ctl_env &ctl = *internal::punned_cast<cpu_ctl_env*>(&my_cpu_ctl_env);
-    if ( !(my_version_and_traits & fp_settings) ) {
-        new ( &ctl ) cpu_ctl_env;
-        my_version_and_traits |= fp_settings;
-    }
-    ctl.get_env();
-}
-
-void task_group_context::copy_fp_settings( const task_group_context &src ) {
-    __TBB_ASSERT( !(my_version_and_traits & fp_settings), "The context already has FPU settings." );
-    __TBB_ASSERT( src.my_version_and_traits & fp_settings, "The source context does not have FPU settings." );
-
-    cpu_ctl_env &ctl = *internal::punned_cast<cpu_ctl_env*>(&my_cpu_ctl_env);
-    cpu_ctl_env &src_ctl = *internal::punned_cast<cpu_ctl_env*>(&src.my_cpu_ctl_env);
-    new (&ctl) cpu_ctl_env( src_ctl );
-    my_version_and_traits |= fp_settings;
-}
-#endif /* __TBB_FP_CONTEXT */
-
-void task_group_context::register_pending_exception () {
-    if ( my_cancellation_requested )
-        return;
-#if TBB_USE_EXCEPTIONS
-    try {
-        throw;
-    } TbbCatchAll( this );
-#endif /* TBB_USE_EXCEPTIONS */
-}
-
-#if __TBB_TASK_PRIORITY
-void task_group_context::set_priority ( priority_t prio ) {
-    __TBB_ASSERT( prio == priority_low || prio == priority_normal || prio == priority_high, "Invalid priority level value" );
-    intptr_t p = normalize_priority(prio);
-    if ( my_priority == p && !(my_state & task_group_context::may_have_children))
-        return;
-    my_priority = p;
-    internal::generic_scheduler* s = governor::local_scheduler_if_initialized();
-    if ( !s || !s->my_arena || !s->my_market->propagate_task_group_state(&task_group_context::my_priority, *this, p) )
-        return;
-
-    //! TODO: the arena of the calling thread might be unrelated;
-    // need to find out the right arena for priority update.
-    // The executing status check only guarantees being inside some working arena.
-    if ( s->my_innermost_running_task->state() == task::executing )
-        // Updating arena priority here does not eliminate necessity of checking each
-        // task priority and updating arena priority if necessary before the task execution.
-        // These checks will be necessary because:
-        // a) set_priority() may be invoked before any tasks from this task group are spawned;
-        // b) all spawned tasks from this task group are retrieved from the task pools.
-        // These cases create a time window when arena priority may be lowered.
-        s->my_market->update_arena_priority( *s->my_arena, p );
-}
-
-priority_t task_group_context::priority () const {
-    return static_cast<priority_t>(priority_from_normalized_rep[my_priority]);
-}
-#endif /* __TBB_TASK_PRIORITY */
-
-#endif /* __TBB_TASK_GROUP_CONTEXT */
-
+} // namespace r1
+} // namespace detail
 } // namespace tbb
+
