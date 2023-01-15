@@ -17,3 +17,9 @@ curl "https://raw.githubusercontent.com/freebsd/freebsd/master/lib/libc/stdlib/r
 > "stdlib.h"
 > "unistd.h"
 patch -i patches/glob.patch
+
+mkdir -p include/uchar
+curl "https://git.musl-libc.org/cgit/musl/plain/include/uchar.h" --output "include/uchar/uchar.h"
+patch -p3 -i patches/uchar.patch
+# TODO: provide c16rtomb, mbrtoc16, c32rtomb, mbrtoc32 implementations for uchar
+# if any code actually needs them

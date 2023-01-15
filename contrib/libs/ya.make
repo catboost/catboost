@@ -64,12 +64,6 @@ IF (OS_LINUX)
     RECURSE(
     ibdrv
 )
-
-    IF (NOT OS_SDK STREQUAL "ubuntu-12")
-        RECURSE(
-    
-)
-    ENDIF()
 ENDIF()
 
 IF (OS_WINDOWS)
