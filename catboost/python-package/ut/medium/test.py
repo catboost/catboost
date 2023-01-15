@@ -76,6 +76,8 @@ NAN_TRAIN_FILE = data_file('adult_nan', 'train_small')
 NAN_TEST_FILE = data_file('adult_nan', 'test_small')
 NAN_CD_FILE = data_file('adult_nan', 'train.cd')
 
+FLOAT_WITH_NAN_FILE = data_file('float_with_nan.tsv')
+
 CLOUDNESS_TRAIN_FILE = data_file('cloudness_small', 'train_small')
 CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
@@ -109,6 +111,7 @@ BLACK_FRIDAY_TEST_FILE = data_file('black_friday', 'test')
 BLACK_FRIDAY_CD_FILE = data_file('black_friday', 'cd')
 
 HIGGS_TRAIN_FILE = data_file('higgs', 'train_small')
+HIGGS_5K_TRAIN_FILE = data_file('higgs', 'train_5K')
 HIGGS_TEST_FILE = data_file('higgs', 'test_small')
 HIGGS_CD_FILE = data_file('higgs', 'train.cd')
 
@@ -8315,7 +8318,20 @@ LOAD_AND_QUANTIZE_TEST_PARAMS = {
         {'input_borders': QUERYWISE_QUANTIZATION_BORDERS_EXAMPLE},  # quantize_params
         False,  # subset_quantization_differs
     ),
-    # TODO(vetaleha): test for non-default nan_mode parameter
+    'float_with_nan_mode_max': (
+        FLOAT_WITH_NAN_FILE,
+        None,  # column_description
+        {},  # load_params
+        {'nan_mode': 'Max'},  # quantize_params
+        True,  # subset_quantization_differs
+    ),
+    'higgs_5K_without_params': (
+        HIGGS_5K_TRAIN_FILE,
+        HIGGS_CD_FILE,
+        {},  # load_params
+        {},  # quantize_params
+        True,  # subset_quantization_differs
+    ),
 }
 
 
