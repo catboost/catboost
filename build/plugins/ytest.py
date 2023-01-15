@@ -277,6 +277,15 @@ def validate_test(unit, kw):
         except ValueError as e:
             errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
 
+    unit_path = get_norm_unit_path(unit)
+    if not is_fat and "ya:noretries" in tags and 'ya:yt' not in tags \
+            and not unit_path.startswith("devtools/") \
+            and not unit_path.startswith("infra/kernel/") \
+            and not unit_path.startswith("yt/python/yt") \
+            and not unit_path.startswith("infra/yp_dns_api/tests") \
+            and not unit_path.startswith("yp/tests"):
+        errors.append("Only LARGE tests can have 'ya:noretries' tag")
+
     if errors:
         return None, warnings, errors
 
