@@ -347,7 +347,7 @@ private:
             }
         }
         //Test when the caught exception is rethrown with throw; .
-        //This test is different from the previous one because of the interaction with cxxabi specifics. 
+        //This test is different from the previous one because of the interaction with cxxabi specifics.
         try {
             throw std::bad_alloc();
         } catch (...) {

@@ -342,8 +342,9 @@ void TFileTest::TestCache(){
      TFile file(MakeTempName("/tmp"), OpenAlways | Transient | RdWr | NoReadAhead);
 
 struct statfs fs;
-if (!fstatfs(file.GetHandle(), &fs) && fs.f_type == TMPFS_MAGIC)
+if (!fstatfs(file.GetHandle(), &fs) && fs.f_type == TMPFS_MAGIC) {
     return;
+}
 
 UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 0);
 UNIT_ASSERT_VALUES_EQUAL(file.CountCache(0, 0), 0);

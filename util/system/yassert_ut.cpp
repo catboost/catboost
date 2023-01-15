@@ -6,16 +6,18 @@
 
 Y_UNIT_TEST_SUITE(YassertTest) {
     Y_UNIT_TEST(TestAcsLikeFunctionCall) {
-        if (true)
+        if (true) {
             Y_ASSERT(true); // this cannot be compiled if Y_ASSERT is "if (!cond) { ... }"
-        else
+        } else {
             Y_ASSERT(false);
+        }
 
         bool var = false;
-        if (false)
+        if (false) {
             Y_ASSERT(false);
-        else
+        } else {
             var = true; // this is unreachable if Y_ASSERT is "if (!cond) { ... }"
+        }
         UNIT_ASSERT(var);
     }
 

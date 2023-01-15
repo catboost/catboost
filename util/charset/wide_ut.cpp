@@ -518,8 +518,9 @@ void TConversionTest::TestUTF8ToWide() {
 void TConversionTest::TestWideToUTF8() {
     TString s = WideToUTF8(UnicodeText);
     size_t len = 0;
-    for (TUtf16String::const_iterator i = UnicodeText.begin(), ie = UnicodeText.end(); i != ie; ++i)
+    for (TUtf16String::const_iterator i = UnicodeText.begin(), ie = UnicodeText.end(); i != ie; ++i) {
         len += UTF8RuneLenByUCS(*i);
+    }
 
     UNIT_ASSERT(s.size() == UTF8Text.size());
     UNIT_ASSERT(s.size() == len);

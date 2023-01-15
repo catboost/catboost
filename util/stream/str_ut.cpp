@@ -52,14 +52,16 @@ Y_UNIT_TEST_SUITE(TStringInputOutputTest) {
         TString string0 = "All animals are equal, but some animals are more equal than others.";
 
         TString string1;
-        for (size_t i = 1; i <= string0.size(); i++)
+        for (size_t i = 1; i <= string0.size(); i++) {
             string1 += string0.substr(0, i);
+        }
 
         TStringInput input0(string1);
 
         size_t left = 5;
-        while (left > 0)
+        while (left > 0) {
             left -= input0.Skip(left);
+        }
 
         TString string2 = input0.ReadAll();
 

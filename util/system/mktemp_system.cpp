@@ -70,8 +70,9 @@ GetTemp(char* path, int* doopen, int domkdir, int slen)
         return (0);
     }
 
-    for (trv = path; *trv != '\0'; ++trv)
+    for (trv = path; *trv != '\0'; ++trv) {
         ;
+    }
     trv -= slen;
     suffp = trv;
     --trv;
@@ -106,8 +107,9 @@ GetTemp(char* path, int* doopen, int domkdir, int slen)
 #else
                 rval = stat(path, &sbuf);
                 *trv = '/';
-                if (rval != 0)
+                if (rval != 0) {
                     return (0);
+                }
                 if (!S_ISDIR(sbuf.st_mode)) {
                     errno = ENOTDIR;
                     return (0);
@@ -121,31 +123,37 @@ GetTemp(char* path, int* doopen, int domkdir, int slen)
     for (;;) {
         if (doopen) {
             if ((*doopen =
-                     open(path, O_CREAT | O_EXCL | O_RDWR, 0600)) >= 0)
+                     open(path, O_CREAT | O_EXCL | O_RDWR, 0600)) >= 0) {
                 return (1);
-            if (errno != EEXIST)
+            }
+            if (errno != EEXIST) {
                 return (0);
+            }
         } else if (domkdir) {
-            if (Mkdir(path, S_IRWXU) == 0)
+            if (Mkdir(path, S_IRWXU) == 0) {
                 return (1);
-            if (errno != EEXIST)
+            }
+            if (errno != EEXIST) {
                 return (0);
+            }
         } else
 #ifdef _win32_
             if (::GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES)
             return (errno == ENOENT);
 #else
-            if (lstat(path, &sbuf))
+            if (lstat(path, &sbuf)) {
             return (errno == ENOENT);
+        }
 #endif
         /* If we have a collision, cycle through the space of filenames */
         for (trv = start;;) {
-            if (*trv == '\0' || trv == suffp)
+            if (*trv == '\0' || trv == suffp) {
                 return (0);
+            }
             pad = strchr((char*)padchar, *trv);
-            if (pad == nullptr || *++pad == '\0')
+            if (pad == nullptr || *++pad == '\0') {
                 *trv++ = padchar[0];
-            else {
+            } else {
                 *trv++ = *pad;
                 break;
             }

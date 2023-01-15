@@ -403,8 +403,9 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         TVector<TString> tokens;
         auto f = [](char a) { return a == ' ' || a == '\t' || a == '\n'; };
         for (auto v : StringSplitter(s).SplitByFunc(f)) {
-            if (v)
+            if (v) {
                 tokens.emplace_back(v);
+            }
         }
 
         UNIT_ASSERT(tokens == pattern);
@@ -499,8 +500,9 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         TVector<TString> expected = {"1", "2"};
         TVector<TString> actual;
         auto func = [&actual](const TBasicStringBuf<char>& token) {
-            if (token == "3")
+            if (token == "3") {
                 return false;
+            }
             actual.push_back(TString(token));
             return true;
         };
