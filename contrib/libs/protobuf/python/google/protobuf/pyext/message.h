@@ -36,9 +36,10 @@
 
 #include <Python.h>
 
+#include <google/protobuf/stubs/common.h>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
+#error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
 namespace google {
@@ -53,7 +54,6 @@ class MessageFactory;
 
 #ifdef _SHARED_PTR_H
 using std::shared_ptr;
-using TProtoStringType;
 #else
 using internal::shared_ptr;
 #endif

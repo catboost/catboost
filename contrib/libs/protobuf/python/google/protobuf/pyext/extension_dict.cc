@@ -45,7 +45,11 @@
 #include "pyext/repeated_composite_container.h"
 #include "pyext/repeated_scalar_container.h"
 #include "pyext/scoped_pyobject_ptr.h"
-#include <google/protobuf/stubs/shared_ptr.h>
+
+#include <memory>
+#ifndef _SHARED_PTR_H
+#error #include <google/protobuf/stubs/shared_ptr.h>
+#endif
 
 #if PY_MAJOR_VERSION >= 3
   #if PY_VERSION_HEX < 0x03030000
