@@ -111,7 +111,7 @@ namespace NCoro {
         T* Get(size_t index) {
             TRef& ret = Lst_.Get(index);
             if (!ret) {
-                ret = new (&Pool_) TValue();
+                ret = TRef(new (&Pool_) TValue());
             }
             return ret.Get();
         }
