@@ -7408,6 +7408,32 @@ def test_quantized_pool_select_threshold(models_trained_on_raw_and_quantized_dat
     assert threshold == threshold_with_quantized_pool
 
 
+def check_save_quantized_pool(train_pool, train_pool_copy, test_pool, params):
+    feature_names = train_pool.get_feature_names()
+
+    train_quantized_pool = train_pool_copy
+    train_quantized_pool.quantize()
+
+    assert(train_quantized_pool.is_quantized())
+
+    train_quantized_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+
+    train_quantized_load_pool = Pool(get_quantized_path(OUTPUT_QUANTIZED_POOL_PATH))
+
+    model = CatBoost(params=params)
+    model_fitted_with_load_quantized_pool = CatBoost(params=params)
+
+    model.fit(train_pool)
+    predictions1 = model.predict(test_pool)
+
+    model_fitted_with_load_quantized_pool.fit(train_quantized_load_pool)
+    predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
+
+    loaded_feature_names = train_quantized_load_pool.get_feature_names()
+    assert (feature_names == loaded_feature_names)
+    assert all(predictions1 == predictions2)
+
+
 FEATURES_TYPES = ['num', 'cat', 'num_and_cat']
 
 
@@ -7416,7 +7442,7 @@ FEATURES_TYPES = ['num', 'cat', 'num_and_cat']
     FEATURES_TYPES,
     ids=['features_types=%s' % ft for ft in FEATURES_TYPES]
 )
-def test_save_quantized_pool(features_types):
+def test_save_quantized_pool_with_source_pool_from_dataframe(features_types):
     n_train_samples = 200
     n_test_samples = 50
 
@@ -7443,37 +7469,47 @@ def test_save_quantized_pool(features_types):
         labels=[0.0, 0.12, 1.0],
     )
 
-    train_pool = Pool(train_data[0], train_data[1])
-    test_pool = Pool(test_data[0], test_data[1])
-    train_quantized_pool = Pool(train_data[0], train_data[1])
-    params = {
-        'task_type': 'CPU',
-        'loss_function': 'RMSE',
-        'iterations': 5,
-        'depth': 4,
-    }
-    feature_names = train_data[0].columns
+    check_save_quantized_pool(
+        train_pool=Pool(train_data[0], train_data[1]),
+        test_pool=Pool(test_data[0], test_data[1]),
+        train_pool_copy=Pool(train_data[0], train_data[1]),
+        params={
+            'task_type': 'CPU',
+            'loss_function': 'RMSE',
+            'iterations': 5,
+            'depth': 4,
+            'dev_efb_max_buckets': 0
+        }
+    )
 
-    train_quantized_pool.quantize()
 
-    assert(train_quantized_pool.is_quantized())
+@pytest.mark.parametrize(
+    'features_types',
+    ['num', 'num_and_cat'],
+    ids=['features_types=%s' % ft for ft in ['num', 'num_and_cat']]
+)
+def test_save_quantized_pool_with_source_pool_from_files(features_types):
+    if features_types == 'num':
+        dataset_name = 'higgs'
+    elif features_types == 'num_and_cat':
+        dataset_name = 'adult'
 
-    train_quantized_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+    train_path = data_file(dataset_name, 'train_small')
+    test_path = data_file(dataset_name, 'test_small')
+    cd_path = data_file(dataset_name, 'train.cd')
 
-    train_quantized_load_pool = Pool(get_quantized_path(OUTPUT_QUANTIZED_POOL_PATH))
-
-    model = CatBoost(params=params)
-    model_fitted_with_load_quantized_pool = CatBoost(params=params)
-
-    model.fit(train_pool)
-    predictions1 = model.predict(test_pool)
-
-    model_fitted_with_load_quantized_pool.fit(train_quantized_load_pool)
-    predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
-
-    loaded_feature_names = train_quantized_load_pool.get_feature_names()
-    assert all(feature_names == loaded_feature_names)
-    assert all(predictions1 == predictions2)
+    check_save_quantized_pool(
+        train_pool=Pool(train_path, column_description=cd_path),
+        test_pool=Pool(test_path, column_description=cd_path),
+        train_pool_copy=Pool(train_path, column_description=cd_path),
+        params={
+            'task_type': 'CPU',
+            'loss_function': 'Logloss',
+            'iterations': 5,
+            'depth': 4,
+            'dev_efb_max_buckets': 0
+        }
+    )
 
 
 # returns dict with 'train_file', 'test_file', 'data_files_have_header', 'cd_file', 'loss_function' keys
