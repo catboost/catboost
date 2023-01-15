@@ -1073,7 +1073,7 @@ class CatBoostRegressorTest {
       pool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
       pool.getFeatureNames,
       /*addFeatureNamesMetadata*/ true,
-      /*nullableFields*/ pool.data.schema.names :+ ("prediction")
+      /*nullableFields*/ pool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
       spark.sparkContext.parallelize(expectedPredictionsData),
@@ -1132,7 +1132,7 @@ class CatBoostRegressorTest {
       evalPool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
       evalPool.getFeatureNames,
       /*addFeatureNamesMetadata*/ true,
-      /*nullableFields*/ evalPool.data.schema.names :+ ("prediction")
+      /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
       spark.sparkContext.parallelize(expectedPredictionsData),
