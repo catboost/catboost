@@ -1096,6 +1096,15 @@ namespace NCB {
             );
         }
 
+        void AddEmbeddingFeature(ui32 flatFeatureIdx, ITypedSequencePtr<TMaybeOwningConstArrayHolder<float>> features) override {
+            auto embeddingFeatureIdx = GetInternalFeatureIdx<EFeatureType::Embedding>(flatFeatureIdx);
+            Data.ObjectsData.EmbeddingFeatures[*embeddingFeatureIdx]
+               = MakeHolder<TEmbeddingArrayValuesHolder>(
+                    flatFeatureIdx,
+                    features->GetSubset(Data.CommonObjectsData.SubsetIndexing.Get())
+                );
+        }
+
         // TRawTargetData
 
         void AddTarget(TConstArrayRef<TString> value) override {

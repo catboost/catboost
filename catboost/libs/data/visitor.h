@@ -197,6 +197,12 @@ namespace NCB {
             TConstPolymorphicValuesSparseArray<TString, ui32> features
         ) = 0;
 
+        virtual void AddEmbeddingFeature(
+            ui32 flatFeatureIdx,
+            ITypedSequencePtr<TMaybeOwningConstArrayHolder<float>> features
+        ) = 0;
+
+
         // TRawTargetData
 
         virtual void AddTarget(TConstArrayRef<TString> value) = 0;
