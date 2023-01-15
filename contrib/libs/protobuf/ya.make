@@ -23,7 +23,10 @@ IF (OS_ANDROID)
     EXTRALIBS(-llog)
 ENDIF()
 
-CFLAGS(-DHAVE_ZLIB)
+CFLAGS(
+    -DHAVE_ZLIB
+    GLOBAL -D_SHARED_PTR_H
+)
 
 PEERDIR(contrib/libs/zlib)
 

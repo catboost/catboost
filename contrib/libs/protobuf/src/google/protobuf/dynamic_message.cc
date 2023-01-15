@@ -66,7 +66,7 @@
 #include <google/protobuf/stubs/hash.h>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
+#error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
 #include <google/protobuf/stubs/common.h>
