@@ -1332,7 +1332,6 @@ class GnuCompiler(Compiler):
                     '-Wno-pessimizing-move',
                     '-Wno-range-loop-construct',
                     '-Wno-reorder-init-list',
-                    '-Wno-string-plus-int',
                     '-Wno-unused-lambda-capture',
                 ))
 
