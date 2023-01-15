@@ -454,7 +454,7 @@ public:
 
     constexpr span<element_type, dynamic_extent>
     _LIBCPP_INLINE_VISIBILITY
-    subspan(size_t_type __offset, size_t_type __count = dynamic_extent) const noexcept
+    subspan(size_type __offset, size_type __count = dynamic_extent) const noexcept
     {
         _LIBCPP_ASSERT(__offset <= size(), "Offset out of range in span::subspan(offset, count)");
         _LIBCPP_ASSERT(__count  <= size() || __count == dynamic_extent, "count out of range in span::subspan(offset, count)");
