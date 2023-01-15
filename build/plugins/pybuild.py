@@ -286,6 +286,9 @@ def onpy_srcs(unit, *args):
                 evs.append(pathmod)
             elif path.endswith('.swg'):
                 swigs.append(pathmod)
+            # Allow pyi files in PY_SRCS for autocomplete in IDE, but skip it during building
+            elif path.endswith('.pyi'):
+                pass
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
