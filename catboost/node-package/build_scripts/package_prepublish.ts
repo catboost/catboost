@@ -49,8 +49,11 @@ async function prepareAndBuildPackage() {
         exit(1);
     }
     console.log(`Preparing config for verions ${version}`);
-    const config = await createConfigForVersion(version);
+    const [config, error] = await createConfigForVersion(version);
     writeConfig(config);
+    if (error !== undefined) {
+        throw error;
+    }
 }
 
 prepareAndBuildPackage();
