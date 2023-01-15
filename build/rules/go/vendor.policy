@@ -251,7 +251,7 @@ ALLOW .* -> vendor/github.com/go-redis/redis/v7
 ALLOW .* -> vendor/github.com/go-redis/redis/v8
 
 # library for accessing the GitHub API v3
-ALLOW .* -> vendor/github.com/google/go-github/v31/github
+ALLOW .* -> vendor/github.com/google/go-github/v35/github
 
 # fast JSON serializer for golang. relies on code generation.
 ALLOW .* -> vendor/github.com/mailru/easyjson
