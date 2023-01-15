@@ -71,7 +71,6 @@ migrations:
     - ads/watchman/experiments/lib
     - ads/watchman/funnel/lib
     - advq/offline_phits/monitoring
-    - alice/acceptance/modules/request_generator/lib
     - alice/boltalka/generative/tfnn/preprocess
     - alice/boltalka/generative/training/data/nn/filtered_twitter
     - alice/boltalka/generative/training/data/nn/util
@@ -395,8 +394,6 @@ migrations:
     - infra/cqudp/src/eggs
     - infra/deploy/tools/yd_migrate/lib
     - infra/gencfg-gui
-    - infra/gencfg-monitoring
-    - infra/gencfg-monitoring/web/collector
     - infra/heartbeat/src
     - infra/heartbeat/src/daemon
     - infra/kernel/tools/coroner
@@ -973,7 +970,6 @@ migrations:
     - yweb/antispam/mascot/features/test
     - yweb/antispam/mascot/scripts/tcinet
     - yweb/antispam/seo_masks/py/static_impl/ut
-    - yweb/antispam/tmu/document_processor/http/server/lib
     - yweb/antispam/tools/yql
     - yweb/antispam/webspam/collections/vw_model_applier/bin
     - yweb/antispam/webspam/export/tries/tools/upper_tries
@@ -1324,7 +1320,6 @@ migrations:
     - statbox/statkey/jam/jobs/cubes/superapp/autofill/v2
     - statbox/statkey/jam/jobs/cubes/superapp/bi_turboappweb_turbo_counter/v2
     - statbox/statkey/jam/jobs/cubes/superapp/cohorts_daily/v2
-    - statbox/statkey/jam/jobs/cubes/superapp/feeds/v1
     - strm/generate/lib/generate
     - strm/pult/backend/lib
     - strm/pult/backend/lib/cache
@@ -1676,7 +1671,6 @@ migrations:
     - quasar/infra/tasklets/update_devices_in_db/impl
     - regulargeo/geolayer/olap
     - robot/bert/tools/predict_diff
-    - robot/mercury/test/rtdups_test
     - robot/quality/crawl_quality_metrics/push_to_solomon_every_day_crawl
     - robot/quality/crawl_quality_metrics/push_to_solomon_library
     - robot/quality/nirvana/refererrank/calc_scores_map
@@ -2185,7 +2179,6 @@ migrations:
     - dict/mt/make/tools/make_lm
     - dict/mt/make/tools/mt_release
     - dict/mt/make/tools/replace_bad_chars
-    - dict/mt/make/tools/synthetic_classifier
     - dict/mt/make/tools/tfnn/average_npz
     - dict/mt/make/tools/tfnn/ckpt_reformator
     - dict/mt/make/tools/tfnn/compare_npz
@@ -2968,10 +2961,6 @@ migrations:
     - sandbox/projects/images/daemons/ImagesBuildCbirdaemon2Database
     - sandbox/projects/images/daemons/ImagesCompareCbirdaemon2ApphostResponses
     - sandbox/projects/images/daemons/ImagesGenerateCbirdaemon2Requests
-    - sandbox/projects/images/daemons/ImagesGenerateNaildaemonRequests
-    - sandbox/projects/images/daemons/ImagesGenerateRimdaemonRequests
-    - sandbox/projects/images/daemons/ImagesGenerateRimpatchdaemonBanArchive
-    - sandbox/projects/images/daemons/ImagesGenerateRimpatchdaemonRequests
     - sandbox/projects/images/daemons/ImagesProdCompareRimResponses
     - sandbox/projects/images/deployment
     - sandbox/projects/images/devops
@@ -2983,7 +2972,6 @@ migrations:
     - sandbox/projects/images/polish
     - sandbox/projects/images/prism
     - sandbox/projects/images/resources/ImagesFetchThumbRequests
-    - sandbox/projects/images/resources/ImagesGenerateMiddlesearchRequests
     - sandbox/projects/images/resources/ImagesGenerateSearchDaemonsRequests
     - sandbox/projects/images/resources/ImagesGenerateTestenvData
     - sandbox/projects/images/resources/ImagesLoadMiddlesearchResources
