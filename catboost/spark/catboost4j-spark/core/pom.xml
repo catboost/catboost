@@ -58,7 +58,64 @@
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>Prepare sources for docs</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>python</executable>
+                            <arguments>
+                                <argument>${basedir}/prepare_sources_for_docs.py</argument>
+                                <argument>--dst-dir=${project.build.directory}/src_for_doc</argument>
+                                <argument>--src-jar=${basedir}/src/native_impl/catboost4j-spark-impl-sources.jar</argument>
+                            </arguments>
+                            <workingDirectory>${user.dir}</workingDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.4.0</version>
+                <executions>
+                    <execution>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>scala-test-compile</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>doc-jar</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDir>${project.build.directory}/src_for_doc</sourceDir>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                <compilerPlugins>
+                    <compilerPlugin>
+                    <groupId>org.scalamacros</groupId>
+                    <artifactId>paradise_${scala.version}</artifactId>
+                    <version>2.1.0</version>
+                </compilerPlugin>
+                </compilerPlugins>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
