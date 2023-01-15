@@ -8,7 +8,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
-#include <library/fast_exp/fast_exp.h>
+#include <library/cpp/fast_exp/fast_exp.h>
 
 #include <cmath>
 

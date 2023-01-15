@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/fast_exp/fast_exp.h>
+#include <library/cpp/fast_exp/fast_exp.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>

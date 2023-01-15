@@ -6,9 +6,6 @@ RECURSE(
     chromium_trace/examples
     chromium_trace/ut
     cpp
-    fast_exp
-    fast_exp/benchmark
-    fast_exp/ut
     langmask
     langmask/proto
     langmask/python

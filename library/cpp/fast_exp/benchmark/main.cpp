@@ -1,4 +1,4 @@
-#include <library/fast_exp/fast_exp.h>
+#include <library/cpp/fast_exp/fast_exp.h>
 #include <library/testing/benchmark/bench.h>
 
 #include <util/random/fast.h>
