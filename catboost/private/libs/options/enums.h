@@ -348,7 +348,8 @@ enum class EFeatureCalcerType : ui32 {
     BoW,
     NaiveBayes,
     BM25,
-    LDA
+    LDA,
+    KNN
 };
 
 enum class EAutoClassWeightsType {

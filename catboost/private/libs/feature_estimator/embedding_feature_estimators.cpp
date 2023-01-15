@@ -24,7 +24,7 @@ namespace NCB {
             if (options.Has("Regularization")) {
                 RegParam = FromString<float>(options["Regularization"].GetString());
             } else {
-                RegParam = 0.01;
+                RegParam = 0.00005;
             }
             CB_ENSURE(
                 ProjectionDim > 0,
@@ -60,6 +60,43 @@ namespace NCB {
         float RegParam;
     };
 
+    class TKNNEstimator final : public TEmbeddingBaseEstimator<TKNNCalcer, TKNNCalcerVisitor>{
+    public:
+        TKNNEstimator(
+            TEmbeddingClassificationTargetPtr target,
+            TEmbeddingDataSetPtr learnEmbeddings,
+            TArrayRef<TEmbeddingDataSetPtr> testEmbedding,
+            const NJson::TJsonValue& options)
+            : TEmbeddingBaseEstimator(target, learnEmbeddings, testEmbedding)
+        {
+            ClassNum = GetTarget().NumClasses;
+            if (options.Has("NeighborsNumber")) {
+                kNum = FromString<int>(options["NeighborsNumber"].GetString());
+            } else {
+                kNum = 5;
+            }
+        }
+
+        TEstimatedFeaturesMeta FeaturesMeta() const override {
+            TEstimatedFeaturesMeta meta;
+            meta.FeaturesCount = ClassNum;
+            meta.Type.resize(meta.FeaturesCount, EFeatureCalcerType::KNN);
+            return meta;
+        }
+
+        TKNNCalcer CreateFeatureCalcer() const override {
+            return TKNNCalcer(GetLearnDataset().GetDimension(), GetTarget().NumClasses, kNum);
+        }
+
+        TKNNCalcerVisitor CreateCalcerVisitor() const override {
+            return {};
+        }
+
+    private:
+        ui32 ClassNum;
+        ui32 kNum;
+    };
+
     TVector<TOnlineFeatureEstimatorPtr> CreateEmbeddingEstimators(
         TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
         TEmbeddingClassificationTargetPtr target,
@@ -70,6 +107,15 @@ namespace NCB {
         for (auto& calcerDescription: featureCalcerDescription) {
             if (calcerDescription.CalcerType == EFeatureCalcerType::LDA) {
                 estimators.emplace_back(MakeIntrusive<TLDAEstimator>(
+                        target,
+                        learnEmbeddings,
+                        testEmbedding,
+                        calcerDescription.CalcerOptions
+                    )
+                );
+            }
+            if (calcerDescription.CalcerType == EFeatureCalcerType::KNN) {
+                estimators.emplace_back(MakeIntrusive<TKNNEstimator>(
                         target,
                         learnEmbeddings,
                         testEmbedding,

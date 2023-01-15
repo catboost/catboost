@@ -50,7 +50,10 @@ namespace NCatboostOptions {
         EmbeddingFeatureProcessing.SetDefault(
             TMap<TString, TVector<TFeatureCalcerDescription>>{
                 {DefaultProcessingName(), {
-                    {TFeatureCalcerDescription{EFeatureCalcerType::LDA}},
+                    {
+                     TFeatureCalcerDescription{EFeatureCalcerType::LDA}
+                     ,TFeatureCalcerDescription{EFeatureCalcerType::KNN}
+                    },
                 }
             }
         });
