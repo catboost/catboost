@@ -61,6 +61,18 @@ ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/tf_1_14 -> contrib/restricted/abseil-cpp
 
+# http-parser is a low-level parser for http bytestream.
+# Consider using high-level alternatives.
+ALLOW contrib/libs/libgit2 -> contrib/restricted/http-parser
+ALLOW contrib/libs/nodejs_8 -> contrib/restricted/http-parser
+ALLOW contrib/python/aiohttp -> contrib/restricted/http-parser
+ALLOW contrib/python/http_parser -> contrib/restricted/http-parser
+ALLOW contrib/python/httptools -> contrib/restricted/http-parser
+ALLOW mds -> contrib/restricted/http-parser
+ALLOW passport/python/contrib/bjoern -> contrib/restricted/http-parser
+ALLOW yt/yt/core/http -> contrib/restricted/http-parser
+ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/restricted/http-parser
+
 # Prefer using skynet for data distribution
 ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
 
