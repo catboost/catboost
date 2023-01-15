@@ -5349,7 +5349,7 @@ def test_loading_pool_with_lists():
 
 def test_pool_group_id_hash():
     def get_group_sizes(group_id):
-        assert group_id
+        assert group_id is not None and len(group_id) > 0
         neighbors_diff = abs(np.diff(group_id))
         group_end_ids = [-1] + list(np.where(neighbors_diff > 0)[0]) + [len(group_id) - 1]
         return np.diff(group_end_ids)
