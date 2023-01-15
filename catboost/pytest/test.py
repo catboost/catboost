@@ -5096,7 +5096,7 @@ def test_cox_regression():
     ]
 
 
-def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', test_schema='', dev_score_calc_obj_block_size=None, other_options=()):
+def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', test_schema='', dev_score_calc_obj_block_size=None, other_options=(), iterations=None):
     pool_path = schema + data_file(pool, train)
     test_path = test_schema + data_file(pool, test)
     cd_path = data_file(pool, cd)
@@ -5105,7 +5105,7 @@ def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema=''
         '-f', pool_path,
         '-t', test_path,
         '--column-description', cd_path,
-        '-i', '10',
+        '-i', str(iterations) if iterations is not None else '10',
         '-w', '0.03',
         '-T', '4',
         '--random-strength', '0',
@@ -5441,6 +5441,28 @@ def test_dist_train_with_cat_features(dev_score_calc_obj_block_size, one_hot_max
             run_dist_train(cmd)
     else:
         return [local_canonical_file(run_dist_train(cmd))]
+
+
+@pytest.mark.parametrize(
+    'od_type',
+    ['IncToDec', 'Iter'],
+    ids=['od_type=IncToDec', 'od_type=Iter']
+)
+def test_dist_train_overfitting_detector(od_type):
+    if od_type == 'Iter':
+        other_options = ('--od-type', 'Iter', '--od-wait', '3')
+    else:
+        other_options = ('--od-type', 'IncToDec', '--od-pval', '10.0e-2')
+
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='higgs',
+        train='train_small',
+        test='test_small',
+        cd='train.cd',
+        iterations=200,
+        other_options=other_options
+    )))]
 
 
 def test_no_target():
