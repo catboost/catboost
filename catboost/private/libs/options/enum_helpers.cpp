@@ -622,6 +622,11 @@ bool IsPairwiseMetric(TStringBuf lossFunction) {
     return IsPairwiseMetric(lossType);
 }
 
+bool IsRankingMetric(TStringBuf metricName) {
+    const ELossFunction lossType = ParseLossType(metricName);
+    return IsRankingMetric(lossType);
+}
+
 bool IsPlainMode(EBoostingType boostingType) {
     return (boostingType == EBoostingType::Plain);
 }

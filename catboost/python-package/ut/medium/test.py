@@ -15,6 +15,7 @@ from catboost import (
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
+    CatBoostRanker,
     CatBoostError,
     EFstrType,
     FeaturesData,
@@ -25,6 +26,7 @@ from catboost import (
     _have_equal_features,
     to_regressor,
     to_classifier,
+    to_ranker,
     MultiRegressionCustomMetric,
     MultiRegressionCustomObjective,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
@@ -1910,7 +1912,7 @@ def test_inconsistent_class_labels_count():
 def test_querywise(features_dtype, task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost(params={'loss_function': 'QueryRMSE', 'iterations': 2, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=8, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
@@ -1930,7 +1932,7 @@ def test_querywise(features_dtype, task_type):
 def test_group_weight(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
-    model = CatBoost(params={'loss_function': 'YetiRank', 'iterations': 10, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoostRanker(loss_function='YetiRank', iterations=10, thread_count=8, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
@@ -2003,9 +2005,7 @@ def test_ones_weight_equal_to_nonspecified_weight(task_type):
 def test_py_data_group_id(task_type):
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
-    model = CatBoost(
-        params={'loss_function': 'QueryRMSE', 'iterations': 2, 'thread_count': 4, 'task_type': task_type, 'devices': '0'}
-    )
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, devices='0')
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
@@ -2027,9 +2027,7 @@ def test_py_data_group_id(task_type):
 def test_py_data_subgroup_id(task_type):
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
-    model = CatBoost(
-        params={'loss_function': 'QueryRMSE', 'iterations': 2, 'thread_count': 4, 'task_type': task_type, 'devices': '0'}
-    )
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, devices='0')
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
@@ -2170,6 +2168,13 @@ def test_invalid_loss_regressor(task_type):
         model.fit(pool)
 
 
+def test_invalid_loss_ranker(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor(loss_function="MultiClass", task_type=task_type, devices='0')
+    with pytest.raises(CatBoostError):
+        model.fit(pool)
+
+
 def test_fit_no_label(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(task_type=task_type, devices='0')
@@ -2224,6 +2229,11 @@ def test_wrong_params_base():
 
 
 def test_wrong_params_regressor():
+    with pytest.raises(TypeError):
+        CatBoostRegressor(wrong_param=1)
+
+
+def test_wrong_params_ranker():
     with pytest.raises(TypeError):
         CatBoostRegressor(wrong_param=1)
 
@@ -3426,7 +3436,7 @@ def test_feature_importance(task_type):
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
 
-    model = CatBoost({"iterations": 5, "learning_rate": 0.03, "task_type": task_type, "devices": "0", "loss_function": "QueryRMSE"})
+    model = CatBoostRanker(iterations=5, learning_rate=0.03, task_type=task_type, devices="0", loss_function="QueryRMSE")
     model.fit(pool_querywise)
 
     assert len(model.feature_importances_.shape) == 0
@@ -3475,11 +3485,11 @@ def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_p
         "loss_function": "QueryRMSE",
         "grow_policy": grow_policy
     }
-    model = CatBoost(params)
+    model = CatBoostRanker(**params)
     model.fit(pool_querywise)
     assert len(model.feature_importances_.shape) == 0
     params["loss_function"] = "RMSE"
-    model = CatBoost(params)
+    model = CatBoostRegressor(**params)
     model.fit(pool)
     assert (model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)).all()
     np.save(fimp_npy_path, np.array(model.feature_importances_))
@@ -3634,15 +3644,7 @@ def test_exact_shap_feature_importance_multirmse(task_type):
 
 def test_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoost(
-        {
-            "iterations": 20,
-            "learning_rate": 0.03,
-            "task_type": task_type,
-            "devices": "0",
-            "loss_function": "PairLogit"
-        }
-    )
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -3657,15 +3659,7 @@ def test_shap_feature_importance_ranking(task_type):
 
 def test_approximate_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoost(
-        {
-            "iterations": 20,
-            "learning_rate": 0.03,
-            "task_type": task_type,
-            "devices": "0",
-            "loss_function": "PairLogit"
-        }
-    )
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -3680,15 +3674,7 @@ def test_approximate_shap_feature_importance_ranking(task_type):
 
 def test_exact_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoost(
-        {
-            "iterations": 20,
-            "learning_rate": 0.03,
-            "task_type": task_type,
-            "devices": "0",
-            "loss_function": "PairLogit"
-        }
-    )
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -5023,6 +5009,27 @@ def test_loading_pool_with_lists():
     )
 
 
+def test_pool_group_id_hash():
+    def get_group_sizes(group_id):
+        assert group_id
+        neighbors_diff = abs(np.diff(group_id))
+        group_end_ids = [-1] + list(np.where(neighbors_diff > 0)[0]) + [len(group_id) - 1]
+        return np.diff(group_end_ids)
+
+    np.random.seed(42)
+
+    num_rows = 10000
+    cnt_groups = 100
+    group_id = sorted(np.random.randint(0, cnt_groups, num_rows))
+    pool = Pool(data=np.random.randint(0, 1000, (num_rows, 2)),
+                label=np.random.choice([-1, 1], num_rows),
+                group_id=group_id
+                )
+    group_id_hash = pool.get_group_id_hash()
+    assert len(np.unique(group_id)) == len(np.unique(group_id_hash))
+    assert np.all(get_group_sizes(group_id) == get_group_sizes(group_id_hash))
+
+
 def test_pairs_generation(task_type):
     model = CatBoost({"loss_function": "PairLogit", "iterations": 2, "task_type": task_type})
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
@@ -5031,7 +5038,7 @@ def test_pairs_generation(task_type):
 
 
 def test_pairs_generation_generated(task_type):
-    model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoostRanker(loss_function='PairLogit', iterations=10, thread_count=8, task_type=task_type, devices='0')
 
     df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     df = df.loc[:10, :]
@@ -5850,7 +5857,7 @@ class TestUseWeights(object):
         else:
             loss_function = 'PairLogit'
 
-        cb = CatBoost({"loss_function": loss_function, "iterations": 3, 'task_type': task_type, 'devices': '0'})
+        cb = CatBoostRanker(loss_function=loss_function, iterations=3, task_type=task_type, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
@@ -6354,6 +6361,39 @@ def test_output_border_file_regressor(task_type):
 
     model3 = CatBoostRegressor(**args)
     model4 = CatBoostRegressor(border_count=2, **args)
+
+    model1.fit(train_pool)
+    model2.fit(train_pool)
+    model3.fit(train_pool)
+    model4.fit(train_pool)
+    pred1 = model1.predict(test_pool)
+    pred2 = model2.predict(test_pool)
+    pred3 = model3.predict(test_pool)
+    pred4 = model4.predict(test_pool)
+    assert _check_data(pred1, pred2)
+    assert not _check_data(pred1, pred3)
+    assert not _check_data(pred1, pred4)
+
+
+def test_output_border_file_ranker(task_type):
+    OUTPUT_BORDERS_FILE = 'output_border_file.dat'
+
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+    args = {
+        'iterations': 30,
+        'loss_function': 'YetiRank',
+        'use_best_model': False,
+        'learning_rate': 0.3
+    }
+    model1 = CatBoostRanker(border_count=32,
+                               output_borders=OUTPUT_BORDERS_FILE,
+                               **args)
+    model2 = CatBoostRanker(input_borders=os.path.join('catboost_info', OUTPUT_BORDERS_FILE),
+                               **args)
+
+    model3 = CatBoostRanker(**args)
+    model4 = CatBoostRanker(border_count=2, **args)
 
     model1.fit(train_pool)
     model2.fit(train_pool)
@@ -8620,6 +8660,33 @@ def test_to_regressor_wrong_type():
     model.fit(train_pool)
     with pytest.raises(CatBoostError):
         to_regressor(model)
+
+
+def test_to_ranker():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+
+    models = []
+    for learning_rate in [.03, .05]:
+        models.append(CatBoostRanker(iterations=2, learning_rate=learning_rate))
+        models[-1].fit(train_pool, eval_set=test_pool)
+
+    merged_model = sum_models(models)
+    prediction = merged_model.predict(test_pool)
+    assert type(merged_model) is CatBoost
+
+    merged_model = to_ranker(merged_model)
+
+    assert isinstance(merged_model, CatBoostRanker)
+    assert _check_data(merged_model.predict(test_pool), prediction)
+
+
+def test_to_ranker_wrong_type():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
+    with pytest.raises(CatBoostError):
+        to_ranker(model)
 
 
 def test_load_and_save_quantization_borders():
