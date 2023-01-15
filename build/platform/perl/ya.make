@@ -2,10 +2,6 @@ RESOURCES_LIBRARY()
 
 
 
-IF (WINDOWS OR PERL_LIBRARY_PATH)
-    ENABLE(USE_PERL_SYSTEM)
-ENDIF()
-
 IF (USE_PERL_SYSTEM)
     IF (OS_SDK == "ubuntu-12")
         DECLARE_EXTERNAL_RESOURCE(SYSTEM_PERL sbr:337748278)
@@ -38,7 +34,9 @@ IF (USE_PERL_SYSTEM)
     ENDIF()
 
 ELSE()
-    PEERDIR(build/platform/perl/5.14.4)
+
+    MESSAGE(FATAL_ERROR "There is no perl ready for static linkage. Try using the system one.")
+
 ENDIF()
 
 CFLAGS(GLOBAL -DUSE_PERL)
