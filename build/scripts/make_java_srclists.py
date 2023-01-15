@@ -62,9 +62,9 @@ def main():
                 rel = os.path.relpath(src, args.source_root)
                 if not rel.startswith('..' + os.path.sep):
                     coverage.append(rel)
-        elif src.endswith(".kt"):
+        elif args.kotlin and src.endswith(".kt"):
             kotlin.append(src)
-        elif src.endswith(".groovy"):
+        elif args.groovy and src.endswith(".groovy"):
             groovy.append(src)
         else:
             if src == '--resources':
