@@ -1,3 +1,4 @@
+#include "leaves_estimation_helper.h"
 #include "pointwise_oracle.h"
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
@@ -192,33 +193,12 @@ namespace NCatboostCuda {
     }
 
     TVector<float> TBinOptimizedOracle::EstimateExact() {
-        auto valuesBuffer = TStripeBuffer<float>::CopyMapping(Bins);
-        auto weightsBuffer = TStripeBuffer<float>::CopyMapping(Bins);
-        DerCalcer->ComputeExactValue(Cursor, &valuesBuffer, &weightsBuffer);
+        auto values = TStripeBuffer<float>::CopyMapping(Bins);
+        auto weights = TStripeBuffer<float>::CopyMapping(Bins);
+        DerCalcer->ComputeExactValue(Cursor, &values, &weights);
 
-        TVector<float> values;
-        TVector<float> weights;
-        valuesBuffer.Read(values);
-        weightsBuffer.Read(weights);
-
-        ui32 numberOfLeaves = BinCount * SingleBinDim();
-        TVector<TVector<float>> leavesValues(numberOfLeaves);
-        TVector<TVector<float>> leavesWeights(numberOfLeaves);
-
-        TVector<ui32> bins;
-        Bins.Read(bins);
-        for (size_t index = 0; index < bins.size(); ++index) {
-            leavesValues[bins[index]].push_back(values[index]);
-            leavesWeights[bins[index]].push_back(weights[index]);
-        }
-
-        TVector<float> point(numberOfLeaves);
-        CB_ENSURE(leavesValues.size() == leavesWeights.size());
-        for (ui32 leafNum = 0; leafNum < numberOfLeaves; ++leafNum) {
-            point[leafNum] = *NCB::CalcOneDimensionalOptimumConstApprox(LeavesEstimationConfig.LossDescription,
-                                                                        leavesValues[leafNum],
-                                                                        leavesWeights[leafNum]);
-        }
+        TVector<float> point(BinCount * SingleBinDim());
+        ComputeExactApprox(Bins, values, weights, BinCount, point, LeavesEstimationConfig.LossDescription);
 
         MoveTo(point);
         return MakeEstimationResult(point);

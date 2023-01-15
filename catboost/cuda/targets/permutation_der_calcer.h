@@ -96,7 +96,7 @@ namespace NCatboostCuda {
                                TVec* value,
                                TVec* weights,
                                ui32 stream = 0) const final {
-            auto targetScratch = TStripeBuffer<float>::CopyMapping(Target);
+            auto targetScratch = TVec::CopyMapping(Target);
             FillBuffer(targetScratch, 0.0f, stream);
             AddVector(targetScratch, Target, stream);
 

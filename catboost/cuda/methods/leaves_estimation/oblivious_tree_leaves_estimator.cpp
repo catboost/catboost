@@ -75,30 +75,11 @@ namespace NCatboostCuda {
         RunInStreams(taskCount, streamCount, [&](ui32 taskId, ui32 streamId) {
             TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
             TSlice taskSlice = TaskSlices[taskId];
-
             ui32 taskSliceSize = taskSlice.Size();
-            TVector<TVector<float>> leavesValues(taskSliceSize);
-            TVector<TVector<float>> leavesWeights(taskSliceSize);
-
-            TVector<ui32> bins;
-            TVector<float> sliceLeavesValues;
-            TVector<float> sliceLeavesWeights;
-
-            taskHelper.ComputeExact(bins, sliceLeavesValues, sliceLeavesWeights, streamId);
-
-            CB_ENSURE(sliceLeavesValues.size() == bins.size());
-            CB_ENSURE(sliceLeavesValues.size() == sliceLeavesWeights.size());
-
-            for (size_t index = 0; index < bins.size(); ++index) {
-                leavesValues[bins[index]].push_back(sliceLeavesValues[index]);
-                leavesWeights[bins[index]].push_back(sliceLeavesWeights[index]);
-            }
 
             TVector<float> point(taskSliceSize);
-            CB_ENSURE(leavesValues.size() == leavesWeights.size());
-            for (ui32 leafNum = 0; leafNum < taskSliceSize; ++leafNum) {
-                point[leafNum] = *NCB::CalcOneDimensionalOptimumConstApprox(this->LeavesEstimationConfig.LossDescription, leavesValues[leafNum], leavesWeights[leafNum]);
-            }
+            taskHelper.ComputeExact(point, this->LeavesEstimationConfig.LossDescription, streamId);
+            CB_ENSURE(point.size() == taskSliceSize);
 
             for (ui32 index = taskSlice.Left; index < taskSlice.Right; ++index) {
                 result[index] = point[index - taskSlice.Left];

@@ -249,7 +249,7 @@ namespace NKernel {
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
 
                         SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
-                                                                                                                    (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
+                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 4) {
                         const ui32 lineSize = 4;
@@ -265,7 +265,7 @@ namespace NKernel {
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
                         SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
-                                                                                                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
+                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 16) {
                         const ui32 lineSize = 16;
@@ -273,7 +273,7 @@ namespace NKernel {
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
                         SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
-                                                                                                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
+                                (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
                     } else if (meanSize <= 256) {
                         const ui32 lineSize = 32;
                         const ui32 blockSize = 256;

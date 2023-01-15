@@ -17,6 +17,8 @@ SRCS(
     kernel/pairwise_hist_binary.cu
     kernel/pairwise_hist_half_byte.cu
 
+    kernel/exact_estimation.cu
+
     kernel/pairwise_hist_one_byte_5bit.cu
     kernel/pairwise_hist_one_byte_6bit.cu
     kernel/pairwise_hist_one_byte_7bit.cu
@@ -51,6 +53,7 @@ SRCS(
     pointwise_score_calcer.cpp
     GLOBAL pointwise_kernels.cpp
     GLOBAL pairwise_kernels.cpp
+    GLOBAL exact_estimation.cpp
     feature_parallel_pointwise_oblivious_tree.cpp
     oblivious_tree_structure_searcher.cpp
     oblivious_tree_doc_parallel_structure_searcher.cpp
