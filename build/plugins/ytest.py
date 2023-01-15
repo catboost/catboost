@@ -721,7 +721,10 @@ def onjava_test(unit, *args):
     elif ymake_java_test:
         test_record['TEST_CLASSPATH'] = '${DART_CLASSPATH}'
         test_record['TEST_CLASSPATH_DEPS'] = '${DART_CLASSPATH_DEPS}'
-        test_record['TEST_JAR'] = '{}/{}.jar'.format(unit.get('MODDIR'), unit.get('REALPRJNAME'))
+        if unit.get('UNITTEST_DIR'):
+            test_record['TEST_JAR'] = '${UNITTEST_MOD}'
+        else:
+            test_record['TEST_JAR'] = '{}/{}.jar'.format(unit.get('MODDIR'), unit.get('REALPRJNAME'))
 
     data = dump_test(unit, test_record)
     if data:
