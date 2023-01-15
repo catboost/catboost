@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+#CONTRIB-1946 htmp tag selecting / parsing
+ALLOW .* -> vendor/github.com/andybalholm/cascadia
+
 # CONTRIB-1872 pure ipp proto implementation
 ALLOW .* -> vendor/github.com/phin1x/go-ipp
 
