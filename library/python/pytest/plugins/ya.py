@@ -35,6 +35,8 @@ import yatest_lib.tools
 
 import yatest_lib.external as canon
 
+from library.python.pytest import context
+
 console_logger = logging.getLogger("console")
 yatest_logger = logging.getLogger("ya.test")
 
@@ -175,6 +177,8 @@ def pytest_configure(config):
     config.from_ya_test = "YA_TEST_RUNNER" in os.environ
     config.test_logs = collections.defaultdict(dict)
     config.test_metrics = {}
+    config.suite_metrics = {}
+    config.configure_timestamp = time.time()
     context = {
         "project_path": config.option.project_path,
         "test_stderr": config.option.test_stderr,
@@ -508,6 +512,10 @@ def pytest_runtest_makereport(item, call):
         pytest.config.ya_trace_reporter.on_log_report(test_item)
         if report.when == "call":
             _collect_test_rusage(item)
+            if not pytest.config.suite_metrics:
+                pytest.config.suite_metrics["pytest_startup_duration"] = time.time() - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
+                # uncomment after release tools
+                # pytest.config.ya_trace_reporter.dump_suite_metrics()
             pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
         elif report.when == "setup":
             pytest.config.ya_trace_reporter.on_start_test_class(test_item)
@@ -789,6 +797,10 @@ class TraceReportGenerator(object):
 
         self.trace('subtest-finished', message)
         self._test_messages[test_item.nodeid] = message
+
+    def dump_suite_metrics(self):
+        message = {"metrics": pytest.config.suite_metrics}
+        self.trace("suite-event", message)
 
     def on_error(self, test_item):
         self.trace('suite_event', {"errors": [(test_item.status, self._get_comment(test_item))]})

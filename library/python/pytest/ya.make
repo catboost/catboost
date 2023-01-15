@@ -7,6 +7,7 @@ PY_SRCS(
     main.py
     rewrite.py
     yatest_tools.py
+    context.py
 )
 
 PEERDIR(

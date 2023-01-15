@@ -1,9 +1,12 @@
 import sys
-
+import time
 import __res
 
 
 def main():
+    import library.python.pytest.context as context
+    context.Ctx["YA_PYTEST_START_TIMESTAMP"] = time.time()
+
     profile = None
     if '--profile-pytest' in sys.argv:
         sys.argv.remove('--profile-pytest')
