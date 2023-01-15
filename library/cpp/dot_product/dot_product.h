@@ -92,6 +92,9 @@ float DotProductSlow(const float* lhs, const float* rhs, ui32 length) noexcept;
 Y_PURE_FUNCTION
 double DotProductSlow(const double* lhs, const double* rhs, ui32 length) noexcept;
 
+Y_PURE_FUNCTION
+ui32 DotProductUI4Slow(const ui8* lhs, const ui8* rhs, ui32 lengtInBytes) noexcept;
+
 namespace NDotProduct {
     // Simpler wrapper allowing to use this functions as template argument.
     template <typename T>
