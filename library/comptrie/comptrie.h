@@ -1,4 +1,3 @@
 #pragma once
+#include <library/cpp/containers/comptrie/comptrie.h>
 
-#include "comptrie_trie.h"
-#include "comptrie_builder.h"

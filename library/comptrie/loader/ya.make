@@ -4,12 +4,10 @@ LIBRARY()
 
 SRCS(
     loader.h
-    loader.cpp
 )
 
 PEERDIR(
-    library/cpp/archive
-    library/comptrie
+    library/cpp/containers/comptrie/loader
 )
 
 END()

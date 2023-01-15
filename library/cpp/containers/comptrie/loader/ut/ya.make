@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/comptrie/loader)
+UNITTEST_FOR(library/cpp/containers/comptrie/loader)
 
 
 

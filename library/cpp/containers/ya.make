@@ -2,6 +2,11 @@ RECURSE(
     2d_array
     compact_vector
     compact_vector/ut
+    comptrie
+    comptrie/loader
+    comptrie/loader/ut
+    comptrie/ut
+    comptrie/benchmark
     dense_hash
     dense_hash/dense_hash_benchmark
     dense_hash/ut
