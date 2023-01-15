@@ -42,7 +42,7 @@
 #include <google/protobuf/util/internal/datapiece.h>
 #include <google/protobuf/util/internal/error_listener.h>
 #include <google/protobuf/util/internal/structured_objectwriter.h>
-#include "util/type_resolver.h"
+#include <google/protobuf/util/type_resolver.h>
 #include <google/protobuf/stubs/bytestream.h>
 #include <google/protobuf/stubs/hash.h>
 

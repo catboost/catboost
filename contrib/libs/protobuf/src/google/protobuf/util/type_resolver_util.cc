@@ -28,14 +28,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "util/type_resolver_util.h"
+#include <google/protobuf/util/type_resolver_util.h>
 
 #include <google/protobuf/type.pb.h>
 #include <google/protobuf/wrappers.pb.h>
 #include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include <google/protobuf/util/internal/utility.h>
-#include "util/type_resolver.h"
+#include <google/protobuf/util/type_resolver.h>
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/status.h>
 

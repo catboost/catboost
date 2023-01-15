@@ -2,7 +2,7 @@
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
 #include <contrib/libs/onnx/proto/onnx_ml.pb.h>
-#include <contrib/libs/protobuf/util/message_differencer.h>
+#include <google/protobuf/util/message_differencer.h>
 
 #include <util/stream/file.h>
 #include <util/stream/output.h>

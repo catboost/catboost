@@ -6,7 +6,7 @@
 #include <catboost/private/libs/quantization_schema/schema.h>
 #include <catboost/private/libs/quantization_schema/serialization.h>
 
-#include <contrib/libs/protobuf/util/message_differencer.h>
+#include <google/protobuf/util/message_differencer.h>
 #include <contrib/libs/protobuf/text_format.h>
 
 #include <util/generic/strbuf.h>

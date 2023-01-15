@@ -33,7 +33,7 @@
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/type.pb.h>
-#include "util/type_resolver.h"
+#include <google/protobuf/util/type_resolver.h>
 #include <google/protobuf/stubs/stringpiece.h>
 #include <google/protobuf/stubs/status.h>
 #include <google/protobuf/stubs/statusor.h>

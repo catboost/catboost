@@ -52,7 +52,7 @@
 #include <google/protobuf/stubs/logging.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl_lite.h"
-#include "util/message_differencer.h"
+#include <google/protobuf/util/message_differencer.h>
 #include "descriptor.h"
 #include "message.h"
 #include "text_format.h"

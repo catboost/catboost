@@ -28,7 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "util/json_util.h"
+#include <google/protobuf/util/json_util.h>
 
 #include <google/protobuf/stubs/common.h>
 #include "io/coded_stream.h"
@@ -39,8 +39,8 @@
 #include <google/protobuf/util/internal/json_stream_parser.h>
 #include <google/protobuf/util/internal/protostream_objectsource.h>
 #include <google/protobuf/util/internal/protostream_objectwriter.h>
-#include "util/type_resolver.h"
-#include "util/type_resolver_util.h"
+#include <google/protobuf/util/type_resolver.h>
+#include <google/protobuf/util/type_resolver_util.h>
 #include <google/protobuf/stubs/bytestream.h>
 #include <google/protobuf/stubs/status_macros.h>
 

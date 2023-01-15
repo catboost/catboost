@@ -30,7 +30,7 @@
 
 // Author: ksroka@google.com (Krzysztof Sroka)
 
-#include "util/field_comparator.h"
+#include <google/protobuf/util/field_comparator.h>
 
 
 #include "descriptor.h"

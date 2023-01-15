@@ -39,7 +39,7 @@
 #include <google/protobuf/util/internal/object_source.h>
 #include <google/protobuf/util/internal/object_writer.h>
 #include <google/protobuf/util/internal/type_info.h>
-#include "util/type_resolver.h"
+#include <google/protobuf/util/type_resolver.h>
 #include <google/protobuf/stubs/stringpiece.h>
 #include <google/protobuf/stubs/status.h>
 #include <google/protobuf/stubs/statusor.h>
