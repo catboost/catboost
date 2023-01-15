@@ -8272,7 +8272,7 @@
         },
         "cuda-check": {
             "formula": {
-                "sandbox_id": "996321420",
+                "sandbox_id": "1003475876",
                 "match": "infra/rsm/nvgpumanager/tools/cuda-check/cuda-check"
             },
             "executable": {
