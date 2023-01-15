@@ -36,8 +36,9 @@ def main(args):
             with tarfile.open(tar, 'r') as tar_file:
                 tar_file.extractall(dest)
         else:
+            source = directory
             with tarfile.open(tar, 'w') as out:
-                out.add(os.path.abspath(source), arcname=os.path.relpath(source, prefix) if prefix else None)
+                out.add(os.path.abspath(source), arcname=os.path.relpath(source, prefix) if prefix else source)
 
 
 if __name__ == '__main__':
