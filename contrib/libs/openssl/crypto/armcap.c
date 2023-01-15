@@ -70,6 +70,11 @@ void OPENSSL_cpuid_setup(void) __attribute__ ((constructor));
 #  endif
 # endif
 
+# if defined(__ANDROID__) && defined(__aarch64__) && !defined(OSSL_IMPLEMENT_GETAUXVAL)
+#  include <sys/auxv.h>
+#  define OSSL_IMPLEMENT_GETAUXVAL
+# endif
+
 /*
  * ARM puts the feature bits for Crypto Extensions in AT_HWCAP2, whereas
  * AArch64 used AT_HWCAP.
