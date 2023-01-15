@@ -50,15 +50,6 @@ namespace NPlugins {
         return basename.append(".pb.cc");
     }
 
-    bool HasProtobufPresenceChecker(const FieldDescriptor* field) {
-        // returns true iff message has has_field_name() method
-        if (field->file()->syntax() != FileDescriptor::SYNTAX_PROTO3) {
-            return !field->is_repeated();
-        } else {
-            return !field->is_repeated() && (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE || field->containing_oneof() != NULL);
-        }
-    }
-
     bool IsLiteRuntimeMessage(const Descriptor* desc) {
         return desc->file() != NULL && desc->file()->options().optimize_for() == google::protobuf::FileOptions::LITE_RUNTIME;
     }
@@ -685,8 +676,8 @@ namespace NPlugins {
                     ExtensionGenerators_.emplace_back(descriptor->extension(i));
                 }
 
-                OneofGenerators_.reserve(descriptor->oneof_decl_count());
-                for (int i = 0; i < descriptor->oneof_decl_count(); i++) {
+                OneofGenerators_.reserve(descriptor->real_oneof_decl_count());
+                for (int i = 0; i < descriptor->real_oneof_decl_count(); i++) {
                     OneofGenerators_.emplace_back(descriptor->oneof_decl(i));
                 }
             }
@@ -760,7 +751,7 @@ namespace NPlugins {
                         if (hasRName)
                             printer.Print(vars,
                                 "inline size_t $RName$Size() const { return (size_t)$name$_size(); }\n");
-                    } else if (HasProtobufPresenceChecker(field)) {
+                    } else if (field->has_presence()) {
                         printer.Print(vars,
                             "inline bool Has$rname$() const { return has_$name$(); }\n");
                         if (hasRName)
@@ -864,7 +855,7 @@ namespace NPlugins {
                     if (field->is_repeated()) {
                         // map or repeated field in both proto3 and proto2 syntax
                         printer.Print(vars, "if ($rname$Size() > 0) {\n");
-                    } else if (HasProtobufPresenceChecker(field)) {
+                    } else if (field->has_presence()) {
                         // any optional or required field in proto2 syntax
                         // message-field or any oneof field in proto3 syntax
                         printer.Print(vars, "if (Has$rname$()) {\n");
