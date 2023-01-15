@@ -56,16 +56,49 @@ class CatBoostJNI {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetFlatFeatureVectorExpectedSize(handle, featureVectorExpectedSize));
     }
 
+    final void catBoostModelGetMetadata(
+            final long handle,
+            final @NotNull String[][] keys,
+            final @NotNull String[][] values) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetMetadata(handle, keys, values));
+    }
+
+    final void catBoostModelGetFloatFeatures(
+            final long handle,
+            final @NotNull String[][] names,
+            final @NotNull int[][] flat_feature_index,
+            final @NotNull int[][] feature_index,
+            final @NotNull int[][] has_nans,
+            final @NotNull String[][] nan_value_treatment) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetFloatFeatures(handle, names, flat_feature_index, feature_index, has_nans, nan_value_treatment));
+    }
+
+    final void catBoostModelGetCatFeatures(
+            final long handle,
+            final @NotNull String[][] names,
+            final @NotNull int[][] flat_feature_index,
+            final @NotNull int[][] feature_index) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetCatFeatures(handle, names, flat_feature_index, feature_index));
+    }
+
+    final void catBoostModelGetTextFeatures(
+            final long handle,
+            final @NotNull String[][] names,
+            final @NotNull int[][] flat_feature_index,
+            final @NotNull int[][] feature_index) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTextFeatures(handle, names, flat_feature_index, feature_index));
+    }
+
+    final void catBoostModelGetUsedFeatureIndices(
+            final long handle,
+            final @NotNull int[][] featureIndices) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedFeatureIndices(handle, featureIndices));
+    }
+
     final void catBoostModelGetTreeCount(
             final long handle,
             final @NotNull int[] treeCount) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTreeCount(handle, treeCount));
-    }
-
-    final void catBoostModelGetFeatureNames(
-            final long handle,
-            @NotNull String[] featureNames) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetFeatureNames(handle, featureNames));
     }
 
     final void catBoostModelPredict(

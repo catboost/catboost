@@ -75,10 +75,22 @@ public class CatBoostModelTest {
         return null;
     }
 
+    static CatBoostModel loadIrisModel() throws CatBoostError {
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/iris_model.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load categoric only model from resource, can't run tests without it");
+        return null;
+    }
+
     @Test
     public void testHashCategoricalFeature() throws CatBoostError {
         final int hash = CatBoostModel.hashCategoricalFeature("foo");
         TestCase.assertEquals(-553946371, hash);
+        final int hashUtf8 = CatBoostModel.hashCategoricalFeature("😡");
+        TestCase.assertEquals(11426516, hashUtf8);
     }
 
     @Test
@@ -171,6 +183,29 @@ public class CatBoostModelTest {
             final String[] expected = new String[]{"0", "1", "2"};
             String[] actual = model.getFeatureNames();
             assertEqualArrays(expected, actual);
+        }
+    }
+
+    public void testCatModelAttributes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            TestCase.assertEquals(4, model.getFeatures().size());
+            TestCase.assertEquals("0", model.getFeatures().get(0).getName());
+            TestCase.assertEquals(0, model.getFeatures().get(0).getFlatFeatureIndex());
+            TestCase.assertEquals(0, model.getFeatures().get(0).getFeatureIndex());
+            TestCase.assertTrue(model.getFeatures().get(0) instanceof CatBoostModel.CatFeature);
+            TestCase.assertEquals("3", model.getFeatures().get(3).getName());
+            TestCase.assertTrue(model.getFeatures().get(3).isUsedInModel());
+            TestCase.assertEquals(false, ((CatBoostModel.FloatFeature) model.getFeatures().get(3)).hasNans());
+            TestCase.assertEquals(CatBoostModel.FloatFeature.NanValueTreatment.AsIs, ((CatBoostModel.FloatFeature) model.getFeatures().get(3)).getNanValueTreatment());
+        }
+    }
+
+    @Test
+    public void testModelMetaAttributes() throws CatBoostError {
+        try(final CatBoostModel model = loadIrisModel()) {
+            TestCase.assertNotNull(model.getMetadata().get("params"));
+            // This model has utf-8 in the metadata - make sure it's encoded correctly.
+            TestCase.assertTrue(model.getMetadata().get("params").endsWith("}"));
         }
     }
 

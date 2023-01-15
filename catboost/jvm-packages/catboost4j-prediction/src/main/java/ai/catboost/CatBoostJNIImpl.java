@@ -54,14 +54,43 @@ class CatBoostJNIImpl {
             @NotNull int[] featureVectorExpectedSize);
 
     @Nullable
+    final static native String catBoostModelGetMetadata(
+            long handle,
+            @NotNull String[][] keys,
+            @NotNull String[][] values);
+
+    @Nullable
+    final static native String catBoostModelGetFloatFeatures(
+            long handle,
+            @NotNull String[][] names,
+            @NotNull int[][] flat_feature_index,
+            @NotNull int[][] feature_index,
+            @NotNull int[][] has_nans,
+            @NotNull String[][] nan_value_treatment);
+
+    @Nullable
+    final static native String catBoostModelGetCatFeatures(
+            long handle,
+            @NotNull String[][] names,
+            @NotNull int[][] flat_feature_index,
+            @NotNull int[][] feature_index);
+
+    @Nullable
+    final static native String catBoostModelGetTextFeatures(
+            long handle,
+            @NotNull String[][] names,
+            @NotNull int[][] flat_feature_index,
+            @NotNull int[][] feature_index);
+
+    @Nullable
+    final static native String catBoostModelGetUsedFeatureIndices(
+            long handle,
+            @NotNull int[][] featureIndices);
+
+    @Nullable
     final static native String catBoostModelGetTreeCount(
             long handle,
             @NotNull int[] treeCount);
-
-    @Nullable
-    final static native String catBoostModelGetFeatureNames(
-            long handle,
-            @NotNull String[] featureNames);
 
     @Nullable
     final static native String catBoostModelPredict(

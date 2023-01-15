@@ -83,19 +83,51 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFlatF
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetMetadata
+ * Signature: (J[[Ljava/lang/String;[[Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetMetadata
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetFloatFeatures
+ * Signature: (J[[Ljava/lang/String;[[I[[I[[I[[Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFloatFeatures
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetCatFeatures
+ * Signature: (J[[Ljava/lang/String;[[I[[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCatFeatures
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetTextFeatures
+ * Signature: (J[[Ljava/lang/String;[[I[[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTextFeatures
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetUsedFeatureIndices
+ * Signature: (J[[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedFeatureIndices
+  (JNIEnv *, jclass, jlong, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelGetTreeCount
  * Signature: (J[I)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
   (JNIEnv *, jclass, jlong, jintArray);
-
-/*
- * Class:     ai_catboost_CatBoostJNIImpl
- * Method:    catBoostModelGetFeatureNames
- * Signature: (J[Ljava/lang/String;)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFeatureNames
-  (JNIEnv *, jclass, jlong, jobjectArray);
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl

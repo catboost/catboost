@@ -62,6 +62,79 @@ static jlong ToHandle(const void* ptr) {
     return reinterpret_cast<jlong>(ptr);
 }
 
+// Note you can't use NewStringUTF/GetStringUTFChars for anything except ASCII
+// The "UTF" in the names is "modified UTF-8" - see
+// https://docs.oracle.com/javase/7/docs/technotes/guides/jni/spec/types.html#wp16542
+// for details.
+
+static jstring StringToJavaUTF8(JNIEnv* const jenv, const TString& string) {
+    auto byteArray = jenv->NewByteArray(string.size());
+    CB_ENSURE(byteArray, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, byteArray) {
+        jenv->DeleteLocalRef(byteArray);
+    };
+
+    jenv->SetByteArrayRegion(byteArray, 0, string.size(), (const jbyte*) string.c_str());
+
+    // The ritual below calls `new String(byteArray, "UTF-8")`.
+    auto cls = jenv->FindClass("java/lang/String");
+    CB_ENSURE(cls, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, cls) {
+        jenv->DeleteLocalRef(cls);
+    };
+
+    auto ctor = jenv->GetMethodID(cls, "<init>", "([BLjava/lang/String;)V");
+    CB_ENSURE(ctor, "OutOfMemoryError");
+
+    auto encoding = jenv->NewStringUTF("UTF-8");
+    CB_ENSURE(encoding, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, encoding) {
+        jenv->DeleteLocalRef(encoding);
+    };
+
+    auto converted = (jstring)jenv->NewObject(cls, ctor, byteArray, encoding);
+    CB_ENSURE(converted, "OutOfMemoryError");
+    return converted;
+}
+
+static jbyteArray JavaToStringUTF8(JNIEnv* jenv, const jstring& str) {
+    // Ritual: call `str.getBytes("UTF-8")`
+    jclass stringClass = jenv->GetObjectClass(str);
+    CB_ENSURE(stringClass, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, stringClass) {
+        jenv->DeleteLocalRef(stringClass);
+    };
+
+    const jmethodID getBytes = jenv->GetMethodID(stringClass, "getBytes", "(Ljava/lang/String;)[B");
+    CB_ENSURE(getBytes, "OutOfMemoryError");
+
+    auto encoding = jenv->NewStringUTF("UTF-8");
+    CB_ENSURE(encoding, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, encoding) {
+        jenv->DeleteLocalRef(encoding);
+    };
+
+    jbyteArray bytes = (jbyteArray) jenv->CallObjectMethod(str, getBytes, encoding);
+    CB_ENSURE(bytes, "OutOfMemoryError");
+    return bytes;
+}
+
+static jint CalcCatFeatureHashJava(JNIEnv* jenv, jstring string) {
+    jbyteArray utf8array = JavaToStringUTF8(jenv, string);
+    Y_SCOPE_EXIT(jenv, utf8array) {
+        jenv->DeleteLocalRef(utf8array);
+    };
+
+    jboolean isCopy = JNI_FALSE;
+    jbyte* utf8 = jenv->GetByteArrayElements(utf8array, &isCopy);
+    CB_ENSURE(utf8, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, utf8array, utf8) {
+        jenv->ReleaseByteArrayElements(utf8array, utf8, JNI_ABORT);
+    };
+
+    return CalcCatFeatureHash(TStringBuf((const char*) utf8, jenv->GetArrayLength(utf8array)));
+}
+
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeature
   (JNIEnv* jenv, jclass, jstring jcatFeature, jintArray jhash) {
     Y_BEGIN_JNI_API_CALL();
@@ -69,14 +142,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatur
     const auto jhashSize = jenv->GetArrayLength(jhash);
     CB_ENSURE(jhashSize >= 1, "insufficient `hash` size: " LabeledOutput(jhashSize));
 
-    const auto catFeatureSize = jenv->GetStringUTFLength(jcatFeature);
-    const auto* const catFeature = jenv->GetStringUTFChars(jcatFeature, nullptr);
-    CB_ENSURE(catFeature, "OutOfMemoryError");
-    Y_SCOPE_EXIT(jenv, jcatFeature, catFeature) {
-        jenv->ReleaseStringUTFChars(jcatFeature, catFeature);
-    };
-
-    const jint hash = CalcCatFeatureHash(TStringBuf(catFeature, catFeatureSize));
+    const jint hash = CalcCatFeatureHashJava(jenv, jcatFeature);
     jenv->SetIntArrayRegion(jhash, 0, 1, &hash);
 
     Y_END_JNI_API_CALL();
@@ -98,14 +164,7 @@ static void HashCatFeatures(
         Y_SCOPE_EXIT(jenv, jcatFeature) {
             jenv->DeleteLocalRef(jcatFeature);
         };
-        const auto catFeatureSize = jenv->GetStringUTFLength(jcatFeature);
-        const auto* const catFeature = jenv->GetStringUTFChars(jcatFeature, nullptr);
-        CB_ENSURE(catFeature, "OutOfMemoryError");
-        Y_SCOPE_EXIT(jenv, jcatFeature, catFeature) {
-            jenv->ReleaseStringUTFChars(jcatFeature, catFeature);
-        };
-
-        hashes[i] = CalcCatFeatureHash(TStringBuf(catFeature, catFeatureSize));
+        hashes[i] = CalcCatFeatureHashJava(jenv, jcatFeature);
     }
 }
 
@@ -243,6 +302,230 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFlatF
     Y_END_JNI_API_CALL();
 }
 
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetMetadata
+    (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jkeys, jobjectArray jvalues) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const auto& modelInfo = model->ModelInfo;
+    auto keysArray = jenv->NewObjectArray(modelInfo.size(), jenv->FindClass("java/lang/String"), NULL);
+    CB_ENSURE(keysArray, "OutOfMemoryError");
+    auto valuesArray = jenv->NewObjectArray(modelInfo.size(), jenv->FindClass("java/lang/String"), NULL);
+    CB_ENSURE(valuesArray, "OutOfMemoryError");
+
+    int i = 0;
+    for (const auto& keyValue : modelInfo) {
+        // pair
+        auto jkey = StringToJavaUTF8(jenv, keyValue.first);
+        jenv->SetObjectArrayElement(keysArray, i, jkey);
+
+        auto jvalue = StringToJavaUTF8(jenv, keyValue.second);
+        jenv->SetObjectArrayElement(valuesArray, i, jvalue);
+
+        jenv->DeleteLocalRef(jkey);
+        jenv->DeleteLocalRef(jvalue);
+
+        i++;
+    }
+
+    jenv->SetObjectArrayElement(jkeys, 0, keysArray);
+    jenv->SetObjectArrayElement(jvalues, 0, valuesArray);
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFloatFeatures
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnames, jobjectArray jflat_feature_index, jobjectArray jfeature_index, jobjectArray jhas_nans, jobjectArray jnan_value_treatment)
+{
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const auto& features = model->ModelTrees->GetFloatFeatures();
+
+    auto namesArray = jenv->NewObjectArray(features.size(), jenv->FindClass("java/lang/String"), NULL);
+    CB_ENSURE(namesArray, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jnames, 0, namesArray);
+
+    auto flatFeatureIndex = jenv->NewIntArray(features.size());
+    CB_ENSURE(flatFeatureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jflat_feature_index, 0, flatFeatureIndex);
+
+    auto featureIndex = jenv->NewIntArray(features.size());
+    CB_ENSURE(featureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jfeature_index, 0, featureIndex);
+
+    auto hasNans = jenv->NewIntArray(features.size());
+    CB_ENSURE(hasNans, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jhas_nans, 0, hasNans);
+
+    auto nanValueTreatment = jenv->NewObjectArray(features.size(), jenv->FindClass("java/lang/String"), NULL);
+    CB_ENSURE(hasNans, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jnan_value_treatment, 0, nanValueTreatment);
+
+    int i = 0;
+    for (const auto& feature : features) {
+        // pair
+        auto name = feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId;
+        auto jname = StringToJavaUTF8(jenv, name);
+        jenv->SetObjectArrayElement(namesArray, i, jname);
+        jenv->DeleteLocalRef(jname);
+
+        const jint iFlatIndex = feature.Position.FlatIndex;
+        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &iFlatIndex);
+        const jint iFeatureIndex = feature.Position.Index;
+        jenv->SetIntArrayRegion(featureIndex, i, 1, &iFeatureIndex);
+        const jint iHasNans = feature.HasNans ? 1 : 0;
+        jenv->SetIntArrayRegion(hasNans, i, 1, &iHasNans);
+
+        jstring iNanValueTreatment;
+        switch (feature.NanValueTreatment) {
+          case TFloatFeature::ENanValueTreatment::AsIs:
+            iNanValueTreatment = jenv->NewStringUTF("AsIs");
+            break;
+          case TFloatFeature::ENanValueTreatment::AsFalse:
+            iNanValueTreatment = jenv->NewStringUTF("AsFalse");
+            break;
+          case TFloatFeature::ENanValueTreatment::AsTrue:
+            iNanValueTreatment = jenv->NewStringUTF("AsTrue");
+            break;
+        }
+
+        CB_ENSURE(iNanValueTreatment, "OutOfMemoryError");
+
+        jenv->SetObjectArrayElement(nanValueTreatment, i, iNanValueTreatment);
+        jenv->DeleteLocalRef(iNanValueTreatment);
+
+        i++;
+    }
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCatFeatures
+    (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnames, jobjectArray jflat_feature_index, jobjectArray jfeature_index) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const auto features = model->ModelTrees->GetCatFeatures();
+
+    auto namesArray = jenv->NewObjectArray(features.size(), jenv->FindClass("java/lang/String"), NULL);
+    CB_ENSURE(namesArray, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jnames, 0, namesArray);
+
+    auto flatFeatureIndex = jenv->NewIntArray(features.size());
+    CB_ENSURE(flatFeatureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jflat_feature_index, 0, flatFeatureIndex);
+
+    auto featureIndex = jenv->NewIntArray(features.size());
+    CB_ENSURE(featureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jfeature_index, 0, featureIndex);
+
+    int i = 0;
+    for (const auto& feature : features) {
+        // pair
+        auto name = feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId;
+        auto jname = StringToJavaUTF8(jenv, name);
+        jenv->SetObjectArrayElement(namesArray, i, jname);
+        jenv->DeleteLocalRef(jname);
+
+        const jint iFlatIndex = feature.Position.FlatIndex;
+        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &iFlatIndex);
+        const jint iIndex = feature.Position.Index;
+        jenv->SetIntArrayRegion(featureIndex, i, 1, &iIndex);
+
+        i++;
+    }
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTextFeatures
+   (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnames, jobjectArray jflat_feature_index, jobjectArray jfeature_index) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const auto features = model->ModelTrees->GetTextFeatures();
+
+    auto namesArray = jenv->NewObjectArray(features.size(), jenv->FindClass("java/lang/String"), NULL);
+    CB_ENSURE(namesArray, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jnames, 0, namesArray);
+
+    auto flatFeatureIndex = jenv->NewIntArray(features.size());
+    CB_ENSURE(flatFeatureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jflat_feature_index, 0, flatFeatureIndex);
+
+    auto featureIndex = jenv->NewIntArray(features.size());
+    CB_ENSURE(featureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jfeature_index, 0, featureIndex);
+
+    int i = 0;
+    for (const auto& feature : features) {
+        // pair
+        auto name = feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId;
+        auto jname = StringToJavaUTF8(jenv, name);
+        jenv->SetObjectArrayElement(namesArray, i, jname);
+        jenv->DeleteLocalRef(jname);
+
+        const jint iFlatIndex = feature.Position.FlatIndex;
+        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &iFlatIndex);
+        const jint iIndex = feature.Position.Index;
+        jenv->SetIntArrayRegion(featureIndex, i, 1, &iIndex);
+
+        i++;
+    }
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedFeatureIndices
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jflatFeatureIndex) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    auto featureCount = model->GetUsedCatFeaturesCount() + model->GetUsedFloatFeaturesCount() + model->GetUsedTextFeaturesCount();
+    auto flatFeatureIndex = jenv->NewIntArray(featureCount);
+    CB_ENSURE(flatFeatureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jflatFeatureIndex, 0, flatFeatureIndex);
+
+    int index = 0;
+
+    for (const auto& feature : model->ModelTrees->GetTextFeatures()) {
+        if (feature.UsedInModel()) {
+            const jint iFlatIndex = feature.Position.FlatIndex;
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &iFlatIndex);
+            index++;
+        }
+    }
+
+    for (const auto& feature : model->ModelTrees->GetCatFeatures()) {
+        if (feature.UsedInModel()) {
+            const jint iFlatIndex = feature.Position.FlatIndex;
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &iFlatIndex);
+            index++;
+        }
+    }
+
+    for (const auto& feature : model->ModelTrees->GetFloatFeatures()) {
+        if (feature.UsedInModel()) {
+            const jint iFlatIndex = feature.Position.FlatIndex;
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &iFlatIndex);
+            index++;
+        }
+    }
+
+    Y_END_JNI_API_CALL();
+}
+
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jtreeCount) {
     Y_BEGIN_JNI_API_CALL();
@@ -252,24 +535,6 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeC
 
     const jint treeCount = model->GetTreeCount();
     jenv->SetIntArrayRegion(jtreeCount, 0, 1, &treeCount);
-
-    Y_END_JNI_API_CALL();
-}
-
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFeatureNames
-  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jfeatureNames) {
-    Y_BEGIN_JNI_API_CALL();
-
-    const auto* const model = ToConstFullModelPtr(jhandle);
-    CB_ENSURE(model, "got nullptr model pointer");
-
-    TVector<TString> featureNames = GetModelUsedFeaturesNames(*model);
-    const size_t size = featureNames.size();
-
-    for (size_t i = 0; i < size; ++i) {
-        jstring jname = jenv->NewStringUTF(featureNames[i].c_str());
-        jenv->SetObjectArrayElement(jfeatureNames, i, jname);
-    }
 
     Y_END_JNI_API_CALL();
 }
@@ -302,6 +567,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         catFeatureCount >= minCatFeatureCount,
         LabeledOutput(catFeatureCount, minCatFeatureCount));
 
+    CB_ENSURE(jprediction, "got null prediction");
     const size_t predictionSize = jenv->GetArrayLength(jprediction);
     CB_ENSURE(
         predictionSize >= modelPredictionSize,
