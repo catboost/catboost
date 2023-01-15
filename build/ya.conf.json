@@ -275,17 +275,17 @@
         "news": {
             "description": "Run news team tools"
         },
-        "go_1.15.8": {
-            "description": "Run go tool (1.15.8)"
-        },
-        "gofmt_1.15.8": {
-            "description": "Run gofmt tool (1.15.8)"
-        },
-        "go": {
+        "go_1.16.2": {
             "description": "Run go tool (1.16.2)"
         },
-        "gofmt": {
+        "gofmt_1.16.2": {
             "description": "Run gofmt tool (1.16.2)"
+        },
+        "go": {
+            "description": "Run go tool (1.16.3)"
+        },
+        "gofmt": {
+            "description": "Run gofmt tool (1.16.3)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -5687,59 +5687,19 @@
                 }
             ]
         },
-        "golang_1_15_8": {
-            "tools": {
-                "golang_1.15.8": {
-                    "bottle": "golang_1.15.8",
-                    "executable": "golang_1.15.8"
-                },
-                "go_1.15.8": {
-                    "bottle": "golang_1.15.8",
-                    "executable": "go_1.15.8"
-                },
-                "gofmt_1.15.8": {
-                    "bottle": "golang_1.15.8",
-                    "executable": "gofmt_1.15.8"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.15.8"
-            }
-        },
         "golang_1_16_2": {
             "tools": {
-                "golang": {
+                "golang_1.16.2": {
                     "bottle": "golang_1.16.2",
-                    "executable": "golang"
+                    "executable": "golang_1.16.2"
                 },
-                "go": {
+                "go_1.16.2": {
                     "bottle": "golang_1.16.2",
-                    "executable": "go"
+                    "executable": "go_1.16.2"
                 },
-                "gofmt": {
+                "gofmt_1.16.2": {
                     "bottle": "golang_1.16.2",
-                    "executable": "gofmt"
+                    "executable": "gofmt_1.16.2"
                 }
             },
             "platforms": [
@@ -5765,6 +5725,46 @@
             "params": {
                 "type": "golang",
                 "version": "1.16.2"
+            }
+        },
+        "golang_1_16_3": {
+            "tools": {
+                "golang": {
+                    "bottle": "golang_1.16.3",
+                    "executable": "golang"
+                },
+                "go": {
+                    "bottle": "golang_1.16.3",
+                    "executable": "go"
+                },
+                "gofmt": {
+                    "bottle": "golang_1.16.3",
+                    "executable": "gofmt"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.16.3"
             }
         },
         "godoc": {
@@ -8339,32 +8339,32 @@
                 ]
             }
         },
-        "golang_1.15.8": {
-            "formula": {
-                "sandbox_id": [
-                    891692206,
-                    891693575,
-                    891694631
-                ],
-                "match": "GOLANG"
-            },
-            "executable": {
-                "go_1.15.8": [
-                    "bin",
-                    "go"
-                ],
-                "gofmt_1.15.8": [
-                    "bin",
-                    "gofmt"
-                ]
-            }
-        },
         "golang_1.16.2": {
             "formula": {
                 "sandbox_id": [
                     917391032,
                     917392378,
                     917393324
+                ],
+                "match": "GOLANG"
+            },
+            "executable": {
+                "go_1.16.2": [
+                    "bin",
+                    "go"
+                ],
+                "gofmt_1.16.2": [
+                    "bin",
+                    "gofmt"
+                ]
+            }
+        },
+        "golang_1.16.3": {
+            "formula": {
+                "sandbox_id": [
+                    938748144,
+                    938749617,
+                    938751382
                 ],
                 "match": "GOLANG"
             },
