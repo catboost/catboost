@@ -20,7 +20,7 @@
 
 #include <library/cpp/digest/crc32c/crc32c.h>
 #include <library/cpp/digest/md5/md5.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/algorithm.h>

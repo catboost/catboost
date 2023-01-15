@@ -34,7 +34,7 @@ PEERDIR(
     library/cpp/grid_creator
     library/json
     library/object_factory
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 IF (USE_MPI)

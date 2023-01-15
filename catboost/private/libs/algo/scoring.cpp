@@ -17,7 +17,7 @@
 #include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 #include <library/cpp/dot_product/dot_product.h>
 
 #include <util/generic/array_ref.h>

@@ -8,7 +8,7 @@
 #include <util/network/init.h>
 #include <util/generic/ptr.h>
 #include <util/generic/guid.h>
-#include <library/threading/mux_event/mux_event.h>
+#include <library/cpp/threading/mux_event/mux_event.h>
 #include <library/netliba/socket/socket.h>
 
 namespace NNetliba_v12 {

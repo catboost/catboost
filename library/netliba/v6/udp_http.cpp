@@ -4,7 +4,7 @@
 #include "udp_socket.h"
 #include "cpu_affinity.h"
 
-#include <library/threading/atomic/bool.h>
+#include <library/cpp/threading/atomic/bool.h>
 
 #include <util/system/hp_timer.h>
 #include <util/thread/lfqueue.h>

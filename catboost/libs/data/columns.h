@@ -11,7 +11,7 @@
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/polymorphic_type_containers.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/system/types.h>
 #include <util/generic/noncopyable.h>

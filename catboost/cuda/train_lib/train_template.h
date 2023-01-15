@@ -6,7 +6,7 @@
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/cuda/methods/boosting_progress_tracker.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 namespace NCatboostCuda {
     template <class TBoosting>

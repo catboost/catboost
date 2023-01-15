@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>

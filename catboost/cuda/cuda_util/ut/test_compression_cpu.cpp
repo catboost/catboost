@@ -2,7 +2,7 @@
 #include <iostream>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/cpu_random.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 using namespace std;
 

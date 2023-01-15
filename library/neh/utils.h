@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/threading/atomic/bool.h>
+#include <library/cpp/threading/atomic/bool.h>
 
 #include <util/network/address.h>
 #include <util/system/thread.h>

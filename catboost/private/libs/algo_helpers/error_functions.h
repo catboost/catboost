@@ -13,7 +13,7 @@
 
 #include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/fast_exp/fast_exp.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>

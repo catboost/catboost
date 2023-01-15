@@ -2,7 +2,7 @@
 
 #include <catboost/libs/data/load_data.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/stream/file.h>
 #include <util/system/mktemp.h>

@@ -6,7 +6,7 @@
 #include "par_log.h"
 
 #include <library/cpp/binsaver/mem_io.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/is_in.h>
 #include <util/generic/vector.h>

@@ -8,7 +8,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/ptr.h>
 

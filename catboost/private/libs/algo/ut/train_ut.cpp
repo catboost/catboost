@@ -3,7 +3,7 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <library/unittest/registar.h>
 #include <library/json/json_reader.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/random/fast.h>
 #include <util/generic/vector.h>

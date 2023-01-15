@@ -14,7 +14,7 @@ PEERDIR(
     catboost/private/libs/text_features
     catboost/private/libs/text_processing
     catboost/private/libs/options
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 

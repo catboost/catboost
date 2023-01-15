@@ -70,7 +70,6 @@ RECURSE(
     svnversion
     svnversion/java
     testing
-    threading
     token
     token/serialization
     token/serialization/ut

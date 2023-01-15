@@ -4,8 +4,8 @@
 #include "par_locked_hash.h"
 #include "par_network.h"
 
-#include <library/threading/atomic/bool.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/atomic/bool.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 #include <util/system/atomic.h>

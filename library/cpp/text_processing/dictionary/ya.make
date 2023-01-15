@@ -24,7 +24,7 @@ PEERDIR(
     library/cpp/containers/flat_hash
     library/json
     library/cpp/text_processing/dictionary/idl
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(types.h)

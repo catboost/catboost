@@ -8,7 +8,7 @@ IF (MUSL)
 ENDIF()
 
 PEERDIR(
-    library/threading/chunk_queue
+    library/cpp/threading/chunk_queue
 )
 
 SRCS(

@@ -22,7 +22,7 @@ PEERDIR(
     catboost/private/libs/text_processing
     contrib/libs/clapack
     contrib/libs/flatbuffers
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 

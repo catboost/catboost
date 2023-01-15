@@ -11,7 +11,7 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_utils.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 #include <util/generic/fwd.h>
 
 namespace NCatboostCuda {

@@ -20,7 +20,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/model/ut/lib
     catboost/libs/train_lib
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 END()

@@ -8,7 +8,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/maybe.h>
 #include <util/generic/array_ref.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 /*
  * Feature estimators - how to build FeatureCalculator from DataProvider

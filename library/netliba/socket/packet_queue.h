@@ -2,7 +2,7 @@
 
 #include "udp_recv_packet.h"
 
-#include <library/threading/chunk_queue/queue.h>
+#include <library/cpp/threading/chunk_queue/queue.h>
 
 #include <util/network/init.h>
 #include <util/system/atomic.h>

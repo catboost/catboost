@@ -13,7 +13,7 @@
 #include <catboost/private/libs/target/classification_target_helper.h>
 
 #include <library/svnversion/svnversion.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/datetime/base.h>
 #include <util/generic/algorithm.h>

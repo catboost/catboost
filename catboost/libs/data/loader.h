@@ -13,7 +13,7 @@
 #include <catboost/libs/column_description/cd_parser.h>
 
 #include <library/object_factory/object_factory.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>

@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/threading/chunk_queue
+    library/cpp/threading/chunk_queue
 )
 
 IF (MUSL)
