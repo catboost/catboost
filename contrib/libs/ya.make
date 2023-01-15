@@ -34,7 +34,6 @@ RECURSE(
     protobuf/java
     protobuf/python
     protobuf/python/test
-    protobuf/ut
     pugixml
     python
     python/ut

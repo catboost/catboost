@@ -1,6 +1,0 @@
-package NMyPackage;
-
-message TEmpty {
-    message TSubmessage {
-    }
-}
