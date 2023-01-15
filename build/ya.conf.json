@@ -296,9 +296,6 @@
         "yd-migrate": {
             "description": "Run deploy migration"
         },
-        "yfm": {
-            "description": "YFM-extended markdown processor for Cloud deploy"
-        },
         "yfm-docs": {
             "description": "YFM-extended markdown processor for Cloud deploy (v3)"
         },
@@ -5130,34 +5127,6 @@
                 }
             ]
         },
-        "yfm": {
-            "tools": {
-                "yfm": {
-                    "bottle": "yfm",
-                    "executable": "yfm"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "yfm-docs": {
             "tools": {
                 "yfm-docs": {
@@ -7246,17 +7215,6 @@
             "executable": {
                 "vmexec": [
                     "vmexec"
-                ]
-            }
-        },
-        "yfm": {
-            "formula": {
-                "sandbox_id": 657826477,
-                "match": "yfm"
-            },
-            "executable": {
-                "yfm": [
-                    "yfm-transform"
                 ]
             }
         },
