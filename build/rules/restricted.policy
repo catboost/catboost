@@ -65,6 +65,7 @@ ALLOW crypta/lib/native/log -> contrib/restricted/spdlog
 ALLOW yandex_io -> contrib/restricted/spdlog
 ALLOW smart_devices/tools/launcher2 -> contrib/restricted/spdlog
 
+ALLOW contrib/libs/tcmalloc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/tf-1.14 -> contrib/restricted/abseil-cpp-tstring
