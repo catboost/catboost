@@ -602,4 +602,6 @@ namespace NCB::NModelEvaluation {
     }
 
     TEvaluationBackendFactory::TRegistrator<NDetail::TCpuEvaluator> CPUEvaluationBackendRegistrator(EFormulaEvaluatorType::CPU);
+
+    void* CPUEvaluationBackendRegistratorPointer = &CPUEvaluationBackendRegistrator;
 }

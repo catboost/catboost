@@ -249,5 +249,8 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
         using TEvaluationBackendFactory = NObjectFactory::TParametrizedObjectFactory<IModelEvaluator, EFormulaEvaluatorType, const TFullModel&>;
 
         TModelEvaluatorPtr CreateEvaluator(EFormulaEvaluatorType formualEvaluatorType, const TFullModel& model);
+
+        // We HAVE TO make pointer referencing registrators to make linker understand we really need them.
+        extern void* CPUEvaluationBackendRegistratorPointer;
     }
 }
