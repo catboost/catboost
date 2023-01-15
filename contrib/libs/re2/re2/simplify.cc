@@ -11,6 +11,7 @@
 #include "util/util.h"
 #include "util/logging.h"
 #include "util/utf.h"
+#include "re2/pod_array.h"
 #include "re2/regexp.h"
 #include "re2/walker-inl.h"
 
@@ -20,16 +21,13 @@ namespace re2 {
 // string representation of the simplified form.  Returns true on success.
 // Returns false and sets *error (if error != NULL) on error.
 bool Regexp::SimplifyRegexp(const StringPiece& src, ParseFlags flags,
-                            string* dst,
-                            RegexpStatus* status) {
+                            std::string* dst, RegexpStatus* status) {
   Regexp* re = Parse(src, flags, status);
   if (re == NULL)
     return false;
   Regexp* sre = re->Simplify();
   re->Decref();
   if (sre == NULL) {
-    // Should not happen, since Simplify never fails.
-    LOG(ERROR) << "Simplify failed on " << src;
     if (status) {
       status->set_code(kRegexpInternalError);
       status->set_error_arg(src);
@@ -180,10 +178,20 @@ Regexp* Regexp::Simplify() {
   CoalesceWalker cw;
   Regexp* cre = cw.Walk(this, NULL);
   if (cre == NULL)
-    return cre;
+    return NULL;
+  if (cw.stopped_early()) {
+    cre->Decref();
+    return NULL;
+  }
   SimplifyWalker sw;
   Regexp* sre = sw.Walk(cre, NULL);
   cre->Decref();
+  if (sre == NULL)
+    return NULL;
+  if (sw.stopped_early()) {
+    sre->Decref();
+    return NULL;
+  }
   return sre;
 }
 
@@ -212,9 +220,10 @@ Regexp* CoalesceWalker::Copy(Regexp* re) {
 }
 
 Regexp* CoalesceWalker::ShortVisit(Regexp* re, Regexp* parent_arg) {
-  // This should never be called, since we use Walk and not
-  // WalkExponential.
+  // Should never be called: we use Walk(), not WalkExponential().
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   LOG(DFATAL) << "CoalesceWalker::ShortVisit called";
+#endif
   return re->Incref();
 }
 
@@ -437,9 +446,10 @@ Regexp* SimplifyWalker::Copy(Regexp* re) {
 }
 
 Regexp* SimplifyWalker::ShortVisit(Regexp* re, Regexp* parent_arg) {
-  // This should never be called, since we use Walk and not
-  // WalkExponential.
+  // Should never be called: we use Walk(), not WalkExponential().
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   LOG(DFATAL) << "SimplifyWalker::ShortVisit called";
+#endif
   return re->Incref();
 }
 
@@ -589,13 +599,11 @@ Regexp* SimplifyWalker::SimplifyRepeat(Regexp* re, int min, int max,
       return Regexp::Plus(re->Incref(), f);
 
     // General case: x{4,} is xxxx+
-    Regexp** nre_subs = new Regexp*[min];
+    PODArray<Regexp*> nre_subs(min);
     for (int i = 0; i < min-1; i++)
       nre_subs[i] = re->Incref();
     nre_subs[min-1] = Regexp::Plus(re->Incref(), f);
-    Regexp* nre = Regexp::Concat(nre_subs, min, f);
-    delete[] nre_subs;
-    return nre;
+    return Regexp::Concat(nre_subs.data(), min, f);
   }
 
   // Special case: (x){0} matches only empty string.
@@ -613,11 +621,10 @@ Regexp* SimplifyWalker::SimplifyRepeat(Regexp* re, int min, int max,
   // Build leading prefix: xx.  Capturing only on the last one.
   Regexp* nre = NULL;
   if (min > 0) {
-    Regexp** nre_subs = new Regexp*[min];
+    PODArray<Regexp*> nre_subs(min);
     for (int i = 0; i < min; i++)
       nre_subs[i] = re->Incref();
-    nre = Regexp::Concat(nre_subs, min, f);
-    delete[] nre_subs;
+    nre = Regexp::Concat(nre_subs.data(), min, f);
   }
 
   // Build and attach suffix: (x(x(x)?)?)?
