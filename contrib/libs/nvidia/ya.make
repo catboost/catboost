@@ -1,7 +1,0 @@
-
-
-RECURSE(
-    cublas
-    cusolver
-    cusparse
-)
