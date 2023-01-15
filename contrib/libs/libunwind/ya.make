@@ -30,7 +30,7 @@ CFLAGS(
     -funwind-tables
 )
 
-IF (SANITIZER_TYPE STREQUAL memory)
+IF (SANITIZER_TYPE == memory)
     CFLAGS(-fPIC)
 ENDIF()
 
