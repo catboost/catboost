@@ -5,6 +5,8 @@
 #include "tokenizer.h"
 #include "nlpparser.h"
 
+using namespace std::string_view_literals;
+
 static TString ReplaceControlCharacters(const char* p);
 
 class TTokenizerTest: public TTestBase {
@@ -630,7 +632,7 @@ void TTokenizerTest::TestEmptyString() {
 }
 
 void TTokenizerTest::TestWordBreaks() {
-    const TStringBuf text1 = AsStringBuf("These\0words\0are\0separated\0with\0zeros.\0 The next sentence.\0The last sentence.");
+    constexpr TStringBuf text1 = "These\0words\0are\0separated\0with\0zeros.\0 The next sentence.\0The last sentence."sv;
     const TUtf16String s1(UTF8ToWide(text1));
     TestCase(s1.c_str(), s1.size(), "[These]W [words]W [are]W [separated]W [with]W [zeros]W.  <S>[The]W [next]W [sentence]W. <S>[The]W [last]W [sentence]W.");
 }
