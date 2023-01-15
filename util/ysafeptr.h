@@ -358,10 +358,12 @@ inline bool IsValid(const TPtrBase<T, TRef>& p) {
         TPtrName() {                             \
         }                                        \
         TPtrName(T* _ptr)                        \
-            : CBase(_ptr) {                      \
+            : CBase(_ptr)                        \
+        {                                        \
         }                                        \
         TPtrName(const TPtrName& a)              \
-            : CBase(a) {                         \
+            : CBase(a)                           \
+        {                                        \
         }                                        \
         TPtrName& operator=(T* _ptr) {           \
             this->Set(_ptr);                     \

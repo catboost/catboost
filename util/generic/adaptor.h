@@ -8,7 +8,8 @@ namespace NPrivate {
     class TReverseRangeStorage {
     public:
         TReverseRangeStorage(Range&& range)
-            : Base_(std::forward<Range>(range)) {
+            : Base_(std::forward<Range>(range))
+        {
         }
 
         decltype(auto) Base() const {

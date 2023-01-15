@@ -555,7 +555,8 @@ TThreadPoolBase::TThreadPoolBase(const TParams& params)
 
 #define DEFINE_THREAD_POOL_CTORS(type) \
     type::type(const TParams& params)  \
-        : TThreadPoolBase(params) {    \
+        : TThreadPoolBase(params)      \
+    {                                  \
     }
 
 DEFINE_THREAD_POOL_CTORS(TThreadPool)

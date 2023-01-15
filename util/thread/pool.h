@@ -57,11 +57,13 @@ template <class T>
 class TThrFuncObj: public IObjectInQueue {
 public:
     TThrFuncObj(const T& func)
-        : Func(func) {
+        : Func(func)
+    {
     }
 
     TThrFuncObj(T&& func)
-        : Func(std::move(func)) {
+        : Func(std::move(func))
+    {
     }
 
     void Process(void*) override {

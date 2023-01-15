@@ -774,7 +774,8 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         TDoubleIterator() = default;
 
         TDoubleIterator(const char* ptr)
-            : Ptr_(ptr) {
+            : Ptr_(ptr)
+        {
         }
 
         TDoubleIterator operator++() {

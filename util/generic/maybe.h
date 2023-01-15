@@ -164,12 +164,14 @@ public:
 
     template <class... Args>
     constexpr explicit TMaybe(TInPlace, Args&&... args)
-        : TBase(TInPlace{}, std::forward<Args>(args)...) {
+        : TBase(TInPlace{}, std::forward<Args>(args)...)
+    {
     }
 
     template <class U, class... TArgs>
     constexpr explicit TMaybe(TInPlace, std::initializer_list<U> il, TArgs&&... args)
-        : TBase(TInPlace{}, il, std::forward<TArgs>(args)...) {
+        : TBase(TInPlace{}, il, std::forward<TArgs>(args)...)
+    {
     }
 
     constexpr TMaybe(TNothing) noexcept {
@@ -209,12 +211,14 @@ public:
 
     template <class U = T, class = std::enable_if_t<TImplicitAnyCtor<U>::value>>
     constexpr TMaybe(U&& right)
-        : TBase(TInPlace{}, std::forward<U>(right)) {
+        : TBase(TInPlace{}, std::forward<U>(right))
+    {
     }
 
     template <class U = T, std::enable_if_t<TExplicitAnyCtor<U>::value, bool> = false>
     constexpr explicit TMaybe(U&& right)
-        : TBase(TInPlace{}, std::forward<U>(right)) {
+        : TBase(TInPlace{}, std::forward<U>(right))
+    {
     }
 
     ~TMaybe() = default;
