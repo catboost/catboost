@@ -2659,13 +2659,9 @@ class CatBoost(_CatBoostBase):
                 type = EFstrType.PredictionValuesChange
 
         if type == EFstrType.PredictionDiff:
-            if data is None and isinstance(data, Pool):
-                raise CatBoostError("Invalid data type={}, must be list or np.ndarray".format(_typeof(data)))
-
             data, _ = self._process_predict_input_data(data, "get_feature_importance", thread_count)
             if data.num_row() != 2:
                 raise CatBoostError("{} requires a pair of documents, found {}".format(type, data.num_row()))
-
         else:
             if data is not None and not isinstance(data, Pool):
                 raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(_typeof(data)))
