@@ -1994,6 +1994,7 @@ class LD(Linker):
                 'REAL_LINK_EXE',
                 '$YMAKE_PYTHON ${input:"build/scripts/clang_tidy_arch.py"}',
                 '--build-root $ARCADIA_BUILD_ROOT',
+                '--source-root $ARCADIA_ROOT',
                 '--output-file',
                 '$TARGET',
                 '$AUTO_INPUT',
@@ -2049,7 +2050,7 @@ class LD(Linker):
 
         tail_link_lib = '$AUTO_INPUT ${kv;hide:"p AR"} $TOOLCHAIN_ENV ${kv;hide:"pc light-red"} ${kv;hide:"show_out"}'
         if is_positive("TIDY"):
-            archiver = '$YMAKE_PYTHON ${input:"build/scripts/clang_tidy_arch.py"} --build-root $ARCADIA_BUILD_ROOT --output-file'
+            archiver = '$YMAKE_PYTHON ${input:"build/scripts/clang_tidy_arch.py"} --source-root $ARCADIA_ROOT --build-root $ARCADIA_BUILD_ROOT --output-file'
             emit('LINK_LIB', archiver, "$TARGET", tail_link_lib)
         else:
             archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE %s $ARCADIA_BUILD_ROOT %s' % (self.llvm_ar_format, self.ar_plugin or 'None')
