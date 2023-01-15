@@ -522,7 +522,9 @@ private:
 
     struct TNoDefaultConstructor {
         TNoDefaultConstructor() = delete;
-        explicit TNoDefaultConstructor(int val): Val(val) {}
+        explicit TNoDefaultConstructor(int val)
+            : Val(val) {
+        }
 
         int Val;
     };

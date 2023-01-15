@@ -3,19 +3,19 @@
 #include <stdlib.h>
 
 #if defined(_solaris_)
-#include <stdlib.h>
+    #include <stdlib.h>
 #elif defined(_darwin_)
-#include <mach-o/dyld.h>
+    #include <mach-o/dyld.h>
 #elif defined(_win_)
-#include "winint.h"
-#include <io.h>
+    #include "winint.h"
+    #include <io.h>
 #elif defined(_linux_)
-#include <unistd.h>
+    #include <unistd.h>
 #elif defined(_freebsd_)
-#include <string.h>
-#include <sys/types.h> // for u_int not defined in sysctl.h
-#include <sys/sysctl.h>
-#include <unistd.h>
+    #include <string.h>
+    #include <sys/types.h> // for u_int not defined in sysctl.h
+    #include <sys/sysctl.h>
+    #include <unistd.h>
 #endif
 
 #include <util/folder/dirut.h>
@@ -146,7 +146,7 @@ static TString GetExecPathImpl() {
 
     ythrow yexception() << "can not resolve exec path";
 #else
-#error dont know how to implement GetExecPath on this platform
+    #error dont know how to implement GetExecPath on this platform
 #endif
 }
 

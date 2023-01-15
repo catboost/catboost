@@ -5,7 +5,6 @@
 #include "vector.h"
 #include "map.h"
 
-
 class TTypeListTest: public TTestBase {
     UNIT_TEST_SUITE(TTypeListTest);
     UNIT_TEST(TestSimple);

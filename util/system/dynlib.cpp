@@ -6,23 +6,23 @@
 #include <util/generic/yexception.h>
 
 #ifdef _win32_
-#include "winint.h"
+    #include "winint.h"
 
-#define DLLOPEN(path, flags) LoadLibrary(path)
-#define DLLCLOSE(hndl) FreeLibrary(hndl)
-#define DLLSYM(hndl, name) GetProcAddress(hndl, name)
+    #define DLLOPEN(path, flags) LoadLibrary(path)
+    #define DLLCLOSE(hndl) FreeLibrary(hndl)
+    #define DLLSYM(hndl, name) GetProcAddress(hndl, name)
 #else
-#include <dlfcn.h>
+    #include <dlfcn.h>
 
-#ifndef RTLD_GLOBAL
-#define RTLD_GLOBAL (0)
-#endif
+    #ifndef RTLD_GLOBAL
+        #define RTLD_GLOBAL (0)
+    #endif
 
 using HINSTANCE = void*;
 
-#define DLLOPEN(path, flags) dlopen(path, flags)
-#define DLLCLOSE(hndl) dlclose(hndl)
-#define DLLSYM(hndl, name) dlsym(hndl, name)
+    #define DLLOPEN(path, flags) dlopen(path, flags)
+    #define DLLCLOSE(hndl) dlclose(hndl)
+    #define DLLSYM(hndl, name) dlsym(hndl, name)
 #endif
 
 inline TString DLLERR() {

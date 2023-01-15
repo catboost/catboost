@@ -3,7 +3,6 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestArrayRef) {
-
     Y_UNIT_TEST(TestDefaultConstructor) {
         TArrayRef<int> defaulted;
         UNIT_ASSERT_VALUES_EQUAL(defaulted.data(), nullptr);
@@ -239,8 +238,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_VALUES_EQUAL(bytesRef.size(), sizeof(int16_t) * constRef.size());
         UNIT_ASSERT_EQUAL(
             bytesRef,
-            MakeArrayRef(std::vector<char>{0x01, 0x00, 0x02, 0x00, 0x03, 0x00})
-        );
+            MakeArrayRef(std::vector<char>{0x01, 0x00, 0x02, 0x00, 0x03, 0x00}));
 
         //should not compile
         //as_writable_bytes(constRef);
@@ -254,8 +252,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_VALUES_EQUAL(writableBytesRef.size(), sizeof(uint32_t));
         UNIT_ASSERT_EQUAL(
             writableBytesRef,
-            MakeArrayRef(std::vector<char>{0x0e, 0x0d, 0x00, 0x0c})
-        );
+            MakeArrayRef(std::vector<char>{0x0e, 0x0d, 0x00, 0x0c}));
 
         uint32_t newVal = 0xde'ad'be'ef;
         std::memcpy(writableBytesRef.data(), &newVal, writableBytesRef.size());

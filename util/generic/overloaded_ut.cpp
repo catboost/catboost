@@ -18,8 +18,7 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
         auto f = TOverloaded{
             [](const TType1&) {},
             [](const TType2&) {},
-            [](const TType3&) {}
-        };
+            [](const TType3&) {}};
         using F = decltype(f);
         static_assert(std::is_invocable_v<F, TType1>);
         static_assert(std::is_invocable_v<F, TType2>);
@@ -32,22 +31,22 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
         TVariant<int, double, TType1> v = 5;
         int res = 0;
         Visit(TOverloaded{
-            [&](int val) { res = val; },
-            [&](double) { res = -1; },
-            [&](TType1) { res = -1; }
-        }, v);
+                  [&](int val) { res = val; },
+                  [&](double) { res = -1; },
+                  [&](TType1) { res = -1; }},
+              v);
         UNIT_ASSERT_VALUES_EQUAL(res, 5);
     }
 
     Y_UNIT_TEST(TupleTest) {
-        std::tuple<int, double, bool, int> t{ 5, 3.14, true, 20 };
+        std::tuple<int, double, bool, int> t{5, 3.14, true, 20};
         TString res;
 
         ForEach(t, TOverloaded{
-            [&](int val) { res += "(int) " + ToString(val) + ' '; },
-            [&](double val) { res += "(double) " + ToString(val) + ' '; },
-            [&](bool val) { res += "(bool) " + ToString(val) + ' '; },
-        });
+                       [&](int val) { res += "(int) " + ToString(val) + ' '; },
+                       [&](double val) { res += "(double) " + ToString(val) + ' '; },
+                       [&](bool val) { res += "(bool) " + ToString(val) + ' '; },
+                   });
 
         UNIT_ASSERT_VALUES_EQUAL(res, "(int) 5 (double) 3.14 (bool) 1 (int) 20 ");
     }
@@ -61,8 +60,9 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
         // All cases implicitly cast to int
         auto matchAsInt = [](TTestVariant var) {
             return Visit(TOverloaded{
-                [](int val) { return val; },
-            }, var);
+                             [](int val) { return val; },
+                         },
+                         var);
         };
 
         UNIT_ASSERT_VALUES_EQUAL(matchAsInt(TTestVariant{17.77}), 17);
@@ -72,8 +72,9 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
         // All cases implicitly cast to double
         auto matchAsDouble = [](TTestVariant var) {
             return Visit(TOverloaded{
-                [](double val) { return val; },
-            }, var);
+                             [](double val) { return val; },
+                         },
+                         var);
         };
 
         UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{17.77}), 17.77);

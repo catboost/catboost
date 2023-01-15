@@ -6,11 +6,11 @@
 #include <util/generic/yexception.h>
 
 #ifdef _win_
-#include "winint.h"
+    #include "winint.h"
 #else
-#include <errno.h>
-#include <pwd.h>
-#include <unistd.h>
+    #include <errno.h>
+    #include <pwd.h>
+    #include <unistd.h>
 #endif
 
 TString GetUsername() {

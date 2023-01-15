@@ -4,9 +4,9 @@
 #include <errno.h>
 
 #if defined(_win_)
-#include "winint.h"
+    #include "winint.h"
 #else
-#include <pthread.h>
+    #include <pthread.h>
 #endif
 
 class TSysMutex::TImpl {
@@ -66,7 +66,7 @@ public:
 
 #if defined(_win_)
     static bool TryEnterCriticalSectionInt(CRITICAL_SECTION* obj) {
-#if (_WIN32_WINNT < 0x0400)
+    #if (_WIN32_WINNT < 0x0400)
         if (-1L == ::InterlockedCompareExchange(&obj->LockCount, 0, -1)) {
             obj->OwningThread = (HANDLE)(DWORD_PTR)::GetCurrentThreadId();
             obj->RecursionCount = 1;
@@ -81,9 +81,9 @@ public:
         }
 
         return false;
-#else  // _WIN32_WINNT < 0x0400
+    #else  // _WIN32_WINNT < 0x0400
         return TryEnterCriticalSection(obj);
-#endif // _WIN32_WINNT < 0x0400
+    #endif // _WIN32_WINNT < 0x0400
     }
 #endif // _win_
 

@@ -168,4 +168,3 @@ TString ToUpperUTF8(TStringBuf s) {
 TString ToUpperUTF8(const char* s) {
     return ToUpperUTF8(TStringBuf(s));
 }
-

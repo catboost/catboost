@@ -106,7 +106,7 @@ Y_UNIT_TEST_SUITE(TIsIn) {
     }
 
     Y_UNIT_TEST(IsInArrayTest) {
-        const TString array[] = { "a", "b", "d" };
+        const TString array[] = {"a", "b", "d"};
 
         UNIT_ASSERT(IsIn(array, "a"));
         UNIT_ASSERT(IsIn(array, TString("b")));

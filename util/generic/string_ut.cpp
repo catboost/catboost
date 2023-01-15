@@ -668,12 +668,12 @@ protected:
         str.replace(5, 5, str.c_str(), 10);
         UNIT_ASSERT(str == Data.This_This_is_test_StringT_for_StringT_calls());
 
-#if !defined(STLPORT) || defined(_STLP_MEMBER_TEMPLATES)
+    #if !defined(STLPORT) || defined(_STLP_MEMBER_TEMPLATES)
         deque<TChar> cdeque;
         cdeque.push_back(*Data.I());
         str.replace(str.begin(), str.begin() + 11, cdeque.begin(), cdeque.end());
         UNIT_ASSERT(str == Data.Is_test_StringT_for_StringT_calls());
-#endif
+    #endif
     }
 #endif
 }; // TStringStdTestImpl
@@ -729,7 +729,8 @@ public:
 
         UNIT_ASSERT_VALUES_EQUAL(data, ss.str());
 
-        ss << '\n' << data << std::endl;
+        ss << '\n'
+           << data << std::endl;
 
         TString read;
         ss >> read;

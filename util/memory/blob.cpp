@@ -21,8 +21,8 @@ enum EMappingMode {
 
 template <class TCounter>
 class TDynamicBlobBase: public TBlob::TBase,
-                         public TRefCounted<TDynamicBlobBase<TCounter>, TCounter>,
-                         public TAdditionalStorage<TDynamicBlobBase<TCounter>> {
+                        public TRefCounted<TDynamicBlobBase<TCounter>, TCounter>,
+                        public TAdditionalStorage<TDynamicBlobBase<TCounter>> {
     using TRefBase = TRefCounted<TDynamicBlobBase, TCounter>;
 
 public:

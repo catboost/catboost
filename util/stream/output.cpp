@@ -9,10 +9,10 @@
 #include <util/charset/wide.h>
 
 #if defined(_android_)
-#include <util/system/dynlib.h>
-#include <util/system/guard.h>
-#include <util/system/mutex.h>
-#include <android/log.h>
+    #include <util/system/dynlib.h>
+    #include <util/system/guard.h>
+    #include <util/system/mutex.h>
+    #include <android/log.h>
 #endif
 
 #include <cerrno>
@@ -21,7 +21,7 @@
 #include <cstdio>
 
 #if defined(_win_)
-#include <io.h>
+    #include <io.h>
 #endif
 
 constexpr size_t MAX_UTF8_BYTES = 4; // UTF-8-encoded code point takes between 1 and 4 bytes

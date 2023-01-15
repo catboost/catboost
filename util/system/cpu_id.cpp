@@ -5,10 +5,10 @@
 #include <util/generic/singleton.h>
 
 #if defined(_win_)
-#include <intrin.h>
-#include <immintrin.h>
+    #include <intrin.h>
+    #include <immintrin.h>
 #elif defined(_x86_)
-#include <cpuid.h>
+    #include <cpuid.h>
 #endif
 
 #include <string.h>
@@ -27,12 +27,12 @@ static ui64 _xgetbv(ui32 xcr) {
 
 bool NX86::CpuId(ui32 op, ui32 subOp, ui32* res) noexcept {
 #if defined(_x86_)
-#if defined(_MSC_VER)
+    #if defined(_MSC_VER)
     static_assert(sizeof(int) == sizeof(ui32), "ups, something wrong here");
     __cpuidex((int*)res, op, subOp);
-#else
+    #else
     __cpuid_count(op, subOp, res[0], res[1], res[2], res[3]);
-#endif
+    #endif
     return true;
 #else
     (void)op;
@@ -46,12 +46,12 @@ bool NX86::CpuId(ui32 op, ui32 subOp, ui32* res) noexcept {
 
 bool NX86::CpuId(ui32 op, ui32* res) noexcept {
 #if defined(_x86_)
-#if defined(_MSC_VER)
+    #if defined(_MSC_VER)
     static_assert(sizeof(int) == sizeof(ui32), "ups, something wrong here");
     __cpuid((int*)res, op);
-#else
+    #else
     __cpuid(op, res[0], res[1], res[2], res[3]);
-#endif
+    #endif
     return true;
 #else
     (void)op;

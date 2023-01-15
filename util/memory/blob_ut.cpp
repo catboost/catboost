@@ -76,6 +76,5 @@ Y_UNIT_TEST(TestEmptyLockedFiles) {
     TFsPath(path).Touch();
     TBlob::LockedFromFile(path);
 }
-
 }
 ;

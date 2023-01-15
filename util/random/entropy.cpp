@@ -149,11 +149,11 @@ namespace {
         size_t DoRead(void* inbuf, size_t len) override {
             char* buf = (char*)inbuf;
 
-#define DO_STEP(type)                              \
-    while (len >= sizeof(type)) {                  \
+#define DO_STEP(type)                                    \
+    while (len >= sizeof(type)) {                        \
         WriteUnaligned<type>(buf, RandomNumber<type>()); \
-        buf += sizeof(type);                       \
-        len -= sizeof(type);                       \
+        buf += sizeof(type);                             \
+        len -= sizeof(type);                             \
     }
 
             DO_STEP(ui64);

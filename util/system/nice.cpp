@@ -3,7 +3,7 @@
 #include "platform.h"
 
 #if defined(_unix_)
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 bool Nice(int prioDelta) {

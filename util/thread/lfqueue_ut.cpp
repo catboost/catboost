@@ -190,7 +190,7 @@ Y_UNIT_TEST_SUITE(TLockFreeQueueTests) {
         UNIT_ASSERT(!queue.Dequeue(&i));
     }
 
-    void DequeueAllRunner(TLockFreeQueue<int>& queue, bool singleConsumer) {
+    void DequeueAllRunner(TLockFreeQueue<int> & queue, bool singleConsumer) {
         size_t threadsNum = 4;
         size_t enqueuesPerThread = 10'000;
         TThreadPool p;

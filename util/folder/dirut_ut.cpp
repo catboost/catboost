@@ -71,12 +71,12 @@ Y_UNIT_TEST(TestResolvePath) {
     DoTest("bar", "/foo/baz", "/foo/bar");
     DoTest("/foo/bar", "/bar/baz", "/foo/bar");
 
-#ifdef NDEBUG
+    #ifdef NDEBUG
     DoTest("bar", "./baz", "./bar");
-#if 0 // should we support, for consistency, single-label dirs
+        #if 0 // should we support, for consistency, single-label dirs
         DoTest("bar", "baz", "bar");
-#endif
-#endif
+        #endif
+    #endif
 #endif
 }
 

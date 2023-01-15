@@ -17,7 +17,7 @@ namespace {
 #endif
 
 #if defined(_win_)
-#pragma comment(lib, "ws2_32.lib")
+    #pragma comment(lib, "ws2_32.lib")
             WSADATA wsaData;
             int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
             Y_ASSERT(!result);

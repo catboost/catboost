@@ -455,24 +455,28 @@ void TStreamsTest::TestWchar16Output() {
     TString s;
     TStringOutput os(s);
     os << wchar16(97); // latin a
-    os << u'\u044E'; // cyrillic ю
+    os << u'\u044E';   // cyrillic ю
     os << u'я';
     os << wchar16(0xD801); // high surrogate is printed as replacement character U+FFFD
     os << u'b';
 
-    UNIT_ASSERT_VALUES_EQUAL(s, "aюя" "\xEF\xBF\xBD" "b");
+    UNIT_ASSERT_VALUES_EQUAL(s, "aюя"
+                                "\xEF\xBF\xBD"
+                                "b");
 }
 
 void TStreamsTest::TestWchar32Output() {
     TString s;
     TStringOutput os(s);
     os << wchar32(97); // latin a
-    os << U'\u044E'; // cyrillic ю
+    os << U'\u044E';   // cyrillic ю
     os << U'я';
     os << U'\U0001F600'; // grinning face
     os << u'b';
 
-    UNIT_ASSERT_VALUES_EQUAL(s, "aюя" "\xF0\x9F\x98\x80" "b");
+    UNIT_ASSERT_VALUES_EQUAL(s, "aюя"
+                                "\xF0\x9F\x98\x80"
+                                "b");
 }
 
 void TStreamsTest::TestUtf16StingOutputByChars() {

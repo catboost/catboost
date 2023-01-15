@@ -21,25 +21,25 @@
    Boston, MA 02111-1307, USA.  */
 //Modified for MSVC
 
-#include <cstdarg>
-//#include <err.h> -> compat.h
-#include <cstdlib>
-#include <cerrno>
-#include <cstring>
-#include <cstdio>
+    #include <cstdarg>
+    //#include <err.h> -> compat.h
+    #include <cstdlib>
+    #include <cerrno>
+    #include <cstring>
+    #include <cstdio>
 
-#include "compat.h"
+    #include "compat.h"
 
-#define VA(call)              \
-    {                         \
-        va_list ap;           \
-        va_start(ap, format); \
-        call;                 \
-        va_end(ap);           \
-    }
+    #define VA(call)              \
+        {                         \
+            va_list ap;           \
+            va_start(ap, format); \
+            call;                 \
+            va_end(ap);           \
+        }
 
-#define __set_errno(error) \
-    { errno = error; }
+    #define __set_errno(error) \
+        { errno = error; }
 
 void vwarnx(const char* format, va_list ap) {
     const char* progname = getprogname();

@@ -472,7 +472,7 @@ int RemoveTempDir(const char* dirName) {
     Y_PRAGMA_DIAGNOSTIC_PUSH
     Y_PRAGMA_NO_DEPRECATED
     while ((ret = readdir_r(dir, &ent, &pent)) == 0 && pent == &ent) {
-    Y_PRAGMA_DIAGNOSTIC_POP
+        Y_PRAGMA_DIAGNOSTIC_POP
         if (!strcmp(ent.d_name, ".") || !strcmp(ent.d_name, ".."))
             continue;
 #ifdef DT_DIR

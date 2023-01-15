@@ -7,8 +7,8 @@
 #ifdef _win_
 // not implemented
 #else
-#include <sys/types.h>
-#include <sys/wait.h>
+    #include <sys/types.h>
+    #include <sys/wait.h>
 #endif //_win_
 
 #include <stdio.h>

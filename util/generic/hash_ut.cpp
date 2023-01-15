@@ -560,7 +560,8 @@ void THashTest::TestHMSetEmplace() {
         TKey(NTesting::TProbeState* state, int key)
             : TProbe(state)
             , Key(key)
-        {}
+        {
+        }
 
         operator size_t() const {
             return THash<int>()(Key);
@@ -913,7 +914,10 @@ void THashTest::TestTryEmplace() {
     static unsigned counter = 0u;
 
     struct TCountConstruct {
-        explicit TCountConstruct(int v) : value(v) { ++counter; }
+        explicit TCountConstruct(int v)
+            : value(v) {
+            ++counter;
+        }
         TCountConstruct(const TCountConstruct&) = delete;
         int value;
     };
@@ -938,8 +942,13 @@ void THashTest::TestTryEmplaceCopyKey() {
     static unsigned counter = 0u;
 
     struct TCountCopy {
-        explicit TCountCopy(int i) : Value(i) {}
-        TCountCopy(const TCountCopy& other) : Value(other.Value) { ++counter; }
+        explicit TCountCopy(int i)
+            : Value(i) {
+        }
+        TCountCopy(const TCountCopy& other)
+            : Value(other.Value) {
+            ++counter;
+        }
 
         operator int() const {
             return Value;

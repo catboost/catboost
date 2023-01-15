@@ -1,12 +1,12 @@
 #include "uptime.h"
 
 #if defined(_win_)
-#include <util/system/winint.h>
+    #include <util/system/winint.h>
 #elif defined(_linux_)
-#include <util/stream/file.h>
-#include <util/string/cast.h>
+    #include <util/stream/file.h>
+    #include <util/string/cast.h>
 #elif defined(_darwin_)
-#include <sys/sysctl.h>
+    #include <sys/sysctl.h>
 #endif
 
 #if defined(_darwin_)

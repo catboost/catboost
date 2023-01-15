@@ -520,10 +520,9 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
             time_t newTimestamp = TimeGM(&time);
 
             UNIT_ASSERT_VALUES_EQUAL_C(
-                    newTimestamp,
-                    timestamp,
-                    "incorrect date " << (1900 + time.tm_year) << "-" << (time.tm_mon + 1) << "-" << time.tm_mday
-            );
+                newTimestamp,
+                timestamp,
+                "incorrect date " << (1900 + time.tm_year) << "-" << (time.tm_mon + 1) << "-" << time.tm_mday);
         }
     }
 }

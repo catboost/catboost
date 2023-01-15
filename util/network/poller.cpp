@@ -70,14 +70,11 @@ void TSocketPoller::WaitReadWriteOneShot(SOCKET sock, void* cookie) {
 }
 
 void TSocketPoller::WaitReadWriteEdgeTriggered(SOCKET sock, void* cookie) {
-    Impl_->Set(cookie, sock, CONT_POLL_READ | CONT_POLL_WRITE |
-                             CONT_POLL_EDGE_TRIGGERED);
+    Impl_->Set(cookie, sock, CONT_POLL_READ | CONT_POLL_WRITE | CONT_POLL_EDGE_TRIGGERED);
 }
 
 void TSocketPoller::RestartReadWriteEdgeTriggered(SOCKET sock, void* cookie, bool empty) {
-    Impl_->Set(cookie, sock, CONT_POLL_READ | CONT_POLL_WRITE |
-                             CONT_POLL_MODIFY | CONT_POLL_EDGE_TRIGGERED |
-                             (empty ? CONT_POLL_BACKLOG_EMPTY : 0));
+    Impl_->Set(cookie, sock, CONT_POLL_READ | CONT_POLL_WRITE | CONT_POLL_MODIFY | CONT_POLL_EDGE_TRIGGERED | (empty ? CONT_POLL_BACKLOG_EMPTY : 0));
 }
 
 void TSocketPoller::Unwait(SOCKET sock) {

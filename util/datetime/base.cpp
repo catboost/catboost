@@ -153,22 +153,22 @@ void Out<TInstant>(IOutputStream& os, TTypeTraits<TInstant>::TFuncParam instant)
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<false, false>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<false, false>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<false, false>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<false, false>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<false, true>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<false, true>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<false, true>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<false, true>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<true, false>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<true, false>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<true, false>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<true, false>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 
 template <>
-void Out< ::NPrivate::TPrintableLocalTime<true, true>>(IOutputStream& os, TTypeTraits< ::NPrivate::TPrintableLocalTime<true, true>>::TFuncParam localTime) {
+void Out<::NPrivate::TPrintableLocalTime<true, true>>(IOutputStream& os, TTypeTraits<::NPrivate::TPrintableLocalTime<true, true>>::TFuncParam localTime) {
     WritePrintableLocalTimeToStream(os, localTime);
 }
 

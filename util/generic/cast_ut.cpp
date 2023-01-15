@@ -91,7 +91,6 @@ private:
             UNIT_ASSERT_VALUES_EQUAL(-floatValue, BitCast<float>(ui32Value));
         }
 
-
         // Unpack ui64 into a struct
         {
             const ui64 value = 0x1122334455667788;

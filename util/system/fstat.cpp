@@ -11,12 +11,12 @@
 #include <errno.h>
 
 #if defined(_win_)
-#include "fs_win.h"
+    #include "fs_win.h"
 
-#ifdef _S_IFLNK
-#undef _S_IFLNK
-#endif
-#define _S_IFLNK 0x80000000
+    #ifdef _S_IFLNK
+        #undef _S_IFLNK
+    #endif
+    #define _S_IFLNK 0x80000000
 
 ui32 GetFileMode(DWORD fileAttributes) {
     ui32 mode = 0;
@@ -35,9 +35,9 @@ ui32 GetFileMode(DWORD fileAttributes) {
     return mode;
 }
 
-#define S_ISDIR(st_mode) (st_mode & _S_IFDIR)
-#define S_ISREG(st_mode) (st_mode & _S_IFREG)
-#define S_ISLNK(st_mode) (st_mode & _S_IFLNK)
+    #define S_ISDIR(st_mode) (st_mode & _S_IFDIR)
+    #define S_ISREG(st_mode) (st_mode & _S_IFREG)
+    #define S_ISLNK(st_mode) (st_mode & _S_IFLNK)
 
 using TSystemFStat = BY_HANDLE_FILE_INFORMATION;
 
@@ -181,7 +181,7 @@ i64 GetFileLength(FHANDLE fd) {
     }
     return statbuf.st_size;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 
@@ -205,7 +205,7 @@ i64 GetFileLength(const char* name) {
     }
     return (i64)buf.st_size;
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 }
 

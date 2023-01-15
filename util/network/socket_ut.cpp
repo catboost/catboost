@@ -10,8 +10,8 @@
 #include <ctime>
 
 #ifdef _linux_
-#include <linux/version.h>
-#include <sys/utsname.h>
+    #include <linux/version.h>
+    #include <sys/utsname.h>
 #endif
 
 class TSockTest: public TTestBase {

@@ -4,11 +4,11 @@
 #include <util/generic/yexception.h>
 
 #ifdef _win_
-#include <util/generic/vector.h>
-#include "winint.h"
+    #include <util/generic/vector.h>
+    #include "winint.h"
 #else
-#include <cerrno>
-#include <cstdlib>
+    #include <cerrno>
+    #include <cstdlib>
 #endif
 
 /**

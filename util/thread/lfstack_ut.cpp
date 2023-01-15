@@ -193,10 +193,14 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     Y_UNIT_TEST(NoCopyTest) {
         static unsigned copied = 0;
         struct TCopyCount {
-            TCopyCount(int) {}
-            TCopyCount(const TCopyCount&) { ++copied; }
+            TCopyCount(int) {
+            }
+            TCopyCount(const TCopyCount&) {
+                ++copied;
+            }
 
-            TCopyCount(TCopyCount&&) {}
+            TCopyCount(TCopyCount&&) {
+            }
 
             TCopyCount& operator=(const TCopyCount&) {
                 ++copied;
@@ -277,7 +281,6 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
             futures.clear();
             TTest::DequeueAll(Stack);
         }
-
     };
 
     struct TFreeListTest {

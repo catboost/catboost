@@ -5,11 +5,11 @@
 #include <util/system/info.h>
 
 #if defined(_win_)
-#include <io.h>
+    #include <io.h>
 #else
-#include <sys/wait.h>
-#include <unistd.h>
-#include <fcntl.h>
+    #include <sys/wait.h>
+    #include <unistd.h>
+    #include <fcntl.h>
 #endif
 
 #include "daemon.h"

@@ -6,9 +6,9 @@
 #include "align.h"
 
 #ifdef _linux_
-#include <util/string/cast.h>
-#include <linux/version.h>
-#include <sys/utsname.h>
+    #include <util/string/cast.h>
+    #include <linux/version.h>
+    #include <sys/utsname.h>
 #endif
 
 namespace {

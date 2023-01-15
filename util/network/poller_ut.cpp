@@ -138,7 +138,7 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
 
             // after restart read and write might generate separate events
             {
-                void *events[3];
+                void* events[3];
                 size_t count = poller.WaitT(events, 3, TDuration::Zero());
                 UNIT_ASSERT_GE(count, 1);
                 UNIT_ASSERT_LE(count, 2);
@@ -222,7 +222,7 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
         UNIT_ASSERT_VALUES_EQUAL(1, send(s1, buf, 1, 0));
         shutdown(s1, SHUT_WR);
 
-        using TPoller=TGenericPoller<TEpollPoller<TWithoutLocking> >;
+        using TPoller = TGenericPoller<TEpollPoller<TWithoutLocking>>;
         TPoller poller;
         poller.Set((void*)17, s2, CONT_POLL_RDHUP);
 
@@ -233,5 +233,4 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
         UNIT_ASSERT_EQUAL(TPoller::ExtractEvent(&e), (void*)17);
     }
 #endif
-
 }

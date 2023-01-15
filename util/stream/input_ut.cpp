@@ -7,7 +7,7 @@
 #include <util/system/yassert.h>
 
 #ifdef _win_
-#include <io.h>
+    #include <io.h>
 #endif
 
 class TMockStdIn {
