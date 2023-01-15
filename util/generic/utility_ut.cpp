@@ -23,6 +23,15 @@ private:
     TTest& operator=(const TTest&);
 };
 
+struct TUnorderedTag {
+    TStringBuf Tag;
+};
+
+static bool operator<(const TUnorderedTag, const TUnorderedTag) {
+    return false;
+}
+
+static bool operator>(const TUnorderedTag, const TUnorderedTag) = delete;
 
 Y_UNIT_TEST_SUITE(TUtilityTest) {
 
@@ -51,6 +60,11 @@ Y_UNIT_TEST_SUITE(TUtilityTest) {
         static_assert(Max(10, 3, 8) == 10, "Max doesn't work");
         UNIT_ASSERT_EQUAL(Min(10, 3, 8), 3);
         UNIT_ASSERT_EQUAL(Max(3.5, 4.2, 8.1, 99.025, 0.33, 29.0), 99.025);
+
+        UNIT_ASSERT_VALUES_EQUAL(Min(TUnorderedTag{"first"}, TUnorderedTag{"second"}).Tag, "first");
+        UNIT_ASSERT_VALUES_EQUAL(Max(TUnorderedTag{"first"}, TUnorderedTag{"second"}).Tag, "first");
+        UNIT_ASSERT_VALUES_EQUAL(Min(TUnorderedTag{"first"}, TUnorderedTag{"second"}, TUnorderedTag{"third"}).Tag, "first");
+        UNIT_ASSERT_VALUES_EQUAL(Max(TUnorderedTag{"first"}, TUnorderedTag{"second"}, TUnorderedTag{"third"}).Tag, "first");
     }
 
     Y_UNIT_TEST(TestMean) {
