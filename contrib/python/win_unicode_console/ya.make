@@ -1,10 +1,10 @@
 PY_LIBRARY() # Need for Python 2 only
 
+LICENSE(MIT)
+
 
 
 VERSION(0.5)
-
-LICENSE(MIT)
 
 PEERDIR(
     library/python/symbols/win_unicode_console
