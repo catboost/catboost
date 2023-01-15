@@ -3,6 +3,7 @@
 #TODO(kizill): split this into subscripts to make it prettier
 
 eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
