@@ -87,5 +87,5 @@ Ubuntu 12.04, даже если ни один из новых символов �
 ## Упоминания
 
 Идея о возможности добавить слой совместимости была взята из ClickHouse.
-* [https://clickhouse.tech/]
-* [https://wiki.yandex-team.ru/clickhouse/]
+* [https://clickhouse.tech/](https://clickhouse.tech/)
+* [https://wiki.yandex-team.ru/clickhouse/](https://wiki.yandex-team.ru/clickhouse/)
