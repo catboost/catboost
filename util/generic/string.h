@@ -214,7 +214,7 @@ protected:
     void Clone() {
         const size_t len = length();
 
-        Relink(TTraits::Copy(Allocate(len), Data_, len));
+        Relink(TTraits::copy(Allocate(len), Data_, len));
     }
 
     void TruncNonShared(size_t n) {
@@ -465,7 +465,7 @@ public:
         pos = Min(pos, len);
         n = Min(n, len - pos);
         Data_ = Allocate(n);
-        TTraits::Copy(Data_, s.Data_ + pos, n);
+        TTraits::copy(Data_, s.Data_ + pos, n);
 #endif
     }
 
@@ -478,7 +478,7 @@ public:
         const size_t len = TBase::StrLen(pc);
 
         Data_ = Allocate(len);
-        TTraits::Copy(Data_, pc, len);
+        TTraits::copy(Data_, pc, len);
 #endif
     }
 
@@ -489,7 +489,7 @@ public:
     {
 #ifndef TSTRING_IS_STD_STRING
         Data_ = Allocate(n);
-        TTraits::Copy(Data_, pc, n);
+        TTraits::copy(Data_, pc, n);
 #endif
     }
 
@@ -500,7 +500,7 @@ public:
     {
 #ifndef TSTRING_IS_STD_STRING
         Data_ = Allocate(n);
-        TTraits::Copy(Data_, pc + pos, n);
+        TTraits::copy(Data_, pc + pos, n);
 #endif
     }
 
@@ -556,7 +556,7 @@ public:
     {
 #ifndef TSTRING_IS_STD_STRING
         Data_ = Allocate(e - b);
-        TTraits::Copy(Data_, b, e - b);
+        TTraits::copy(Data_, b, e - b);
 #endif
     }
 
@@ -569,7 +569,7 @@ public:
     {
 #ifndef TSTRING_IS_STD_STRING
         if (0 != s.size()) {
-            TTraits::Copy(Data_, s.data(), s.size());
+            TTraits::copy(Data_, s.data(), s.size());
         }
 #endif
     }
@@ -582,7 +582,7 @@ public:
     {
 #ifndef TSTRING_IS_STD_STRING
         Data_ = Allocate(s.size());
-        TTraits::Copy(Data_, s.data(), s.size());
+        TTraits::copy(Data_, s.data(), s.size());
 #endif
     }
 
@@ -624,7 +624,7 @@ private:
 
     template <typename... R>
     static void CopyAll(TCharType* p, const TBasicStringBuf<TCharType, TTraits> s, const R&... r) {
-        TTraits::Copy(p, s.data(), s.size());
+        TTraits::copy(p, s.data(), s.size());
         CopyAll(p + s.size(), r...);
     }
 
@@ -703,11 +703,11 @@ public:
 
         if (Y_LIKELY(IsDetached() && (pc + len <= TBase::begin() || pc >= TBase::end()))) {
             ResizeNonShared(len);
-            TTraits::Copy(Data_, pc, len);
+            TTraits::copy(Data_, pc, len);
         } else if (IsDetached() && pc == data() && capacity() >= len) {
             TruncNonShared(len);
         } else {
-            Relink(TTraits::Copy(Allocate(len), pc, len));
+            Relink(TTraits::copy(Allocate(len), pc, len));
         }
 #endif
 
@@ -732,7 +732,7 @@ public:
             Relink(Allocate(len));
         }
 
-        TTraits::Copy(Data_, pc, len);
+        TTraits::copy(Data_, pc, len);
 #endif
 
         return *this;
@@ -825,7 +825,7 @@ public:
             }
         } else {
             const size_t sufficientLen = Max(length(), len);
-            Relink(TTraits::Copy(Allocate(length(), sufficientLen, nullptr), Data_, length()));
+            Relink(TTraits::copy(Allocate(length(), sufficientLen, nullptr), Data_, length()));
         }
 #endif
     }
@@ -921,7 +921,7 @@ public:
         if (IsDetached()) {
             ResizeNonShared(len);
         } else {
-            Relink(TTraits::Copy(Allocate(len), Data_, Min(len, length())));
+            Relink(TTraits::copy(Allocate(len), Data_, Min(len, length())));
         }
 #endif
     }
@@ -934,7 +934,7 @@ public:
         const size_t nlen = olen + len;
 
         ReserveAndResize(nlen);
-        TTraits::Copy(Data_ + olen, pc, len);
+        TTraits::copy(Data_ + olen, pc, len);
 #endif
 
         return *this;
@@ -1432,23 +1432,23 @@ private:
             // 1. alias
             // 2. overlapped
             TCharType* temp = Allocate(total);
-            TTraits::Copy(temp, Data_, pos);
-            TTraits::Copy(temp + pos, pc + pos1, ins);
-            TTraits::Copy(temp + pos + ins, Data_ + pos + del, rem);
+            TTraits::copy(temp, Data_, pos);
+            TTraits::copy(temp + pos, pc + pos1, ins);
+            TTraits::copy(temp + pos + ins, Data_ + pos + del, rem);
             Relink(temp);
         } else if (reserve() < total) {
             // realloc (increasing)
             // 3. not enough room
             Data_ = Allocate(total, GetData());
             TTraits::Move(Data_ + pos + ins, Data_ + pos + del, rem);
-            TTraits::Copy(Data_ + pos, pc + pos1, ins);
+            TTraits::copy(Data_ + pos, pc + pos1, ins);
         } else {
             // 1. not alias
             // 2. not overlapped
             // 3. enough room
             // 4. not too much room
             TTraits::Move(Data_ + pos + ins, Data_ + pos + del, rem);
-            TTraits::Copy(Data_ + pos, pc + pos1, ins);
+            TTraits::copy(Data_ + pos, pc + pos1, ins);
             //GetData()->SetLength(total);
             TruncNonShared(total);
         }

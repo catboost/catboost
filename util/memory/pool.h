@@ -212,7 +212,7 @@ public:
     inline TChar* Append(const TChar* str, size_t len) {
         TChar* ret = static_cast<TChar*>(Allocate(len * sizeof(TChar)));
 
-        TCharTraits<TChar>::Copy(ret, str, len);
+        TCharTraits<TChar>::copy(ret, str, len);
 
         return ret;
     }
@@ -226,7 +226,7 @@ public:
     inline TBasicStringBuf<TChar> AppendCString(const TBasicStringBuf<TChar>& buf) {
         TChar* ret = static_cast<TChar*>(Allocate((buf.size() + 1) * sizeof(TChar)));
 
-        TCharTraits<TChar>::Copy(ret, buf.data(), buf.size());
+        TCharTraits<TChar>::copy(ret, buf.data(), buf.size());
         *(ret + buf.size()) = 0;
         return TBasicStringBuf<TChar>(ret, buf.size());
     }
