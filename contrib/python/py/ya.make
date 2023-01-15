@@ -1,10 +1,8 @@
 PY23_LIBRARY()
 
-VERSION(1.8.1)
+VERSION(1.9.0)
 
-LICENSE(
-    MIT
-)
+LICENSE(MIT)
 
 
 
@@ -56,10 +54,13 @@ RESOURCE_FILES(
     PREFIX contrib/python/py/
     .dist-info/METADATA
     .dist-info/top_level.txt
-)
-
-PEERDIR(
-    contrib/python/six
+    py/__init__.pyi
+    py/error.pyi
+    py/iniconfig.pyi
+    py/io.pyi
+    py/path.pyi
+    py/py.typed
+    py/xml.pyi
 )
 
 NO_LINT()
