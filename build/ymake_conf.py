@@ -2200,6 +2200,10 @@ class MSVCCompiler(MSVC, Compiler):
 
         if self.tc.use_clang:
             flags.append('-fcase-insensitive-paths')
+            if target.is_x86:
+                flags.append('-m32')
+            if target.is_x86_64:
+                flags.append('-m64')
 
             # Some warnings are getting triggered even when NO_COMPILER_WARNINGS is enabled
             flags.extend((
@@ -2244,6 +2248,10 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-ambiguous-delete',
                 '-Wno-microsoft-unqualified-friend',
             ]
+            if self.tc.version_at_least(2019):
+                cxx_warnings += [
+                    '-Wno-deprecated-volatile',
+                ]
             if self.tc.ide_msvs:
                 cxx_warnings += [
                     '-Wno-unused-command-line-argument',
