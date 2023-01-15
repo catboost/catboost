@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</ProjectGUID>
+    <ProjectGUID>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-overloaded</ProjectName>
+    <ProjectName>library-cpp-overloaded</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-overloaded</TargetName>
+    <TargetName>library-cpp-overloaded</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\overloaded\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\2CE71367-048B-26B0-2DAC-CA9BB7D00E76\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\overloaded\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\8FA80072-6B06-87FC-6917-262EEFBEA5FB\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\overloaded\overloaded.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\overloaded\overloaded.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\overloaded\overloaded.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\overloaded\overloaded.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
