@@ -713,8 +713,6 @@ migrations:
     - sandbox/projects/avia/flight_status_registrar/VariFlightRegistrar
     - sandbox/projects/avia/log_unknown_fare_codes
     - sandbox/projects/avia/travel_avia_dump_resource/task
-    - sandbox/projects/browser
-    - sandbox/projects/browser/autotests
     - sandbox/projects/bsyeti
     - sandbox/projects/canvas
     - sandbox/projects/canvas/video_constructor_utils
@@ -1594,7 +1592,6 @@ migrations:
     - quality/ab_testing/cofe/projects/mapkit/trip_funnels
     - quality/ab_testing/cofe/projects/mapkit/user_count_and_spu
     - quality/ab_testing/cofe/projects/mapkit/via_points_and_alternatives
-    - quality/ab_testing/cofe/projects/maps
     - quality/ab_testing/cofe/projects/router
     - quality/ab_testing/cofe/projects/uslugi/searchcost
     - quality/ab_testing/cofe/projects/zalogin
@@ -1733,7 +1730,6 @@ migrations:
     - voicetech/asr/markup/lib
     - voicetech/asr/pipeline/train
     - voicetech/asr/tools/question/make_train_from_vt
-    - voicetech/asr/tools/regular_metrics_run/run/vh
     - voicetech/asr/tools/regular_metrics_run/upload_metrics_to_yt
     - voicetech/bio/pipeline/classification/run_children_toloka_markup_regular
     - voicetech/bio/pipeline/vh
@@ -3864,7 +3860,6 @@ migrations:
     - yabs/server/test/ft/lua/page_168577
     - yabs/server/test/ft/lua/page_172351
     - yabs/server/test/ft/lua/page_180897
-    - yabs/server/test/ft/lua/page_183
     - yabs/server/test/ft/lua/page_185459
     - yabs/server/test/ft/lua/page_186549
     - yabs/server/test/ft/lua/page_2
@@ -4022,7 +4017,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/mds
     - yweb/yasap/pdb/pdb-backend/tests/lib/messenger
     - yweb/yasap/pdb/pdb-backend/tests/lib/monit
-    - yweb/yasap/pdb/pdb-backend/tests/lib/passport
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/avatars
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/boards/resources
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/ban
