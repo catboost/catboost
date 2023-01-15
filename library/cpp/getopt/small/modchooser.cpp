@@ -60,6 +60,10 @@ private:
     TMainClassV* Main;
 };
 
+TString TMainClass::GetTitle() const {
+    return "";
+}
+
 TModChooser::TMode::TMode(const TString& name, TMainClass* main, const TString& descr, bool hidden, bool noCompletion)
     : Name(name)
     , Main(main)
@@ -104,6 +108,14 @@ void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& 
     }
 
     Modes[mode] = UnsortedModes.emplace_back(MakeHolder<TMode>(mode, func, description, hidden, noCompletion)).Get();
+}
+
+void TModChooser::AddMode(const TString& mode, TMainClass* func, bool hidden, bool noCompletion) {
+    if (Modes.FindPtr(mode)) {
+        ythrow yexception() << "TMode '" << mode << "' already exists in TModChooser.";
+    }
+
+    Modes[mode] = UnsortedModes.emplace_back(MakeHolder<TMode>(mode, func, func->GetTitle(), hidden, noCompletion)).Get();
 }
 
 void TModChooser::AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden, bool noCompletion) {
@@ -343,6 +355,11 @@ const NLastGetopt::TOpts& TMainClassArgs::GetOptions() {
 
 void TMainClassArgs::RegisterOptions(NLastGetopt::TOpts& opts) {
     opts.AddHelpOption('h');
+
+    auto title = GetTitle();
+    if (!title.Empty()) {
+        opts.SetTitle(title);
+    }
 }
 
 int TMainClassArgs::operator()(const int argc, const char** argv) {
@@ -369,4 +386,9 @@ const TModChooser& TMainClassModes::GetSubModes() {
 
 void TMainClassModes::RegisterModes(TModChooser& modes) {
     modes.SetModesHelpOption("-h");
+
+    auto title = GetTitle();
+    if (!title.Empty()) {
+        modes.SetDescription(title);
+    }
 }
