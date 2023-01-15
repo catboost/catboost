@@ -1418,6 +1418,7 @@ class _CatBoostBase(object):
         return True
 
     def _set_trained_model_attributes(self):
+        setattr(self, '_is_fitted_', True)  # compatibility with meta algorithms in sklearn
         setattr(self, '_random_seed', self._object._get_random_seed())
         setattr(self, '_learning_rate', self._object._get_learning_rate())
         setattr(self, '_tree_count', self._object._get_tree_count())
@@ -4729,16 +4730,16 @@ class CatBoostClassifier(CatBoost):
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', task_type)
 
-    def predict_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
+    def predict_proba(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
         """
-        Predict class probability with data.
+        Predict class probability with X.
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
-            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            If X is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
 
         ntree_start: int, optional (default=0)
@@ -4759,13 +4760,13 @@ class CatBoostClassifier(CatBoost):
         Returns
         -------
         prediction :
-            If data is for a single object
+            If X is for a single object
                 return one-dimensional numpy.ndarray with probability for every class.
             otherwise
                 return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                 with probability for every class for each object.
         """
-        return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba', task_type)
+        return self._predict(X, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba', task_type)
 
 
     def predict_log_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
