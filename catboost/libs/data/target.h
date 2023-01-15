@@ -201,7 +201,8 @@ namespace NCB {
 
     private:
         friend class TQuantizationImpl;
-        friend class TRawBuilderDataHelper;
+        template <class TTObjectsDataProvider>
+        friend class TBuilderDataHelper;
 
     private:
         void AssignWeights(TConstArrayRef<float> src, TWeights<float>* dst);

@@ -234,6 +234,48 @@ namespace NCB {
         CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
     }
 
+    TVector<ui8> GetFloatFeatureBordersRemap(
+        const TFloatFeature& feature,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
+        CB_ENSURE(
+            !feature.Borders.empty(),
+            "Feature " << feature.Position.FlatIndex <<  ": model does not have border information for it"
+        );
+        CB_ENSURE(
+            quantizedFeaturesInfo.HasBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex)),
+            "Feature " << feature.Position.FlatIndex <<  ": dataset does not have border information for it"
+        );
+
+        TVector<ui8> floatBinsRemap;
+        auto& quantizedBorders = quantizedFeaturesInfo.GetBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex));
+        ui32 poolBucketIdx = 0;
+        auto addRemapBinIdx = [&] (ui8 bucketIdx) {
+            floatBinsRemap.push_back(bucketIdx);
+            ++poolBucketIdx;
+        };
+        for (ui32 modelBucketIdx = 0; modelBucketIdx < feature.Borders.size(); ++modelBucketIdx) {
+            while (poolBucketIdx < quantizedBorders.size() &&
+                quantizedBorders[poolBucketIdx] < feature.Borders[modelBucketIdx]) {
+                addRemapBinIdx(modelBucketIdx);
+            }
+            CB_ENSURE(
+                poolBucketIdx < quantizedBorders.size(),
+                "Feature " << feature.Position.FlatIndex << ": inconsistent borders, last quantized vs model: "
+                << double(quantizedBorders.back()) << " vs " << feature.Borders[modelBucketIdx]
+            );
+            CB_ENSURE(
+                quantizedBorders[poolBucketIdx] == feature.Borders[modelBucketIdx],
+                "Feature " << feature.Position.FlatIndex << ": inconsistent borders, quantized vs model: "
+                << double(quantizedBorders[poolBucketIdx]) << " vs " << feature.Borders[modelBucketIdx]
+            );
+            addRemapBinIdx(modelBucketIdx);
+        }
+        while (poolBucketIdx <= quantizedBorders.size()) {
+            addRemapBinIdx(feature.Borders.size());
+        }
+        return floatBinsRemap;
+    }
+
     TVector<TVector<ui8>> GetFloatFeaturesBordersRemap(
         const TFullModel& model,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
@@ -243,34 +285,8 @@ namespace NCB {
             if (feature.Borders.empty()) {
                 continue;
             }
-            CB_ENSURE(
-                quantizedFeaturesInfo.HasBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex)),
-                "Feature " << feature.Position.FlatIndex <<  ": dataset does not have border information for it"
-            );
-            auto& quantizedBorders = quantizedFeaturesInfo.GetBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex));
-            ui32 poolBucketIdx = 0;
-            auto addRemapBinIdx = [&] (ui8 bucketIdx) {
-                floatBinsRemap[feature.Position.FlatIndex].push_back(bucketIdx);
-                ++poolBucketIdx;
-            };
-            for (ui32 modelBucketIdx = 0; modelBucketIdx < feature.Borders.size(); ++modelBucketIdx) {
-                while (poolBucketIdx < quantizedBorders.size() &&
-                    quantizedBorders[poolBucketIdx] < feature.Borders[modelBucketIdx]) {
-                    addRemapBinIdx(modelBucketIdx);
-                }
-                CB_ENSURE(poolBucketIdx < quantizedBorders.size(),
-                    "Feature " << feature.Position.FlatIndex << ": inconsistent borders, last quantized vs model: "
-                    << double(quantizedBorders.back()) << " vs " << feature.Borders[modelBucketIdx]
-                );
-                CB_ENSURE(quantizedBorders[poolBucketIdx] == feature.Borders[modelBucketIdx],
-                    "Feature " << feature.Position.FlatIndex << ": inconsistent borders, quantized vs model: "
-                    << double(quantizedBorders[poolBucketIdx]) << " vs " << feature.Borders[modelBucketIdx]
-                );
-                addRemapBinIdx(modelBucketIdx);
-            }
-            while (poolBucketIdx <= quantizedBorders.size()) {
-                addRemapBinIdx(feature.Borders.size());
-            }
+            floatBinsRemap[feature.Position.FlatIndex] =
+                GetFloatFeatureBordersRemap(feature, quantizedFeaturesInfo);
         }
         return floatBinsRemap;
     }

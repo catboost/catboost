@@ -19,6 +19,10 @@ namespace NCB {
         const TFullModel& model,
         const TObjectsDataProvider& objectsData);
 
+    TVector<ui8> GetFloatFeatureBordersRemap(  // [poolFeatureBin]
+        const TFloatFeature& feature,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo);
+
     TVector<TVector<ui8>> GetFloatFeaturesBordersRemap(  // [flatFeatureIdx][poolFeatureBin]
         const TFullModel& model,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo);
