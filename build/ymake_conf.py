@@ -52,6 +52,7 @@ class Platform(object):
 
         self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
         self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64', 'armv8a_cortex_a35', 'armv8a_cortex_a53')
+        self.is_arm64 = self.arch in ('arm64',)
         self.is_arm = self.is_armv7 or self.is_armv8
         self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
@@ -80,6 +81,7 @@ class Platform(object):
 
         self.is_macos = self.os == 'macos'
         self.is_macos_x86_64 = self.is_macos and self.is_x86_64
+        self.is_macos_arm64 = self.is_macos and self.is_arm64
         self.is_ios = self.os == 'ios'
         self.is_apple = self.is_macos or self.is_ios
 
@@ -132,7 +134,7 @@ class Platform(object):
             (self.is_armv7_neon, 'ARCH_ARM7_NEON'),
             (self.is_armv8, 'ARCH_ARM64'),
             (self.is_arm, 'ARCH_ARM'),
-            (self.is_linux_armv8, 'ARCH_AARCH64'),
+            (self.is_linux_armv8 or self.is_macos_arm64, 'ARCH_AARCH64'),
             (self.is_powerpc, 'ARCH_PPC64LE'),
             (self.is_power8le, 'ARCH_POWER8LE'),
             (self.is_power9le, 'ARCH_POWER9LE'),
@@ -1071,8 +1073,9 @@ class GnuToolchain(Toolchain):
         """
 
         def get_os_sdk(target):
+            sdk_native_version = 10.11 if not preset('EXPERIMENTAL_MACOS_M1_SUPPORT') else '11.1'
             if target.is_macos:
-                return '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk'
+                return '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX{}.sdk'.format(sdk_native_version)
             elif target.is_yocto:
                 return '$YOCTO_SDK_RESOURCE_GLOBAL'
             return '$OS_SDK_ROOT_RESOURCE_GLOBAL'
@@ -1122,6 +1125,7 @@ class GnuToolchain(Toolchain):
                     (target.is_linux and target.is_powerpc, 'powerpc64le-linux-gnu'),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
+                    (target.is_apple and target.is_macos_arm64, 'arm64-apple-macos11'),
                     (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                     (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
                     (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi'),
@@ -1170,6 +1174,7 @@ class GnuToolchain(Toolchain):
                 (target.is_linux and target.is_power8le, ['-mcpu=power8', '-mtune=power8', '-maltivec']),
                 (target.is_linux and target.is_power9le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_armv8, ['-march=armv8a']),
+                (target.is_macos_arm64, ['-mmacosx-version-min=11.0']),
                 (target.is_macos, ['-mmacosx-version-min=10.11']),
                 (target.is_ios and not target.is_intel, ['-mios-version-min=9.0']),
                 (target.is_ios and target.is_intel, ['-mios-simulator-version-min=10.0']),
@@ -1868,6 +1873,7 @@ class LD(Linker):
             self.use_stdlib = None
 
         self.ld_sdk = select(default=None, selectors=[
+            (target.is_macos_arm64, '-Wl,-sdk_version,11.0'),
             (target.is_macos, '-Wl,-sdk_version,10.15'),
             (target.is_ios, '-Wl,-sdk_version,13.1'),
         ])

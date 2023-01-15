@@ -2812,6 +2812,16 @@
                         "os": "LINUX"
                     },
                     "target": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
                         "os": "IOS",
                         "arch": "i386"
                     },
@@ -2904,6 +2914,16 @@
                     "target": {
                         "os": "DARWIN",
                         "arch": "x86_64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
                     },
                     "default": true
                 },
