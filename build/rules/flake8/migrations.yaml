@@ -475,8 +475,6 @@ migrations:
     - extsearch/video/robot/rt_transcoder/metarobot/tests
     - extsearch/video/robot/rt_transcoder/transcoder/tests
     - extsearch/ymusic/scripts/reindex
-    - geoproduct/amocrm/link_calls/src
-    - geoproduct/amocrm/update_companies_info/mapper
     - groups
     - haas/cmis/hwr_allocation
     - haas/cmis/hwr_allocation/allocation_methods
@@ -762,8 +760,6 @@ migrations:
     - passport/python/core/types/login
     - passport/python/core/validators
     - passport/python/library/yt_hdb/loader
-    - passport/python/oauth/api/api
-    - passport/python/oauth/api/api/iface
     - passport/python/qa/test_user_service/tus_api
     - passport/python/qa/test_user_service/tus_api/validators
     - passport/python/social/broker
@@ -1596,8 +1592,6 @@ migrations:
     - education/lib/common
     - education/media_platform/services/api/it
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
-    - education/services/ext_lms_connector/app
-    - education/services/ext_lms_connector/app/stubs
     - education/services/sections/app
     - education/services/sections/app/handlers
     - education/services/sections/it
@@ -1624,11 +1618,6 @@ migrations:
     - games/admin/libs/utils
     - games/admin/server
     - games/admin/server/schemas/tests
-    - geoproduct/advert_ranking/competitors/learn_tools/merge_logs
-    - geoproduct/amocrm/old_api
-    - geoproduct/external_cc/project
-    - geoproduct/external_cc/project/cli
-    - geoproduct/external_cc/project/wsgi
     - geosuggest/conveyors/learn_pool/lst_weights/lib
     - haas/cmis/hwr_preorders
     - haas/graphite_sync/get_report
@@ -1793,7 +1782,6 @@ migrations:
     - metrika/admin/python/zooface/frontend/zooface
     - metrika/tasklets/conductor/impl
     - milab/lib/i2tclient/python
-    - ml/nirvana/python_deep_learning
     - ml/tensorflow/tfnn/tests
     - mlp/mail/aspam/experiments/MLP_231
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -1916,7 +1904,6 @@ migrations:
     - sandbox/projects/dj/DjCompileConfig
     - sandbox/projects/geoadv
     - sandbox/projects/geoadv/ReleasePrices
-    - sandbox/projects/geosearch/UpdateGeosearchEntities
     - sandbox/projects/geosearch/snippets
     - sandbox/projects/geosearch/snippets/AddrsSnippetsTask
     - sandbox/projects/geosuggest/GeosuggestIndexPostprocessing
@@ -2270,12 +2257,10 @@ migrations:
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
     - voicetech/asr/cloud_engine/cli/nirvana/build_lm
-    - voicetech/asr/cloud_engine/cli/nirvana/lm_optimize
     - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
     - voicetech/asr/cloud_engine/cli/nirvana/normalize_texts
-    - voicetech/asr/cloud_engine/cli/nirvana/recognize
     - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
     - voicetech/asr/cloud_engine/server/client/common
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
@@ -3023,11 +3008,6 @@ migrations:
     - extsearch/video/ugc/sqs_moderation/mod2
     - extsearch/video/ugc/sqs_moderation/mod2/handlers
     - extsearch/ymusic/tools/saas_dm_client
-    - geoproduct/amocrm/api/lib/models
-    - geoproduct/amocrm/companies_deduplication
-    - geoproduct/amocrm/import/agencies
-    - geoproduct/amocrm/update_leads
-    - geoproduct/external_cc_events/app
     - logbroker/config-manager/watchdog
     - logbroker/juggler/bundle/checks
     - logbroker/juggler/deploy_checks_generator
@@ -3345,12 +3325,10 @@ migrations:
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
     - voicetech/asr/cloud_engine/cli/nirvana/build_lm
-    - voicetech/asr/cloud_engine/cli/nirvana/lm_optimize
     - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
     - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
     - voicetech/asr/cloud_engine/cli/nirvana/normalize_texts
-    - voicetech/asr/cloud_engine/cli/nirvana/recognize
     - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
     - voicetech/asr/cloud_engine/server/client/common
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
@@ -3617,5 +3595,3 @@ migrations:
     - yweb/news/news_back/api/v3/common
     - yweb/news/news_back/api/v3/forms
     - yweb/sitelinks/astrolabe/build_bna/html_handler/tests/lib
-    - yweb/yasap/answers/answers
-    - yweb/yasap/answers/answers/resources/questions
