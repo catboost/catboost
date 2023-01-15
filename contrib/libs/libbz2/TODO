@@ -1,8 +1,0 @@
-TODO for autoconf based version:
-
-Some mandatory files for autoconf based packages are now empty: AUTHORS,
-ChangeLog.
-
-Some sections of these files needs update for autoconf are now outdated
-and should refer to INSTALL file: README, words* (actually, words0 and
-words2 seems to be unused and may be deleted completely).
