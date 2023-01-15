@@ -4,7 +4,7 @@ LICENSE(BSD-3-Clause)
 
 
 
-VERSION(0.13.5)
+VERSION(0.13.7)
 
 PEERDIR(
     contrib/python/ipython
