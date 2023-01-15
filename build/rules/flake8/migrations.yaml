@@ -77,7 +77,6 @@ migrations:
     - alice/uniproxy/library/subway/push_client
     - alice/uniproxy/tools/perf_results_parser
     - alice/uniproxy/tools/perf_tester
-    - alice/vins/test_bot
     - alice/vins/tools/pa
     - antirobot/daemon/arcadia_test
     - antirobot/tools/prepare_requests_cbb
@@ -244,7 +243,6 @@ migrations:
     - maps/infra/sedem/lib
     - maps/infra/sedem/modules
     - maps/infra/sedem/tests/release/machine
-    - maps/infra/sedem/tools/rm_to_sm_migrate/lib
     - maps/masstransit/tools/gtfs_utils/converter/lib
     - maps/poi/notification/lib
     - maps/pylibs/fixtures
@@ -423,10 +421,6 @@ migrations:
     - quasar/infra/tasklets/update_devices_in_db/impl
     - quasar/quasmodrom/quasmodrom
     - regulargeo/geolayer/olap
-    - release_machine/release_machine/src/notificator
-    - release_machine/release_machine/src/proto_dispatcher
-    - release_machine/release_machine/src/services
-    - release_machine/release_machine/tests/common
     - repo/pciexpress/monitoring
     - robot/bert/tools/predict_diff
     - robot/jupiter/cmpy/rapid_clicks
@@ -500,7 +494,6 @@ migrations:
     - sandbox/projects/nmaps
     - sandbox/projects/quality/tasks
     - sandbox/projects/release_machine/components/configs
-    - sandbox/projects/release_machine/tasks/ScheduleRelease
     - sandbox/projects/repo/pciexpress/legs
     - sandbox/projects/resource_types
     - sandbox/projects/sandbox/build_sandbox_tasks
@@ -630,7 +623,6 @@ migrations:
     - weather/workers/warnings/nowcasting
     - web/app_host/conf/graph_generator/tests/light
     - web/app_host/daemons/horizon/tests/nora
-    - web/app_host/tests/server_test/test_suites/light/internal_mechanics
     - web/app_host/tools/upper_template_generator/src/graph
     - web/app_host/tools/upper_template_generator/src/web_graph
     - yabs/analytics/anomaly_analyzer/src
