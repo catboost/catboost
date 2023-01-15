@@ -82,7 +82,7 @@ SRCS(
     umodti3.c
 )
 
-IF (OS_DARWIN)
+IF (OS_DARWIN OR OS_IOS)
     SRCS(os_version_check.c)
 ENDIF()
 
