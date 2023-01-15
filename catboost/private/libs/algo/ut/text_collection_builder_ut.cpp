@@ -4,7 +4,7 @@
 #include <catboost/private/libs/options/text_processing_options.h>
 #include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <util/generic/xrange.h>
 
 using namespace NCB;

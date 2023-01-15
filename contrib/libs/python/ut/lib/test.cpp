@@ -1,7 +1,7 @@
 #include "test.h"
 
 #include <Python.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 TTestPyInvoker::TTestPyInvoker() {}
 

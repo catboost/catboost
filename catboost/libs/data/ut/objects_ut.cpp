@@ -15,7 +15,7 @@
 #include <util/random/shuffle.h>
 #include <util/system/info.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/stream/output.h>
 

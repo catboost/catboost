@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>

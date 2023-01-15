@@ -2,7 +2,7 @@
 
 #include <catboost/libs/model/model_export/model_exporter.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;

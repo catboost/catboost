@@ -9,7 +9,7 @@
 #include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>

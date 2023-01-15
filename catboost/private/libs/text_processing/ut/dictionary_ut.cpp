@@ -1,6 +1,6 @@
 #include <catboost/private/libs/text_processing/dictionary.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestDictionary) {
     Y_UNIT_TEST(TestBasicProperties) {

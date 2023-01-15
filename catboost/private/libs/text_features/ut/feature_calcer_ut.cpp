@@ -3,7 +3,7 @@
 
 #include <catboost/private/libs/text_features/helpers.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <util/generic/ylimits.h>
 
 using namespace NCB;

@@ -3,7 +3,7 @@
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;

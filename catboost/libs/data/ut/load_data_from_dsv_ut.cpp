@@ -12,7 +12,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <functional>
 #include <limits>
