@@ -5,7 +5,7 @@
 
 #include <library/cpp/binsaver/mem_io.h>
 #include <library/cpp/binsaver/util_stream_io.h>
-#include <library/chromium_trace/interface.h>
+#include <library/cpp/chromium_trace/interface.h>
 
 #include <util/random/random.h>
 #include <util/system/atomic.h>

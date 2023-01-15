@@ -1,5 +1,5 @@
 
-#include <library/chromium_trace/interface.h>
+#include <library/cpp/chromium_trace/interface.h>
 
 #include <util/datetime/base.h>
 

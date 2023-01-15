@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/chromium_trace
+    library/cpp/chromium_trace
 )
 
 END()

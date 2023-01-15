@@ -1,10 +1,6 @@
 
 
 RECURSE(
-    chromium_trace
-    chromium_trace/benchmark
-    chromium_trace/examples
-    chromium_trace/ut
     cpp
     langmask
     langmask/proto

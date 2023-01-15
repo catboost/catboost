@@ -7,7 +7,7 @@
 
 #include <library/cpp/binsaver/mem_io.h>
 
-#include <library/chromium_trace/interface.h>
+#include <library/cpp/chromium_trace/interface.h>
 #include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/system/atomic.h>

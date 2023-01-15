@@ -4,7 +4,7 @@
 #include "par_log.h"
 
 #include <library/cpp/binsaver/mem_io.h>
-#include <library/chromium_trace/interface.h>
+#include <library/cpp/chromium_trace/interface.h>
 
 #include <util/thread/lfstack.h>
 #include <util/generic/vector.h>
