@@ -40,7 +40,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - modadvert/nirvana/sm_api/enrich_direct_banner/it
     - nirvana/vh3/src
     - nirvana/vh3/src/vh3/util/six/backports
     - passport/python/api/tests/views/bundle/change_avatar
@@ -93,7 +92,6 @@ migrations:
     - adfox/amacs/tests/functional/utils/db
     - adfox/amacs/tests/functional/utils/tools
     - ads/bsyeti/samogon/buzzard/plugin
-    - ads/bsyeti/samogon/eagle/plugin
     - ads/bsyeti/samogon/plugin_lib
     - ads/bsyeti/samogon/plugin_lib/valid_resources
     - ads/bsyeti/servants/bot
@@ -1559,7 +1557,6 @@ migrations:
     - quality/relev_tools/choice_screen/learn_basket
     - quality/trailer/suggest/toloka_processor/report_yt
     - quality/webfresh/metrics/serpsets/raw_serpset_patcher/tests
-    - quasar/manufacturing/jangles
     - rnd_toolbox/deckard
     - rnd_toolbox/nyamm
     - robot/library/yuppie
@@ -1960,9 +1957,6 @@ migrations:
     - modadvert/libs/utils/py3/auth
     - modadvert/libs/utils/text/ut
     - modadvert/nirvana/m1_update_media_objects/it
-    - modadvert/nirvana/sm_api/add_verdicts/libs
-    - modadvert/nirvana/sm_api/enrich_direct_banner/it
-    - modadvert/nirvana/sm_api/find_related/libs
     - modadvert/programs/monika/libs
     - modadvert/programs/multik/libs
     - modadvert/programs/saas_indexer/ut
@@ -2303,8 +2297,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
     - modadvert/libs/laas/workers/misprints/it
-    - modadvert/nirvana/sm_api/add_total_verdict/it
-    - modadvert/nirvana/sm_api/enrich_direct_banner/it
     - modadvert/programs/cv_app/tools/create_yt_env/it
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
