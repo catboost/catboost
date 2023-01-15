@@ -346,7 +346,6 @@ def pytest_deselected(items):
         for item in items:
             deselected_item = DeselectedTestItem(item.nodeid, config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(deselected_item)
-            config.ya_trace_reporter.on_start_test_case(deselected_item)
             config.ya_trace_reporter.on_finish_test_case(deselected_item)
             config.ya_trace_reporter.on_finish_test_class(deselected_item)
 
@@ -425,7 +424,6 @@ def pytest_collection_modifyitems(items, config):
         for item in items:
             test_item = NotLaunchedTestItem(item.nodeid, config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(test_item)
-            config.ya_trace_reporter.on_start_test_case(test_item)
             config.ya_trace_reporter.on_finish_test_case(test_item)
             config.ya_trace_reporter.on_finish_test_class(test_item)
     elif config.option.mode == RunMode.List:
