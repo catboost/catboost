@@ -1,6 +1,7 @@
 #include "shap_interaction_values.h"
 
 #include "shap_values.h"
+#include "shap_prepared_trees.h"
 #include "util.h"
 
 #include <catboost/private/libs/algo/features_data_helpers.h>
