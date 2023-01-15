@@ -44,6 +44,10 @@
   includes:
     - cxxabi.h: contrib/libs/cxxsupp/libcxxabi-parts/include/cxxabi.h
 
+- source_filter: "^contrib/libs/cxxsupp/libcxxabi/"
+  includes:
+    - cxxabi.h: contrib/libs/cxxsupp/libcxxabi/include/cxxabi.h
+
 - includes:
   - __config:                  contrib/libs/cxxsupp/libcxx/include/__config
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm

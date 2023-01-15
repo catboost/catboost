@@ -18,3 +18,7 @@ ELSE()
 ENDIF()
 
 END()
+
+RECURSE(
+    libcxxabi
+)
