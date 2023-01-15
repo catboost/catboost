@@ -34,7 +34,6 @@ migrations:
     - ads/quality/adv_machine/cm_robot/tests/small
     - ads/quality/bid_correction/lm/pconv
     - ads/quality/bid_correction/lm/train
-    - ads/quality/dssm/lib
     - ads/quality/embedding/join_banners
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/gram_eval
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/preprocess
