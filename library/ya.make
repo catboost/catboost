@@ -19,7 +19,6 @@ RECURSE(
     cpp
     dbg_output
     dbg_output/ut
-    deprecated
     dns
     dns/ut
     enumbitset

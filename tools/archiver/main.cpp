@@ -1,5 +1,5 @@
 #include <library/cpp/archive/yarchive.h>
-#include <library/deprecated/mapped_file/mapped_file.h>
+#include <library/cpp/deprecated/mapped_file/mapped_file.h>
 #include <library/cpp/digest/md5/md5.h>
 #include <library/cpp/getopt/small/last_getopt.h>
 

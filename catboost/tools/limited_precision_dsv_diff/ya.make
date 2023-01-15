@@ -3,7 +3,7 @@ PROGRAM()
 
 
 PEERDIR(
-    library/deprecated/split
+    library/cpp/deprecated/split
     library/cpp/getopt/small
 )
 
