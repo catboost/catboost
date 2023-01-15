@@ -493,13 +493,7 @@ def onadd_check(unit, *args):
     test_timeout = ''
     fork_mode = ''
 
-    if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES", "PEP8_2", "PYFLAKES_2"]:
-        script_rel_path = "py.lint.pylint"
-        fork_mode = unit.get('TEST_FORK_MODE') or ''
-    elif check_type in ["PEP8_3", "PYFLAKES_3"]:
-        script_rel_path = "py.lint.pylint.3"
-        fork_mode = unit.get('TEST_FORK_MODE') or ''
-    elif check_type in ["flake8.py2", "flake8.py3"]:
+    if check_type in ["flake8.py2", "flake8.py3"]:
         script_rel_path = check_type
         fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
