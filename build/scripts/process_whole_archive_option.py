@@ -10,8 +10,7 @@ def process_whole_archive_for_global_libs(args):
         elif arg == end_wa:
             is_inside_wa = False
         elif is_inside_wa:
-            cmd.append('-Wl,-force_load')
-            cmd.append(arg)
+            cmd.append('-Wl,-force_load,' + arg)
         else:
             cmd.append(arg)
     return cmd
