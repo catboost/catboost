@@ -240,6 +240,10 @@
     - fstream.h
     - ../include/fenv.h
 
+- source_filter: "^contrib/restricted/boost/boost/stacktrace/detail"
+  includes:
+    - backtrace.h: contrib/libs/backtrace/backtrace.h
+
 # windows sdk includes that we do not want to apply for whole arcadia
 - source_filter: "^contrib"
   includes:
