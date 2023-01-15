@@ -447,6 +447,7 @@ def onadd_test(unit, *args):
     test_type = flat_args[0]
     test_files = flat_args[1:]
     if test_type in ["PEP8", "PY_FLAKES"]:
+        unit.message(['warn', 'ADD_TEST(PEP8|PY_FLAKES) is no longer supported'])
         return
 
     custom_deps = spec_args.get('DEPENDS', [])
