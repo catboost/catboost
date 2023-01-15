@@ -8,7 +8,6 @@ NO_COMPILER_WARNINGS()
 
 PEERDIR(
     contrib/python/numpy
-    contrib/python/numpy/py2/numpy/f2py/src
 
     contrib/python/scipy/scipy/special
     contrib/python/scipy/scipy/sparse

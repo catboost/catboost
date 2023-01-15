@@ -14,7 +14,6 @@ ADDINCL(
 
 PEERDIR(
     contrib/python/numpy
-    contrib/python/numpy/py2/numpy/f2py/src
 
     contrib/python/scipy/scipy/_build_utils/src
     contrib/python/scipy/scipy/_lib

@@ -8,7 +8,7 @@ NO_COMPILER_WARNINGS()
 
 PEERDIR(
     contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK
-    contrib/python/numpy/py2/numpy/f2py/src
+    contrib/python/numpy
 )
 
 SRCS(
