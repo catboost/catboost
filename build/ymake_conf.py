@@ -668,9 +668,9 @@ class YMake(object):
     def print_presets(self):
         presets = opts().presets
         if presets and 'YMAKE_JAVA_MODULES' in presets:
-            self._print_conf_content(self._find_conf('conf/java.ymake.conf'))
+            print('@import "${CONF_ROOT}/conf/java.ymake.conf"')
         else:
-            self._print_conf_content(self._find_conf('conf/jbuild.ymake.conf'))
+            print('@import "${CONF_ROOT}/conf/jbuild.ymake.conf"')
 
         if presets:
             print('# Variables set from command line by -D options')
@@ -688,7 +688,8 @@ class YMake(object):
             print(fin.read())
 
     def print_core_conf(self):
-        self._print_conf_content(self._find_core_conf())
+        emit('YMAKE_YNDEXER_IGNORE_BUILD_ROOT', 'yes')
+        print('@import "${CONF_ROOT}/ymake.core.conf"')
 
     def print_settings(self):
         emit_with_ignore_comment('ARCADIA_ROOT', self.arcadia.root)
