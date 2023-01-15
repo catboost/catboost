@@ -435,9 +435,9 @@
         "wall-e": {
             "description": "Client for Wall-E"
         },
-	"rtcdiag": {
-	    "description": "RTC hosts diag tool"
-	}
+        "rtcdiag": {
+            "description": "RTC hosts diag tool"
+        }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -5873,22 +5873,22 @@
                 }
             ]
         },
-	"rtcdiag": {
-	    "tools": {
-	        "rtcdiag": {
-		    "bottle": "rtcdiag",
-		    "executable": "rtcdiag"
-		}
-	    },
-	    "platforms": [
-	        {
-		    "host": {
-		        "os": "LINUX"
-		    },
-		    "default": true
-		}
-	    ]
-	},
+        "rtcdiag": {
+            "tools": {
+                "rtcdiag": {
+                    "bottle": "rtcdiag",
+                    "executable": "rtcdiag"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "fio": {
             "tools": {
                 "fio": {
@@ -6463,7 +6463,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [946335427],
+                "sandbox_id": [
+                    946335427
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -8235,7 +8237,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 925763286,
+                "sandbox_id": 2108603379,
                 "match": "zcli"
             },
             "executable": {
@@ -8459,19 +8461,19 @@
                 ]
             }
         },
-	"rtcdiag": {
-	   "formula": {
-	       "sandbox_id": [
-	           944810510
-	       ],
-	       "match": "search/mon/rtc/rtcdiag/bin/rtcdiag"
-	   },
-	   "executable": {
-	       "rtcdiag": [
-	           "rtcdiag"
-	       ]
-	   }
-	},
+        "rtcdiag": {
+            "formula": {
+                "sandbox_id": [
+                    944810510
+                ],
+                "match": "search/mon/rtc/rtcdiag/bin/rtcdiag"
+            },
+            "executable": {
+                "rtcdiag": [
+                    "rtcdiag"
+                ]
+            }
+        },
         "fio": {
             "formula": {
                 "sandbox_id": [
