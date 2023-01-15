@@ -269,6 +269,9 @@
         "yo": {
             "description": "Tool for managing vendor/ directory"
         },
+        "mockgen": {
+            "description": "Run GoMock (go mocking framework)"
+        },
         "dlv": {
             "description": "Debugger for the Go programming language"
         },
@@ -901,6 +904,34 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "mockgen": {
+            "tools": {
+                "mockgen": {
+                    "bottle": "mockgen",
+                    "executable": "mockgen"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
                     },
                     "default": true
                 }
@@ -5638,6 +5669,21 @@
             "executable": {
                 "yo": [
                     "yo"
+                ]
+            }
+        },
+        "mockgen": {
+            "formula": {
+                "sandbox_id": [
+                    742810450,
+                    742810460,
+                    742810456
+                ],
+                "match": "mockgen"
+            },
+            "executable": {
+                "mockgen": [
+                    "mockgen"
                 ]
             }
         },
