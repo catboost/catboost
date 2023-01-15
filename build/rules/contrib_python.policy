@@ -755,3 +755,12 @@ ALLOW quality/ab_testing/cofe/bin/lib/files/cofe_kernel_yql -> contrib/python/sq
 ALLOW yql/udfs/common/python/python3 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/sqlalchemy/sqlalchemy-1.2
 DENY .* -> contrib/python/sqlalchemy/sqlalchemy-1.2
+
+# As agreed in https://st.yandex-team.ru/CONTRIB-2183
+# (use contrib/python/marshmallow_dataclass instead)
+ALLOW education/ -> contrib/python/dataclasses-json
+DENY .* -> contrib/python/dataclasses-json
+
+# stringcase is a transitive dependency of dataclasses-json. Do not use it
+ALLOW contrib/python/dataclasses-json -> contrib/python/stringcase
+DENY .* -> contrib/python/stringcase
