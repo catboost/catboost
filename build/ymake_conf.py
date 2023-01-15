@@ -2872,8 +2872,7 @@ class Cuda(object):
 
         self.peerdirs = ['build/platform/cuda']
 
-        self.cuda_version_list = tuple(map(int, self.cuda_version.value.split('.'))) if self.cuda_version.value else None
-        self.nvcc_std = '-std=c++14' if self.cuda_version_list >= (9, 0) else '-std=c++11'
+        self.nvcc_std = '-std=c++14'
         if self.build.tc.type == 'msvc':
             self.nvcc_std = self.nvcc_std.replace('-std=', '/std:')
 
@@ -2948,7 +2947,7 @@ class Cuda(object):
         if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2'):
             raise ConfigureError('CUDA versions 8.x and 9.x are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value in ('10.0', '10.1', '11.0', '11.1', '11.2', '11.3'):
+        if self.cuda_version.value in ('10', '10.0', '10.1', '11', '11.0', '11.1', '11.2', '11.3'):
             return True
 
         return False
@@ -2971,7 +2970,7 @@ class Cuda(object):
             raise ConfigureError('Failed to get CUDA version from {}'.format(nvcc_exe))
 
         version_output = get_stdout([nvcc_exe, '--version']) or error()
-        match = re.search(r'^Cuda compilation tools, release (\d+\.\d+),', version_output, re.MULTILINE) or error()
+        match = re.search(r'^Cuda compilation tools, release (\d+)\.\d+,', version_output, re.MULTILINE) or error()
 
         return match.group(1)
 

@@ -14,10 +14,10 @@ IF (HAVE_CUDA)
     )
 
     IF (NOT OS_WINDOWS)
-        LDFLAGS(-lcusolver_static)
-        IF (CUDA_VERSION VERSION_GE "10.0")
-            LDFLAGS(-llapack_static)
-        ENDIF()
+        LDFLAGS(
+            -lcusolver_static
+            -llapack_static
+        )
     ELSE()
         LDFLAGS(cusolver.lib)
     ENDIF()
