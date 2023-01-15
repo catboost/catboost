@@ -5027,7 +5027,7 @@ def test_cox_regression():
         '-T', '4',
         '-m', output_model_path,
         '--input-path', data_file('patients', 'test'),
-        '-o', output_calc_path  
+        '-o', output_calc_path
     )
     yatest.common.execute(cmd_calc)
 
