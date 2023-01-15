@@ -357,7 +357,6 @@ migrations:
     - dict/ontodb/tools/entity_lists/parser/src/vokrugtv
     - dict/ontodb/tools/entity_lists/parser/src/westernfilm
     - dict/ontodb/tools/entity_lists/relev
-    - dict/ontodb/tools/entity_lists/src_licenses
     - dict/ontodb/tools/entity_lists/sticky
     - dict/ontodb/tools/fields_diff/lib
     - dict/ontodb/tools/ontodb_viewer
@@ -2503,11 +2502,9 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/merge_gemini_lookups
     - quality/sbs/getexps
     - quality/sbs/plugengine
-    - quality/sbs/polls
     - quality/sbs/queries
     - quality/sbs/sbsconfig
     - quality/sbs/sbsdesign
-    - quality/sbs/sbslib
     - quality/sbs/sbspages
     - quality/sbs/sbssystems
     - quality/sbs/serplib
@@ -3093,7 +3090,6 @@ migrations:
     - intranet/trip/tests/api
     - jupytercloud/arcadia_kernel/lib
     - kikimr/ci/tests/sqs
-    - kikimr/tools/acl_upgrade
     - mail/mops/tests
     - mail/sharpei/tests/integration
     - mail/sharpei/tests/integration/steps
@@ -3108,7 +3104,6 @@ migrations:
     - maps/infra/quotateka/client/fixture
     - maps/infra/sedem/cli/tests/release/fixtures
     - maps/poi/notification/lib
-    - maps/pylibs/infrastructure_api/awacs/tests
     - market/amore/output/lbdumper_amore/tests/yatf
     - market/backctld/tests
     - market/idx/datacamp/controllers/piper/tests
