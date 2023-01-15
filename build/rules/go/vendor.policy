@@ -584,6 +584,9 @@ ALLOW vendor -> vendor/github.com/slon/thrift
 # CONTRIB-2063 flatbuffers support
 ALLOW .* -> vendor/github.com/google/flatbuffers/go
 
+# CONTRIB-2073
+ALLOW .* -> vendor/github.com/andybalholm/brotli
+
 #
 # Tools
 #
