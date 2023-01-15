@@ -106,6 +106,16 @@ You can also enclose code with the ``with`` statement to launch ipdb if an excep
    Adding a context manager implies dropping Python 2.4 support.
    Use ``ipdb==0.6`` with 2.4.
 
+Or you can use ``iex`` as a function decorator to launch ipdb if an exception is raised:
+
+.. code-block:: python
+
+        from ipdb import iex
+
+        @iex
+        def main():
+            [...]
+
 .. warning::
    Using ``from future import print_function`` for Python 3 compat implies dropping Python 2.5 support.
    Use ``ipdb<=0.8`` with 2.5.

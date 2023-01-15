@@ -8,9 +8,9 @@ from __future__ import print_function
 import os
 import sys
 
-from contextlib import contextmanager
+from decorator import contextmanager
 
-__version__ = '0.13.7'
+__version__ = '0.13.8'
 
 from IPython import get_ipython
 from IPython.core.debugger import BdbQuit_excepthook
@@ -178,7 +178,7 @@ def get_config():
             elif filepath.endswith('pyproject.toml'):
                 import toml
                 toml_file = toml.load(filepath)
-                if "ipdb" in toml_file["tool"]:
+                if "ipdb" in toml_file.get("tool"):
                     if not parser.has_section("ipdb"):
                         parser.add_section("ipdb")
                     for key, value in toml_file["tool"]["ipdb"].items():
@@ -226,6 +226,10 @@ def launch_ipdb_on_exception():
         post_mortem(tb)
     finally:
         pass
+
+
+# iex is a concise alias
+iex = launch_ipdb_on_exception()
 
 
 _usage = """\
