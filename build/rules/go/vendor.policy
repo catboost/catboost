@@ -697,6 +697,18 @@ ALLOW infra/rtc/instance_resolver/pkg/clients/iss3 -> vendor/git.apache.org/thri
 # Benchmarks using github.com/pkg/errors
 ALLOW library/go/core/xerrors -> vendor/github.com/pkg/errors
 
+# CONTRIB-2040
+ALLOW load/projects/pandora -> vendor/github.com/pkg/errors
+
+# CONTRIB-2032
+ALLOW load/projects/pandora -> vendor/github.com/onsi/gomega
+
+# CONTRIB-2009
+ALLOW load/projects/pandora -> vendor/github.com/hashicorp/go-multierror
+
+# CONTRIB-2006
+ALLOW load/projects/pandora -> vendor/github.com/asaskevich/govalidator
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
