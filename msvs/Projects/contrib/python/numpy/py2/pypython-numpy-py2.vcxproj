@@ -136,7 +136,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -147,7 +147,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,9 +155,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.py2.obj	</Message>
+      <Message>$B/contrib/python/numpy/py2/_5ff068b7fb18510bcc0763b0ac.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\_5ff068b7fb18510bcc0763b0ac.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\_5ff068b7fb18510bcc0763b0ac.py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\_5ff068b7fb18510bcc0763b0ac.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\_add_newdocs.py.j4go.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
