@@ -750,7 +750,7 @@ namespace {
         TLabelConverter labelConverter;
         int iterationIdx = 0;
         int bestIterationIdx = 0;
-        
+
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
         TConstArrayRef<NJson::TJsonValue> paramsSet;
         while (gridIterator->Next(&paramsSet)) {
@@ -927,7 +927,7 @@ namespace {
             data = data->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, localExecutor);
         }
 
-        TSetLogging inThisScope(ELoggingLevel::Verbose);
+        TSetLogging inThisScope(ELoggingLevel::Debug);
         TLogger logger;
         TString searchToken = "loss";
         const auto parametersToken = GetParametersToken();
