@@ -53,7 +53,7 @@ static bool GetDigit(const char c, ui32& digit) {
     return true;
 }
 
-bool GetGuid(const TString& s, TGUID& result) {
+bool GetGuid(const TStringBuf s, TGUID& result) {
     size_t partId = 0;
     ui64 partValue = 0;
     bool isEmptyPart = true;
@@ -95,7 +95,7 @@ bool GetGuid(const TString& s, TGUID& result) {
 
 // Parses GUID from s and checks that it's valid.
 // In case of error returns TGUID().
-TGUID GetGuid(const TString& s) {
+TGUID GetGuid(const TStringBuf s) {
     TGUID result;
 
     if (GetGuid(s, result)) {
@@ -105,7 +105,7 @@ TGUID GetGuid(const TString& s) {
     return TGUID();
 }
 
-bool GetUuid(const TString& s, TGUID& result) {
+bool GetUuid(const TStringBuf s, TGUID& result) {
     if (s.size() != 36) {
         return false;
     }
@@ -141,7 +141,7 @@ bool GetUuid(const TString& s, TGUID& result) {
 
 // Parses GUID from uuid and checks that it's valid.
 // In case of error returns TGUID().
-TGUID GetUuid(const TString& s) {
+TGUID GetUuid(const TStringBuf s) {
     TGUID result;
 
     if (GetUuid(s, result)) {
