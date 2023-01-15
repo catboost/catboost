@@ -503,7 +503,6 @@ migrations:
     - entity/quality/ontodb/defect_rate/lib
     - entity/ugc/db/python/offline_processing
     - entity/ugc/quality/reviews_ranking/ml/lib/trueskill
-    - entity/ugc/robot/tools/sprav_reviews_loader/lib/ut
     - entity/ugc/robot/util
     - entity/ugc/tests/lib
     - entity/ugc/tools/bell/replay_requests
@@ -2110,7 +2109,6 @@ migrations:
     - lbs/research/LBS381_choosing_gsm_over_wifi/calc_stats
     - lbs/research_tools/find_keys_causing_losses
     - library/python/async_clients
-    - load/projects/tankapi_cmd/bin/client
     - load/projects/yatool_perf_test/lib
     - logbroker/public/client/lib
     - logbroker/tools/deploy_consistency_test
