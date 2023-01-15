@@ -34,7 +34,6 @@ migrations:
     - mail/freezing_tests/active_users_aggregation
     - maps/analyzer/tools/online_jams/pylib
     - maps/tools/naviguide/tools/extract_uuid_info
-    - market/replenishment/data_preparation/ut
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - metrika/core/test_framework/steps/clients
@@ -604,10 +603,6 @@ migrations:
     - mail/contrib/ccs-caldavtester/verifiers
     - mail/contrib/tatsu/test
     - mail/contrib/tatsu/test/grammar
-    - mail/monitoring/common
-    - mail/monitoring/delivery/lib
-    - mail/monitoring/delivery/monrun
-    - mail/monitoring/delivery/monrun/nwsmtp
     - mail/mxtests/lib
     - mail/python/theatre/app
     - mail/retriever/unistat
@@ -763,8 +758,6 @@ migrations:
     - quality/functionality/chats/feedback/src/feedback/core/settings
     - quality/functionality/chats/floyd/src/floyd/core
     - quality/functionality/chats/floyd/src/floyd/core/settings
-    - quality/functionality/chats/floyd/src/tests
-    - quality/functionality/chats/floyd/src/tests/core/platform
     - quality/functionality/entity_search/factqueries/instructions/prepare_facts
     - quality/functionality/entity_search/factqueries/tools/extract_fact/scripts/get_encyc_queries
     - quality/functionality/facts/common/goldensets/actuality/gen_population_tasks
@@ -1093,10 +1086,6 @@ migrations:
     - travel/rasp/library/python/route_search/by_number
     - travel/rasp/rasp_scripts
     - travel/rasp/rasp_scripts/scripts/long_haul/export
-    - travel/rasp/suburban_selling
-    - travel/rasp/suburban_selling/selling/aeroexpress
-    - travel/rasp/suburban_selling/tests
-    - travel/rasp/suburban_selling/tests/aeroexpress
     - travel/rasp/train_api
     - travel/rasp/train_api/scripts
     - travel/rasp/train_api/tests
@@ -1501,7 +1490,6 @@ migrations:
     - mail/devpack/lib/components
     - mail/docker_tests
     - mail/docker_tests/tests_common/steps
-    - mail/monitoring/common
     - mail/python/fake_mulcagate
     - mail/python/theatre/app
     - mail/python/theatre/app/log_helpers
@@ -1594,8 +1582,6 @@ migrations:
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
-    - quality/functionality/chats/floyd/src/floyd/core
-    - quality/functionality/chats/floyd/src/floyd/core/ws_handles
     - quality/functionality/chats/floyd/src/tests
     - quality/functionality/chats/floyd/src/tests/core/platform
     - quality/functionality/rtx/server/plugin
@@ -1667,8 +1653,6 @@ migrations:
     - sandbox/projects/news/RunNewsComplexLoadtests
     - sandbox/projects/news/runtime_tests
     - sandbox/projects/news/runtime_tests/CompareNewsApphostServiceResponses
-    - sandbox/projects/runtime_models
-    - sandbox/projects/runtime_models/CreateWebRtModelsRequestsPlan
     - sandbox/projects/saas/backups/DetachServiceIndex2
     - sandbox/projects/sport_wizard/DeploySportProxyData
     - sandbox/projects/video
@@ -1678,7 +1662,6 @@ migrations:
     - sandbox/projects/yt
     - sandbox/projects/yt/ci_tasks/packages/YtBuildCronPackage
     - sandbox/projects/yt/layers_tasks/YtBuildSpravLayerTask
-    - search/base_search/daemons/remote_storage/tests
     - search/metrics/monitoring/core
     - search/mon/rviewer/db
     - search/mon/rviewer/modules
@@ -1712,8 +1695,6 @@ migrations:
     - testenv/core/web_server
     - tools/mstand/mstand_structs
     - tools/mstand/session_squeezer
-    - travel/avia/api_gateway
-    - travel/avia/api_gateway/application/fetcher/flight_landing
     - travel/avia/revise
     - travel/avia/revise/partners
     - travel/avia/shared_flights/data_importer/tests
@@ -1733,12 +1714,9 @@ migrations:
     - travel/rasp/infra/tools/devprocess_metrics/startrek
     - travel/rasp/morda_backend
     - travel/rasp/morda_backend/morda_backend/station/data_layer
-    - travel/rasp/morda_backend/tests
-    - travel/rasp/morda_backend/tests/data_layer
     - travel/rasp/train_api
     - travel/rasp/train_api/middleware
     - vcs/manage_contrib
-    - vcs/svn/hooks/pre_commit
     - vh/lib/sqs_watcher
     - vh/recommender/tools/delayed_view_stats
     - voicetech/asr/markup/select
@@ -1750,8 +1728,6 @@ migrations:
     - voicetech/spotter/score/lib/test
     - voicetech/spotter/selection_for_annotation/bin
     - voicetech/spotter/train/lib
-    - voicetech/uniproxy2/tests
-    - voicetech/uniproxy2/tests/common
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting/layers
     - weather/workers/warnings/push
@@ -1789,7 +1765,6 @@ migrations:
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/json_templating/streams_generator/pylib/ut
     - yabs/vh/frontend/test/ft/HOME-43539
-    - ydo/async_api/tests/medium
     - ydo/bg_task_processor/tests/tasks_tests
     - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
@@ -1869,7 +1844,6 @@ migrations:
     - alice/hollywood/library/scenarios/music/it
     - alice/hollywood/library/scenarios/news/it
     - alice/hollywood/library/scenarios/tr_navi/handcrafted/it
-    - alice/hollywood/stubber
     - alice/nlu/py_libs/respect_rewriter
     - alice/nlu/py_libs/syntax_parser
     - alice/nlu/py_libs/tf_model_applier
@@ -1889,7 +1863,6 @@ migrations:
     - arc/backups/restore/tasklet
     - arc/ci/tests
     - balancer/test/functional/rate_limiter
-    - billing/apikeys/tests
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
     - clickhouse/utils/github
@@ -2098,7 +2071,6 @@ migrations:
     - quality/sbs/tolpools
     - quality/sbs/ytschemas
     - quasar/infra/tasklets/update_devices_in_db/impl
-    - quasar/quasmodrom/quasmodrom
     - regulargeo/geolayer/olap
     - repo/pciexpress/monitoring
     - robot/bert/tools/predict_diff
@@ -2251,7 +2223,6 @@ migrations:
     - voicetech/spotter/run/difftool
     - voicetech/spotter/score/prepare_for_online_validation/bin
     - voicetech/spotter/tools/filter_texts/bin
-    - voicetech/uniproxy2/tests
     - weather/admin
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/workers/warnings/general
@@ -2376,7 +2347,6 @@ migrations:
     - mail/python/sendr-qtools/src/sendr_aiopg/tests
     - maps/analyzer/tools/online_jams/pylib
     - maps/tools/naviguide/tools/extract_uuid_info
-    - market/replenishment/data_preparation/ut
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - metrika/core/test_framework/steps/clients
