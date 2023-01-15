@@ -870,8 +870,6 @@ migrations:
     - jupytercloud/backend/handlers
     - kikimr/tools/monitoring
     - library/python/toloka_client
-    - library/python/toloka_client/client
-    - library/python/toloka_client/client/primitives
     - library/python/toloka_client/tutorial
     - locdoc/doc_tools/yoda/friends/smartcat
     - locdoc/doc_tools/yoda/friends/smartcat/api
