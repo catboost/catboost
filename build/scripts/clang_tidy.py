@@ -61,8 +61,8 @@ def main():
     output_json = args.tidy_json
     header_filter = r"^(" + r"|".join(map(re.escape, [os.path.dirname(args.testing_src)])) + r").*(?<!\.pb\.h)$"
 
-    with gen_tmpdir() as tmpdir:
-        compile_command_path = generate_compilation_database(clang_cmd, args.source_root, args.testing_src, tmpdir)
+    with gen_tmpdir() as profile_tmpdir, gen_tmpdir() as db_tmpdir:
+        compile_command_path = generate_compilation_database(clang_cmd, args.source_root, args.testing_src, db_tmpdir)
         cmd = [
             clang_tidy_bin,
             args.testing_src,
@@ -76,12 +76,12 @@ def main():
             header_filter,
             "--use-color",
             "--enable-check-profile",
-            "--store-check-profile={}".format(tmpdir),
+            "--store-check-profile={}".format(profile_tmpdir),
         ]
         res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = res.communicate()
         exit_code = res.returncode
-        profile = load_profile(tmpdir)
+        profile = load_profile(profile_tmpdir)
 
     with open(output_json, "wb") as afile:
         json.dump(
