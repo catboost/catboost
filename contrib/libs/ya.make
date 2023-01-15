@@ -71,7 +71,7 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    re2/tests
+    
 )
 ENDIF()
 

@@ -183,16 +183,12 @@ void SparseSetT<Value>::resize(int max_size) {
 
     dense_.resize(max_size);
 
-#ifdef FAKEID
-    std::fill(sparse_to_dense_.get() + max_size_, sparse_to_dense_.get() + max_size, 0);
-#else
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
     for (int i = max_size_; i < max_size; i++) {
       sparse_to_dense_[i] = 0xababababU;
       dense_[i] = 0xababababU;
     }
-#endif
 #endif
 #endif
   }
@@ -226,22 +222,16 @@ void SparseSetT<Value>::create_index(int i) {
 
 template<typename Value> SparseSetT<Value>::SparseSetT(int max_size) {
   max_size_ = max_size;
-#ifdef FAKEID
-  sparse_to_dense_ = std::unique_ptr<int[]>(new int[max_size]());
-#else
   sparse_to_dense_ = std::unique_ptr<int[]>(new int[max_size]);
-#endif
   dense_.resize(max_size);
   size_ = 0;
 
-#ifndef FAKEID
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
   for (int i = 0; i < max_size; i++) {
     sparse_to_dense_[i] = 0xababababU;
     dense_[i] = 0xababababU;
   }
-#endif
 #endif
 #endif
 

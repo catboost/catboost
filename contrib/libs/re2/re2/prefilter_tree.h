@@ -23,7 +23,6 @@
 #include "util/util.h"
 #include "util/sparse_array.h"
 
-
 namespace re2 {
 
 typedef SparseArray<int> IntMap;
