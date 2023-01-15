@@ -746,6 +746,12 @@ ALLOW .* -> vendor/github.com/apparentlymart/go-cidr
 # CONTRIB-2266
 ALLOW .* -> vendor/github.com/vertica/vertica-sql-go
 
+# CONTRIB-2277
+ALLOW .* -> vendor/github.com/miekg/pkcs11
+
+# CONTRIB-2278
+ALLOW .* -> vendor/github.com/ThalesIgnite/crypto11
+
 #
 # Tools
 #
