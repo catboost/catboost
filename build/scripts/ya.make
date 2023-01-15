@@ -17,6 +17,7 @@ TEST_SRCS(
     compile_cuda.py
     compile_java.py
     compile_jsrc.py
+    compile_pysrc.py
     configure_file.py
     copy_to_dir.py
     coverage-info.py
@@ -25,6 +26,7 @@ TEST_SRCS(
     extract_jacoco_report.py
     f2c.py
     fail_module_cmd.py
+    fbs_to_pysrc.py
     fetch_from.py
     fetch_from_external.py
     fetch_from_mds.py
