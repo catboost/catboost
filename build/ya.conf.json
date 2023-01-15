@@ -62,6 +62,9 @@
         "ninja": {
             "description": "Run ninja"
         },
+        "ytexec": {
+            "description": "Run ytexec"
+        },
         "gdb": {
             "description": "Run gdb"
         },
@@ -2970,6 +2973,22 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "ytexec": {
+            "tools": {
+                "ytexec": {
+                    "bottle": "ytexec",
+                    "executable": "ytexec"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
                     },
                     "default": true
                 }
@@ -6600,6 +6619,18 @@
                     "gdb",
                     "bin",
                     "gdbserver"
+                ]
+            }
+        },
+        "ytexec": {
+            "formula": {
+                "sandbox_id": 753190766,
+                "match": "ytexec"
+            },
+            "executable": {
+                "ytexec": [
+                    "ytexec",
+                    "ytexec"
                 ]
             }
         },
