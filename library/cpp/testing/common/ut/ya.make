@@ -1,4 +1,4 @@
-GTEST_BETA()
+GTEST()
 
 
 SRCS(
