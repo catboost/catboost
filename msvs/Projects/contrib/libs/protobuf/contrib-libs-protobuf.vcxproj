@@ -413,7 +413,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wire_format_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wire_format_lite_inl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wrappers.pb.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\text_format.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
