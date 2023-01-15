@@ -36,8 +36,10 @@ public:
             this.swigCMemOwn = true;
         
             $typemap(jboxtype, T) pointee = ($typemap(jboxtype, T))in.readObject();
-            pointee.releaseMem();
-            this.Set(pointee);
+            if (pointee != null) {
+                pointee.releaseMem();
+                this.Set(pointee);
+            }
         }
         
         public boolean equals(Object obj) {
