@@ -34,10 +34,41 @@ static int getloadavg(double* loadavg, int nelem) {
     #include <sys/sysctl.h>
 #endif
 
-#include <util/generic/yexception.h>
 #include <util/string/ascii.h>
+#include <util/string/cast.h>
+#include <util/string/strip.h>
+#include <util/stream/file.h>
+#include <util/generic/yexception.h>
+
+#if defined(_linux_)
+static inline size_t CgroupCpus() {
+    try {
+        auto q = FromString<ssize_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_quota_us").ReadAll()));
+
+        if (q <= 0) {
+            return 0;
+        }
+
+        auto p = FromString<ssize_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_period_us").ReadAll()));
+
+        if (p <= 0) {
+            return 0;
+        }
+
+        return (q + p / 2) / p;
+    } catch (...) {
+        return 0;
+    }
+}
+#endif
 
 size_t NSystemInfo::NumberOfCpus() {
+#if defined(_linux_)
+    if (auto res = CgroupCpus(); res) {
+        return res;
+    }
+#endif
+
 #if defined(_win_)
     SYSTEM_INFO info;
 
@@ -157,6 +188,17 @@ size_t NSystemInfo::GetPageSize() noexcept {
 }
 
 size_t NSystemInfo::TotalMemorySize() {
+#if defined(_linux_) && defined(_64_)
+    try {
+        auto q = FromString<size_t>(StripString(TFileInput("/sys/fs/cgroup/memory/memory.limit_in_bytes").ReadAll()));
+
+        if (q < (((size_t)1) << 60)) {
+            return q;
+        }
+    } catch (...) {
+    }
+#endif
+
 #if defined(_linux_) || defined(_cygwin_)
     struct sysinfo info;
     sysinfo(&info);
