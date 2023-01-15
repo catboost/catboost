@@ -1,0 +1,5 @@
+jstyle:
+    NoLint:
+        ignore:
+            - '*'
+        prefixes: []
