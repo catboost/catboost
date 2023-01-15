@@ -36,7 +36,7 @@ namespace NCatboostCuda {
                                                            const TFeaturesBinarizationDescription& info,
                                                            const NCudaLib::TSingleMapping& docsMapping,
                                                            const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
-            THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
+            THolder<TFeaturesBlock> resultHolder = MakeHolder<TFeaturesBlock>(TCpuGrid(info, featureIds));
             TFeaturesBlock& result = *resultHolder;
 
             auto layout = CreateLayout(featureIds.size());

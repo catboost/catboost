@@ -181,7 +181,7 @@ CATBOOST_API bool TrainCatBoost(const TDataSet* trainPtr,
                                 ResultHandle* handlePtr) {
     const auto& train = *trainPtr;
     const auto& test = *testPtr;
-    THolder<TFullModel> model = new TFullModel;
+    THolder<TFullModel> model = MakeHolder<TFullModel>();
 
     try {
 
