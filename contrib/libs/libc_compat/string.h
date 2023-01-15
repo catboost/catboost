@@ -13,7 +13,7 @@ size_t strlcpy(char* dst, const char* src, size_t len);
 size_t strlcat(char* dst, const char* src, size_t len);
 #endif
 
-#if !defined(__linux__) && !defined(__FreeBSD__) && !defined(__APPLE__)
+#if (!defined(__linux__) && !defined(__FreeBSD__) && !defined(__APPLE__)) || (defined(__ANDROID__) && __ANDROID_API__ < 21)
 char* stpcpy(char* dst, const char* src);
 #endif
 
