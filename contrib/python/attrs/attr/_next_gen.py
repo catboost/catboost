@@ -33,6 +33,7 @@ def define(
     auto_detect=True,
     getstate_setstate=None,
     on_setattr=None,
+    field_transformer=None,
 ):
     r"""
     The only behavioral differences are the handling of the *auto_attribs*
@@ -72,6 +73,7 @@ def define(
             collect_by_mro=True,
             getstate_setstate=getstate_setstate,
             on_setattr=on_setattr,
+            field_transformer=field_transformer,
         )
 
     def wrap(cls):

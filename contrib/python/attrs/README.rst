@@ -92,7 +92,7 @@ Getting Help
 
 Please use the ``python-attrs`` tag on `StackOverflow <https://stackoverflow.com/questions/tagged/python-attrs>`_ to get help.
 
-Answering questions of your fellow developers is also great way to help the project!
+Answering questions of your fellow developers is also a great way to help the project!
 
 
 .. -project-information-
