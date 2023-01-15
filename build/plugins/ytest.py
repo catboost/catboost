@@ -244,19 +244,19 @@ def validate_test(unit, kw):
                 if not os.path.exists(filename):
                     errors.append("File '{}' specified in the YT_SPEC macro doesn't exist".format(filename))
                     continue
+                if 'ya:ytexec' not in tags:
+                    try:
+                        with open(filename) as afile:
+                            data = json.load(afile)
+                    except Exception as e:
+                        errors.append("Malformed data in {}: {} ({})".format(unit.path(), e, filename))
+                        continue
 
-                try:
-                    with open(filename) as afile:
-                        data = json.load(afile)
-                except Exception as e:
-                    errors.append("Malformed data in {}: {} ({})".format(unit.path(), e, filename))
-                    continue
-
-                known = {'operation_spec', 'task_spec', "pool", "cypress_root", "cluster", "run_as_root"}
-                unknown = set(data.keys()) - known
-                if unknown:
-                    errors.append("Don't know what to do with {} field(s) in {}. You can use only: {}".format(unknown, unit.path(), known))
-                    continue
+                    known = {'operation_spec', 'task_spec'}
+                    unknown = set(data.keys()) - known
+                    if unknown:
+                        errors.append("Don't know what to do with {} field(s) in {}. You can use only: {}".format(unknown, unit.path(), known))
+                        continue
 
     if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
