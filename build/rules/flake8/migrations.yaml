@@ -468,7 +468,6 @@ migrations:
     - maps/pylibs/infrastructure_api/staff
     - maps/pylibs/monitoring/lib
     - maps/pylibs/monitoring/tests
-    - maps/pylibs/yt/lib
     - maps/renderer/tilesgen/tools/lib
     - maps/renderer/tools/download_release
     - maps/routing/router/regression/gen-stopwatch-ammo
@@ -526,7 +525,6 @@ migrations:
     - modadvert/libs/lyncher/ut/rules
     - modadvert/libs/utils/common
     - modadvert/libs/utils/common/ut
-    - modadvert/libs/utils/text
     - modadvert/programs/abuse/bs_abuse_log_processor
     - modadvert/programs/direct_proxy/libs/handlers
     - modadvert/programs/saas_indexer/libs
@@ -880,7 +878,6 @@ migrations:
     - yabs/qa/b2b_utils/bsserver_b2b/engine/run
     - yabs/qa/b2b_utils/bsserver_b2b/engine/validate_scripts
     - yabs/qa/yabs_b2b_tank/qabs/b2b
-    - yabs/sb-bins/tasksmon
     - yabs/sbyt/testing/core
     - yabs/server/cs/pylibs/partner_interface_monitor
     - yabs/server/cs/pylibs/settings
@@ -1387,7 +1384,6 @@ migrations:
     - yabs/server/cs/pylibs/gantt_chart/lib
     - yabs/server/cs/pylibs/import_actions
     - yabs/server/cs/pylibs/settings
-    - yabs/server/cs/test/cs_import/direct_context
     - yabs/server/test/ft/BSDEV-80203
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
@@ -1642,7 +1638,6 @@ migrations:
     - modadvert/libs/laas/workers/misprints
     - modadvert/libs/nirvana/program
     - modadvert/libs/utils/py3/auth
-    - modadvert/libs/utils/text/ut
     - modadvert/nirvana/m1_update_media_objects/it
     - modadvert/programs/monika/libs
     - modadvert/programs/multik/libs
@@ -2006,7 +2001,6 @@ migrations:
     - ads/libs/py_yaml_loader
     - ads/libs/yql_flow
     - ads/nirvana/automl/pipelines/offline_pytorch
-    - ads/nirvana/yabs_nirvana.py
     - ads/nirvana/mr_operations/mr_do_aggregate
     - ads/nirvana/online_learning/learn_logs_utils/offline_preprocessed_logs
     - ads/nirvana/online_learning/offline_graph_launcher
@@ -2587,7 +2581,6 @@ migrations:
     - mds/mastermind/state_builder
     - mds/nscfg/lib
     - mds/nscfg_old/lib
-    - metrika/admin/python/bishop/frontend/base
     - metrika/admin/python/clickhouse_backups/frontend/base
     - metrika/admin/python/cms/frontend/base
     - metrika/admin/python/duty/frontend/base
@@ -3284,7 +3277,6 @@ migrations:
     - travel/hotels/tools/cli
     - travel/hotels/tools/expedia_property_pansions_builder
     - travel/hotels/tools/marketing_feed_builder
-    - travel/hotels/tools/run_yql
     - travel/hotels/tools/sitemap_builder
     - travel/hotels/tools/slug_builder
     - travel/hotels/tools/spyt_runner
@@ -3623,7 +3615,6 @@ migrations:
     - ads/quality/bid_correction/lib/ut
     - ads/quality/bid_correction/workflow_constructor/test_tasks/test_pipelines
     - ads/quality/metric_eval/tests/ut
-    - ads/quality/simulate_auction/ut
     - ads/sandbox_scripts/logs_scheme/fat
     - ads/targeting/bsmr-scripts/ut
     - ads/targeting/cross_check/ut
@@ -3712,7 +3703,6 @@ migrations:
     - extsearch/audio/yamrec/upper
     - extsearch/fresh/meta/rearrange_data/tests
     - extsearch/geo/meta/tests/blackbox
-    - extsearch/images/base/snippets/tests
     - extsearch/images/kernel/new_runtime/doc_factors/tests
     - extsearch/images/robot/parsers/html_parser/imagelib/ut2
     - extsearch/images/tools/cbircomparer/tests
@@ -3755,10 +3745,7 @@ migrations:
     - infra/qyp/vmctl/tests
     - infra/wall-e/checks/tests
     - infra/walle/server/contrib/sepelib/tests
-    - infra/walle/server/tests/clients
     - infra/walle/server/tests/db_sync
-    - infra/walle/server/tests/fsm_stages
-    - infra/walle/server/tests/tasks
     - infra/yp_dns/tests
     - intranet/audit/tests
     - intranet/dogma/dogma_tests
