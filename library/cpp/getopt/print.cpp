@@ -7,7 +7,7 @@
 #include "ygetopt.h"
 
 #include <library/svnversion/svnversion.h>
-#include <library/build_info/build_info.h>
+#include <library/cpp/build_info/build_info.h>
 
 namespace NLastGetoptPrivate {
     TString InitVersionString() {
