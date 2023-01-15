@@ -91,6 +91,9 @@
     <ClCompile Include="$(SolutionDir)..\util\string\cast.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\fs_win.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\mktemp_system.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\util\system\strlcat.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\util\system\strlcpy.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
