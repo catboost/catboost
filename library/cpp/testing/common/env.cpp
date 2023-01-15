@@ -66,13 +66,18 @@ const TString& GdbPath() {
     return NPrivate::GetTestEnv().GdbPath;
 }
 
-TString GetTestParam(TStringBuf name) {
+const TString& GetTestParam(TStringBuf name) {
+    const static TString def = "";
+    return GetTestParam(name, def);
+}
+
+const TString& GetTestParam(TStringBuf name, const TString& def) {
     auto& testParameters = NPrivate::GetTestEnv().TestParameters;
     auto it = testParameters.find(name.data());
     if (it != testParameters.end()) {
         return it->second;
     }
-    return "";
+    return def;
 }
 
 bool FromYaTest() {
@@ -171,6 +176,10 @@ namespace NPrivate {
 
         const TString fromEnv = GetEnv("YA_TEST_RUNNER");
         IsRunningFromTest = (fromEnv == "1");
+    }
+
+    void TTestEnv::AddTestParam(TStringBuf name, TStringBuf value) {
+        TestParameters[TString{name}] = value;
     }
 
     TString GetCwd() {
