@@ -14,10 +14,6 @@
 using namespace NCB;
 
 
-static TConstArrayRef<ui8> GetCtrValues(const TSplit& split, const TOnlineCTR& ctr) {
-    return ctr.Feature[split.Ctr.CtrIdx][split.Ctr.TargetBorderIdx][split.Ctr.PriorIdx];
-}
-
 template <typename TColumn, class TCmpOp>
 inline std::function<bool(ui32)> BuildNodeSplitFunction(
     const TColumn& column,
@@ -93,14 +89,13 @@ std::function<bool(ui32)> BuildNodeSplitFunction(
 std::function<bool(ui32)> BuildNodeSplitFunction(
     const TSplitNode& node,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const TOnlineCTR* onlineCtr,
-    ui32 docOffset) {
+    const TOnlineCtrBase* onlineCtr,
+    ui32 datasetIdx) {
 
     const auto& split = node.Split;
 
     if (split.Type == ESplitType::OnlineCtr) {
-        const auto ctr = onlineCtr;
-        const auto ctrValuesData = GetCtrValues(split, *ctr).data() + docOffset;
+        const auto ctrValuesData = onlineCtr->GetData(split.Ctr, datasetIdx).data();
         const auto binBorder = split.BinBorder;
         return [ctrValuesData, binBorder](ui32 objIdx) {
             return ctrValuesData[objIdx] > binBorder;
@@ -184,8 +179,8 @@ void UpdateIndices(
     auto func = BuildNodeSplitFunction(
         node,
         *objectsDataProvider,
-        node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtr(node.Split.Ctr.Projection) : nullptr,
-        /* docOffset */ 0);
+        node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtrs(node.Split.Ctr.Projection) : nullptr,
+        /*datasetIdx*/ 0);
 
     // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
     std::function<bool(ui32)> splitFunction;
@@ -219,8 +214,7 @@ void BuildIndicesForDataset(
     const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
-    const TVector<const TOnlineCTR*>& onlineCtrs,
-    ui32 docOffset,
+    const TVector<const TOnlineCtrBase*>& onlineCtrs,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::ILocalExecutor* localExecutor,
     TIndexType* indices) {
@@ -249,7 +243,7 @@ void BuildIndicesForDataset(
             nodesRef[nodeIdx],
             *objectsDataProvider,
             onlineCtrs[nodeIdx],
-            docOffset);
+            objectSubsetIdx);
         if ((nodesRef[nodeIdx].Split.Type == ESplitType::OnlineCtr) || !columnIndexing) {
             nodesSplitFunctions[nodeIdx] = std::move(func);
         } else {

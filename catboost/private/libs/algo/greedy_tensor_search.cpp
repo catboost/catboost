@@ -469,7 +469,10 @@ static void AddSimpleCtrs(
                 return;
             }
             AddCtrsToCandList(*fold, *ctx, proj, candList);
-            fold->GetCtrRef(proj);
+            auto* ownedCtrs = fold->GetOwnedCtrs(proj);
+            if (ownedCtrs) {
+                ownedCtrs->EnsureProjectionInData(proj);
+            }
         }
     );
 }
@@ -528,7 +531,10 @@ static void AddTreeCtrs(
                 addedProjHash.insert(proj);
 
                 AddCtrsToCandList(*fold, *ctx, proj, candList);
-                fold->GetCtrRef(proj);
+                auto* ownedCtrs = fold->GetOwnedCtrs(proj);
+                if (ownedCtrs) {
+                    ownedCtrs->EnsureProjectionInData(proj);
+                }
             }
         );
     }
@@ -564,6 +570,8 @@ static void SelectCtrsToDropAfterCalc(
     size_t memoryLimit,
     int sampleCount,
     int threadCount,
+
+    // note: if ctrs are in precomputed storage this function should return false
     const std::function<bool(const TProjection&)>& isInCache,
     TCandidateList* candList) {
 
@@ -649,13 +657,9 @@ static void CalcBestScore(
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
                 const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
-                if (fold->GetCtrRef(proj).Feature.empty()) {
-                    ComputeOnlineCTRs(
-                        data,
-                        *fold,
-                        proj,
-                        ctx,
-                        &fold->GetCtrRef(proj));
+                auto* ownedCtr = fold->GetOwnedCtrs(proj);
+                if (ownedCtr && ownedCtr->Data.at(proj).Feature.empty()) {
+                    ComputeOnlineCTRs(data, *fold, proj, ctx, ownedCtr);
                 }
             }
             TVector<TVector<double>> allScores(candidate.Candidates.size());
@@ -695,7 +699,7 @@ static void CalcBestScore(
                 NPar::TLocalExecutor::WAIT_COMPLETE);
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
-                fold->GetCtrRef(splitEnsemble.SplitCandidate.Ctr.Projection).Feature.clear();
+                fold->ClearCtrDataForProjectionIfOwned(splitEnsemble.SplitCandidate.Ctr.Projection);
             }
 
             SetBestScore(
@@ -783,13 +787,9 @@ static void CalcBestScoreLeafwise(
             // Calc online ctr if needed
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
                 const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
-                if (fold->GetCtrRef(proj).Feature.empty()) {
-                    ComputeOnlineCTRs(
-                        data,
-                        *fold,
-                        proj,
-                        ctx,
-                        &fold->GetCtrRef(proj));
+                auto* ownedCtr = fold->GetOwnedCtrs(proj);
+                if (ownedCtr && ownedCtr->Data.at(proj).Feature.empty()) {
+                    ComputeOnlineCTRs(data, *fold, proj, ctx, ownedCtr);
                 }
             }
 
@@ -818,7 +818,7 @@ static void CalcBestScoreLeafwise(
             );
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
-                fold->GetCtrRef(splitEnsemble.SplitCandidate.Ctr.Projection).Feature.clear();
+                fold->ClearCtrDataForProjectionIfOwned(splitEnsemble.SplitCandidate.Ctr.Projection);
             }
         },
         0,
@@ -899,8 +899,12 @@ static void SelectBestCandidate(
 
                     if (!ctx.LearnProgress->UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
                         score != MINIMAL_SCORE) {
+
+                        const auto& uniqValuesCounts =
+                            fold.GetCtrs(projection).GetUniqValuesCounts(projection);
+
                         score *= pow(
-                            1 + (fold.GetCtr(projection).GetUniqueValueCountForType(ctrType) /
+                            1 + (uniqValuesCounts.GetUniqueValueCountForType(ctrType) /
                                  static_cast<double>(maxFeatureValueCount)),
                             -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
                     }
@@ -953,7 +957,10 @@ static TCandidatesContext SelectDatasetFeaturesForScoring(
         }
 
         const auto isInCache =
-            [fold](const TProjection& proj) -> bool { return fold->GetCtrRef(proj).Feature.empty(); };
+            [fold](const TProjection& proj) -> bool {
+                auto* ownedCtr = fold->GetOwnedCtrs(proj);
+                return ownedCtr && !ownedCtr->Data[proj].Feature.empty();
+            };
         const auto cpuUsedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit.Get());
         const ui32 learnSampleCount = learnData->GetObjectCount();
         SelectCtrsToDropAfterCalc(
@@ -1013,7 +1020,7 @@ static size_t CalcMaxFeatureValueCount(
     const TFold& fold,
     TConstArrayRef<TCandidatesContext> candidatesContexts) {
 
-    size_t maxFeatureValueCount = 1;
+    i32 maxFeatureValueCount = 1;
 
     for (const auto& candidatesContext : candidatesContexts) {
         for (const auto& candidate : candidatesContext.CandidateList) {
@@ -1022,11 +1029,11 @@ static size_t CalcMaxFeatureValueCount(
                 const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
                 maxFeatureValueCount = Max(
                     maxFeatureValueCount,
-                    fold.GetCtr(proj).GetMaxUniqueValueCount());
+                    fold.GetCtrs(proj).GetUniqValuesCounts(proj).GetMaxUniqueValueCount());
             }
         }
     }
-    return maxFeatureValueCount;
+    return SafeIntegerCast<size_t>(maxFeatureValueCount);
 }
 
 static void ProcessCtrSplit(
@@ -1041,8 +1048,9 @@ static void ProcessCtrSplit(
     ctx->LearnProgress->UsedCtrSplits.insert(std::make_pair(ctrType, ctr.Projection));
 
     const auto& proj = bestSplit.Ctr.Projection;
-    if (fold->GetCtrRef(proj).Feature.empty()) {
-        ComputeOnlineCTRs(data, *fold, proj, ctx, &fold->GetCtrRef(proj));
+    auto* ownedCtr = fold->GetOwnedCtrs(proj);
+    if (ownedCtr && ownedCtr->Data[proj].Feature.empty()) {
+        ComputeOnlineCTRs(data, *fold, proj, ctx, ownedCtr);
         if (ctx->UseTreeLevelCaching()) {
             DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
         }

@@ -3,6 +3,7 @@
 #include <catboost/private/libs/algo/calc_score_cache.h>
 #include <catboost/private/libs/algo/fold.h>
 #include <catboost/private/libs/algo/learn_context.h>
+#include <catboost/private/libs/algo/online_ctr.h>
 #include <catboost/private/libs/algo/pairwise_scoring.h>
 #include <catboost/private/libs/algo/score_calcers.h>
 #include <catboost/private/libs/algo/target_classifier.h>
@@ -137,6 +138,8 @@ namespace NCatboostDistributed {
         NCatboostOptions::TCatBoostOptions Params;
 
         NCB::TTrainingDataProviders TrainData;
+        TMaybe<NCB::TPrecomputedOnlineCtrData> PrecomputedSingleOnlineCtrDataForSingleFold;
+
         TVector<NJson::TJsonValue> ClassLabelsFromDataset;
 
         TFlatPairsInfo FlatPairs;

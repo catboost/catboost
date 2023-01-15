@@ -204,6 +204,8 @@ TFold TFold::BuildDynamicFold(
         rand
     );
 
+    ff.InitOwnedOnlineCtrs(data);
+
     return ff;
 }
 
@@ -227,6 +229,7 @@ TFold TFold::BuildPlainFold(
     const TMaybe<TVector<double>>& startingApprox,
     const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
     TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
+    TIntrusivePtr<TPrecomputedOnlineCtr> precomputedSingleOnlineCtrs,
     TRestorableFastRng64* rand,
     NPar::ILocalExecutor* localExecutor
 ) {
@@ -296,24 +299,23 @@ TFold TFold::BuildPlainFold(
         rand
     );
 
+    if (precomputedSingleOnlineCtrs) {
+        ff.OnlineSingleCtrs = std::move(precomputedSingleOnlineCtrs);
+    } else {
+        ff.InitOwnedOnlineCtrs(data);
+    }
+
     return ff;
 }
 
 
 void TFold::DropEmptyCTRs() {
     TVector<TProjection> emptyProjections;
-    for (auto& projCtr : OnlineSingleCtrs) {
-        if (projCtr.second.Feature.empty()) {
-            emptyProjections.emplace_back(projCtr.first);
-        }
+    if (OwnedOnlineSingleCtrs) {
+        OwnedOnlineSingleCtrs->DropEmptyData();
     }
-    for (auto& projCtr : OnlineCTR) {
-        if (projCtr.second.Feature.empty()) {
-            emptyProjections.emplace_back(projCtr.first);
-        }
-    }
-    for (const auto& proj : emptyProjections) {
-        GetCtrs(proj).erase(proj);
+    if (OwnedOnlineCtrs) {
+        OwnedOnlineCtrs->DropEmptyData();
     }
 }
 
@@ -389,4 +391,24 @@ void TFold::InitOnlineEstimatedFeatures(
         localExecutor,
         rand
     );
+}
+
+void TFold::InitOwnedOnlineCtrs(const NCB::TTrainingDataProviders& data) {
+    TVector<TIndexRange<size_t>> datasetsObjectRanges;
+    size_t offset = 0;
+    datasetsObjectRanges.push_back(TIndexRange<size_t>(0, data.Learn->GetObjectCount()));
+    offset += data.Learn->GetObjectCount();
+    for (const auto& test : data.Test) {
+        size_t size = test->GetObjectCount();
+        datasetsObjectRanges.push_back(TIndexRange<size_t>(offset, offset + size));
+        offset += size;
+    }
+
+    OwnedOnlineSingleCtrs = new TOwnedOnlineCtr();
+    OnlineSingleCtrs.Reset(OwnedOnlineSingleCtrs);
+    OwnedOnlineSingleCtrs->DatasetsObjectRanges = datasetsObjectRanges;
+
+    OwnedOnlineCtrs = new TOwnedOnlineCtr();
+    OnlineCtrs.Reset(OwnedOnlineCtrs);
+    OwnedOnlineCtrs->DatasetsObjectRanges = std::move(datasetsObjectRanges);
 }

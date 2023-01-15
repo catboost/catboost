@@ -36,7 +36,7 @@ namespace NPar {
 // (optionally - if scoreCalcer is non-null) calculates scores.
 void CalcStatsAndScores(
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,
 

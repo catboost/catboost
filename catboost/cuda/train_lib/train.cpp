@@ -302,6 +302,7 @@ namespace NCatboostCuda {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TTrainingDataProviders trainingData,
+            TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
             const TLabelConverter& labelConverter,
             ITrainingCallbacks* trainingCallbacks,
             TMaybe<TFullModel*> initModel,
@@ -318,6 +319,8 @@ namespace NCatboostCuda {
             Y_UNUSED(evalMetricDescriptor);
             Y_UNUSED(rand);
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
+            CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
+                      "Precomputed online CTR data for GPU is not yet supported");
             Y_VERIFY(evalResultPtrs.size() == trainingData.Test.size());
             CB_ENSURE(!initModel && !initLearnProgress, "Training continuation for GPU is not yet supported");
             Y_UNUSED(initModelApplyCompatiblePools);

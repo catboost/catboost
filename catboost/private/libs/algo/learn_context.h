@@ -130,6 +130,9 @@ public:
         ui32 featuresCheckSum,
         ui32 foldCreationParamsCheckSum,
         const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
+
+        // can be non-empty only if there is single fold
+        TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
         const NCatboostOptions::TObliviousTreeLearnerOptions& trainOptions,
         TMaybe<TFullModel*> initModel,
         NCB::TDataProviders initModelApplyCompatiblePools,
@@ -195,6 +198,9 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const NCB::TTrainingDataProviders& data,
+
+        // can be non-empty only if there is single fold
+        TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
         const TLabelConverter& labelConverter,
         const TMaybe<TVector<double>>& startingApprox,
         TMaybe<const TRestorableFastRng64*> initRand,

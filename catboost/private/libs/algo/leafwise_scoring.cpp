@@ -141,7 +141,7 @@ template <typename TBucketIndexType>
 inline static void ExtractBucketIndex(
     const TCalcScoreFold& fold,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
     const TSplitEnsemble& splitEnsemble,
     TIndexRange<ui32> docIndexRange,
     int groupSize,
@@ -160,7 +160,7 @@ inline static void ExtractBucketIndex(
             &beginOffset
         );
         SetBucketIndex(
-            GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx].data(),
+            GetCtr(allCtrs, ctr.Projection).GetData(ctr, /*datasetIdx*/ 0).data(),
             objectIndexing,
             beginOffset,
             docIndexRange,
@@ -434,11 +434,6 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
         [&](int subCandId) {
             const auto& candidateInfo = candidate.Candidates[subCandId];
             const auto& splitEnsemble = candidateInfo.SplitEnsemble;
-
-            if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
-                const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
-                Y_ASSERT(!initialFold.GetCtr(proj).Feature.empty());
-            }
 
             const int bucketCount = GetBucketCount(
                 splitEnsemble,
