@@ -162,7 +162,12 @@ def work_path(path=None):
 
 def python_path():
     """
-    Get path to the arcadia python
+    Get path to the arcadia python.
+
+    Warn: if you are using build with system python (-DUSE_SYSTEM_PYTHON=X) beware that some python bundles
+    are built in a stripped-down form that is needed for building, not running tests.
+    See comments in the file below to find out which version of python is compatible with tests.
+    https://a.yandex-team.ru/arc/trunk/arcadia/build/platform/python/resources.inc
     :return: absolute path to python
     """
     return _get_ya_plugin_instance().python_path
