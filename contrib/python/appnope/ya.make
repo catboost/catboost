@@ -1,8 +1,8 @@
 PY23_LIBRARY()
 
-LICENSE(BSD-3-Clause)
+LICENSE(BSD-2-Clause)
 
-VERSION(0.1.0)
+VERSION(0.1.2)
 
 
 
@@ -14,5 +14,11 @@ PY_SRCS(
 )
 
 NO_LINT()
+
+RESOURCE_FILES(
+    PREFIX contrib/python/appnope/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
 
 END()

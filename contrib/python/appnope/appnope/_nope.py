@@ -10,6 +10,7 @@ import ctypes
 import ctypes.util
 
 objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('objc'))
+_ = ctypes.cdll.LoadLibrary(ctypes.util.find_library('Foundation'))
 
 void_p = ctypes.c_void_p
 ull = ctypes.c_uint64
@@ -33,7 +34,9 @@ def n(name):
 
 def C(classname):
     """get an ObjC Class by name"""
-    return objc.objc_getClass(_utf8(classname))
+    ret = objc.objc_getClass(_utf8(classname))
+    assert ret is not None, "Couldn't find Class %s" % classname
+    return ret
 
 # constants from Foundation
 
@@ -57,8 +60,11 @@ def beginActivityWithOptions(options, reason=""):
     NSProcessInfo = C('NSProcessInfo')
     NSString = C('NSString')
     
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p]
     reason = msg(NSString, n("stringWithUTF8String:"), _utf8(reason))
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     info = msg(NSProcessInfo, n('processInfo'))
+    objc.objc_msgSend.argtypes = [void_p, void_p, ull, void_p]
     activity = msg(info,
         n('beginActivityWithOptions:reason:'),
         ull(options),
@@ -69,7 +75,9 @@ def beginActivityWithOptions(options, reason=""):
 def endActivity(activity):
     """end a process activity assertion"""
     NSProcessInfo = C('NSProcessInfo')
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     info = msg(NSProcessInfo, n('processInfo'))
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p]
     msg(info, n("endActivity:"), void_p(activity))
 
 _theactivity = None
