@@ -31,24 +31,24 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
         };
         UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<ERegular>::TType>::value);
 
-        enum class ESmall : unsigned char {
+        enum class ESmall: unsigned char {
             Six = 6,
         };
         UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<ESmall>::TType>::value);
 
-        enum class EHugeUnsigned : ui64 {
+        enum class EHugeUnsigned: ui64 {
             Value = 0,
         };
         UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<EHugeUnsigned>::TType>::value);
 
-        enum class EHugeSigned : i64 {
+        enum class EHugeSigned: i64 {
             Value = -2,
         };
         UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<EHugeSigned>::TType>::value);
     }
 
     Y_UNIT_TEST(MappedArrayView) {
-        enum class ETestEnum : signed char {
+        enum class ETestEnum: signed char {
             Zero = 0,
             One = 1,
             Two = 2,
@@ -78,7 +78,7 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
     }
 
     Y_UNIT_TEST(MappedDictView) {
-        enum class ETestEnum : unsigned short {
+        enum class ETestEnum: unsigned short {
             Zero = 0,
             One = 1,
             Two = 2,

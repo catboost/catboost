@@ -8,7 +8,7 @@
 #include "mapfindptr.h"
 
 Y_UNIT_TEST_SUITE(TMapFindPtrTest) {
-    struct TTestMap : std::map<int, TString>, TMapOps<TTestMap> {};
+    struct TTestMap: std::map<int, TString>, TMapOps<TTestMap> {};
 
     Y_UNIT_TEST(TestDerivedClass) {
         TTestMap a;

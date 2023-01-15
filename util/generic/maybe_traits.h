@@ -55,7 +55,7 @@ namespace NMaybe {
     // -------------------- COPY CONSTRUCT --------------------
 
     template <class T, bool = std::is_trivially_copy_constructible<T>::value>
-    struct TCopyBase : TStorageBase<T> {
+    struct TCopyBase: TStorageBase<T> {
         using TStorageBase<T>::TStorageBase;
     };
 
@@ -78,7 +78,7 @@ namespace NMaybe {
     // -------------------- MOVE CONSTRUCT --------------------
 
     template <class T, bool = std::is_trivially_move_constructible<T>::value>
-    struct TMoveBase : TCopyBase<T> {
+    struct TMoveBase: TCopyBase<T> {
         using TCopyBase<T>::TCopyBase;
     };
 
@@ -101,7 +101,7 @@ namespace NMaybe {
     // -------------------- COPY ASSIGN --------------------
 
     template <class T, bool = std::is_trivially_copy_assignable<T>::value>
-    struct TCopyAssignBase : TMoveBase<T> {
+    struct TCopyAssignBase: TMoveBase<T> {
         using TMoveBase<T>::TMoveBase;
     };
 
@@ -132,7 +132,7 @@ namespace NMaybe {
     // -------------------- MOVE ASSIGN --------------------
 
     template <class T, bool = std::is_trivially_copy_assignable<T>::value>
-    struct TMoveAssignBase : TCopyAssignBase<T> {
+    struct TMoveAssignBase: TCopyAssignBase<T> {
         using TCopyAssignBase<T>::TCopyAssignBase;
     };
 

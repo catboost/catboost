@@ -289,7 +289,7 @@ private:
     }
 };
 
-class TMappedAllocation : TMoveOnly {
+class TMappedAllocation: TMoveOnly {
 public:
     TMappedAllocation(size_t size = 0, bool shared = false, void* addr = nullptr);
     ~TMappedAllocation() {

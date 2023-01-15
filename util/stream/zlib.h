@@ -24,7 +24,7 @@ struct TZLibDecompressorError: public TZLibError {
 };
 
 namespace ZLib {
-    enum StreamType : ui8 {
+    enum StreamType: ui8 {
         Auto = 0, /**< Auto detect format. Can be used for decompression only. */
         ZLib = 1,
         GZip = 2,

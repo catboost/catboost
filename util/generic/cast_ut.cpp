@@ -35,11 +35,11 @@ private:
             AM1 = -1
         };
 
-        enum B : int {
+        enum B: int {
             BM1 = -1
         };
 
-        enum class C : unsigned short {
+        enum class C: unsigned short {
             CM1 = 1
         };
 
@@ -61,11 +61,11 @@ private:
             AM1 = -1
         };
 
-        enum B : int {
+        enum B: int {
             BM1 = -1
         };
 
-        enum class C : unsigned short {
+        enum class C: unsigned short {
             CM1 = 1
         };
 
