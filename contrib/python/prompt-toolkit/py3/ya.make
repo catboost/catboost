@@ -176,7 +176,7 @@ PY_SRCS(
 )
 
 RESOURCE_FILES(
-    PREFIX contrib/python/prompt_toolkit/py3/
+    PREFIX contrib/python/prompt-toolkit/py3/
     .dist-info/METADATA
     .dist-info/top_level.txt
     prompt_toolkit/py.typed

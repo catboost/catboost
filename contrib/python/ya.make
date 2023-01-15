@@ -31,7 +31,7 @@ RECURSE(
     pexpect
     pickleshare
     pluggy
-    prompt_toolkit
+    prompt-toolkit
     ptyprocess
     py
     Pygments

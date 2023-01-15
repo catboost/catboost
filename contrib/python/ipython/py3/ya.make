@@ -12,7 +12,7 @@ PEERDIR(
     contrib/python/jedi
     contrib/python/pickleshare
     contrib/python/traitlets
-    contrib/python/prompt_toolkit
+    contrib/python/prompt-toolkit
     contrib/python/Pygments
     contrib/python/setuptools
     contrib/python/matplotlib-inline

@@ -14,7 +14,7 @@ PEERDIR(
     contrib/python/traitlets
     contrib/python/path.py
     contrib/python/pathlib2
-    contrib/python/prompt_toolkit
+    contrib/python/prompt-toolkit
     contrib/python/Pygments
 )
 

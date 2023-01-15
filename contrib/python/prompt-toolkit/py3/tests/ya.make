@@ -3,7 +3,7 @@ PY3TEST()
 
 
 PEERDIR(
-    contrib/python/prompt_toolkit
+    contrib/python/prompt-toolkit
 )
 
 TEST_SRCS(
