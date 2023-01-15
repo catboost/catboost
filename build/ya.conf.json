@@ -299,6 +299,9 @@
         "yfm": {
             "description": "YFM-extended markdown processor for Cloud deploy"
         },
+        "yfm-docs": {
+            "description": "YFM-extended markdown processor for Cloud deploy (v3)"
+        },
         "aws": {
             "description": "Run aws"
         },
@@ -5155,6 +5158,34 @@
                 }
             ]
         },
+        "yfm-docs": {
+            "tools": {
+                "yfm-docs": {
+                    "bottle": "yfm-docs",
+                    "executable": "yfm-docs"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "aws": {
             "tools": {
                 "aws": {
@@ -7224,6 +7255,17 @@
             "executable": {
                 "yfm": [
                     "yfm-transform"
+                ]
+            }
+        },
+        "yfm-docs": {
+            "formula": {
+                "sandbox_id": 684962069,
+                "match": "yfm-docs"
+            },
+            "executable": {
+                "yfm-docs": [
+                    "yfm-docs"
                 ]
             }
         },
