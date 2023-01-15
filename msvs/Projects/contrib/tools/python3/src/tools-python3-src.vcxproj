@@ -608,6 +608,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pycapsule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-musl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-osx-arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyctype.h"/>
