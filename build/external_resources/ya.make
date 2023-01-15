@@ -36,7 +36,9 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     arcadia_protoc
     arcadia_protoc_std
     arcadia_python3_pycc
-    arcadia_recompressor
+    arcadia_ragel6
+    arcadia_rescompiler
+    arcadia_rescompressor
     arcadia_rorescompiler
     arcadia_yasm
     flake8_py2
