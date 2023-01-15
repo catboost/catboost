@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(1.9.1)
+VERSION(1.9.2)
 
 LICENSE(BSD-2-Clause)
 
@@ -16,7 +16,7 @@ ADDINCL(
     contrib/libs/xxhash
 )
 
-NO_UTIL()
+NO_RUNTIME()
 
 SRCS(
     lz4.c
