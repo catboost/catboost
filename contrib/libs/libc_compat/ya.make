@@ -22,4 +22,8 @@ IF(OS_ANDROID AND NOT ANDROID_API_AT_LEAST_28)
     )
 ENDIF()
 
+IF (OS_WINDOWS)
+    ADDINCL(GLOBAL contrib/libs/libc_compat/include/windows)
+ENDIF()
+
 END()

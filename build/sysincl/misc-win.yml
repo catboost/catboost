@@ -65,3 +65,7 @@
 - source_fiter: "^contrib/libs/curl"
   includes:
   - nghttp2/nghttp2.h
+
+- includes:
+    - sys/queue.h:   contrib/libs/libc_compat/include/windows/sys/queue.h
+
