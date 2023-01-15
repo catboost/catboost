@@ -1,5 +1,6 @@
 #pragma once
 
+#include "compressed_index_builder.h"
 #include "doc_parallel_dataset.h"
 #include <catboost/libs/helpers/interrupt.h>
 
@@ -25,6 +26,15 @@ namespace NCatboostCuda {
                                                 NPar::TLocalExecutor* localExecutor);
 
     private:
+        void WriteCtrsAndEstimatedFeatures(
+            const NCatboostCuda::TDocParallelDataSetsHolder& dataSetsHolder,
+            ui32 permutationIndependentCompressedDataSetId,
+            ui32 testDataSetId,
+            ui32 permutationCount,
+            const TVector<ui32>& permutationIndependent,
+            const TVector<ui32>& permutationDependent,
+            NCatboostCuda::TSharedCompressedIndexBuilder<NCatboostCuda::TDocParallelLayout>* compressedIndexBuilder,
+            NPar::TLocalExecutor* localExecutor);
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider& DataProvider;
         const NCB::TFeatureEstimators& Estimators;
