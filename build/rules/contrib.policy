@@ -52,6 +52,7 @@ ALLOW comdep_analytics/telephony/core -> contrib/python/django/django-1.11
 ALLOW comdep_analytics/telephony/telephony -> contrib/python/django/django-1.11
 ALLOW contrib/deprecated/python/po_file_checker -> contrib/python/django/django-1.11
 ALLOW devtools/dummy_arcadia/django_settings -> contrib/python/django/django-1.11
+ALLOW devtools/signer/signer -> contrib/python/django/django-1.11
 ALLOW distribution_interface/backend/backend -> contrib/python/django/django-1.11
 ALLOW distribution_interface/backend/tests -> contrib/python/django/django-1.11
 ALLOW douber/backend -> contrib/python/django/django-1.11
