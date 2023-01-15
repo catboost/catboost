@@ -14,7 +14,7 @@
     Contributed by Thomas Beale <https://github.com/wolandscat>,
     <https://bitbucket.org/thomas_beale>.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -58,7 +58,7 @@ class AtomsLexer(RegexLexer):
             (r'P((\d*(\.\d+)?[YyMmWwDd]){1,3}(T(\d*(\.\d+)?[HhMmSs]){,3})?|'
              r'T(\d*(\.\d+)?[HhMmSs]){,3})', Literal.Date),
             (r'[+-]?(\d+\.\d*|\.\d+|\d+)[eE][+-]?\d+', Number.Float),
-            (r'[+-]?(\d+)*\.\d+%?', Number.Float),
+            (r'[+-]?\d*\.\d+%?', Number.Float),
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'[+-]?\d+%?', Number.Integer),
         ],

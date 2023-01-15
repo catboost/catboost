@@ -5,7 +5,7 @@
 
     Lexer for Crystal.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -57,8 +57,11 @@ class CrystalLexer(ExtendedRegexLexer):
 
         ctx.pos = match.start(5)
         ctx.end = match.end(5)
-        # this may find other heredocs
-        yield from self.get_tokens_unprocessed(context=ctx)
+        # this may find other heredocs, so limit the recursion depth
+        if len(heredocstack) < 100:
+            yield from self.get_tokens_unprocessed(context=ctx)
+        else:
+            yield ctx.pos, String.Heredoc, match.group(5)
         ctx.pos = match.end()
 
         if outermost:
@@ -86,27 +89,11 @@ class CrystalLexer(ExtendedRegexLexer):
             del heredocstack[:]
 
     def gen_crystalstrings_rules():
-        def intp_regex_callback(self, match, ctx):
-            yield match.start(1), String.Regex, match.group(1)  # begin
-            nctx = LexerContext(match.group(3), 0, ['interpolated-regex'])
-            for i, t, v in self.get_tokens_unprocessed(context=nctx):
-                yield match.start(3)+i, t, v
-            yield match.start(4), String.Regex, match.group(4)  # end[imsx]*
-            ctx.pos = match.end()
-
-        def intp_string_callback(self, match, ctx):
-            yield match.start(1), String.Other, match.group(1)
-            nctx = LexerContext(match.group(3), 0, ['interpolated-string'])
-            for i, t, v in self.get_tokens_unprocessed(context=nctx):
-                yield match.start(3)+i, t, v
-            yield match.start(4), String.Other, match.group(4)  # end
-            ctx.pos = match.end()
-
         states = {}
         states['strings'] = [
-            (r'\:@{0,2}[a-zA-Z_]\w*[!?]?', String.Symbol),
-            (words(CRYSTAL_OPERATORS, prefix=r'\:@{0,2}'), String.Symbol),
-            (r":'(\\\\|\\'|[^'])*'", String.Symbol),
+            (r'\:\w+[!?]?', String.Symbol),
+            (words(CRYSTAL_OPERATORS, prefix=r'\:'), String.Symbol),
+            (r":'(\\\\|\\[^\\]|[^'\\])*'", String.Symbol),
             # This allows arbitrary text after '\ for simplicity
             (r"'(\\\\|\\'|[^']|\\[^'\\]+)'", String.Char),
             (r':"', String.Symbol, 'simple-sym'),
@@ -127,35 +114,42 @@ class CrystalLexer(ExtendedRegexLexer):
                 (end, ttype, '#pop'),
             ]
 
-        # braced quoted strings
+        # https://crystal-lang.org/docs/syntax_and_semantics/literals/string.html#percent-string-literals
         for lbrace, rbrace, bracecc, name in \
                 ('\\{', '\\}', '{}', 'cb'), \
                 ('\\[', '\\]', '\\[\\]', 'sb'), \
                 ('\\(', '\\)', '()', 'pa'), \
-                ('<', '>', '<>', 'ab'):
+                ('<', '>', '<>', 'ab'), \
+                ('\\|', '\\|', '\\|', 'pi'):
             states[name+'-intp-string'] = [
                 (r'\\' + lbrace, String.Other),
+            ] + (lbrace != rbrace) * [
                 (lbrace, String.Other, '#push'),
+            ] + [
                 (rbrace, String.Other, '#pop'),
                 include('string-intp-escaped'),
                 (r'[\\#' + bracecc + ']', String.Other),
                 (r'[^\\#' + bracecc + ']+', String.Other),
             ]
-            states['strings'].append((r'%' + lbrace, String.Other,
+            states['strings'].append((r'%Q?' + lbrace, String.Other,
                                       name+'-intp-string'))
             states[name+'-string'] = [
                 (r'\\[\\' + bracecc + ']', String.Other),
+            ] + (lbrace != rbrace) * [
                 (lbrace, String.Other, '#push'),
+            ] + [
                 (rbrace, String.Other, '#pop'),
                 (r'[\\#' + bracecc + ']', String.Other),
                 (r'[^\\#' + bracecc + ']+', String.Other),
             ]
-            # http://crystal-lang.org/docs/syntax_and_semantics/literals/array.html
-            states['strings'].append((r'%[wi]' + lbrace, String.Other,
+            # https://crystal-lang.org/docs/syntax_and_semantics/literals/array.html#percent-array-literals
+            states['strings'].append((r'%[qwi]' + lbrace, String.Other,
                                       name+'-string'))
             states[name+'-regex'] = [
                 (r'\\[\\' + bracecc + ']', String.Regex),
+            ] + (lbrace != rbrace) * [
                 (lbrace, String.Regex, '#push'),
+            ] + [
                 (rbrace + '[imsx]*', String.Regex, '#pop'),
                 include('string-intp'),
                 (r'[\\#' + bracecc + ']', String.Regex),
@@ -164,27 +158,6 @@ class CrystalLexer(ExtendedRegexLexer):
             states['strings'].append((r'%r' + lbrace, String.Regex,
                                       name+'-regex'))
 
-        # these must come after %<brace>!
-        states['strings'] += [
-            # %r regex
-            (r'(%r([\W_]))((?:\\\2|(?!\2).)*)(\2[imsx]*)',
-             intp_regex_callback),
-            # regular fancy strings with qsw
-            (r'(%[wi]([\W_]))((?:\\\2|(?!\2).)*)(\2)',
-             intp_string_callback),
-            # special forms of fancy strings after operators or
-            # in method calls with braces
-            (r'(?<=[-+/*%=<>&!^|~,(])(\s*)(%([\t ])(?:(?:\\\3|(?!\3).)*)\3)',
-             bygroups(Text, String.Other, None)),
-            # and because of fixed width lookbehinds the whole thing a
-            # second time for line startings...
-            (r'^(\s*)(%([\t ])(?:(?:\\\3|(?!\3).)*)\3)',
-             bygroups(Text, String.Other, None)),
-            # all regular fancy strings without qsw
-            (r'(%([\[{(<]))((?:\\\2|(?!\2).)*)(\2)',
-             intp_string_callback),
-        ]
-
         return states
 
     tokens = {
@@ -192,10 +165,16 @@ class CrystalLexer(ExtendedRegexLexer):
             (r'#.*?$', Comment.Single),
             # keywords
             (words('''
-                abstract asm as begin break case do else elsif end ensure extend ifdef if
-                include instance_sizeof next of pointerof private protected rescue return
-                require sizeof super then typeof unless until when while with yield
+                abstract asm begin break case do else elsif end ensure extend if in
+                include next of private protected require rescue return select self super
+                then unless until when while with yield
             '''.split(), suffix=r'\b'), Keyword),
+            (words('''
+                previous_def forall out uninitialized __DIR__ __FILE__ __LINE__
+                __END_LINE__
+            '''.split(), prefix=r'(?<!\.)', suffix=r'\b'), Keyword.Pseudo),
+            # https://crystal-lang.org/docs/syntax_and_semantics/is_a.html
+            (r'\.(is_a\?|nil\?|responds_to\?|as\?|as\b)', Keyword.Pseudo),
             (words(['true', 'false', 'nil'], suffix=r'\b'), Keyword.Constant),
             # start of function, class and module names
             (r'(module|lib)(\s+)([a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*)',
@@ -203,29 +182,23 @@ class CrystalLexer(ExtendedRegexLexer):
             (r'(def|fun|macro)(\s+)((?:[a-zA-Z_]\w*::)*)',
              bygroups(Keyword, Text, Name.Namespace), 'funcname'),
             (r'def(?=[*%&^`~+-/\[<>=])', Keyword, 'funcname'),
-            (r'(class|struct|union|type|alias|enum)(\s+)((?:[a-zA-Z_]\w*::)*)',
+            (r'(annotation|class|struct|union|type|alias|enum)(\s+)((?:[a-zA-Z_]\w*::)*)',
              bygroups(Keyword, Text, Name.Namespace), 'classname'),
-            (r'(self|out|uninitialized)\b|(is_a|responds_to)\?', Keyword.Pseudo),
+            # https://crystal-lang.org/api/toplevel.html
+            (words('''
+                instance_sizeof offsetof pointerof sizeof typeof
+            '''.split(), prefix=r'(?<!\.)', suffix=r'\b'), Keyword.Pseudo),
             # macros
-            (words('''
-                debugger record pp assert_responds_to spawn parallel
-                getter setter property delegate def_hash def_equals def_equals_and_hash
-                forward_missing_to
-            '''.split(), suffix=r'\b'), Name.Builtin.Pseudo),
-            (r'getter[!?]|property[!?]|__(DIR|FILE|LINE)__\b', Name.Builtin.Pseudo),
+            (r'(?<!\.)(debugger\b|p!|pp!|record\b|spawn\b)', Name.Builtin.Pseudo),
             # builtins
-            # http://crystal-lang.org/api/toplevel.html
             (words('''
-                Object Value Struct Reference Proc Class Nil Symbol Enum Void
-                Bool Number Int Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64
-                Float Float32 Float64 Char String
-                Pointer Slice Range Exception Regex
-                Mutex StaticArray Array Hash Set Tuple Deque Box Process File
-                Dir Time Channel Concurrent Scheduler
-                abort at_exit caller delay exit fork future get_stack_top gets
-                lazy loop main p print printf puts
-                raise rand read_line sleep sprintf system with_color
+                abort at_exit caller exit gets loop main p pp print printf puts
+                raise rand read_line sleep spawn sprintf system
             '''.split(), prefix=r'(?<!\.)', suffix=r'\b'), Name.Builtin),
+            # https://crystal-lang.org/api/Object.html#macro-summary
+            (r'(?<!\.)(((class_)?((getter|property)\b[!?]?|setter\b))|'
+             r'(def_(clone|equals|equals_and_hash|hash)|delegate|forward_missing_to)\b)',
+             Name.Builtin.Pseudo),
             # normal heredocs
             (r'(?<!\w)(<<-?)(["`\']?)([a-zA-Z_]\w*)(\2)(.*?\n)',
              heredoc_callback),
@@ -297,18 +270,18 @@ class CrystalLexer(ExtendedRegexLexer):
             (r'\$-[0adFiIlpvw]', Name.Variable.Global),
             (r'::', Operator),
             include('strings'),
-            # chars
+            # https://crystal-lang.org/reference/syntax_and_semantics/literals/char.html
             (r'\?(\\[MC]-)*'  # modifiers
-             r'(\\([\\befnrtv#"\']|x[a-fA-F0-9]{1,2}|[0-7]{1,3})|\S)'
+             r'(\\([\\abefnrtv#"\']|[0-7]{1,3}|x[a-fA-F0-9]{2}|u[a-fA-F0-9]{4}|u\{[a-fA-F0-9 ]+\})|\S)'
              r'(?!\w)',
              String.Char),
-            (r'[A-Z][A-Z_]+\b', Name.Constant),
+            (r'[A-Z][A-Z_]+\b(?!::|\.)', Name.Constant),
             # macro expansion
             (r'\{%', String.Interpol, 'in-macro-control'),
             (r'\{\{', String.Interpol, 'in-macro-expr'),
-            # attributes
-            (r'(@\[)(\s*)([A-Z]\w*)',
-             bygroups(Operator, Text, Name.Decorator), 'in-attr'),
+            # annotations
+            (r'(@\[)(\s*)([A-Z]\w*(::[A-Z]\w*)*)',
+             bygroups(Operator, Text, Name.Decorator), 'in-annot'),
             # this is needed because Crystal attributes can look
             # like keywords (class) or like this: ` ?!?
             (words(CRYSTAL_OPERATORS, prefix=r'(\.|::)'),
@@ -345,7 +318,9 @@ class CrystalLexer(ExtendedRegexLexer):
             (r'#\{', String.Interpol, 'in-intp'),
         ],
         'string-escaped': [
-            (r'\\([\\befnstv#"\']|x[a-fA-F0-9]{1,2}|[0-7]{1,3})', String.Escape)
+            # https://crystal-lang.org/reference/syntax_and_semantics/literals/string.html
+            (r'\\([\\abefnrtv#"\']|[0-7]{1,3}|x[a-fA-F0-9]{2}|u[a-fA-F0-9]{4}|u\{[a-fA-F0-9 ]+\})',
+             String.Escape)
         ],
         'string-intp-escaped': [
             include('string-intp'),
@@ -375,7 +350,7 @@ class CrystalLexer(ExtendedRegexLexer):
         'in-macro-control': [
             (r'\{%', String.Interpol, '#push'),
             (r'%\}', String.Interpol, '#pop'),
-            (r'for\b|in\b', Keyword),
+            (r'(for|verbatim)\b', Keyword),
             include('root'),
         ],
         'in-macro-expr': [
@@ -383,7 +358,7 @@ class CrystalLexer(ExtendedRegexLexer):
             (r'\}\}', String.Interpol, '#pop'),
             include('root'),
         ],
-        'in-attr': [
+        'in-annot': [
             (r'\[', Operator, '#push'),
             (r'\]', Operator, '#pop'),
             include('root'),

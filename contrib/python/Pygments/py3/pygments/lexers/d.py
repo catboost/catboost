@@ -5,7 +5,7 @@
 
     Lexers for D languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -98,7 +98,7 @@ class DLexer(RegexLexer):
             # -- AlternateWysiwygString
             (r'`[^`]*`[cwd]?', String),
             # -- DoubleQuotedString
-            (r'"(\\\\|\\"|[^"])*"[cwd]?', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"[cwd]?', String),
             # -- EscapeSequence
             (r"\\(['\"?\\abfnrtv]|x[0-9a-fA-F]{2}|[0-7]{1,3}"
              r"|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8}|&\w+;)",
@@ -229,7 +229,7 @@ class CrocLexer(RegexLexer):
             (r'@`(``|[^`])*`', String),
             (r"@'(''|[^'])*'", String),
             # -- DoubleQuotedString
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             # Tokens
             (r'(~=|\^=|%=|\*=|==|!=|>>>=|>>>|>>=|>>|>=|<=>|\?=|-\>'
              r'|<<=|<<|<=|\+\+|\+=|--|-=|\|\||\|=|&&|&=|\.\.|/=)'

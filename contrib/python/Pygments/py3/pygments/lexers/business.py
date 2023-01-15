@@ -5,7 +5,7 @@
 
     Lexers for "business-oriented" languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -478,8 +478,8 @@ class OpenEdgeLexer(RegexLexer):
             (r'(?i)(DEFINE|DEF|DEFI|DEFIN)\b', Keyword.Declaration),
             (types, Keyword.Type),
             (keywords, Name.Builtin),
-            (r'"(\\\\|\\"|[^"])*"', String.Double),
-            (r"'(\\\\|\\'|[^'])*'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'[0-9]+', Number.Integer),
             (r'\s+', Text),

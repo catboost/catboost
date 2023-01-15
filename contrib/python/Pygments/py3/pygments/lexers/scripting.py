@@ -5,7 +5,7 @@
 
     Lexer for scripting and embedded languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -283,7 +283,7 @@ class ChaiscriptLexer(RegexLexer):
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'[0-9]+', Number.Integer),
             (r'"', String.Double, 'dqstring'),
-            (r"'(\\\\|\\'|[^'])*'", String.Single),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
         ],
         'dqstring': [
             (r'\$\{[^"}]+?\}', String.Interpol),
@@ -689,7 +689,7 @@ class AppleScriptLexer(RegexLexer):
             (r'\b(%s)s?\b' % '|'.join(StudioClasses), Name.Builtin),
             (r'\b(%s)\b' % '|'.join(StudioCommands), Name.Builtin),
             (r'\b(%s)\b' % '|'.join(References), Name.Builtin),
-            (r'"(\\\\|\\"|[^"])*"', String.Double),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
             (r'\b(%s)\b' % Identifiers, Name.Variable),
             (r'[-+]?(\d+\.\d*|\d*\.\d+)(E[-+][0-9]+)?', Number.Float),
             (r'[-+]?\d+', Number.Integer),
@@ -833,7 +833,7 @@ class MOOCodeLexer(RegexLexer):
             # Numbers
             (r'(0|[1-9][0-9_]*)', Number.Integer),
             # Strings
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             # exceptions
             (r'(E_PERM|E_DIV)', Name.Exception),
             # db-refs
@@ -924,7 +924,7 @@ class HybrisLexer(RegexLexer):
                 'Runnable', 'CGI', 'ClientSocket', 'Socket', 'ServerSocket',
                 'File', 'Console', 'Directory', 'Exception'), suffix=r'\b'),
              Keyword.Type),
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             (r"'\\.'|'[^\\]'|'\\u[0-9a-f]{4}'", String.Char),
             (r'(\.)([a-zA-Z_]\w*)',
              bygroups(Operator, Name.Attribute)),

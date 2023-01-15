@@ -5,7 +5,7 @@
 
     Lexer for the YANG 1.1 modeling language. See :rfc:`7950`.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

@@ -5,7 +5,7 @@
 
     Lexers for non-HTML markup languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -558,11 +558,9 @@ class MarkdownLexer(RegexLexer):
             # quote
             (r'^(\s*>\s)(.+\n)', bygroups(Keyword, Generic.Emph)),
             # code block fenced by 3 backticks
-            (r'^(\s*```\n(.+\n)+\s*```$)', String.Backtick),
+            (r'^(\s*```\n[\w\W]*?^\s*```$\n)', String.Backtick),
             # code block with language
-            (r'^(\s*```)(\w+)(\n)([\w\W]*?)(^\s*```$)', _handle_codeblock),
-            # code block indented with 4 spaces or 1 tab
-            (r'(\n\n)((\ {4}|\t)(.+\n)+)', bygroups(Text, String.Backtick)),
+            (r'^(\s*```)(\w+)(\n)([\w\W]*?)(^\s*```$\n)', _handle_codeblock),
 
             include('inline'),
         ],
@@ -570,19 +568,19 @@ class MarkdownLexer(RegexLexer):
             # escape
             (r'\\.', Text),
             # inline code
-            (r'([^`])(`[^`\n]+`)', bygroups(Text, String.Backtick)),
+            (r'([^`]?)(`[^`\n]+`)', bygroups(Text, String.Backtick)),
             # warning: the following rules eat outer tags.
             # eg. **foo _bar_ baz** => foo and baz are not recognized as bold
             # bold fenced by '**'
-            (r'(\*\*[^* \n][^*\n]*\*\*)', bygroups(Generic.Strong)),
-            # # bold fenced by '__'
-            (r'(\_\_[^_ \n][^_\n]*\_\_)', bygroups(Generic.Strong)),
+            (r'([^\*]?)(\*\*[^* \n][^*\n]*\*\*)', bygroups(Text, Generic.Strong)),
+            # bold fenced by '__'
+            (r'([^_]?)(__[^_ \n][^_\n]*__)', bygroups(Text, Generic.Strong)),
             # italics fenced by '*'
-            (r'(\*[^* \n][^*\n]*\*)', bygroups(Generic.Emph)),
+            (r'([^\*]?)(\*[^* \n][^*\n]*\*)', bygroups(Text, Generic.Emph)),
             # italics fenced by '_'
-            (r'(\_[^_ \n][^_\n]*\_)', bygroups(Generic.Emph)),
+            (r'([^_]?)(_[^_ \n][^_\n]*_)', bygroups(Text, Generic.Emph)),
             # strikethrough
-            (r'([^~]*)(~~[^~]+~~)', bygroups(Text, Generic.Deleted)),
+            (r'([^~]?)(~~[^~ \n][^~\n]*~~)', bygroups(Text, Generic.Deleted)),
             # mentions and topics (twitter and github stuff)
             (r'[@#][\w/:]+', Name.Entity),
             # (image?) links eg: ![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)

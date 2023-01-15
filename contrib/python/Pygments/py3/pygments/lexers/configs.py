@@ -5,7 +5,7 @@
 
     Lexers for configuration file formats.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -40,7 +40,7 @@ class IniLexer(RegexLexer):
             (r'\s+', Text),
             (r'[;#].*', Comment.Single),
             (r'\[.*?\]$', Keyword),
-            (r'(.*?)([ \t]*)(=)([ \t]*)(.*(?:\n[ \t].+)*)',
+            (r'(.*?)([ \t]*)(=)([ \t]*)([^\t\n]*)',
              bygroups(Name.Attribute, Text, Operator, Text, String)),
             # standalone option, supported by some INI parsers
             (r'(.+?)$', Name.Attribute),
@@ -302,8 +302,10 @@ class ApacheConfLexer(RegexLexer):
         'root': [
             (r'\s+', Text),
             (r'#(.*\\\n)+.*$|(#.*?)$', Comment),
-            (r'(<[^\s>]+)(?:(\s+)(.*))?(>)',
+            (r'(<[^\s>/][^\s>]*)(?:(\s+)(.*))?(>)',
              bygroups(Name.Tag, Text, String, Name.Tag)),
+            (r'(</[^\s>]+)(>)',
+             bygroups(Name.Tag, Name.Tag)),
             (r'[a-z]\w*', Name.Builtin, 'value'),
             (r'\.+', Text),
         ],
@@ -909,7 +911,7 @@ class TOMLLexer(RegexLexer):
             (r'\s+', Text),
             (r'#.*?$', Comment.Single),
             # Basic string
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             # Literal string
             (r'\'\'\'(.*)\'\'\'', String),
             (r'\'[^\']*\'', String),

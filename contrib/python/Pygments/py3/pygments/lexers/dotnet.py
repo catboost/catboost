@@ -5,7 +5,7 @@
 
     Lexers for .net languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 import re
@@ -88,7 +88,7 @@ class CSharpLexer(RegexLexer):
                 (r'[~!%^&*()+=|\[\]:;,.<>/?-]', Punctuation),
                 (r'[{}]', Punctuation),
                 (r'@"(""|[^"])*"', String),
-                (r'"(\\\\|\\"|[^"\n])*["\n]', String),
+                (r'"(\\\\|\\[^\\]|[^"\\\n])*["\n]', String),
                 (r"'\\.'|'[^\\]'", String.Char),
                 (r"[0-9](\.[0-9]*)?([eE][+-][0-9]+)?"
                  r"[flFLdD]?|0[xX][0-9a-fA-F]+[Ll]?", Number),
@@ -213,7 +213,7 @@ class NemerleLexer(RegexLexer):
                 (r'[~!%^&*()+=|\[\]:;,.<>/?-]', Punctuation),
                 (r'[{}]', Punctuation),
                 (r'@"(""|[^"])*"', String),
-                (r'"(\\\\|\\"|[^"\n])*["\n]', String),
+                (r'"(\\\\|\\[^\\]|[^"\\\n])*["\n]', String),
                 (r"'\\.'|'[^\\]'", String.Char),
                 (r"0[xX][0-9a-fA-F]+[Ll]?", Number),
                 (r"[0-9](\.[0-9]*)?([eE][+-][0-9]+)?[flFLdD]?", Number),
@@ -325,8 +325,8 @@ class BooLexer(RegexLexer):
             (r'\\\n', Text),
             (r'\\', Text),
             (r'(in|is|and|or|not)\b', Operator.Word),
-            (r'/(\\\\|\\/|[^/\s])/', String.Regex),
-            (r'@/(\\\\|\\/|[^/])*/', String.Regex),
+            (r'/(\\\\|\\[^\\]|[^/\\\s])/', String.Regex),
+            (r'@/(\\\\|\\[^\\]|[^/\\])*/', String.Regex),
             (r'=~|!=|==|<<|>>|[-+/*%=<>&^|]', Operator),
             (r'(as|abstract|callable|constructor|destructor|do|import|'
              r'enum|event|final|get|interface|internal|of|override|'
@@ -345,8 +345,8 @@ class BooLexer(RegexLexer):
              r'rawArrayIndexing|required|typeof|unchecked|using|'
              r'yieldAll|zip)\b', Name.Builtin),
             (r'"""(\\\\|\\"|.*?)"""', String.Double),
-            (r'"(\\\\|\\"|[^"]*?)"', String.Double),
-            (r"'(\\\\|\\'|[^']*?)'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'[a-zA-Z_]\w*', Name),
             (r'(\d+\.\d*|\d*\.\d+)([fF][+-]?[0-9]+)?', Number.Float),
             (r'[0-9][0-9.]*(ms?|d|h|s)', Number),

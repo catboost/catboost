@@ -5,7 +5,7 @@
 
     Pygments lexers for JVM languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -292,12 +292,12 @@ class ScalaLexer(RegexLexer):
             (r'(import|package)(\s+)', bygroups(Keyword, Text), 'import'),
             (r'(type)(\s+)', bygroups(Keyword, Text), 'type'),
             (r'""".*?"""(?!")', String),
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             (r"'\\.'|'[^\\]'|'\\u[0-9a-fA-F]{4}'", String.Char),
             (r"'%s" % idrest, Text.Symbol),
             (r'[fs]"""', String, 'interptriplestring'),  # interpolated strings
             (r'[fs]"', String, 'interpstring'),  # interpolated strings
-            (r'raw"(\\\\|\\"|[^"])*"', String),  # raw strings
+            (r'raw"(\\\\|\\[^\\]|[^"\\])*"', String),  # raw strings
             # (r'(\.)(%s|%s|`[^`]+`)' % (idrest, op), bygroups(Operator,
             # Name.Attribute)),
             (idrest, Name),
@@ -522,10 +522,10 @@ class GroovyLexer(RegexLexer):
             (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
             (r'""".*?"""', String.Double),
             (r"'''.*?'''", String.Single),
-            (r'"(\\\\|\\"|[^"])*"', String.Double),
-            (r"'(\\\\|\\'|[^'])*'", String.Single),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'\$/((?!/\$).)*/\$', String),
-            (r'/(\\\\|\\"|[^/])*/', String),
+            (r'/(\\\\|\\[^\\]|[^/\\])*/', String),
             (r"'\\.'|'[^\\]'|'\\u[0-9a-fA-F]{4}'", String.Char),
             (r'(\.)([a-zA-Z_]\w*)', bygroups(Operator, Name.Attribute)),
             (r'[a-zA-Z_]\w*:', Name.Label),
@@ -618,7 +618,7 @@ class IokeLexer(RegexLexer):
             # Symbols
             (r':[\w!:?]+', String.Symbol),
             (r'[\w!:?]+:(?![\w!?])', String.Other),
-            (r':"(\\\\|\\"|[^"])*"', String.Symbol),
+            (r':"(\\\\|\\[^\\]|[^"\\])*"', String.Symbol),
 
             # Documentation
             (r'((?<=fn\()|(?<=fnx\()|(?<=method\()|(?<=macro\()|(?<=lecro\()'
@@ -836,7 +836,7 @@ class ClojureLexer(RegexLexer):
             (r'0x-?[abcdef\d]+', Number.Hex),
 
             # strings, symbols and characters
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             (r"'" + valid_name, String.Symbol),
             (r"\\(.|[a-z]+)", String.Char),
 
@@ -917,8 +917,8 @@ class TeaLangLexer(RegexLexer):
             (r'(true|false|null)\b', Keyword.Constant),
             (r'(template)(\s+)', bygroups(Keyword.Declaration, Text), 'template'),
             (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
-            (r'"(\\\\|\\"|[^"])*"', String),
-            (r'\'(\\\\|\\\'|[^\'])*\'', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'(\.)([a-zA-Z_]\w*)', bygroups(Operator, Name.Attribute)),
             (r'[a-zA-Z_]\w*:', Name.Label),
             (r'[a-zA-Z_\$]\w*', Name),
@@ -979,9 +979,8 @@ class CeylonLexer(RegexLexer):
             (r'(class|interface|object|alias)(\s+)',
              bygroups(Keyword.Declaration, Text), 'class'),
             (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
-            (r'"(\\\\|\\"|[^"])*"', String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             (r"'\\.'|'[^\\]'|'\\\{#[0-9a-fA-F]{4}\}'", String.Char),
-            (r'".*``.*``.*"', String.Interpol),
             (r'(\.)([a-z_]\w*)',
              bygroups(Operator, Name.Attribute)),
             (r'[a-zA-Z_]\w*:', Name.Label),
@@ -1057,7 +1056,7 @@ class KotlinLexer(RegexLexer):
             (r'[~!%^&*()+=|\[\]:;,.<>/?-]', Punctuation),
             (r'[{}]', Punctuation),
             (r'@"(""|[^"])*"', String),
-            (r'"(\\\\|\\"|[^"\n])*["\n]', String),
+            (r'"(\\\\|\\[^\\]|[^"\\\n])*["\n]', String),
             (r"'\\.'|'[^\\]'", String.Char),
             (r"[0-9](\.[0-9]*)?([eE][+-][0-9]+)?[flFL]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
@@ -1151,8 +1150,8 @@ class XtendLexer(RegexLexer):
             (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
             (r"(''')", String, 'template'),
             (r'(\u00BB)', String, 'template'),
-            (r'"(\\\\|\\"|[^"])*"', String),
-            (r"'(\\\\|\\'|[^'])*'", String),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'[a-zA-Z_]\w*:', Name.Label),
             (r'[a-zA-Z_$]\w*', Name),
             (r'[~^*!%&\[\](){}<>\|+=:;,./?-]', Operator),
@@ -1620,54 +1619,59 @@ class JasminLexer(RegexLexer):
 
 
 class SarlLexer(RegexLexer):
-	"""
-	For `SARL <http://www.sarl.io>`_ source code.
-	
-	.. versionadded:: 2.4
-	"""
-	
-	name = 'SARL'
-	aliases = ['sarl']
-	filenames = ['*.sarl']
-	mimetypes = ['text/x-sarl']
-	
-	flags = re.MULTILINE | re.DOTALL
-	
-	tokens = {
-		'root': [
-			# method names
-			(r'^(\s*(?:[a-zA-Z_][\w.\[\]]*\s+)+?)'  # return arguments
-			 r'([a-zA-Z_$][\w$]*)'                      # method name
-			 r'(\s*)(\()',                             # signature start
-			 bygroups(using(this), Name.Function, Text, Operator)),
-			(r'[^\S\n]+', Text),
-			(r'//.*?\n', Comment.Single),
-			(r'/\*.*?\*/', Comment.Multiline),
-			(r'@[a-zA-Z_][\w.]*', Name.Decorator),
-			(r'(as|break|case|catch|default|do|else|extends|extension|finally|fires|for|if|implements|instanceof|new|on|requires|return|super|switch|throw|throws|try|typeof|uses|while|with)\b',
-			 Keyword),
-			(r'(abstract|def|dispatch|final|native|override|private|protected|public|static|strictfp|synchronized|transient|val|var|volatile)\b', Keyword.Declaration),
-			 (r'(boolean|byte|char|double|float|int|long|short|void)\b',
-			  Keyword.Type),
-			 (r'(package)(\s+)', bygroups(Keyword.Namespace, Text)),
-			 (r'(false|it|null|occurrence|this|true|void)\b', Keyword.Constant),
-			 (r'(agent|annotation|artifact|behavior|capacity|class|enum|event|interface|skill|space)(\s+)', bygroups(Keyword.Declaration, Text),
-			  'class'),
-			 (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
-			 (r'"(\\\\|\\"|[^"])*"', String),
-			 (r"'(\\\\|\\'|[^'])*'", String),
-			 (r'[a-zA-Z_]\w*:', Name.Label),
-			 (r'[a-zA-Z_$]\w*', Name),
-			 (r'[~^*!%&\[\](){}<>\|+=:;,./?-]', Operator),
-			 (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
-			 (r'0x[0-9a-fA-F]+', Number.Hex),
-			 (r'[0-9]+L?', Number.Integer),
-			 (r'\n', Text)
-		],
-		'class': [
-			(r'[a-zA-Z_]\w*', Name.Class, '#pop')
-		],
-		'import': [
-			(r'[\w.]+\*?', Name.Namespace, '#pop')
-		],
-	}
+    """
+    For `SARL <http://www.sarl.io>`_ source code.
+
+    .. versionadded:: 2.4
+    """
+
+    name = 'SARL'
+    aliases = ['sarl']
+    filenames = ['*.sarl']
+    mimetypes = ['text/x-sarl']
+
+    flags = re.MULTILINE | re.DOTALL
+
+    tokens = {
+        'root': [
+            # method names
+            (r'^(\s*(?:[a-zA-Z_][\w.\[\]]*\s+)+?)'  # return arguments
+             r'([a-zA-Z_$][\w$]*)'                      # method name
+             r'(\s*)(\()',                             # signature start
+             bygroups(using(this), Name.Function, Text, Operator)),
+            (r'[^\S\n]+', Text),
+            (r'//.*?\n', Comment.Single),
+            (r'/\*.*?\*/', Comment.Multiline),
+            (r'@[a-zA-Z_][\w.]*', Name.Decorator),
+            (r'(as|break|case|catch|default|do|else|extends|extension|finally|'
+             r'fires|for|if|implements|instanceof|new|on|requires|return|super|'
+             r'switch|throw|throws|try|typeof|uses|while|with)\b',
+             Keyword),
+            (r'(abstract|def|dispatch|final|native|override|private|protected|'
+             r'public|static|strictfp|synchronized|transient|val|var|volatile)\b',
+             Keyword.Declaration),
+            (r'(boolean|byte|char|double|float|int|long|short|void)\b',
+             Keyword.Type),
+            (r'(package)(\s+)', bygroups(Keyword.Namespace, Text)),
+            (r'(false|it|null|occurrence|this|true|void)\b', Keyword.Constant),
+            (r'(agent|annotation|artifact|behavior|capacity|class|enum|event|'
+             r'interface|skill|space)(\s+)', bygroups(Keyword.Declaration, Text),
+             'class'),
+            (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
+            (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
+            (r'[a-zA-Z_]\w*:', Name.Label),
+            (r'[a-zA-Z_$]\w*', Name),
+            (r'[~^*!%&\[\](){}<>\|+=:;,./?-]', Operator),
+            (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
+            (r'0x[0-9a-fA-F]+', Number.Hex),
+            (r'[0-9]+L?', Number.Integer),
+            (r'\n', Text)
+        ],
+        'class': [
+            (r'[a-zA-Z_]\w*', Name.Class, '#pop')
+        ],
+        'import': [
+            (r'[\w.]+\*?', Name.Namespace, '#pop')
+        ],
+    }

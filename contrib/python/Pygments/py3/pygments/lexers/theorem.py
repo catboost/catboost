@@ -5,7 +5,7 @@
 
     Lexers for theorem-proving languages.
 
-    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -29,6 +29,8 @@ class CoqLexer(RegexLexer):
     aliases = ['coq']
     filenames = ['*.v']
     mimetypes = ['text/x-coq']
+
+    flags = re.UNICODE
 
     keywords1 = (
         # Vernacular commands
@@ -123,14 +125,15 @@ class CoqLexer(RegexLexer):
             (r'0[bB][01][01_]*', Number.Bin),
             (r'-?\d[\d_]*(.[\d_]*)?([eE][+\-]?\d[\d_]*)', Number.Float),
 
-            (r"'(?:(\\[\\\"'ntbr ])|(\\[0-9]{3})|(\\x[0-9a-fA-F]{2}))'",
-             String.Char),
+            (r"'(?:(\\[\\\"'ntbr ])|(\\[0-9]{3})|(\\x[0-9a-fA-F]{2}))'", String.Char),
+
             (r"'.'", String.Char),
             (r"'", Keyword),  # a stray quote is another syntax element
 
             (r'"', String.Double, 'string'),
 
             (r'[~?][a-z][\w\']*:', Name),
+            (r'\S', Name.Builtin.Pseudo),
         ],
         'comment': [
             (r'[^(*)]+', Comment),
@@ -154,7 +157,7 @@ class CoqLexer(RegexLexer):
     }
 
     def analyse_text(text):
-        if 'qed' in text and 'tauto' in text:
+        if 'Qed' in text and 'Proof' in text:
             return 1
 
 
