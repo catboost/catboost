@@ -356,6 +356,9 @@
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         },
+        "coronerctl": {
+            "description": "yandex-coroner cli, https://a.yandex-team.ru/arc/trunk/arcadia/infra/rsm/coroner/README.md"
+        },
         "blkparse": {
             "description": "produce formatted output of event streams of block devices from blktrace utility"
         },
@@ -5816,6 +5819,22 @@
                 }
             ]
         },
+        "coronerctl": {
+            "tools": {
+                "coronerctl": {
+                    "bottle": "coronerctl",
+                    "executable": "coronerctl"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "lz4": {
             "tools": {
                 "lz4": {
@@ -6343,7 +6362,7 @@
         "sandboxctl": {
             "formula": {
                 "sandbox_id": [
-                    667910329
+                    827245229
                 ],
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
@@ -8227,6 +8246,17 @@
                     "kvmtool",
                     "lkvm"
                 ]
+            }
+        },
+        "coronerctl": {
+            "formula": {
+                "sandbox_id": [
+                    827245421
+                ],
+                "match": "infra/rsm/coroner/cmd/coronerctl/coronerctl"
+            },
+            "executable": {
+                "coronerctl": ["coronerctl"]
             }
         },
         "lz4": {
