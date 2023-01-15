@@ -2,8 +2,8 @@
 
 #include "internal_build_options.h"
 
-#include <util/generic/fwd.h>
 #include <util/generic/vector.h>
+#include <util/system/types.h>
 
 namespace NHnsw {
     struct THnswIndexData {

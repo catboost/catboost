@@ -2,10 +2,12 @@
 
 #include "build_options.h"
 
-#include <util/generic/fwd.h>
-#include <util/generic/vector.h>
-#include <util/ysaveload.h>
+#include <util/generic/string.h>
+#include <util/generic/utility.h>
 #include <util/system/info.h>
+
+#include <stddef.h>
+
 
 namespace NHnsw {
     struct THnswInternalBuildOptions {

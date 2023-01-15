@@ -2,9 +2,13 @@
 
 #include <library/cpp/json/json_reader.h>
 #include <util/generic/fwd.h>
-#include <util/generic/vector.h>
+#include <util/generic/strbuf.h>
+#include <util/generic/string.h>
 #include <util/generic/yexception.h>
 #include <util/ysaveload.h>
+
+#include <stddef.h>
+
 
 namespace NHnsw {
     struct THnswBuildOptions {
