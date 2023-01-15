@@ -122,7 +122,7 @@
 #include <google/protobuf/descriptor.h>
 
 #include <google/protobuf/json_util.h>
-#include <google/protobuf/messagext_lite.h>
+#include <google/protobuf/messagext.h>
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF
 #define GOOGLE_PROTOBUF_HAS_ARENAS
@@ -320,12 +320,12 @@ class LIBPROTOBUF_EXPORT Message : public MessageLite {
     return io::TAsJSON<Message>(*this);
   }
 
-  NProtoBufInternal::TAsBinary AsBinary() const {
-    return NProtoBufInternal::TAsBinary{*this};
+  internal::TAsBinary AsBinary() const {
+    return internal::TAsBinary{*this};
   }
 
-  NProtoBufInternal::TAsStreamSeq AsStreamSeq() const {
-    return NProtoBufInternal::TAsStreamSeq{*this};
+  internal::TAsStreamSeq AsStreamSeq() const {
+    return internal::TAsStreamSeq{*this};
   }
   // End of Yandex-specific
 

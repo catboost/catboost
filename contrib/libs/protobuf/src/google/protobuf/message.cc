@@ -37,7 +37,6 @@
 #include <google/protobuf/stubs/hash.h>
 
 #include <google/protobuf/message.h>
-#include <google/protobuf/messagext.h>
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
