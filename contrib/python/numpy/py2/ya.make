@@ -2,9 +2,9 @@
 
 PY23_LIBRARY()
 
-PROVIDES(numpy)
-
 LICENSE(BSD-3-Clause)
+
+PROVIDES(numpy)
 
 VERSION(1.16.6)
 

@@ -1,8 +1,8 @@
 PY_LIBRARY()
 
-VERSION(0.24.2)
-
 LICENSE(BSD-3-Clause)
+
+VERSION(0.24.2)
 
 
 

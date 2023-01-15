@@ -1,10 +1,10 @@
 PY23_LIBRARY()
 
+LICENSE(BSD-2-Clause)
+
 
 
 VERSION(4.4.2)
-
-LICENSE(BSD2)
 
 NO_LINT()
 

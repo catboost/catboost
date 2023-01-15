@@ -2,10 +2,11 @@
 
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 PEERDIR(
     contrib/python/numpy
 )
-
 
 NO_COMPILER_WARNINGS()
 

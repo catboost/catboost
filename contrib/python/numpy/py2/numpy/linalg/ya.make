@@ -39,5 +39,4 @@ PY_SRCS(
 PY_REGISTER(numpy.linalg._umath_linalg)
 PY_REGISTER(numpy.linalg.lapack_lite)
 
-
 END()

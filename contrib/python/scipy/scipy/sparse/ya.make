@@ -2,6 +2,8 @@
 
 PY23_LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 NO_COMPILER_WARNINGS()
 
 PEERDIR(
@@ -42,6 +44,5 @@ PY_SRCS(
     base.py
     bsr.py
 )
-
 
 END()

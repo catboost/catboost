@@ -1,5 +1,7 @@
 LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 PEERDIR(contrib/python/scipy/scipy/special/mach)

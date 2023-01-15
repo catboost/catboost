@@ -1,8 +1,8 @@
 PY23_LIBRARY(ipython_genutils)
 
-VERSION(0.2.0)
+LICENSE(BSD-3-Clause)
 
-LICENSE(BSD)
+VERSION(0.2.0)
 
 
 

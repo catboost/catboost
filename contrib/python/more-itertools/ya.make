@@ -1,10 +1,10 @@
 PY23_LIBRARY()
 
+LICENSE(MIT)
+
 
 
 VERSION(5.0.0)
-
-LICENSE(MIT)
 
 PEERDIR(
     contrib/python/six

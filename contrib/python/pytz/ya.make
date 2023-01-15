@@ -2,9 +2,9 @@
 
 PY23_LIBRARY()
 
-VERSION(2021.1)
-
 LICENSE(MIT)
+
+VERSION(2021.1)
 
 PEERDIR(
     contrib/python/setuptools
