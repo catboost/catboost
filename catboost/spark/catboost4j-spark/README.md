@@ -255,7 +255,6 @@ Known limitations
 * Windows is not supported. Work in progress.
 * PySpark is not supported. Work in progress.
 * GPU is not supported. Work in progress.
-* Categorical features are not supported. Work in progress.
 * Text features are not supported. Work in progress.
 * Model analysis like feature importance and feature statistics with datasets on Spark is not supported. But it is possible to run such analysis with models exported to local files in usual CatBoost format.
 * Model export in non-default formats is not supported. But it is possible to convert models exported to local files in usual CatBoost format using other CatBoost APIs.
