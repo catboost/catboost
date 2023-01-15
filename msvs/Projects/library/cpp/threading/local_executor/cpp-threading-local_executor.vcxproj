@@ -79,7 +79,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\local_executor\local_executor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\local_executor\tbb_local_executor.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\local_executor\local_executor.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\local_executor\tbb_local_executor.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
