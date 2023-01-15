@@ -832,52 +832,45 @@ def _dump_test(
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
     if test_cwd:
         test_cwd = test_cwd.replace("$TEST_CWD_VALUE", "").replace('"MACRO_CALLS_DELIM"', "").strip()
+    test_name = os.path.basename(binary_path)
+    test_record = {
+        'TEST-NAME': os.path.splitext(test_name)[0],
+        'TEST-TIMEOUT': timeout,
+        'SCRIPT-REL-PATH': script_rel_path,
+        'TESTED-PROJECT-NAME': test_name,
+        'SOURCE-FOLDER-PATH': test_dir,
+        'CUSTOM-DEPENDENCIES': " ".join(custom_deps),
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
+        #  'TEST-PRESERVE-ENV': 'da',
+        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED'))),
+        'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
+        'SPLIT-FACTOR': split_factor,
+        'TEST_PARTITION': unit.get('TEST_PARTITION') or 'SEQUENTIAL',
+        'FORK-MODE': fork_mode,
+        'FORK-TEST-FILES': fork_test_files,
+        'TEST-FILES': serialize_list(test_files),
+        'SIZE': test_size,
+        'TAG': serialize_list(tags),
+        'REQUIREMENTS': serialize_list(requirements),
+        'USE_ARCADIA_PYTHON': use_arcadia_python or '',
+        'OLD_PYTEST': 'yes' if old_pytest else 'no',
+        'PYTHON-PATHS': serialize_list(python_paths),
+        'TEST-CWD': test_cwd or '',
+        'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
+        'BUILD-FOLDER-PATH': _common.strip_roots(unit_path),
+        'BLOB': unit.get('TEST_BLOB_DATA') or '',
+        'CANONIZE_SUB_PATH': unit.get('CANONIZE_SUB_PATH') or '',
+    }
     if binary_path:
-        if fork_test_files == 'on' or unit.get('FORK_TEST_FILES_FILTER') == 'yes':
-            tests = test_files
-        else:
-            tests = [os.path.basename(binary_path)]
-    else:
-        tests = test_files
-    for test_name in tests:
-        test_record = {
-            'TEST-NAME': os.path.splitext(test_name)[0],
-            'TEST-TIMEOUT': timeout,
-            'SCRIPT-REL-PATH': script_rel_path,
-            'TESTED-PROJECT-NAME': test_name,
-            'SOURCE-FOLDER-PATH': test_dir,
-            'CUSTOM-DEPENDENCIES': " ".join(custom_deps),
-            'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
-            #  'TEST-PRESERVE-ENV': 'da',
-            'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED'))),
-            'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
-            'SPLIT-FACTOR': split_factor,
-            'TEST_PARTITION': unit.get('TEST_PARTITION') or 'SEQUENTIAL',
-            'FORK-MODE': fork_mode,
-            'FORK-TEST-FILES': fork_test_files,
-            'TEST-FILES': serialize_list(tests),
-            'SIZE': test_size,
-            'TAG': serialize_list(tags),
-            'REQUIREMENTS': serialize_list(requirements),
-            'USE_ARCADIA_PYTHON': use_arcadia_python or '',
-            'OLD_PYTEST': 'yes' if old_pytest else 'no',
-            'PYTHON-PATHS': serialize_list(python_paths),
-            'TEST-CWD': test_cwd or '',
-            'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
-            'BUILD-FOLDER-PATH': _common.strip_roots(unit_path),
-            'BLOB': unit.get('TEST_BLOB_DATA') or '',
-            'CANONIZE_SUB_PATH': unit.get('CANONIZE_SUB_PATH') or '',
-        }
-        if binary_path:
-            test_record['BINARY-PATH'] = _common.strip_roots(binary_path)
-        if runner_bin:
-            test_record['TEST-RUNNER-BIN'] = runner_bin
-        if yt_spec:
-            test_record['YT-SPEC'] = serialize_list(yt_spec)
-        data = dump_test(unit, test_record)
-        if data:
-            unit.set_property(["DART_DATA", data])
-            save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
+        test_record['BINARY-PATH'] = _common.strip_roots(binary_path)
+    if runner_bin:
+        test_record['TEST-RUNNER-BIN'] = runner_bin
+    if yt_spec:
+        test_record['YT-SPEC'] = serialize_list(yt_spec)
+    data = dump_test(unit, test_record)
+    if data:
+        unit.set_property(["DART_DATA", data])
+        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def onsetup_pytest_bin(unit, *args):
