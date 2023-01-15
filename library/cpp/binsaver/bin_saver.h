@@ -30,6 +30,18 @@ enum ESaverMode {
     SAVER_MODE_WRITE_COMPRESSED = 3,
 };
 
+namespace NBinSaverInternals {
+    // This lets explicitly control the overload resolution priority
+    // The higher P means higher priority in overload resolution order
+    template <int P>
+    struct TOverloadPriority : TOverloadPriority <P-1> {
+    };
+
+    template <>
+    struct TOverloadPriority<0> {
+    };
+}
+
 //////////////////////////////////////////////////////////////////////////
 struct IBinSaver {
 public:
@@ -51,18 +63,18 @@ private:
     //  }
     // };
     template <class T, typename = decltype(std::declval<T*>()->T::operator&(std::declval<IBinSaver&>()))>
-    void CallObjectSerialize(T* p, ui32) { // ui32 will be resolved first if enabled
+    void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<2>) { // highest priority -  will be resolved first if enabled
                                            // Note: p->operator &(*this) would lead to infinite recursion
         p->T::operator&(*this);
     }
 
     template <class T, typename = decltype(std::declval<T&>() & std::declval<IBinSaver&>())>
-    void CallObjectSerialize(T* p, void*) { // void* will be resolved second if enabled
+    void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<1>) { // lower priority - will be resolved second if enabled
         (*p) & (*this);
     }
 
     template <class T>
-    void CallObjectSerialize(T* p, ...) { // ... will be resolved last
+    void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<0>) { // lower priority - will be resolved last
 #if (!defined(_MSC_VER))
         // In MSVC __has_trivial_copy returns false to enums, primitive types and arrays.
         static_assert(__has_trivial_copy(T), "Class is nontrivial copyable, you must define operator&, see");
@@ -282,7 +294,7 @@ public:
     // return type of Add() is used to detect specialized serializer (see HasNonTrivialSerializer below)
     template <class T>
     char Add(const chunk_id, T* p) {
-        CallObjectSerialize(p, 0u);
+        CallObjectSerialize(p, NBinSaverInternals::TOverloadPriority<2>());
         return 0;
     }
     int Add(const chunk_id, std::string* pStr) {
