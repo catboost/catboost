@@ -40,6 +40,10 @@
     - contrib/libs/cxxsupp/libcxxrt/unwind.h
     - contrib/libs/libunwind/include/unwind.h
 
+- source_filter: "^contrib/libs/cxxsupp/libcxxabi-parts"
+  includes:
+    - cxxabi.h: contrib/libs/cxxsupp/libcxxabi-parts/include/cxxabi.h
+
 - includes:
   - __config:                  contrib/libs/cxxsupp/libcxx/include/__config
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm
