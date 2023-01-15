@@ -633,6 +633,7 @@ ALLOW .* -> vendor/github.com/hashicorp/terraform-plugin-sdk/v2
 
 # CONTRIB-2139 library for building GraphQL servers without any fuss.
 ALLOW .* -> vendor/github.com/99designs/gqlgen
+ALLOW .* -> vendor/github.com/vektah/gqlparser/v2
 
 #
 # Tools
