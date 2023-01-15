@@ -224,6 +224,10 @@ namespace NCB {
 
                     for (; lineIterator != lineEndIterator; ++lineIterator, ++tokenCount) {
                         token = (*lineIterator).Token();
+                        // allow extra space at the end of line
+                        if (token.empty() && std::next(lineIterator) == lineEndIterator) {
+                            continue;
+                        }
 
                         TStringBuf left;
                         TStringBuf right;
