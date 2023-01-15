@@ -95,6 +95,11 @@ void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToComm
     const auto& commonSettings = FloatFeaturesBinarization.Get();
     for (auto& [id, binarizationOption] : PerFloatFeatureQuantization.Get()) {
         Y_UNUSED(id);
+        binarizationOption.BorderSelectionType.SetDefault(commonSettings.BorderSelectionType.GetDefaultValue());
+        binarizationOption.BorderCount.SetDefault(commonSettings.BorderCount.GetDefaultValue());
+        binarizationOption.NanMode.SetDefault(commonSettings.NanMode.GetDefaultValue());
+        binarizationOption.MaxSubsetSizeForBuildBorders.SetDefault(commonSettings.MaxSubsetSizeForBuildBorders.GetDefaultValue());
+
         if (!binarizationOption.BorderCount.IsSet() && commonSettings.BorderCount.IsSet()) {
             binarizationOption.BorderCount = commonSettings.BorderCount;
         }
@@ -103,6 +108,9 @@ void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToComm
         }
         if (!binarizationOption.NanMode.IsSet() && commonSettings.NanMode.IsSet()) {
             binarizationOption.NanMode = commonSettings.NanMode;
+        }
+        if (!binarizationOption.MaxSubsetSizeForBuildBorders.IsSet() && commonSettings.MaxSubsetSizeForBuildBorders.IsSet()) {
+            binarizationOption.MaxSubsetSizeForBuildBorders = commonSettings.MaxSubsetSizeForBuildBorders;
         }
     }
 }
