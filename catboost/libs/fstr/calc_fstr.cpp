@@ -347,7 +347,6 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         (IsYetiRankLossFunction(lossDescription.GetLossFunction())
          && metricDescription.LossFunction != ELossFunction::NDCG);
     if (needYetiRankPairs) {
-        metricDescription = NCatboostOptions::ParseLossDescription("PairLogit");
         ui32 maxQuerySize = 0;
         for (const auto& query : queriesInfo) {
             maxQuerySize = Max(maxQuerySize, query.GetSize());
