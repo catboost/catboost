@@ -193,18 +193,19 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
   def saveNativeModel(
     fileName: String, 
     format: EModelType = EModelType.CatboostBinary, 
-    exportParameters: Map[String, Any] = Map[String, Any](),
-    pool: Option[Pool] = None
+    exportParameters: java.util.Map[String, Any] = null,
+    pool: Pool = null
   ) = {
-    val exportParametersJsonString = if (exportParameters.isEmpty) {
-      ""
-    } else {
+    val exportParametersJsonString = if (exportParameters != null) {
       implicit val formats = org.json4s.DefaultFormats
       org.json4s.jackson.Serialization.write(exportParameters)
+    } else {
+      ""
     }
-    val poolCatFeaturesMaxUniqValueCount = pool match {
-      case Some(pool) => pool.getCatFeaturesUniqValueCounts.max
-      case None => 0 
+    val poolCatFeaturesMaxUniqValueCount = if (pool != null) {
+      pool.getCatFeaturesUniqValueCounts.max
+    } else {
+      0
     }
     nativeModel.Save(fileName, format, exportParametersJsonString, poolCatFeaturesMaxUniqValueCount)
   }
