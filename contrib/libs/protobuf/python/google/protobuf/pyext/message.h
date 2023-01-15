@@ -41,6 +41,7 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 
 namespace google {
 namespace protobuf {
@@ -54,6 +55,7 @@ class MessageFactory;
 
 #ifdef _SHARED_PTR_H
 using std::shared_ptr;
+using string = TProtoStringType;
 #else
 using internal::shared_ptr;
 #endif

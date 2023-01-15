@@ -33,6 +33,7 @@
 #include <Python.h>
 #include <frameobject.h>
 #include <google/protobuf/stubs/hash.h>
+#include <string>
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/descriptor.pb.h>
@@ -53,12 +54,10 @@
   #if PY_VERSION_HEX < 0x03030000
     #error "Python 3.0 - 3.2 are not supported."
   #endif
-#define PyString_AsStringAndSize(ob, charpp, sizep)                           \
-  (PyUnicode_Check(ob) ? ((*(charpp) = const_cast<char*>(                     \
-                               PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL \
-                              ? -1                                            \
-                              : 0)                                            \
-                       : PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
+  #define PyString_AsStringAndSize(ob, charpp, sizep) \
+    (PyUnicode_Check(ob)? \
+       ((*(charpp) = const_cast<char*>(PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL? -1: 0): \
+       PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
 #endif
 
 namespace google {

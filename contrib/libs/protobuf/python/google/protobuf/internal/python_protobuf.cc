@@ -30,7 +30,7 @@
 
 // Author: qrczak@google.com (Marcin Kowalczyk)
 
-#include <contrib/libs/protobuf/python/google/protobuf/python_protobuf.h>
+#include <google/protobuf/python_protobuf.h>
 
 namespace google {
 namespace protobuf {
