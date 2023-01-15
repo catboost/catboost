@@ -189,7 +189,8 @@ trait CatBoostPredictorTrait[
       listeningPort,
       preprocessedTrainPool,
       catBoostJsonParams,
-      precomputedOnlineCtrMetaDataAsJsonString
+      precomputedOnlineCtrMetaDataAsJsonString,
+      master.savedPoolsFuture
     )
 
     val workersFuture = ecs.submit(workers, ())
