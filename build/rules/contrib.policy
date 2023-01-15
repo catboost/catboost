@@ -55,6 +55,7 @@ ALLOW intranet/search/core -> contrib/python/django/django-1.11
 ALLOW intranet/search/settings -> contrib/python/django/django-1.11
 ALLOW intranet/sync_tools/tests -> contrib/python/django/django-1.11
 ALLOW intranet/wiki -> contrib/python/django/django-1.11
+ALLOW intranet/plan/src -> contrib/python/django/django-1.11
 ALLOW intranet/plan -> contrib/python/django/django-1.11
 ALLOW library/python/django_alive -> contrib/python/django/django-1.11
 ALLOW library/python/django_celery_monitoring -> contrib/python/django/django-1.11
