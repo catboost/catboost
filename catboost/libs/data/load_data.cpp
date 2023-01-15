@@ -239,7 +239,7 @@ namespace NCB {
                     loadOptions.ColumnarPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
-                    TDatasetSubset::MakeColumns(),
+                    TDatasetSubset::MakeColumns(trainDatasetSubset.HasFeatures || taskType == ETaskType::CPU),
                     classLabels,
                     executor
                 );
