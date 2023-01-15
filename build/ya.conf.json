@@ -207,6 +207,9 @@
         "horadric": {
             "description": "Run horadric generator"
         },
+        "logbroker": {
+            "description": "Logbroker configuration utility"
+        },
         "zcli": {
             "description": "Run zcli (console client for zephyr)"
         },
@@ -4570,6 +4573,28 @@
                 }
             ]
         },
+        "logbroker": {
+            "tools": {
+                "logbroker": {
+                    "bottle": "logbroker",
+                    "executable": "logbroker"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "zcli": {
             "tools": {
                 "zcli": {
@@ -6739,6 +6764,17 @@
             "executable": {
                 "horadric": [
                     "horadric"
+                ]
+            }
+        },
+        "logbroker": {
+            "formula": {
+                "sandbox_id": 710651516,
+                "match": "logbroker"
+            },
+            "executable": {
+                "logbroker": [
+                    "logbroker"
                 ]
             }
         },
