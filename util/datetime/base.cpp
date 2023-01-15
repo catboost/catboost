@@ -285,8 +285,9 @@ TString DateToString(time_t when, long* sec) {
 
 TString YearToString(const struct tm& theTm) {
     Y_ENSURE(0 <= theTm.tm_year + 1900 && theTm.tm_year + 1900 <= 9999, "invalid year " + ToString(theTm.tm_year + 1900) + ", year should be in range [0, 9999]");
-
-    return Strftime("%04Y", &theTm);
+    char buf[16];
+    sprintf(buf, "%04d", theTm.tm_year + 1900);
+    return buf;
 }
 
 TString YearToString(time_t when) {
