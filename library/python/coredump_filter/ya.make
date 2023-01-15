@@ -3,6 +3,7 @@ PY23_LIBRARY()
 
 
 PY_SRCS(
+    const.py
     core_proc.py
 )
 

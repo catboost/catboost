@@ -2,62 +2,73 @@
 # coding: utf-8
 
 from __future__ import print_function
-
 import os
 import sys
 import re
 import datetime
-import six
+from json import JSONEncoder
+from library.python.coredump_filter import const
 
 
 MY_PATH = os.path.dirname(os.path.abspath(__file__))
 CORE_PROC_VERSION = "0.1.006"
 
 ARCADIA_ROOT_SIGN = '$S/'
+SIGNAL_FLAG = 'Program terminated with signal'
+
+
+# #6  0x0000000001d9203e in NAsio::TIOService::TImpl::Run (this=0x137b1ec00) at /place/
+# sandbox-data/srcdir/arcadia_cache/library/neh/asio/io_service_impl.cpp:77
+regexp_1 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*) at (?P<source>/.*)')
+
+# #5 TCondVar::WaitD (this=this@entry=0x10196b2b8, mutex=..., deadLine=..., deadLine@entry=...)
+# at /place/sandbox-data/srcdir/arcadia_cache/util/system/condvar.cpp:150
+regexp_2 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<func>.*) at (?P<source>/.*)')
+
+# #0  0x00007faf8eb31d84 in pthread_cond_wait@@GLIBC_2.3.2 ()
+# from /lib/x86_64-linux-gnu/libpthread.so.0
+regexp_3 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*) from (?P<source>.*)')
+
+# mvel doesn't provide example :-)
+# #10 0x0000000000000000 in ?? ()
+regexp_4 = re.compile(r'#(?P<frame_no>\d+)[ \t]+(?P<addr>0x[0-9a-f]+) in (?P<func>.*)')
+
+regexp_all = [regexp_1, regexp_2, regexp_3, regexp_4]
+
+
+class EncoderStack(JSONEncoder):
+    def default(self, o):
+        tmp = o.__dict__
+        tmp["frames"] = map(lambda x: x.__dict__, tmp["frames"])
+        return tmp
 
 
 class SourceRoot(object):
-    patterns = [
-        '/util/system/',
-        '/util/generic/',
-        '/library/',
-        '/search/',
-    ]
-
     root = None
     # Distbuild produces the following source paths, so we will count slashes
-    root_slash_count = None
 
     @staticmethod
     def detect(source):
-        if SourceRoot.root is not None:
+        if not source:
+            # For example, regexp_4
             return
 
-        for pattern in SourceRoot.patterns:
-            pos = source.find(pattern)
-
+        for root_dir in const.ARCADIA_ROOT_DIRS:
+            pos = source.find(root_dir)
             if pos > 0:
-                root = source[0:pos + 1]
-                SourceRoot.root = root
-                SourceRoot.root_slash_count = root.count('/') - 1
-                break
+                if (SourceRoot.root and len(SourceRoot.root) > pos) or (not SourceRoot.root):
+                    SourceRoot.root = source[:pos + 1]
 
     @staticmethod
     def crop(source):
+        if not source:
+            return ""
         # when traceback contains only ??, source root cannot be detected
 
-        # first of all, cut by slash count
-        if SourceRoot.root_slash_count is not None:
-            for i in six.moves.range(0, SourceRoot.root_slash_count):
-                slash_pos = source.find('/')
-                if slash_pos >= 0:
-                    source = source[slash_pos + 1:]
-            return ARCADIA_ROOT_SIGN + source
+        if SourceRoot.root is not None:
+            return source.replace(SourceRoot.root, ARCADIA_ROOT_SIGN, 1)
 
-        if SourceRoot.root is None:
-            return ''
-
-        return source.replace(SourceRoot.root, ARCADIA_ROOT_SIGN)
+        return ARCADIA_ROOT_SIGN + source.lstrip("/")
 
 
 def highlight_func(s):
@@ -68,30 +79,29 @@ def highlight_func(s):
 
 
 class Frame:
-    def __init__(self, frame_no=None, addr='', func='', source=''):
+    def __init__(self, frame_no=None, addr='', func='', source='', source_no='', func_name=''):
         self.frame_no = frame_no
         self.addr = addr
         self.func = func
-        self.source_no = ''
-        self.func_name = ''
-
+        self.source_no = source_no
+        self.func_name = func_name
+        SourceRoot.root = None
         SourceRoot.detect(source)
 
-        self.source = source
-
-        m = re.match(r'(.*):(\d+)', source)
-        if m:
-            self.source = m.group(1)
-            self.source_no = m.group(2)
-
-        m = re.match(r'(.*) \(.*\)', self.func)
-        if m:
-            self.func_name = m.group(1)
+        self.source = SourceRoot.crop(source)
+        if not source_no:
+            m = re.match(r'(.*):(\d+)', source)
+            if m:
+                self.source = SourceRoot.crop(m.group(1))
+                self.source_no = m.group(2)
+        if not func_name:
+            m = re.match(r'(.*) \(.*\)', self.func)
+            if m:
+                self.func_name = m.group(1)
 
     def __str__(self):
-        return "{0:3}\t{1:20}\t{2:50}\t{3}".format(
+        return "{0:3}\t{1:30}\t{2}".format(
             self.frame_no,
-            self.addr,
             self.func,
             self.source,
         )
@@ -100,21 +110,43 @@ class Frame:
         return self.func_name
 
     def cropped_source(self):
-        return SourceRoot.crop(self.source)
+        return self.source
 
-    def html(self):
-        source = self.cropped_source()
+    def find_source(self):
+        """
+        Returns link to arcadia if source is path in arcadia, else just string with path
+        :return: pair (source, source_fmt)
+        """
         source_fmt = ''
+        source = ''
+        link = ''
+        dirs = self.source.split('/')
+        if len(dirs) > 1 and '/{dir}/'.format(dir=dirs[1]) in const.ARCADIA_ROOT_DIRS:
+            link = self.source.replace(ARCADIA_ROOT_SIGN, const.ARCADIA_ROOT_LINK)
+        else:
+            source = self.source
         if self.source_no:
             source_fmt = ' +<span class="source-no">{}</span>'.format(self.source_no)
+            if link:
+                link += "?#L{line}".format(line=self.source_no)
 
-        # '<span class="addr">{1}</span>'  # unused
+        if link:
+            source = '<a href="{link}">{source}</a>'.format(
+                link=link,
+                source=self.source,
+            )
+        return source, source_fmt
+
+    def raw(self):
+        return u'{frame} {func} {source}'.format(frame=self.frame_no, func=self.func, source=self.source)
+
+    def html(self):
+        source, source_fmt = self.find_source()
         return (
-            '<span class="frame">{frame}</span>'  # noqa: F522
-            '<span class="func">{func}</span> '
-            '<span class="source">{source}</span>{source_fmt}'.format(
+            u'<span class="frame">{frame}</span>'
+            u'<span class="func">{func}</span> '
+            u'<span class="source">{source}</span>{source_fmt}\n'.format(
                 frame=self.frame_no,
-                addr=self.addr,  # not used
                 func=highlight_func(self.func.replace('&', '&amp;').replace('<', '&lt;')),
                 source=source,
                 source_fmt=source_fmt,
@@ -168,15 +200,28 @@ class Stack:
         'pthread_cond_timedwait',
     ]
 
-    def __init__(self, lines, thread_ptr=0, thread_id=None, stream=None):
+    def __init__(
+        self,
+        lines,
+        thread_ptr=0,
+        thread_id=None,
+        frames=None,
+        important=None,
+        stack_fp=None,
+        fingerprint_hash=None,
+        stream=None,
+    ):
         self.lines = lines
         self.thread_ptr = thread_ptr
         self.thread_id = thread_id
-        self.frames = []
-        self.important = Stack.DEFAULT_IMPORTANT
+        if frames and type(frames[0]) is dict:
+            frames = map(lambda x: Frame(**x), frames)
+        self.frames = frames or []
+        self.important = important or Stack.DEFAULT_IMPORTANT
         if thread_id == 1:
             self.important = Stack.MAX_IMPORTANT
-        self.fingerprint_hash = None
+        self.fingerprint_hash = fingerprint_hash
+        self.stack_fp = stack_fp
         self.stream = stream
 
     def low_important(self):
@@ -214,93 +259,61 @@ class Stack:
         """
         for line in self.lines:
 
-            # #6  0x0000000001d9203e in NAsio::TIOService::TImpl::Run (this=0x137b1ec00) at /place/
-            # sandbox-data/srcdir/arcadia_cache/library/neh/asio/io_service_impl.cpp:77
-            m = re.match(r'#(\d+)[ \t]+(0x[0-9a-f]+) in (.*) at (/.*)', line)
-            if m:
-                self.push_frame(Frame(
-                    frame_no=m.group(1),
-                    addr=m.group(2),
-                    func=m.group(3),
-                    source=m.group(4)
-                ))
-                continue
-
-            # #5 TCondVar::WaitD (this=this@entry=0x10196b2b8, mutex=..., deadLine=..., deadLine@entry=...)
-            # at /place/sandbox-data/srcdir/arcadia_cache/util/system/condvar.cpp:150
-            m = re.match(r'#(\d+)[ \t]+(.*) at (/.*)', line)
-            if m:
-                self.push_frame(Frame(
-                    frame_no=m.group(1),
-                    func=m.group(2),
-                    source=m.group(3)
-                ))
-                continue
-
-            # #0  0x00007faf8eb31d84 in pthread_cond_wait@@GLIBC_2.3.2 ()
-            # from /lib/x86_64-linux-gnu/libpthread.so.0
-            m = re.match(r'#(\d+)[ \t]+(0x[0-9a-f]+) in (.*) from (.*)', line)
-            if m:
-                self.push_frame(Frame(
-                    frame_no=m.group(1),
-                    addr=m.group(2),
-                    func=m.group(3),
-                    source=m.group(4)
-                ))
-                continue
-
-            m = re.match(r'#(\d+)[ \t]+(0x[0-9a-f]+) in (.*)', line)
-            if m:
-                self.push_frame(Frame(
-                    frame_no=m.group(1),
-                    addr=m.group(2),
-                    func=m.group(3)
-                ))
-                continue
-
+            for regexp in regexp_all:
+                m = regexp.match(line)
+                if m:
+                    self.push_frame(Frame(**m.groupdict()))
             self.bad_frame(line)
 
     def bad_frame(self, line):
         # print("BAD:", line)
         pass
 
-    def debug(self):
+    def debug(self, return_result=False):
         if self.low_important():
             return
 
+        res = ""
         for f in self.frames:
-            self.stream.write(f + '\n')
-        self.stream.write('----------------------------- DEBUG END\n')
+            res += f + "\n"
+        res += "----------------------------- DEBUG END\n"
+        if return_result:
+            return res
+        self.stream.write(res)
 
-    def html(self, same_hash=False, same_count=1):
+    def raw(self):
+        return "\n".join([frame.raw() for frame in self.frames])
+
+    def html(self, same_hash=False, same_count=1, return_result=False):
+        ans = ""
         pre_class = "important-" + str(self.important)
         if same_hash:
             pre_class += " same-hash"
 
-        self.stream.write('<pre class="{0}">'.format(pre_class))
+        ans += '<pre class="{0}">'.format(pre_class)
         if not same_hash:
-            self.stream.write('<a name="stack{0}"></a>'.format(self.hash()))
+            ans += '<a name="stack{0}"></a>'.format(self.hash())
 
-        self.stream.write(
-            '<span class="hash"><a href="#stack{0}">#{0}</a>, {1} stack(s) with same hash</span>\n'.format(
-                self.hash(), same_count,
-            )
+        ans += '<span class="hash"><a href="#stack{0}">#{0}</a>, {1} stack(s) with same hash</span>\n'.format(
+            self.hash(), same_count,
         )
 
         for f in self.frames:
-            self.stream.write(f.html() + '\n')
-        self.stream.write('</pre>\n')
+            ans += f.html()
+        ans += '</pre>\n'
 
-    def fingerprint(self):
+        if return_result:
+            return ans
+        self.stream.write(ans)
+
+    def fingerprint(self, max_num=None):
         """
         Stack fingerprint: concatenation of non-common stack frames
         """
-        # if self.low_important():
-        #    return ""
 
         stack_fp = ""
-
-        for f in self.frames:
+        len_frames = min((max_num or len(self.frames)), len(self.frames))
+        for f in self.frames[: len_frames]:
             fp = f.fingerprint()
             if len(fp) == 0:
                 continue
@@ -308,17 +321,52 @@ class Stack:
                 continue
 
             stack_fp += fp + "\n"
-
         stack_fp = stack_fp.strip()
         return stack_fp
 
-    def hash(self):
+    def simple_html(self, num_frames=None):
+        if not num_frames:
+            num_frames = len(self.frames)
+        pre_class = "important-0"
+        ans = '<pre class="{0}">'.format(pre_class)
+        for i in range(min(len(self.frames), num_frames)):
+            ans += self.frames[i].html()
+        ans += '</pre>\n'
+        return ans
+
+    def __str__(self):
+        return "\n".join(map(str, self.frames))
+
+    def hash(self, max_num=None):
         """
         Entire stack hash for merging same stacks
         """
         if self.fingerprint_hash is None:
-            self.fingerprint_hash = hash(self.fingerprint())
+            self.fingerprint_hash = hash(self.fingerprint(max_num))
         return self.fingerprint_hash
+
+
+python_frame_regex = re.compile(r'File \"(?P<source>.*)\", line (?P<source_no>\d+), in (?P<func_name>.*)')
+
+
+def parse_python_traceback(trace):
+    trace = trace.replace("/home/zomb-sandbox/client/", "/")
+    trace = trace.replace("/home/zomb-sandbox/tasks/", "/sandbox/")
+    trace = trace.split("\n")
+    exception = trace[-1]  # Will use it later
+    trace = trace[1: -1]
+    pairs = zip(trace[::2], trace[1::2])
+    stack = Stack(lines=[])
+    for frame_no, (path, row) in enumerate(pairs):
+        m = python_frame_regex.match(path.strip())
+        if m:
+            frame_args = m.groupdict()
+            if not frame_args["source"].startswith("/"):
+                frame_args["source"] = "/" + frame_args["source"]
+            frame_args["frame_no"] = str(frame_no)
+            frame_args["func"] = row.strip()
+            stack.push_frame(Frame(**frame_args))
+    return [[stack]], [[stack.raw()]], 6
 
 
 def get_jquery_path():
@@ -374,66 +422,77 @@ def html_epilog(stream):
     stream.write(_file_contents('epilog.html'))
 
 
-def filter_stackdump(file_name, use_fingerprint=False, sandbox_failed_task_id=None, stream=None):
+def filter_stackdump(
+    file_name=None, use_fingerprint=False, sandbox_failed_task_id=None, stream=None, file_lines=None, use_stream=True,
+):
     stack_lines = []
     main_info = []
     stacks = []
     stack_detected = False
     thread_id = None
     stream = stream or sys.stdout
+    signal = 'signal not found'
 
     sandbox_task_id = None
 
-    with open(file_name) as f:
-        for line in f:
-            line = line.strip()
-            if len(line) == 0:
-                continue
+    if file_lines is None:
+        file_lines = []
+        with open(file_name) as f:
+            for line in f:
+                file_lines.append(line)
 
-            if '[New LWP' in line:
-                continue
+    for line in file_lines:
+        line = line.strip()
+        if len(line) == 0:
+            continue
 
-            # see test2
-            if '[New Thread' in line:
-                continue
+        if '[New LWP' in line:
+            continue
 
-            if '[Thread debugging' in line:
-                continue
+        # see test2
+        if '[New Thread' in line:
+            continue
 
-            if 'Using host libthread_db library' in line:
-                continue
+        if '[Thread debugging' in line:
+            continue
 
-            if line.startswith('warning:'):
-                continue
+        if 'Using host libthread_db library' in line:
+            continue
 
-            if '[New process' in line:
-                continue
+        if line.startswith('warning:'):
+            continue
 
-            if 'Core was generated' in line:
-                m = re.match('.*/[0-9a-f]/[0-9a-f]/([0-9]+)/.*', line)
-                if m:
-                    sandbox_task_id = int(m.group(1))
+        if '[New process' in line:
+            continue
 
-            # [Switching to thread 55 (Thread 0x7f100a94c700 (LWP 21034))]
-            # Thread 584 (Thread 0x7ff363c03700 (LWP 2124)):
+        if 'Core was generated' in line:
+            m = re.match('.*/[0-9a-f]/[0-9a-f]/([0-9]+)/.*', line)
+            if m:
+                sandbox_task_id = int(m.group(1))
 
-            # see test2 and test3
-            tm = re.match('.*[Tt]hread (\d+) .*', line)
-            if tm:
-                stack_detected = True
-                # TODO: thread_ptr
-                if len(stack_lines) > 0:
-                    stack = Stack(lines=stack_lines, thread_id=thread_id, stream=stream)
-                    stacks.append(stack)
+        if SIGNAL_FLAG in line:
+            signal = line[line.find(SIGNAL_FLAG) + len(SIGNAL_FLAG):].split(',')[0]
 
-                stack_lines = []
-                thread_id = int(tm.group(1))
-                continue
+        # [Switching to thread 55 (Thread 0x7f100a94c700 (LWP 21034))]
+        # Thread 584 (Thread 0x7ff363c03700 (LWP 2124)):
 
-            if stack_detected:
-                stack_lines.append(line)
-            else:
-                main_info.append(line)
+        # see test2 and test3
+        tm = re.match(r'.*[Tt]hread (\d+) .*', line)
+        if tm:
+            stack_detected = True
+            # TODO: thread_ptr
+            if len(stack_lines) > 0:
+                stack = Stack(lines=stack_lines, thread_id=thread_id, stream=stream)
+                stacks.append(stack)
+
+            stack_lines = []
+            thread_id = int(tm.group(1))
+            continue
+
+        if stack_detected:
+            stack_lines.append(line)
+        else:
+            main_info.append(line)
 
     # parse last stack
     stack = Stack(lines=stack_lines, thread_id=thread_id, stream=stream)
@@ -443,52 +502,53 @@ def filter_stackdump(file_name, use_fingerprint=False, sandbox_failed_task_id=No
         stack.parse()
         # stack.debug()
 
-    if use_fingerprint:
-        for stack in stacks:
-            stream.write(stack.fingerprint() + '\n')
-            stream.write('--------------------------------------\n')
-    else:
-        html_prolog(stream)
+    if use_stream:
+        if use_fingerprint:
+            for stack in stacks:
+                stream.write(stack.fingerprint() + '\n')
+                stream.write('--------------------------------------\n')
+            return
+        else:
+            html_prolog(stream)
 
-        if sandbox_task_id is not None:
-            stream.write(
-                '<div style="padding-top: 6px; font-size: 18px; font-weight: bold;">Coredumped binary build task: ' +
-                '<a href="https://sandbox.yandex-team.ru/sandbox/tasks/view?task_id={0}">{0}</a></div>\n'.format(
-                    sandbox_task_id)
-            )
+            if sandbox_task_id is not None:
+                stream.write(
+                    '<div style="padding-top: 6px; font-size: 18px; font-weight: bold;">Coredumped binary build task: ' +
+                    '<a href="https://sandbox.yandex-team.ru/sandbox/tasks/view?task_id={0}">{0}</a></div>\n'.format(
+                        sandbox_task_id)
+                )
 
-        if sandbox_failed_task_id is not None:
-            stream.write(
-                '<div style="padding-top: 6px; font-size: 18px; font-weight: bold;">Sandbox failed task: ' +
-                '<a href="https://sandbox.yandex-team.ru/sandbox/tasks/view?task_id={0}">{0}</a></div>\n'.format(
-                    sandbox_failed_task_id)
-            )
+            if sandbox_failed_task_id is not None:
+                stream.write(
+                    '<div style="padding-top: 6px; font-size: 18px; font-weight: bold;">Sandbox failed task: ' +
+                    '<a href="https://sandbox.yandex-team.ru/sandbox/tasks/view?task_id={0}">{0}</a></div>\n'.format(
+                        sandbox_failed_task_id)
+                )
 
-        pre_class = ""
-        stream.write('<pre class="{0}">\n'.format(pre_class))
-        for line in main_info:
-            stream.write(line.replace('&', '&amp;').replace('<', '&lt;') + '\n')
-        stream.write('</pre>\n')
+            pre_class = ""
+            stream.write('<pre class="{0}">\n'.format(pre_class))
+            for line in main_info:
+                stream.write(line.replace('&', '&amp;').replace('<', '&lt;') + '\n')
+            stream.write('</pre>\n')
 
-        sorted_stacks = sorted(stacks, key=lambda x: (x.important, x.fingerprint()), reverse=True)
-        prev_hash = None
-        all_hash_stacks = []
-        cur_hash_stacks = []
-        for stack in sorted_stacks:
-            same_hash = stack.hash() == prev_hash
-            if not same_hash:
-                if len(cur_hash_stacks) > 0:
-                    all_hash_stacks.append(cur_hash_stacks)
-                cur_hash_stacks = [
-                    stack
-                ]
-            else:
-                cur_hash_stacks.append(stack)
-            prev_hash = stack.hash()
-        # push last
-        if len(cur_hash_stacks) > 0:
-            all_hash_stacks.append(cur_hash_stacks)
+    sorted_stacks = sorted(stacks, key=lambda x: (x.important, x.fingerprint()), reverse=True)
+    prev_hash = None
+    all_hash_stacks = []
+    cur_hash_stacks = []
+    for stack in sorted_stacks:
+        same_hash = stack.hash() == prev_hash
+        if not same_hash:
+            if len(cur_hash_stacks) > 0:
+                all_hash_stacks.append(cur_hash_stacks)
+            cur_hash_stacks = [stack, ]
+        else:
+            cur_hash_stacks.append(stack)
+        prev_hash = stack.hash()
+    # push last
+    if len(cur_hash_stacks) > 0:
+        all_hash_stacks.append(cur_hash_stacks)
 
+    if use_stream:
         for cur_hash_stacks in all_hash_stacks:
             same_hash = False
             for stack in cur_hash_stacks:
@@ -496,6 +556,9 @@ def filter_stackdump(file_name, use_fingerprint=False, sandbox_failed_task_id=No
                 same_hash = True
 
         html_epilog(stream)
+    else:
+        raw_hash_stacks = [[stack.raw() for stack in common_hash_stacks] for common_hash_stacks in all_hash_stacks]
+        return all_hash_stacks, raw_hash_stacks, signal
 
 
 if __name__ == '__main__':
