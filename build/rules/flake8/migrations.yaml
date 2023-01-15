@@ -2262,13 +2262,15 @@ migrations:
     - ads/logos/tasks/tsar_pytorch_log/ut/lib
     - ads/logos/viewy/yagraph/Backend
     - ads/nirvana/automl/pipelines/offline_pytorch
-    - ads/nirvana/lib
+    - ads/nirvana/yabs_nirvana.py
     - ads/nirvana/mr_operations/mr_do_aggregate
     - ads/nirvana/online_learning/learn_logs_utils/offline_preprocessed_logs
     - ads/nirvana/online_learning/offline_graph_launcher
     - ads/nirvana/online_learning/preprocess/lib
     - ads/nirvana/online_learning/spiral_offline_apply
     - ads/nirvana/upgrade_operation
+    - ads/targeting/bsmr-scripts/py-modules
+    - ads/targeting/python-objstore/py-modules
     - ads/quality/adv_machine/scripts/download_online_resources
     - ads/quality/adv_machine/scripts/quorum_optimizer/beam_search
     - ads/quality/adv_machine/scripts/quorum_optimizer/lib
@@ -2392,15 +2394,16 @@ migrations:
     - billing/yandex_pay/tools/load/integration_tests/recipes/yandexpay_recipe
     - browser/infra/avd_tools/avd_tools
     - captcha/captcha_test_service/bin
-    - catboost/python-package/lib
     - catboost/python-package/ut/medium/python_binary
+    - catboost/python-package/catboost
     - client_analytics/weekly_pack/weekly_pack
     - cloud/ai/dataforge/bin/examples/feedback_loop
     - cloud/ai/dataforge/lib
     - cloud/ai/datasphere/lib/stt/deployment/python_package/lib
     - cloud/ai/datasphere/lib/stt/metrics/normalizer
     - cloud/ai/datasphere/lib/stt/metrics/python_package/lib
-    - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics/normalizer_service
+    - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics
+    - cloud/ai/datasphere/lib/stt/deployment/python_package/stt_deployment
     - cloud/ai/nirvana/job-processor-test/single_test
     - cloud/ai/nirvana/nv_launcher_agent_copy/lib
     - cloud/ai/speechkit/stt/bin/data_pipeline/calculate_markup_statistics
@@ -2510,6 +2513,8 @@ migrations:
     - cloud/mdb/ya-monitoring-charts/yc
     - comdep_analytics/exceller
     - comdep_analytics/telephony
+    - contrib/python/ipython/py2
+    - contrib/python/semantic-version
     - crm/supskills/direct_skill/src
     - crm/supskills/direct_skill/tests
     - crowdsourcing/thirium-mitm-proxy
@@ -2536,9 +2541,6 @@ migrations:
     - devtools/experimental/blackbox
     - devtools/experimental/mds/cocaine/burlak/bin/cocaine-orca
     - devtools/experimental/mds/cocaine/burlak/lib
-    - devtools/experimental/mds/cocaine/burlak/patches/0003-Add-ya.make.patch:40:+PY_SRCS(
-    - devtools/experimental/mds/cocaine/burlak/patches/0003-Add-ya.make.patch:44:+NO_LINT()
-    - devtools/experimental/mds/cocaine/burlak/patches/0003-Add-ya.make.patch:79:+PY_SRCS(
     - devtools/experimental/mds/cocaine/cli/lib
     - devtools/experimental/mds/cocaine/pipeline3/lib
     - devtools/experimental/mds/cocaine/tools
@@ -2742,7 +2744,7 @@ migrations:
     - extsearch/geo/tools/rubric_synonyms/automation
     - extsearch/geo/tools/rubric_synonyms_mining/metasearch
     - extsearch/geo/tools/similar_orgs/acceptance/similars_search
-    - extsearch/images/functionality/monit_robot_process/monit_client/bin
+    - extsearch/images/functionality/monit_robot_process/monit_client
     - extsearch/images/functionality/rock/abgame_server
     - extsearch/images/ganart/viewer
     - extsearch/images/robot/cluster_state
@@ -2852,6 +2854,7 @@ migrations:
     - infra/nanny/sepelib/http
     - infra/nanny/sepelib/metrics
     - infra/nanny/sepelib/mongo
+    - infra/nanny/sepelib/src
     - infra/nanny/sepelib/subprocess
     - infra/nanny/sepelib/util
     - infra/nanny/sepelib/yandex
@@ -3107,6 +3110,7 @@ migrations:
     - maps/tools/statistics_navi_daily/pylib
     - maps/wikimap/jams_arm2/dev/miror/import_db
     - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tools/test_toloka_server
+    - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tests
     - maps/wikimap/mapspro/services/mrc/libs/unittest/tests/pyserver
     - maps/wikimap/mapspro/services/mrc/long_tasks/toloka_manager_cron_jobs/lib/tests/test_server
     - maps/wikimap/mapspro/services/tasks/fastcgi/bin
@@ -3150,33 +3154,31 @@ migrations:
     - market/tools/tickets_summoneer
     - market/ugc/daemon/ht
     - market/yamarec/edera/edera
-    - mds/cocaine/burlak/bin/cocaine-orca
-    - mds/cocaine/burlak/lib
-    - mds/cocaine/darkvoice/bin/emulator
-    - mds/cocaine/darkvoice/lib
+    - mds/cocaine/burlak/src
+    - mds/cocaine/darkvoice/src
     - mds/cocaine/framework/python
     - mds/cocaine/tools
     - mds/eblob_kit
     - mds/elliptics/bindings/python
     - mds/elliptics/recovery/python
+    - mds/elliptics/recovery/elliptics_recovery
+    - mds/elliptics/tests/pytests
     - mds/elliptics/tests/python/server
     - mds/elliptics/tests/python/statistics_checker
     - mds/langoliers
     - mds/libs/eblob/tests/python
     - mds/libs/jerasure/python
-    - mds/lrc-tools/python
-    - mds/lrc-tools/tests/lib
+    - mds/lrc-tools
     - mds/mastermind/common
     - mds/mastermind/core/bin/mastermind
     - mds/mastermind/core/foreign/opster
     - mds/mastermind/core/lib
+    - mds/mastermind/core/src
     - mds/mastermind/flowmastermind/bin
     - mds/mastermind/flowmastermind/src
     - mds/mastermind/job_processor
-    - mds/mastermind/jobs_integration_tests/bin
-    - mds/mastermind/jobs_integration_tests/lib
-    - mds/mastermind/minion/bin
-    - mds/mastermind/minion/lib
+    - mds/mastermind/jobs_integration_tests/src
+    - mds/mastermind/minion
     - mds/mastermind/monolith
     - mds/mastermind/resizer/analyze_utils
     - mds/mastermind/resizer/bin
@@ -4820,6 +4822,7 @@ migrations:
     - voicetech/bio/pybio/train/tf_patched_models
     - voicetech/bio/tf_future
     - voicetech/common/kaldi_features_lib/python-package/lib
+    - voicetech/common/kaldi_features_lib/python-package/kaldi_features
     - voicetech/infra/gdpr_proxy/gdpr-filter
     - voicetech/infra/lingwarefactory/yaldi-apply-soundset
     - voicetech/infra/qa/speechbase-voiceproxy-logsv3-cleanup
@@ -4854,6 +4857,7 @@ migrations:
     - web/daemons/begemot/scripts/yt_priemka
     - wmconsole/backend/packaging-tools
     - yabs/amazon/cache_proxy
+    - yabs/basic_packages/yabs-global-info/py-modules
     - yabs/bscount/protocol/pyfbs
     - yabs/cache-proxy/plugin/proxy_b2b/templates
     - yabs/direct_tools/pylibs/api
@@ -4893,7 +4897,7 @@ migrations:
     - yabs/qa/yabs_b2b_tank/qabs/common
     - yabs/sbyt/devutils/move-release
     - yabs/sbyt/migration/BSDEV-75115-AdvmachineBanners
-    - yabs/sbyt/supervisor/lib
+    - yabs/sbyt/supervisor
     - yabs/server/cs/pylibs/yt_query_map
     - yabs/server/infra/transport/yabs_file_transport
     - yabs/server/infra/validator
@@ -4916,10 +4920,10 @@ migrations:
     - yql/library/test_framework/recipe
     - yql/scripts/run_acceptance_chyt
     - yql/tests/dq/lib
-    - yql/tools/job_perf/bin
+    - yql/tools/job_perf
     - yql/tools/nginx_mon
-    - yql/tools/yqlflask/bin
-    - yql/tools/yqltornado/bin
+    - yql/tools/yqlflask
+    - yql/tools/yqltornado
     - yt/admin/acl_dumper/src
     - yt/admin/allotments_balancer/src
     - yt/admin/brahmagupta/src/brahmagupta_api
