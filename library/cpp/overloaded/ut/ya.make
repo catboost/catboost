@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/overloaded
+    library/cpp/overloaded
 )
 
 END()
