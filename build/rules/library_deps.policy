@@ -27,6 +27,6 @@ ALLOW library/cpp/http/client/fetch -> kernel
 ALLOW library/cpp/text_processing/yandex_specific_lemmer -> kernel/lemmer
 ALLOW library/cpp/digest/benchmark -> yabs/server/util
 ALLOW library/cpp/eventlog/rt/tool -> search/idl
-ALLOW library/dolbilo/planner -> search/idl
+ALLOW library/cpp/dolbilo/planner -> search/idl
 ALLOW library/cpp/vowpalwabbit/tools/vw_ops -> ml/differential_evolution
 DENY library -> .*
