@@ -6,6 +6,8 @@ import collections
 import optparse
 import pipes
 
+import process_whole_archive_option as pwa
+
 
 def shlex_join(cmd):
     # equivalent to shlex.join() in python 3
@@ -259,6 +261,7 @@ if __name__ == '__main__':
 
     cmd = fix_cmd(opts.arch, opts.musl, args)
     cmd = postprocess_whole_archive(opts, cmd)
+    cmd = pwa.process_whole_archive_for_global_libs(cmd)
     proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     proc.communicate()
 
