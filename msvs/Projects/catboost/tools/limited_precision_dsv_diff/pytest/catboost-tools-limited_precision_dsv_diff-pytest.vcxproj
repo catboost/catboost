@@ -317,11 +317,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\pyJinja2.global.vcxproj">
       <Project>{E256A8D2-AF93-29CE-D2E6-E82CE585A3C2}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py3contrib-python-MarkupSafe.global.vcxproj">
-      <Project>{25ABDCE6-F315-0635-80FF-F750CA5C6D67}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py2\pypython-MarkupSafe-py2.global.vcxproj">
+      <Project>{DBE410BD-B7CE-63DF-8D8A-BDB14151A7BB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\pycontrib-python-MarkupSafe.global.vcxproj">
-      <Project>{62784B2F-19B0-4E85-96AC-2ECD152ADD13}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py3\pypython-MarkupSafe-py3.global.vcxproj">
+      <Project>{C724FA94-187F-BD78-BA1E-CB365E7E1818}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py2\pypython-Pygments-py2.global.vcxproj">
       <Project>{6426C752-DF10-D002-6A8F-980B7DA0EAA5}</Project>
