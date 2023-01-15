@@ -912,10 +912,17 @@ class Ya(object):
         if os.name == "nt":
             if not path[-1].endswith(".exe"):
                 path[-1] += ".exe"
-        binary_path = os.path.join(self.build_root, *path)
-        if os.path.exists(binary_path):
-            yatest_logger.debug("Binary was found by %s", binary_path)
-            return binary_path
+
+        target_dirs = [self.build_root]
+        # Search for binaries within PATH dirs to be able to get path to the binaries specified by basename for exectests
+        if 'PATH' in os.environ:
+            target_dirs += os.environ['PATH'].split(':')
+
+        for target_dir in target_dirs:
+            binary_path = os.path.join(target_dir, *path)
+            if os.path.exists(binary_path):
+                yatest_logger.debug("Binary was found by %s", binary_path)
+                return binary_path
 
         error_message = "Cannot find binary '{binary}': make sure it was added in the DEPENDS section".format(binary=path)
         yatest_logger.debug(error_message)
