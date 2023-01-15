@@ -21,9 +21,10 @@ CFLAGS(
     -D__TBB_USE_ITT_NOTIFY
 )
 
-IF (CLANG12)
+IF (CLANG)
     IF (ARCH_I386 OR ARCH_I686 OR ARCH_X86_64)
         CFLAGS(
+            -mrtm
             -mwaitpkg
         )
     ENDIF()
