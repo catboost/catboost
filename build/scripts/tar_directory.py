@@ -23,7 +23,6 @@ def main(args):
             dest = os.path.abspath(directory)
             if not os.path.exists(dest):
                 os.makedirs(dest)
-            raise Exception(' '.join([tar_exe, '-xf', tar, '-C', dest]))
             os.execv(tar_exe, [tar_exe, '-xf', tar, '-C', dest])
         else:
             source = os.path.relpath(directory, prefix) if prefix else directory
