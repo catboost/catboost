@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <util/folder/path.h>
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
@@ -32,10 +34,16 @@ TString GetWorkPath();
 TFsPath GetOutputPath();
 
 // @brief return path from env:YA_TEST_RAM_DRIVE_PATH
-TString GetRamDrivePath();
+const TString& GetRamDrivePath();
 
 // @brief return path from env:YA_TEST_OUTPUT_RAM_DRIVE_PATH
-TString GetOutputRamDrivePath();
+const TString& GetOutputRamDrivePath();
+
+// @brief return test parameter by name. If not exists, return an empty string
+TString GetTestParam(TStringBuf name);
+
+// @brief return path to the gdb
+const TString& GdbPath();
 
 #define SRC_(path) ArcadiaFromCurrentLocation(__SOURCE_FILE__, path)
 
@@ -53,6 +61,8 @@ namespace NPrivate {
         TString WorkPath;
         TString RamDrivePath;
         TString TestOutputRamDrivePath;
+        TString GdbPath;
+        std::unordered_map<TString, TString> TestParameters;
     };
 
     TString GetCwd();
