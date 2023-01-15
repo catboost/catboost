@@ -520,6 +520,11 @@ class ConfigMetadataHandler(ConfigHandler):
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
             'license': exclude_files_parser('license'),
+            'license_file': self._deprecated_config_handler(
+                exclude_files_parser('license_file'),
+                "The license_file parameter is deprecated, "
+                "use license_files instead.",
+                DeprecationWarning),
             'license_files': parse_list,
             'description': parse_file,
             'long_description': parse_file,

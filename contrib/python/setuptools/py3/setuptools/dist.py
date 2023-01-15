@@ -15,6 +15,7 @@ import distutils.command
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
+from glob import iglob
 import itertools
 import textwrap
 from typing import List, Optional, TYPE_CHECKING
@@ -28,6 +29,7 @@ from distutils.version import StrictVersion
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
+from setuptools.extern.more_itertools import unique_everseen
 
 from . import SetuptoolsDeprecationWarning
 
@@ -92,6 +94,13 @@ def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
     return values
 
 
+def _read_payload_from_msg(msg: "Message") -> Optional[str]:
+    value = msg.get_payload().strip()
+    if value == 'UNKNOWN':
+        return None
+    return value
+
+
 def read_pkg_file(self, file):
     """Reads the metadata values from a file object."""
     msg = message_from_file(file)
@@ -114,6 +123,8 @@ def read_pkg_file(self, file):
         self.download_url = None
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
+    if self.long_description is None and self.metadata_version >= StrictVersion('2.1'):
+        self.long_description = _read_payload_from_msg(msg)
     self.description = _read_field_from_msg(msg, 'summary')
 
     if 'keywords' in msg:
@@ -131,6 +142,8 @@ def read_pkg_file(self, file):
         self.requires = None
         self.provides = None
         self.obsoletes = None
+
+    self.license_files = _read_list_from_msg(msg, 'license-file')
 
 
 def single_line(val):
@@ -176,9 +189,6 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     for project_url in self.project_urls.items():
         write_field('Project-URL', '%s, %s' % project_url)
 
-    long_desc = rfc822_escape(self.get_long_description())
-    write_field('Description', long_desc)
-
     keywords = ','.join(self.get_keywords())
     if keywords:
         write_field('Keywords', keywords)
@@ -206,6 +216,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if self.provides_extras:
         for extra in self.provides_extras:
             write_field('Provides-Extra', extra)
+
+    self._write_list(file, 'License-File', self.license_files or [])
+
+    file.write("\n%s\n\n" % self.get_long_description())
 
 
 sequence = tuple, list
@@ -403,10 +417,11 @@ class Distribution(_Distribution):
     """
 
     _DISTUTILS_UNSUPPORTED_METADATA = {
-        'long_description_content_type': None,
+        'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': ordered_set.OrderedSet,
-        'license_files': ordered_set.OrderedSet,
+        'license_file': lambda: None,
+        'license_files': lambda: None,
     }
 
     _patched_dist = None
@@ -442,21 +457,21 @@ class Distribution(_Distribution):
             if k not in self._DISTUTILS_UNSUPPORTED_METADATA
         })
 
-        # Fill-in missing metadata fields not supported by distutils.
-        # Note some fields may have been set by other tools (e.g. pbr)
-        # above; they are taken preferrentially to setup() arguments
-        for option, default in self._DISTUTILS_UNSUPPORTED_METADATA.items():
-            for source in self.metadata.__dict__, attrs:
-                if option in source:
-                    value = source[option]
-                    break
-            else:
-                value = default() if default else None
-            setattr(self.metadata, option, value)
+        self._set_metadata_defaults(attrs)
 
         self.metadata.version = self._normalize_version(
             self._validate_version(self.metadata.version))
         self._finalize_requires()
+
+    def _set_metadata_defaults(self, attrs):
+        """
+        Fill-in missing metadata fields not supported by distutils.
+        Some fields may have been set by other tools (e.g. pbr).
+        Those fields (vars(self.metadata)) take precedence to
+        supplied attrs.
+        """
+        for option, default in self._DISTUTILS_UNSUPPORTED_METADATA.items():
+            vars(self.metadata).setdefault(option, attrs.get(option, default()))
 
     @staticmethod
     def _normalize_version(version):
@@ -565,6 +580,34 @@ class Distribution(_Distribution):
         req.marker = None
         return req
 
+    def _finalize_license_files(self):
+        """Compute names of all license files which should be included."""
+        license_files: Optional[List[str]] = self.metadata.license_files
+        patterns: List[str] = license_files if license_files else []
+
+        license_file: Optional[str] = self.metadata.license_file
+        if license_file and license_file not in patterns:
+            patterns.append(license_file)
+
+        if license_files is None and license_file is None:
+            # Default patterns match the ones wheel uses
+            # See https://wheel.readthedocs.io/en/stable/user_guide.html
+            # -> 'Including license files in the generated wheel file'
+            patterns = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
+
+        self.metadata.license_files = list(
+            unique_everseen(self._expand_patterns(patterns)))
+
+    @staticmethod
+    def _expand_patterns(patterns):
+        return (
+            path
+            for pattern in patterns
+            for path in iglob(pattern)
+            if not path.endswith('~')
+            and os.path.isfile(path)
+        )
+
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
         """
@@ -639,7 +682,7 @@ class Distribution(_Distribution):
             return opt
 
         underscore_opt = opt.replace('-', '_')
-        commands = distutils.command.__all__ + setuptools.command.__all__
+        commands = distutils.command.__all__ + self._setuptools_commands()
         if (not section.startswith('options') and section != 'metadata'
                 and section not in commands):
             return underscore_opt
@@ -650,6 +693,14 @@ class Distribution(_Distribution):
                 "versions. Please use the underscore name '%s' instead"
                 % (opt, underscore_opt))
         return underscore_opt
+
+    def _setuptools_commands(self):
+        try:
+            dist = pkg_resources.get_distribution('setuptools')
+            return list(dist.get_entry_map('distutils.commands'))
+        except pkg_resources.DistributionNotFound:
+            # during bootstrapping, distribution doesn't exist
+            return []
 
     def make_option_lowercase(self, opt, section):
         if section != 'metadata' or opt.islower():
@@ -721,6 +772,7 @@ class Distribution(_Distribution):
         parse_configuration(self, self.command_options,
                             ignore_option_errors=ignore_option_errors)
         self._finalize_requires()
+        self._finalize_license_files()
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
