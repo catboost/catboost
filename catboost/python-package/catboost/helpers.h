@@ -161,19 +161,20 @@ NJson::TJsonValue GetPlainJsonWithAllOptions(
 class TPythonStreamWrapper : public IInputStream {
 
 public:
-    using TReadFunction = std::function<size_t(char*, size_t)>;
-    TPythonStreamWrapper() = default;
-    TPythonStreamWrapper& operator=(const TPythonStreamWrapper& other) {
-        ReadFunc = other.ReadFunc;
-        return *this;
-    }
-    TPythonStreamWrapper(TReadFunction func): ReadFunc(func) {}
+    using TReadFunction = std::function<size_t(char*, size_t, PyObject*, TString*)>;
+
+    TPythonStreamWrapper(TReadFunction func, PyObject* stream): ReadFunc(func), Stream(stream) {}
 
 protected:
     size_t DoRead(void *buf, size_t len) override {
-        return ReadFunc(static_cast<char*>(buf), len);
+        TString errStr;
+        size_t result = ReadFunc(static_cast<char*>(buf), len, Stream, &errStr);
+
+        CB_ENSURE(result != static_cast<size_t>(-1), errStr);
+        return result;
     }
 
 private:
     TReadFunction ReadFunc;
+    PyObject* Stream;
 };
