@@ -103,7 +103,6 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\containers\comptrie\minimize.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\containers\comptrie\node.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\containers\comptrie\opaque_trie_iterator.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\comptrie\pattern_searcher.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\containers\comptrie\prefix_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\containers\comptrie\protopacker.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\containers\comptrie\search_iterator.h"/>
