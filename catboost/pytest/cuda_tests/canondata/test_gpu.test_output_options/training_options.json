@@ -27,11 +27,11 @@
     "metrics" : {
         "objective_metric" : {
             "type" : "Logloss",
-            "params" : [ ]
+            "params" : { }
         },
         "eval_metric" : {
             "type" : "Logloss",
-            "params" : [ ]
+            "params" : { }
         },
         "custom_metrics" : [ ]
     },
@@ -230,7 +230,7 @@
     },
     "loss_function" : {
         "type" : "Logloss",
-        "params" : [ ]
+        "params" : { }
     },
     "tree_learner_options" : {
         "model_size_reg" : 0.5,
