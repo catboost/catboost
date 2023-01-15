@@ -14,7 +14,6 @@ ALLOW clickhouse -> contrib/restricted/dragonbox
 # Arcadia is not ready for this, that's why we added this library in restricted.
 ALLOW clickhouse -> contrib/restricted/fast_float
 
-
 # ClickHouse uses hash-table from abseil-cpp for better performance in CacheDictionaries and SSDCacheDictionaries,
 # because it the best best open source hash table framework (swiss hash tables, hash functions)
 ALLOW clickhouse -> contrib/restricted/abseil-cpp
@@ -94,6 +93,11 @@ ALLOW maps/infra/ecstatic -> contrib/restricted/libtorrent
 # strm/common/go/pkg/murmur3 is a CGO binding to murmurhash, thus dependency is allowed
 ALLOW strm/common/go/pkg/murmur3 -> contrib/restricted/murmurhash
 ALLOW clickhouse -> contrib/restricted/murmurhash
+
+# exiv2 is GPL-licensed. Only small subset of our libraries can use it.
+ALLOW extsearch/images/chunks/exiftags -> contrib/restricted/exiv2
+ALLOW maps/wikimap/mapspro/services/mrc/libs/common -> contrib/restricted/exiv2
+ALLOW yweb/disk/ocraas -> contrib/restricted/exiv2
 
 # Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost
