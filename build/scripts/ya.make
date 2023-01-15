@@ -23,11 +23,11 @@ TEST_SRCS(
     coverage-info.py
     cpp_flatc_wrapper.py
     create_jcoverage_report.py
+    create_pysrc.py
     extract_asrc.py
     extract_jacoco_report.py
     f2c.py
     fail_module_cmd.py
-    fbs_to_pysrc.py
     fetch_from.py
     fetch_from_external.py
     fetch_from_mds.py
