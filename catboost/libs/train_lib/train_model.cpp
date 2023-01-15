@@ -50,11 +50,22 @@
 #include <util/random/shuffle.h>
 #include <util/system/compiler.h>
 #include <util/system/hp_timer.h>
-
+#include <library/cpp/threading/local_executor/tbb_local_executor.h>
 #include <functional>
 
 using namespace NCB;
 
+static THolder<NPar::ILocalExecutor> CreateLocalExecutor(const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+    const bool isGpuDeviceType = catBoostOptions.GetTaskType() == ETaskType::GPU;
+    const int threadCount = catBoostOptions.SystemOptions.Get().NumThreads.Get();
+    if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
+        auto localExecutorHolder = MakeHolder<NPar::TLocalExecutor>();
+        localExecutorHolder->RunAdditionalThreads(threadCount - 1);
+        return localExecutorHolder;
+    } else {
+        return MakeHolder<NPar::TTbbLocalExecutor<>>(threadCount);
+    }
+}
 
 static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgress* progress) {
     itCount += SafeIntegerCast<int>(progress->InitTreesSize);
@@ -1119,10 +1130,6 @@ void TrainModel(
         );
     }
 
-
-    NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
-
     TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
     const auto objectsOrder = catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
         EObjectsOrder::Ordered : EObjectsOrder::Undefined;
@@ -1141,7 +1148,7 @@ void TrainModel(
             << pathScheme << ";" << " fstr type is set to " << EFstrType::PredictionValuesChange << Endl;
         fstrType = EFstrType::PredictionValuesChange;
     }
-
+    THolder<NPar::ILocalExecutor> localExecutorHolder = CreateLocalExecutor(catBoostOptions);
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.GetTaskType(),
@@ -1149,7 +1156,7 @@ void TrainModel(
         objectsOrder,
         TDatasetSubset::MakeColumns(haveLearnFeaturesInMemory),
         &classLabels,
-        &executor,
+        localExecutorHolder.Get(),
         &profile);
 
     const bool hasEmbeddingFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0;
@@ -1162,7 +1169,7 @@ void TrainModel(
         precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrData(
             catBoostOptions.GetTaskType(),
             loadOptions,
-            &executor,
+            localExecutorHolder.Get(),
             &profile
         );
     }
@@ -1224,7 +1231,7 @@ void TrainModel(
         GetMutablePointers(evalResults),
         /*metricsAndTimeHistory*/ nullptr,
         /*dstLearnProgress*/ nullptr,
-        &executor
+        localExecutorHolder.Get()
     );
 
     const auto fullModelPath = NCatboostOptions::AddExtension(
@@ -1246,7 +1253,7 @@ void TrainModel(
             const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
             OutputEvalResultToFile(
                 evalResults[testIdx],
-                &executor,
+                localExecutorHolder.Get(),
                 outputColumns,
                 model.GetLossFunctionName(),
                 visibleLabelsHelper,
@@ -1279,7 +1286,7 @@ void TrainModel(
         CalcAndOutputFstr(
             model,
             useLearnToCalcFstr ? pools.Learn : nullptr,
-            &executor,
+            localExecutorHolder.Get(),
             &fstrRegularFileName,
             &fstrInternalFileName,
             fstrType);
@@ -1505,11 +1512,7 @@ void TrainModel(
 
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputFilesOptionsJson);
-
-    NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(
-        NCatboostOptions::GetThreadCount(trainOptionsJson) - 1);
-
+    THolder<NPar::ILocalExecutor> localExecutorHolder = CreateLocalExecutor(NCatboostOptions::LoadOptions(trainOptionsJson));
     TrainModel(
         trainOptionsJson,
         outputOptions,
@@ -1526,5 +1529,5 @@ void TrainModel(
         evalResultPtrs,
         metricsAndTimeHistory,
         dstLearnProgress,
-        &executor);
+        localExecutorHolder.Get());
 }
