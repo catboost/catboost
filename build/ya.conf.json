@@ -432,6 +432,9 @@
         "iceflame": {
             "description": "Performance data collection and analysis"
         },
+        "cs": {
+            "description": "Fast CodeSearch CLI tool"
+        },
         "wall-e": {
             "description": "Client for Wall-E"
         },
@@ -6409,6 +6412,28 @@
                 }
             ]
         },
+        "cs": {
+            "tools": {
+                "cs": {
+                    "bottle": "cs",
+                    "executable": "cs"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "wall-e": {
             "tools": {
                 "wall-e": {
@@ -8837,6 +8862,17 @@
             "executable": {
                 "iceflame": [
                     "iceflame"
+                ]
+            }
+        },
+        "cs": {
+            "formula": {
+                "sandbox_id": 953206469,
+                "match": "cs"
+            },
+            "executable": {
+                "cs": [
+                    "cs"
                 ]
             }
         },
