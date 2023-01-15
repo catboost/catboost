@@ -31,6 +31,7 @@ Install CatBoost by following the guide for the
  * [Python package](https://catboost.ai/docs/concepts/python-installation.html)
  * [R-package](https://catboost.ai/docs/concepts/r-installation.html)
  * [command line](https://catboost.ai/docs/concepts/cli-installation.html)
+ * [Package for Apache Spark](https://github.com/catboost/catboost/tree/master/catboost/spark/catboost4j-spark#setup)
 
 Next you may want to investigate:
 * [Tutorials](https://github.com/catboost/tutorials/#readme)
