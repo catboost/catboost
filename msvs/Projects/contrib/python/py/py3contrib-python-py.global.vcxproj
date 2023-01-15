@@ -312,7 +312,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_632c1494173bdb39c3630fdfc1.cpp" "--ya-start-command-file" "contrib/python/py/86508f5842b01fbcf7d3d42f68.cpp" "contrib/python/py/a36aee3bd5285aada72a74d53a.cpp" "contrib/python/py/1ccc4939a9e3f1cc73d9c69f39.cpp" "contrib/python/py/7de20dc7ffe03934a228e822b5.cpp" "contrib/python/py/86e908c76085f52f6c5db63843.cpp" "contrib/python/py/ea3f50c640c2f2d888c0539e8d.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_632c1494173bdb39c3630fdfc1.cpp" "--ya-start-command-file" "contrib/python/py/86508f5842b01fbcf7d3d42f68.cpp" "contrib/python/py/a36aee3bd5285aada72a74d53a.cpp" "contrib/python/py/1ccc4939a9e3f1cc73d9c69f39.cpp" "contrib/python/py/7de20dc7ffe03934a228e822b5.cpp" "contrib/python/py/86e908c76085f52f6c5db63843.cpp" "contrib/python/py/ea3f50c640c2f2d888c0539e8d.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -323,7 +323,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_632c1494173bdb39c3630fdfc1.cpp" "--ya-start-command-file" "contrib/python/py/86508f5842b01fbcf7d3d42f68.cpp" "contrib/python/py/a36aee3bd5285aada72a74d53a.cpp" "contrib/python/py/1ccc4939a9e3f1cc73d9c69f39.cpp" "contrib/python/py/7de20dc7ffe03934a228e822b5.cpp" "contrib/python/py/86e908c76085f52f6c5db63843.cpp" "contrib/python/py/ea3f50c640c2f2d888c0539e8d.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_632c1494173bdb39c3630fdfc1.cpp" "--ya-start-command-file" "contrib/python/py/86508f5842b01fbcf7d3d42f68.cpp" "contrib/python/py/a36aee3bd5285aada72a74d53a.cpp" "contrib/python/py/1ccc4939a9e3f1cc73d9c69f39.cpp" "contrib/python/py/7de20dc7ffe03934a228e822b5.cpp" "contrib/python/py/86e908c76085f52f6c5db63843.cpp" "contrib/python/py/ea3f50c640c2f2d888c0539e8d.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

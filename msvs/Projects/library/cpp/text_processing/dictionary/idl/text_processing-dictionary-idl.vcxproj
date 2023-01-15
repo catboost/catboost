@@ -85,7 +85,7 @@ cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\dictionary\idl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h" "$(SolutionDir)../library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h" "$(SolutionDir)../library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -98,7 +98,7 @@ cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\dictionary\idl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h" "$(SolutionDir)../library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h" "$(SolutionDir)../library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
