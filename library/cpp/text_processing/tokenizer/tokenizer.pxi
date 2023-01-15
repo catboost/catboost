@@ -34,7 +34,7 @@ cdef TTokenizerOptions CreateTokenizerOptions(
     token_types,
     sub_tokens_policy,
     languages,
-):
+) except *:
     cdef TTokenizerOptions tokenizer_options
 
     if lowercasing is not None:
@@ -164,8 +164,7 @@ cdef class Tokenizer:
             languages,
         )
 
-        cdef TTokenizer* tokenizerPtr = new TTokenizer(tokenizer_options)
-        self.__tokenizer = THolder[TTokenizer](tokenizerPtr)
+        self.__tokenizer = MakeHolder[TTokenizer](tokenizer_options)
 
     def tokenize(self, string, types=False):
         """
