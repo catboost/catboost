@@ -1343,6 +1343,22 @@ TString TFullModel::GetLossFunctionName() const {
 }
 
 
+double TFullModel::GetBinClassProbabilityThreshold() const {
+    double threshold = DEFAULT_BINCLASS_PROBABILITY_THRESHOLD;
+    if (ModelInfo.contains("binclass_probability_threshold")) {
+        if (!TryFromString<double>(ModelInfo.at("binclass_probability_threshold"), threshold)) {
+            CATBOOST_WARNING_LOG << "Float number at metadata key binclass_probability_threshold cannot be parsed" << Endl;
+        }
+    }
+    return threshold;
+}
+
+
+double TFullModel::GetBinClassLogitThreshold() const {
+    return NCB::Logit(GetBinClassProbabilityThreshold());
+}
+
+
 static TVector<NJson::TJsonValue> GetSequentialIntegerClassLabels(size_t classCount) {
     TVector<NJson::TJsonValue> classLabels;
     classLabels.reserve(classCount);

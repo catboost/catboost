@@ -5030,6 +5030,9 @@ cdef class _CatBoost:
                 nanTreatments[pair.first] = 'AsTrue'
         return nanTreatments
 
+    cpdef _get_binclass_probability_threshold(self):
+        return self.__model.GetBinClassProbabilityThreshold()
+
 
 cdef class _MetadataHashProxy:
     cdef _CatBoost _catboost
