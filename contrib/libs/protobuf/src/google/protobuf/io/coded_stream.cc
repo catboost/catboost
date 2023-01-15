@@ -689,7 +689,10 @@ bool CodedOutputStream::GetDirectBufferPointer(void** data, int* size) {
 
 void CodedOutputStream::WriteRaw(const void* data, int size) {
   while (buffer_size_ < size) {
-    memcpy(buffer_, data, buffer_size_);
+    // this check is needed to get rid of ubsan errors
+    if (buffer_) {
+      memcpy(buffer_, data, buffer_size_);
+    }
     size -= buffer_size_;
     data = reinterpret_cast<const uint8*>(data) + buffer_size_;
     if (!Refresh()) return;
