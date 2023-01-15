@@ -696,6 +696,9 @@ ALLOW .* -> vendor/github.com/DataDog/zstd
 # Native Go debugger
 ALLOW vendor -> vendor/github.com/go-delve/delve/cmd/dlv
 
+# Profile visualization
+ALLOW .* -> vendor/github.com/google/pprof
+
 # gRPCurl
 ALLOW vendor -> vendor/github.com/fullstorydev/grpcurl/cmd/grpcurl
 
