@@ -1654,7 +1654,6 @@ migrations:
     - metrika/admin/python/duty/bot/lib
     - metrika/admin/python/duty/frontend/duty
     - metrika/admin/python/scripts/jrun
-    - metrika/admin/python/zooface/frontend/zooface
     - metrika/tasklets/conductor/impl
     - milab/lib/i2tclient/python
     - ml/tensorflow/tfnn/tests
