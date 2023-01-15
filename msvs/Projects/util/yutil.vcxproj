@@ -437,6 +437,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\system\datetime.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\defaults.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\demangle.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\demangle_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\direct_io.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\dynlib.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\env.h"/>
