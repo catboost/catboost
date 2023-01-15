@@ -2,4 +2,5 @@ bindings/**/*
 build/**/*
 test_data/**/*
 lib/tests/**/*
+build_scripts/*.ts
 tsconfig.json
