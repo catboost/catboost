@@ -277,6 +277,13 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                    LambdaDiag,    //classic l2 adjust
                    streamId);
 
+        if (result->SqrtMatrices) {
+            CopyReducedTempResult(sqrtMatrix,
+                                  flatResultsSlice,
+                                  *result->SqrtMatrices,
+                                  streamId);
+        }
+
         //if only pairwise ders, then we don't need last row
         const bool removeLastRow = !NeedPointwiseWeights;
 
@@ -300,13 +307,6 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
             CopyReducedTempResult(linearSystem,
                                   flatResultsSlice,
                                   *result->LinearSystems,
-                                  streamId);
-        }
-
-        if (result->SqrtMatrices) {
-            CopyReducedTempResult(sqrtMatrix,
-                                  flatResultsSlice,
-                                  *result->SqrtMatrices,
                                   streamId);
         }
     }
