@@ -393,7 +393,7 @@ ALLOW travel/avia -> contrib/python/pymqi
 DENY .* -> contrib/python/pymqi
 
 # https://st.yandex-team.ru/CONTRIB-1839
-ALLOW datalens/backend/dls -> contrib/python/Quart
+ALLOW datalens/backend/app/dls -> contrib/python/Quart
 DENY .* -> contrib/python/Quart
 
 # https://st.yandex-team.ru/CONTRIB-2012

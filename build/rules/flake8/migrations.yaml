@@ -1482,8 +1482,8 @@ migrations:
     - datalens/backend/bi-billing
     - datalens/backend/bi-billing/bi_billing
     - datalens/backend/bi-billing/bi_billing/resources
-    - datalens/backend/dls
-    - datalens/backend/dls/yadls
+    - datalens/backend/app/dls
+    - datalens/backend/app/dls/yadls
     - devtools/contrib/statistics/auto_import
     - devtools/distbuild/dejavu/cache_requester/client/py
     - devtools/local_cache/ac/tests/perfac
@@ -2060,8 +2060,8 @@ migrations:
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - crm/crm-logbroker-consumer
     - cv/short2long/nirvana/lib
-    - datalens/backend/dls
-    - datalens/backend/dls/yadls
+    - datalens/backend/app/dls
+    - datalens/backend/app/dls/yadls
     - devtools/signer/signer
     - dict/ontodb/cmpy/lib
     - dict/ontodb/isa/libshorttext/converter/stemmer
@@ -2845,8 +2845,8 @@ migrations:
     - arc/tables_creation/tests
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - crm/crm-logbroker-consumer
-    - datalens/backend/dls
-    - datalens/backend/dls/yadls
+    - datalens/backend/app/dls
+    - datalens/backend/app/dls/yadls
     - devtools/signer/signer
     - dict/lm/sources/lib/launcher
     - dict/ontodb/isa/libshorttext/converter/stemmer
