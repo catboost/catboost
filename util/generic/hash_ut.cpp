@@ -157,6 +157,9 @@ void THashTest::TestHMapConstructorsAndAssignments() {
     UNIT_ASSERT_VALUES_EQUAL(2, c4.at("two"));
     UNIT_ASSERT_VALUES_EQUAL(3, c4.at("three"));
     UNIT_ASSERT_VALUES_EQUAL(4, c4.at("four"));
+
+    // non-existent values must be zero-initialized
+    UNIT_ASSERT_VALUES_EQUAL(c1["nonexistent"], 0);
 }
 
 void THashTest::TestHMap1() {
