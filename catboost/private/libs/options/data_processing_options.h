@@ -57,9 +57,4 @@ namespace NCatboostOptions {
     constexpr float GetDefaultPredictionBorder() {
         return 0.5;
     }
-
-    // Tries to find the target probability border for the binary metrics among params (see |PREDICTION_BORDER_PARAM|
-    // key). Returns nothing if the key isn't present in the map and throws an exception if the border target is not
-    // a valid floating point number.
-    TMaybe<float> GetPredictionBorderFromLossParams(const TMap<TString, TString>& params);
 }

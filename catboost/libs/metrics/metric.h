@@ -21,24 +21,30 @@
 #include <util/generic/array_ref.h>
 
 #include <cmath>
+#include <utility>
 
 using NCatboostOptions::GetDefaultTargetBorder;
 using NCatboostOptions::GetDefaultPredictionBorder;
 
 struct TMetricConfig {
-    explicit TMetricConfig(ELossFunction metric, const TMap<TString, TString>& params,
-                           int approxDimension, double binaryClassPredictionBorder,
-                           TSet<TString>* validParams)
+    explicit TMetricConfig(ELossFunction metric, TLossParams params,
+                           int approxDimension, TSet<TString>* validParams)
         : metric(metric)
-        , params(params)
+        , params(std::move(params))
         , approxDimension(approxDimension)
-        , binaryClassPredictionBorder(binaryClassPredictionBorder)
         , validParams(validParams) {}
 
+    double GetPredictionBorderOrDefault() const {
+        return NCatboostOptions::GetPredictionBorderOrDefault(params.GetParamsMap(), GetDefaultPredictionBorder());
+    }
+
+    const TMap<TString, TString>& GetParamsMap() const {
+        return params.GetParamsMap();
+    }
+
     ELossFunction metric;
-    const TMap<TString, TString>& params;
+    TLossParams params;
     const int approxDimension;
-    const double binaryClassPredictionBorder;
     TSet<TString>* validParams;
 };
 
@@ -170,7 +176,7 @@ public:
 };
 
 struct TMetric: public IMetric {
-    explicit TMetric(ELossFunction lossFunction, TMap<TString, TString> descriptionParams);
+    explicit TMetric(ELossFunction lossFunction, TLossParams descriptionParams);
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TVector<TString> GetStatDescriptions() const override;
@@ -185,11 +191,11 @@ struct TMetric: public IMetric {
 private:
     TMap<TString, TString> Hints;
     const ELossFunction LossFunction;
-    const TMap<TString, TString> DescriptionParams;
+    const TLossParams DescriptionParams;
 };
 
 struct TMultiRegressionMetric: public TMetric {
-    explicit TMultiRegressionMetric(ELossFunction lossFunction, const TMap<TString, TString>& descriptionParams)
+    explicit TMultiRegressionMetric(ELossFunction lossFunction, const TLossParams& descriptionParams)
         : TMetric(lossFunction, descriptionParams) {}
     virtual TMetricHolder Eval(
         TConstArrayRef<TVector<double>> approx,
@@ -260,38 +266,38 @@ static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockS
 
 }
 
-THolder<IMetric> MakeCtrFactorMetric(const TMap<TString, TString>& params);
+THolder<IMetric> MakeCtrFactorMetric(const TLossParams& params);
 
-THolder<IMetric> MakeBinClassAucMetric(const TMap<TString, TString>& params);
-THolder<IMetric> MakeMultiClassAucMetric(const TMap<TString, TString>& params, int positiveClass);
+THolder<IMetric> MakeBinClassAucMetric(const TLossParams& params);
+THolder<IMetric> MakeMultiClassAucMetric(const TLossParams& params, int positiveClass);
 
-THolder<IMetric> MakeBinClassPrecisionMetric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassPrecisionMetric(const TLossParams& params,
                                              double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassPrecisionMetric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassPrecisionMetric(const TLossParams& params,
                                                int classesCount, int positiveClass);
 
-THolder<IMetric> MakeBinClassRecallMetric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassRecallMetric(const TLossParams& params,
                                           double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassRecallMetric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassRecallMetric(const TLossParams& params,
                                             int classesCount, int positiveClass);
 
-THolder<IMetric> MakeBinClassF1Metric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassF1Metric(const TLossParams& params,
                                       double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassF1Metric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassF1Metric(const TLossParams& params,
                                         int classesCount, int positiveClass);
 
-THolder<IMetric> MakeTotalF1Metric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeTotalF1Metric(const TLossParams& params,
                                    int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
 
-THolder<IMetric> MakeMCCMetric(const TMap<TString, TString>& params,
+THolder<IMetric> MakeMCCMetric(const TLossParams& params,
                                int classesCount = 2);
 
-THolder<IMetric> MakeBrierScoreMetric(const TMap<TString, TString>& params);
+THolder<IMetric> MakeBrierScoreMetric(const TLossParams& params);
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor);
 
-THolder<IMetric> MakeMultiClassPRAUCMetric(const TMap<TString, TString>& params, int positiveClass);
-THolder<IMetric> MakeBinClassPRAUCMetric(const TMap<TString, TString>& params);
+THolder<IMetric> MakeMultiClassPRAUCMetric(const TLossParams& params, int positiveClass);
+THolder<IMetric> MakeBinClassPRAUCMetric(const TLossParams& params);
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
@@ -299,7 +305,7 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TL
                                                       int approxDimension);
 
 // For tests.
-TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension);
+TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& params, int approxDimension);
 
 TVector<THolder<IMetric>> CreateMetrics(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,

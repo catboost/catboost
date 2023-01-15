@@ -729,6 +729,34 @@ def test_pfound(top_size, boosting_type, cd_file):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+def test_params_ordering():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    learn_error_reversed_path = yatest.common.test_output_path('learn_error_reversed.tsv')
+    test_error_path = yatest.common.test_output_path('ignored.tsv')
+
+    def get_cmd(custom_metric, learn_error_path):
+        return (
+            '--loss-function', 'QueryRMSE',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--boosting-type', 'Ordered',
+            '-i', '20',
+            '-T', '4',
+            '--custom-metric', custom_metric,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path,
+            '--use-best-model', 'false',
+        )
+    execute_catboost_fit('CPU', get_cmd("PFound:top=1;decay=0.6;hints=skip_train~false", learn_error_path))
+    execute_catboost_fit('CPU', get_cmd("PFound:decay=0.6;top=1;hints=skip_train~false", learn_error_reversed_path))
+
+    with open(learn_error_path) as f:
+        assert 'PFound:top=1;decay=0.6' in f.read()
+    with open(learn_error_reversed_path) as f:
+        assert 'PFound:decay=0.6;top=1' in f.read()
+
+
 def test_recall_at_k():
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -2564,8 +2592,8 @@ def do_test_fstr(
     if normalize:
         make_model_normalized(model_path)
         if not(
-            fstr_type == 'PredictionValuesChange' or
-            fstr_type == 'InternalFeatureImportance' and loss_function not in RANKING_LOSSES
+                fstr_type == 'PredictionValuesChange' or
+                fstr_type == 'InternalFeatureImportance' and loss_function not in RANKING_LOSSES
         ):
             with pytest.raises(yatest.common.ExecutionError):
                 yatest.common.execute(fstr_cmd)
@@ -4866,14 +4894,14 @@ def test_dist_train_queryrmse(dev_score_calc_obj_block_size):
 )
 def test_dist_train_subgroup(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function='QueryRMSE',
-            pool='querywise',
-            train='train',
-            test='test',
-            cd='train.cd.subgroup_id',
-            dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
-            other_options=('--eval-metric', 'PFound')),
-        output_file_switch='--test-err-log'))]
+        loss_function='QueryRMSE',
+        pool='querywise',
+        train='train',
+        test='test',
+        cd='train.cd.subgroup_id',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('--eval-metric', 'PFound')
+    ), output_file_switch='--test-err-log'))]
 
 
 @pytest.mark.parametrize(
@@ -4883,24 +4911,26 @@ def test_dist_train_subgroup(dev_score_calc_obj_block_size):
 )
 def test_dist_train_pairlogit(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function='PairLogit',
-            pool='querywise',
-            train='train',
-            test='test',
-            cd='train.cd.query_id',
-            dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
-            other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
+        loss_function='PairLogit',
+        pool='querywise',
+        train='train',
+        test='test',
+        cd='train.cd.query_id',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('--learn-pairs', data_file('querywise', 'train.pairs'))
+    )))]
 
 
 @pytest.mark.parametrize('pairs_file', ['train.pairs', 'train.pairs.weighted'])
 def test_dist_train_pairlogitpairwise(pairs_file):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function='PairLogitPairwise',
-            pool='querywise',
-            train='train',
-            test='test',
-            cd='train.cd',
-            other_options=('--learn-pairs', data_file('querywise', pairs_file)))))]
+        loss_function='PairLogitPairwise',
+        pool='querywise',
+        train='train',
+        test='test',
+        cd='train.cd',
+        other_options=('--learn-pairs', data_file('querywise', pairs_file))
+    )))]
 
 
 @pytest.mark.parametrize(
@@ -4921,25 +4951,25 @@ def test_dist_train_querysoftmax(dev_score_calc_obj_block_size):
 @pytest.mark.parametrize('loss_func', ['Logloss', 'RMSE'])
 def test_dist_train_auc(loss_func):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function=loss_func,
-            pool='higgs',
-            train='train_small',
-            test='test_small',
-            cd='train_baseline.cd',
-            other_options=('--eval-metric', 'AUC')),
-        output_file_switch='--test-err-log'))]
+        loss_function=loss_func,
+        pool='higgs',
+        train='train_small',
+        test='test_small',
+        cd='train_baseline.cd',
+        other_options=('--eval-metric', 'AUC')
+    ), output_file_switch='--test-err-log'))]
 
 
 @pytest.mark.parametrize('loss_func', ['Logloss', 'RMSE'])
 def test_dist_train_auc_weight(loss_func):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function=loss_func,
-            pool='higgs',
-            train='train_small',
-            test='test_small',
-            cd='train_weight.cd',
-            other_options=('--eval-metric', 'AUC', '--boost-from-average', '0')),
-        output_file_switch='--test-err-log'))]
+        loss_function=loss_func,
+        pool='higgs',
+        train='train_small',
+        test='test_small',
+        cd='train_weight.cd',
+        other_options=('--eval-metric', 'AUC', '--boost-from-average', '0')
+    ), output_file_switch='--test-err-log'))]
 
 
 @pytest.mark.xfail(reason='Boost from average for distributed training')
@@ -4968,12 +4998,12 @@ def test_dist_train_snapshot(schema, train):
 
 def test_dist_train_yetirank():
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function='YetiRank',
-            pool='querywise',
-            train='repeat_same_query_8_times',
-            test='repeat_same_query_8_times',
-            cd='train.cd'),
-        output_file_switch='--test-err-log'))]
+        loss_function='YetiRank',
+        pool='querywise',
+        train='repeat_same_query_8_times',
+        test='repeat_same_query_8_times',
+        cd='train.cd'
+    ), output_file_switch='--test-err-log'))]
 
 
 def test_no_target():
@@ -5720,19 +5750,21 @@ def test_multiple_eval_sets_order_independent(boosting_type, num_tests):
     train_path = data_file('adult', 'train_small')
     cd_path = data_file('adult', 'train.cd')
     test_input_path = data_file('adult', 'test_small')
-    fit_stem = ('--loss-function', 'RMSE',
-                '-f', train_path,
-                '--cd', cd_path,
-                '--boosting-type', boosting_type,
-                '-i', '5',
-                '-T', '4',
-                '--use-best-model', 'false',
-                )
-    calc_stem = (CATBOOST_PATH, 'calc',
-                 '--cd', cd_path,
-                 '--input-path', test_input_path,
-                 '-T', '4',
-                 )
+    fit_stem = (
+        '--loss-function', 'RMSE',
+        '-f', train_path,
+        '--cd', cd_path,
+        '--boosting-type', boosting_type,
+        '-i', '5',
+        '-T', '4',
+        '--use-best-model', 'false',
+    )
+    calc_stem = (
+        CATBOOST_PATH, 'calc',
+        '--cd', cd_path,
+        '--input-path', test_input_path,
+        '-T', '4',
+    )
     # We use a few shuffles of tests and check equivalence of resulting models
     prng = np.random.RandomState(seed=20181219)
     test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path), prng=prng)
@@ -5753,7 +5785,7 @@ def test_multiple_eval_sets_querywise_order_independent(boosting_type, num_tests
         '-i', '5',
         '-T', '4',
         '--use-best-model', 'false',
-        )
+    )
     calc_stem = (CATBOOST_PATH, 'calc',
                  '--cd', cd_path,
                  '--input-path', test_input_path,
@@ -6101,7 +6133,7 @@ def test_apply_multiclass_labels_from_data(prediction_type):
     if prediction_type in ['Probability', 'RawFormulaVal']:
         with open(eval_path, "rt") as f:
             for line in f:
-                assert line[:-1] == 'SampleId\t{}:Class=0.0\t{}:Class=7.0\t{}:Class=9999.0\t{}:Class=10000000.0'\
+                assert line[:-1] == 'SampleId\t{}:Class=0.0\t{}:Class=7.0\t{}:Class=9999.0\t{}:Class=10000000.0' \
                     .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 break
     else:  # Class
@@ -6182,8 +6214,8 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
                     assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
-                    assert abs(float(line[:-1].split()[1])) < 1e-307 \
-                        and abs(float(line[:-1].split()[4])) < 1e-307  # fictitious probabilities must be virtually zero
+                    assert (abs(float(line[:-1].split()[1])) < 1e-307
+                            and abs(float(line[:-1].split()[4])) < 1e-307)  # fictitious probabilities must be virtually zero
 
     if prediction_type == 'Class':
         with open(eval_path, "rt") as f:
@@ -8166,9 +8198,10 @@ def test_metric_description(dataset_has_weights, eval_metric_loss, eval_metric_u
                     expected_custom_metrics_descriptions = \
                         ['AUC' if custom_metric_use_weights is None else 'AUC:use_weights=' + str(custom_metric_use_weights)]
                 else:
-                    expected_custom_metrics_descriptions = \
-                        [custom_metric_loss + ':use_weights=False', custom_metric_loss + ':use_weights=True'] if custom_metric_use_weights is None \
-                        else [custom_metric_loss + ':use_weights=' + str(custom_metric_use_weights)]
+                    expected_custom_metrics_descriptions = (
+                        [custom_metric_loss + ':use_weights=False', custom_metric_loss + ':use_weights=True']
+                        if custom_metric_use_weights is None
+                        else [custom_metric_loss + ':use_weights=' + str(custom_metric_use_weights)])
             else:
                 expected_eval_metric_description = eval_metric_loss
                 expected_custom_metrics_descriptions = [custom_metric_loss]
