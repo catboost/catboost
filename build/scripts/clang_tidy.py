@@ -15,7 +15,6 @@ def parse_args():
     parser.add_argument("--clang-tidy-bin")
     parser.add_argument("--tidy-json")
     parser.add_argument("--source-root")
-    parser.add_argument("--dummy-output")
     return parser.parse_known_args()
 
 
@@ -82,10 +81,15 @@ def main():
         out, err = res.communicate()
         exit_code = res.returncode
         profile = load_profile(profile_tmpdir)
+    if args.testing_src.startswith(args.source_root):
+        testing_src = os.path.relpath(args.testing_src, args.source_root)
+    else:
+        testing_src = args.testing_src
 
     with open(output_json, "wb") as afile:
         json.dump(
             {
+                "file": testing_src,
                 "exit_code": exit_code,
                 "profile": profile,
                 "stderr": err,

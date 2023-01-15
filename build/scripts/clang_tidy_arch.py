@@ -11,16 +11,6 @@ def parse_args():
     return parser.parse_known_args()
 
 
-def fix_path(path, source_root):
-    fixed_path = path.replace("__/", "../")
-    fixed_path = fixed_path.replace("_/", "./")
-    source_path = os.path.splitext(fixed_path)[0]
-    if os.path.exists(os.path.join(source_root, source_path)):
-        return os.path.normpath(fixed_path)
-    else:
-        return path  # generated or joined source file
-
-
 def main():
     args, unknown_args = parse_args()
     inputs = unknown_args
@@ -29,7 +19,14 @@ def main():
         if os.path.exists(inp) and inp.endswith("tidyjson"):
             with open(inp, 'r') as afile:
                 errors = json.load(afile)
-            result_json[fix_path(os.path.relpath(inp, args.build_root), args.source_root)] = errors
+            testing_src = errors["file"]
+            if os.path.exists(os.path.join(args.source_root, testing_src)):
+                # TODO remove .tidyjson concatenation after ya-bin&tt release
+                result_json[testing_src + ".tidyjson"] = errors
+            elif "_/" not in testing_src:
+                # TODO remove .tidyjson concatenation after ya-bin&tt release
+                result_json[os.path.basename(testing_src + ".tidyjson")] = errors
+
     with open(args.output_file, 'w') as afile:
         json.dump(result_json, afile, indent=4)  # TODO remove indent
 
