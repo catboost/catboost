@@ -658,7 +658,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019"
             }
         },
@@ -688,7 +688,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019"
             }
         },
@@ -722,7 +722,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019"
             }
         },
@@ -756,7 +756,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -790,7 +790,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -825,7 +825,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_std": "c++17",
+                "cxx_std": "c++latest",
                 "version": "2019",
                 "wine": "yes"
             }
