@@ -604,6 +604,12 @@ namespace NLastGetopt {
             return StoreResultT<T>(target);
         }
 
+        // Uses TMaybe<T> to store FromString<T>(arg)
+        template <typename T>
+        TOpt& StoreResult(TMaybe<T>* target) {
+            return StoreResultT<T>(target);
+        }
+
         template <typename TpVal, typename T, typename TpDef>
         TOpt& StoreResultT(T* target, const TpDef& def) {
             return Handler1T<TpVal>(def, NPrivate::TStoreResultFunctor<T, TpVal>(target));
