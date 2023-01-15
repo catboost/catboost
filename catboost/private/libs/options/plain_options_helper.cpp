@@ -265,6 +265,10 @@ void NCatboostOptions::PlainJsonToOptions(
         seenKeys.insert("eval_metric");
     }
 
+    if (plainOptions.Has("callbacks")) {
+        seenKeys.insert("callbacks");
+    }
+
     if (plainOptions.Has("custom_metric") || plainOptions.Has("custom_loss")) {
         const NJson::TJsonValue& metrics = plainOptions.Has("custom_metric") ? plainOptions["custom_metric"] : plainOptions["custom_loss"];
         if (metrics.IsArray()) {

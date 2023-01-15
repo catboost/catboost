@@ -37,6 +37,7 @@ void BuildApproxAsPoolFileAndGetMetric(
         nullptr,
         Nothing(),
         Nothing(),
+        Nothing(),
         TDataProviders{pool, {pool}},
         /*initModel*/ Nothing(),
         /*initLearnProgress*/ nullptr,

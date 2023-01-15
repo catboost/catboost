@@ -81,6 +81,7 @@ static TFullModel TrainModelOnPool(TDataProviderPtr pool, ETargetDimMode multicl
         nullptr,
         Nothing(),
         Nothing(),
+        Nothing(),
         TDataProviders{pool, {pool}},
         /*initModel*/ Nothing(),
         /*initLearnProgress*/ nullptr,

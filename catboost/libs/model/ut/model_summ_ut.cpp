@@ -27,6 +27,7 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider, bool change
         nullptr,
         Nothing(),
         Nothing(),
+        Nothing(),
         dataProviders,
         Nothing(),
         &learnProgress,
