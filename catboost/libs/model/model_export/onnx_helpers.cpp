@@ -454,9 +454,14 @@ static void AddTree(
             } else {
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
+                treesAttributes->class_ids->add_ints(0);
+                treesAttributes->class_weights->add_floats(-(float)*leafValue);
 
+                treesAttributes->class_treeids->add_ints(treeIdx);
+                treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(1);
                 treesAttributes->class_weights->add_floats((float)*leafValue);
+
                 ++leafValue;
             }
         } else {
@@ -502,7 +507,11 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         GetClassLabels(model, &classLabelsInt64, &classLabelsString);
 
         AddClassLabelsAttribute(classLabelsInt64, classLabelsString, treesNode);
-        AddAttribute("post_transform", "SOFTMAX", treesNode);
+        AddAttribute(
+            "post_transform",
+            trees.GetDimensionsCount() == 1 ? "LOGISTIC" : "SOFTMAX",
+            treesNode
+        );
 
         InitValueInfo(
             "label",
@@ -555,9 +564,14 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     TTreesAttributes treesAttributes(isClassifierModel, bias != 0, treesNode->mutable_attribute());
 
     if (bias != 0) {
-        for (auto i : xrange(trees.GetDimensionsCount())) {
-            Y_UNUSED(i);
+        if (isClassifierModel && (trees.GetDimensionsCount() == 1)) {
+            treesAttributes.base_values->add_floats(-bias);
             treesAttributes.base_values->add_floats(bias);
+        } else {
+            for (auto i : xrange(trees.GetDimensionsCount())) {
+                Y_UNUSED(i);
+                treesAttributes.base_values->add_floats(bias);
+            }
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
