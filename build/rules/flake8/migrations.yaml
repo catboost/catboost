@@ -1211,7 +1211,6 @@ migrations:
     - yabs/sbyt/testing/core
     - yabs/server/cs/pylibs/partner_interface_monitor
     - yabs/server/cs/pylibs/settings
-    - yabs/server/infra/baseage/baseage_graphite
     - yabs/server/infra/bstr/config
     - yabs/server/infra/bstrbufbuf/plugin
     - yabs/server/infra/rtgraph
@@ -1630,8 +1629,6 @@ migrations:
     - market/guru-models-dumper/generator
     - market/idx/api/backend
     - market/idx/api/backend/blueprints
-    - market/idx/datacamp/routines/lib
-    - market/idx/datacamp/routines/lib/tasks
     - market/idx/export/awaps/compare-with-report
     - market/idx/feeds/robot/offersrobot
     - market/idx/mir/stub
@@ -2149,10 +2146,6 @@ migrations:
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
     - market/idx/datacamp/controllers/piper/tests
-    - market/idx/datacamp/controllers/stroller/tests
-    - market/idx/datacamp/parser/tests
-    - market/idx/datacamp/pycommon
-    - market/idx/datacamp/yatf
     - market/idx/devtools/common_proxy_monitor/tests
     - market/idx/devtools/dukalis/library/analyzer
     - market/idx/feeds/feedparser/test/yatf/negative
@@ -2500,7 +2493,6 @@ migrations:
     - yt/idm-integration/integration
     - yweb/animals/admin_service/lib
     - yweb/antimalware/mitb/mitb_monitor/lib
-    - yweb/antimalware/ytleprosus/exports/tests
     - yweb/antiporno/cp_conv/text_classif/bin
     - yweb/antispam/achievements/cbrf_import
     - yweb/antispam/cid/library/geo
