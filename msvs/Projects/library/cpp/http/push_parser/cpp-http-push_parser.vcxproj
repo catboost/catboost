@@ -132,38 +132,38 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
-      <Project>{2674849B-0330-C348-578B-DB562AA37E65}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
+      <Project>{7F05579D-8DC8-3A03-111E-51A122F7DF49}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\bzip\blockcodecs-codecs-bzip.vcxproj">
-      <Project>{AC376A6B-93D4-59AC-5493-C2308B528517}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\bzip\blockcodecs-codecs-bzip.vcxproj">
+      <Project>{0EAB33D5-061B-7954-9CB4-AEBC1B9E2FD6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\fastlz\blockcodecs-codecs-fastlz.vcxproj">
-      <Project>{A880DD8B-7948-E7DF-FDDB-6F6C1A23012A}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\fastlz\blockcodecs-codecs-fastlz.vcxproj">
+      <Project>{703DDBE5-9178-5CDF-A4D9-EE2FFC35CF17}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\legacy_zstd06\blockcodecs-codecs-legacy_zstd06.vcxproj">
-      <Project>{39206ED1-8CD9-0701-178E-0631ABD19D17}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\legacy_zstd06\blockcodecs-codecs-legacy_zstd06.vcxproj">
+      <Project>{6D8B717D-159B-60B6-8FBD-FE804113F8DE}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\lz4\blockcodecs-codecs-lz4.vcxproj">
-      <Project>{F13B7D24-08DF-93EE-EF06-0A42A67F1F2A}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\lz4\blockcodecs-codecs-lz4.vcxproj">
+      <Project>{DE6462E1-F12D-9D2B-131A-B78829620FB0}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\lzma\blockcodecs-codecs-lzma.vcxproj">
-      <Project>{005F2BD3-F54E-2F5E-204D-10BBF3ABD244}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\lzma\blockcodecs-codecs-lzma.vcxproj">
+      <Project>{AD22147F-DD78-0908-90F4-CC49295C7943}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\snappy\blockcodecs-codecs-snappy.vcxproj">
-      <Project>{96581D45-46BF-09E3-6477-BFA2BF8C22E1}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\snappy\blockcodecs-codecs-snappy.vcxproj">
+      <Project>{741EC9BF-73D7-4DAB-DF15-CC76DACB7403}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zlib\blockcodecs-codecs-zlib.vcxproj">
-      <Project>{DD085378-CB32-3420-0F56-EB3498FD2743}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zlib\blockcodecs-codecs-zlib.vcxproj">
+      <Project>{8A475196-8BD5-46EF-43BF-6714C75D0766}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
-      <Project>{AC7594FF-6F1D-C755-11B7-918627CFBD0B}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
+      <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\core\library-blockcodecs-core.vcxproj">
-      <Project>{BC4F6560-AAA9-63AA-0B89-2627FA172162}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\core\cpp-blockcodecs-core.vcxproj">
+      <Project>{61E795C2-BF87-52A4-C82D-38B38AA63595}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
-      <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\library-cpp-blockcodecs.vcxproj">
+      <Project>{2AE6EF73-33D5-42AE-6974-931EA50ACEE8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\io\cpp-http-io.vcxproj">
       <Project>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</Project>
