@@ -9,7 +9,7 @@
 TString ArcadiaSourceRoot();
 
 // @brief return full path for file or folder specified by known source location `where` and `path` which is relative to parent folder of `where`
-//        for the instance: there is 2 files in folder test example_ut.cpp and example.data, so full path to test/example.data can be obtained 
+//        for the instance: there is 2 files in folder test example_ut.cpp and example.data, so full path to test/example.data can be obtained
 //        from example_ut.cpp as ArcadiaFromCurrentLocation(__SOURCE_FILE__, "example.data")
 TString ArcadiaFromCurrentLocation(TStringBuf where, TStringBuf path);
 

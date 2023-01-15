@@ -56,7 +56,7 @@ namespace {
             ERR_load_BIO_strings();
             CRYPTO_set_id_callback(ThreadIdFunction);
             CRYPTO_set_locking_callback(LockingFunction);
-#endif 
+#endif
 
 #if OPENSSL_VERSION_NUMBER < 0x10101000L
             do {
