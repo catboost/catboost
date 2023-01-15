@@ -59,7 +59,7 @@ def copytree(src, dst, symlinks=False, ignore=None, postprocessing=None):
 def get_unique_file_path(dir_path, file_pattern, create_file=True, max_suffix=10000):
     def atomic_file_create(path):
         try:
-            fd = os.open(path, os.O_CREAT | os.O_EXCL)
+            fd = os.open(path, os.O_CREAT | os.O_EXCL, 0o644)
             os.close(fd)
             return True
         except OSError as e:
