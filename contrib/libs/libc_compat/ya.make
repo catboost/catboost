@@ -2,7 +2,7 @@
 
 LIBRARY()
 
-LICENSE(BSD)
+LICENSE(BSD-3-Clause)
 
 NO_COMPILER_WARNINGS()
 NO_UTIL()
@@ -12,6 +12,13 @@ IF (NOT MUSL AND NOT OS_FREEBSD AND NOT OS_DARWIN AND NOT OS_IOS)
     SRCS(
         strlcat.c
         strlcpy.c
+    )
+ENDIF()
+
+IF(OS_ANDROID AND NOT ANDROID_API_AT_LEAST_28)
+    SRCS(
+        glob.c
+        reallocarray.c
     )
 ENDIF()
 
