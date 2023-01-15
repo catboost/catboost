@@ -347,7 +347,8 @@ void TFold::AssignTarget(
             0,
             learnSampleCount,
             [&] (ui32 z) {
-                LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[0][z]);
+                auto targetId = targetClassifiers[ctrIdx].GetTargetId();
+                LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[targetId][z]);
             }
         );
         TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();

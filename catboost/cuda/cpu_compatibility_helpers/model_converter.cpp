@@ -13,7 +13,7 @@
 using namespace NCB;
 
 TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager) {
-    TTargetClassifier targetClassifier(featuresManager.GetTargetBorders());
+    TTargetClassifier targetClassifier(featuresManager.GetTargetBorders(), 0);
     TVector<TTargetClassifier> classifiers;
     classifiers.resize(1, targetClassifier);
     return classifiers;
@@ -346,7 +346,7 @@ TFullModel TModelConverter::Convert(
         featureCombinationToProjection->insert({modelCtr.Base.Projection, std::move(projection)});
 
         modelCtr.Base.CtrType = ctr.Configuration.Type;
-        modelCtr.Base.TargetBorderClassifierIdx = ctr.Configuration.CtrBinarizationConfigId;
+        modelCtr.Base.TargetBorderClassifierIdx = 0;
 
         const auto& config = ctr.Configuration;
         modelCtr.TargetBorderIdx = config.ParamId;

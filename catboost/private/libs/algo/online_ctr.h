@@ -5,6 +5,7 @@
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/model/online_ctr.h>
+#include <catboost/libs/model/target_classifier.h>
 
 #include <util/generic/maybe.h>
 #include <util/system/types.h>
@@ -74,13 +75,14 @@ struct TDatasetDataForFinalCtrs {
     TMaybe<const NCB::TArraySubsetIndexing<ui32>*> LearnPermutation;
 
     // permuted according to LearnPermutation if it is defined
-    TMaybe<TConstArrayRef<float>> Targets;
+    TMaybe<TVector<TConstArrayRef<float>>> Targets;
 
     // class data needed only if any of used ctrs need target classifier
 
     // permuted according to LearnPermutation if it is defined
     TMaybe<const TVector<TVector<int>>*> LearnTargetClass; // [targetBorderClassifierIdx][objectIdx]
     TMaybe<const TVector<int>*> TargetClassesCount; // [targetBorderClassifierIdx]
+    TMaybe<const TVector<TTargetClassifier>*> TargetClassifiers; // [targetBorderClassifierIdx]
 };
 
 void CalcFinalCtrsAndSaveToModel(

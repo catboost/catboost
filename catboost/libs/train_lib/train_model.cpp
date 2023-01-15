@@ -164,9 +164,6 @@ static void InitializeAndCheckMetricData(
             CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
         }
     }
-    if (ctx.Params.LossFunctionDescription->GetLossFunction() == ELossFunction::MultiRMSE) {
-        CB_ENSURE(!ctx.Layout->GetCatFeatureCount(), "Training with MultiRMSE loss function doesn't support categorical features");
-    }
 
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
 
@@ -609,10 +606,10 @@ static void SaveModel(
 
     TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
     datasetDataForFinalCtrs.Data = trainingDataForCpu;
+    datasetDataForFinalCtrs.TargetClassifiers = &ctx.CtrsHelper.GetTargetClassifiers();
     datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress->AveragingFold.LearnPermutation->GetObjectsIndexing();
-    if (target.size() == 1) { // since counters are not implemented for multi-dimensional target
-        datasetDataForFinalCtrs.Targets = target[0];
-    }
+
+    datasetDataForFinalCtrs.Targets = To2DConstArrayRef<float>(target);
     datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress->AveragingFold.LearnTargetClass;
     datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress->AveragingFold.TargetClassesCount;
 
@@ -663,8 +660,9 @@ static void SaveModel(
             trainingDataForCpu.FeatureEstimators
         );
 
+        const TVector<TTargetClassifier>* targetClassifiers = &ctx.CtrsHelper.GetTargetClassifiers();
         if (dstModel || addResultModelToInitModel) {
-            coreModelToFullModelConverter.Do(true, modelPtr, ctx.LocalExecutor);
+            coreModelToFullModelConverter.Do(true, modelPtr, ctx.LocalExecutor, targetClassifiers);
             if (addResultModelToInitModel) {
                 TVector<const TFullModel*> models = {*initModel, modelPtr};
                 TVector<double> weights = {1.0, 1.0};
@@ -692,7 +690,8 @@ static void SaveModel(
                 ctx.OutputOptions.CreateResultModelFullPath(),
                 ctx.OutputOptions.GetModelFormats(),
                 ctx.OutputOptions.AddFileFormatExtension(),
-                ctx.LocalExecutor
+                ctx.LocalExecutor,
+                targetClassifiers
             );
         }
     }

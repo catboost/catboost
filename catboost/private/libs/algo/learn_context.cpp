@@ -284,19 +284,14 @@ TLearnContext::TLearnContext(
 
     UpdateCtrsTargetBordersOption(lossFunction, approxDimension, &Params.CatFeatureParams.Get());
 
-    // TODO(fedorlebed): add counters support for multiregression
-    if (IsMultiRegressionObjective(lossFunction)) {
-        CB_ENSURE(Params.CatFeatureParams->PerFeatureCtrs->empty(), "Multi-dimensional target counters are unimplemented yet");
-    } else {
-        CtrsHelper.InitCtrHelper(
-            Params.CatFeatureParams,
-            *Layout,
-            data.Learn->TargetData->GetOneDimensionalTarget(),
-            lossFunction,
-            ObjectiveDescriptor,
-            Params.DataProcessingOptions->AllowConstLabel
-        );
-    }
+    CtrsHelper.InitCtrHelper(
+        Params.CatFeatureParams,
+        *Layout,
+        data.Learn->TargetData->GetTarget(),
+        lossFunction,
+        ObjectiveDescriptor,
+        Params.DataProcessingOptions->AllowConstLabel
+    );
 
     // TODO(akhropov): implement effective RecalcApprox for shrinked models instead of completely new context
     if (initLearnProgress &&
