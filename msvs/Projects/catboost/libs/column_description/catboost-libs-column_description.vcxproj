@@ -182,6 +182,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\dense_hash\cpp-containers-dense_hash.vcxproj">
       <Project>{DFCB4CF2-CF97-86C5-B608-DF9B9A23EFE1}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dbg_output\library-cpp-dbg_output.vcxproj">
+      <Project>{FAD72648-D1D4-61AA-86EF-81FACE7EE467}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</Project>
     </ProjectReference>
@@ -214,9 +217,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
       <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
-      <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
       <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>

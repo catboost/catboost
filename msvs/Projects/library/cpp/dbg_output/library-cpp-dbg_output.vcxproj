@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{806C141C-ADC5-203A-DF01-02F7E1563621}</ProjectGUID>
+    <ProjectGUID>{FAD72648-D1D4-61AA-86EF-81FACE7EE467}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-dbg_output</ProjectName>
+    <ProjectName>library-cpp-dbg_output</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-dbg_output</TargetName>
+    <TargetName>library-cpp-dbg_output</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\dbg_output\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\806C141C-ADC5-203A-DF01-02F7E1563621\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\dbg_output\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FAD72648-D1D4-61AA-86EF-81FACE7EE467\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,14 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\dbg_output\dump.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\dbg_output\dumpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\dbg_output\engine.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\dbg_output\auto.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\dbg_output\colorscheme.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\dbg_output\dump.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\dbg_output\dumpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\dbg_output\engine.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\dbg_output\dump.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\dbg_output\dumpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\dbg_output\engine.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\dbg_output\auto.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\dbg_output\colorscheme.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\dbg_output\dump.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\dbg_output\dumpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\dbg_output\engine.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
