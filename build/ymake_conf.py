@@ -1332,11 +1332,13 @@ class GnuCompiler(Compiler):
                     '-Wno-ambiguous-reversed-operator',
                     '-Wno-deprecated-volatile',
                 ]
-                self.cxx_extra_options += [
+                if not preset('MAPSMOBI_BUILD_TARGET'):
                     # FIXME thegeorg@: this is the easiest way to add clang++ option without breaking nvcc compilation
                     # ¯\_(ツ)_/¯
-                    '-fchar8_t',
-                ]
+                    # MAPSMOBI uses system stl and must be excluded
+                    self.cxx_extra_options += [
+                        '-fchar8_t',
+                    ]
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
