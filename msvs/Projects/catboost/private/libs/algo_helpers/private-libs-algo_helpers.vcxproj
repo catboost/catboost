@@ -101,6 +101,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scratch_cache.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
