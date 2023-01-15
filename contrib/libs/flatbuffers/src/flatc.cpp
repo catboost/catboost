@@ -149,7 +149,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         an evolution of. Gives errors if not.\n"
     "  --conform-includes     Include path for the schema given with --conform PATH\n"
     "  --filename-suffix      The suffix appended to the generated file names.\n"
-    "                         Default is '.fbs'.\n"
+    "                         Default is '_generated'.\n"
     "  --filename-ext         The extension appended to the generated file names.\n"
     "                         Default is language-specific (e.g., '.h' for C++)\n"
     "  --include-prefix       Prefix this path to any generated include statements.\n"
