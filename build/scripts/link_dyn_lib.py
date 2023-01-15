@@ -163,48 +163,80 @@ def postprocess_whole_archive(opts, args):
             key = os.path.dirname(arg)
         return key if key and key in peers else None
 
-    whole_archive_peers = { x : 0 for x in opts.whole_archive }
 
-    whole_archive_flag = '-Wl,--whole-archive'
-    no_whole_archive_flag = '-Wl,--no-whole-archive'
+    def construct_cmd_darwin(opts, args):
+        whole_archive_peers = { x : 0 for x in opts.whole_archive }
 
-    cmd = []
-    is_inside_whole_archive = False
-    is_whole_archive = False
-    # We are trying not to create excessive sequences of consecutive flags
-    # -Wl,--no-whole-archive  -Wl,--whole-archive ('externally' specified
-    # flags -Wl,--[no-]whole-archive are not taken for consideration in this
-    # optimization intentionally)
-    for arg in args:
-        if arg == whole_archive_flag:
-            is_inside_whole_archive = True
-            is_whole_archive = False
-        elif arg == no_whole_archive_flag:
-            is_inside_whole_archive = False
-            is_whole_archive = False
-        else:
-            key = match_peer_lib(arg, whole_archive_peers)
-            if key:
-                whole_archive_peers[key] += 1
+        force_load_flag = '-Wl,-force_load'
+        is_force_load = False
 
-            if not is_inside_whole_archive:
+        cmd = []
+        for arg in args:
+            if arg == force_load_flag:
+                is_force_load = True
+            else:
+                key = match_peer_lib(arg, whole_archive_peers)
                 if key:
-                    if not is_whole_archive:
-                        cmd.append(whole_archive_flag)
-                        is_whole_archive = True
-                elif is_whole_archive:
-                    cmd.append(no_whole_archive_flag)
-                    is_whole_archive = False
+                    whole_archive_peers[key] += 1
+                    if not is_force_load:
+                        cmd.append(force_load_flag)
+                is_force_load = False
 
-        cmd.append(arg)
+            cmd.append(arg)
 
-    if is_whole_archive:
-        cmd.append(no_whole_archive_flag)
+        for key, value in whole_archive_peers.items():
+            assert value > 0, '"{}" specified in WHOLE_ARCHIVE() macro is not used on link command'.format(key)
 
-    for key, value in whole_archive_peers.items():
-        assert value > 0, '"{}" specified in WHOLE_ARCHIVE() macro is not used on link command'.format(key)
+        return cmd
 
-    return cmd
+    def construct_cmd_linux(opts, args):
+        whole_archive_peers = { x : 0 for x in opts.whole_archive }
+
+        whole_archive_flag = '-Wl,--whole-archive'
+        no_whole_archive_flag = '-Wl,--no-whole-archive'
+
+        cmd = []
+        is_inside_whole_archive = False
+        is_whole_archive = False
+        # We are trying not to create excessive sequences of consecutive flags
+        # -Wl,--no-whole-archive  -Wl,--whole-archive ('externally' specified
+        # flags -Wl,--[no-]whole-archive are not taken for consideration in this
+        # optimization intentionally)
+        for arg in args:
+            if arg == whole_archive_flag:
+                is_inside_whole_archive = True
+                is_whole_archive = False
+            elif arg == no_whole_archive_flag:
+                is_inside_whole_archive = False
+                is_whole_archive = False
+            else:
+                key = match_peer_lib(arg, whole_archive_peers)
+                if key:
+                    whole_archive_peers[key] += 1
+
+                if not is_inside_whole_archive:
+                    if key:
+                        if not is_whole_archive:
+                            cmd.append(whole_archive_flag)
+                            is_whole_archive = True
+                    elif is_whole_archive:
+                        cmd.append(no_whole_archive_flag)
+                        is_whole_archive = False
+
+            cmd.append(arg)
+
+        if is_whole_archive:
+            cmd.append(no_whole_archive_flag)
+
+        for key, value in whole_archive_peers.items():
+            assert value > 0, '"{}" specified in WHOLE_ARCHIVE() macro is not used on link command'.format(key)
+
+        return cmd
+
+    if opts.arch == 'DARWIN':
+        return construct_cmd_darwin(opts, args)
+
+    return construct_cmd_linux(opts, args)
 
 
 def parse_args():
