@@ -13,7 +13,7 @@ from pandas._config import config
 
 from pandas._libs.parsers import STR_NA_VALUES
 from pandas._typing import Buffer, FilePathOrBuffer, StorageOptions
-from pandas.compat._optional import import_optional_dependency
+from pandas.compat._optional import get_version, import_optional_dependency
 from pandas.errors import EmptyDataError
 from pandas.util._decorators import Appender, deprecate_nonkeyword_arguments, doc
 
@@ -424,6 +424,17 @@ class BaseExcelReader(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_sheet_data(self, sheet, convert_float):
         pass
+
+    def raise_if_bad_sheet_by_index(self, index: int) -> None:
+        n_sheets = len(self.sheet_names)
+        if index >= n_sheets:
+            raise ValueError(
+                f"Worksheet index {index} is invalid, {n_sheets} worksheets found"
+            )
+
+    def raise_if_bad_sheet_by_name(self, name: str) -> None:
+        if name not in self.sheet_names:
+            raise ValueError(f"Worksheet named '{name}' not found")
 
     def parse(
         self,
@@ -1049,16 +1060,18 @@ class ExcelFile:
         else:
             import xlrd
 
-            xlrd_version = LooseVersion(xlrd.__version__)
+            xlrd_version = LooseVersion(get_version(xlrd))
 
-        if xlrd_version is not None and isinstance(path_or_buffer, xlrd.Book):
-            ext = "xls"
-        else:
-            ext = inspect_excel_format(
-                content=path_or_buffer, storage_options=storage_options
-            )
-
+        ext = None
         if engine is None:
+            # Only determine ext if it is needed
+            if xlrd_version is not None and isinstance(path_or_buffer, xlrd.Book):
+                ext = "xls"
+            else:
+                ext = inspect_excel_format(
+                    content=path_or_buffer, storage_options=storage_options
+                )
+
             if ext == "ods":
                 engine = "odf"
             elif ext == "xls":
@@ -1075,13 +1088,22 @@ class ExcelFile:
                 else:
                     engine = "xlrd"
 
-        if engine == "xlrd" and ext != "xls" and xlrd_version is not None:
-            if xlrd_version >= "2":
+        if engine == "xlrd" and xlrd_version is not None:
+            if ext is None:
+                # Need ext to determine ext in order to raise/warn
+                if isinstance(path_or_buffer, xlrd.Book):
+                    ext = "xls"
+                else:
+                    ext = inspect_excel_format(
+                        content=path_or_buffer, storage_options=storage_options
+                    )
+
+            if ext != "xls" and xlrd_version >= "2":
                 raise ValueError(
                     f"Your version of xlrd is {xlrd_version}. In xlrd >= 2.0, "
                     f"only the xls format is supported. Install openpyxl instead."
                 )
-            else:
+            elif ext != "xls":
                 caller = inspect.stack()[1]
                 if (
                     caller.filename.endswith(
