@@ -27,6 +27,9 @@ ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 # For HBase client: CONTRIB-1790
 ALLOW passport/cpp -> contrib/restricted/thrift
 
+# For Apache Arrow: CONTRIB-1662
+ALLOW contrib/libs/arrow -> contrib/deprecated/uriparser
+
 # https://st.yandex-team.ru/CONTRIB-2020
 ALLOW weather -> contrib/restricted/range-v3
 
