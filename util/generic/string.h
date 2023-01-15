@@ -100,7 +100,7 @@ public:
     }
 
     TBasicCharRef& operator=(TChar c) {
-        Y_ASSERT(Pos_ < S_.size());
+        Y_ASSERT(Pos_ < S_.size() || (Pos_ == S_.size() && !c));
 
         TChar* p = S_.Detach();
         p[Pos_] = c;

@@ -8,7 +8,7 @@ import tempfile
 from six.moves import range
 
 
-OUT_DIR_FLAG_PATTERN = re.compile(r'^(--go\w+=)')
+OUT_DIR_FLAG_PATTERN = re.compile(r'^(--go(([-_]\w+))*_out=)')
 
 
 def move_tree(src_root, dst_root):

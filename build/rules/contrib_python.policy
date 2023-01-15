@@ -158,6 +158,7 @@ ALLOW passport/python/core/frodo/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/mailer/faker/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/models/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/models/phones/faker/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/processor/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/serializers/domain/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/serializers/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/yasms -> contrib/python/MySQL-python
@@ -355,7 +356,7 @@ ALLOW billing/nirvana_reports/tools/simple_email_report/lib -> contrib/python/sq
 ALLOW billing/snout/yb_snout_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/snout/yb_snout_proxy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/yb_reports_monitorings/yb_reports_monitorings -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW browser/infra/swarm_cache/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW browser/infra/services/swarm_cache/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW cloud/support/dutybot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW cloud/support/mdb-support-bot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2

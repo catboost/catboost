@@ -6,6 +6,8 @@ LICENSE(BSD-3-Clause)
 
 PEERDIR(contrib/libs/protobuf)
 
+NO_MYPY()
+
 PY_NAMESPACE(.)
 PROTO_NAMESPACE(contrib/libs/protoc/src)
 SRCDIR(contrib/libs/protoc/src)

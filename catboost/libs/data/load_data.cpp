@@ -56,6 +56,7 @@ namespace NCB {
                     objectsOrder,
                     10000, // TODO: make it a named constant
                     loadSubset,
+                    /*LoadColumnsAsString*/ false,
                     localExecutor
                 }
             }
@@ -170,6 +171,7 @@ namespace NCB {
                     objectsOrder,
                     10000, // TODO: make it a named constant
                     loadSubset,
+                    /*LoadColumnsAsString*/ false,
                     localExecutor
                 }
             }

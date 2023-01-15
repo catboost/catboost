@@ -91,9 +91,11 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         HasGroupId,
         HasGroupWeight,
         HasSubgroupIds,
+        HasSampleId,
         HasWeights,
         HasTimestamp,
         HasPairs,
+        StoreStringColumns,
         ClassLabels,
         ColumnsInfo
     ) == std::tie(
@@ -103,9 +105,11 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         rhs.HasGroupId,
         rhs.HasGroupWeight,
         rhs.HasSubgroupIds,
+        rhs.HasSampleId,
         rhs.HasWeights,
         rhs.HasTimestamp,
         rhs.HasPairs,
+        rhs.StoreStringColumns,
         ClassLabels,
         rhs.ColumnsInfo
     );
@@ -160,9 +164,11 @@ void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
         data->HasGroupId,
         data->HasGroupWeight,
         data->HasSubgroupIds,
+        data->HasSampleId,
         data->HasWeights,
         data->HasTimestamp,
         data->HasPairs,
+        data->StoreStringColumns,
         data->ClassLabels,
         data->ColumnsInfo
     );

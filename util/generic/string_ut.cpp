@@ -293,24 +293,66 @@ protected:
         // End of block B
     }
 
+    void null_char_of_empty() {
+        const TStringType s;
+
+        UNIT_ASSERT(s[s.size()] == 0);
+    }
+
     void null_char() {
         // ISO/IEC 14882:1998(E), ISO/IEC 14882:2003(E), 21.3.4 ('... the const version')
         const TStringType s(Data_._123456());
 
         UNIT_ASSERT(s[s.size()] == 0);
-
-#if 0
-        try {
-            //Check is only here to avoid warning about value of expression not used
-            UNIT_ASSERT(s.at(s.size()) == 0);
-            UNIT_ASSERT(false);
-        } catch (const std::out_of_range&) {
-            UNIT_ASSERT(true);
-        } catch (...) {
-            UNIT_ASSERT(false);
-        }
-#endif
     }
+
+    // Allowed since C++17, see http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2475
+    void null_char_assignment_to_subscript_of_empty() {
+        TStringType s;
+
+#ifdef TSTRING_IS_STD_STRING
+        using reference = volatile typename TStringType::value_type&;
+#else
+        using reference = typename TStringType::reference;
+#endif
+        reference trailing_zero = s[s.size()];
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+
+    // Allowed since C++17, see http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2475
+    void null_char_assignment_to_subscript_of_nonempty() {
+        TStringType s(Data_._123456());
+
+#ifdef TSTRING_IS_STD_STRING
+        using reference = volatile typename TStringType::value_type&;
+#else
+        using reference = typename TStringType::reference;
+#endif
+        reference trailing_zero = s[s.size()];
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+
+#ifndef TSTRING_IS_STD_STRING
+    // Dereferencing string end() is not allowed by C++ standard as of C++20, avoid using in real code.
+    void null_char_assignment_to_end_of_empty() {
+        TStringType s;
+
+        volatile auto& trailing_zero = *(s.begin() + s.size());
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+
+    // Dereferencing string end() is not allowed by C++ standard as of C++20, avoid using in real code.
+    void null_char_assignment_to_end_of_nonempty() {
+        TStringType s(Data_._123456());
+
+        volatile auto& trailing_zero = *(s.begin() + s.size());
+        trailing_zero = 0;
+        UNIT_ASSERT(trailing_zero == 0);
+    }
+#endif
 
     void insert() {
         TStringType strorg = Data_.This_is_test_string_for_string_calls();
@@ -1071,7 +1113,14 @@ public:
     UNIT_TEST(erase);
     UNIT_TEST(data);
     UNIT_TEST(c_str);
+    UNIT_TEST(null_char_of_empty);
     UNIT_TEST(null_char);
+    UNIT_TEST(null_char_assignment_to_subscript_of_empty);
+    UNIT_TEST(null_char_assignment_to_subscript_of_nonempty);
+#ifndef TSTRING_IS_STD_STRING
+    UNIT_TEST(null_char_assignment_to_end_of_empty);
+    UNIT_TEST(null_char_assignment_to_end_of_nonempty);
+#endif
     UNIT_TEST(insert);
     UNIT_TEST(resize);
     UNIT_TEST(find);
@@ -1100,7 +1149,14 @@ public:
     UNIT_TEST(erase);
     UNIT_TEST(data);
     UNIT_TEST(c_str);
+    UNIT_TEST(null_char_of_empty);
     UNIT_TEST(null_char);
+    UNIT_TEST(null_char_assignment_to_subscript_of_empty);
+    UNIT_TEST(null_char_assignment_to_subscript_of_nonempty);
+#ifndef TSTRING_IS_STD_STRING
+    UNIT_TEST(null_char_assignment_to_end_of_empty);
+    UNIT_TEST(null_char_assignment_to_end_of_nonempty);
+#endif
     UNIT_TEST(insert);
     UNIT_TEST(resize);
     UNIT_TEST(find);

@@ -3,16 +3,17 @@ import os
 from _common import sort_by_keywords
 
 
-def onstyle(unit, *args):
-    keywords = {'FOLDER': 1}
-
-    flat_args, spec_args = sort_by_keywords(keywords, args)
-
+def on_style(unit, *args):
     def it():
         yield 'DONT_PARSE'
 
-        for f in flat_args:
-            yield spec_args['FOLDER'][0] + '/' + f
+        for f in args:
+            f = f[len('${ARCADIA_ROOT}') + 1:]
+
+            if '/generated/' in f:
+                continue
+
+            yield f
             yield '/cpp_style/' + f
 
     unit.onresource(list(it()))

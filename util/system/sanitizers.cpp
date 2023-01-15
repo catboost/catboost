@@ -123,3 +123,20 @@ void TFiberContext::AfterStart() noexcept {
     __sanitizer_finish_switch_fiber(nullptr, nullptr, nullptr);
 #endif
 }
+
+#if defined(_tsan_enabled_)
+extern "C" {
+    // This function should not be directly exposed in headers
+    // due to signature variations among contrib headers.
+    void AnnotateBenignRaceSized(const char* file, int line,
+                                 const volatile void* address,
+                                 size_t size,
+                                 const char* description);
+}
+void NSan::AnnotateBenignRaceSized(const char* file, int line,
+                                   const volatile void* address,
+                                   size_t size,
+                                   const char* description) noexcept {
+    ::AnnotateBenignRaceSized(file, line, address, size, description);
+}
+#endif

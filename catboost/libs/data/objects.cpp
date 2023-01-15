@@ -31,10 +31,10 @@
 
 using namespace NCB;
 
-
+template <class TGroupIdClass>
 static void CheckGroupIds(
     ui32 objectCount,
-    TMaybeData<TConstArrayRef<TGroupId>> groupIds,
+    TMaybeData<TConstArrayRef<TGroupIdClass>> groupIds,
     TMaybe<TObjectsGroupingPtr> objectsGrouping
 ) {
     if (!groupIds) {
@@ -45,7 +45,7 @@ static void CheckGroupIds(
     CheckDataSize(groupIdsData.size(), (size_t)objectCount, "group Ids", false);
 
 
-    TVector<TGroupId> groupGroupIds;
+    TVector<TGroupIdClass> groupGroupIds;
     TGroupBounds currentGroupBounds(0); // used only if objectsGrouping is defined
 
     if (objectsGrouping.Defined()) {
@@ -62,7 +62,7 @@ static void CheckGroupIds(
         currentGroupBounds = (*objectsGrouping)->GetGroup(0);
     }
 
-    TGroupId lastGroupId = groupIdsData[0];
+    TGroupIdClass lastGroupId = groupIdsData[0];
     groupGroupIds.emplace_back(lastGroupId);
 
     // using ui32 for counters/indices here is safe because groupIdsData' size was checked above
@@ -86,22 +86,6 @@ static void CheckGroupIds(
     auto it = std::adjacent_find(groupGroupIds.begin(), groupGroupIds.end());
     CB_ENSURE(it == groupGroupIds.end(), "group Ids are not consecutive");
 }
-
-
-TObjectsGrouping NCB::CreateObjectsGroupingFromGroupIds(
-    ui32 objectCount,
-    TMaybeData<TConstArrayRef<TGroupId>> groupIds
-) {
-    if (!groupIds) {
-        return TObjectsGrouping(objectCount);
-    }
-    auto groupIdsData = *groupIds;
-
-    CheckDataSize(groupIdsData.size(), (size_t)objectCount, "group Ids", false);
-
-    return TObjectsGrouping(GroupSamples(groupIdsData), true);
-}
-
 
 static bool HaveMoreThanOneKeyOrAnyValueMismatch(
     const THashMap<ui32, TString>& lhs,
@@ -179,10 +163,15 @@ bool NCB::TCommonObjectsData::EqualTo(const NCB::TCommonObjectsData& rhs, bool i
         return false;
     }
 
-    return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) && (Order == rhs.Order) &&
-        (GroupIds == rhs.GroupIds) && (SubgroupIds == rhs.SubgroupIds) && (Timestamp == rhs.Timestamp);
+    return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) && (Order == rhs.Order) && (StoreStringColumns == rhs.StoreStringColumns) &&
+        (SampleId == rhs.SampleId) && (GroupIds == rhs.GroupIds) && (SubgroupIds == rhs.SubgroupIds) && (Timestamp == rhs.Timestamp);
 }
 
+void NCB::TCommonObjectsData::SetStoreStringColumns(bool storeStringColumns) {
+    SubgroupIds.SetStoreStringColumns(storeStringColumns);
+    GroupIds.SetStoreStringColumns(storeStringColumns);
+    StoreStringColumns = storeStringColumns;
+}
 
 void NCB::TCommonObjectsData::PrepareForInitialization(
     const TDataMetaInfo& metaInfo,
@@ -190,9 +179,22 @@ void NCB::TCommonObjectsData::PrepareForInitialization(
     ui32 prevTailCount
 ) {
     FeaturesLayout = metaInfo.FeaturesLayout;
+    if (prevTailCount == 0) {
+        SetStoreStringColumns(metaInfo.StoreStringColumns);
+    } else {
+        SubgroupIds.SetStoreStringColumnsVal(metaInfo.StoreStringColumns);
+        GroupIds.SetStoreStringColumnsVal(metaInfo.StoreStringColumns);
+        StoreStringColumns = metaInfo.StoreStringColumns;
+    }
 
-    NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds);
-    NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds);
+    if (StoreStringColumns) {
+        NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds.GetMaybeStringData());
+        NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds.GetMaybeStringData());
+        NCB::PrepareForInitialization(metaInfo.HasSampleId, objectCount, prevTailCount, &SampleId);
+    } else {
+        NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds.GetMaybeNumData());
+        NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds.GetMaybeNumData());
+    }
     NCB::PrepareForInitialization(metaInfo.HasTimestamp, objectCount, prevTailCount, &Timestamp);
 
     const size_t catFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
@@ -204,14 +206,38 @@ void NCB::TCommonObjectsData::PrepareForInitialization(
     }
 }
 
+void NCB::TCommonObjectsData::SetBuildersArrayRef(
+    const TDataMetaInfo& metaInfo,
+    TArrayRef<TGroupId>* numGroupIdsRefPtr,
+    TArrayRef<TString>* stringGroupIdsRefPtr,
+    TArrayRef<TSubgroupId>* numSubgroupIdsRefPtr,
+    TArrayRef<TString>* stringSubgroupIdsRefPtr
+) {
+    if (StoreStringColumns) {
+        if (metaInfo.HasGroupId) {
+            *stringGroupIdsRefPtr = GroupIds.GetMaybeStringData().GetRef();
+        }
+        if (metaInfo.HasSubgroupIds) {
+            *stringSubgroupIdsRefPtr = SubgroupIds.GetMaybeStringData().GetRef();
+        }
+    } else {
+        if (metaInfo.HasGroupId) {
+            *numGroupIdsRefPtr = GroupIds.GetMaybeNumData().GetRef();
+        }
+        if (metaInfo.HasSubgroupIds) {
+            *numSubgroupIdsRefPtr = SubgroupIds.GetMaybeNumData().GetRef();
+        }
+    }
+}
+
 
 void NCB::TCommonObjectsData::CheckAllExceptGroupIds() const {
-    if (SubgroupIds) {
+    if (SubgroupIds.IsDefined()) {
         CB_ENSURE(
-            GroupIds,
+            GroupIds.IsDefined(),
             "non-empty SubgroupIds when GroupIds is not defined"
         );
-        CheckDataSize(SubgroupIds->size(), GroupIds->size(), "Subgroup Ids", false, "Group Ids size");
+        CheckDataSize(SubgroupIds.GetSize(), GroupIds.GetSize(), "Subgroup Ids", false, "Group Ids size");
     }
     if (Timestamp) {
         CheckDataSize(Timestamp->size(), (size_t)SubsetIndexing->Size(), "Timestamp");
@@ -229,7 +255,11 @@ void NCB::TCommonObjectsData::Check(TMaybe<TObjectsGroupingPtr> objectsGrouping)
             "SubsetIndexing's Size"
         );
     }
-    CheckGroupIds(SubsetIndexing->Size(), GroupIds, objectsGrouping);
+    if (StoreStringColumns) {
+        CheckGroupIds<TString>(SubsetIndexing->Size(), GroupIds.GetMaybeStringData(), objectsGrouping);
+    } else {
+        CheckGroupIds<TGroupId>(SubsetIndexing->Size(), GroupIds.GetMaybeNumData(), objectsGrouping);
+    }
     CheckAllExceptGroupIds();
 }
 
@@ -241,6 +271,7 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     result.ResourceHolders = ResourceHolders;
     result.FeaturesLayout = FeaturesLayout;
     result.Order = Combine(Order, objectsGroupingSubset.GetObjectSubsetOrder());
+    result.SetStoreStringColumns(StoreStringColumns);
 
     result.CatFeaturesHashToString = CatFeaturesHashToString;
 
@@ -256,8 +287,8 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
 
     tasks.emplace_back(
         [&, this]() {
-            result.GroupIds = GetSubsetOfMaybeEmpty<TGroupId>(
-                (TMaybeData<TConstArrayRef<TGroupId>>)GroupIds,
+            result.GroupIds = GetSubsetFromMaybeStringOrNumIdColumn(
+                GroupIds,
                 objectsGroupingSubset.GetObjectsIndexing(),
                 localExecutor
             );
@@ -265,8 +296,17 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     );
     tasks.emplace_back(
         [&, this]() {
-            result.SubgroupIds = GetSubsetOfMaybeEmpty<TSubgroupId>(
-                (TMaybeData<TConstArrayRef<TSubgroupId>>)SubgroupIds,
+            result.SampleId = GetSubsetOfMaybeEmpty<TString>(
+                (TMaybeData<TConstArrayRef<TString>>) SampleId,
+                objectsGroupingSubset.GetObjectsIndexing(),
+                localExecutor
+            );
+        }
+    );
+    tasks.emplace_back(
+        [&, this]() {
+            result.SubgroupIds = GetSubsetFromMaybeStringOrNumIdColumn(
+                SubgroupIds,
                 objectsGroupingSubset.GetObjectsIndexing(),
                 localExecutor
             );
@@ -290,12 +330,12 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
 void NCB::TCommonObjectsData::Load(TFeaturesLayoutPtr featuresLayout, ui32 objectCount, IBinSaver* binSaver) {
     FeaturesLayout = featuresLayout;
     SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(objectCount));
-    LoadMulti(binSaver, &Order, &GroupIds, &SubgroupIds, &Timestamp);
+    LoadMulti(binSaver, &Order, &StoreStringColumns, &SampleId, &GroupIds, &SubgroupIds, &Timestamp);
     AddWithShared(binSaver, &CatFeaturesHashToString);
 }
 
 void NCB::TCommonObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
-    SaveMulti(binSaver, Order, GroupIds, SubgroupIds, Timestamp);
+    SaveMulti(binSaver, Order, StoreStringColumns, SampleId, GroupIds, SubgroupIds, Timestamp);
     AddWithShared(
         binSaver,
         const_cast<TAtomicSharedPtr<TVector<THashMap<ui32, TString>>>*>(&CatFeaturesHashToString)
@@ -319,10 +359,15 @@ NCB::TObjectsDataProvider::TObjectsDataProvider(
             commonData.CheckAllExceptGroupIds();
         }
         ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-            CreateObjectsGroupingFromGroupIds(
-                commonData.SubsetIndexing->Size(),
-                commonData.GroupIds
-            )
+            commonData.StoreStringColumns ?
+                CreateObjectsGroupingFromGroupIds<TString>(
+                    commonData.SubsetIndexing->Size(),
+                    commonData.GroupIds.GetMaybeStringData() // Nothing(), Turn off group checks for quantization due to time
+                ) :
+                CreateObjectsGroupingFromGroupIds<TGroupId>(
+                    commonData.SubsetIndexing->Size(),
+                    commonData.GroupIds.GetMaybeNumData()
+                )
         );
     }
     CommonData = std::move(commonData);
@@ -340,21 +385,23 @@ NCB::TObjectsDataProvider::TObjectsDataProvider(
 
 void NCB::TObjectsDataProvider::SetGroupIds(TConstArrayRef<TGroupId> groupIds) {
     ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-        CreateObjectsGroupingFromGroupIds(GetObjectCount(), groupIds) // groupIds data size is checked inside
+        CreateObjectsGroupingFromGroupIds<TGroupId>(GetObjectCount(), groupIds) // groupIds data size is checked inside
     );
-    if (!CommonData.GroupIds) {
-        CommonData.GroupIds.ConstructInPlace(groupIds.begin(), groupIds.end());
+    auto& groupIds_ = CommonData.GroupIds.GetMaybeNumData();
+    if (!groupIds_) {
+        groupIds_.ConstructInPlace(groupIds.begin(), groupIds.end());
     } else {
-        CommonData.GroupIds->assign(groupIds.begin(), groupIds.end());
+        groupIds_->assign(groupIds.begin(), groupIds.end());
     }
 }
 
 void NCB::TObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TSubgroupId> subgroupIds) {
     CheckDataSize(subgroupIds.size(), (size_t)GetObjectCount(), "subgroupIds");
-    if (!CommonData.SubgroupIds) {
-        CommonData.SubgroupIds.ConstructInPlace(subgroupIds.begin(), subgroupIds.end());
+    auto& subgroupIds_ = CommonData.SubgroupIds.GetMaybeNumData();
+    if (!subgroupIds_) {
+        subgroupIds_.ConstructInPlace(subgroupIds.begin(), subgroupIds.end());
     } else {
-        CommonData.SubgroupIds->assign(subgroupIds.begin(), subgroupIds.end());
+        subgroupIds_->assign(subgroupIds.begin(), subgroupIds.end());
     }
 }
 
@@ -792,6 +839,7 @@ bool NCB::TRawObjectsDataProvider::HasSparseData() const {
 }
 
 void NCB::TRawObjectsDataProvider::SetGroupIds(TConstArrayRef<TStringBuf> groupStringIds) {
+    CB_ENSURE_INTERNAL(!CommonData.StoreStringColumns, "Set TGroupIds with StoreStringColumns option");
     CheckDataSize(groupStringIds.size(), (size_t)GetObjectCount(), "group Ids");
 
     TVector<TGroupId> newGroupIds;
@@ -801,15 +849,16 @@ void NCB::TRawObjectsDataProvider::SetGroupIds(TConstArrayRef<TStringBuf> groupS
     }
 
     ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-        CreateObjectsGroupingFromGroupIds(GetObjectCount(), (TConstArrayRef<TGroupId>)newGroupIds)
+        CreateObjectsGroupingFromGroupIds<TGroupId>(GetObjectCount(), (TConstArrayRef<TGroupId>)newGroupIds)
     );
-    CommonData.GroupIds = std::move(newGroupIds);
+    CommonData.GroupIds.GetMaybeNumData() = std::move(newGroupIds);
 }
 
 void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> subgroupStringIds) {
+    CB_ENSURE_INTERNAL(!CommonData.StoreStringColumns, "Set TSubroupIds with StoreStringColumns option");
     CheckDataSize(subgroupStringIds.size(), (size_t)GetObjectCount(), "subgroup Ids");
     CB_ENSURE(
-        CommonData.GroupIds,
+        CommonData.GroupIds.IsDefined(),
         "non-empty subgroupStringIds when GroupIds is not defined"
     );
 
@@ -818,7 +867,7 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
     for (auto i : xrange(subgroupStringIds.size())) {
         newSubgroupIds[i] = CalcSubgroupIdFor(subgroupStringIds[i]);
     }
-    CommonData.SubgroupIds = std::move(newSubgroupIds);
+    CommonData.SubgroupIds.GetMaybeNumData() = std::move(newSubgroupIds);
 }
 
 

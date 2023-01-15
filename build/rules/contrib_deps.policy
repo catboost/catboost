@@ -67,4 +67,7 @@ ALLOW contrib/tools/unbound -> library/cpp/proto_config
 
 ALLOW contrib/python/marshmallow-mongoengine/py[23]/tests -> library/python/pytest-mongodb
 
+# contrib tests is written by us, hence everything is allowed
+ALLOW contrib/tests -> .*
+
 DENY contrib -> .*

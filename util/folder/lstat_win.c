@@ -1,8 +1,8 @@
 #include <util/system/defaults.h>
 
 #ifdef _win_
-#include <util/system/winint.h>
-#include "lstat_win.h"
+    #include <util/system/winint.h>
+    #include "lstat_win.h"
 
 int lstat(const char* fileName, stat_struct* fileStat) {
     int len = strlen(fileName);

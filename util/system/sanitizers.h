@@ -119,4 +119,23 @@ namespace NSan {
         Y_UNUSED(ptr);
 #endif
     }
+
+#if defined(_tsan_enabled_)
+    // defined in .cpp to avoid exposing problematic C-linkage version of AnnotateBenignRaceSized(...)
+    void AnnotateBenignRaceSized(const char* file, int line,
+                                 const volatile void* address,
+                                 size_t size,
+                                 const char* description) noexcept;
+#else
+    inline static void AnnotateBenignRaceSized(const char* file, int line,
+                                               const volatile void* address,
+                                               size_t size,
+                                               const char* description) noexcept {
+        Y_UNUSED(file);
+        Y_UNUSED(line);
+        Y_UNUSED(address);
+        Y_UNUSED(size);
+        Y_UNUSED(description);
+    }
+#endif
 }

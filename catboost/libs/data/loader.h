@@ -59,6 +59,7 @@ namespace NCB {
         EObjectsOrder ObjectsOrder;
         ui32 BlockSize;
         TDatasetSubset DatasetSubset;
+        bool LoadColumnsAsString;
         NPar::ILocalExecutor* LocalExecutor;
     };
 

@@ -383,7 +383,7 @@ def onadd_ytest(unit, *args):
 
     if flat_args[1] != "clang_tidy" and unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
-        if flat_args[1] in ("unittest.py", "gunittest"):
+        if flat_args[1] in ("unittest.py", "gunittest", "g_benchmark"):
             flat_args[1] = "clang_tidy"
         else:
             return

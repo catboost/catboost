@@ -487,6 +487,10 @@ typedef __char32_t char32_t;
 #  define _LIBCPP_HAS_EXTENSION_BLOCKS
 #endif
 
+#if defined(_LIBCPP_HAS_EXTENSION_BLOCKS) && defined(__APPLE__)
+#  define _LIBCPP_HAS_BLOCKS_RUNTIME
+#endif
+
 #if !(__has_feature(cxx_relaxed_constexpr))
 #define _LIBCPP_HAS_NO_CXX14_CONSTEXPR
 #endif
@@ -1155,12 +1159,8 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 
 // Try to find out if RTTI is disabled.
 // g++ and cl.exe have RTTI on by default and define a macro when it is.
-// g++ only defines the macro in 4.3.2 and onwards.
 #if !defined(_LIBCPP_NO_RTTI)
-#  if defined(__GNUC__) && \
-      ((__GNUC__ >= 5) || \
-       (__GNUC__ == 4 && (__GNUC_MINOR__ >= 3 || __GNUC_PATCHLEVEL__ >= 2))) && \
-      !defined(__GXX_RTTI)
+#  if defined(__GNUC__) && !defined(__GXX_RTTI)
 #    define _LIBCPP_NO_RTTI
 #  elif defined(_LIBCPP_COMPILER_MSVC) && !defined(_CPPRTTI)
 #    define _LIBCPP_NO_RTTI
@@ -1430,6 +1430,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 
 // Decide whether to use availability macros.
 #if !defined(_LIBCPP_BUILDING_LIBRARY) &&                                      \
+    !defined(_LIBCXXABI_BUILDING_LIBRARY) &&                                   \
     !defined(_LIBCPP_DISABLE_AVAILABILITY) &&                                  \
     __has_feature(attribute_availability_with_strict) &&                       \
     __has_feature(attribute_availability_in_templates) &&                      \
@@ -1494,7 +1495,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #  define _LIBCPP_AVAILABILITY_TO_CHARS                                        \
      _LIBCPP_AVAILABILITY_FILESYSTEM
 #  define _LIBCPP_AVAILABILITY_SYNC                                            \
-     /*FIXME:mark this as unavailable on Apple platforms*/
+     __attribute__((unavailable))
 #else
 #  define _LIBCPP_AVAILABILITY_SHARED_MUTEX
 #  define _LIBCPP_AVAILABILITY_BAD_VARIANT_ACCESS
@@ -1598,6 +1599,13 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #define _LIBCPP_BUILTIN_CONSTANT_P(x) __builtin_constant_p(x)
 #else
 #define _LIBCPP_BUILTIN_CONSTANT_P(x) false
+#endif
+
+// Support for _FILE_OFFSET_BITS=64 landed gradually in Android, so the full set
+// of functions used in cstdio may not be available for low API levels when
+// using 64-bit file offsets on LP32.
+#if defined(__BIONIC__) && defined(__USE_FILE_OFFSET64) && __ANDROID_API__ < 24
+#define _LIBCPP_HAS_NO_FGETPOS_FSETPOS
 #endif
 
 #endif // __cplusplus

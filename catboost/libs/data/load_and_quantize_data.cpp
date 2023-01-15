@@ -179,6 +179,18 @@ namespace {
             DataVisitor->AddSubgroupId(sampleIdx, value);
         }
 
+        void AddGroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+            CB_ENSURE_INTERNAL(false, "unsupported function");
+        }
+
+        void AddSubgroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+            CB_ENSURE_INTERNAL(false, "unsupported function");
+        }
+
+        void AddSampleId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+            CB_ENSURE_INTERNAL(false, "unsupported function");
+        }
+
         void AddTimestamp(ui32 localObjectIdx, ui64 value) override {
             const ui32 sampleIdx = GetSampleIdx(localObjectIdx);
             if (sampleIdx == NotSet) {
@@ -777,7 +789,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
         // processor args
         TDatasetLoaderPullArgs{
             poolPath,
-            TDatasetLoaderCommonArgs{
+            TDatasetLoaderCommonArgs {
                 pairsFilePath,
                 groupWeightsFilePath,
                 baselineFilePath,
@@ -791,6 +803,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
                 objectsOrder,
                 *blockSize,
                 loadSubset,
+                /*LoadColumnsAsString*/ false,
                 localExecutor}});
 
     CB_ENSURE(

@@ -171,6 +171,15 @@ public:
     void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) override {
         Rows[localObjectIdx].SubgroupId = reinterpret_cast<const i32&>(value);
     }
+    void AddGroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+        CB_ENSURE_INTERNAL(false, "unsupported function");
+    }
+    void AddSubgroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+        CB_ENSURE_INTERNAL(false, "unsupported function");
+    }
+    void AddSampleId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
+        CB_ENSURE_INTERNAL(false, "unsupported function");
+    }
     void AddTimestamp(ui32 localObjectIdx, ui64 value) override {
         Rows[localObjectIdx].Timestamp = SafeIntegerCast<i64>(value);
     }
@@ -372,6 +381,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
             EObjectsOrder::Undefined,
             SafeIntegerCast<ui32>(blockSize),
             /*loadSubset*/ TDatasetSubset(),
+            /*LoadColumnsAsString*/ false,
             &LocalExecutor
         }
     };

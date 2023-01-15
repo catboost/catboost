@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://dev.pandas.io/static/img/pandas.svg"><br>
+  <img src="https://pandas.pydata.org/static/img/pandas.svg"><br>
 </div>
 
 -----------------
@@ -10,13 +10,13 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3509134.svg)](https://doi.org/10.5281/zenodo.3509134)
 [![Package Status](https://img.shields.io/pypi/status/pandas.svg)](https://pypi.org/project/pandas/)
 [![License](https://img.shields.io/pypi/l/pandas.svg)](https://github.com/pandas-dev/pandas/blob/master/LICENSE)
-[![Travis Build Status](https://travis-ci.org/pandas-dev/pandas.svg?branch=master)](https://travis-ci.org/pandas-dev/pandas)
 [![Azure Build Status](https://dev.azure.com/pandas-dev/pandas/_apis/build/status/pandas-dev.pandas?branch=master)](https://dev.azure.com/pandas-dev/pandas/_build/latest?definitionId=1&branch=master)
 [![Coverage](https://codecov.io/github/pandas-dev/pandas/coverage.svg?branch=master)](https://codecov.io/gh/pandas-dev/pandas)
 [![Downloads](https://anaconda.org/conda-forge/pandas/badges/downloads.svg)](https://pandas.pydata.org)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pydata/pandas)
 [![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 ## What is it?
 
@@ -87,7 +87,7 @@ The source code is currently hosted on GitHub at:
 https://github.com/pandas-dev/pandas
 
 Binary installers for the latest released version are available at the [Python
-package index](https://pypi.org/project/pandas) and on conda.
+Package Index (PyPI)](https://pypi.org/project/pandas) and on [Conda](https://docs.conda.io/en/latest/).
 
 ```sh
 # conda
@@ -100,15 +100,15 @@ pip install pandas
 ```
 
 ## Dependencies
-- [NumPy](https://www.numpy.org)
-- [python-dateutil](https://labix.org/python-dateutil)
-- [pytz](https://pythonhosted.org/pytz)
+- [NumPy - Adds support for large, multi-dimensional arrays, matrices and high-level mathematical functions to operate on these arrays](https://www.numpy.org)
+- [python-dateutil - Provides powerful extensions to the standard datetime module](https://dateutil.readthedocs.io/en/stable/index.html)
+- [pytz - Brings the Olson tz database into Python which allows accurate and cross platform timezone calculations](https://github.com/stub42/pytz)
 
 See the [full installation instructions](https://pandas.pydata.org/pandas-docs/stable/install.html#dependencies) for minimum supported versions of required, recommended and optional dependencies.
 
 ## Installation from sources
-To install pandas from source you need Cython in addition to the normal
-dependencies above. Cython can be installed from pypi:
+To install pandas from source you need [Cython](https://cython.org/) in addition to the normal
+dependencies above. Cython can be installed from PyPI:
 
 ```sh
 pip install cython
@@ -121,7 +121,7 @@ cloning the git repo), execute:
 python setup.py install
 ```
 
-or for installing in [development mode](https://pip.pypa.io/en/latest/reference/pip_install.html#editable-installs):
+or for installing in [development mode](https://pip.pypa.io/en/latest/cli/pip_install/#install-editable):
 
 
 ```sh
@@ -145,7 +145,7 @@ See the full instructions for [installing from source](https://pandas.pydata.org
 The official documentation is hosted on PyData.org: https://pandas.pydata.org/pandas-docs/stable
 
 ## Background
-Work on ``pandas`` started at AQR (a quantitative hedge fund) in 2008 and
+Work on ``pandas`` started at [AQR](https://www.aqr.com/) (a quantitative hedge fund) in 2008 and
 has been under active development since then.
 
 ## Getting Help

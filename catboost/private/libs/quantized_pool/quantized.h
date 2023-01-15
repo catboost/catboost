@@ -24,7 +24,8 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     bool hasTimestamps,
     bool hasPairs,
     TMaybe<ui32> baselineCount,
-    const NCB::TPathWithScheme& featureNamesPath); // featureNamesPath can be uninitialized
+    const NCB::TPathWithScheme& featureNamesPath, // featureNamesPath can be uninitialized
+    const NCB::TPathWithScheme& poolMetaInfoPath); // poolMetaInfoPath can be uninitialized
 
 // Returns flat indices of all ignored features
 // Sorted from min to max
