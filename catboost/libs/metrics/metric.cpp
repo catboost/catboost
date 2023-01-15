@@ -573,7 +573,10 @@ TMetricHolder TRMSEWithUncertaintyMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    Y_ASSERT(target.size() == 1);
+    CB_ENSURE(target.size() == 1, "Target dimension for RMSEWithUncertainty Metric should be 1, found " << target.size());
+    CB_ENSURE(approx.size() == 2,
+              "Approx dimension for RMSEWithUncertainty metric should be 2, found " << approx.size() <<
+              ", probably your model was trained not with RMSEWithUncertainty loss function");
     const auto evalImpl = [=](bool useWeights, bool hasDelta) {
         const auto realApprox = [=](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
         const auto realWeight = [=](int idx) { return useWeights ? weights[idx] : 1; };
