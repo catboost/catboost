@@ -372,6 +372,7 @@ ALLOW sandbox/projects/maps/geomarketing -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/facebook-business
 ALLOW geoproduct/amocrm/fb_leads -> contrib/python/facebook-business
+ALLOW statbox/statkey -> contrib/python/facebook-business
 DENY .* -> contrib/python/facebook-business
 
 # https://st.yandex-team.ru/CONTRIB-1954
