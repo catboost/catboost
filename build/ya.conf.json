@@ -1,4 +1,4 @@
- {
+{
     "tools": {
         "cc": {
             "description": "Run C compiler"
@@ -7866,7 +7866,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 828599206,
+                "sandbox_id": 829036338,
                 "match": "zcli"
             },
             "executable": {
