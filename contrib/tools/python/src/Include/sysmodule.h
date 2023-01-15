@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-PyAPI_FUNC(PyObject *) PySys_GetObject(char *);
-PyAPI_FUNC(int) PySys_SetObject(char *, PyObject *);
+PyAPI_FUNC(PyObject *) PySys_GetObject(const char *);
+PyAPI_FUNC(int) PySys_SetObject(const char *, PyObject *);
 PyAPI_FUNC(FILE *) PySys_GetFile(char *, FILE *);
 PyAPI_FUNC(void) PySys_SetArgv(int, char **);
 PyAPI_FUNC(void) PySys_SetArgvEx(int, char **, int);
