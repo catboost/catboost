@@ -603,7 +603,6 @@ migrations:
     - voicetech/spotter/run/difftool
     - voicetech/spotter/score/prepare_for_online_validation/bin
     - voicetech/spotter/tools/filter_texts/bin
-    - voicetech/spotter/tools/filter_texts/lib
     - voicetech/uniproxy2/tests
     - voicetech/vqe/pylibs
     - voicetech/vqe/tf_vqe
