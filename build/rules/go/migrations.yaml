@@ -342,7 +342,6 @@ migrations:
       - a.yandex-team.ru/travel/avia/shared_flights/lib/go/iata_correction_test
       - a.yandex-team.ru/travel/avia/shared_flights/status_importer/internal/status
       - a.yandex-team.ru/travel/avia/shared_flights/status_importer/internal/status_test
-      - a.yandex-team.ru/travel/avia/wizard/pkg/wizard/caches/references
       - a.yandex-team.ru/travel/buses/backend/internal/api/app
       - a.yandex-team.ru/travel/buses/backend/internal/api/app/tests
       - a.yandex-team.ru/travel/buses/backend/internal/api/cache
