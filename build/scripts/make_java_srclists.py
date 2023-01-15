@@ -26,12 +26,15 @@ def main():
     coverage = []
 
     cur_resources_list_file = None
+    cur_jsources_list_file = None
     cur_srcdir = None
     cur_resources = []
+    cur_jsources = []
 
     FILE_ARG = 1
     RESOURCES_DIR_ARG = 2
     SRCDIR_ARG = 3
+    JSOURCES_DIR_ARG = 4
 
     next_arg=FILE_ARG
 
@@ -39,6 +42,11 @@ def main():
         if next_arg == RESOURCES_DIR_ARG:
             assert cur_resources_list_file is None
             cur_resources_list_file = src
+            next_arg = FILE_ARG
+            continue
+        elif next_arg == JSOURCES_DIR_ARG:
+            assert cur_jsources_list_file is None
+            cur_jsources_list_file = src
             next_arg = FILE_ARG
             continue
         elif next_arg == SRCDIR_ARG:
@@ -49,6 +57,7 @@ def main():
 
         if src.endswith(".java"):
             java.append(src)
+            kotlin.append(src)
             if args.coverage and args.source_root:
                 rel = os.path.relpath(src, args.source_root)
                 if not rel.startswith('..' + os.path.sep):
@@ -66,15 +75,32 @@ def main():
                 cur_srcdir = None
                 cur_resources = []
                 next_arg = RESOURCES_DIR_ARG
+                continue
+            if src == '--jsources':
+                if cur_jsources_list_file is not None:
+                    with open(cur_jsources_list_file, 'w') as f:
+                        writelines(f, cur_jsources)
+                cur_jsources_list_file = None
+                cur_jsources = []
+                next_arg = JSOURCES_DIR_ARG
+                continue
             elif src == '--srcdir':
                 next_arg = SRCDIR_ARG
+                continue
             else:
                 assert cur_srcdir is not None and cur_resources_list_file is not None
                 cur_resources.append(os.path.relpath(src, cur_srcdir))
 
+        if cur_jsources_list_file is not None:
+            assert cur_srcdir is not None
+            cur_jsources.append(os.path.relpath(src, cur_srcdir))
+
     if cur_resources_list_file is not None:
         with open(cur_resources_list_file, 'w') as f:
             writelines(f, cur_resources)
+    if cur_jsources_list_file is not None:
+        with open(cur_jsources_list_file, 'w') as f:
+            writelines(f, cur_jsources)
 
     if args.java:
         with open(args.java, 'w') as f:

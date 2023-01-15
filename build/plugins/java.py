@@ -263,12 +263,16 @@ def onexternal_jar(unit, *args):
 def on_check_java_srcdir(unit, *args):
     args = list(args)
     for arg in args:
+        if not '$' in arg:
+            abs_srcdir = unit.resolve(os.path.join("$S/", unit.get('MODDIR'), arg))
+            if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
+                ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
         srcdir = unit.resolve_arc_path(arg)
-        if not srcdir.startswith('$S'):
+        if srcdir and not srcdir.startswith('$S'):
             continue
-        abs_srcdir = unit.resolve(srcdir)
+        abs_srcdir = unit.resolve(srcdir) if srcdir else unit.resolve(arg)
         if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(srcdir[3:]))
+            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
 
 
 def on_fill_jar_copy_resources_cmd(unit, *args):
@@ -283,7 +287,7 @@ def on_fill_jar_copy_resources_cmd(unit, *args):
     unit.set([varname, var])
 
 def on_fill_jar_gen_srcs(unit, *args):
-    varname, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:7])
+    varname, jar_type, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:8])
     resolved_srcdir = unit.resolve_arc_path(srcdir)
     if resolved_srcdir.startswith('$S'):
         return
@@ -292,8 +296,9 @@ def on_fill_jar_gen_srcs(unit, *args):
     globs = args[7:exclude_pos]
     excludes = args[exclude_pos + 1:]
     var = unit.get(varname)
-    # TODO: devtools/ya/jbuild/resolve_java_srcs.py really bad script location
-    var += ' && $YMAKE_PYTHON ${{input:"build/scripts/resolve_java_srcs.py"}} --append -d {} -s {} -k {} -g {} -r {} --include-patterns {}'.format(srcdir, java_list, kt_list, groovy_list, res_list, ' '.join(globs))
+    var += ' && ${{cwd:BINDIR}} $YMAKE_PYTHON ${{input:"build/scripts/resolve_java_srcs.py"}} --append -d {} -s {} -k {} -g {} -r {} --include-patterns {}'.format(srcdir, java_list, kt_list, groovy_list, res_list, ' '.join(globs))
+    if jar_type == 'SRC_JAR':
+        var += ' --all-resources'
     if len(excludes) > 0:
         var += ' --exclude-patterns {}'.format(' '.join(excludes))
     if unit.get('WITH_KOTLIN_VALUE') == 'yes':
@@ -301,3 +306,16 @@ def on_fill_jar_gen_srcs(unit, *args):
     if unit.get('WITH_GROOVY_VALUE') == 'yes':
         var += ' --resolve-groovy'
     unit.set([varname, var])
+
+
+def onrun_jar_program(unit, *args):
+    counter = unit.get('RUN_JAR_PROGRAM_COUNTER')
+    if not counter:
+        counter = '0'
+    unit.set(['RUN_JAR_PROGRAM_COUNTER', str(int(counter) + 1)])
+    unit.on_run_jar_program(['GENTAR_EXT', '.{}.gentar'.format(counter)] + [a for a in args])
+
+
+def on_check_run_java_prog_classpath(unit, *args):
+    if len(args) != 1:
+        ymake.report_configure_error('multiple CLASSPATH elements in RUN_JAVA_PROGRAM invocation no more supported. Use JAVA_RUNTIME_PEERDIR on the JAVA_PROGRAM module instead')
