@@ -185,9 +185,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
       <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
-      <Project>{E633ADF4-A720-EDCB-A12B-52A8216FF956}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>

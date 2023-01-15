@@ -147,9 +147,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
       <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
-      <Project>{E633ADF4-A720-EDCB-A12B-52A8216FF956}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
       <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
     </ProjectReference>
