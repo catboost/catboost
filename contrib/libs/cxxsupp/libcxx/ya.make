@@ -18,13 +18,6 @@ IF (OS_ANDROID)
         src/support/android/locale_android.cpp
     )
 
-    PEERDIR(
-        contrib/libs/android_ifaddrs
-    )
-    ADDINCL(
-        GLOBAL contrib/libs/android_ifaddrs
-    )
-
     # android_support actually depends on c++abi:
     # https://github.com/android/ndk/issues/1130
     LDFLAGS(-Wl,--start-group)
