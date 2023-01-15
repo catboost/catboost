@@ -43,6 +43,8 @@ ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/libr
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/config/protos
 ALLOW search/begemot/rules/alice_binary_intent_classifier -> alice/megamind/library/experiments
 ALLOW search/begemot/rules/alice_iot -> alice/megamind/library/scenarios/iot
+ALLOW search/begemot/rules/alice_nonsense_tagger -> alice/megamind/library/begemot/constants
+ALLOW search/begemot/rules/alice_nonsense_tagger -> alice/megamind/library/experiments
 ALLOW search/begemot/rules/alice_web_music -> alice/megamind/library/search/protos
 ALLOW search/begemot/rules/granet_config -> alice/megamind/library/experiments
 ALLOW search/begemot/rules/granet_params -> alice/megamind/library/experiments
