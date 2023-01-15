@@ -79,21 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\yson\all.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\consumer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\detail.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\format.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\json_writer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\lexer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\lexer_detail.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\parser.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\parser_detail.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\public.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\token.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\tokenizer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\varint.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\writer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\yson2json_adapter.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\yson\zigzag.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
