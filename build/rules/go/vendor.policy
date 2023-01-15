@@ -714,6 +714,9 @@ ALLOW .* -> vendor/github.com/Microsoft/go-winio
 # CONTRIB-2241
 ALLOW .* -> vendor/github.com/aymerick/raymond
 
+# CONTRIB-2176
+ALLOW .* -> vendor/github.com/masterzen/winrm
+
 #
 # Tools
 #
