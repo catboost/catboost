@@ -491,7 +491,6 @@ migrations:
     - sandbox/projects/smarttv
     - sandbox/projects/taxi/BuildDispatcherPackage
     - sandbox/projects/voicetech/common
-    - sandbox/projects/websearch/begemot/tasks/BegemotYT/paths
     - sandbox/projects/wmc
     - sandbox/projects/yabs/dropstat/base
     - sandbox/projects/yabs/dropstat/send
