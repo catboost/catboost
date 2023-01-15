@@ -60,9 +60,9 @@ IF (ARCH_X86_64 OR ARCH_I386)
     IF (OS_CYGWIN)
         #TODO
     ELSE()
-        PEERDIR(contrib/deprecated/libffi)
+        PEERDIR(contrib/restricted/libffi)
 
-        ADDINCL(contrib/deprecated/libffi/include)
+        ADDINCL(contrib/restricted/libffi/include)
 
         SRCS(
             Modules/_ctypes/_ctypes.c

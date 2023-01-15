@@ -8,7 +8,7 @@ NO_UTIL()
 NO_COMPILER_WARNINGS()
 
 ADDINCL(
-    contrib/deprecated/libffi/include
+    contrib/restricted/libffi/include
 )
 
 IF (OS_WINDOWS)
