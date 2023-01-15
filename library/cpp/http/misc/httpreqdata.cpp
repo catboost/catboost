@@ -86,7 +86,7 @@ TString TBaseServerRequestData::HeaderByIndex(size_t n) const noexcept {
         --n;
     }
 
-    return TString(i->first) + AsStringBuf(": ") + i->second;
+    return TString(i->first) + TStringBuf(": ") + i->second;
 }
 
 const char* TBaseServerRequestData::Environment(const char* key) const {

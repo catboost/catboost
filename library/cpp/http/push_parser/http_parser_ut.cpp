@@ -240,7 +240,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         {
             // test broken deflate
             THttpParser p(THttpParser::Request);
-            TString content(AsStringBuf("some trash ....................."));
+            TString content(TStringBuf("some trash ....................."));
             TString msg = MakeEncodedRequest("deflate", content);
             UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }

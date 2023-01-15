@@ -159,17 +159,17 @@ TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDe
     const size_t schemeSize = GetSchemePrefixSize(url);
     const TStringBuf scheme = url.Head(schemeSize);
 
-    const bool isHttp = (schemeSize == 0 || scheme == AsStringBuf("http://"));
+    const bool isHttp = (schemeSize == 0 || scheme == TStringBuf("http://"));
 
     TStringBuf hostAndPort = GetHostAndPort(url.Tail(schemeSize));
 
     if (trimDefaultPort) {
         const size_t pos = hostAndPort.find(':');
         if (pos != TStringBuf::npos) {
-            const bool isHttps = (scheme == AsStringBuf("https://"));
+            const bool isHttps = (scheme == TStringBuf("https://"));
 
             const TStringBuf port = hostAndPort.Tail(pos + 1);
-            if ((isHttp && port == AsStringBuf("80")) || (isHttps && port == AsStringBuf("443"))) {
+            if ((isHttp && port == TStringBuf("80")) || (isHttps && port == TStringBuf("443"))) {
                 // trimming default port
                 hostAndPort = hostAndPort.Head(pos);
             }
@@ -222,9 +222,9 @@ bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBu
         }
     } else {
         host = hostAndPort;
-        if (scheme == AsStringBuf("https://")) {
+        if (scheme == TStringBuf("https://")) {
             port = 443;
-        } else if (scheme == AsStringBuf("http://")) {
+        } else if (scheme == TStringBuf("http://")) {
             port = 80;
         }
     }
@@ -317,14 +317,14 @@ static inline bool IsSchemeChar(char c) noexcept {
 
 static bool HasPrefix(const TStringBuf url) noexcept {
     TStringBuf scheme, unused;
-    if (!url.TrySplit(AsStringBuf("://"), scheme, unused))
+    if (!url.TrySplit(TStringBuf("://"), scheme, unused))
         return false;
 
     return AllOf(scheme, IsSchemeChar);
 }
 
 TString AddSchemePrefix(const TString& url) {
-    return AddSchemePrefix(url, AsStringBuf("http"));
+    return AddSchemePrefix(url, TStringBuf("http"));
 }
 
 TString AddSchemePrefix(const TString& url, TStringBuf scheme) {
@@ -332,7 +332,7 @@ TString AddSchemePrefix(const TString& url, TStringBuf scheme) {
         return url;
     }
 
-    return TString::Join(scheme, AsStringBuf("://"), url);
+    return TString::Join(scheme, TStringBuf("://"), url);
 }
 
 #define X(c) (c >= 'A' ? ((c & 0xdf) - 'A') + 10 : (c - '0'))

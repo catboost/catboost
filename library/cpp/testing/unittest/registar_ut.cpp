@@ -43,9 +43,9 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_TEST_FAILS(stringsEqual("q", TString("w")));
         UNIT_ASSERT_TEST_FAILS(stringsEqual(TString("q"), "w"));
         UNIT_ASSERT_TEST_FAILS(stringsEqual(TString("a"), TString("b")));
-        UNIT_ASSERT_TEST_FAILS(stringsEqual(TString("a"), AsStringBuf("b")));
-        UNIT_ASSERT_TEST_FAILS(stringsEqual("a", AsStringBuf("b")));
-        UNIT_ASSERT_TEST_FAILS(stringsEqual(AsStringBuf("a"), "b"));
+        UNIT_ASSERT_TEST_FAILS(stringsEqual(TString("a"), TStringBuf("b")));
+        UNIT_ASSERT_TEST_FAILS(stringsEqual("a", TStringBuf("b")));
+        UNIT_ASSERT_TEST_FAILS(stringsEqual(TStringBuf("a"), "b"));
 
         TString empty;
         TStringBuf emptyBuf;
@@ -86,19 +86,19 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_TEST_FAILS(stringsUnequal("", ""));
         UNIT_ASSERT_TEST_FAILS(stringsUnequal("42", TString("42")));
         UNIT_ASSERT_TEST_FAILS(stringsUnequal(TString("4"), "4"));
-        UNIT_ASSERT_TEST_FAILS(stringsUnequal("d", AsStringBuf("d")));
-        UNIT_ASSERT_TEST_FAILS(stringsUnequal(AsStringBuf("yandex"), "yandex"));
-        UNIT_ASSERT_TEST_FAILS(stringsUnequal(AsStringBuf("index"), TString("index")));
-        UNIT_ASSERT_TEST_FAILS(stringsUnequal(TString("diff"), AsStringBuf("diff")));
+        UNIT_ASSERT_TEST_FAILS(stringsUnequal("d", TStringBuf("d")));
+        UNIT_ASSERT_TEST_FAILS(stringsUnequal(TStringBuf("yandex"), "yandex"));
+        UNIT_ASSERT_TEST_FAILS(stringsUnequal(TStringBuf("index"), TString("index")));
+        UNIT_ASSERT_TEST_FAILS(stringsUnequal(TString("diff"), TStringBuf("diff")));
 
         UNIT_ASSERT_STRINGS_UNEQUAL("1", "2");
         UNIT_ASSERT_STRINGS_UNEQUAL("", "3");
-        UNIT_ASSERT_STRINGS_UNEQUAL("green", AsStringBuf("red"));
-        UNIT_ASSERT_STRINGS_UNEQUAL(AsStringBuf("solomon"), "golovan");
+        UNIT_ASSERT_STRINGS_UNEQUAL("green", TStringBuf("red"));
+        UNIT_ASSERT_STRINGS_UNEQUAL(TStringBuf("solomon"), "golovan");
         UNIT_ASSERT_STRINGS_UNEQUAL("d", TString("f"));
         UNIT_ASSERT_STRINGS_UNEQUAL(TString("yandex"), "index");
-        UNIT_ASSERT_STRINGS_UNEQUAL(TString("mail"), AsStringBuf("yandex"));
-        UNIT_ASSERT_STRINGS_UNEQUAL(AsStringBuf("C++"), TString("python"));
+        UNIT_ASSERT_STRINGS_UNEQUAL(TString("mail"), TStringBuf("yandex"));
+        UNIT_ASSERT_STRINGS_UNEQUAL(TStringBuf("C++"), TString("python"));
     }
 
     Y_UNIT_TEST(Equal) {
@@ -339,7 +339,7 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
 
     Y_UNIT_TEST(ExceptionContains) {
         UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>("cba"));
-        UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>(AsStringBuf("cba")));
+        UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>(TStringBuf("cba")));
         UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>(TString("cba")));
         UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>(TStringBuilder() << "cba"));
 

@@ -8,11 +8,11 @@ namespace NNeh {
     namespace NHttp {
         template <typename Port>
         void WriteHostHeader(IOutputStream& out, TStringBuf host, Port port) {
-            out << AsStringBuf("Host: ") << host;
+            out << TStringBuf("Host: ") << host;
             if (port) {
-                out << AsStringBuf(":") << port;
+                out << TStringBuf(":") << port;
             }
-            out << AsStringBuf("\r\n");
+            out << TStringBuf("\r\n");
         }
 
         class THeaderSplitter {

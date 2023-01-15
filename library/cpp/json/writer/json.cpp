@@ -201,7 +201,7 @@ namespace NJsonWriter {
     }
 
     TValueContext TBuf::WriteNull() {
-        UnsafeWriteValue(AsStringBuf("null"));
+        UnsafeWriteValue(TStringBuf("null"));
         return TValueContext(*this);
     }
 

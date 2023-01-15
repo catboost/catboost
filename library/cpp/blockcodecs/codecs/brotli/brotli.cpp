@@ -13,7 +13,7 @@ namespace {
 
         inline TBrotliCodec(ui32 level)
             : Quality(level)
-            , MyName(AsStringBuf("brotli_") + ToString(level))
+            , MyName(TStringBuf("brotli_") + ToString(level))
         {
         }
 

@@ -129,7 +129,7 @@ namespace {
                 }
 
                 TStringStream ss;
-                ss << AsStringBuf("tcp2 err_code=") << ErrorCode;
+                ss << TStringBuf("tcp2 err_code=") << ErrorCode;
                 return ss.Str();
             }
 
@@ -202,14 +202,14 @@ namespace {
                 {
                     const TBaseHeader& hdr = BaseHeader();
                     if (BaseHeader().HeaderLength > 32000) { //some heuristic header size limit
-                        throw yexception() << AsStringBuf("to large neh/tcp2 header size: ") << BaseHeader().HeaderLength;
+                        throw yexception() << TStringBuf("to large neh/tcp2 header size: ") << BaseHeader().HeaderLength;
                     }
                     //header completed
                     Header_.Reserve(hdr.HeaderLength);
                 }
                 const TBaseHeader& hdr = BaseHeader(); //reallocation can move Header_ data to another place, so use fresh 'hdr'
                 if (Y_UNLIKELY(hdr.Version != 1)) {
-                    throw yexception() << AsStringBuf("unsupported protocol version: ") << static_cast<unsigned>(hdr.Version);
+                    throw yexception() << TStringBuf("unsupported protocol version: ") << static_cast<unsigned>(hdr.Version);
                 }
                 RequireBytesForComplete_ = hdr.HeaderLength - sizeof(TBaseHeader);
                 return useBytes + LoadHeader(buf + useBytes, len - useBytes);
@@ -229,21 +229,21 @@ namespace {
 
                 if (hdr.Type == TBaseHeader::Request) {
                     if (Header_.Size() < sizeof(TRequestHeader)) {
-                        throw yexception() << AsStringBuf("invalid request header size");
+                        throw yexception() << TStringBuf("invalid request header size");
                     }
                     InitContentLoading(RequestHeader().ContentLength);
                 } else if (hdr.Type == TBaseHeader::Response) {
                     if (Header_.Size() < sizeof(TResponseHeader)) {
-                        throw yexception() << AsStringBuf("invalid response header size");
+                        throw yexception() << TStringBuf("invalid response header size");
                     }
                     InitContentLoading(ResponseHeader().ContentLength);
                 } else if (hdr.Type == TBaseHeader::Cancel) {
                     if (Header_.Size() < sizeof(TCancelHeader)) {
-                        throw yexception() << AsStringBuf("invalid cancel header size");
+                        throw yexception() << TStringBuf("invalid cancel header size");
                     }
                     return useBytes;
                 } else {
-                    throw yexception() << AsStringBuf("unsupported request type: ") << static_cast<unsigned>(hdr.Type);
+                    throw yexception() << TStringBuf("unsupported request type: ") << static_cast<unsigned>(hdr.Type);
                 }
                 return useBytes + (this->*Loader_)(buf + useBytes, len - useBytes);
             }
@@ -1038,7 +1038,7 @@ namespace {
                         it->second->OnResponse(Msg_);
                         ReqsInFly_.erase(it);
                     } else {
-                        throw yexception() << AsStringBuf("unsupported message type: ") << hdr.Type;
+                        throw yexception() << TStringBuf("unsupported message type: ") << hdr.Type;
                     }
                 }
 
@@ -1160,7 +1160,7 @@ namespace {
                 ~TRequest() override;
 
                 TStringBuf Scheme() const override {
-                    return AsStringBuf("tcp2");
+                    return TStringBuf("tcp2");
                 }
 
                 TString RemoteHost() const override;
@@ -1641,7 +1641,7 @@ namespace {
             }
 
             TStringBuf Scheme() const noexcept override {
-                return AsStringBuf("tcp2");
+                return TStringBuf("tcp2");
             }
 
             bool SetOption(TStringBuf name, TStringBuf value) override {

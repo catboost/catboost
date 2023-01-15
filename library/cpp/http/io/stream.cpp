@@ -235,7 +235,7 @@ private:
 
     struct TTrEnc {
         inline void operator()(const TStringBuf& s) {
-            if (s == AsStringBuf("chunked")) {
+            if (s == TStringBuf("chunked")) {
                 p->Chunked = true;
             }
         }
@@ -641,7 +641,7 @@ private:
 
     inline bool HasResponseBody() const noexcept {
         if (IsHttpResponse()) {
-            if (Request_ && Request_->FirstLine().StartsWith(AsStringBuf("HEAD")))
+            if (Request_ && Request_->FirstLine().StartsWith(TStringBuf("HEAD")))
                 return false;
             if (FirstLine_.size() > 9 && strncmp(FirstLine_.data() + 9, "204", 3) == 0)
                 return false;
@@ -814,13 +814,13 @@ private:
             const THttpInputHeader& header = *h;
             const TString hl = to_lower(header.Name());
 
-            if (hl == AsStringBuf("connection")) {
-                keepAlive = to_lower(header.Value()) == AsStringBuf("keep-alive");
-            } else if (IsCompressionHeaderEnabled() && hl == AsStringBuf("content-encoding")) {
+            if (hl == TStringBuf("connection")) {
+                keepAlive = to_lower(header.Value()) == TStringBuf("keep-alive");
+            } else if (IsCompressionHeaderEnabled() && hl == TStringBuf("content-encoding")) {
                 encoder = TCompressionCodecFactory::Instance().FindEncoder(to_lower(header.Value()));
-            } else if (hl == AsStringBuf("transfer-encoding")) {
-                chunked = to_lower(header.Value()) == AsStringBuf("chunked");
-            } else if (hl == AsStringBuf("content-length")) {
+            } else if (hl == TStringBuf("transfer-encoding")) {
+                chunked = to_lower(header.Value()) == TStringBuf("chunked");
+            } else if (hl == TStringBuf("content-length")) {
                 haveContentLength = true;
             }
         }
@@ -979,17 +979,17 @@ void SendMinimalHttpRequest(TSocket& s, const TStringBuf& host, const TStringBuf
     output.EnableCompression(false);
 
     const IOutputStream::TPart parts[] = {
-        IOutputStream::TPart(AsStringBuf("GET ")),
+        IOutputStream::TPart(TStringBuf("GET ")),
         IOutputStream::TPart(request),
-        IOutputStream::TPart(AsStringBuf(" HTTP/1.1")),
+        IOutputStream::TPart(TStringBuf(" HTTP/1.1")),
         IOutputStream::TPart::CrLf(),
-        IOutputStream::TPart(AsStringBuf("Host: ")),
+        IOutputStream::TPart(TStringBuf("Host: ")),
         IOutputStream::TPart(host),
         IOutputStream::TPart::CrLf(),
-        IOutputStream::TPart(AsStringBuf("User-Agent: ")),
+        IOutputStream::TPart(TStringBuf("User-Agent: ")),
         IOutputStream::TPart(agent),
         IOutputStream::TPart::CrLf(),
-        IOutputStream::TPart(AsStringBuf("From: ")),
+        IOutputStream::TPart(TStringBuf("From: ")),
         IOutputStream::TPart(from),
         IOutputStream::TPart::CrLf(),
         IOutputStream::TPart::CrLf(),

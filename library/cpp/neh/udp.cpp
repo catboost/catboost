@@ -401,7 +401,7 @@ namespace {
                 }
 
                 TStringBuf Scheme() const override {
-                    return AsStringBuf("udp");
+                    return TStringBuf("udp");
                 }
 
                 TString RemoteHost() const override {
@@ -682,7 +682,7 @@ namespace {
             }
 
             TStringBuf Scheme() const noexcept override {
-                return AsStringBuf("udp");
+                return TStringBuf("udp");
             }
         };
     }

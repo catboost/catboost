@@ -35,7 +35,7 @@ public:
 
     /// Возвращает строку "имя параметра: значение".
     inline TString ToString() const {
-        return Name_ + AsStringBuf(": ") + Value_;
+        return Name_ + TStringBuf(": ") + Value_;
     }
 
 private:

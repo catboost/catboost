@@ -162,26 +162,26 @@ namespace NNeh {
                 TRequestData::TPtr req(new TRequestData(50 + loc.Service.size() + msg.Data.size() + loc.Host.size()));
                 TMemoryOutput out(req->Mem.data(), req->Mem.size());
 
-                out << AsStringBuf("GET /") << loc.Service;
+                out << TStringBuf("GET /") << loc.Service;
 
                 if (!!msg.Data) {
                     out << '?' << msg.Data;
                 }
 
-                out << AsStringBuf(" HTTP/1.1\r\nHost: ") << loc.Host;
+                out << TStringBuf(" HTTP/1.1\r\nHost: ") << loc.Host;
 
                 if (!!loc.Port) {
-                    out << AsStringBuf(":") << loc.Port;
+                    out << TStringBuf(":") << loc.Port;
                 }
 
-                out << AsStringBuf("\r\n\r\n");
+                out << TStringBuf("\r\n\r\n");
 
                 req->AddPart(req->Mem.data(), out.Buf() - req->Mem.data());
                 return req;
             }
 
             static inline TStringBuf Name() noexcept {
-                return AsStringBuf("http");
+                return TStringBuf("http");
             }
 
             static TRequestSettings RequestSettings() {
@@ -194,14 +194,14 @@ namespace NNeh {
                 TRequestData::TPtr req(new TRequestData(100 + loc.Service.size() + loc.Host.size()));
                 TMemoryOutput out(req->Mem.data(), req->Mem.size());
 
-                out << AsStringBuf("POST /") << loc.Service
-                    << AsStringBuf(" HTTP/1.1\r\nHost: ") << loc.Host;
+                out << TStringBuf("POST /") << loc.Service
+                    << TStringBuf(" HTTP/1.1\r\nHost: ") << loc.Host;
 
                 if (!!loc.Port) {
-                    out << AsStringBuf(":") << loc.Port;
+                    out << TStringBuf(":") << loc.Port;
                 }
 
-                out << AsStringBuf("\r\nContent-Length: ") << msg.Data.size() << AsStringBuf("\r\n\r\n");
+                out << TStringBuf("\r\nContent-Length: ") << msg.Data.size() << TStringBuf("\r\n\r\n");
 
                 req->AddPart(req->Mem.data(), out.Buf() - req->Mem.data());
                 req->AddPart(msg.Data.data(), msg.Data.size());
@@ -209,7 +209,7 @@ namespace NNeh {
             }
 
             static inline TStringBuf Name() noexcept {
-                return AsStringBuf("post");
+                return TStringBuf("post");
             }
 
             static TRequestSettings RequestSettings() {
@@ -225,7 +225,7 @@ namespace NNeh {
             }
 
             static inline TStringBuf Name() noexcept {
-                return AsStringBuf("full");
+                return TStringBuf("full");
             }
 
             static TRequestSettings RequestSettings() {

@@ -11,13 +11,13 @@ namespace {
     struct TZStd08Codec: public TAddLengthCodec<TZStd08Codec> {
         inline TZStd08Codec(unsigned level)
             : Level(level)
-            , MyName(AsStringBuf("zstd08_") + ToString(Level))
+            , MyName(TStringBuf("zstd08_") + ToString(Level))
         {
         }
 
         static inline size_t CheckError(size_t ret, const char* what) {
             if (ZSTD_isError(ret)) {
-                ythrow yexception() << what << AsStringBuf(" zstd error: ") << ZSTD_getErrorName(ret);
+                ythrow yexception() << what << TStringBuf(" zstd error: ") << ZSTD_getErrorName(ret);
             }
 
             return ret;

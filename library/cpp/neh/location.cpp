@@ -8,7 +8,7 @@ TParsedLocation::TParsedLocation(TStringBuf path) {
     path.Split(':', Scheme, path);
     path.Skip(2);
 
-    const size_t pos = path.find_first_of(AsStringBuf("?@"));
+    const size_t pos = path.find_first_of(TStringBuf("?@"));
 
     if (TStringBuf::npos != pos && '@' == path[pos]) {
         path.SplitAt(pos, UserInfo, path);
@@ -43,7 +43,7 @@ TParsedLocation::TParsedLocation(TStringBuf path) {
 
 ui16 TParsedLocation::GetPort() const {
     if (!Port) {
-        return AsStringBuf("https") == Scheme || AsStringBuf("fulls") == Scheme || AsStringBuf("posts") == Scheme ? 443 : 80;
+        return TStringBuf("https") == Scheme || TStringBuf("fulls") == Scheme || TStringBuf("posts") == Scheme ? 443 : 80;
     }
 
     return FromString<ui16>(Port);
