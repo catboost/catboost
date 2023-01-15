@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</ProjectGUID>
+    <ProjectGUID>{E9EC667B-1AE6-0E35-0BF9-6D326F8FFC9D}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-threading-chunk_queue</ProjectName>
+    <ProjectName>cpp-threading-name_guard</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-threading-chunk_queue</TargetName>
+    <TargetName>cpp-threading-name_guard</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\threading\chunk_queue\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\51BCA57C-7E5E-48F9-7D56-FD5809F99DCC\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\threading\name_guard\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E9EC667B-1AE6-0E35-0BF9-6D326F8FFC9D\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\threading\chunk_queue\queue.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\chunk_queue\queue.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\name_guard\name_guard.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\name_guard\name_guard.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{B74D5080-3614-52D8-BADE-8FF788EF3582}</ProjectGUID>
+    <ProjectGUID>{13FEC1E6-ECB5-4BF5-15C1-B1D4C3C396FA}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-threading-mux_event</ProjectName>
+    <ProjectName>cpp-threading-atomic</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-threading-mux_event</TargetName>
+    <TargetName>cpp-threading-atomic</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\threading\mux_event\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B74D5080-3614-52D8-BADE-8FF788EF3582\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\threading\atomic\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\13FEC1E6-ECB5-4BF5-15C1-B1D4C3C396FA\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\threading\mux_event\mux_event.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\mux_event\mux_event.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\atomic\bool.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\atomic\bool.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

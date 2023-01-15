@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{245DBD38-96D4-34AF-0014-199EB4C1FEEA}</ProjectGUID>
+    <ProjectGUID>{F2F7163F-2213-4906-A41E-82393C15A6DA}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-threading-name_guard</ProjectName>
+    <ProjectName>cpp-threading-hot_swap</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-threading-name_guard</TargetName>
+    <TargetName>cpp-threading-hot_swap</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\threading\name_guard\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\245DBD38-96D4-34AF-0014-199EB4C1FEEA\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\threading\hot_swap\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F2F7163F-2213-4906-A41E-82393C15A6DA\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\threading\name_guard\name_guard.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\name_guard\name_guard.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\hot_swap\hot_swap.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\hot_swap\hot_swap.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

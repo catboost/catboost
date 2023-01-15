@@ -170,6 +170,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
       <Project>{7B00433B-7B5A-D6AC-6349-8D1B4ADF1F22}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
+      <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
     </ProjectReference>
@@ -181,9 +184,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
       <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>

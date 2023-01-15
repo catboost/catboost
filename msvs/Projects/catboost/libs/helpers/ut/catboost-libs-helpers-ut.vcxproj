@@ -214,6 +214,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
+      <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
     </ProjectReference>
@@ -240,9 +243,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
       <Project>{370FE76E-4632-6C9C-415B-0652D0E1566F}</Project>

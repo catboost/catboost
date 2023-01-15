@@ -103,8 +103,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
-      <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\chunk_queue\cpp-threading-chunk_queue.vcxproj">
+      <Project>{8E921F98-5854-56F7-2AFB-4C06B80B46CD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

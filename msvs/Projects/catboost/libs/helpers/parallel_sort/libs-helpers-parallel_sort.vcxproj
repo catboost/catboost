@@ -99,8 +99,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
+      <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
