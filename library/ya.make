@@ -40,7 +40,6 @@ RECURSE(
     packers/ut
     par
     python
-    resource
     statistics
     statistics/ut
     svnversion
