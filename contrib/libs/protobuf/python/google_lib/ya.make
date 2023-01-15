@@ -42,6 +42,7 @@ CFLAGS(
 
 PY_SRCS(
     TOP_LEVEL
+    google/__init__.py
     google/protobuf/__init__.py
     google/protobuf/descriptor.py
     google/protobuf/descriptor_database.py

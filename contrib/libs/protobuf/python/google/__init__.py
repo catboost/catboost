@@ -1,3 +1,4 @@
-# WARN:
-#   DO NOT REMOVE, AS THIS WILL BREAK CERTAIN PROJECTS.
-#   See DEVTOOLSSUPPORT-6718 for details.
+try:
+  __import__('pkg_resources').declare_namespace(__name__)
+except ImportError:
+  __path__ = __import__('pkgutil').extend_path(__path__, __name__)
