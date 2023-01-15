@@ -981,7 +981,6 @@ migrations:
     - sandbox/projects/antirobot/AsnNames
     - sandbox/projects/antirobot/LoadTesting
     - sandbox/projects/autobudget/autobudget_lib
-    - sandbox/projects/autocheck/AutocheckBuildYa2/reports
     - sandbox/projects/avia/avia_statistics/update_alternative_routes_prices
     - sandbox/projects/avia/avia_statistics/update_flights
     - sandbox/projects/avia/avia_statistics/update_median_prices
