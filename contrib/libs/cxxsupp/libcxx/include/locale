@@ -2603,8 +2603,12 @@ public:
         : time_put<_CharT, _OutputIterator>(__nm, __refs) {}
 
 protected:
+#if defined(_MSC_VER) && defined(__clang__)
+    ~time_put_byname() {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     ~time_put_byname() {}
+#endif
 };
 
 _LIBCPP_EXTERN_TEMPLATE2(class _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS time_put_byname<char>)
