@@ -707,6 +707,7 @@ public:
     UNIT_TEST(TestReverseIterators);
     UNIT_TEST(TestAppendUtf16)
     UNIT_TEST(TestFillingAssign)
+    UNIT_TEST(TestStdStreamApi)
     //UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 
@@ -719,6 +720,20 @@ public:
         TString s("abc");
         s.assign(5, 'a');
         UNIT_ASSERT_VALUES_EQUAL(s, "aaaaa");
+    }
+
+    void TestStdStreamApi() {
+        const TString data = "Avada kedavra";
+        std::stringstream ss;
+        ss << data;
+
+        UNIT_ASSERT_VALUES_EQUAL(data, ss.str());
+
+        ss << '\n' << data << std::endl;
+
+        TString read;
+        ss >> read;
+        UNIT_ASSERT_VALUES_EQUAL(read, data);
     }
 };
 

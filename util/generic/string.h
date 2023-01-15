@@ -1536,6 +1536,7 @@ public:
 };
 
 std::ostream& operator<<(std::ostream&, const TString&);
+std::istream& operator>>(std::istream&, TString&);
 
 template<typename TCharType, typename TTraits>
 TBasicString<TCharType> to_lower(const TBasicString<TCharType, TTraits>& s) {
