@@ -1,4 +1,6 @@
 - includes:
+  - android/asset_manager.h
+  - android/asset_manager_jni.h
   - android/dlext.h
   - android/log.h
   - android/native_window_jni.h
