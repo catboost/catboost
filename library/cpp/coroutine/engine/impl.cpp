@@ -221,7 +221,12 @@ void TContExecutor::ScheduleExecutionNow(TCont* cont) noexcept {
 }
 
 namespace {
-    Y_POD_THREAD(TContExecutor*) thisThreadExecutor = nullptr;
+    inline TContExecutor*& ThisThreadExecutor() {
+        struct TThisThreadExecutorHolder {
+            TContExecutor* Executor;
+        };
+        return FastTlsSingletonWithPriority<TThisThreadExecutorHolder, 0>()->Executor;
+    }
 }
 
 void TContExecutor::Activate(TCont* cont) noexcept {
@@ -237,14 +242,15 @@ void TContExecutor::DeleteScheduled() noexcept {
 }
 
 TCont* RunningCont() {
+    TContExecutor* thisThreadExecutor = ThisThreadExecutor();
     return thisThreadExecutor ? thisThreadExecutor->Running() : nullptr;
 }
 
 void TContExecutor::RunScheduler() noexcept {
     try {
-        thisThreadExecutor = this;
+        ThisThreadExecutor() = this;
         Y_DEFER {
-            thisThreadExecutor = nullptr;
+            ThisThreadExecutor() = nullptr;
         };
 
         while (true) {
