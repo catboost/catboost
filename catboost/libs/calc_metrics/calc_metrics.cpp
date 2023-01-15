@@ -239,7 +239,7 @@ namespace NCB {
         executor.RunAdditionalThreads(threadCount - 1);
 
         const int blockSize = 150000;
-        TVector<TMetricHolder> stats;
+        TVector<TMetricHolder> additiveStats;
 
         TNonAdditiveMetricData nonAdditiveMetricData;
 
@@ -266,12 +266,12 @@ namespace NCB {
                 if (!nonAdditiveMetrics.empty()) {
                     nonAdditiveMetricData.SaveProcessedData(datasetPart, &executor);
                 }
-                if (stats.empty()) {
-                    stats = std::move(subStats);
+                if (additiveStats.empty()) {
+                    additiveStats = std::move(subStats);
                 } else {
-                    Y_ASSERT(stats.size() == subStats.size());
-                    for (auto ind : xrange(stats.size())) {
-                        stats[ind].Add(subStats[ind]);
+                    Y_ASSERT(additiveStats.size() == subStats.size());
+                    for (auto ind : xrange(additiveStats.size())) {
+                        additiveStats[ind].Add(subStats[ind]);
                     }
                 }
             },
@@ -285,11 +285,18 @@ namespace NCB {
             &executor
         );
 
-        stats.insert(
-            stats.end(),
-            nonAdditiveStats.begin(),
-            nonAdditiveStats.end()
-        );
+        TVector<TMetricHolder> stats;
+        auto additiveStatsPtr = additiveStats.begin();
+        auto nonAdditiveStatsPtr = nonAdditiveStats.begin();
+        for (const auto& metric : metrics) {
+            if (metric->IsAdditiveMetric()) {
+                stats.emplace_back(std::move(*(additiveStatsPtr++)));
+            } else {
+                stats.emplace_back(std::move(*(nonAdditiveStatsPtr++)));
+            }
+        }
+        Y_ASSERT(additiveStatsPtr == additiveStats.end());
+        Y_ASSERT(nonAdditiveStatsPtr == nonAdditiveStats.end());
 
         auto metricResults = GetMetricResultsFromMetricHolder(stats, metrics);
         return metricResults;
