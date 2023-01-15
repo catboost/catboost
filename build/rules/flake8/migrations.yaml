@@ -604,7 +604,6 @@ migrations:
     - maps/wikimap/stat/libs/common/tests/lib
     - maps/wikimap/stat/libs/common/tests/lib/dates_ut
     - maps/wikimap/stat/tasks_payment/dictionaries/public_holidays/tests
-    - market/access/puller/mt
     - market/backctld/pyb
     - market/backctld/pyb/plugin/data_handlers
     - market/backctld/pyb/qpipe
@@ -953,7 +952,6 @@ migrations:
     - sandbox/projects/statinfra
     - sandbox/projects/statinfra/statinfra_task
     - sandbox/projects/statinfra/statinfra_task_beta
-    - sandbox/projects/tank/ShootViaTankapi
     - sandbox/projects/tank/build
     - sandbox/projects/tank/build/CheckFreshTag
     - sandbox/projects/tests
@@ -1241,7 +1239,6 @@ migrations:
     - ads/autobudget/metrics/equivalency_monitoring
     - ads/autobudget/metrics/example_monitoring
     - ads/bsyeti/libs/argument_tree/test
-    - ads/bsyeti/samogon/caesar_resharder/plugin
     - ads/bsyeti/tests/bsdiff
     - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
@@ -1321,7 +1318,6 @@ migrations:
     - cv/short2long/training/yt_calc_factors
     - datacloud/log_reader/lib
     - devtools/contrib/statistics/auto_import
-    - devtools/distbuild/dejavu/cache_requester/client/py
     - devtools/local_cache/ac/tests/perfac
     - devtools/ya/core/imprint
     - devtools/ya/yalibrary/resource_autoupdater
@@ -1589,7 +1585,6 @@ migrations:
     - search/mon/wabbajack/libs/client/parsers
     - search/scraper/parser_platform/parsers
     - search/scraper_over_yt/scripts
-    - search/tools/woland/lib
     - skynet/kernel
     - skynet/kernel/util/tests
     - smart_devices/packages/generate_packages
@@ -1725,7 +1720,6 @@ migrations:
     - ads/pytorch/lib/online_learning/production/train_ctl/lib
     - ads/pytorch/lib/run/ut
     - ads/quality/adv_machine/cm_robot/cmpy/fresh_stats
-    - ads/quality/adv_machine/cm_robot/cmpy/monitoring
     - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom_attempt
     - ads/quality/adv_machine/cm_robot/cmpy/stuff
     - ads/quality/adv_machine/cm_robot/tests/small
@@ -1750,9 +1744,6 @@ migrations:
     - alice/hollywood/library/scenarios/music/it
     - alice/hollywood/library/scenarios/news/it
     - alice/hollywood/library/scenarios/tr_navi/handcrafted/it
-    - alice/nlu/py_libs/respect_rewriter
-    - alice/nlu/py_libs/syntax_parser
-    - alice/nlu/py_libs/tf_model_applier
     - alice/nlu/py_libs/tokenizer
     - alice/nlu/tools/lstm_classifier_trainer
     - alice/tools/telegram/alice_battle_angel_bot
@@ -1858,7 +1849,6 @@ migrations:
     - maps/automotive/proxy/config_generator
     - maps/automotive/remote_tasks/autotests/tests
     - maps/automotive/remote_tasks/manager/regression/ammo_generator
-    - maps/automotive/tools/statistics_auto/pylib/import_metrics
     - maps/b2bgeo/apikeys_billing/preprocess_mapkit_logs
     - maps/b2bgeo/tools/load_testing/lib
     - maps/doc/proto/yandex/maps/proto/factory/tests
@@ -1943,7 +1933,6 @@ migrations:
     - quality/functionality/scripts/psuh/HomeWorkMetricsLib/External/autolog_names/autolog_names
     - quality/functionality/scripts/psuh/HomeWorkMetricsLib/HomeWorkMetricsLib
     - quality/functionality/turbo/analytics/quality/samplers/cms_sampler
-    - quality/functionality/turbo/forms/app/lib
     - quality/functionality/turbo/ml_ads/prepare_daily_logs
     - quality/functionality/turbo/tools/rthub_dev/prepare_autoparser
     - quality/functionality/turbo/yml_process/lib
