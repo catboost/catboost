@@ -114,9 +114,9 @@ namespace NYT {
                 return ::ToString(value);
             }
 
-            static const auto nanLiteral = AsStringBuf("%nan");
-            static const auto infLiteral = AsStringBuf("%inf");
-            static const auto negativeInfLiteral = AsStringBuf("%-inf");
+            static const TStringBuf nanLiteral = "%nan";
+            static const TStringBuf infLiteral = "%inf";
+            static const TStringBuf negativeInfLiteral = "%-inf";
 
             TStringBuf str;
             if (std::isnan(value)) {

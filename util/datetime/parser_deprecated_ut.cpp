@@ -466,53 +466,53 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTestDeprecated) {
 
     Y_UNIT_TEST(TestTInstantTryParseDeprecated) {
         {
-            const auto s = AsStringBuf("2009-09-19 03:37:08.1+04:00");
+            const TStringBuf s = "2009-09-19 03:37:08.1+04:00";
             const auto i = TInstant::ParseIso8601Deprecated(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseIso8601Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = AsStringBuf("2009-09aslkdjfkljasdjfl4:00");
+            const TStringBuf s = "2009-09aslkdjfkljasdjfl4:00";
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseIso8601Deprecated(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseIso8601Deprecated(s, iTry));
         }
         {
-            const auto s = AsStringBuf("Wed, 14 Oct 2009 16:55:33 GMT");
+            const TStringBuf s = "Wed, 14 Oct 2009 16:55:33 GMT";
             const auto i = TInstant::ParseRfc822Deprecated(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseRfc822Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = AsStringBuf("Wed, alsdjflkasjdfl:55:33 GMT");
+            const TStringBuf s = "Wed, alsdjflkasjdfl:55:33 GMT";
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseRfc822Deprecated(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseRfc822Deprecated(s, iTry));
         }
         {
-            const auto s = AsStringBuf("20091014165533Z");
+            const TStringBuf s = "20091014165533Z";
             const auto i = TInstant::ParseX509ValidityDeprecated(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseX509Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = AsStringBuf("200asdfasdf533Z");
+            const TStringBuf s = "200asdfasdf533Z";
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseX509ValidityDeprecated(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseX509Deprecated(s, iTry));
         }
         {
-            const auto s = AsStringBuf("990104074212Z");
+            const TStringBuf s = "990104074212Z";
             const auto i = TInstant::ParseX509ValidityDeprecated(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseX509Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const auto s = AsStringBuf("9901asdf4212Z");
+            const TStringBuf s = "9901asdf4212Z";
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseX509ValidityDeprecated(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseX509Deprecated(s, iTry));

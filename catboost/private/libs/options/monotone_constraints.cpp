@@ -11,7 +11,7 @@ using namespace NCB;
 using namespace NJson;
 using namespace NCatboostOptions;
 
-static constexpr auto constraintRegex = AsStringBuf("0|1|-1");
+static constexpr TStringBuf constraintRegex = "0|1|-1";
 
 static void LeaveOnlyNonTrivialConstraints(TJsonValue* monotoneConstraintsJsonOptions) {
     TJsonValue nonTrivialConstraints(EJsonValueType::JSON_MAP);
