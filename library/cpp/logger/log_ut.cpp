@@ -62,7 +62,7 @@ void TLogTest::TestFile() {
 void TLogTest::TestThreaded() {
     {
         TFileLogBackend fb(LOGFILE);
-        TLog log(new TThreadedLogBackend(&fb));
+        TLog log(THolder(new TThreadedLogBackend(&fb)));
 
         int v1 = 12;
         unsigned v2 = 34;
@@ -106,7 +106,7 @@ void TLogTest::TestThreadedWithOverflow() {
 
     TFakeLogBackend fb;
     {
-        TLog log(new TThreadedLogBackend(&fb, 2));
+        TLog log(THolder(new TThreadedLogBackend(&fb, 2)));
 
         auto guard = fb.Guard();
         log.AddLog("first write");
@@ -118,7 +118,7 @@ void TLogTest::TestThreadedWithOverflow() {
 
     {
         ui32 overflows = 0;
-        TLog log(new TThreadedLogBackend(&fb, 2, [&overflows] { ++overflows; }));
+        TLog log(THolder(new TThreadedLogBackend(&fb, 2, [&overflows] { ++overflows; })));
 
         auto guard = fb.Guard();
         log.AddLog("first write");
@@ -134,7 +134,7 @@ void TLogTest::TestThreadedWithOverflow() {
 void TLogTest::TestNoFlush() {
     {
         TFileLogBackend fb(LOGFILE);
-        TLog log(new TThreadedLogBackend(&fb));
+        TLog log(THolder(new TThreadedLogBackend(&fb)));
 
         int v1 = 12;
         unsigned v2 = 34;
@@ -154,7 +154,7 @@ void TLogTest::TestFormat() {
     TStringStream data;
 
     {
-        TLog log(new TStreamLogBackend(&data));
+        TLog log(THolder(new TStreamLogBackend(&data)));
 
         log << "qw"
             << " "
@@ -169,7 +169,7 @@ void TLogTest::TestWrite() {
     TString test;
 
     {
-        TLog log(new TStreamLogBackend(&data));
+        TLog log(THolder(new TStreamLogBackend(&data)));
 
         for (size_t i = 0; i < 1000; ++i) {
             TVector<char> buf(i, (char)i);
