@@ -1,7 +1,5 @@
 - source_filter: "^contrib"
   includes:
-    - CL/cl.h
-    - CL/opencl.h
     - port.h
     - types.h
     - stat.h
