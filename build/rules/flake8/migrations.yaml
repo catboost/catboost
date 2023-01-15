@@ -1087,7 +1087,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-2293
     - yabs/server/test/ft/BSSERVER-2454
     - yabs/server/test/ft/BSSERVER-2976
-    - yabs/server/test/ft/BSSERVER-3049
     - yabs/server/test/ft/BSSERVER-3090
     - yabs/server/test/ft/BSSERVER-3731
     - yabs/server/test/ft/BSSERVER-3820
