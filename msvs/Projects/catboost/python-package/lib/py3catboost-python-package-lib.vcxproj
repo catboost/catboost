@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -1011,7 +1011,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "--cplus" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1022,7 +1022,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "--cplus" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

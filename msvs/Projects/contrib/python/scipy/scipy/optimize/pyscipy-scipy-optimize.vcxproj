@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;gdi32.lib;kernel32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -546,7 +546,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._group_columns" "--init-suffix" "5scipy8optimize14_group_columns" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_group_columns.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._group_columns" "--init-suffix" "5scipy8optimize14_group_columns" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_group_columns.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -557,7 +557,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._group_columns" "--init-suffix" "5scipy8optimize14_group_columns" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_group_columns.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "scipy.optimize._group_columns" "--init-suffix" "5scipy8optimize14_group_columns" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "$(SolutionDir)../contrib/python/scipy/scipy/optimize/_group_columns.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_group_columns.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
