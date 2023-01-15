@@ -149,11 +149,6 @@ public:
      */
     inline TShellCommandOptions& SetOutputStream(IOutputStream* stream) {
         OutputStream = stream;
-        if (OutputStream == nullptr) {
-            OutputMode = HANDLE_INHERIT;
-        } else {
-            OutputMode = HANDLE_STREAM;
-        }
         return *this;
     }
 
@@ -168,11 +163,6 @@ public:
      */
     inline TShellCommandOptions& SetErrorStream(IOutputStream* stream) {
         ErrorStream = stream;
-        if (ErrorStream == nullptr) {
-            ErrorMode = HANDLE_INHERIT;
-        } else {
-            ErrorMode = HANDLE_STREAM;
-        }
         return *this;
     }
 
