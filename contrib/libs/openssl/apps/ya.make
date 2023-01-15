@@ -2,7 +2,7 @@ PROGRAM(openssl)
 
 
 
-LICENSE(OpenSSL AND SSLeay)
+LICENSE(OpenSSL SSLeay)
 
 PEERDIR(
     contrib/libs/openssl
