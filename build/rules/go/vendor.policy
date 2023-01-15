@@ -67,6 +67,9 @@ ALLOW .* -> vendor/github.com/coreos/go-systemd/v22/dbus
 ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock
 
 # Cucumber-like BDD for Go
+## New location
+ALLOW .* -> vendor/github.com/cucumber/godog
+## Old location (deprecated)
 ALLOW .* -> vendor/github.com/DATA-DOG/godog
 
 # pretty printer for GO
