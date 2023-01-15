@@ -55,14 +55,13 @@ ui64 DurationToCycles(TDuration duration) {
     return duration.MicroSeconds() * GetCyclesPerSecond() / 1000000;
 }
 
-TPrecisionTimer::TPrecisionTimer(const char* message)
-    : Start(GetCycleCount())
-    , Message(message)
+TPrecisionTimer::TPrecisionTimer()
+    : Start(::GetCycleCount())
 {
 }
 
-TPrecisionTimer::~TPrecisionTimer() {
-    Cout << Message << ": " << (double)(GetCycleCount() - Start) << Endl;
+ui64 TPrecisionTimer::GetCycleCount() const {
+    return ::GetCycleCount() - Start;
 }
 
 TString FormatCycles(ui64 cycles) {
