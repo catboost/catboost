@@ -55,7 +55,6 @@ void verrx(int status, const char* format, va_list ap);
 #if !defined(_MSC_VER)
 char* strlwr(char*);
 char* strupr(char*);
-char* strrev(char*);
 
 inline int stricmp(const char* s1, const char* s2) {
     return strcasecmp(s1, s2);
