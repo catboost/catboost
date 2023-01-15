@@ -14,6 +14,6 @@ void SetDataDependentDefaults(
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
     bool continueFromModel,
     bool continueFromProgress,
-    NCatboostOptions::TOption<bool>* useBestModel,
+    NCatboostOptions::TOutputFilesOptions* outputFilesOptions,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 );

@@ -178,13 +178,14 @@ NJson::TJsonValue GetTrainingOptions(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
     ConvertParamsToCanonicalFormat(trainDataMetaInfo, &trainOptionsJson);
     NCatboostOptions::TCatBoostOptions catboostOptions(NCatboostOptions::LoadOptions(trainOptionsJson));
-    NCatboostOptions::TOption<bool> useBestModelOption("use_best_model", false);
+    NCatboostOptions::TOutputFilesOptions outputOptions;
+    outputOptions.UseBestModel.SetDefault(false);
     SetDataDependentDefaults(
         trainDataMetaInfo,
         testDataMetaInfo,
         /*continueFromModel*/ false,
         /*learningContinuation*/ false,
-        &useBestModelOption,
+        &outputOptions,
         &catboostOptions
     );
     NJson::TJsonValue catboostOptionsJson;
