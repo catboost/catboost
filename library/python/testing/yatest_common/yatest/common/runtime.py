@@ -97,6 +97,7 @@ def java_home():
 def java_bin():
     """
     Get path to the java binary
+    Requires DEPENDS(jdk)
     """
     return os.path.join(java_home(), "bin", "java")
 
