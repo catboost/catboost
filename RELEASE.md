@@ -1,3 +1,28 @@
+# Release 0.24.2
+
+## Uncertainty prediction
+* Supported uncertainty prediction for classification models.
+* Fixed RMSEWithUncertainty data uncertainty prediction - now it predicts variance, not standard deviation.
+
+## New functionality
+* Allow categorical feature counters for `MultiRMSE` loss function.
+* `group_weight` parameter added to `catboost.utils.eval_metric` method to allow passing weights for object groups. Allows correctly match weighted ranking metrics computation when group weights present.
+* Faster non-owning deserialization from memory with less memory overhead - moved some dynamically computed data to model file, other data is computed in lazy manner only when needed. 
+
+## Experimental functionality
+* Supported embedding features as input and linear discriminant analysis for embeddings preprocessing. Try adding your embeddings as new columns with embedding values array in Pandas.Dataframe and passing corresponding column names to `Pool` constructor or `fit` function with `embedding_features=['EmbeddingFeaturesColumnName1, ...]` parameter. Another way of adding your embedding vectors is new type of column in Column Description file `NumVector` and adding semicolon separated embeddings column to your XSV file: ```ClassLabel\t0.1;0.2;0.3\t...```.
+
+## Educational materials
+* Published new [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/uncertainty/uncertainty_regression.ipynb) on uncertainty prediction. 
+
+   
+## Bugfixes:
+* Reduced GPU memory usage in multi gpu training when there is no need to compute categorical feature counters.
+* Now CatBoost allows to specify `use_weights` for metrics when `auto_class_weights` parameter is set.
+* Correctly handle NaN values in `plot_predictions` function.
+* Fixed floating point precision drop releated bugs during Multiclass training with lots of objects in our case, bug was triggered while training on 25mln objects on single GPU card.
+
+
 # Release 0.24.1
 
 ## Uncertainty prediction
