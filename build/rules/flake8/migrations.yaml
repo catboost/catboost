@@ -107,7 +107,6 @@ migrations:
     - cv/short2long/python_lib
     - cv/short2long/training/yt_load_highlights
     - datalens/backend/bi-api
-    - datalens/backend/bi-billing
     - datalens/backend/bi-common
     - datalens/backend/bi-materializer
     - datalens/backend/bi-uploads
@@ -543,7 +542,6 @@ migrations:
     - strm/pinger/lib
     - strm/pult/backend/bin/prod_channels_generator
     - strm/pult/backend/tests/unit
-    - testenv/core/tools
     - testenv/jobs/begemot
     - testenv/jobs/release_machine/general
     - tools/mkdocs_builder/lib
