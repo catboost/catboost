@@ -454,12 +454,17 @@ def java_srcdirs_to_data(unit, var):
     for srcdir in (unit.get(var) or '').replace('$' + var, '').split():
         if srcdir == '.':
             srcdir = unit.get('MODDIR')
+        if srcdir.startswith('${ARCADIA_ROOT}/') or srcdir.startswith('$ARCADIA_ROOT/'):
+            srcdir = srcdir.replace('${ARCADIA_ROOT}/', '$S/')
+            srcdir = srcdir.replace('$ARCADIA_ROOT/', '$S/')
+        if srcdir.startswith('${CURDIR}/') or srcdir.startswith('$CURDIR/'):
+            srcdir = srcdir.replace('${CURDIR}/', os.path.join('$S', unit.get('MODDIR')))
+            srcdir = srcdir.replace('$CURDIR/', os.path.join('$S', unit.get('MODDIR')))
         srcdir = unit.resolve_arc_path(srcdir)
         if not srcdir.startswith('$'):
             srcdir = os.path.join('$S', unit.get('MODDIR'), srcdir)
-        if not srcdir.startswith('$S'):
-            continue
-        extra_data.append(srcdir.replace('$S', 'arcadia'))
+        if srcdir.startswith('$S'):
+            extra_data.append(srcdir.replace('$S', 'arcadia'))
     return serialize_list(extra_data)
 
 
