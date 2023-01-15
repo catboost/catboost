@@ -2021,6 +2021,109 @@
                 "version": "2019"
             }
         },
+        "clang12-windows": {
+            "name": "clang12",
+            "tools": {
+                "c++": {
+                    "bottle": "clang12-windows",
+                    "executable": "c++"
+                },
+                "c++filt": {
+                    "bottle": "clang12-windows",
+                    "executable": "c++filt"
+                },
+                "cc": {
+                    "bottle": "clang12-windows",
+                    "executable": "cc"
+                },
+                "clang-format": {
+                    "bottle": "clang12-windows",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "clang12-windows",
+                    "executable": "clang-tidy"
+                },
+                "gcov": {
+                    "bottle": "clang12-windows",
+                    "executable": "gcov"
+                },
+                "llvm-cov": {
+                    "bottle": "clang12-windows",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "clang12-windows",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "clang12-windows",
+                    "executable": "llvm-symbolizer"
+                },
+                "nm": {
+                    "bottle": "clang12-windows",
+                    "executable": "nm"
+                },
+                "strip": {
+                    "bottle": "clang12-windows",
+                    "executable": "strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "WIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "WIN",
+                        "arch": "i686"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "target": {
+                        "os": "WIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "target": {
+                        "os": "WIN",
+                        "arch": "i686"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "msvc",
+                "use_clang": true,
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang-cl",
+                "cxx_compiler": "$(CLANG)/bin/clang-cl",
+                "cxx_std": "c++latest",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "wine": "yes",
+                "version": "2019"
+            }
+        },
         "clang8": {
             "tools": {
                 "c++": {
@@ -7145,6 +7248,64 @@
                 "sandbox_id": [
                     926924521,
                     927633953
+                ],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": [
+                    "bin",
+                    "clang++"
+                ],
+                "c++filt": [
+                    "bin",
+                    "c++filt"
+                ],
+                "cc": [
+                    "bin",
+                    "clang"
+                ],
+                "clang-format": [
+                    "bin",
+                    "clang-format"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
+                "gcov": [
+                    "bin",
+                    "llvm-gcov"
+                ],
+                "llvm-cov": [
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-symbolizer": [
+                    "bin",
+                    "llvm-symbolizer"
+                ],
+                "llvm-nm": [
+                    "bin",
+                    "llvm-nm"
+                ],
+                "llvm-strip": [
+                    "bin",
+                    "llvm-strip"
+                ],
+                "llvm-objcopy": [
+                    "bin",
+                    "llvm-objcopy"
+                ]
+            }
+        },
+        "clang12-windows": {
+            "formula": {
+                "sandbox_id": [
+                    974858979
                 ],
                 "match": "CLANG"
             },
