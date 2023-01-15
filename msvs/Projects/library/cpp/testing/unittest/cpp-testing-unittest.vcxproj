@@ -136,6 +136,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\common\cpp-testing-common.vcxproj">
       <Project>{68BC6E30-C1B2-55F8-2F66-99AE7F9777EC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\hook\cpp-testing-hook.vcxproj">
+      <Project>{C0884422-4F82-5904-C966-570C6AE9F7F7}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
