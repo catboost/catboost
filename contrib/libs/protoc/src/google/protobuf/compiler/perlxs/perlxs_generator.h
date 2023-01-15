@@ -37,11 +37,11 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
 
   // implements CodeGenerator ----------------------------------------
   virtual bool Generate(const FileDescriptor* file,
-			const string& parameter,
+			const TProtoStringType& parameter,
 			OutputDirectory* output_directory,
-			string* error) const;
+			TProtoStringType* error) const;
 
-  bool ProcessOption(const string& option);
+  bool ProcessOption(const TProtoStringType& option);
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(PerlXSGenerator);
@@ -49,7 +49,7 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
  private:
   void GenerateXS(const FileDescriptor* file,
 		  OutputDirectory* output_directory,
-		  string& base) const;
+		  TProtoStringType& base) const;
 
   void GenerateMessageXS(const Descriptor* descriptor,
 			 OutputDirectory* outdir) const;
@@ -71,11 +71,11 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
 
   void GenerateMessageXSFieldAccessors(const FieldDescriptor* field,
 				       io::Printer& printer,
-				       const string& classname) const;
+				       const TProtoStringType& classname) const;
 
   void GenerateMessageXSCommonMethods(const Descriptor* descriptor,
 				      io::Printer& printer,
-				      const string& classname) const;
+				      const TProtoStringType& classname) const;
 
   void GenerateFileXSTypedefs(const FileDescriptor* file,
 			      io::Printer& printer,
@@ -93,52 +93,52 @@ class LIBPROTOC_EXPORT PerlXSGenerator : public CodeGenerator {
 
   void GenerateTypemapInput(const Descriptor* descriptor,
 			    io::Printer& printer,
-			    const string& svname) const;
+			    const TProtoStringType& svname) const;
 
-  string MessageModuleName(const Descriptor* descriptor) const;
+  TProtoStringType MessageModuleName(const Descriptor* descriptor) const;
 
-  string MessageClassName(const Descriptor* descriptor) const;
+  TProtoStringType MessageClassName(const Descriptor* descriptor) const;
 
-  string EnumClassName(const EnumDescriptor* descriptor) const;
+  TProtoStringType EnumClassName(const EnumDescriptor* descriptor) const;
 
-  string PackageName(const string& name, const string& package) const;
+  TProtoStringType PackageName(const TProtoStringType& name, const TProtoStringType& package) const;
 
   void PerlSVGetHelper(io::Printer& printer,
-		       const std::map<string, string>& vars,
+		       const std::map<TProtoStringType, TProtoStringType>& vars,
 		       FieldDescriptor::CppType fieldtype,
 		       int depth) const;
 
   void PODPrintEnumValue(const EnumValueDescriptor *value,
 			 io::Printer& printer) const;
 
-  string PODFieldTypeString(const FieldDescriptor* field) const;
+  TProtoStringType PODFieldTypeString(const FieldDescriptor* field) const;
 
   void StartFieldToHashref(const FieldDescriptor * field,
 			   io::Printer& printer,
-			   std::map<string, string>& vars,
+			   std::map<TProtoStringType, TProtoStringType>& vars,
 			   int depth) const;
 
   void FieldToHashrefHelper(io::Printer& printer,
-			    std::map<string, string>& vars,
+			    std::map<TProtoStringType, TProtoStringType>& vars,
 			    const FieldDescriptor* field) const;
 
   void EndFieldToHashref(const FieldDescriptor * field,
 			 io::Printer& printer,
-			 std::map<string, string>& vars,
+			 std::map<TProtoStringType, TProtoStringType>& vars,
 			 int depth) const;
 
   void MessageToHashref(const Descriptor * descriptor,
 			io::Printer& printer,
-			std::map<string, string>& vars,
+			std::map<TProtoStringType, TProtoStringType>& vars,
 			int depth) const;
 
   void FieldFromHashrefHelper(io::Printer& printer,
-			      std::map<string, string>& vars,
+			      std::map<TProtoStringType, TProtoStringType>& vars,
 			      const FieldDescriptor * field) const;
 
   void MessageFromHashref(const Descriptor * descriptor,
 			  io::Printer& printer,
-			  std::map<string, string>& vars,
+			  std::map<TProtoStringType, TProtoStringType>& vars,
 			  int depth) const;
 
  private:
