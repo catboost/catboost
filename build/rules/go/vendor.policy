@@ -242,6 +242,8 @@ ALLOW .* -> vendor/golang.org/x/xerrors
 # golang.org/x/sys required for SO_REUSEPORT, for example
 ALLOW .* -> vendor/golang.org/x/sys
 
+ALLOW .* -> vendor/golang.org/x/mod
+
 # basic LDAP v3 functionality for the GO programming language
 ALLOW .* -> vendor/gopkg.in/ldap.v3
 
