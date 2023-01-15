@@ -62,7 +62,7 @@ NULL
 #' nonsense <- factor(c('A', 'B', 'C'))
 #' data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) %% 3 + 1])
 #' label = (1:10) %% 2
-#' pool <- catboost.load_pool(data_frame, label = label, cat_features = c(2))
+#' pool <- catboost.load_pool(data_frame, label = label)
 #' print(pool)
 #' @return catboost.Pool
 #' @export
@@ -84,9 +84,14 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         }
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names)
     } else if (is.matrix(data)) {
-        pool <- catboost.from_matrix(data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
+        pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                      baseline, feature_names)
     } else if (is.data.frame(data)) {
+        for (arg in list("cat_features", "column_description")) {
+            if (!is.null(get(arg))){
+                stop("Parameter '", arg, "' should be NULL when the pool is constructed from data.frame")
+            }
+        }
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                          baseline, feature_names)
     } else {
@@ -117,11 +122,17 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 }
 
 
-catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs = NULL, weight = NULL,
-                                 group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
-                                 baseline = NULL, feature_names = NULL) {
-  if (!is.matrix(data))
-      stop("Unsupported data type, expecting matrix, got: ", class(data))
+catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_features_indices = NULL, text_features_data = NULL,
+                                 text_features_indices = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
+                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
+  if (!is.matrix(float_and_cat_features_data))
+      stop("Unsupported data type, expecting matrix, got: ", class(float_and_cat_features_data))
+
+  float_and_cat_columns <- if (is.null(float_and_cat_features_data)) 0 else ncol(float_and_cat_features_data)
+  text_columns <- if (is.null(text_features_data)) 0 else ncol(text_features_data)
+  data_columns <- float_and_cat_columns + text_columns
+  if (text_columns == 0 && float_and_cat_columns == 0)
+      stop("Data has no columns")
 
   if (!is.double(label) && !is.integer(label) && !is.null(label))
       stop("Unsupported label type, expecting double or int, got: ", typeof(label))
@@ -129,11 +140,16 @@ catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs 
       label <- as.matrix(label)
   if (!is.null(label) && !is.double(label))
       label <- as.matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
-  if (!is.null(label) && nrow(label) != nrow(data))
-      stop("Data has ", nrow(data), " rows, label has ", nrow(label), " rows.")
+  if (!is.null(label) && nrow(label) != nrow(float_and_cat_features_data))
+      stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
 
-  if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
-      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
+  if (!all(cat_features_indices == as.integer(cat_features_indices)) && !is.null(cat_features_indices))
+      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features_indices))
+
+  if (!is.null(text_features_data) && !is.matrix(text_features_data))
+     stop("Unsupported text data type, expecting matrix, got: ", class(text_features_data))
+  if (!all(text_features_indices == as.integer(text_features_indices)) && !is.null(text_features_indices))
+     stop("Unsupported text_features_indices type, expecting integer, got: ", typeof(text_features_indices))
 
   if (!is.matrix(pairs) && !is.null(pairs))
       stop("Unsupported pairs class, expecting matrix, got: ", class(pairs))
@@ -144,23 +160,23 @@ catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs 
 
   if (!is.double(weight) && !is.null(weight))
       stop("Unsupported weight type, expecting double, got: ", typeof(weight))
-  if (length(weight) != nrow(data) && !is.null(weight))
-      stop("Data has ", nrow(data), " rows, weight vector has ", length(weight), " rows.")
+  if (length(weight) != nrow(float_and_cat_features_data) && !is.null(weight))
+      stop("Data has ", nrow(float_and_cat_features_data), " rows, weight vector has ", length(weight), " rows.")
 
   if (!is.integer(group_id) && !is.null(group_id))
       stop("Unsupported group_id type, expecting int, got: ", typeof(group_id))
-  if (length(group_id) != nrow(data) && !is.null(group_id))
-      stop("Data has ", nrow(data), " rows, group_id vector has ", length(group_id), " rows.")
+  if (length(group_id) != nrow(float_and_cat_features_data) && !is.null(group_id))
+      stop("Data has ", nrow(float_and_cat_features_data), " rows, group_id vector has ", length(group_id), " rows.")
 
   if (!is.double(group_weight) && !is.null(group_weight))
       stop("Unsupported group_weight type, expecting double, got: ", typeof(group_weight))
-  if (length(group_weight) != nrow(data) && !is.null(group_weight))
-      stop("Data has ", nrow(data), " rows, group_weight vector has ", length(group_weight), " rows.")
+  if (length(group_weight) != nrow(float_and_cat_features_data) && !is.null(group_weight))
+      stop("Data has ", nrow(float_and_cat_features_data), " rows, group_weight vector has ", length(group_weight), " rows.")
 
   if (!is.integer(subgroup_id) && !is.null(subgroup_id))
       stop("Unsupported subgroup_id type, expecting int, got: ", typeof(subgroup_id))
-  if (length(subgroup_id) != nrow(data) && !is.null(subgroup_id))
-      stop("Data has ", nrow(data), " rows, subgroup_id vector has ", length(subgroup_id), " rows.")
+  if (length(subgroup_id) != nrow(float_and_cat_features_data) && !is.null(subgroup_id))
+      stop("Data has ", nrow(float_and_cat_features_data), " rows, subgroup_id vector has ", length(subgroup_id), " rows.")
 
   if (!is.double(pairs_weight) && !is.null(pairs_weight))
       stop("Unsupported pairs_weight type, expecting double, got: ", typeof(pairs_weight))
@@ -171,17 +187,21 @@ catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs 
       stop("Baseline should be matrix, got: ", class(baseline))
   if (!is.double(baseline) && !is.null(baseline))
       stop("Unsupported baseline type, expecting double, got: ", typeof(baseline))
-  if (nrow(baseline) != nrow(data) && !is.null(baseline))
-      stop("Baseline must be matrix of size n_objects*n_classes. Data has ", nrow(data), " objects, baseline has ", nrow(baseline), " rows.")
+  if (nrow(baseline) != nrow(float_and_cat_features_data) && !is.null(baseline))
+      stop("Baseline must be matrix of size n_objects*n_classes. Data has ", nrow(float_and_cat_features_data), " objects, baseline has ", nrow(baseline), " rows.")
 
   if (!is.list(feature_names) && !is.null(feature_names))
       stop("Unsupported feature_names type, expecting list, got: ", typeof(feature_names))
-  if (length(feature_names) != ncol(data) && !is.null(feature_names))
-      stop("Data has ", ncol(data), " columns, feature_names has ", length(feature_names), " columns.")
+  if (!is.null(feature_names) && (length(feature_names) != data_columns))
+      stop("Data has ", data_columns, " columns, feature_names has ", length(feature_names), " columns.")
 
+  if (float_and_cat_columns == 0)
+      float_and_cat_features_data <- NULL
+  if (text_columns == 0)
+      text_features_data <- NULL
   pool <- .Call("CatBoostCreateFromMatrix_R",
-                data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id,
-                pairs_weight, baseline, feature_names)
+                float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, weight,
+                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }
@@ -195,29 +215,37 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
     if (is.null(feature_names)) {
         feature_names <- as.list(colnames(data))
     }
-
     factor_columns <- vapply(data, is.factor, logical(1))
     num_columns <-
       vapply(data, is.double, logical(1)) |
       vapply(data, is.integer, logical(1)) |
       vapply(data, is.logical, logical(1))
-    bad_columns <- !(factor_columns | num_columns)
+    text_columns <- vapply(data, is.character, logical(1))
+    bad_columns <- !(factor_columns | num_columns | text_columns)
 
     if (sum(bad_columns) > 0) {
         stop("Unsupported column type: ", paste(c(unique(vapply(data[, bad_columns], class, character(1)))), collapse = ", "))
     }
 
-    preprocessed <- data
-    cat_features <- c()
-    for (column_index in which(factor_columns)) {
-        preprocessed[, column_index] <- .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
-        cat_features <- c(cat_features, column_index - 1)
+    text_features_data <- data[text_columns]
+    text_features_indices <- c()
+    for (column_index in which(text_columns)){
+        text_features_indices <- c(text_features_indices, column_index - 1)
     }
+
+    float_and_cat_features_data <- data
+    cat_features_indices <- c()
+    for (column_index in which(factor_columns)) {
+        float_and_cat_features_data[, column_index] <- .Call("CatBoostHashStrings_R", as.character(float_and_cat_features_data[[column_index]]))
+        cat_features_indices <- c(cat_features_indices, column_index - 1)
+    }
+    float_and_cat_features_data <- float_and_cat_features_data[!text_columns]
+
     if (!is.null(pairs)) {
         pairs <- as.matrix(pairs)
     }
-    pool <- catboost.from_matrix(as.matrix(preprocessed), label, cat_features, pairs, weight, group_id, group_weight, subgroup_id,
-                                 pairs_weight, baseline, feature_names)
+    pool <- catboost.from_matrix(as.matrix(float_and_cat_features_data), label, cat_features_indices, as.matrix(text_features_data),
+                                 text_features_indices, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
     return(pool)
 }
 

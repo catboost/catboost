@@ -248,3 +248,27 @@ test_that("bad params handled correctly", {
   label <- list(1, 2, 3)
   expect_error(catboost.load_pool(pool_path, column_description = cd_path, label = label), ".*should be NULL.*")
 })
+
+test_that("pool: text features in data.frame", {
+  dfTrain <- data.frame(f_numeric = c(150, 120, 30), f_factor = factor(c('m', 'f', 'm')),
+                        text_feature = c('hello good I am good I hello good',
+                                        'good I hello I am good hello','bad bad bad bad'),
+                        target=c(0, 0, 1))
+  features <- dfTrain[, !(names(dfTrain) %in% c('target'))]
+  target <- dfTrain[, c('target')]
+  dfTest <- data.frame(f_numeric = c(150, 10), f_factor = factor(c('m', 'f')),
+                        f_text = c('hello I hello I hello good hello good I hello good',
+                                   'bad bad bad bad bad'))
+  train_pool <- catboost.load_pool(features, target)
+
+  expect_equal(nrow(train_pool), nrow(features))
+
+  iterations <- 10
+  params <- list(iterations = iterations,
+                 loss_function = "Logloss")
+
+  prediction <- train_and_predict(train_pool, train_pool, iterations, params)
+  accuracy <- calc_accuracy(prediction, target)
+
+  expect_true(accuracy > 0)
+})

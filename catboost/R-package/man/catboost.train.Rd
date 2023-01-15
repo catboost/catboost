@@ -181,6 +181,8 @@ The list of parameters
         \item 'PrecisionAt'
         \item 'RecallAt'
         \item 'MAP'
+        \item 'MRR'
+        \item 'ERR'
       }
 
       Supported parameters:
@@ -250,6 +252,8 @@ The list of parameters
         \item 'PrecisionAt'
         \item 'RecallAt'
         \item 'MAP'
+        \item 'MRR'
+        \item 'ERR'
       }
 
       Format:
