@@ -1151,6 +1151,12 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
             feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
         );
     }
+    for (const TTextFeature& feature : forest.GetTextFeatures()) {
+        featuresIdxs.push_back(feature.Position.FlatIndex);
+        featuresNames.push_back(
+            feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
+        );
+    }
 
     TVector<int> featuresOrder(featuresIdxs.size());
     Iota(featuresOrder.begin(), featuresOrder.end(), 0);
