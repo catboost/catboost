@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipdb
-Version: 0.13.8
+Version: 0.13.9
 Summary: IPython-enabled pdb
 Home-page: https://github.com/gotcha/ipdb
 Author: Godefroid Chapelle
@@ -235,6 +235,13 @@ instead of ``pdb``. (It does not depend on ``ipdb`` anymore).
 
 Changelog
 =========
+
+0.13.9 (2021-06-02)
+-------------------
+
+- Fix again when `pyproject.toml` does not contain `tool` section.
+  [markab108]
+
 
 0.13.8 (2021-05-26)
 -------------------

@@ -4,7 +4,7 @@ LICENSE(BSD-3-Clause)
 
 
 
-VERSION(0.13.8)
+VERSION(0.13.9)
 
 PEERDIR(
     contrib/python/decorator
