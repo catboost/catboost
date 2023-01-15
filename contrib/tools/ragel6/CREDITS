@@ -1,0 +1,50 @@
+
+                     Ragel State Machine Compiler -- CREDITS
+                     =======================================
+
+
+* Ragel was designed and written by Adrian Thurston <thurston@complang.org>.
+
+Many others have helped out along the way. My apolgies to anyone who has been
+missed.
+
+* Many thanks to Arbor Networks for supporting development of Ragel.
+
+* Objective-C output and valuable feedback contributed by Erich Ocean.
+
+* D output and many great ideas contributed by Alan West.
+
+* Conditionals inspired by David Helder.
+
+* Java code generation contributions, bug reports, fixes, test cases
+  and suggestions from Colin Fleming.
+
+* Useful discussions and bug reports due to Carlos Antunes.
+
+* Ruby code generation contributed by Victor Hugo Borja.
+
+* C# code generation contributed by Daniel Tang.
+
+* Go code generation contributed by Justine Tunney. Significantly expanded by
+  Anton Ageev
+
+* D2 patch from Johannes Pfau.
+
+* OCaml patch from ygrek.
+
+* Feedback, Packaging, and Fixes provided by:
+
+    Bob Tennent, Robert Lemmen, Tobias Jahn, Cris Bailiff, Buddy Betts,
+    Scott Dixon, Steven Handerson, Michael Somos, Bob Paddock, Istvan Buki,
+    David Drai, Matthias Rahlf, Zinx Verituse, Markus W. Weissmann,
+    Marc Liyanage, Erich Ocean, Alan West, Steven Kibbler, Laurent Boulard,
+    Jon Oberheide, David Helder, Lexington Luthor, Jason Jobe, Colin Fleming,
+    Carlos Antunes, Steve Horne, Matt Mower, Josef Goettgens, Zed Shaw,
+    Marcus Rueckert, Jeremy Hinegardner, Aaron Campbell, Josh Purinton,
+    Judson Lester, Barry Arthur, Tim Potter, Ryan Phelps, David Waite,
+    Kenny MacDermid, MenTaLguY, Manoj Rajagopalan, Tim Chklovski,
+    Mikkel Fahnøe Jørgensen, Andrei Polushin, Evan Phoenix, David Balmain,
+    Ross Thomas, Mitchell Foral, John D. Mitchell, Diego 'Flameeyes' Pettenò,
+    Jose Quinteiro, William Morgan, _why, Iñaki Baz Castillo, Attila Sztupák,
+    Ismael Luceno, Josh Stern, Denis Naumov, Anton Ageev, Kamil Klimkiewicz,
+    Hesham Wahba, Phil Carmody

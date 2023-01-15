@@ -1,0 +1,1680 @@
+Ragel 6.10 - Mar 24, 2017
+=========================
+ -C codegen: test P vs PE in goto/call/ret statements in EOF actions, just
+  before re-entering. If at the end of the input block then the EOF check is
+  jumped to. This change prevents overrunning the buffer if control flow is
+  issued in an EOF action without fixing the input pointer first. If a program
+  properly issues an fhold before the control flow the program won't be
+  affected.
+ -Updated action label generation. The previous set of conditions for
+  generating the label didn't cover actions coming from the eofAction pointer
+  (eof trans covered since it points into the set of transitions).
+ -Use separate signed/unsigned values for host type min/max. Using separate
+  values avoids the need to type cast before the data goes into FsmCtx structs.
+  Keep it in native types until it is used.
+ -Optionally do not generate entry point variables. Adds noentry write option
+  for data.
+ -Various warning elimination and build updates.
+
+Ragel 6.9 - Oct 13, 2014
+========================
+ -updated command-line synopsis
+ -ocaml: fix missing semicolon
+ -ocaml: support -G1
+ -ocaml: choose a unique name for type state
+ -ruby: reduce the amount of calls to GET_WIDE_KEY()
+ -union test case: warning fix
+ -omit line directives around expression-oriented write statements
+ -use AS_IF and test command to check if the DIST file is present
+ -added missing std:: using
+ -go: added '//line' directive support
+
+Ragel 6.8 - Feb 11, 2013
+========================
+
+ -The -G2 code generator for Go1 was rewritten. Table, flat and switch-based
+  code generators were added. (Anton Ageev)
+ -The CXXFLAGS variable is not longer set in the configure script.
+
+Ragel 6.7 - May 22, 2011
+========================
+ -The C vim file now supports L,l on the end of literal numbers, other syntax
+  highlighting fixes.
+ -Added an explicit cast when modifying _trans to eliminate compiler warnings 
+  on Windows/VC++
+ -Fix for ruby 1.9 compatibility.
+ -Fix for include directories (-I option) on Windows/VC++
+ -Can now rename data variable in C# code generator.
+ -Fix for non-char alphtype in C# code generator.
+ -Fix for signedness of wide char in C code generator. when comparing the wide
+  type against a literal we need to pick the right signedness for the literal.
+ -Fixed arithmetic overflow in generated C# code. The C# _acts and _nacts vars
+  should not be typed based on the size of the array elements they point to.
+  Fixes a bug reported by Attila Sztupák.
+ -Made the -L option work for Ruby.
+ -Enhanced ragel.m4 (from Diego).
+ -Applied GO patch from Justine Tunney.
+ -Applied D2 patch from Johannes Pfau.
+ -Applied Ocaml patch from ygrek.
+
+Ragel 6.6 - Dec 2, 2009
+=======================
+ -Applied a number of patches from Diego Elio 'Flameeyes' Pettenò. Should not
+  be modifying the program's arguments. Problem raised by const correctness in
+  gcc 4.4. Other const-correctness and include fixes provided.
+ -Fixed improper allocation of checks in makeIncludePathChecks.
+ -Fixed segfault when there are no machine instantiations.
+ -Fixed wrong line directives. Line directives need to use the fileName stored
+  in the InputLoc stuctures from the parse trees, not the root source file,
+  otherwise actions in included files will have the wrong source file names
+  associated with the text.
+ -Made a number of build system improvements. We locate the DIST file using
+  $srcdir and source it. It contains settings for build_parsers and
+  build_manual. This allows the user of a dist to enable only one.
+ -Added missing files to doc/Makefile.am and examples/Makefile.am.
+ -Added checks for pdflatex and fig2dev is build_manual is on.
+ -Use automake --foreign so we don't need to have INSTALL and NEWS present.
+ -Ragel VIM syntax files should be specialized by host language. Updated the
+  VIM syntax files.
+ -Added examples to the dist. Added unicode2ragel.rb to EXTRA_DIST in contrib.
+ -Moved unicode2ragel.rb to the contrib directory.
+
+Ragel 6.5 - May 18, 2009
+========================
+ -Fixed a bug in graphviz generation. Ragel crashed when using -V and -M and
+  the specified machine referenced another machine that wasn't included in the
+  build.
+ -The name "CS" is in use on OpenSolaris, changed to vCS to ease compiling
+  Ragel there.
+ -Converted to automake.
+ -REALLY fixed a bug that was intended to be fixed in 6.4:
+     Fixed a problem reading hex numbers that have the high bit set when the
+     alphabet is signed and we are on 64 bit. This was reported by _why. The
+     fix was provided by Wialliam Morgan. The literal 0xffffffff was used for
+     a fully set long when -1L should be used instead.
+  A null patch (whitespace changes) must have gotten checked after I was
+  testing with and without the critical one-line patch and I forgot to enable
+  make sure it was enabled in the final checkin version.
+
+Ragel 6.4 - Mar 22, 2009
+========================
+ -Moved back to a single executable. The old intermediate format can still be
+  generated using the -x option. Ragel was split into frontend and backend
+  programs in version 5.0. This was done to encourage interoperability with
+  other tools. Since then, ragel has been made to work with qfsm, with ragel
+  producing the intermediate format and qfsm consuming it. However, there has
+  been no use of Ragel as a consumer of state machine data, with Ragel used as
+  a code generator for DFAs. This is not surprising given that much of the
+  complexity of Ragel is in the frontend, where the regular language to DFA
+  compilation happens. Since the full benefits of the split have not
+  materialized, and the split increases the complexity for users, Ragel has
+  been made once again into a single executable. 
+ -Applied a fix to the documentation Makefile from John D. Mitchell.
+ -Use CXXFLAGS instead of CFLAGS for C++ compiling. Patch from Diego
+  'Flameeyes' Pettenò.
+ -Added support for DESTDIR variable. Patch from Diego 'Flameeyes' Pettenò.
+ -Added a script called unicode2ragel.rb for generating unicode machines to
+  the examples directory. From Rakan El-Khalil.
+ -Fixed a copy-paste error in the documentation that was reported by Jose
+  Quinteiro.
+ -Added three new write commands:
+     write start;
+     write first_final;
+     write error;
+  These generate a reference to the start, first final and error state. When
+  there are many different machine specifications in one file it is easy to
+  get the prefix for these wrong (especially when you do a lot of copy-pasting
+  of boilerplate). The problem can be avoided by using write commands.
+ -Fixed a problem reading hex numbers that have the high bit set when the
+  alphabet is signed and we are on 64 bit. This was reported by _why. The fix
+  was provided by Wialliam Morgan. The literal 0xffffffff was used for a fully
+  set long when -1L should be used instead.
+
+Ragel 6.3 - Aug 29, 2008
+========================
+ -Fixed an assertion that is too strong. In the condition code we need to copy
+  transitions that have non-empty lmActionTable arrays so we don't assert
+  emptiness in the constructor. Lift out the assertion and copy the array in
+  the constructor.
+ -Fixed and improved multiple include prevention. We now track the entire
+  include history of a parser state to prevent duplicates.
+ -Fixed crash on failed lookup of goto/call/etc target.
+
+Ragel 6.2 - May 9, 2008
+=======================
+ -Bug fix: The lm_switch actions needs to set p from tokend when there is no
+  user action.
+ -Bug fix: when not using indicies we can't use a transitions's id to identify
+  the eof transition to take. Instead add the transition to the end of the
+  transition list and store its position in a new var called pos. The pos var
+  is then used as the index.
+ -Bug fix: an fnext followed by an fbreak in -G2 was not working. The fbreak
+  was not aware that the fnext causes the cs variable to be forced active. In
+  this case fbreak does not need to save cs because it is already current.
+ -Bug fix: need to compute the low and high character-space keys from the
+  condition-trans overlap when computing an expansion. Can't use the range
+  supplied from the condition overlap since they may not match. An incorrect
+  machine that accepted 1(!cond1, !cond2) was generated for the following
+  grammar. This bug was reported by Tim Chklovski.
+      c = 2 @matched_c;
+      sc1 = 1..2 when cond1;
+      sc2 = 1..2 when cond2;
+      main := sc1 | c | sc2;
+ -Bug fix: error messages in start label analysis of join operations were
+  causing assertion failures because location info was not set. Fixed by
+  adding locations.
+ -Include and import file searching now searches for the file name given based
+  on the location of the current file, not ragel's current path.
+  Additional search locations can be given using the -I option.
+ -Rubinius code generation was updated to the latest Rubinius. Patch from Evan
+  Phoenix.
+ -Switched from strcasecmp to strcmp for testing long arguments.
+ -Applied a patch from Andrei Polushin for setting the error message format.
+     --error-format=gnu (default)
+     --error-fromat=msvc
+ -Now using the _WIN32 define instead of _WIN32. Other MSVC compilation
+  improvments from Andrei Polushin.
+ -Added the hyperref package to the manual. 
+
+Ragel 6.1 - Mar 26, 2008
+========================
+ -Scanners now ensure that any leaving actions at the end of a pattern are
+  executed. They are always executed before the pattern action.
+ -Added an option -d for turning off the removal of duplicate actions from
+  actions lists.
+ -Need to unset the final state status of the start state in kleene star if it
+  is set. It is possible to crash ragel when the warning is ignored.
+ -In the dot file generation we need to print any actions that are in
+  State::eofTrans. These come from scanners only.
+ -Use @docdir@ for the docdir Makefile variable.
+ -Check for ar and ranlib in the configure script.
+
+Ragel 6.0 - Jan 12, 2008
+========================
+ -Removed the 'noend' write option from examples/atoi.rl. This example is
+  referenced a lot as a first example and as such it shouldn't contain a
+  special purpose write option like 'noend'.
+ -Introcuded the "eof" variable for indicating the end of file. The p variable
+  is checked against eof when the processing loop reaches the end of a block.
+  If p == eof at this time then the EOF actions are executed. The variable is
+  required only when EOF actions have been emebedded.
+ -The "write eof" command is no longer needed and was removed.
+ -Scanners now use EOF actions to generate tokens. This eliminates the need to
+  flush the last token.
+ -Restructured the Java driver; a switch statement with fallthrough cases are
+  now used to emulate gotos.
+ -Ruby code generation was also restructured. Gotos are elmulated using a
+  series of if tests. 
+ -Went back to 3.X semantics for >, % and error actions. The > operator also
+  embeds a leaving action/priority into the start state if it is final. If EOF
+  happens in a state with a leaving operator then the leaving action is
+  executed. If EOF happens in a non-final state that has an error action, the
+  error action is executed.
+ -The "ragel" program now executes frontend and backend processes separately,
+  connecting them with a temporary file in the current directory. Without the
+  -x option the "ragel" program marshals arguments and calls the frontend and
+  backend. With the -x option the "ragel" program acts as the frontend only.
+ -Added name finding for executables. If any forward slash is found in argv0
+  then it is assumed that the path is explicit and the path to the backend
+  executable should be derived from that. Whe check that location and also go
+  up one then inside a directory of the same name in case we are executing
+  from the source tree. If no forward slash is found it is assumed the file is
+  being run from the installed location. The PREFIX supplied during
+  configuration is used.
+ -On windows GetModuleFileNameEx is used to find out where the the current
+  process's binary is. That location is searched first. If that fails then we
+  go up one directory and look for the executable inside a directory of the
+  same name in case we are executing from the source tree.
+ -Changed the -l option in rlgen-cd to -L because it is covered in the
+  frontend. Added a passthrough in the frontend for the backend options.
+ -Dot file generation can now be invoked using the -V option to ragel. We
+  now require an input file. If standard in is used then we don't have a file
+  name on which to base the output.
+ -Able to build native windows executables using Cygwin+MinGW. 
+ -Patch from David Waite: Large arrays are now created by copying in the data
+  from smaller arrays using System.arraycopy(). This eliminates the debug data
+  associated with explicit initialization statements. It is also much easier
+  on the java compiler which can run out of memory compiling very large
+  machines. The downside is that it takes slightly longer to initialize static
+  data at run time.
+ -The fbreak statement now advances p.
+ -In the :> :>> and <: operators it was possible for the priority assignment
+  to be bypassed via the zero length string. In :> this was fixed
+  automatically with the semantics change to the entering priority operator.
+  If the start state is final it now embeds a leaving action into it,
+  preventing persistance through the zero length string. In :>> and <: this
+  was fixed explicitly. With <: the entering priority operator was used and
+  with :> a special exception was added. Since it uses the finishing
+  transition operator it also adds a leaving priority to the start state if it
+  is final.
+ -Ranlib is now run on the archives. Patch from Kenny MacDermid.
+ -The case statement syntax in ruby code generation used a form depreciated in
+  Ruby 1.9. Updated it.
+ -Made a number of fixes that eliminate warnings in GCC 4.3. Mostly concern
+  the now depreciate automatic conversion of string contsants to "char*" type.
+  Other fixes include adding parenthesis around && within ||.
+ -The "tokstart" and "tokend" variables were changed to "ts" and "te".
+
+Ragel 5.25 - Dec 24, 2007
+=========================
+ -Fixed segfault reported by Ryan Phelps. Affected Java and Ruby code
+  generation. The dataExpr variable was not initialized.
+ -Fixed incorrect case label in test/runtests. Caused Objective-C tests to be
+  ignored.
+ -Added missing include to common.cpp.
+
+Ragel 5.24 - Sep 16, 2007
+=========================
+ -Applied patch from Victor Hugo Borja <vic@rubyforge.org>. This patch
+  implements -T1 -F0 -F1 and -G0 in the ruby code generator. Goto-driven code
+  generation is experimental and requires rubinius asm directives (specify
+  with --rbx option). These code generators pass all the ruby tests.
+ -If the condition embedding code runs out of available characters in the
+  keyspace an error message is emitted.
+ -The first example that appeared in the manual used the special-purpose
+  'noend' write option. This caused confusion. Now a basic example appears
+  first.
+ -Added two new statements: prepush and postpop. These are code blocks that
+  are written out during call and return statements. The prepush code is
+  written immediately before pushing the current state to the state stack
+  during a call. The postpop code is written immediately after popping the
+  current state during return. These can be used to implement a dynamically
+  resizable stack. 
+
+Ragel 5.23 - Jul 24, 2007
+=========================
+ -Eliminated the use of callcc as an alternative to goto. Instead, the named
+  breaks implementation used in the Java code generator is imitated using
+  control flow variables.
+ -Improved the error message given when there is a write statement but no
+  machine instantiations and hence no state machine.
+ -Documentation improvements: updates to "Machine Instantiation", "Write Init"
+  and "Write Exports" sectons. Added the "Variables Used by Ragel" section.
+ -Renamed "Entering Actions" to "Starting Actions."
+ -Other documentation updates.
+
+Ragel 5.22 - June 14, 2007
+==========================
+ -Bug fix: need to isolate the start state of a scanner before setting the
+  to-state and from-state actions which clear and set tokstart. This affected
+  very simple scanners only. Most scanners have an isolated start state due to
+  the pattern structure.
+ -Bug fix: when -S or -M was given the ragel version number was not emitted,
+  causing the backend to reject the intermediate format. From Tim Potter.
+ -The p varialbe is now set up at the beginning of a scanner action, rather
+  than at the end. This leaves scanner actions free to manipulate p and
+  removes the need for the special holdTE and execTE (TE for tokend) versions
+  of hold and exec. It also removes the need to set p = tokend-1 immediately
+  before any control flow. We loose the ability to determine where in the
+  input stream a scanner action is executed, however this information is of
+  little use because it is primarily an artifact of the scanner implementation
+  (sometimes the last char, other times later on). The gains of this change
+  are consistency and simplicity.
+ -The "data" variable (used in Java and Ruby code generation only) can now be
+  overridden using the variable statement.
+
+Ragel 5.21 - May 9, 2007
+========================
+ -Fixed an inconsistency in the value of p following an error. In the C
+  directly executable code (rlgen-cd -G2) p is left at the character where
+  the error occurred, which is correct. In all other code generators it was
+  left at the following character. This was fixed. Now in all code generators
+  p is left at the character where the error occurred.
+ -Bug fix: when fhold was used in scanner pattern actions which get executed
+  on the last character of the pattern (pattern matches which do not require
+  any lookahead), fhold was modifying p instead of tokend. This was fixed and
+  the patact.rl test was modified to cover the case.
+ -Fixed typos in the guide, improved the state action embedding operator
+  section and added subsections on the variable, import, and export
+  statements.
+ -Implemented a better solution than the pri hack for resolving the '-'
+  ambiguity: force a shortest match of term.
+ -Fixed bugs in the binary searching for condition keys in both the Ruby and
+  Java code generation. 
+ -Can now embed the negative sense of a condition. Added a language-
+  independent test case for this feature and the necessary transformation
+  support.
+ -Added new condition embedding syntax:
+    expr inwhen cond   - The transitions into the machine (starting transitions).
+    expr outwhen cond  - The pending transitions out of the machine.
+ -The argument to the variable statement which affects the name of the current
+  state variable was changed from "curstate" to "cs" (the default name used
+  for the current state)
+ -Implemented the other variables names in the variable statement. Now all
+  variables (p, pe, cs, top, stack, act, tokstart, tokend) can be renamed.
+ -Parse errors in the intermediate XML file now cause the backend to exit
+  immediately rather then forge on. The recovery infrastructure isn't there
+  and segfaults are likely.
+ -When no input is given to the backend program, it should not print an error
+  message, it should just return a non-zero exit status. The assumption is
+  that the frontend printed an error.
+ -The version number is now included in the intermediate file. An error is
+  emitted if there is a mismatch.
+ -The alphabet type is now communicated from the frontend to the backend using
+  a one-word internal name instead of an array offset.
+ -The Ruby host language types had been just copied from Java. Reduced them to
+  two basic types: char and int, both signed with the usual C sizes.
+
+Ragel 5.20 - Apr 7, 2007
+========================
+ -The cs variable is now always initialized, unless the "nocs" option is given
+  to the write init command. If there is no main machine, cs is initialized to
+  the entry point defined by the last machine instantiation.
+ -A number of fixes were made to the Ruby code generator.
+ -The frontend now scans ruby comments and regular expressions.
+ -A transformation for Ruby was added to the language-independent test suite.
+  The Ruby code generator passes on all the language-independent tests.
+ -A new Ruby test and two language-independent tests were added.
+ -Some portability fixes were made (Patches from Josef Goettgens and Aaron
+  Campbell).
+ -Fixed a make dependency bug which caused a problem for parallel building
+  (Patch from Jeremy Hinegardner).
+
+Ragel 5.19 - Mar 14, 2007
+=========================
+ -Added an import statement to ragel. This statement takes a literal string as
+  an argument, interprets it as a file name, then scrapes the file for
+  sequences of tokens that match the following forms. Tokens inside ragel
+  sections are ignored. An example is in test/import1.rl
+    name = number
+    name = lit_string
+    "define" name number
+    "define" name lit_string
+ -Added an export mechanism which writes defines for single character machines
+  that have been tagged with the export keyword in their definition. Defines
+  are used for C, ints for D, Java and Ruby. Examples of the export feature
+  are in test/export*.rl.
+ -All machine instantiations are now always generated, even if they are not
+  referenced. In the backend, entry points for all instantiations are written
+  out alongside start, error and first final states.
+ -If the main machine is not present then do not emit an error. Generate the
+  machine without a start state and do not initialize cs in the write init
+  code.
+ -Added an option -l to rlgen-cd which inhibits the writing of #line
+  directives.
+ -Added a new syntax for verbose embeddings. This adds parentheses: 
+      $from(action_name);
+  Verbose embeddings without parentheses can make code difficult to read
+  because they force a space in the middle of an action embedding. There is a
+  tendency to associtate spaces with concatenation. Without syntax
+  highlighting to make it clear that the embedding type is a keyword, the
+  problem is especially bad. The danger is that a verbose embedding could be
+  read as an embedding of the keyword representing the empbedding type. With
+  parentheses, verbose embeddings read much more clearly.
+ -Conditions now have a forced order when more than one is executed on a
+  single character. Previously ordering relied on pointers, which caused
+  results to vary by compiler. Ordering is now done using conditon action
+  declaration order. This fixes the failure of cond4.rl which occured with
+  g++ 4.1 and other compiler versions.
+ -In the port from flex to ragel, the name separator :: in Ragel code was
+  lost. Added it back.
+ -In the examples directory switched from rlcodegen to rlgen-cd. Silenced a
+  warning in statechart.rl.
+ -In the root makefile the distclean target was fixed. It was calling clean in
+  the subdirs. In docs, the clean target was not deleting the new manpages for
+  the rlgen-* programs. Fixed.
+ -Portability and other fixes from Josef Goettgens were applied.
+ -The @datadir@ and @mandir@ variables are made use of in doc/Makefile.in for
+  specifying where documentation should be installed. Patch from Marcus
+  Rueckert. 
+
+Ragel 5.18 - Feb 13, 2007
+=========================
+ -There is now a 100% correspondence between state id numbers in the
+  intermediate XML file, Graphviz dot files and generated code. This was
+  achieved by moving code which determines if the error state is necessary
+  into the frontend, and then assigning state numbers before writing out the
+  intermediate file.
+ -Backened class structure was reorganized to make it easier to add new code
+  generators without having to also modify the existing code generators.
+ -The C and D code generation executable was changed to rlgen-cd.
+ -The Java code generation was split out into it's own exectuable (rlgen-java)
+  to allow it to freely diverge from the C/D-based code generation.
+ -The graphviz dot file generation was also split out to it's own executable
+  (rlgen-dot).
+ -The Ruby code generation patch from Victor Hugo Borja was added. This is
+  highly experimental code and is not yet completely functional. It is in the
+  executable rlgen-ruby.
+ -The problem with large state machine machines in Java was fixed. This
+  problem was discovered by Colin Fleming, who also contributed a patch.
+  Rather than specify arrays as comma-separated lists of literals, array
+  initialization is now done in a static function. This is the approach used
+  by the Java compiler. Unlike the compiler Ragel is careful split large
+  initilization functions.
+ -The manual was expanded and reorganized somewhat.
+ -Eliminated per-example directories in examples/.
+ -Made some fixes to the pullscan.rl example.
+ -In the frontend CR characters are now treated as whitespace.
+ -Updated to the latest aapl. This completely eliminates the shallowCopy
+  function. With that, a definitive memory leak is fixed.
+ -Control codes with escape sequences are now printable characters (-p
+  option). Also, the space character is now printed as SP.
+ -Fixed the null dereference and consequential segfault which occurred when
+  trying to create empty machines with [] and // and /a[]b/. 
+ -Fixed the segfault which occured when a machine reference failed.
+ -Discontinuing ragel.spec. It is more appropriate for this to be written by
+  package maintenance developers.
+
+Ragel 5.17 - Jan 28, 2007
+=========================
+ -The scanners and parsers in both the frontend and backend programs were
+  completely rewritten using Ragel and Kelbt.
+ -The '%when condition' syntax was functioning like '$when condition'. This
+  was fixed.
+ -In the Vim syntax file fixes to the matching of embedding operators were
+  made. Also, improvements to the sync patterns were made.
+ -Added pullscan.rl to the examples directory. It is an example of doing
+  pull-based scanning. Also, xmlscan.rl in rlcodegen is a pull scanner.
+ -The introduction chapter of the manual was improved. The manually-drawn
+  figures for the examples were replaced with graphviz-drawn figures.
+ 
+Ragel 5.16 - Nov 20, 2006
+=========================
+ -Policy change: the fhold and fexec directives did not function correctly in
+  scanner pattern actions. In this context manipulations of p may be lost or
+  made invalid. In the previous version of Ragel they were banned because of
+  this. Instead of banning these directives they have been fixed. The fexec
+  and fhold directives now manipulate tokend, which is now always used to
+  update p when the action terminates.
+
+Ragel 5.15 - Oct 31, 2006
+=========================
+ -A language independent test harness was introduced. Test cases can be
+  written using a custom mini-language in the embedded actions. This
+  mini-language is then translated to C, D and Java when generating the
+  language-specific test cases.
+ -Several existing tests have been ported to the language-independent format
+  and a number of new language-independent test cases have been added.
+ -The state-based embedding operators which access states that are not the
+  start state and are not final (the 'middle' states) have changed. They
+  were:
+    <@/    eof action into middle states
+    <@!    error action into middle states
+    <@^    local error action into middle states
+    <@~    to-state action into middle states
+    <@*    from-state action into middle states
+  They are now:
+    <>/    eof action into middle states
+    <>!    error action into middle states
+    <>^    local error action into middle states
+    <>~    to-state action into middle states
+    <>*    from-state action into middle states
+ -The verbose form of embeddings using the <- operator have been removed.
+  This syntax was difficult to remember.
+ -A new verbose form of state-based embedding operators have been added.
+  These are like the symbol versions, except they replace the symbols:
+    /  !  ^  ~  *
+  with literal keywords:
+    eof err lerr to from
+ -The following words have been promoted to keywords:
+    when eof err lerr to from
+ -The write statment now gets its own lexical scope in the scanner to ensure
+  that commands are passed through as is (not affected by keywords).
+ -Bug fix: in the code generation of fret in scanner actions the adjustment to
+  p that is needed in some cases (dependent on content of patterns) was not
+  happening.
+ -The fhold directive, which decrements p, cannot be permitted in the pattern
+  action of a scanner item because it will not behave consistently. At the end
+  of a pattern action p could be decremented, set to a new value or left
+  alone. This depends on the contents of the scanner's patterns. The user
+  cannot be expected to predict what will happen to p.
+ -Conditions in D code require a cast to the widec type when computing widec.
+ -Like Java, D code also needs if (true) branches for control flow in actions
+  in order to fool the unreachable code detector. This is now abstracted in
+  all code generators using the CTRL_FLOW() function.
+ -The NULL_ITEM value in java code should be -1. This is needed for
+  maintaining tokstart.
+
+Ragel 5.14 - Oct 1, 2006
+========================
+ -Fixed the check for use of fcall in actions embedded within longest match
+  items. It was emitting an error if an item's longest-match action had an
+  fcall, which is allowed. This bug was introduced while fixing a segfault in
+  version 5.8.
+ -A new minimization option was added: MinimizeMostOps (-l). This option
+  minimizes at every operation except on chains of expressions and chains of
+  terms (eg, union and concat). On these chains it minimizes only at the last
+  operation. This makes test cases with many states compile faster, without
+  killing the performance on grammars like strings2.rl.
+ -The -l minimiziation option was made the default.
+ -Fixes to Java code: Use of the fc value did not work, now fixed. Static data
+  is now declared with the final keyword. Patch from Colin Fleming. Conditions
+  now work when generating Java code.
+ -The option -p was added to rlcodegen which causes printable characters to be
+  printed in GraphViz output. Patch from Colin Fleming.
+ -The "element" keyword no longer exists, removed from vim syntax file.
+  Updated keyword highlighting.
+ -The host language selection is now made in the frontend.
+ -Native host language types are now used when specifying the alphtype.
+  Previously all languages used the set defined by C, and these were mapped to
+  the appropriate type in the backend.
+
+Ragel 5.13 - Sep 7, 2006
+========================
+ -Fixed a careless error which broke Java code generation.
+
+Ragel 5.12 - Sep 7, 2006
+========================
+ -The -o flag did not work in combination with -V. This was fixed.
+ -The split code generation format uses only the required number of digits
+  when writing out the number in the file name of each part.
+ -The -T0, -F0 and -G0 codegens should write out the action list iteration
+  variables only when there are regular, to state or from state actions. The
+  code gens should not use anyActions().
+ -If two states have the same EOF actions, they are written out in the finish
+  routine as one case.
+ -The split and in-place goto formats would sometimes generate _out when it is
+  not needed. This was fixed.
+ -Improved the basic partitioning in the split code gen. The last partition
+  would sometimes be empty. This was fixed.
+ -Use of 'fcall *' was not causing top to be initialized. Fixed.
+ -Implemented a Java backend, specified with -J. Only the table-based format
+  is supported.
+ -Implemented range compression in the frontend. This has no effect on the
+  generated code, however it reduces the work of the backend and any programs
+  that read the intermediate format.
+
+Ragel 5.11 - Aug 10, 2006
+=========================
+ -Added a variable to the configure.in script which allows the building of
+  the parsers to be turned off (BUILD_PARSERS). Parser building is off by
+  default for released versions. 
+ -Removed configure tests for bison defines header file. Use --defines=file
+  instead. 
+ -Configure script doesn't test for bison, flex and gperf when building of the
+  parsers is turned off.
+ -Removed check for YYLTYPE structure from configure script. Since shipped
+  code will not build parsers by default, we don't need to be as accomodating
+  of other versions of bison. 
+ -Added a missing include that showed up with g++ 2.95.3.
+ -Failed configure test for Objective-C compiler is now silent.
+
+Ragel 5.10 - Jul 31, 2006
+=========================
+ -Moved the check for error state higher in the table-based processing loop.
+ -Replaced naive implementations of condition searching with proper ones. In
+  the table-based formats the searching is also table-based. In the directly
+  executed formats the searching is also directly executable.
+ -The minimization process was made aware of conditions.
+ -A problem with the condition implementation was fixed. Previously we were
+  taking pointers to transitions and then using them after a call to
+  outTransCopy, which was a bad idea because they may be changed by the call.
+ -Added test mailbox3.rl which is based on mailbox2.rl but includes conditions
+  for restricting header and message body lengths.  
+ -Eliminated the initial one-character backup of p just before resuming
+  execution.
+ -Added the -s option to the frontend for printing statistics. This currently
+  includes just the number of states. 
+ -Sped up the generation of the in-place goto-driven (-G2) code style.
+ -Implemented a split version of in-place goto-driven code style. This code
+  generation style is suitable for producing fast implementations of very
+  large machines. Partitioning is currently naive. In the future a
+  high-quality partitioning program will be employed. The flag for accessing
+  this feature is -Pn, where n is the number of partitions.
+ -Converted mailbox1.rl, strings2.rl and cppscan1.rl tests to support the
+  split code generation.
+ -Fixes and updates were made to the runtests script: added -c for compiling
+  only, changed the -me option to -e, and added support for testing the split
+  code style.
+ 
+Ragel 5.9 - Jul 19, 2006
+========================
+ -Fixed a bug in the include system which caused malformed output from the
+  frontend when the include was made from a multi-line machine spec and the
+  included file ended in a single line spec (or vice versa).
+ -Static data is now const.
+ -Actions which referenced states but were not embedded caused the frontend to
+  segfault, now fixed.
+ -Manual now built with pdflatex.
+ -The manual was reorganized and expanded. Chapter sequence is now:
+  Introduction, Constructing Machines, Embedding Actions, Controlling
+  Nondeterminism and Interfacing to the Host program.
+
+Ragel 5.8 - Jun 17, 2006
+========================
+ -The internal representation of the alphabet type has been encapsulated
+  into a class and all operations on it have been defined as C++ operators.
+ -The condition implementation now supports range transitions. This allows
+  conditions to be embedded into arbitrary machines. Conditions are still
+  exprimental.
+ -More condition embedding operators were added
+   1. Isolate the start state and embed a condition into all transitions
+      leaving it:   
+      >when cond   OR   >?cond
+   2. Embed a condition into all transitions:
+      when cond    OR   $when cond   OR   $?cond
+   3. Embed a condition into pending out transitions:
+      %when cond   OR   %?cond
+ -Improvements were made to the determinization process to support pending out
+  conditions.
+ -The Vim sytax file was fixed so that :> doesn't cause the match of a label.
+ -The test suite was converted to a single-file format which uses less disk
+  space than the old directory-per-test format.
+ 
+Ragel 5.7 - May 14, 2006
+========================
+ -Conditions will not be embedded like actions because they involve a
+  manipulation of the state machine they are specified in. They have therefore
+  been taken out of the verbose action embedding form (using the <- compound
+  symbol). A new syntax for specifying conditions has been created: 
+  m = '\n' when {i==4};
+ -Fixed a bug which prevented state machine commands like fcurs, fcall, fret,
+  etc, from being accounted for in from-state actions and to-state actions.
+  This prevented some necessary support code from being generated.
+ -Implemented condition testing in remaining code generators.
+ -Configure script now checks for gperf, which is required for building.
+ -Added support for case-insensitive literal strings (in addition to regexes).
+  A case-insensitive string is made by appending an 'i' to the literal, as in
+  'cmd'i or "cmd"i.
+ -Fixed a bug which caused all or expressions inside of all regular
+  expressions to be case-insensitive. For example /[fo]o bar/ would make the
+  [fo] part case-insensitive even though no 'i' was given following the
+  regular expression.
+
+Ragel 5.6 - Apr 1, 2006
+=======================
+ -Added a left-guarded concatenation operator. This operator <: is equivalent
+  to ( expr1 $1 . expr2 >0 ). It is useful if you want to prefix a sequence
+  with a sequence of a subset of the characters it matches. For example, one
+  can consume leading whitespace before tokenizing a sequence of whitespace
+  separated words: ( ' '* <: ( ' '+ | [a-z]+ )** )
+ -Removed context embedding code, which has been dead since 5.0.
+  
+Ragel 5.5 - Mar 28, 2006
+========================
+ -Implemented a case-insensitive option for regular expressions: /get/i.
+ -If no input file is given to the ragel program it reads from standard input.
+ -The label of the start state has been changed from START to IN to save on
+  required screen space.
+ -Bug fix: \0 was not working in literal strings, due to a change that reduced
+  memory usage by concatenating components of literal strings.  Token data
+  length is now passed from the scanner to the paser so that we do not need to
+  rely on null termination. 
+
+Ragel 5.4 - Mar 12, 2006
+========================
+ -Eliminated the default transition from the frontend implementation. This
+  default transition was a space-saving optimization that at best could reduce
+  the number of allocated transitions by one half. Unfortunately it
+  complicated the implementation and this stood in the way of introducing
+  conditionals. The default transition may be reintroduced in the future.
+ -Added entry-guarded concatenation. This operator :>, is syntactic sugar
+  for expr1 $0 . expr >1. This operator terminates the matching of the first
+  machine when a first character of the second machine is matched. For
+  example in any* . ';' we never leave the any* machine. If we use any* :> ';'
+  then the any* machine is terminiated upon matching the semi-colon.
+ -Added finish-guarded concatenation. This operator :>>, is syntactic sugar
+  for expr1 $0 . expr @1. This operator is like entry guarded concatenation
+  except the first machine is terminated when the second machine enters a
+  final state. This is useful for delaying the guard until a full pattern is
+  matched. For example as in '/*' any* :>> '*/'.
+ -Added strong subtraction. Where regular subtraction removes from the first
+  machine any strings that are matched by the second machine, strong
+  subtraction removes any strings from the first that contain any strings of
+  the second as a substring. Strong subtraction is syntactic sugar for 
+  expr1 - ( any* expr2 any* ).
+ -Eliminated the use of priorities from the examples. Replaced with
+  subtraction, guarded concatenation and longest-match kleene star.
+ -Did some initial work on supporting conditional transitions. Far from
+  complete and very buggy. This code will only be active when conditionals are
+  used.
+
+Ragel 5.3 - Jan 27, 2006
+========================
+ -Added missing semi-colons that cause the build to fail when using older
+  versions of Bison.
+ -Fix for D code: if the contents of an fexec is a single word, the generated
+  code will get interpreted as a C-style cast. Adding two brackets prevents
+  this. Can now turn eliminate the "access this.;" in cppscan5 that was used to
+  get around this problem.
+ -Improved some of the tag names in the intermediate format.
+ -Added unsigned long to the list of supported alphabet types.
+ -Added ids of actions and action lists to XML intermediate format. Makes it
+  more human readable.
+ -Updated to latest Aapl package.
+
+Ragel 5.2 - Jan 6, 2006
+========================
+ -Ragel emits an error if the target of fentry, fcall, fgoto or fnext is inside
+  a longest match operator, or if an action embedding in a longest match
+  machine uses fcall. The fcall command can still be used in pattern actions.
+ -Made improvements to the clang, rlscan, awkemu and cppscan examples.
+ -Some fixes to generated label names: they should all be prefixed with _.
+ -A fix to the Vim syntax highlighting script was made
+ -Many fixes and updates to the documentation. All important features and
+  concepts are now documented. A second chapter describing Ragel's use
+  was added.
+ 
+Ragel 5.1 - Dec 22, 2005
+========================
+ -Fixes to the matching of section delimiters in Vim syntax file.
+ -If there is a longest match machine, the tokend var is now initialized by
+  write init. This is not necessary for correct functionality, however
+  prevents compiler warnings.
+ -The rlscan example was ported to the longest match operator and changed to
+  emit XML data.
+ -Fix to the error handling in the frontend: if there are errors in the lookup
+  of names at machine generation time then do not emit anything.
+ -If not compiling the full machine in the frontend (by using -M), avoid
+  errors and segfaults caused by names that are not part of the compiled
+  machine.
+ -Longest match bug fix: need to init tokstart when returing from fsm calls
+  that are inside longest match actions.
+ -In Graphviz drawing, the arrow into the start state is not a real
+  transition, do not draw to-state actions on the label.
+ -A bug fix to the handling of non-tag data within an XML tag was made.
+ -Backend exit value fixed: since the parser now accepts nothing so as to
+  avoid a redundant parse error when the frontend dies, we must force an
+  error. The backend should now be properly reporting errors.
+ -The longest match machine now has it's start state set final. An LM machine
+  is in a final state when it has not matched anything, when it has matched
+  and accepted a token and is ready for another, and when it has matched a
+  token but is waiting for some lookahead before determining what to do about
+  it (similar to kleene star).
+ -Element statement removed from some tests.
+ -Entry point names are propagated to the backend and used to label the entry
+  point arrows in Graphviz output.
+
+Ragel 5.0 - Dec 17, 2005
+========================
+ (additional details in V5 release notes)
+ -Ragel has been split into two executables: A frontend which compiles
+  machines and emits them in an XML format, and a backend which generates code
+  or a Graphviz dot file from the XML input. The purpose of this split is to
+  allow Ragel to interface with other tools by means of the XML intermediate
+  format and to reduce complexity by strictly separating the previously
+  entangled phases. The intermediate format will provide a better platform
+  inspecting compiled machines and for extending Ragel to support other host
+  languages.
+ -The host language interface has been reduced significantly. Ragel no longer
+  expects the machine to be implemented as a structure or class and does not
+  generate functions corresponding to initialization, execution and EOF.
+  Instead, Ragel just generates the code of these components, allowing all of
+  them to be placed in a single function if desired. The user specifies a
+  machine in the usual manner, then indicates at which place in the program
+  text the state machine code is to be generated. This is done using the write
+  statement. It is possible to specify to Ragel how it should access the
+  variables it needs (such as the current state) using the access statement.
+ -The host language embedding delimiters have been changed. Single line
+  machines start with '%%' and end at newline. Multiline machines start with
+  '%%{' and end with '}%%'. The machine name is given with the machine
+  statement at the very beginning of the specification. This purpose of this
+  change is to make it easier separate Ragel code from the host language. This
+  will ease the addition of supported host languages.
+ -The structure and class parsing which was previously able to extract a
+  machine's name has been removed since this feature is dependent on the host
+  language and inhibits the move towards a more language-independent frontend.
+ -The init, element and interface statements have been made obsolete by the
+  new host language interface and have been removed.
+ -The fexec action statement has been changed to take only the new position to
+  move to. This statement is more useful for moving backwards and reparsing
+  input than for specifying a whole new buffer entirely and has been shifted
+  to this new use. Giving it only one argument also simplifies the parsing of
+  host code embedded in a Ragel specification. This will ease the addition of
+  supported host languages.
+ -Introduced the fbreak statement, which allows one to stop processing data
+  immediately. The machine ends up in the state that the current transition
+  was to go to. The current character is not changed.
+ -Introduced the noend option for writing the execute code. This inhibits
+  checking if we have reached pe. The machine will run until it goes into the
+  error state or fbreak is hit. This allows one to parse null-terminate
+  strings without first computing the length.
+ -The execute code now breaks out of the processing loop when it moves into
+  the error state. Previously it would run until pe was hit. Breaking out
+  makes the noend option useful when an error is encountered and allows
+  user code to determine where in the input the error occured. It also
+  eliminates needlessly iterating the input buffer.
+ -Introduced the noerror, nofinal and noprefix options for writing the machine
+  data. The first two inhibit the writing of the error state and the
+  first-final state should they not be needed. The noprefix eliminates the
+  prefixing of the data items with the machine name.
+ -Support for the D language has been added. This is specified in the backend
+  with the -D switch.
+ -Since the new host language interface has been reduced considerably, Ragel
+  no longer needs to distinguish between C-based languages. Support for C, C++
+  and Objective-C has been folded into one option in the backend: -C
+ -The code generator has been made independent of the languages that it
+  supports by pushing the language dependent apsects down into the lower
+  levels of the code generator.
+ -Many improvements to the longest match construction were made. It is no
+  longer considered experimental. A longest match machine must appear at the
+  top level of a machine instantiation. Since it does not generate a pure
+  state machine (it may need to backtrack), it cannot be used as an operand to
+  other operators.
+ -References to the current character and current state are now completely
+  banned in EOF actions.
+
+Ragel 4.2 - Sep 16, 2005
+========================
+ (additional details in V4 release notes)
+ -Fixed a bug in the longest match operator. In some states it's possible that
+  we either match a token or match nothing at all. In these states we need to
+  consult the LmSwitch on error so it must be prepared to execute an error
+  handler. We therefore need to init act to this error value (which is zero).
+  We can compute if we need to do this and the code generator emits the
+  initialization only if necessary. 
+ -Changed the definition of the token end of longest match actions. It now
+  points to one past the last token. This makes computing the token length
+  easier because you don't have to add one. The longest match variables token
+  start, action identifier and token end are now properly initialized in
+  generated code. They don't need to be initialized in the user's code.
+ -Implemented to-state and from-state actions. These actions are executed on
+  transitions into the state (after the in transition's actions) and on
+  transitions out of the state (before the out transition's actions). See V4
+  release notes for more information.
+ -Since there are no longer any action embedding operators that embed both on
+  transitions and on EOF, any actions that exist in both places will be there
+  because the user has explicitly done so. Presuming this case is rare, and
+  with code duplication in the hands of the user, we therefore give the EOF
+  actions their own action switch in the finish() function. This is further
+  motivated by the fact that the best solution is to do the same for to-state
+  and from-state actions in the main loop.
+ -Longest match actions can now be specified using a named action. Since a
+  word following a longest match item conflicts with the concatenation of a
+  named machine, the => symbol must come immediately before a named action.
+ -The longest match operator permits action and machine definitions in the
+  middle of a longest match construction. These are parsed as if they came
+  before the machine definition they are contained in. Permitting action and
+  machine definitions in a longest match construction allows objects to be
+  defined closer to their use.
+ -The longest match operator can now handle longest match items with no
+  action, where previously Ragel segfaulted.
+ -Updated to Aapl post 2.12.
+ -Fixed a bug in epsilon transition name lookups. After doing a name lookup
+  the result was stored in the parse tree. This is wrong because if a machine
+  is used more than once, each time it may resolve to different targets,
+  however it will be stored in the same place. We now store name resolutions
+  in a separated data structure so that each walk of a parse tree uses the
+  name resolved during the corresponding walk in the name lookup pass.
+ -The operators used to embed context and actions into states have been
+  modified. The V4 release notes contain the full details.
+ -Added zlen builtin machine to represent the zero length machine. Eventually
+  the name "null" will be phased out in favour of zlen because it is unclear
+  whether null matches the zero length string or if it does not match any
+  string at all (as does the empty builtin).
+ -Added verbose versions of action, context and priority embedding. See the V4
+  release notes for the full details. A small example: 
+      machine <- all exec { foo(); } <- final eof act1
+ -Bugfix for machines with epsilon ops, but no join operations. I had 
+  wrongfully assumed that because epsilon ops can only increase connectivity,
+  that no states are ever merged and therefore a call to fillInStates() is not
+  necessary. In reality, epsilon transitions within one machine can induce the
+  merging of states. In the following, state 2 follows two paths on 'i':
+      main := 'h' -> i 'i h' i: 'i';
+ -Changed the license of the guide from a custom "do not propagate modified
+  versions of this document" license to the GPL.
+
+Ragel 4.1 - Jun 26, 2005
+========================
+ (additional details in V4 release notes)
+ -A bug in include processing was fixed. Surrounding code in an include file
+  was being passed through to the output when it should be ignored. Includes
+  are only for including portions of another machine into he current. This
+  went unnoticed because all tested includes were wrapped in #ifndef ...
+  #endif directives and so did not affect the compilation of the file making
+  the include.
+ -Fixes were made to Vim syntax highlighting file.
+ -Duplicate actions are now removed from action lists.
+ -The character-level negation operator ^ was added. This operator produces a
+  machine that matches single characters that are not matched by the machine
+  it is applied to. This unary prefix operator has the same precedence level
+  as !.
+ -The use of + to specify the a positive literal number was discontinued.
+ -The parser now assigns the subtraction operator a higher precedence than
+  the negation of literal number.
+  
+Ragel 4.0 - May 26, 2005
+========================
+ (additional details in V4 release notes)
+ -Operators now strictly embed into a machine either on a specific class of
+  characters or on EOF, but never both. This gives a cleaner association
+  between the operators and the physical state machine entitites they operate
+  on. This change is made up of several parts:
+  1. '%' operator embeds only into leaving characters.
+  2. All global and local error operators only embed on error character
+     transitions, their action will not be triggerend on EOF in non-final
+     states.
+  3. EOF action embedding operators have been added for all classes of states
+     to make up for functionality removed from other operators. These are 
+     >/ $/ @/ %/.
+  4. Start transition operator '>' no longer implicitly embeds into leaving
+     transtions when start state is final.
+ -Ragel now emits warnings about the improper use of statements and values in
+  action code that is embedded as an EOF action. Warnings are emitted for fpc,
+  fc, fexec, fbuf and fblen.
+ -Added a longest match construction operator |* machine opt-action; ... *|.
+  This is for repetition where an ability to revert to a shorter, previously
+  matched item is required. This is the same behaviour as flex and re2c. The
+  longest match operator is not a pure FSM construction, it introduces
+  transitions that implicitly hold the current character or reset execution to
+  a previous location in the input. Use of this operator requires the caller
+  of the machine to occasionally hold onto data after a call to the exectute
+  routine. Use of machines generated with this operator as the input to other
+  operators may have undefined results. See examples/cppscan for an example.
+  This is very experimental code.
+ -Action ids are only assigned to actions that are referenced in the final
+  constructed machine, preventing gaps in the action id sequence. Previously
+  an action id was assigned if the action was referenced during parsing.
+ -Machine specifications now begin with %% and are followed with an optional
+  name and either a single Ragel statement or a sequence of statements
+  enclosed in {}.
+ -Ragel no longer generates the FSM's structure or class. It is up to the user
+  to declare the structure and to give it a variable named curs of type
+  integer. If the machine uses the call stack the user must also declare a
+  array of integers named stack and an integer variable named top.
+ -In the case of Objective-C, Ragel no longer generates the interface or
+  implementation directives, allowing the user to declare additional methods.
+ -If a machine specification does not have a name then Ragel tries to find a
+  name for it by first checking if the specification is inside a struct, class
+  or interface. If it is not then it uses the name of the previous machine
+  specification. If still no name is found then this is an error.
+ -Fsm specifications now persist in memory and statements accumulate.
+ -Ragel now has an include statement for including the statements of a machine
+  spec in another file (perhaps because it is the corresponding header file).
+  The include statement can also be used to draw in the statements of another
+  fsm spec in the current file.
+ -The fstack statement is now obsolete and has been removed.
+ -A new statement, simply 'interface;', indicates that ragel should generate
+  the machine's interface. If Ragel sees the main machine it generates the
+  code sections of the machine. Previously, the header portion was generated
+  if the (now removed) struct statement was found and code was generated if
+  any machine definition was found.
+ -Fixed a bug in the resolution of fsm name references in actions. The name
+  resolution code did not recurse into inline code items with children
+  (fgoto*, fcall*, fnext*, and fexec), causing a segfault at code generation
+  time.
+ -Cleaned up the code generators. FsmCodeGen was made into a virtual base
+  class allowing for the language/output-style specific classes to inherit
+  both a language specific and style-specific base class while retaining only
+  one copy of FsmCodeGen. Language specific output can now be moved into the
+  language specific code generators, requiring less duplication of code in the
+  language/output-style specific leaf classes.
+ -Fixed bugs in fcall* implementation of IpgGoto code generation.
+ -If the element type has not been defined Ragel now uses a constant version
+  of the alphtype, not the exact alphtype. In most cases the data pointer of
+  the execute routine should be const. A non-const element type can still be
+  defined with the element statement.
+ -The fc special value now uses getkey for retrieving the current char rather
+  than *_p, which is wrong if the element type is a structure.
+ -User guide converted to TeX and updated for new 4.0 syntax and semantics.
+
+Ragel 3.7 - Oct 31, 2004
+========================
+ -Bug fix: unreferenced machine instantiations causing segfault due to name
+  tree and parse tree walk becomming out of syncronization.
+ -Rewrote representation of inline code blocks using a tree data structure.
+  This allows special keywords such as fbuf to be used as the operatands of
+  other fsm commands.
+ -Documentation updates.
+ -When deciding whether or not to generate machine instantiations, search the
+  entire name tree beneath the instantiation for references, not just the
+  root.
+ -Removed stray ';' in keller2.rl
+ -Added fexec for restarting the machine with new buffer data (state stays the
+  same), fbuf for retrieving the the start of the buf, and fblen for
+  retrieving the orig buffer length.
+ -Implemented test/cppscan2 using fexec. This allows token emitting and restart
+  to stay inside the execute routine, instead of leaving and re-entering on
+  every token.
+ -Changed examples/cppscan to use fexec and thereby go much faster.
+ -Implemented flex and re2c versions of examples/cppscan. Ragel version
+  goes faster than flex version but not as fast as re2c version.
+ -Merged in Objective-C patch from Erich Ocean.
+ -Turned off syncing with stdio in C++ tests to make them go faster.
+ -Renamed C++ code generaion classes with the Cpp Prefix instead of CC to make
+  them easier to read.
+ -In the finish function emit fbuf as 0 cast to a pointer to the element type
+  so it's type is not interpreted as an integer.
+ -The number -128 underflows char alphabets on some architectures. Removed
+  uses of it in tests.
+ -Disabled the keller2 test because it causes problems on many architectures
+  due to its large size and compilation requirements.
+
+Ragel 3.6 - Jul 10, 2004
+========================
+ -Many documentation updates.
+ -When resolving names, return a set of values so that a reference in an
+  action block that is embedded more than once won't report distinct entry
+  points that are actually the same.
+ -Implemented flat tables. Stores a linear array of indicies into the
+  transition array and only a low and high key value. Faster than binary
+  searching for keys but not usable for large alphabets.
+ -Fixed bug in deleting of transitions leftover from converstion from bst to
+  list implementation of transitions. Other code cleanup.
+ -In table based output calculate the cost of using an index. Don't use if
+  cheaper. 
+ -Changed fstate() value available in init and action code to to fentry() to
+  reflect the fact that the values returned are intended to be used as targets
+  in fgoto, fnext and fcall statements. The returned state is not a unique
+  state representing the label. There can be any number of states representing
+  a label.
+ -Added keller2 test, C++ scanning tests and C++ scanning example.
+ -In table based output split up transitions into targets and actions. This
+  allows actions to be omitted.
+ -Broke the components of the state array into separate arrays. Requires
+  adding some fields where they could previously be omitted, however allows
+  finer grained control over the sizes of items and an overal size reduction.
+  Also means that state numbers are not an offset into the state array but
+  instead a sequence of numbers, meaning the context array does not have any
+  wasted bits.
+ -Action lists and transition also have their types chosen to be the smallest
+  possible for accomodating the contained values.
+ -Changed curs state stored in fsm struct from _cs to curs. Keep fsm->curs ==
+  -1 while in machine. Added tests curs1 and curs2.
+ -Implemented the notion of context. Context can be embedded in states using
+  >:, $:, @: and %: operators. These embed a named context into start states,
+  all states, non-start/non-final and final states. If the context is declared
+  using a context statment
+    context name;
+  then the context can be quered for any state using fsm_name_ctx_name(state)
+  in C code and fsm_name::ctx_name(state) in C++ code. This feature makes it
+  possible to determine what "part" of the machine is currently active.
+ -Fixed crash on machine generation of graphs with no final state. If there
+  is no reference to a final state in a join operation, don't generate one. 
+ -Updated Vim sytax: added labels to inline code, added various C++ keywords.
+  Don't highlight name separations as labels. Added switch labels, improved
+  alphtype, element and getkey.
+ -Fixed line info in error reporting of bad epsilon trans. 
+ -Fixed fstate() for tab code gen.
+ -Removed references to malloc.h.
+
+Ragel 3.5 - May 29, 2004
+========================
+ -When parse errors occur, the partially generated output file is deleted and
+  an non-zero exit status is returned.
+ -Updated Vim syntax file.
+ -Implemented the setting of the element type that is passed to the execute
+  routine as well as method for specifying how ragel should retrive the key
+  from the element type. This lets ragel process arbitrary structures inside
+  of which is the key that is parsed.
+      element struct Element;
+      getkey fpc->character;
+ -The current state is now implemented with an int across all machines. This
+  simplifies working with current state variables. For example this allows a
+  call stack to be implemented in user code.
+ -Implemented a method for retrieving the current state, the target state, and
+  any named states. 
+      fcurs           -retrieve the current state
+      ftargs          -retrieve the target state
+      fstate(name)    -retrieve a named state.
+ -Implemented a mechanism for jumping to and calling to a state stored in a
+  variable.
+      fgoto *<expr>;  -goto the state returned by the C/C++ expression.
+      fcall *<expr>;  -call the state returned by the C/C++ expression.
+ -Implemented a mechanism for specifying the next state without immediately
+  transfering control there (any code following statement is executed).
+      fnext label;    -set the state pointed to by label as the next state.
+      fnext *<expr>;  -set the state returned by the C/C++ expression as the
+                       next.
+ -Action references are determined from the final machine instead of during
+  the parse tree walk. Some actions can be referenced in the parse tree but not
+  show up in the final machine. Machine analysis is now done based on this new
+  computation.
+ -Named state lookup now employs a breadth-first search in the lookup and
+  allows the user to fully qualify names, making it possible to specify
+  jumps/calls into parts of the machine deep in the name hierarchy. Each part
+  of name (separated by ::) employs a breadth first search from it's starting
+  point.
+ -Name references now must always refer to a single state. Since references to
+  multiple states is not normally intended, it no longer happens
+  automatically. This frees the programmer from thinking about whether or not
+  a state reference is unique. It also avoids the added complexity of
+  determining when to merge the targets of multiple references. The effect of
+  references to multiple states can be explicitly created using the join
+  operator and epsilon transitions.
+ -M option was split into -S and -M. -S specifies the machine spec to generate
+  for graphviz output and dumping. -M specifies the machine definition or
+  instantiation.
+ -Machine function parameters are now prefixed with and underscore to
+  avoid the hiding of class members.
+
+Ragel 3.4 - May 8, 2004
+=======================
+ -Added the longest match kleene star operator **, which is synonymous 
+  with ( ( <machine> ) $0 %1 ) *.
+ -Epsilon operators distinguish between leaving transitions (going to an
+  another expression in a comma separated list) and non-leaving transitions.
+  Leaving actions and priorities are appropriately transferred.
+ -Relative priority of following ops changed to:
+      1. Action/Priority 
+      2. Epsilon 
+      3. Label
+  If label is done first then the isolation of the start state in > operators
+  will cause the label to point to the old start state that doesn't have the
+  new action/priority.
+ -Merged >! and >~, @! and @~, %! and %~, and $! and $~ operators to have one
+  set of global error action operators (>!, @!, %! and $!) that are invoked on
+  error by unexpected characters as well as by unexepected EOF.
+ -Added the fpc keyword for use in action code. This is a pointer to the
+  current character. *fpc == fc. If an action is invoked on EOF then fpc == 0.
+ -Added >^, @^, %^, and $^ local error operators. Global error operators (>!,
+  @!, $!, and %!) cause actions to be invoked if the final machine fails.
+  Local error actions cause actions to be invoked if if the current machine
+  fails.
+ -Changed error operators to mean embed global/local error actions in:
+     >! and !^  -the start state.
+     @! and @^  -states that are not the start state and are not final.
+     %! and %^  -final states.
+     $! and $^  -all states.
+ -Added >@! which is synonymous >! then @!
+ -Added >@^ which is synonymous >^ then @^
+ -Added @%! which is synonymous @! then %!
+ -Added @%^ which is synonymous >^ then @^
+ -FsmGraph representation of transition lists was changed from a mapping of
+  alphabet key -> transition objects using a BST to simply a list of
+  transition objects. Since the transitions are no longer divided by
+  single/range, the fast finding of transition objects by key is no longer
+  required functionality and can be eliminated. This new implementation uses
+  the same amount of memory however causes less allocations. It also make more
+  sense for supporting error transitions with actions. Previously an error
+  transition was represented by a null value in the BST.
+ -Regular expression ranges are checked to ensure that lower <= upper.
+ -Added printf-like example.
+ -Added atoi2, erract2, and gotcallret to the test suite.
+ -Improved build test to support make -jN and simplified the compiling and
+  running of tests.
+
+Ragel 3.3 - Mar 7, 2004
+=======================
+ -Portability bug fixes were made. Minimum and maximum integer values are
+  now taken from the system. An alignment problem on 64bit systems
+  was fixed.
+
+Ragel 3.2 - Feb 28, 2004
+========================
+ -Added a Vim syntax file.
+ -Eliminated length var from generated execute code in favour of an end
+  pointer. Using length requires two variables be read and written. Using an
+  end pointer requires one variable read and written and one read. Results in
+  more optimizable code.
+ -Minimization is now on by default.
+ -States are ordered in output by depth first search.
+ -Bug in minimization fixed. States were not being distinguished based on
+  error actions. 
+ -Added null and empty builtin machines.
+ -Added EOF error action operators. These are >~, >@, $~, and %~. EOF error
+  operators embed actions to take if the EOF is seen and interpreted as an
+  error. The operators correspond to the following states:
+    -the start state
+    -any state with a transition to a final state
+    -any state with a transiion out
+    -a final state
+ -Fixed bug in generation of unreference machine vars using -M. Unreferenced
+  vars don't have a name tree built underneath when starting from
+  instantiations. Need to instead build the name tree starting at the var.
+ -Calls, returns, holds and references to fc in out action code are now
+  handled for ipgoto output.
+ -Only actions referenced by an instantiated machine expression are put into
+  the action index and written out.
+ -Added rlscan, an example that lexes Ragel input.
+
+Ragel 3.1 - Feb 18, 2004
+========================
+ -Duplicates in OR literals are removed and no longer cause an assertion
+  failure.
+ -Duplicate entry points used in goto and call statements are made into
+  deterministic entry points.
+ -Base FsmGraph code moved from aapl into ragel, as an increasing amount
+  of specialization is required. Too much time was spent attempting to
+  keep it as a general purpose template.
+ -FsmGraph code de-templatized and heirarchy squashed to a single class.
+ -Single transitions taken out of FsmGraph code. In the machine construction
+  stage, transitions are now implemented only with ranges and default
+  transtions. This reduces memory consumption, simplifies code and prevents
+  covered transitions. However it requires the automated selection of single
+  transitions to keep goto-driven code lean.
+ -Machine reduction completely rewritten to be in-place. As duplicate
+  transitions and actions are found and the machine is converted to a format
+  suitable for writing as C code or as GraphViz input, the memory allocated
+  for states and transitions is reused, instead of newly allocated.
+ -New reduction code consolodates ranges, selects a default transition, and
+  selects single transitions with the goal of joining ranges that are split by
+  any number of single characters.
+ -Line directive changed from "# <num> <file>" to the more common format
+  "#line <num> <file>".
+ -Operator :! changed to @!. This should have happened in last release.
+ -Added params example.
+
+Ragel 3.0 - Jan 22, 2004
+========================
+ -Ragel now parses the contents of struct statements and action code. 
+ -The keyword fc replaces the use of *p to reference the current character in
+  action code.
+ -Machine instantiations other than main are allowed.
+ -Call, jump and return statements are now available in action code. This
+  facility makes it possible to jump to an error handling machine, call a
+  sub-machine for parsing a field or to follow paths through a machine as
+  determined by arbitrary C code.
+ -Added labels to the language. Labels can be used anywhere in a machine
+  expression to define an entry point. Also references to machine definitions
+  cause the implicit creation of a label.
+ -Added epsilon transitions to the language. Epsilon operators may reference
+  labels in the current name scope resolved when join operators are evaluated
+  and at the root of the expression tree of machine assignment/instantiation.
+ -Added the comma operator, which joins machines together without drawing any
+  transitions between them. This operator is useful in combination with
+  labels, the epsilon operator and user code transitions for defining machines
+  using the named state and transition list paradigm. It is also useful for
+  invoking transitions based on some analysis of the input or on the
+  environment.
+ -Added >!, :!, $!, %! operators for specifying actions to take should the
+  machine fail. These operators embed actions to execute if the machine
+  fails in
+    -the start state
+    -any state with a transition to a final state
+    -any state with a transiion out
+    -a final state
+  The general rule is that if an action embedding operator embeds an action
+  into a set of transitions T, then the error-counterpart with a !  embeds an
+  action into the error transition taken when any transition T is a candidate,
+  but does not match the input.
+ -The finishing augmentation operator ':' has been changed to '@'. This
+  frees the ':' symbol for machine labels and avoids hacks to the parser to
+  allow the use of ':' for both labels and finishing augmentations. The best
+  hack required that label names be distinct from machine definition names as
+  in main := word : word; This restriction is not good because labels are
+  local to the machine that they are used in whereas machine names are global
+  entities. Label name choices should not be restricted by the set of names
+  that are in use for machines.
+ -Named priority syntax now requires parenthesis surrounding the name and
+  value pair. This avoids grammar ambiguities now that the ',' operator has
+  been introduced and makes it more clear that the name and value are an
+  asscociated pair.
+ -Backslashes are escaped in line directive paths.
+
+Ragel 2.2 - Oct 6, 2003
+=======================
+ -Added {n}, {,n}, {n,} {n,m} repetition operators.
+    <expr> {n}    -- exactly n repetitions
+    <expr> {,n}   -- zero to n repetitions
+    <expr> {n,}   -- n or more repetitions
+    <expr> {n,m}  -- n to m repetitions
+ -Bug in binary search table in Aapl fixed. Fixes crashing on machines that
+  add to action tables that are implicitly shared among transitions.
+ -Tests using obsolete minimization algorithms are no longer built and run by
+  default.
+ -Added atoi and concurrent from examples to the test suite.
+
+Ragel 2.1 - Sep 22, 2003
+========================
+ -Bug in priority comparison code fixed. Segfaulted on some input with many
+  embedded priorities.
+ -Added two new examples.
+
+Ragel 2.0 - Sep 7, 2003
+=======================
+ -Optional (?), One or More (+) and Kleene Star (*) operators changed from
+  prefix to postfix. Rationale is that postfix version is far more common in
+  regular expression implementations and will be more readily understood.
+ -All priority values attached to transitions are now accompanied by a name.
+  Transitions no longer have default priority values of zero assigned
+  to them. Only transitions that have different priority values assigned
+  to the same name influence the NFA-DFA conversion. This scheme reduces
+  side-effects of priorities.
+ -Removed the %! statement for unsetting pending out priorities. With
+  named priorities, it is not necessary to clear the priorities of a
+  machine with $0 %! because non-colliding names can be used to avoid
+  side-effects.
+ -Removed the clear keyword, which was for removing actions from a machine.
+  Not required functionality and it is non-intuitive to have a language
+  feature that undoes previous definitions.
+ -Removed the ^ modifier to repetition and concatenation operators. This
+  undocumented feature prevented out transitions and out priorities from being
+  transfered from final states to transitions leaving machines. Not required
+  functionality and complicates the language unnecessarily.
+ -Keyword 'func' changed to 'action' as a part of the phasing out of the term
+  'function' in favour of 'action'. Rationale is that the term 'function'
+  implies that the code is called like a C function, which is not necessarily
+  the case. The term 'action' is far more common in state machine compiler
+  implementations.
+ -Added the instantiation statement, which looks like a standard variable
+  assignment except := is used instead of =. Instantiations go into the
+  same graph dictionary as definitions. In the the future, instantiations
+  will be used as the target for gotos and calls in action code.
+ -The main graph should now be explicitly instantiated. If it is not,
+  a warning is issued.
+ -Or literal basic machines ([] outside of regular expressions) now support
+  negation and ranges. 
+ -C and C++ interfaces lowercased. In the C interface an underscore now
+  separates the fsm machine and the function name. Rationale is that lowercased
+  library and generated routines are more common.
+    C output:
+      int fsm_init( struct clang *fsm );
+      int fsm_execute( struct clang *fsm, char *data, int dlen );
+      int fsm_finish( struct clang *fsm );
+    C++ output:
+      int fsm::init( );
+      int fsm::execute( char *data, int dlen );
+      int fsm::finish( );
+ -Init, execute and finish all return -1 if the machine is in the error state
+  and can never accept, 0 if the machine is in a non-accepting state that has a
+  path to a final state and 1 if the machine is in an accepting state.
+ -Accept routine eliminated. Determining whether or not the machine accepts is
+  done by examining the return value of the finish routine.
+ -In C output, fsm structure is no longer a typedef, so referencing requires
+  the struct keyword. This is to stay in line with C language conventions.
+ -In C++ output, constructor is no longer written by ragel. As a consequence,
+  init routine is not called automatically. Allows constructor to be supplied
+  by user as well as the return value of init to be examined without calling it
+  twice.
+ -Static start state and private structures are taken out of C++ classes.
+
+Ragel 1.5.4 - Jul 14, 2003
+==========================
+ -Workaround for building with bison 1.875, which produces an
+  optimization that doesn't build with newer version gcc.
+
+Ragel 1.5.3 - Jul 10, 2003
+==========================
+ -Fixed building with versions of flex that recognize YY_NO_UNPUT.
+ -Fixed version numbers in ragel.spec file.
+
+Ragel 1.5.2 - Jul 7, 2003
+=========================
+ -Transition actions and out actions displayed in the graphviz output.
+ -Transitions on negative numbers handled in graphviz output.
+ -Warning generated when using bison 1.875 now squashed.
+ 
+Ragel 1.5.1 - Jun 21, 2003
+==========================
+ -Bugs fixed: Don't delete the output objects when writing to standard out.
+  Copy mem into parser buffer with memcpy, not strcpy. Fixes buffer mem errror.
+ -Fixes for compiling with Sun WorkShop 6 compilers.
+
+Ragel 1.5.0 - Jun 10, 2003
+==========================
+ -Line directives written to the output so that errors in the action code
+  are properly reported in the ragel input file.
+ -Simple graphviz dot file output format is supported. Shows states and
+  transitions. Does not yet show actions.
+ -Options -p and -f dropped in favour of -d output format.
+ -Added option -M for specifying the machine to dump with -d or the graph to
+  generate with -V.
+ -Error recovery implemented.
+ -Proper line and column number tracking implemented in the scanner.
+ -All action/function code is now embedded in the main Execute routine. Avoids
+  duplication of action code in the Finish routine and the need to call
+  ExecFuncs which resulted in huge code bloat. Will also allow actions to
+  modify cs when fsm goto, call and return is supported in action code.
+ -Fsm spec can have no statements, nothing will be generated.
+ -Bug fix: Don't accept ] as the opening of a .-. range a reg exp.
+ -Regular expression or set ranges (ie /[0-9]/) are now handled by the parser
+  and consequently must be well-formed. The following now generates a parser
+  error: /[+-]/ and must be rewritten as /[+\-]/. Also fixes a bug whereby ]
+  might be accepted as the opening of a .-. range causing /[0-9]-[0-9]/ to
+  parse incorrectly.
+ -\v, \f, and \r are now treated as whitespace in an fsm spec.
+
+Ragel 1.4.1 - Nov 19, 2002
+==========================
+ -Compile fixes. The last release (integer alphabets) was so exciting
+  that usual portability checks got bypassed.
+
+Ragel 1.4.0 - Nov 19, 2002
+==========================
+ -Arbitrary integer alphabets are now fully supported! A new language
+  construct:
+  'alphtype <type>' added for specifying the type of the alphabet. Default
+  is 'char'. Possible alphabet types are:
+       char, unsigned char, short, unsigned short, int, unsigned int
+ -Literal machines specified in decimal format can now be negative when the
+  alphabet is a signed type.
+ -Literal machines (strings, decimal and hex) have their values checked for
+  overflow/underflow against the size of the alphabet type.
+ -Table driven and goto driven output redesigned to support ranges. Table
+  driven uses a binary search for locating single characters and ranges. Goto
+  driven uses a switch statement for single characters and nested if blocks for
+  ranges.
+ -Switch driven output removed due to a lack of consistent advantages. Most of
+  the time the switch driven FSM is of no use because the goto FSM makes
+  smaller and faster code. Under certain circumstances it can produce smaller
+  code than a goto driven fsm and be almost as fast, but some sporadic case
+  does not warrant maintaining it.
+ -Many warnings changed to errors.
+ -Added option -p for printing the final fsm before minimization. This lets
+  priorities be seen. Priorties are all reset to 0 before minimization. The
+  exiting option -f prints the final fsm after minimization.
+ -Fixed a bug in the clang test and example that resulted in redundant actions
+  being executed.
+
+Ragel 1.3.4 - Nov 6, 2002
+=========================
+ -Fixes to Chapter 1 of the guide.
+ -Brought back the examples and made them current.
+ -MSVC is no longer supported for compiling windows binaries because its
+  support for the C++ standard is frustratingly inadequate, it will cost money
+  to upgrade if it ever gets better, and MinGW is a much better alternative.
+ -The build system now supports the --host= option for building ragel
+  for another system (used for cross compiling a windows binary with MinGW).
+ -Various design changes and fixes towards the goal of arbitrary integer
+  alphabets and the handling of larger state machines were made.
+ -The new shared vector class is now used for action lists in transitions and
+  states to reduce memory allocations.
+ -An avl tree is now used for the reduction of transitions and functions of an
+  fsm graph before making the final machine. The tree allows better scalability
+  and performance by not requiring consecutively larger heap allocations.
+ -Final stages in the separation of fsm graph code from action embedding and
+  priority assignment is complete. Makes the base graph leaner and easier to reuse
+  in other projects (like Keller).
+
+Ragel 1.3.3 - Oct 22, 2002
+==========================
+ -More diagrams were added to section 1.7.1 of the user guide.
+ -FSM Graph code was reworked to spearate the regex/nfa/minimizaion graph
+  algorithms from the manipulation of state and transition properties.
+ -An rpm spec file from Cris Bailiff was added. This allows an rpm for ragel
+  to be built with the command 'rpm -ta ragel-x.x.x.tar.gz'
+ -Fixes to the build system and corresponding doc updates in the README.
+ -Removed autil and included the one needed source file directly in the top
+  level ragel directory.
+ -Fixed a bug that nullified the 20 times speedup in large compilations
+  claimed by the last version.
+ -Removed awk from the doc build (it was added with the last release -- though
+  not mentioned in the changelog).
+ -Install of man page was moved to the doc dir. The install also installs the
+  user guide to $(PREFIX)/share/doc/ragel/
+
+Ragel 1.3.2 - Oct 16, 2002
+==========================
+ -Added option -v (or --version) to show version information.
+ -The subtract operator no longer removes transition data from the machine
+  being subtracted. This is left up to the user for the purpose of making it
+  possible to transfer transitions using subtract and also for speeding up the
+  subtract routine. Note that it is possible to explicitly clear transition
+  data before a doing a subtract.
+ -Rather severe typo bug fixed. Bug was related to transitions with higher
+  priorities taking precedence. A wrong ptr was being returned. It appears to
+  have worked most of the time becuase the old ptr was deleted and the new one
+  allocated immediatly after so the old ptr often pointed to the same space.
+  Just luck though.
+ -Bug in the removing of dead end paths was fixed. If the start state
+  has in transitions then those paths were not followed when finding states to
+  keep. Would result in non-dead end states being removed from the graph.
+ -In lists and in ranges are no longer maintained as a bst with the key as the
+  alphabet character and the value as a list of transitions coming in on that
+  char. There is one list for each of inList, inRange and inDefault. Now that
+  the required functionality of the graph is well known it is safe to remove
+  these lists to gain in speed and footprint. They shouldn't be needed.
+ -IsolateStartState() runs on modification of start data only if the start
+  state is not already isolated, which is now possible with the new in list
+  representation.
+ -Concat, Or and Star operators now use an approximation to
+  removeUnreachableStates that does not require a traversal of the entire
+  graph. This combined with an 'on-the-fly' management of final bits and final
+  state status results is a dramatic speed increase when compiling machines
+  that use those operators heavily. The strings2 test goes 20 times faster.
+ -Before the final minimization, after all fsm operations are complete,
+  priority data is reset which enables better minimization in cases where
+  priorities would otherwise separate similar states.
+ 
+Ragel 1.3.1 - Oct 2, 2002
+=========================
+ -Range transitions are now used to implement machines made with /[a-z]/ and
+  the .. operator as well as most of the builtin machines. The ranges are not
+  yet reflected in the output code, they are expanded as if they came from the
+  regular single transitions. This is one step closer to arbitrary integer
+  output.
+ -The builtin machine 'any' was added. It is equiv to the builtin extend,
+  matching any characters.
+ -The builtin machine 'cntrl' now includes newline.
+ -The builtin machine 'space' now includes newline.
+ -The builtin machine 'ascii' is now the range 0-127, not all characters.
+ -A man page was written.
+ -A proper user guide was started. Chapter 1: Specifying Ragel Programs
+  was written. It even has some diagrams :)
+
+Ragel 1.3.0 - Sep 4, 2002
+=========================
+ -NULL keyword no longer used in table output.
+ -Though not yet in use, underlying graph structure changed to support range
+  transitions. As a result, most of the code that walks transition lists is now
+  implemented with an iterator that hides the complexity of the transition
+  lists and ranges. Range transitions will be used to implement /[a-z]/ style
+  machines and machines made with the .. operator. Previously a single
+  transition would be used for each char in the range, which is very costly.
+  Ranges eliminate much of the space complexity and allow for the .. operator
+  to be used with very large (integer) alphabets.
+ -New minimization similar to Hopcroft's alg. It does not require n^2 space and
+  runs close to O(n*log(n)) (an exact analysis of the alg is very hard). It is
+  much better than the stable and approx minimization and obsoletes them both.
+  An exact implementation of Hopcroft's alg is desirable but not possible
+  because the ragel implementation does not assume a finite alphabet, which
+  Hopcroft's requires. Ragel will support arbitrary integer alphabets which
+  must be treated as an infinite set for implementation considerations.
+ -New option -m using above described minimization to replace all previous
+  minimization options. Old options sill work but are obsolete and not
+  advertised with -h.
+ -Bug fixed in goto style output. The error exit set the current state to 0,
+  which is actually a valid state. If the machine was entered again it would go
+  into the first state, very wrong. If the first state happened to be final then
+  an immediate finish would accept when in fact it should fail.
+ -Slightly better fsm minimization now capable due to clearing of the
+  transition ordering numbers just prior to minimization. 
+ 
+Ragel 1.2.2 - May 25, 2002
+==========================
+ -Configuration option --prefix now works when installing.
+ -cc file extension changed to cpp for better portability.
+ -Unlink of output file upon error no longer happens, removes dependency on
+  unlink system command.
+ -All multiline strings removed: not standard c++.
+ -Awk build dependency removed.
+ -MSVC 6.0 added to the list of supported compilers (with some tweaking of
+  bison and flex output).
+
+Ragel 1.2.1 - May 13, 2002
+==========================
+ -Automatic dependencies were fixed, they were not working correctly.
+ -Updated AUTHORS file to reflect contributors.
+ -Code is more C++ standards compliant: compiles with g++ 3.0
+ -Fixed bugs that only showed up in g++ 3.0
+ -Latest (unreleased) Aapl.
+ -Configuration script bails out if bison++ is installed. Ragel will not
+  compile with bison++ because it is coded in c++ and bison++ automatically
+  generates a c++ parser. Ragel uses a c-style bison parser.
+
+Ragel 1.2.0 - May 3, 2002
+=========================
+ -Underlying graph structure now supports default transitions. The result is
+  that a transition does not need to be made for each char of the alphabet
+  when making 'extend' or '/./' machines. Ragel compiles machines that
+  use the aforementioned primitives WAY faster.
+ -The ugly hacks needed to pick default transitions now go away due to
+  the graph supporting default transitions directly.
+ -If -e is given, but minimization is not turned on, print a warning.
+ -Makefiles use automatic dependencies.
+
+Ragel 1.1.0 - Apr 15, 2002
+==========================
+ -Added goto fsm: much faster than any other fsm style.
+ -Default operator (if two machines are side by side with no operator
+  between them) is concatenation. First showed up in 1.0.4.
+ -The fsm machine no longer auotmatically builds the flat table for
+  transition indicies. Instead it keeps the key,ptr pair. In tabcodegen
+  the flat table is produced. This way very large alphabets with sparse
+  transitions will not consume large amounts of mem. This is also in prep
+  for fsm graph getting a default transition.
+ -Generated code contains a statement explicitly stating that ragel fsms
+  are NOT covered by the GPL. Technically, Ragel copies part of itself
+  to the output to make the generic fsm execution routine (for table driven
+  fsms only) and so the output could be considered under the GPL. But this
+  code is very trivial and could easlily be rewritten. The actual fsm data
+  is subject to the copyright of the source. To promote the use of Ragel,
+  a special exception is made for the part of the output copied from Ragel:
+  it may be used without restriction.
+ -Much more elegant code generation scheme is employed. Code generation
+  class members need only put the 'codegen' keyword after their 'void' type
+  in order to be automatically registerd to handle macros of the same name.
+  An awk script recognises this keyword and generates an appropriate driver.
+ -Ragel gets a test suite.
+ -Postfunc and prefunc go away because they are not supported by non
+  loop-driven fsms (goto, switch) and present duplicate functionality. 
+  Universal funcs can be implemented by using $ operator.
+ -Automatic dependencies used in build system, no more make depend target.
+ -Code generation section in docs.
+ -Uses the latests aapl.
+
+Ragel 1.0.5 - Mar 3, 2002
+=========================
+ -Bugfix in SetErrorState that caused an assertion failure when compiling
+  simple machines that did not have full transition tables (and thus did
+  not show up on any example machines). Assertion failure did not occur
+  when using the switch statement code as ragel does not call SetErrorState
+  in that case.
+ -Fixed some missing includes, now compiles on redhat.
+ -Moved the FsmMachTrans Compare class out of FsmMachTrans. Some compilers
+  don't deal with nested classes in templates too well.
+ -Removed old unused BASEREF in fsmgraph and ragel now compiles using
+  egcs-2.91.66 and presumably SUNWspro. The baseref is no longer needed
+  because states do not support being elements in multiple lists. I would
+  rather be able to support more compilers than have this feature.
+ -Started a README with compilation notes. Started an AUTHORS file.
+ -Started the user documentation. Describes basic machines and operators.
+
+Ragel 1.0.4 - Mar 1, 2002
+=========================
+ -Ported to the version of Aapl just after 2.2.0 release. See 
+  http://www.ragel.ca/aapl/ for details on aapl.
+ -Fixed a bug in the clang example: the newline machine was not stared.
+ -Added explanations to the clang and mailbox examples. This should
+  help people that want to learn the lanuage as the manual is far from
+  complete.
+
+Ragel 1.0.3 - Feb 2, 2002
+=========================
+ -Added aapl to the ragel tree. No longer requires you to download
+  and build aapl separately. Should avoid discouraging impatient users
+  from compiling ragel.
+ -Added the examples to the ragel tree.
+ -Added configure script checks for bison and flex.
+ -Fixed makefile so as not to die with newer versions of bison that
+  write the header of the parser to a .hh file.
+ -Started ChangeLog file.
+
+Ragel 1.0.2 - Jan 30, 2002
+==========================
+ -Bug fix in calculating highIndex for table based code. Was using
+  the length of out tranisition table rather than the value at the
+  end.
+ -If high/low index are at the limits, output a define in their place,
+  not the high/low values themselves so as not to cause compiler warnings.
+ -If the resulting machines don't have any indicies or functions, then
+  omit the empty unrefereced static arrays so as not to cause compiler
+  warnings about unused static vars.
+ -Fixed variable sized indicies support. The header cannot have any
+  reference to INDEX_TYPE as that info is not known at the time the header
+  data is written. Forces us to use a void * for pointers to indicies. In
+  the c++ versions we are forced to make much of the data non-member
+  static data in the code portion for the same reason.
+
+Ragel 1.0.1 - Jan 28, 2002
+==========================
+ -Exe name change from reglang to ragel.
+ -Added ftabcodegen output code style which uses a table for states and
+  transitions but uses a switch statement for the function execution.
+ -Reformatted options in usage dump to look better.
+ -Support escape sequences in [] sections of regular expressions.
+
+Ragel 1.0 - Jan 25, 2002
+========================
+ -Initial release.

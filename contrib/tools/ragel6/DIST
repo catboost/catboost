@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Change to yes to enable building of parsers or manual. Reconfigure
+# afterwards.
+build_parsers=no;
+build_manual=no;
