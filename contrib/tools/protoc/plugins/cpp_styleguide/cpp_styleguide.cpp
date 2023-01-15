@@ -1,10 +1,10 @@
-#include <compiler/cpp/cpp_helpers.h>
-#include <io/zero_copy_stream.h>
-#include <io/printer.h>
-#include <stubs/strutil.h>
-#include <stubs/common.h>
-#include <descriptor.h>
+#include <google/protobuf/compiler/cpp/cpp_helpers.h>
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
+#include <google/protobuf/io/printer.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/strutil.h>
 
 #include "cpp_styleguide.h"
 #include <util/stream/output.h>

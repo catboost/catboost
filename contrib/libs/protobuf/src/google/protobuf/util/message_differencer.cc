@@ -41,14 +41,14 @@
 #include <algorithm>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <utility>
 
-#include "stubs/callback.h"
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/stringprintf.h"
+#include <google/protobuf/stubs/callback.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/stringprintf.h>
 #include "any.h"
 #include "io/printer.h"
 #include "io/zero_copy_stream.h"
@@ -57,7 +57,7 @@
 #include "dynamic_message.h"
 #include "text_format.h"
 #include "util/field_comparator.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

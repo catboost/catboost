@@ -147,8 +147,8 @@
 #include <iosfwd>
 #include <limits>
 
-#include "stubs/common.h"
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/hash.h>
 
 namespace google {
 namespace protobuf {

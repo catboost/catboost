@@ -30,11 +30,11 @@
 
 #include <google/protobuf/util/internal/default_value_objectwriter.h>
 
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
 #include <google/protobuf/util/internal/constants.h>
 #include <google/protobuf/util/internal/utility.h>
-#include "stubs/map_util.h"
+#include <google/protobuf/stubs/map_util.h>
 
 namespace google {
 namespace protobuf {

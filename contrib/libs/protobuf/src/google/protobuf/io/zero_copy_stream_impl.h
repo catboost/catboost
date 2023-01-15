@@ -43,7 +43,7 @@
 #include <iosfwd>
 #include "io/zero_copy_stream.h"
 #include "io/zero_copy_stream_impl_lite.h"
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 
 namespace google {

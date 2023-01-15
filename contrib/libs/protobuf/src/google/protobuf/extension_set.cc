@@ -32,15 +32,15 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "stubs/hash.h"
-#include "stubs/common.h"
-#include "stubs/once.h"
+#include <google/protobuf/stubs/hash.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/once.h>
 #include "extension_set.h"
 #include "message_lite.h"
 #include "io/coded_stream.h"
 #include "wire_format_lite_inl.h"
 #include "repeated_field.h"
-#include "stubs/map_util.h"
+#include <google/protobuf/stubs/map_util.h>
 
 namespace google {
 namespace protobuf {

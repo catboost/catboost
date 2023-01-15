@@ -64,7 +64,7 @@
 
 #include <cfloat>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 // ========================================================================= //
 

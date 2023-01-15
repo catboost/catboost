@@ -4,7 +4,7 @@
 #include "compiler/perlxs/perlxs_helpers.h"
 #include "descriptor.h"
 #include "google/protobuf/descriptor.pb.h"
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "io/printer.h"
 #include "descriptor.h"
 #include "io/zero_copy_stream.h"

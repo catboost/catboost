@@ -32,7 +32,7 @@
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_OBJECT_LOCATION_TRACKER_H__
 
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/util/internal/location_tracker.h>
 
 namespace google {

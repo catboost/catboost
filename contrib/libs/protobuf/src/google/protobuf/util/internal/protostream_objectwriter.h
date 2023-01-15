@@ -32,9 +32,9 @@
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_PROTOSTREAM_OBJECTWRITER_H__
 
 #include <deque>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl.h"
 #include "descriptor.h"
@@ -44,7 +44,7 @@
 #include <google/protobuf/util/internal/proto_writer.h>
 #include <google/protobuf/util/internal/structured_objectwriter.h>
 #include "util/type_resolver.h"
-#include "stubs/bytestream.h"
+#include <google/protobuf/stubs/bytestream.h>
 
 namespace google {
 namespace protobuf {

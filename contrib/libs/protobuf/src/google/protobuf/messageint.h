@@ -1,10 +1,9 @@
 #ifndef GOOGLE_PROTOBUF_MESSAGEINT_H__
 #define GOOGLE_PROTOBUF_MESSAGEINT_H__
 
-#include <contrib/libs/protobuf/io/coded_stream.h>
-#include <util/stream/output.h>
-#include <descriptor.h>
-#include <stubs/substitute.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/stubs/substitute.h>
 
 namespace google {
 namespace protobuf {

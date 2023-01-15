@@ -31,9 +31,9 @@
 #ifndef GOOGLE_PROTOBUF_STUBS_LOGGING_H_
 #define GOOGLE_PROTOBUF_STUBS_LOGGING_H_
 
-#include "stubs/common.h"
-#include "stubs/macros.h"
-#include "stubs/port.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/macros.h>
+#include <google/protobuf/stubs/port.h>
 
 // ===================================================================
 // emulates google3/base/logging.h

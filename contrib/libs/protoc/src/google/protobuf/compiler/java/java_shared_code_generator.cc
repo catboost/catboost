@@ -34,7 +34,7 @@
 
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
 #include "compiler/java/java_helpers.h"
@@ -44,7 +44,7 @@
 #include "io/zero_copy_stream.h"
 #include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

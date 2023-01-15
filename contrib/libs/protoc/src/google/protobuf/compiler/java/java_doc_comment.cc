@@ -37,7 +37,7 @@
 #include <vector>
 
 #include "io/printer.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

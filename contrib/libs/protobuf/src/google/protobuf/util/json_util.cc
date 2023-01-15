@@ -30,7 +30,7 @@
 
 #include "util/json_util.h"
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream.h"
 #include <google/protobuf/util/internal/default_value_objectwriter.h>
@@ -41,8 +41,8 @@
 #include <google/protobuf/util/internal/protostream_objectwriter.h>
 #include "util/type_resolver.h"
 #include "util/type_resolver_util.h"
-#include "stubs/bytestream.h"
-#include "stubs/status_macros.h"
+#include <google/protobuf/stubs/bytestream.h>
+#include <google/protobuf/stubs/status_macros.h>
 
 namespace google {
 namespace protobuf {

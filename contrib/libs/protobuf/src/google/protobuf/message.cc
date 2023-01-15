@@ -34,15 +34,15 @@
 
 #include <iostream>
 #include <stack>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
 #include "message.h"
 #include "messagext.h"
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/mutex.h>
-#include "stubs/once.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/mutex.h>
+#include <google/protobuf/stubs/once.h>
 #include "reflection_internal.h"
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl.h"
@@ -52,10 +52,10 @@
 #include "map_field.h"
 #include "reflection_ops.h"
 #include "wire_format.h"
-#include "stubs/strutil.h"
-#include "stubs/map_util.h"
-#include "stubs/singleton.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/singleton.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 #include <util/stream/output.h>
 

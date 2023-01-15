@@ -38,8 +38,8 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_COMMAND_LINE_INTERFACE_H__
 #define GOOGLE_PROTOBUF_COMPILER_COMMAND_LINE_INTERFACE_H__
 
-#include "stubs/common.h"
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/hash.h>
 #include <vector>
 #include <map>
 #include <set>

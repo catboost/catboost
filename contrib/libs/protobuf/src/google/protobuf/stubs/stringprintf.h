@@ -43,7 +43,7 @@
 #include <stdarg.h>
 #include <vector>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 namespace google {
 namespace protobuf {

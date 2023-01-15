@@ -35,8 +35,8 @@
 
 #include <map>
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "compiler/java/java_context.h"
 #include "compiler/java/java_doc_comment.h"
 #include "compiler/java/java_helpers.h"
@@ -44,7 +44,7 @@
 #include "compiler/java/java_string_field_lite.h"
 #include "io/printer.h"
 #include "wire_format.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

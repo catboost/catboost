@@ -35,14 +35,14 @@
 #include <limits>
 #include <map>
 #include <vector>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "compiler/cpp/cpp_helpers.h"
 #include "io/printer.h"
-#include "stubs/strutil.h"
-#include "stubs/substitute.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/substitute.h>
 
 // msvs defines STRICT macro
 #ifdef STRICT

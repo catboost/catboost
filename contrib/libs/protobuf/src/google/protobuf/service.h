@@ -100,8 +100,8 @@
 #ifndef GOOGLE_PROTOBUF_SERVICE_H__
 #define GOOGLE_PROTOBUF_SERVICE_H__
 
-#include "stubs/common.h"
-#include "stubs/callback.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/callback.h>
 
 namespace google {
 namespace protobuf {

@@ -1,8 +1,8 @@
 #ifndef GOOGLE_PROTOBUF_STUBS_CALLBACK_H_
 #define GOOGLE_PROTOBUF_STUBS_CALLBACK_H_
 
-#include "stubs/macros.h"
-#include "stubs/type_traits.h"
+#include <google/protobuf/stubs/macros.h>
+#include <google/protobuf/stubs/type_traits.h>
 
 // ===================================================================
 // emulates google3/base/callback.h

@@ -42,9 +42,9 @@
 #include <climits>
 #include <vector>
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/once.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/once.h>
 #include "has_bits.h"
 #include "map_entry_lite.h"
 #include "message_lite.h"

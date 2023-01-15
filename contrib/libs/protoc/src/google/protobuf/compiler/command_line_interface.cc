@@ -35,7 +35,7 @@
 #include "compiler/command_line_interface.h"
 
 
-#include "stubs/platform_macros.h"
+#include <google/protobuf/stubs/platform_macros.h>
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -56,16 +56,16 @@
 
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
 
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/stringprintf.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/stringprintf.h>
 #include "compiler/importer.h"
 #include "compiler/code_generator.h"
 #include "compiler/plugin.pb.h"
@@ -84,12 +84,12 @@
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl.h"
 #include "io/printer.h"
-#include "stubs/io_win32.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/strutil.h"
-#include "stubs/substitute.h"
-#include "stubs/map_util.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/io_win32.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/substitute.h>
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 
 namespace google {

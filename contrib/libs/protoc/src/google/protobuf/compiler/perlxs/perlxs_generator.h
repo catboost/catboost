@@ -7,8 +7,8 @@
 #include <set>
 #include "descriptor.h"
 #include "compiler/code_generator.h"
-#include "stubs/common.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

@@ -42,7 +42,7 @@
 
 #include "text_format.h"
 
-#include "stubs/stringprintf.h"
+#include <google/protobuf/stubs/stringprintf.h>
 #include "any.h"
 #include "io/strtod.h"
 #include "io/coded_stream.h"
@@ -55,10 +55,10 @@
 #include "repeated_field.h"
 #include "unknown_field_set.h"
 #include "wire_format_lite.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
-#include "stubs/map_util.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 namespace google {
 namespace protobuf {

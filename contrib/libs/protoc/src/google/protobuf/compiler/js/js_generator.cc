@@ -36,21 +36,21 @@
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "stubs/logging.h"
-#include "stubs/common.h"
-#include "stubs/stringprintf.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringprintf.h>
 #include "compiler/js/well_known_types_embed.h"
 #include "io/printer.h"
 #include "io/zero_copy_stream.h"
 #include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

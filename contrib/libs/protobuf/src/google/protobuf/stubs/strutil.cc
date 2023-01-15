@@ -30,8 +30,8 @@
 
 // from google3/strings/strutil.cc
 
-#include "stubs/strutil.h"
-#include "stubs/mathlimits.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/mathlimits.h>
 
 #include <errno.h>
 #include <float.h>    // FLT_DIG and DBL_DIG
@@ -40,7 +40,7 @@
 #include <stdio.h>
 #include <iterator>
 
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/stl_util.h>
 
 #ifdef _WIN32
 // MSVC has only _snprintf, not snprintf.

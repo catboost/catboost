@@ -34,7 +34,7 @@
 #define GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_UTIL_H__
 
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 namespace google {
 namespace protobuf {
 class DescriptorPool;

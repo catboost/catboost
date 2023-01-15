@@ -40,9 +40,9 @@
 #define GOOGLE_PROTOBUF_MESSAGE_LITE_H__
 
 #include <climits>
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/once.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/once.h>
 
 
 #if LANG_CXX11 && !defined(__NVCC__)

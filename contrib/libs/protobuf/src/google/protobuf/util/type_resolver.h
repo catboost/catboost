@@ -34,8 +34,8 @@
 #define GOOGLE_PROTOBUF_UTIL_TYPE_RESOLVER_H__
 
 
-#include "stubs/common.h"
-#include "stubs/status.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/status.h>
 
 
 namespace google {

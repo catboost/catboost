@@ -111,13 +111,13 @@
 #define GOOGLE_PROTOBUF_MESSAGE_H__
 
 #include <iosfwd>
-#include "stubs/type_traits.h"
+#include <google/protobuf/stubs/type_traits.h>
 #include <vector>
 
 #include "arena.h"
 #include "message_lite.h"
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "descriptor.h"
 
 #include "json_util.h"

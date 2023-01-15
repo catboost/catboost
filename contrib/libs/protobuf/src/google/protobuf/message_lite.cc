@@ -39,11 +39,11 @@
 #include "generated_message_util.h"
 #include "message_lite.h"
 #include "repeated_field.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl_lite.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/stl_util.h>
 
 namespace google {
 namespace protobuf {

@@ -39,7 +39,7 @@
 #include "compiler/java/java_helpers.h"
 #include "compiler/java/java_name_resolver.h"
 #include "io/printer.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

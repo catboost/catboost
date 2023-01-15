@@ -130,9 +130,9 @@
     #define PROTOBUF_LITTLE_ENDIAN 1
   #endif
 #endif
-#include "stubs/atomicops.h"
-#include "stubs/common.h"
-#include "stubs/port.h"
+#include <google/protobuf/stubs/atomicops.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/port.h>
 
 namespace google {
 

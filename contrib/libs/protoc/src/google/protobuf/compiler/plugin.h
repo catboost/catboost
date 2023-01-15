@@ -63,7 +63,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_PLUGIN_H__
 
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 namespace google {
 namespace protobuf {
 namespace compiler {

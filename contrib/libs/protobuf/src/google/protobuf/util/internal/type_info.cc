@@ -33,13 +33,13 @@
 #include <map>
 #include <set>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/type.pb.h>
 #include <google/protobuf/util/internal/utility.h>
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
-#include "stubs/map_util.h"
-#include "stubs/status.h"
-#include "stubs/statusor.h"
+#include <google/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/status.h>
+#include <google/protobuf/stubs/statusor.h>
 
 namespace google {
 namespace protobuf {

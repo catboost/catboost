@@ -39,10 +39,10 @@
 #include <iostream>
 #include <algorithm>
 #include "io/zero_copy_stream_impl.h"
-#include "stubs/common.h"
-#include "stubs/io_win32.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/io_win32.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 
 namespace google {

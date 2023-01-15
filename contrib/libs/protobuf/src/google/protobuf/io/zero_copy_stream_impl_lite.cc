@@ -37,10 +37,10 @@
 #include <algorithm>
 #include <limits>
 
-#include "stubs/casts.h"
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/casts.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 namespace google {
 namespace protobuf {

@@ -34,7 +34,7 @@
 #include <pthread.h>
 #endif
 
-#include "stubs/macros.h"
+#include <google/protobuf/stubs/macros.h>
 
 // ===================================================================
 // emulates google3/base/mutex.h

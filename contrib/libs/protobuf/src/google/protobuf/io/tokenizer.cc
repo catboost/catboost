@@ -89,13 +89,13 @@
 // exactly pretty.
 
 #include "io/tokenizer.h"
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/stringprintf.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/stringprintf.h>
 #include "io/strtod.h"
 #include "io/zero_copy_stream.h"
-#include "stubs/strutil.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 namespace google {
 namespace protobuf {

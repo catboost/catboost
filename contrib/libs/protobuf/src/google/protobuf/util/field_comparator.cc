@@ -35,9 +35,9 @@
 
 #include "descriptor.h"
 #include "message.h"
-#include "stubs/map_util.h"
-#include "stubs/mathlimits.h"
-#include "stubs/mathutil.h"
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/mathlimits.h>
+#include <google/protobuf/stubs/mathutil.h>
 
 namespace google {
 namespace protobuf {

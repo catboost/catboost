@@ -32,7 +32,7 @@
 #define GOOGLE_PROTOBUF_ANY_H__
 
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "descriptor.h"
 #include "message.h"
 #include "arenastring.h"

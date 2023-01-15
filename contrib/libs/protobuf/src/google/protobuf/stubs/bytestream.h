@@ -52,8 +52,8 @@
 
 #include <stddef.h>
 
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringpiece.h>
 
 class CordByteSink;
 class MemBlock;

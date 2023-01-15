@@ -33,7 +33,7 @@
 #ifndef GOOGLE_PROTOBUF_STUBS_SHARED_PTR_H__
 #define GOOGLE_PROTOBUF_STUBS_SHARED_PTR_H__
 
-#include "stubs/atomicops.h"
+#include <google/protobuf/stubs/atomicops.h>
 
 #include <algorithm>  // for swap
 #include <stddef.h>

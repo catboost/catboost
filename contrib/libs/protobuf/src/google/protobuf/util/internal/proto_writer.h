@@ -34,7 +34,7 @@
 #include <deque>
 #include <vector>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl.h"
 #include "descriptor.h"
@@ -43,8 +43,8 @@
 #include <google/protobuf/util/internal/error_listener.h>
 #include <google/protobuf/util/internal/structured_objectwriter.h>
 #include "util/type_resolver.h"
-#include "stubs/bytestream.h"
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/bytestream.h>
+#include <google/protobuf/stubs/hash.h>
 
 namespace google {
 namespace protobuf {

@@ -31,9 +31,9 @@
 #ifndef GOOGLE_PROTOBUF_MAP_FIELD_H__
 #define GOOGLE_PROTOBUF_MAP_FIELD_H__
 
-#include "stubs/atomicops.h"
-#include <contrib/libs/protobuf/stubs/mutex.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/atomicops.h>
+#include <google/protobuf/stubs/mutex.h>
+#include <google/protobuf/stubs/common.h>
 #include "generated_message_reflection.h"
 #include "arena.h"
 #include "descriptor.h"

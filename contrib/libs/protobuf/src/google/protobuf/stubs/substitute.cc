@@ -30,9 +30,9 @@
 
 // Author: kenton@google.com (Kenton Varda)
 
-#include "stubs/substitute.h"
-#include "stubs/strutil.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/substitute.h>
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 namespace google {
 namespace protobuf {

@@ -34,11 +34,11 @@
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <vector>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "compiler/java/java_options.h"
 
 namespace google {

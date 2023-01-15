@@ -32,11 +32,11 @@
 
 #include <utility>
 
-#include "stubs/casts.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/stringprintf.h"
-#include "stubs/time.h"
+#include <google/protobuf/stubs/casts.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringprintf.h>
+#include <google/protobuf/stubs/time.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl.h"
 #include "descriptor.h"
@@ -45,9 +45,9 @@
 #include <google/protobuf/util/internal/field_mask_utility.h>
 #include <google/protobuf/util/internal/constants.h>
 #include <google/protobuf/util/internal/utility.h>
-#include "stubs/strutil.h"
-#include "stubs/map_util.h"
-#include "stubs/status_macros.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/status_macros.h>
 
 
 namespace google {

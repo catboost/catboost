@@ -31,8 +31,8 @@
 #ifndef NET_PROTO2_UTIL_CONVERTER_STRINGS_JSON_ESCAPING_H_
 #define NET_PROTO2_UTIL_CONVERTER_STRINGS_JSON_ESCAPING_H_
 
-#include "stubs/common.h"
-#include "stubs/bytestream.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/bytestream.h>
 
 namespace google {
 namespace protobuf {

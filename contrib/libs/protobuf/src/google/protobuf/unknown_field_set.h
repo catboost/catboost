@@ -40,8 +40,8 @@
 
 #include <assert.h>
 #include <vector>
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
 #include "generated_message_util.h"
 
 namespace google {

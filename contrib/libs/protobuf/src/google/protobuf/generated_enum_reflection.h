@@ -40,7 +40,7 @@
 #define GOOGLE_PROTOBUF_GENERATED_ENUM_REFLECTION_H__
 
 
-#include "stubs/template_util.h"
+#include <google/protobuf/stubs/template_util.h>
 #include "generated_enum_util.h"
 
 namespace google {

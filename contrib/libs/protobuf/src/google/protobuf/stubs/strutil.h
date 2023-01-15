@@ -35,8 +35,8 @@
 
 #include <stdlib.h>
 #include <vector>
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringpiece.h>
 
 namespace google {
 namespace protobuf {

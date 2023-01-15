@@ -48,7 +48,7 @@
 #if defined(_WIN32)
 
 #include <string>
-#include "stubs/port.h"
+#include <google/protobuf/stubs/port.h>
 
 // Compilers on Windows other than MSVC (e.g. Cygwin, MinGW32) define the
 // following functions already, except for mkdir.

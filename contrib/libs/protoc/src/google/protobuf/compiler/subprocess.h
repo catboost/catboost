@@ -40,7 +40,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #endif  // !_WIN32
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 
 namespace google {

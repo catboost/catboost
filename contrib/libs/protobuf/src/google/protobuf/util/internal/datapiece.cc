@@ -34,9 +34,9 @@
 #include <google/protobuf/type.pb.h>
 #include "descriptor.h"
 #include <google/protobuf/util/internal/utility.h>
-#include "stubs/strutil.h"
-#include "stubs/mathlimits.h"
-#include "stubs/mathutil.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/mathlimits.h>
+#include <google/protobuf/stubs/mathutil.h>
 
 namespace google {
 namespace protobuf {

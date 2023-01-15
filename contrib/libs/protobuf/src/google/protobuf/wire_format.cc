@@ -37,9 +37,9 @@
 
 #include "wire_format.h"
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/stringprintf.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringprintf.h>
 #include "descriptor.h"
 #include "dynamic_message.h"
 #include "map_field.h"
