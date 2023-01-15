@@ -218,14 +218,7 @@ private:
     }
 };
 
-#ifndef USE_NEW_DECOMPOSITION_TABLE
 const wchar32* LemmerDecomposition(wchar32 ch, bool advancedGermanUmlauts = true, bool extTable = false);
 size_t NormalizeUnicode(const wchar16* word, size_t length, wchar16* converted, size_t bufLen, bool advancedGermanUmlauts = true, bool extTable = false);
 TUtf16String NormalizeUnicode(const TUtf16String& w, bool advancedGermanUmlauts = true, bool extTable = false);
 TUtf16String NormalizeUnicode(const TWtringBuf& wbuf, bool advancedGermanUmlauts = true, bool extTable = false);
-#else
-const wchar32* LemmerDecomposition(wchar32 ch, bool advancedGermanUmlauts = false, bool extTable = true);
-size_t NormalizeUnicode(const wchar16* word, size_t length, wchar16* converted, size_t bufLen, bool advancedGermanUmlauts = false, bool extTable = true);
-TUtf16String NormalizeUnicode(const TUtf16String& w, bool advancedGermanUmlauts = false, bool extTable = true);
-TUtf16String NormalizeUnicode(const TWtringBuf& wbuf, bool advancedGermanUmlauts = false, bool extTable = true);
-#endif //USE_NEW_DECOMPOSITION_TABLE
