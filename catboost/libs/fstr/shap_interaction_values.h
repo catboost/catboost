@@ -11,7 +11,8 @@ void ValidateFeaturePair(int flatFeatureCount, std::pair<int, int> featurePair);
 void ValidateFeatureInteractionParams(
     const EFstrType fstrType,
     const TFullModel& model,
-    const NCB::TDataProviderPtr dataset
+    const NCB::TDataProviderPtr dataset,
+    ECalcTypeShapValues calcType
 );
 
 // returned: ShapInteractionValues[featureIdx1][featureIdx2][dim][documentIdx]

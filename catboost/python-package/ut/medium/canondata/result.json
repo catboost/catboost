@@ -973,13 +973,21 @@
         "checksum": "f224e132e45f73261c757e090c7765bc",
         "uri": "file://test.test_shap_CPU_/feature_importance.txt"
     },
-    "test.test_shap_complex_ctr[CPU]": {
-        "checksum": "492ce7ab997efa356e8b9a955cbb7415",
-        "uri": "file://test.test_shap_complex_ctr_CPU_/feature_importance.txt"
+    "test.test_shap_complex_ctr[CPU-IndependentTreeSHAP]": {
+        "checksum": "9f635da4f3d03cc765a718ea8965e042",
+        "uri": "file://test.test_shap_complex_ctr_CPU-IndependentTreeSHAP_/feature_importance.txt"
     },
-    "test.test_shap_feature_importance[CPU]": {
+    "test.test_shap_complex_ctr[CPU-TreeSHAP]": {
+        "checksum": "dafac81e1a5626c5c4c133dbd178a48b",
+        "uri": "file://test.test_shap_complex_ctr_CPU-TreeSHAP_/feature_importance.txt"
+    },
+    "test.test_shap_feature_importance[CPU-IndependentTreeSHAP]": {
+        "checksum": "e9577a9b63ab7bfaa3143b35ec2767ea",
+        "uri": "file://test.test_shap_feature_importance_CPU-IndependentTreeSHAP_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance[CPU-TreeSHAP]": {
         "checksum": "5a22a074e1773c3e7462c882be5ea8d6",
-        "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
+        "uri": "file://test.test_shap_feature_importance_CPU-TreeSHAP_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[CPU-Depthwise]": {
         "checksum": "dab6ece8db5c3b1151bb43f34cf77cfe",
@@ -989,17 +997,25 @@
         "checksum": "4cc52caa4dab811c88567f821c464465",
         "uri": "file://test.test_shap_feature_importance_asymmetric_CPU-Lossguide_/feature_importance.npy"
     },
-    "test.test_shap_feature_importance_multiclass[CPU]": {
+    "test.test_shap_feature_importance_multiclass[CPU-IndependentTreeSHAP]": {
+        "checksum": "61f557e8b4074d6c1bc06e9b0a150df8",
+        "uri": "file://test.test_shap_feature_importance_multiclass_CPU-IndependentTreeSHAP_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_multiclass[CPU-TreeSHAP]": {
         "checksum": "316daefe3df34faac7f538e19b1ceabc",
-        "uri": "file://test.test_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
+        "uri": "file://test.test_shap_feature_importance_multiclass_CPU-TreeSHAP_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_ranking[CPU]": {
         "checksum": "5573fc14e066c8a6dd053393a6ead6e1",
         "uri": "file://test.test_shap_feature_importance_ranking_CPU_/feature_importance.npy"
     },
-    "test.test_shap_feature_importance_with_langevin": {
+    "test.test_shap_feature_importance_with_langevin[IndependentTreeSHAP]": {
+        "checksum": "65febbb6619a9412abc61cfb29278ff7",
+        "uri": "file://test.test_shap_feature_importance_with_langevin_IndependentTreeSHAP_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_with_langevin[TreeSHAP]": {
         "checksum": "fe1fbd632d6f8c4e6e4f8fc81730697c",
-        "uri": "file://test.test_shap_feature_importance_with_langevin/feature_importance.npy"
+        "uri": "file://test.test_shap_feature_importance_with_langevin_TreeSHAP_/feature_importance.npy"
     },
     "test.test_shap_interaction_feature_importance[CPU]": {
         "checksum": "4d6c069deb1a5ce898969a4b3515f189",

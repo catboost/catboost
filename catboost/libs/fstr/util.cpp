@@ -15,7 +15,7 @@ using namespace NCB;
 
 
 TVector<double> CollectLeavesStatistics(
-    const NCB::TDataProvider& dataset,
+    const TDataProvider& dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor) {
 
@@ -113,5 +113,22 @@ void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
             CB_ENSURE(leafSumApprox < 1e-9, "Cannot calc shap values, model contains non zero approx for zero-weight leaf");
         }
     }
+}
+
+TVector<int> GetBinFeatureCombinationClassByDepth(
+    const TModelTrees& forest,
+    const TVector<int>& binFeatureCombinationClass,
+    size_t treeIdx
+) {
+    const size_t depthOfTree = forest.GetTreeSizes()[treeIdx];
+    TVector<int> binFeatureCombinationClassByDepth(depthOfTree);
+    for (size_t depth = 0; depth < depthOfTree; ++depth) {
+		const size_t remainingDepth = depthOfTree - depth - 1;
+        const int combinationClass = binFeatureCombinationClass[
+            forest.GetTreeSplits()[forest.GetTreeStartOffsets()[treeIdx] + remainingDepth]
+        ];
+        binFeatureCombinationClassByDepth[depth] = combinationClass;
+    }
+    return binFeatureCombinationClassByDepth;
 }
 
