@@ -457,7 +457,7 @@ ALLOW .* -> vendor/github.com/dchest/siphash
 ALLOW .* -> vendor/go.uber.org/atomic
 
 # CONTRIB-1302. Godbus goes to Arcadia
-ALLOW .* -> vendor/github.com/godbus/dbus
+ALLOW .* -> vendor/github.com/godbus/dbus/v5
 
 # CONTRIB-1300. Osquery SDK goes to Arcadia
 ALLOW .* -> vendor/github.com/kolide/osquery-go
