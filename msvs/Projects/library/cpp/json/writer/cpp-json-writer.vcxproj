@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</ProjectGUID>
+    <ProjectGUID>{94F66460-BD28-7C46-313B-A5F2876E26F8}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-json-common</ProjectName>
+    <ProjectName>cpp-json-writer</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-json-common</TargetName>
+    <TargetName>cpp-json-writer</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\json\common\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3B322F11-1D2A-AEFE-BC14-4F74683E14DB\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\json\writer\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\94F66460-BD28-7C46-313B-A5F2876E26F8\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,37 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\json\common\defs.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\json\common\defs.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\json\writer\json.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\json\writer\json_value.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\json\writer\json_value.h_serialized.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\json\writer\json_value.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\cpp\json\writer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/json/writer/json_value.h" "--include-path" "library/cpp/json/writer/json_value.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/json/writer/json_value.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\cpp\json\writer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/json/writer/json_value.h" "--include-path" "library/cpp/json/writer/json_value.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/json/writer/json_value.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/cpp/json/writer/json_value.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\json\writer\json_value.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\json\writer\json_value.h_serialized.cpp;</Outputs>
+    </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\json\writer\json.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -95,6 +124,15 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
+      <Project>{6330870F-DABE-D84D-BCA5-C0A181746B9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
+      <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
