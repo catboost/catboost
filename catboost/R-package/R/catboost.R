@@ -335,6 +335,8 @@ dimnames.catboost.Pool <- function(x) {
 #' @param ... not currently used
 #' @export
 head.catboost.Pool <- function(x, n = 10, ...) {
+    if (is.null.handle(x))
+        stop("Pool object is invalid.")
     if (n < 0) {
         n <- max(0, dim(x)[1] + n)
     } else {
@@ -365,6 +367,8 @@ head.catboost.Pool <- function(x, n = 10, ...) {
 #' @param ... not currently used
 #' @export
 tail.catboost.Pool <- function(x, n = 10, ...) {
+    if (is.null.handle(x))
+        stop("Pool object is invalid.")
     if (n < 0) {
         n <- max(0, dim(x)[1] + n)
     } else {
@@ -386,6 +390,8 @@ tail.catboost.Pool <- function(x, n = 10, ...) {
 #' @param ... not currently used
 #' @export
 print.catboost.Pool <- function(x, ...) {
+    if (is.null.handle(x))
+        cat("Warning: pool object is invalid.")
     cat("catboost.Pool\n", nrow(x), " rows, ", ncol(x), " columns", sep = "")
 }
 
@@ -1434,8 +1440,12 @@ print.catboost.Pool <- function(x, ...) {
 catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (class(learn_pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(learn_pool))
+    if (is.null.handle(learn_pool))
+        stop("'learn_pool' object is invalid.")
     if (class(test_pool) != "catboost.Pool" && !is.null(test_pool))
         stop("Expected catboost.Pool, got: ", class(test_pool))
+    if (!is.null(test_pool) && is.null.handle(test_pool))
+        stop("'test_pool' object is invalid.")
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
@@ -1499,6 +1509,8 @@ catboost.cv <- function(pool, params = list(),
 
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
@@ -1630,6 +1642,8 @@ catboost.save_model <- function(model, model_path,
                                 pool = NULL) {
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
+    if (!is.null(pool) && is.null.handle(pool))
+        stop("Pool object is invalid.")
     params_string <- ""
     if (!is.null(export_parameters))
         params_string <- jsonlite::toJSON(export_parameters, auto_unbox = TRUE)
@@ -1688,6 +1702,8 @@ catboost.predict <- function(model, pool,
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
 
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
@@ -1749,6 +1765,8 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
     if (ntree_end == 0)
         ntree_end <- model$tree_count
 
@@ -1836,6 +1854,8 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
+    if (!is.null(pool) && is.null.handle(pool))
+        stop("Pool object is invalid.")
     if ( (type == "ShapValues" || type == "LossFunctionChange") && length(pool) == 0)
         stop("For `", type, "` type of feature importance, the pool is required")
     if ( (type == "PredictionValuesChange" || type == "FeatureImportance") && is.null(pool) && !is.null(model$feature_importances))
@@ -1928,6 +1948,10 @@ catboost.get_object_importance <- function(
         stop("Expected catboost.Pool, got: ", class(pool))
     if (class(train_pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(train_pool))
+    if (is.null.handle(pool))
+        stop("'pool' object is invalid.")
+    if (is.null.handle(train_pool))
+        stop("'train_pool' object is invalid.")
     if (top_size < 0 && top_size != -1)
         stop("top_size should be positive integer or -1.")
     if (is.null.handle(model$handle))
