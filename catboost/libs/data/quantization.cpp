@@ -1726,11 +1726,11 @@ namespace NCB {
             ScheduleNonAggregatedFeatures();
         }
 
-        if (Options.CpuCompatibleFormat && Options.PackBinaryFeaturesForCpu) {
+        if (Options.PackBinaryFeaturesForCpu) {
             ScheduleAggregateFeatures<EFeatureValuesType::BinaryPack>();
         }
 
-        if (Options.CpuCompatibleFormat && Options.GroupFeaturesForCpu) {
+        if (Options.GroupFeaturesForCpu) {
             ScheduleAggregateFeatures<EFeatureValuesType::FeaturesGroup>();
         }
 
@@ -1827,10 +1827,8 @@ namespace NCB {
                         IQuantizedFloatValuesHolder,
                         TExternalFloatValuesHolder,
                         TExternalFloatSparseValuesHolder>(srcFeature, quantizedFeaturesInfo);
-            } else if (!options.CpuCompatibleFormat ||
-                !options.PackBinaryFeaturesForCpu ||
-                (borderCount > 1)) // binary features are binarized later by packs
-            {
+            } else if (!options.PackBinaryFeaturesForCpu || (borderCount > 1)) {
+                // binary features are binarized later by packs
                 MakeQuantizedColumn(
                     srcFeature,
                     *quantizedFeaturesInfo,
@@ -2086,7 +2084,7 @@ namespace NCB {
         TQuantizedFeaturesInfo& quantizedFeaturesInfo, // non const because of GetRWMutex
         TFloatFeatureIdx floatFeatureIdx
     ) {
-        if (!options.CpuCompatibleFormat || !options.PackBinaryFeaturesForCpu) {
+        if (!options.PackBinaryFeaturesForCpu) {
             return false;
         }
 
@@ -2110,7 +2108,7 @@ namespace NCB {
         TQuantizedFeaturesInfo& quantizedFeaturesInfo, // non const because of GetRWMutex
         TCatFeatureIdx catFeatureIdx
     ) {
-        if (!options.CpuCompatibleFormat || !options.PackBinaryFeaturesForCpu) {
+        if (!options.PackBinaryFeaturesForCpu) {
             return false;
         }
 
@@ -2194,7 +2192,7 @@ namespace NCB {
              *  TExternalFloatValuesHolders and TExternalCatValuesHolders in features data holders.
              */
             const bool storeFeaturesDataAsExternalValuesHolders = false;
-            /* Temporarily switch ext columns-off to measure speed !options.CpuCompatibleFormat &&
+            /* Temporarily switch ext columns-off to measure speed
                 !clearSrcObjectsData &&
                 !featuresLayout->GetTextFeatureCount();*/
 
@@ -2414,14 +2412,14 @@ namespace NCB {
                 );
             }
 
-            if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
+            if (options.PackBinaryFeaturesForCpu) {
                 data->ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                     *featuresLayout,
                     *data->ObjectsData.Data.QuantizedFeaturesInfo,
                     data->ObjectsData.ExclusiveFeatureBundlesData
                 );
             }
-            if (options.CpuCompatibleFormat && options.GroupFeaturesForCpu) {
+            if (options.GroupFeaturesForCpu) {
                 data->ObjectsData.FeaturesGroupsData = TFeatureGroupsData(
                     *featuresLayout,
                     CreateFeatureGroups(
@@ -2653,8 +2651,6 @@ namespace NCB {
             */
         } else {
             Y_ASSERT(params.GetTaskType() == ETaskType::GPU);
-
-            quantizationOptions->CpuCompatibleFormat = true;
 
             quantizationOptions->BundleExclusiveFeatures = false;
             // TODO(kirillovs): temporarily disabled EFB for GPU until i figure out what's happening with binary buckets

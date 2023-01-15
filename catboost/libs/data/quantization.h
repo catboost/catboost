@@ -33,7 +33,6 @@ namespace NCB {
     using TInitialBorders = TMaybe<TVector<TConstArrayRef<float>>>;
 
     struct TQuantizationOptions {
-        bool CpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
         ui32 MaxSubsetSizeForBuildBordersAlgorithms = 200000;
         bool BundleExclusiveFeatures = true;

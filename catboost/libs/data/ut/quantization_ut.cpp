@@ -52,10 +52,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<bool> bundleExclusiveFeaturesVariants = {false};
 
-            TVector<bool> packBinaryFeaturesVariants = {false};
-            if (quantizationOptions.CpuCompatibleFormat) {
-                packBinaryFeaturesVariants.push_back(true);
-            }
+            TVector<bool> packBinaryFeaturesVariants = {false, true};
 
             for (auto packBinaryFeatures : packBinaryFeaturesVariants) {
                 quantizationOptions.PackBinaryFeaturesForCpu = packBinaryFeatures;
