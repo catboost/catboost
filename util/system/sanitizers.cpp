@@ -4,13 +4,7 @@
 #if defined(_asan_enabled_)
 extern "C" {
 void __sanitizer_start_switch_fiber(void** fake_stack_save, const void* bottom, size_t size);
-#if defined(__clang_major__) && (__clang_major__ >= 4)
-#define NEW_ASAN_IFACE
 void __sanitizer_finish_switch_fiber(void* fake_stack_save, const void** old_bottom, size_t* old_size);
-#else
-#undef NEW_ASAN_IFACE
-void __sanitizer_finish_switch_fiber(void* fake_stack_save);
-#endif
 }
 #endif
 
@@ -99,20 +93,12 @@ void TFiberContext::BeforeSwitch() noexcept {
 
 void TFiberContext::AfterSwitch() noexcept {
 #if defined(_asan_enabled_)
-#if defined(NEW_ASAN_IFACE)
     __sanitizer_finish_switch_fiber(Token_, nullptr, nullptr);
-#else
-    __sanitizer_finish_switch_fiber(Token_);
-#endif
 #endif
 }
 
 void TFiberContext::AfterStart() noexcept {
 #if defined(_asan_enabled_)
-#if defined(NEW_ASAN_IFACE)
     __sanitizer_finish_switch_fiber(nullptr, nullptr, nullptr);
-#else
-    __sanitizer_finish_switch_fiber(nullptr);
-#endif
 #endif
 }
