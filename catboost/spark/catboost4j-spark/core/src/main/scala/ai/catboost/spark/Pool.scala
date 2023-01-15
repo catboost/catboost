@@ -381,7 +381,11 @@ class Pool (
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
 
-    nanModeAndBordersBuilder.Finish(quantizationParams.getThreadCount)
+    nanModeAndBordersBuilder.Finish(
+      quantizationParams.get(quantizationParams.threadCount).getOrElse(
+        SparkHelpers.getThreadCountForDriver(data.sparkSession)
+      )
+    )
   }
 
   protected def createQuantized(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : Pool = {

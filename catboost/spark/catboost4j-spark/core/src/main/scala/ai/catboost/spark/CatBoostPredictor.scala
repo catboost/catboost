@@ -24,12 +24,12 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.QuantizedF
 
 trait CatBoostPredictorTrait[
   Learner <: org.apache.spark.ml.Predictor[Vector, Learner, Model],
-  Model <: org.apache.spark.ml.PredictionModel[Vector, Model],
-  TrainingParamsTrait <: params.TrainingParamsTrait]
+  Model <: org.apache.spark.ml.PredictionModel[Vector, Model]]
     extends org.apache.spark.ml.Predictor[Vector, Learner, Model]
-      with params.TrainingParamsTrait
       with params.DatasetParamsTrait
 {
+  this: params.TrainingParamsTrait =>
+  
   private def saveDatasetsForMaster(
     quantizedTrainPool: Pool,
     quantizedTestPools: Array[Pool],

@@ -47,3 +47,10 @@ void ConvertParamsToCanonicalFormat(const TSource& stringsToIndicesMatchingSourc
     NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(catBoostJsonOptions);
     ConvertAllFeaturePenaltiesFromStringToIndices(stringsToIndicesMatchingSource, catBoostJsonOptions);
 }
+
+// feature names - dependent params are returned in result and removed from catBoostJsonOptions
+NJson::TJsonValue ExtractFeatureNamesDependentParams(NJson::TJsonValue* catBoostJsonOptions);
+
+// feature names - dependent params are added to catBoostJsonOptions
+void AddFeatureNamesDependentParams(const NJson::TJsonValue& featureNamesDependentOptions, NJson::TJsonValue* catBoostJsonOptions);
+

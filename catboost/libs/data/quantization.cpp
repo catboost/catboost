@@ -2698,6 +2698,7 @@ namespace NCB {
         NJson::TJsonValue outputJsonParams;
         ConvertIgnoredFeaturesFromStringToIndices(metaInfo, &plainJsonParams);
         NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+        ConvertParamsToCanonicalFormat(metaInfo, &jsonParams);
         NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
 
         return PrepareQuantizationParameters(
