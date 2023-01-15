@@ -223,6 +223,9 @@ MakeRegister(LossInfos,
     RankingRegistree(StochasticRank, ERankingType::Order,
         EMetricAttribute::IsGroupwise
     ),
+    RankingRegistree(LambdaMart, ERankingType::Order,
+        EMetricAttribute::IsGroupwise
+    ),
     Registree(PythonUserDefinedPerObject,
         EMetricAttribute::IsUserDefined
     ),
@@ -482,6 +485,7 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::QuerySoftMax,
     ELossFunction::QueryCrossEntropy,
     ELossFunction::StochasticFilter,
+    ELossFunction::LambdaMart,
     ELossFunction::StochasticRank,
     ELossFunction::UserPerObjMetric,
     ELossFunction::UserQuerywiseMetric,
