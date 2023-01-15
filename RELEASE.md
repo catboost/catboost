@@ -21,7 +21,9 @@
 * Now CatBoost allows to specify `use_weights` for metrics when `auto_class_weights` parameter is set.
 * Correctly handle NaN values in `plot_predictions` function.
 * Fixed floating point precision drop releated bugs during Multiclass training with lots of objects in our case, bug was triggered while training on 25mln objects on single GPU card.
-
+* Now `average` parameter is passed to TotalF1 metric while training on GPU.
+* Added class labels checks
+* Disallow feature remapping in model predict when there is empty feature names in model.
 
 # Release 0.24.1
 
