@@ -1032,6 +1032,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\build_info\library-cpp-build_info.vcxproj">
       <Project>75AA4D86-C2AE-6E67-9434-636BC64B3E6A</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cache\library-cpp-cache.vcxproj">
+      <Project>81F27AB8-35D2-C0A0-9D64-6D234C1AB239</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>7D7BC687-C41D-BE31-16E6-D1EFDED414F9</Project>
     </ProjectReference>

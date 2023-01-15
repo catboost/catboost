@@ -312,6 +312,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\library-cpp-blockcodecs.vcxproj">
       <Project>{2AE6EF73-33D5-42AE-6974-931EA50ACEE8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cache\library-cpp-cache.vcxproj">
+      <Project>{81F27AB8-35D2-C0A0-9D64-6D234C1AB239}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
     </ProjectReference>

@@ -108,6 +108,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cache\library-cpp-cache.vcxproj">
+      <Project>{81F27AB8-35D2-C0A0-9D64-6D234C1AB239}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\cpp-containers-flat_hash.vcxproj">
       <Project>{04DA2786-9E81-9095-5FF3-4808684F4945}</Project>
     </ProjectReference>
