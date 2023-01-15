@@ -25,10 +25,14 @@ IF (OS_ANDROID)
         GLOBAL contrib/libs/android_ifaddrs
     )
 
+    # android_support actually depends on c++abi:
+    # https://github.com/android/ndk/issues/1130
+    LDFLAGS(-Wl,--start-group)
     LDFLAGS(-lc++abi)
     IF (ARCH_I686 OR ARCH_ARM7)
         LDFLAGS(-landroid_support)
     ENDIF()
+    LDFLAGS(-Wl,--end-group)
 
     CFLAGS(-DLIBCXX_BUILDING_LIBCXXABI)
 
