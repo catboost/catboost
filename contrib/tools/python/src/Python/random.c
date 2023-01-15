@@ -1,6 +1,7 @@
 #include "Python.h"
 #ifdef MS_WINDOWS
 #include <windows.h>
+#include <wincrypt.h>
 #else
 #include <fcntl.h>
 #if defined(HAVE_SYS_RANDOM_H) && (defined(HAVE_GETRANDOM) || defined(HAVE_GETENTROPY))

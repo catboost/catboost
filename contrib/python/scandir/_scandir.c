@@ -18,6 +18,7 @@ comment):
 
 #ifdef MS_WINDOWS
 #include <windows.h>
+#include <winioctl.h>
 #include "winreparse.h"
 #else
 #include <dirent.h>
