@@ -1050,11 +1050,8 @@ migrations:
     - search/geo/tools/iznanka/prepare_factors
     - search/geo/tools/social_links/extract_facts/lib
     - search/geo/tools/task_manager/system
-    - search/mon/workplace/src/libs
-    - search/mon/workplace/src/libs/catalog
     - search/pumpkin/serp_collector_deploy/lib
     - search/pumpkin/yalite_service/libyalite/common
-    - search/scraper/parser_platform/parsers
     - search/tools/fast_data_deployment/lib
     - skynet/kernel
     - skynet/kernel/util/sys/user
@@ -1688,7 +1685,6 @@ migrations:
     - modadvert/programs/white_list_spam_client/libs
     - modadvert/tools/accept_campaigns
     - mssngr/botfarm/src/bot
-    - mssngr/tools/tests
     - music/analytics/jam-sox/music_lib/financial_reports/tests/unit
     - music/tools/download-info
     - passport/python/core
@@ -1815,22 +1811,15 @@ migrations:
     - sandbox/projects/yt/ci_tasks/packages/YtBuildCronPackage
     - sandbox/projects/yt/layers_tasks/YtBuildSpravLayerTask
     - search/base_search/daemons/remote_storage/tests
-    - search/metrics/ccc/ccc_lib
     - search/metrics/monitoring/core
     - search/mon/rviewer/db
     - search/mon/rviewer/modules
-    - search/mon/tickenator/src
-    - search/mon/tickenator/src/libs/tickenator
     - search/mon/trainer/libs
     - search/mon/uchenki/app
     - search/mon/uchenki/app/controllers/api
-    - search/mon/uchenki/lib
-    - search/mon/uchenki/lib/clients
     - search/mon/wabbajack/bin/icscr
     - search/mon/wabbajack/libs/client
     - search/mon/wabbajack/libs/client/parsers
-    - search/mon/wabbajack/libs/utils
-    - search/mon/wabbajack/libs/utils/wabbajob
     - search/scraper/parser_platform/parsers
     - search/scraper_over_yt/scripts
     - search/tools/woland/lib
@@ -2075,7 +2064,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
     - modadvert/nirvana/sm_api/enrich_direct_banner/it
-    - mssngr/tools/tests
     - nirvana/vh3/src
     - nirvana/vh3/src/vh3/util/six/backports
     - passport/python/api/tests/views/bundle/change_avatar
@@ -2403,7 +2391,6 @@ migrations:
     - modadvert/programs/saas_indexer/ut
     - modadvert/programs/supermoderation_admin/libs/services
     - modadvert/programs/supermoderation_api/libs/handlers/add_objects
-    - mssngr/tools/tests
     - opensource/sync/bin/docs_sync/tasklet
     - opensource/sync/bin/sync_ch/tasklet
     - orgvisits/orgs/preprocessing/lib
@@ -2465,7 +2452,6 @@ migrations:
     - regulargeo/geolayer/olap
     - repo/pciexpress/monitoring
     - robot/bert/tools/predict_diff
-    - robot/jupiter/cmpy/rapid_clicks
     - robot/mercury/test/rtdups_test
     - robot/quality/crawl_quality_metrics/push_to_solomon_every_day_crawl
     - robot/quality/crawl_quality_metrics/push_to_solomon_library
@@ -2559,11 +2545,8 @@ migrations:
     - search/mon/rviewer/modules/orchestrator
     - search/mon/rviewer/modules/yt
     - search/mon/uchenki/app
-    - search/mon/uchenki/lib
     - search/mon/wabbajack/libs/db
-    - search/mon/workplace/src/libs
     - search/resonance/tester/core
-    - search/scraper/parser_platform/parsers
     - search/scraper_over_yt/scripts/zombie_monitors
     - smart_devices/packages/tests/ya_package
     - sprav/altay/tools/auto_close/ml_predictor
@@ -2733,45 +2716,9 @@ migrations:
     ignore:
     - F541
     prefixes:
-    - maps_adv/geosmb/crane_operator/tests
-    - maps_adv/geosmb/crane_operator/tests/domain
-    - maps_adv/geosmb/doorman/server
-    - maps_adv/geosmb/doorman/server/lib
-    - maps_adv/geosmb/landlord/server/tests
-    - maps_adv/geosmb/landlord/server/tests/domain
-    - maps_adv/geosmb/promoter/server
-    - maps_adv/geosmb/promoter/server/lib/data_manager/sqls
-    - maps_adv/geosmb/scenarist/tests
-    - maps_adv/geosmb/scenarist/tests/domain
-    - maps_adv/manul/tests
-    - maps_adv/manul/tests/api/orders
-    - maps_adv/stat_tasks_starter/tests
-    - maps_adv/stat_tasks_starter/tests/charger/events_saver
-    - maps_adv/stat_tasks_starter/tests/charger/pipeline
-    - maps_adv/statistics/dashboard/server
-    - maps_adv/statistics/dashboard/server/lib
-    - maps_adv/statistics/dashboard/server/tests
-    - maps_adv/statistics/dashboard/server/tests/data_manager
-    - mssngr/tools/tests
     - search/metrics/ccc/ccc_lib
     - search/metrics/ccc/ccc_lib/criteria
-    - search/metrics/ccc/ccc_lib/tests/criteria_tests
     - search/mon/rviewer/modules/nanny
-    - search/mon/rviewer/modules/yt
-    - search/mon/tickenator/src
-    - search/mon/tickenator/src/libs/tickenator
-    - search/mon/tickenator_on_db/src
-    - search/mon/tickenator_on_db/src/reducers/progress_steps/utils
-    - search/mon/tickenator_on_db/src/utils
-    - search/mon/uchenki/lib
-    - search/mon/uchenki/lib/clients
-    - search/mon/uchenki/lib/jobs
-    - search/mon/uchenki/lib/utils
-    - search/mon/wabbajack/libs/utils
-    - search/mon/wabbajack/libs/utils/wabbajob
-    - search/mon/workplace/src/libs
-    - search/mon/workplace/src/libs/report
-    - search/scraper/parser_platform/parsers
   F405:
     ignore:
     - F405
@@ -2825,7 +2772,6 @@ migrations:
     - modadvert/programs/cv_app/tools/create_yt_env/it
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
-    - mssngr/tools/tests
     - nirvana/vh3/src
     - nirvana/vh3/src/vh3/util/six/backports
     - passport/python/api/tests/views/bundle/change_avatar
@@ -2894,8 +2840,6 @@ migrations:
     - alice/hollywood/library/scenarios/music/it/generator
     - alice/hollywood/library/scenarios/transform_face/it
     - catboost/yandex_specific/tools/pool_ops/test
-    - crypta/dmp/yandex/bin/ftp_to_yt/bin/test
-    - crypta/profile/lib/python/date_helpers/test
     - cv/imgclassifiers/danet/data_provider/ext/readers/ut/yt/run_test
     - cv/imgclassifiers/danet/data_provider/ext/readers/yt/ut/run_fast
     - cv/imgclassifiers/framework/nirvana/nirvana_dl/data/ut
@@ -2912,10 +2856,6 @@ migrations:
     - dict/ontodb/utils/cleanup/ut
     - dict/ontodb/utils/solomon
     - dict/tools/mktrie-yt/test
-    - dj/services/toloka/tests/calculate_project_features
-    - dj/services/toloka/tests/extend_actions
-    - edadeal/analytics/scripts/RetailerReachByRegion/RetailerReachByRegionLib
-    - edadeal/analytics/scripts/RetailerReachByRegion/RetailerReachByRegionLib/RetailerReachByRegionLib
     - education/lib/valhalla
     - entity/ontodb/robot/tools/send_main_delta_time_stats/lib/ut
     - entity/recommender/lib/python/common
@@ -2933,7 +2873,6 @@ migrations:
     - intranet/dogma/mon
     - intranet/trip/tests
     - intranet/trip/tests/api
-    - jupytercloud/arcadia_kernel/lib
     - kikimr/ci/tests/sqs
     - mail/mops/tests
     - mail/sharpei/tests/integration
@@ -3031,7 +2970,6 @@ migrations:
     - modadvert/resources/supermoderation/service_confs/ut
     - modadvert/test_utils/sandbox/upload_xls
     - mssngr/botplatform/client/examples/polling
-    - mssngr/tools/tests
     - music/tools/haproxy_configurator
     - music/tools/haproxy_configurator/lib/Haproxy
     - ofd/api/tests/functional/test_check_receipt
@@ -3066,7 +3004,6 @@ migrations:
     - sandbox/projects/weather/StatfaceReports/pogoda_analytics
     - search/metrics/ccc/ccc_service
     - search/mon/iconostasis_validator/bin/icval
-    - search/scraper/parser_platform/parsers
     - search/scraper/parser_platform/tests
     - travel/avia/admin
     - travel/avia/admin/www/templatetags
