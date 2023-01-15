@@ -4,12 +4,19 @@ import _import_wrapper as iw
 import _common as common
 
 
+def split_args(s):
+    if s is None:
+        return []
+    return s.split(' ')
+
+
 class FlatcBase(iw.CustomCommand):
 
     def __init__(self, path, unit):
         self._path = path
         self._incl_dirs = ['$S', '$B']
         self._reflect_names = unit.get('FLATBUF_REFLECTION') == 'yes'
+        self._user_extra_args = split_args(unit.get('FLATBUF_FLAGS'))
 
     def input(self):
         return common.make_tuples([self._path, '$S/build/scripts/stdout2stderr.py'])
@@ -30,7 +37,7 @@ class FlatcBase(iw.CustomCommand):
         output_dir = os.path.dirname(self.resolve_path(common.get(self.output, 0)))
         cmd = (common.get_interpreter_path() +
                ['$S/build/scripts/stdout2stderr.py', binary, '--cpp', '--keep-prefix', '--gen-mutable', '--schema', '-b'] +
-               self.extra_arguments() +
+               self.extra_arguments() + self._user_extra_args +
                list(incls()) +
                ['-o', output_dir, path])
         self.call(cmd)

@@ -7,6 +7,11 @@
   - jni.h
   - vulkan/vulkan.h
   - vulkan/vk_sdk_platform.h
+  - EGL/egl.h
+  - EGL/eglext.h
+  - GLES2/gl2.h
+  - GLES2/gl2ext.h
+  - GLES3/gl31.h
   - SLES/OpenSLES.h
   - SLES/OpenSLES_Android.h
   - SLES/OpenSLES_AndroidConfiguration.h
