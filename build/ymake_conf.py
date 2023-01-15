@@ -489,7 +489,7 @@ class Build(object):
 
     @property
     def is_debug(self):
-        return self.build_type == 'debug' or self.build_type.endswith('-debug')
+        return self.build_type in ('debug', 'debugnoasserts') or self.build_type.endswith('-debug')
 
     @property
     def is_size_optimized(self):
@@ -506,7 +506,7 @@ class Build(object):
 
     @property
     def with_ndebug(self):
-        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof')
+        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof', 'debugnoasserts')
 
     @property
     def is_valgrind(self):
