@@ -1055,6 +1055,11 @@ class Map {
     return const_iterator(iterator(elements_->find(key)));
   }
   iterator find(const key_type& key) { return iterator(elements_->find(key)); }
+
+  bool contains(const key_type& key) const {
+    return find(key) != end();
+  }
+
   std::pair<const_iterator, const_iterator> equal_range(
       const key_type& key) const {
     const_iterator it = find(key);
