@@ -33,7 +33,7 @@ struct TMasterEnvironment {
     }
 };
 
-void InitializeMaster(const NCatboostOptions::TSystemOptions& systemOptions) {
+TMasterContext::TMasterContext(const NCatboostOptions::TSystemOptions& systemOptions) {
     Y_ASSERT(systemOptions.IsMaster());
     const ui32 unusedNodePort = NCatboostOptions::TSystemOptions::GetUnusedNodePort();
 
@@ -50,8 +50,7 @@ void InitializeMaster(const NCatboostOptions::TSystemOptions& systemOptions) {
     TMasterEnvironment::GetRef().SharedTrainData = TMasterEnvironment::GetRef().RootEnvironment->CreateEnvironment(SHARED_ID_TRAIN_DATA, workerMapping);
 }
 
-void FinalizeMaster(const NCatboostOptions::TSystemOptions& systemOptions) {
-    Y_ASSERT(systemOptions.IsMaster());
+TMasterContext::~TMasterContext() {
     if (TMasterEnvironment::GetRef().RootEnvironment != nullptr) {
         TMasterEnvironment::GetRef().RootEnvironment->Stop();
     }

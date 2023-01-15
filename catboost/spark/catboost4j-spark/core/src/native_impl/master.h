@@ -7,3 +7,6 @@
 
 
 int ModeFitImpl(const TVector<TString>& args) throw (yexception);
+
+
+void ShutdownWorkers(const TString& hostsFile) throw (yexception);

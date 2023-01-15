@@ -1020,8 +1020,11 @@ static void TrainModel(
         executor,
         &rand,
         initModel);
+
+    THolder<TMasterContext> masterContext;
+
     if (catBoostOptions.SystemOptions->IsMaster()) {
-        InitializeMaster(catBoostOptions.SystemOptions);
+        masterContext.Reset(new TMasterContext(catBoostOptions.SystemOptions));
         if (!haveLearnFeaturesInMemory) {
             SetTrainDataFromQuantizedPool(
                 *poolLoadOptions,
@@ -1089,10 +1092,6 @@ static void TrainModel(
         evalResultPtrs,
         metricsAndTimeHistory,
         dstLearnProgress);
-
-    if (catBoostOptions.SystemOptions->IsMaster()) {
-        FinalizeMaster(catBoostOptions.SystemOptions);
-    }
 }
 
 
