@@ -314,7 +314,7 @@ public:
 
     inline ~TImpl() {
         if (WatchThread) {
-            with_lock (TerminateMutex) {
+            with_lock(TerminateMutex) {
                 TerminateFlag = true;
             }
 
@@ -910,7 +910,7 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
 
         while (true) {
             {
-                with_lock (pi->Parent->TerminateMutex) {
+                with_lock(pi->Parent->TerminateMutex) {
                     if (TerminateIsRequired(pi)) {
                         return;
                     }

@@ -59,7 +59,7 @@ namespace {
         }
 
         inline void Register(TAtExitFunc func, void* ctx, size_t priority) {
-            with_lock (Lock_) {
+            with_lock(Lock_) {
                 Store_.push_back({func, ctx, priority, Store_.size()});
                 Items_.push(&Store_.back());
             }
@@ -92,7 +92,7 @@ namespace {
         if (TAtExit* const atExit = AtomicGet(atExitPtr)) {
             return atExit;
         }
-        with_lock (atExitLock) {
+        with_lock(atExitLock) {
             if (TAtExit* const atExit = AtomicGet(atExitPtr)) {
                 return atExit;
             }

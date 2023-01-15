@@ -32,7 +32,7 @@ namespace {
         }
 
         inline void Signal() noexcept {
-            with_lock (Lock_) {
+            with_lock(Lock_) {
                 if (!Events_.Empty()) {
                     Events_.PopFront()->Signal();
                 }
@@ -40,7 +40,7 @@ namespace {
         }
 
         inline void BroadCast() noexcept {
-            with_lock (Lock_) {
+            with_lock(Lock_) {
                 //TODO
                 while (!Events_.Empty()) {
                     Events_.PopFront()->Signal();
@@ -51,7 +51,7 @@ namespace {
         inline bool WaitD(TMutex& m, TInstant deadLine) noexcept {
             TWaitEvent event;
 
-            with_lock (Lock_) {
+            with_lock(Lock_) {
                 Events_.PushBack(&event);
             }
 
@@ -61,7 +61,7 @@ namespace {
 
             m.Acquire();
 
-            with_lock (Lock_) {
+            with_lock(Lock_) {
                 event.Unlink();
             }
 
