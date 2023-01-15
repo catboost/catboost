@@ -52,7 +52,7 @@
                                 <argument>-DHAVE_CUDA=no</argument>
                                 <argument>-DUSE_LOCAL_SWIG=yes</argument>
                                 <argument>-DUSE_SYSTEM_JDK=${JAVA_HOME}</argument>
-                                <argument>-DJAVA_HOME=${JAVA_HOME}</argument>>
+                                <argument>-DJAVA_HOME=${JAVA_HOME}</argument>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
