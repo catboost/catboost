@@ -38,7 +38,7 @@ public:
         }
 
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-            this.swigCPtr = native_implJNI.new_$typemap(jboxtype, T)();
+            this.swigCPtr = native_implJNI.new_$javaclassname();
             this.swigCMemOwn = true;
 
             $typemap(jboxtype, T) pointee = ($typemap(jboxtype, T))in.readObject();
