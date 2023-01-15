@@ -1,7 +1,7 @@
 #include "codecs.h"
 #include "stream.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/stream/str.h>
 #include <util/string/join.h>
