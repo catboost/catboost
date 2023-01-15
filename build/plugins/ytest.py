@@ -175,15 +175,20 @@ def validate_test(unit, kw):
                 errors.append("You can set sandbox tags '{}' only for FAT tests without ya:force_distbuild. Remove TAG(ya:force_sandbox) or sandbox tags.".format(sb_tags))
             if 'ya:sandbox_coverage' in tags:
                 errors.append("You can set 'ya:sandbox_coverage' tag only for FAT tests without ya:force_distbuild.")
+            if size != consts.TestSize.Large:
+                errors.append("Only LARGE test may have ya:fat tag")
     else:
         if is_force_sandbox:
             errors.append('ya:force_sandbox can be used with LARGE tests only')
+        if 'ya:nofuse' in tags:
+            errors.append('ya:nofuse can be used with LARGE tests only')
+        if 'ya:privileged' in tags:
+            errors.append("ya:privileged can be used with LARGE tests only")
+        if in_autocheck and size == consts.TestSize.Large:
+            errors.append("LARGE test must have ya:fat tag")
 
     if 'ya:privileged' in tags and 'container' not in requirements:
         errors.append("Only tests with 'container' requirement can have 'ya:privileged' tag")
-
-    if 'ya:privileged' in tags and not is_fat:
-        errors.append("Only fat tests can have 'ya:privileged' tag")
 
     if size not in size_timeout:
         errors.append("Unknown test size: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(size.upper(), ", ".join([sz.upper() for sz in size_timeout.keys()])))
@@ -207,12 +212,6 @@ def validate_test(unit, kw):
                 errors.append("Max allowed timeout for test size [[imp]]{}[[rst]] is [[imp]]{} sec[[rst]]{}".format(size.upper(), size_timeout[size], suggested_size))
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
-
-        if in_autocheck and size == consts.TestSize.Large and not is_fat:
-            errors.append("LARGE test must have ya:fat tag")
-
-        if is_fat and size != consts.TestSize.Large:
-            errors.append("Only LARGE test may have ya:fat tag")
 
         requiremtens_list = []
         for req_name, req_value in requirements.iteritems():
