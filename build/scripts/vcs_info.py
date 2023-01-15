@@ -28,11 +28,15 @@ class _Formatting(object):
         return strval.replace(r'\n', '\\n"\\\n' + indent + '"')
 
     @staticmethod
+    def escape_trigraphs(strval):
+        return strval.replace(r'?', '\\?')
+
+    @staticmethod
     def escaped_define(strkey, val):
         name = "#define " + strkey + " "
         if isinstance(val, basestring):
             define = "\"" + _Formatting.escape_line_feed(
-                _Formatting.escape_special_symbols(val)) + "\""
+                _Formatting.escape_trigraphs(_Formatting.escape_special_symbols(val))) + "\""
         else:
             define = str(val)
         return name + define
