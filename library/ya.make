@@ -17,12 +17,6 @@ RECURSE(
     testing
 )
 
-IF (HAVE_CUDA)
-    RECURSE(
-    cuda
-)
-ENDIF()
-
 IF (NOT SANITIZER_TYPE)
     RECURSE(
     

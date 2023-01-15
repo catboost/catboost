@@ -1,7 +1,7 @@
 #pragma once
 
-#include <library/cuda/wrappers/base.h>
-#include <library/cuda/wrappers/cuda_event.h>
+#include <library/cpp/cuda/wrappers/base.h>
+#include <library/cpp/cuda/wrappers/cuda_event.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 
