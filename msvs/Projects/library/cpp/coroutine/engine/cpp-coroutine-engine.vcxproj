@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\cont_poller.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\impl.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\iostatus.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\network.cpp"/>
@@ -143,6 +144,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\cont_poller.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\events.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\helper.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\impl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\iostatus.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\network.h"/>
