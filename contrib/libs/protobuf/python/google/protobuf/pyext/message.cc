@@ -749,13 +749,7 @@ bool IsValidUTF8(PyObject* obj) {
   }
 }
 
-bool AllowInvalidUTF8(const FieldDescriptor* field) {
-#ifdef Y_PROTOBUF_UTF8_VALIDATION_DISABLED_FOR_PYTHON
-  return true;
-#else
-  return false;
-#endif
-}
+bool AllowInvalidUTF8(const FieldDescriptor* field) { return false; }
 
 PyObject* CheckString(PyObject* arg, const FieldDescriptor* descriptor) {
   GOOGLE_DCHECK(descriptor->type() == FieldDescriptor::TYPE_STRING ||
@@ -766,7 +760,7 @@ PyObject* CheckString(PyObject* arg, const FieldDescriptor* descriptor) {
       return NULL;
     }
 
-    if (!AllowInvalidUTF8(descriptor) && !IsValidUTF8(arg)) {
+    if (!IsValidUTF8(arg) && !AllowInvalidUTF8(descriptor)) {
       PyObject* repr = PyObject_Repr(arg);
       PyErr_Format(PyExc_ValueError,
                    "%s has type str, but isn't valid UTF-8 "
