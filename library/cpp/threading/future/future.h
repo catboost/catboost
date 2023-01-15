@@ -96,9 +96,11 @@ namespace NThreading {
 
         TFuture() noexcept = default;
         TFuture(const TFuture<T>& other) noexcept = default;
+        TFuture(TFuture<T>&& other) noexcept = default;
         TFuture(const TIntrusivePtr<TFutureState>& state) noexcept;
 
         TFuture<T>& operator=(const TFuture<T>& other) noexcept = default;
+        TFuture<T>& operator=(TFuture<T>&& other) noexcept = default;
         void Swap(TFuture<T>& other);
 
         bool Initialized() const;
@@ -147,9 +149,11 @@ namespace NThreading {
 
         TFuture() noexcept = default;
         TFuture(const TFuture<void>& other) noexcept = default;
+        TFuture(TFuture<void>&& other) noexcept = default;
         TFuture(const TIntrusivePtr<TFutureState>& state) noexcept;
 
         TFuture<void>& operator=(const TFuture<void>& other) noexcept = default;
+        TFuture<void>& operator=(TFuture<void>&& other) noexcept = default;
         void Swap(TFuture<void>& other);
 
         bool Initialized() const;
@@ -199,9 +203,11 @@ namespace NThreading {
     public:
         TPromise() noexcept = default;
         TPromise(const TPromise<T>& other) noexcept = default;
+        TPromise(TPromise<T>&& other) noexcept = default;
         TPromise(const TIntrusivePtr<TFutureState>& state) noexcept;
 
         TPromise<T>& operator=(const TPromise<T>& other) noexcept = default;
+        TPromise<T>& operator=(TPromise<T>&& other) noexcept = default;
         void Swap(TPromise<T>& other);
 
         bool Initialized() const;
@@ -241,9 +247,11 @@ namespace NThreading {
     public:
         TPromise() noexcept = default;
         TPromise(const TPromise<void>& other) noexcept = default;
+        TPromise(TPromise<void>&& other) noexcept = default;
         TPromise(const TIntrusivePtr<TFutureState>& state) noexcept;
 
         TPromise<void>& operator=(const TPromise<void>& other) noexcept = default;
+        TPromise<void>& operator=(TPromise<void>&& other) noexcept = default;
         void Swap(TPromise<void>& other);
 
         bool Initialized() const;
