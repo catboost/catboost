@@ -382,6 +382,9 @@ namespace NCB::NModelEvaluation {
                 }
 
                 for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
+                    if (estimatedFeature.ModelEstimatedFeature.SourceFeatureType != EEstimatedSourceFeatureType::Text) {
+                        continue;
+                    }
                     const ui32 featureOffset =
                         textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
                         + estimatedFeature.ModelEstimatedFeature.LocalId;
@@ -442,6 +445,9 @@ namespace NCB::NModelEvaluation {
                 }
 
                 for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
+                    if (estimatedFeature.ModelEstimatedFeature.SourceFeatureType != EEstimatedSourceFeatureType::Embedding) {
+                        continue;
+                    }
                     const ui32 featureOffset =
                         embeddingProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
                         + estimatedFeature.ModelEstimatedFeature.LocalId;
