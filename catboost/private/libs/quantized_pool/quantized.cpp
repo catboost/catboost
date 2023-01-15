@@ -151,7 +151,7 @@ TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
             const auto it = pool.QuantizationSchema.GetCatFeatureIndexToSchema().find(featureIndex);
 
             if (it == pool.QuantizationSchema.GetCatFeatureIndexToSchema().end() ||
-                    it->second.GetPerfectHashes().empty()) {
+                    (it->second.GetPerfectHashes().size() < 2)) {
                 indices.push_back(SafeIntegerCast<ui32>(featureIndex));
                 continue;
             }

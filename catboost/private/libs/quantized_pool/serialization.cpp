@@ -1022,24 +1022,14 @@ namespace NCB {
                 const auto catFeatureIdx =
                     featuresLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(externalFeatureIdx);
 
-                TMap<ui32, TValueWithCount> dstCatFeaturePerfectHash;
-
                 TMaybeData<const IQuantizedCatValuesHolder*> feature =
                     quantizedObjectsData->GetCatFeature(*catFeatureIdx);
 
+                TMap<ui32, TValueWithCount> dstCatFeaturePerfectHash
+                    = quantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx).ToMap();
+
                 THolder<TSrcColumnBase> maybeFeatureColumn;
                 if (feature) {
-                    const auto& srcCatFeaturePerfectHash =
-                        quantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
-
-                    dstCatFeaturePerfectHash = srcCatFeaturePerfectHash.Map;
-                    if (srcCatFeaturePerfectHash.DefaultMap.Defined()) {
-                        dstCatFeaturePerfectHash.emplace(
-                            srcCatFeaturePerfectHash.DefaultMap->SrcValue,
-                            srcCatFeaturePerfectHash.DefaultMap->DstValueWithCount
-                       );
-                    }
-
                     if (dstCatFeaturePerfectHash.size() > ((size_t)Max<ui16>() + 1)) {
                         maybeFeatureColumn = GenerateSrcColumn<ui32>(**feature);
                     } else if (dstCatFeaturePerfectHash.size() > ((size_t)Max<ui8>() + 1)) {
