@@ -1523,6 +1523,7 @@ class _CatBoostBase(object):
             'poor_score': False,
             'no_validation': True,
             'stateless': False,
+            'pairwise': False,
             'multilabel': False,
             '_skip_test': False,
             'multioutput_only': False,
@@ -1535,7 +1536,8 @@ class _CatBoostBase(object):
         _process_synonyms(params)
 
         tags['non_deterministic'] = 'task_type' in params and params['task_type'] == 'GPU'
-        tags['multioutput'] = 'loss_function' in params and params['loss_function'] == 'MultiRMSE'
+        loss_function = params.get('loss_function', '')
+        tags['multioutput'] = (loss_function == 'MultiRMSE' or loss_function == 'RMSEWithUncertainty')
         tags['allow_nan'] = 'nan_mode' not in params or params['nan_mode'] != 'Forbidden'
 
         return tags
