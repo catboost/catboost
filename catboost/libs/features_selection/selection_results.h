@@ -21,12 +21,16 @@ namespace NCB {
 
     struct TFeaturesSelectionSummary {
         TVector<ui32> SelectedFeatures;
+        TVector<TString> SelectedFeaturesNames;
         TVector<ui32> EliminatedFeatures;
+        TVector<TString> EliminatedFeaturesNames;
         TFeaturesSelectionLossGraph LossGraph;
 
         Y_SAVELOAD_DEFINE(
             SelectedFeatures,
+            SelectedFeaturesNames,
             EliminatedFeatures,
+            EliminatedFeaturesNames,
             LossGraph
         );
     };

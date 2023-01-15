@@ -61,6 +61,7 @@ static void LoadOptions(
     catBoostOptions->Load(catBoostJsonOptions);
     outputOptions->Load(outputOptionsJson);
     featuresSelectOptions->Load(featuresSelectJsonOptions);
+    featuresSelectOptions->CheckAndUpdateSteps();
 }
 
 
@@ -153,9 +154,10 @@ int mode_select_features(int argc, const char* argv[]) {
     const TFeaturesSelectionSummary summary = SelectFeatures(
         catBoostOptions,
         outputOptions,
-        poolLoadParams,
+        &poolLoadParams,
         featuresSelectOptions,
         pools,
+        /*dstModel*/ nullptr,
         &executor
     );
     SaveSummaryToFile(summary, featuresSelectOptions.ResultPath);

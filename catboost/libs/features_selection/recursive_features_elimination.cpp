@@ -315,6 +315,7 @@ namespace NCB {
         const NCB::TDataProviders& pools,
         const TLabelConverter& labelConverter,
         TTrainingDataProviders trainingData,
+        TFullModel* dstModel,
         NPar::ILocalExecutor* executor
     ) {
         auto outputFileOptions = initialOutputFileOptions;
@@ -404,6 +405,7 @@ namespace NCB {
 
         for (auto step : xrange(alreadyPassedSteps, featuresSelectOptions.Steps.Get())) {
             CATBOOST_NOTICE_LOG << "Step #" << step + 1 << " out of " << featuresSelectOptions.Steps.Get() << Endl;
+            outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-" + ToString(step));
             const TFullModel model = trainModel();
             TVector<TVector<double>> approx = applyModel(model);
             double currentLossValue = calcLoss(approx);
@@ -455,18 +457,23 @@ namespace NCB {
 
         if (featuresSelectOptions.TrainFinalModel.Get()) {
             CATBOOST_NOTICE_LOG << "Train final model" << Endl;
+            outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-final");
             const TFullModel finalModel = trainModel();
             const double lossValue = calcLoss(applyModel(finalModel));
 
             lossGraphBuilder.AddPrecisePoint(summary.EliminatedFeatures.size(), lossValue);
 
-            CATBOOST_NOTICE_LOG << "Save final model" << Endl;
-            ExportFullModel(
-                finalModel,
-                initialOutputFileOptions.GetResultModelFilename(),
-                dynamic_cast<const TObjectsDataProvider*>(trainingData.Learn->ObjectsData.Get()),
-                outputFileOptions.GetModelFormats()
-            );
+            if (dstModel != nullptr) {
+                *dstModel = finalModel;
+            } else {
+                CATBOOST_NOTICE_LOG << "Save final model" << Endl;
+                ExportFullModel(
+                    finalModel,
+                    initialOutputFileOptions.GetResultModelFilename(),
+                    dynamic_cast<const TObjectsDataProvider*>(trainingData.Learn->ObjectsData.Get()),
+                    outputFileOptions.GetModelFormats()
+                );
+            }
         }
 
         summary.SelectedFeatures = TVector<ui32>(featuresForSelectSet.begin(), featuresForSelectSet.end());

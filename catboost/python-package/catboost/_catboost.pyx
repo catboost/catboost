@@ -1064,6 +1064,14 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         int verbose) nogil except +ProcessException
 
 
+cdef extern from "catboost/libs/features_selection/select_features.h" namespace "NCB":
+    cdef TJsonValue SelectFeatures(
+        const TJsonValue& params,
+        const TDataProviders& pools,
+        TFullModel* dstModel
+    ) nogil except +ProcessException
+
+
 cpdef run_atexit_finalizers():
     ManualRunAtExitFinalizers()
 
@@ -4774,6 +4782,27 @@ cdef class _CatBoost:
         if return_cv_results:
             search_result["cv_results"] = cv_results
         return search_result
+
+    cpdef _select_features(self, _PoolBase train_pool, _PoolBase test_pool, dict params):
+        prep_params = _PreprocessParams(params)
+
+        cdef TDataProviders dataProviders
+        dataProviders.Learn = train_pool.__pool
+        if test_pool:
+            dataProviders.Test.push_back(test_pool.__pool)
+
+        cdef TJsonValue summary_json
+        with nogil:
+            SetPythonInterruptHandler()
+            try:
+                summary_json = SelectFeatures(
+                    prep_params.tree,
+                    dataProviders,
+                    self.__model
+                )
+            finally:
+                ResetPythonInterruptHandler()
+        return loads(to_native_str(WriteTJsonValue(summary_json)))
 
     cpdef _get_binarized_statistics(self, _PoolBase pool, catFeaturesNums, floatFeaturesNums, predictionType, int thread_count):
         thread_count = UpdateThreadCount(thread_count)

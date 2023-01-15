@@ -18,6 +18,7 @@ namespace NCB {
         const TDataProviders& pools,
         const TLabelConverter& labelConverter,
         TTrainingDataProviders trainingData,
+        TFullModel* dstModel,
         NPar::ILocalExecutor* executor
     );
 }
