@@ -5,7 +5,7 @@ IF (USE_PREBUILT_TOOLS)
 ENDIF()
 
 IF (NOT PREBUILT)
-    INCLUDE(${ARCADIA_ROOT}/contrib/tools/protoc/ya.make.program)
+    INCLUDE(${ARCADIA_ROOT}/contrib/tools/protoc/bin/ya.make)
 ENDIF()
 
 RECURSE(
