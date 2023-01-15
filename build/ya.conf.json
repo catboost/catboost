@@ -7064,7 +7064,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 747410317,
+                "sandbox_id": 747654726,
                 "match": "zcli"
             },
             "executable": {
@@ -7311,8 +7311,16 @@
                 "match": "AMDuProf_Linux_x64_3.2.228.tar.gz"
             },
             "executable": {
-		"amduprof-cli": ["AMDuProf_Linux_x64_3.2.228", "bin", "AMDuProfCLI"],
-                "amduprof-pcm": ["AMDuProf_Linux_x64_3.2.228", "bin", "AMDuProfPcm"]
+                "amduprof-cli": [
+                    "AMDuProf_Linux_x64_3.2.228",
+                    "bin",
+                    "AMDuProfCLI"
+                ],
+                "amduprof-pcm": [
+                    "AMDuProf_Linux_x64_3.2.228",
+                    "bin",
+                    "AMDuProfPcm"
+                ]
             }
         },
         "foremost": {
