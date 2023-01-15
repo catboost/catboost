@@ -453,7 +453,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             if (featuresScoreCalcer) {
                 CheckResultsForCompressedDataSet(dataSet.GetFeatures(),
                                                  *featuresScoreCalcer,
-                                                 currentParts,
+                                                 currentParts.AsConstBuf(),
                                                  subsets.WeightedTarget,
                                                  subsets.Weights,
                                                  observationIndices,
@@ -464,7 +464,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             if (simpleCtrScoreCalcer) {
                 CheckResultsForCompressedDataSet(dataSet.GetPermutationFeatures(),
                                                  *simpleCtrScoreCalcer,
-                                                 currentParts,
+                                                 currentParts.AsConstBuf(),
                                                  subsets.WeightedTarget,
                                                  subsets.Weights,
                                                  directObservationIndices,
@@ -474,10 +474,10 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
             {
                 if (featuresScoreCalcer) {
-                    featuresScoreCalcer->ComputeOptimalSplit(partitionStats, featureWeights);
+                    featuresScoreCalcer->ComputeOptimalSplit(partitionStats.AsConstBuf(), featureWeights.AsConstBuf());
                 }
                 if (simpleCtrScoreCalcer) {
-                    simpleCtrScoreCalcer->ComputeOptimalSplit(partitionStats, featureWeights);
+                    simpleCtrScoreCalcer->ComputeOptimalSplit(partitionStats.AsConstBuf(), featureWeights.AsConstBuf());
                 }
             }
 
@@ -607,7 +607,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             if (featuresScoreCalcer) {
                 CheckResultsForCompressedDataSet(dataSet.GetFeatures(),
                                                  *featuresScoreCalcer,
-                                                 currentParts,
+                                                 currentParts.AsConstBuf(),
                                                  subsets.WeightedTarget,
                                                  subsets.Weights,
                                                  docs,
@@ -618,7 +618,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             if (simpleCtrScoreCalcer) {
                 CheckResultsForCompressedDataSet(dataSet.GetPermutationFeatures(),
                                                  *simpleCtrScoreCalcer,
-                                                 currentParts,
+                                                 currentParts.AsConstBuf(),
                                                  subsets.WeightedTarget,
                                                  subsets.Weights,
                                                  docs,
@@ -628,10 +628,10 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
             {
                 if (featuresScoreCalcer) {
-                    featuresScoreCalcer->ComputeOptimalSplit(reducedPartsStats, featureWeights);
+                    featuresScoreCalcer->ComputeOptimalSplit(reducedPartsStats.AsConstBuf(), featureWeights.AsConstBuf());
                 }
                 if (simpleCtrScoreCalcer) {
-                    simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartsStats, featureWeights);
+                    simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartsStats.AsConstBuf(), featureWeights.AsConstBuf());
                 }
             }
 

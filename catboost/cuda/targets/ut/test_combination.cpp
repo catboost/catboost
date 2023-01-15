@@ -92,7 +92,7 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
         auto gpuWeightedDer0 = TStripeBuffer<float>::CopyMapping(gpuCursor);
         auto gpuWeights0 = TStripeBuffer<float>::CopyMapping(gpuCursor);
-        rmseTarget.GradientAt(gpuCursor, gpuWeightedDer0, gpuWeights0);
+        rmseTarget.GradientAt(gpuCursor.AsConstBuf(), gpuWeightedDer0, gpuWeights0);
         TVector<float> weightedDer0, weights0;
         gpuWeightedDer0.Read(weightedDer0);
         gpuWeights0.Read(weights0);
@@ -104,7 +104,7 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
         auto gpuWeightedDer1 = TStripeBuffer<float>::CopyMapping(gpuCursor);
         auto gpuWeights1 = TStripeBuffer<float>::CopyMapping(gpuCursor);
-        queryRmseTarget.GradientAt(gpuCursor, gpuWeightedDer1, gpuWeights1);
+        queryRmseTarget.GradientAt(gpuCursor.AsConstBuf(), gpuWeightedDer1, gpuWeights1);
         TVector<float> weightedDer1, weights1;
         gpuWeightedDer1.Read(weightedDer1);
         gpuWeights1.Read(weights1);
@@ -119,7 +119,7 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
         auto gpuWeightedDer2 = TStripeBuffer<float>::CopyMapping(gpuCursor);
         auto gpuWeights2 = TStripeBuffer<float>::CopyMapping(gpuCursor);
-        combinationTarget.GradientAt(gpuCursor, gpuWeightedDer2, gpuWeights2);
+        combinationTarget.GradientAt(gpuCursor.AsConstBuf(), gpuWeightedDer2, gpuWeights2);
         TVector<float> weightedDer2, weights2;
         gpuWeightedDer2.Read(weightedDer2);
         gpuWeights2.Read(weights2);
