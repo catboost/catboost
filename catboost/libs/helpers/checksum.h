@@ -49,17 +49,6 @@ namespace NCB {
     }
 
     template <class TKey, class TValue>
-    ui32 UpdateCheckSumImpl(ui32 init, const THashMap<TKey, TValue>& hashMap) {
-        ui32 checkSum = init;
-        for (const auto& [key, value] : hashMap) {
-            ui32 pairCheckSum = UpdateCheckSum(0, key);
-            pairCheckSum = UpdateCheckSum(pairCheckSum, value);
-            checkSum = checkSum ^ pairCheckSum;
-        }
-        return checkSum;
-    }
-
-    template <class TKey, class TValue>
     ui32 UpdateCheckSumImpl(ui32 init, const TMap<TKey, TValue>& map) {
         ui32 checkSum = init;
         for (const auto& [key, value] : map) {
