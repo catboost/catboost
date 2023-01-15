@@ -776,7 +776,6 @@ migrations:
     - robot/salmon_agent/counters
     - robot/salmon_agent/utils
     - rt-research/broadmatching/mr/IRT-1517
-    - rt-research/broadmatching/mr/local_yt/copy_phits_db
     - rt-research/broadmatching/scripts/dyn-smart-banners/update_dyn_trashfilter
     - rt-research/broadmatching/scripts/pylib
     - rt-research/broadmatching/scripts/pylib/bm
@@ -1283,7 +1282,6 @@ migrations:
     - april/web/bas/ca
     - april/web/bas/ca/forms
     - april/web/bas/collector
-    - arc/ci/tests/public
     - aurora/scripts/parsers/zoon_ru
     - balancer/test/functional/regexp_host
     - balancer/test/functional/regexp_path
@@ -1467,9 +1465,6 @@ migrations:
     - passport/python/library/distprim
     - passport/python/library/distprim/threading
     - passport/python/meltingpot/utils
-    - paysys/sre/tools/monitorings/configs/dashboards/stable
-    - paysys/sre/tools/monitorings/lib
-    - paysys/sre/tools/monitorings/lib/util
     - plus/gift/gift
     - plus/gift/gift/admin
     - quality/ab_testing/cofe/projects/geo/navigator/common
@@ -1738,7 +1733,6 @@ migrations:
     - alice/vins/tools/pa
     - antirobot/tools/prepare_requests_cbb
     - arc/backups/restore/tasklet
-    - arc/ci/tests
     - balancer/test/functional/rate_limiter
     - browser/infra/bitbucket/bitbucket
     - browser/infra/ci/backend
@@ -1761,7 +1755,6 @@ migrations:
     - dict/mt/make/pipeline/lm/tests
     - dict/mt/make/pipeline/nmt
     - dict/mt/make/pipeline/phrase_lm/tests
-    - dict/mt/make/tools/translate_tfnn/tests
     - dict/mt/make/tools/yt_transform/tests
     - dict/mt/normalizer/tts/bugfix
     - dict/ontodb/config
@@ -1884,9 +1877,6 @@ migrations:
     - opensource/sync/bin/sync_ch/tasklet
     - orgvisits/orgs/preprocessing/lib
     - orgvisits/user/features/run/tests
-    - paysys/sre/tools/monitorings/configs/crm/stable
-    - paysys/sre/tools/monitorings/configs/paysys/stable
-    - paysys/sre/tools/monitorings/lib
     - plus/oneyear/oneyear_by
     - quality/ab_testing/cofe/projects/alice
     - quality/ab_testing/cofe/projects/geo/navigator/common
