@@ -10,7 +10,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.util._
 import org.apache.spark.sql._
-import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.types._
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
@@ -75,7 +74,9 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       val threadCountForTask = SparkHelpers.getThreadCountForTask(dataset.sparkSession)
 
       this.logInfo(s"$uid: schedule applying model.")
-      dataFrame.mapPartitions(
+
+      // Cannot use mapPartitions directly with RowEncoder because it loses schema columns metadata
+      val resultAsRDD = dataFrame.rdd.mapPartitions(
         rowsIterator => {
           if (rowsIterator.hasNext) {
             val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
@@ -91,7 +92,8 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
             Iterator[Row]()
           }
         }
-      )(RowEncoder(resultSchema))
+      )
+      dataFrame.sparkSession.createDataFrame(resultAsRDD, resultSchema)
     }
   }
 
