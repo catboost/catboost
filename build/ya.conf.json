@@ -3065,6 +3065,351 @@
                 "gcc_version": "11.0"
             }
         },
+        "clang12": {
+            "tools": {
+                "c++": {
+                    "bottle": "clang12",
+                    "executable": "c++"
+                },
+                "c++filt": {
+                    "bottle": "clang12",
+                    "executable": "c++filt"
+                },
+                "cc": {
+                    "bottle": "clang12",
+                    "executable": "cc"
+                },
+                "clang-apply-replacements": {
+                    "bottle": "clang12",
+                    "executable": "clang-apply-replacements"
+                },
+                "clang-format": {
+                    "bottle": "clang12",
+                    "executable": "clang-format"
+                },
+                "clang-rename": {
+                    "bottle": "clang12",
+                    "executable": "clang-rename"
+                },
+                "clang-tidy": {
+                    "bottle": "clang12",
+                    "executable": "clang-tidy"
+                },
+                "gcov": {
+                    "bottle": "clang12",
+                    "executable": "llvm-gcov"
+                },
+                "llvm-cov": {
+                    "bottle": "clang12",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "clang12",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "clang12",
+                    "executable": "llvm-symbolizer"
+                },
+                "nm": {
+                    "bottle": "clang12",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "clang12",
+                    "executable": "llvm-strip"
+                },
+                "objcopy": {
+                    "bottle": "clang12",
+                    "executable": "llvm-objcopy"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "i386"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "armv7"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "YOCTO",
+                        "arch": "armv7a"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "i386"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "armv7"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7ahf_cortex_a35"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7ahf_cortex_a53"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a_cortex_a35"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a_cortex_a53"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "power9le"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "objcopy": "$(CLANG)/bin/llvm-objcopy",
+                "strip": "$(CLANG)/bin/llvm-strip",
+                "gcc_version": "12.0"
+            }
+        },
         "xcode_11_1": {
             "tools": {
                 "c++": {
@@ -7154,6 +7499,72 @@
                     847800827,
                     828496042,
                     827918501
+                ],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": [
+                    "bin",
+                    "clang++"
+                ],
+                "c++filt": [
+                    "bin",
+                    "llvm-cxxfilt"
+                ],
+                "cc": [
+                    "bin",
+                    "clang"
+                ],
+                "clang-apply-replacements": [
+                    "bin",
+                    "clang-apply-replacements"
+                ],
+                "clang-format": [
+                    "bin",
+                    "clang-format"
+                ],
+                "clang-rename": [
+                    "bin",
+                    "clang-rename"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
+                "llvm-gcov": [
+                    "bin",
+                    "llvm-gcov"
+                ],
+                "llvm-cov": [
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-symbolizer": [
+                    "bin",
+                    "llvm-symbolizer"
+                ],
+                "llvm-nm": [
+                    "bin",
+                    "llvm-nm"
+                ],
+                "llvm-strip": [
+                    "bin",
+                    "llvm-strip"
+                ],
+                "llvm-objcopy": [
+                    "bin",
+                    "llvm-objcopy"
+                ]
+            }
+        },
+        "clang12": {
+            "formula": {
+                "sandbox_id": [
+                    959757330
                 ],
                 "match": "CLANG"
             },
