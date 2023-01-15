@@ -1,12 +1,13 @@
 import pytest
+import threading
 
 import library.python.func as func
 
 
 def test_map0():
-    assert None == func.map0(lambda x: x + 1, None)
+    assert None is func.map0(lambda x: x + 1, None)
     assert 3 == func.map0(lambda x: x + 1, 2)
-    assert None == func.map0(len, None)
+    assert None is func.map0(len, None)
     assert 2 == func.map0(len, [1, 2])
 
 
@@ -90,7 +91,6 @@ def test_memoize():
     assert (1, 15) == t7(1, None)
 
     class ClassWithMemoizedMethod(object):
-
         def __init__(self):
             self.a = 0
 
@@ -130,6 +130,32 @@ def test_flatten_dict():
     assert func.flatten_dict({}) == {}
     assert func.flatten_dict({"a": 1, "b": {"c": {"d": 2}}}) == {"a": 1, "b.c.d": 2}
     assert func.flatten_dict({"a": 1, "b": {"c": {"d": 2}}}, separator="/") == {"a": 1, "b/c/d": 2}
+
+
+def test_memoize_thread_local():
+    class Counter(object):
+        def __init__(self, s):
+            self.val = s
+
+        def inc(self):
+            self.val += 1
+            return self.val
+
+    @func.memoize(thread_local=True)
+    def get_counter(start):
+        return Counter(start)
+
+    def th_inc():
+        assert get_counter(0).inc() == 1
+        assert get_counter(0).inc() == 2
+        assert get_counter(10).inc() == 11
+        assert get_counter(10).inc() == 12
+
+    th_inc()
+
+    th = threading.Thread(target=th_inc)
+    th.start()
+    th.join()
 
 
 if __name__ == '__main__':
