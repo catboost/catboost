@@ -31,9 +31,6 @@ ALLOW alice/library/video_common/ut -> alice/megamind/library/testing
 ALLOW alice/library/websearch -> alice/megamind/library/search/protos
 ALLOW alice/logs/wonderlogs/lib -> alice/megamind/library/context
 ALLOW alice/logs/wonderlogs/lib -> alice/megamind/library/handlers/utils
-ALLOW alice/nlu/granet/lib/test -> alice/megamind/library/begemot/constants
-ALLOW alice/nlu/libs/begemot_rule_utils -> alice/megamind/library/begemot/constants
-ALLOW alice/nlu/libs/begemot_rule_utils -> alice/megamind/library/experiments
 ALLOW alice/tools/sessions_tool -> alice/megamind/library/session
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/frame_builder
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/util
@@ -41,13 +38,8 @@ ALLOW dj/services/alisa_skills/recommender -> alice/megamind/library/walker
 ALLOW dj/services/alisa_skills/server/proto/client -> alice/megamind/library/proactivity/protos
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/classifiers/formulas/protos
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/config/protos
-ALLOW search/begemot/rules/alice_binary_intent_classifier -> alice/megamind/library/experiments
 ALLOW search/begemot/rules/alice_iot -> alice/megamind/library/scenarios/iot
-ALLOW search/begemot/rules/alice_nonsense_tagger -> alice/megamind/library/begemot/constants
-ALLOW search/begemot/rules/alice_nonsense_tagger -> alice/megamind/library/experiments
 ALLOW search/begemot/rules/alice_web_music -> alice/megamind/library/search/protos
-ALLOW search/begemot/rules/granet_config -> alice/megamind/library/experiments
-ALLOW search/begemot/rules/granet_params -> alice/megamind/library/experiments
 ALLOW search/begemot/rules/init/build_request/proto -> alice/megamind/library/search/protos
 ALLOW web/src_setup/lib/setup/common/request -> alice/megamind/library/search/protos
 
