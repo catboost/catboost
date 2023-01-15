@@ -9,6 +9,7 @@ VERSION(5.7)
 LICENSE(GPL-2.0 WITH Linux-syscall-note)
 
 DISABLE(NEED_PLATFORM_PEERDIRS)
+DISABLE(WITH_VALGRIND)
 
 ADDINCL(
     GLOBAL contrib/libs/linux-headers
