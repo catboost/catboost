@@ -14,7 +14,7 @@ namespace NCB {
             TArrayRef<TEmbeddingDataSetPtr> testArrays)
             : Target(target)
             , LearnArrays(learnArrays)
-            , TestArrays(testArrays)
+            , TestArrays(testArrays.begin(), testArrays.end())
             , Guid(CreateGuid()) {
         }
 
@@ -76,6 +76,9 @@ namespace NCB {
             }
         }
 
+        virtual EFeatureType GetSourceType() const override {
+            return EFeatureType::Embedding;
+        }
 
         void ComputeOnlineFeatures();
 
@@ -177,7 +180,7 @@ namespace NCB {
     private:
         TEmbeddingClassificationTargetPtr Target;
         TEmbeddingDataSetPtr LearnArrays;
-        TConstArrayRef<TEmbeddingDataSetPtr> TestArrays;
+        TVector<TEmbeddingDataSetPtr> TestArrays;
         const TGuid Guid;
     };
 };

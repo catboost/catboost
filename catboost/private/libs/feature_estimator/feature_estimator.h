@@ -88,6 +88,8 @@ namespace NCB {
             CB_ENSURE(false, "Final feature calcer is unimplemented yet");
         }
 
+        virtual EFeatureType GetSourceType() const = 0;
+
         virtual TGuid Id() const = 0;
     };
 

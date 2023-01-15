@@ -339,7 +339,8 @@ namespace NCB {
 
         for (auto flatFeatureIdx : xrange(featureCount)) {
             const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
-            if (!featureMetaInfo.IsAvailable || featureMetaInfo.Type == EFeatureType::Text) {
+            if (!featureMetaInfo.IsAvailable ||
+                (featureMetaInfo.Type == EFeatureType::Text || featureMetaInfo.Type == EFeatureType::Embedding)) {
                 continue;
             }
 

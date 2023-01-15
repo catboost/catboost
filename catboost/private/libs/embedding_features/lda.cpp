@@ -9,7 +9,7 @@ namespace NCB {
                                            TVector<float>* cache) {
 
         int reductionType = 1;
-        char triangle = 'U';
+        char triangle = 'L';
         char workType = 'V';
         int dim = eigenValues->size();
         int lenght = cache->size();
@@ -29,9 +29,7 @@ namespace NCB {
         Y_ASSERT(info == 0);
 
         ui32 shift = scatterInner->size() - projectionMatrix->size();
-        for (ui32 idx = 0; idx < projectionMatrix->size(); ++idx) {
-            projectionMatrix->operator[](idx) = scatterInner->at(shift + idx);
-        }
+        std::copy(scatterTotal->begin() + shift, scatterTotal->end(), projectionMatrix->begin());
     }
 
     void IncrementalCloud::AddVector(const TEmbeddingsArray& embed) {
@@ -40,7 +38,7 @@ namespace NCB {
             Buffer.push_back(embed[idx] - BaseCenter[idx]);
             NewShift[idx] += Buffer.back();
         }
-        if (AdditionalSize > 31 || BaseSize < 128) {
+        if (AdditionalSize > 0) {
             Update();
         }
     }
@@ -59,16 +57,16 @@ namespace NCB {
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                     Dimension, Dimension, AdditionalSize,
                     alpha,
-                    &Buffer[0], Dimension,
-                    &Buffer[0], Dimension,
+                    &Buffer[0], AdditionalSize,
+                    &Buffer[0], AdditionalSize,
                     beta,
                     &ScatterMatrix[0], Dimension);
         Buffer.clear();
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                Dimension, Dimension, 1,
                -1.0,
-               &NewShift[0], Dimension,
-               &NewShift[0], Dimension,
+               &NewShift[0], 1,
+               &NewShift[0], 1,
                1.0, &ScatterMatrix[0], Dimension);
         AdditionalSize = 0;
         NewShift.assign(Dimension, 0);
@@ -76,14 +74,14 @@ namespace NCB {
 
     void TLinearDACalcer::Compute(const TEmbeddingsArray& embed,
                                   TOutputFloatIterator iterator) const {
-        TVector<float> proj(0.0, ProjectionDimension);
+        TVector<float> proj(ProjectionDimension, 0.0);
         cblas_sgemv(CblasRowMajor, CblasNoTrans,
-                    TotalDimension, ProjectionDimension,
+                    ProjectionDimension, TotalDimension,
                     1.0,
                     &ProjectionMatrix[0], TotalDimension,
-                    &embed[0], TotalDimension,
+                    &embed[0], 1,
                     0.0,
-                    &proj[0], ProjectionDimension);
+                    &proj[0], 1);
         ForEachActiveFeature(
             [&proj, &iterator](ui32 featureId){
                 *iterator = proj[featureId];
@@ -98,6 +96,10 @@ namespace NCB {
         Y_ASSERT(lda);
         lda->ClassesDist[classId].AddVector(embed);
         lda->TotalDist.AddVector(embed);
+        if (2 * LastFlush <= lda->TotalDist.BaseSize) {
+            Flush(featureCalcer);
+            LastFlush = lda->TotalDist.BaseSize;
+        }
     }
 
     void TLinearDACalcerVisitor::Flush(TEmbeddingFeatureCalcer* featureCalcer) {

@@ -108,6 +108,10 @@ namespace {
             Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
         }
 
+        virtual EFeatureType GetSourceType() const override {
+            return EFeatureType::Text;
+        }
+
         TGuid Id() const override {
             return Guid;
         }

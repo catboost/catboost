@@ -283,7 +283,8 @@ namespace NCB {
     ) {
         const TEmbeddingValuesHolder* embeddingColumn = *dataProvider.GetEmbeddingFeature(embeddingFeatureIdx);
 
-        TMaybeOwningArrayHolder<TConstEmbedding> embeddingData = embeddingColumn->ExtractValues(localExecutor);
+        const auto* denseData = dynamic_cast<const TEmbeddingArrayValuesHolder*>(embeddingColumn);
+        TMaybeOwningArrayHolder<TConstEmbedding> embeddingData = denseData->ExtractValues(localExecutor);
         TMaybeOwningConstArrayHolder<TConstEmbedding> constEmbeddingData
             = TMaybeOwningConstArrayHolder<TConstEmbedding>::CreateOwning(*embeddingData,
                                                                             embeddingData.GetResourceHolder());
@@ -461,7 +462,8 @@ namespace NCB {
             );
         }
 
-        if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0) {
+        if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0
+            || trainingData.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0) {
             CB_ENSURE(
                 IsClassificationObjective(params->LossFunctionDescription->LossFunction),
                 "Computation of online text features is supported only for classification task"
