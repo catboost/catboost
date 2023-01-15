@@ -84,6 +84,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\include\numpy\core\include\numpy\halffloat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\include\numpy\core\include\numpy\ndarrayobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\include\numpy\core\include\numpy\ndarraytypes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\include\numpy\core\include\numpy\noprefix.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\include\numpy\core\include\numpy\npy_3kcompat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\include\numpy\core\include\numpy\npy_common.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\include\numpy\core\include\numpy\npy_cpu.h"/>
