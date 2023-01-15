@@ -2044,19 +2044,20 @@ class LD(Linker):
         emit('GLOBAL_LINK_LIB', archiver, '$GLOBAL_TARGET', tail_link_lib)
 
         # "Fat Object" : pre-linked global objects and static library with all dependencies
-        def emit_link_fat_obj(cmd_name, *extended_flags):
+        def emit_link_fat_obj(cmd_name, need_wa_option, *extended_flags):
             prefix = ['$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP &&',
                       '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --build-root $ARCADIA_BUILD_ROOT']
+            globals_libs = srcs_globals if need_wa_option else '${rootrel:SRCS_GLOBAL}'
             suffix = [arch_flag,
-                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs', srcs_globals, '-Ya,peers $PEERS',
+                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs', globals_libs, '-Ya,peers $PEERS',
                       '-Ya,linker $CXX_COMPILER $LDFLAGS_GLOBAL $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
                       '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}']
             emit(cmd_name, *(prefix + list(extended_flags) + suffix))
 
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
-        emit_link_fat_obj('LINK_FAT_OBJECT', '--obj=$TARGET', '--lib=${output:REALPRJNAME.a}')
-        emit_link_fat_obj('LINK_RECURSIVE_LIBRARY', '--lib=$TARGET', '--with-own-obj', '--with-global-srcs')
-        emit_link_fat_obj('LINK_FAT_OBJECT_LIBRARY', '--lib=$TARGET', '$FAT_OBJECT_ARGS', '$FAT_OBJECT_OUTS')
+        emit_link_fat_obj('LINK_FAT_OBJECT', True, '--obj=$TARGET', '--lib=${output:REALPRJNAME.a}')
+        emit_link_fat_obj('LINK_RECURSIVE_LIBRARY', False, '--lib=$TARGET', '--with-own-obj', '--with-global-srcs')
+        emit_link_fat_obj('LINK_FAT_OBJECT_LIBRARY', False, '--lib=$TARGET', '$FAT_OBJECT_ARGS', '$FAT_OBJECT_OUTS')
 
         emit('LIBRT', '-lrt')
         emit('MD5LIB', '-lcrypt')
