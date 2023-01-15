@@ -60,7 +60,7 @@ __attribute__((packed))
 /* Pack the frame_t structure to reduce the memory footprint on 64-bit
    architectures: 12 bytes instead of 16. */
 typedef struct
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 __attribute__((packed))
 #elif defined(_MSC_VER)
 #pragma pack(push, 4)
@@ -71,7 +71,7 @@ __attribute__((packed))
     PyObject *filename;
     unsigned int lineno;
 } frame_t;
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #pragma pack(pop)
 #endif
 
