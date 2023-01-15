@@ -190,4 +190,16 @@ Y_UNIT_TEST(TestSpeed) {
         UNIT_ASSERT_VALUES_EQUAL(TString(buf.data(), buf.size()), "Some text.");
     }
 
+    Y_UNIT_TEST(TestComparison) {
+        TBuffer buf1("abcd", 4);
+        TBuffer buf2("abcde", 5);
+        TBuffer empty;
+        UNIT_ASSERT(empty == empty);
+        UNIT_ASSERT(!(empty != empty));
+        UNIT_ASSERT(buf1 != buf2);
+        UNIT_ASSERT(buf1 == buf1);
+        buf2.EraseBack(1);
+        UNIT_ASSERT(buf2 == buf1);
+    }
+
 } // TBufferTest

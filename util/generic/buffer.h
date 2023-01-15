@@ -210,6 +210,17 @@ public:
         return Begin() + Size();
     }
 
+    bool operator==(const TBuffer& other) const noexcept {
+        if (Empty()) {
+            return other.Empty();
+        }
+        return Size() == other.Size() && 0 == std::memcmp(Data(), other.Data(), Size());
+    }
+
+    bool operator!=(const TBuffer& other) const noexcept {
+        return !(*this == other);
+    }
+
 private:
     void DoReserve(size_t len);
     void Realloc(size_t len);
