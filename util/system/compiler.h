@@ -257,8 +257,10 @@ Y_HIDDEN void _YandexAbort();
  * }
  * @endcode
  */
-#if defined(__GNUC__) || defined(_MSC_VER)
-#define Y_UNREACHABLE() Y_ASSUME(0)
+#if defined(__GNUC__)
+#define Y_UNREACHABLE() __builtin_unreachable()
+#elif defined (_MSC_VER)
+#define Y_UNREACHABLE() __assume(false)
 #else
 #define Y_UNREACHABLE() _YandexAbort()
 #endif
