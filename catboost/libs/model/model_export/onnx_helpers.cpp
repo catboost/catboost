@@ -424,7 +424,8 @@ static void AddTree(
     }
 
     // Process leafs
-    const double* leafValue = trees.GetModelTreeData()->GetLeafValues().begin() + trees.GetFirstLeafOffsets()[treeIdx];
+    auto applyData = trees.GetApplyData();
+    const double* leafValue = trees.GetModelTreeData()->GetLeafValues().begin() + applyData->TreeFirstLeafOffsets[treeIdx];
 
     for (i64 endNodeIdx = 2*nodeIdx + 1; nodeIdx < endNodeIdx; ++nodeIdx) {
         treesAttributes->nodes_treeids->add_ints(treeIdx);

@@ -123,7 +123,8 @@ namespace NCB {
         TSequenceCommaSeparator comma;
         out << indent++ << "struct TCatboostCPPExportModelCtrs modelCtrs = {" << '\n';
 
-        const auto neededCtrs = model.ModelTrees->GetUsedModelCtrs();
+        auto applyData = model.ModelTrees->GetApplyData();
+        const auto& neededCtrs = applyData->UsedModelCtrs;
         if (neededCtrs.size() == 0) {
             out << --indent << "};" << '\n';
             return;
@@ -136,7 +137,7 @@ namespace NCB {
 
         TVector<TCompressedModelCtr> compressedModelCtrs = CompressModelCtrs(neededCtrs);
 
-        out << indent << WN("UsedModelCtrsCount") << model.ModelTrees->GetUsedModelCtrs().size() << "," << '\n';
+        out << indent << WN("UsedModelCtrsCount") << neededCtrs.size() << "," << '\n';
         out << indent++ << WN("CompressedModelCtrs") << "{" << '\n';
 
         comma.ResetCount(compressedModelCtrs.size());

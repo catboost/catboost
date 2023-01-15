@@ -166,6 +166,20 @@ public:
 
         //! Offset of first tree leaf in flat tree leafs array
         TVector<size_t> TreeFirstLeafOffsets;
+
+        /**
+         * List all unique CTR bases (feature combination + ctr type) in model
+         * @return
+         */
+        TVector<TModelCtrBase> GetUsedModelCtrBases() const {
+            THashSet<TModelCtrBase> ctrsSet;
+            for (const auto& usedCtr : UsedModelCtrs) {
+                ctrsSet.insert(usedCtr.Base);
+            }
+            TVector<TModelCtrBase> sortedBases(ctrsSet.begin(), ctrsSet.end());
+            Sort(sortedBases.begin(), sortedBases.end());
+            return sortedBases;
+        }
     };
 
 public:
@@ -206,7 +220,6 @@ public:
 
         ClearRuntimeData();
         TGuard<TAdaptiveLock> guardApply(MutableDataLock);
-        ApplyData = other.ApplyData;
         RepackedBins = other.RepackedBins;
         RuntimeData = other.RuntimeData;
 
@@ -443,14 +456,21 @@ public:
      */
     void ClearRuntimeData() const;
 
-    /**
-     * List of all CTRs in model
-     * @return
-     */
-    TConstArrayRef<TModelCtr> GetUsedModelCtrs() const {
-        PrepareApplyData();
-        return ApplyData->UsedModelCtrs;
+    TAtomicSharedPtr<TForApplyData> GetApplyData() const {
+        TGuard<TAdaptiveLock> guardApply(MutableDataLock);
+        if (ApplyData) {
+            return ApplyData;
+        }
+        ApplyData = MakeAtomicShared<TForApplyData>();
+        ProcessFloatFeatures(ApplyData);
+        ProcessCatFeatures(ApplyData);
+        ProcessTextFeatures(ApplyData);
+        ProcessEstimatedFeatures(ApplyData);
+        CalcUsedModelCtrs(ApplyData);
+        CalcFirstLeafOffsets(ApplyData);
+        return ApplyData;
     }
+
     /**
      * List all binary features corresponding to binary feature indexes in trees
      * @return
@@ -467,24 +487,9 @@ public:
         return *RepackedBins;
     }
 
-    TConstArrayRef<size_t> GetFirstLeafOffsets() const {
-        PrepareApplyData();
-        return ApplyData->TreeFirstLeafOffsets;
-    }
-
     const double* GetFirstLeafPtrForTree(size_t treeIdx) const {
-        return &GetModelTreeData()->GetLeafValues()[GetFirstLeafOffsets()[treeIdx]];
-    }
-    /**
-     * List all unique CTR bases (feature combination + ctr type) in model
-     * @return
-     */
-    TVector<TModelCtrBase> GetUsedModelCtrBases() const {
-        THashSet<TModelCtrBase> ctrsSet; // return sorted bases
-        for (const auto& usedCtr : GetUsedModelCtrs()) {
-            ctrsSet.insert(usedCtr.Base);
-        }
-        return TVector<TModelCtrBase>(ctrsSet.begin(), ctrsSet.end());
+        auto applyData = GetApplyData();
+        return &ModelTreeData->GetLeafValues()[applyData->TreeFirstLeafOffsets[treeIdx]];
     }
 
     size_t GetNumFloatFeatures() const {
@@ -495,57 +500,12 @@ public:
         }
     }
 
-    size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        PrepareApplyData();
-        return ApplyData->MinimalSufficientFloatFeaturesVectorSize;
-    }
-
-    size_t GetUsedFloatFeaturesCount() const {
-        PrepareApplyData();
-        return ApplyData->UsedFloatFeaturesCount;
-    }
-
     size_t GetNumCatFeatures() const {
         if (CatFeatures.empty()) {
             return 0;
         } else {
             return static_cast<size_t>(CatFeatures.back().Position.Index) + 1;
         }
-    }
-
-    size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        PrepareApplyData();
-        return ApplyData->MinimalSufficientCatFeaturesVectorSize;
-    }
-
-    size_t GetUsedCatFeaturesCount() const {
-        PrepareApplyData();
-        return ApplyData->UsedCatFeaturesCount;
-    }
-
-    size_t GetUsedTextFeaturesCount() const {
-        PrepareApplyData();
-        return ApplyData->UsedTextFeaturesCount;
-    }
-
-    size_t GetMinimalSufficientTextFeaturesVectorSize() const {
-        PrepareApplyData();
-        return ApplyData->MinimalSufficientTextFeaturesVectorSize;
-    }
-
-    size_t GetUsedEmbeddingFeaturesCount() const {
-        CB_ENSURE(ApplyData, "runtime data should be initialized");
-        return ApplyData->UsedEmbeddingFeaturesCount;
-    }
-
-    size_t GetMinimalSufficientEmbeddingFeaturesVectorSize() const {
-        CB_ENSURE(ApplyData, "runtime data should be initialized");
-        return ApplyData->MinimalSufficientEmbeddingFeaturesVectorSize;
-    }
-
-    size_t GetUsedEstimatedFeaturesCount() const {
-        PrepareApplyData();
-        return ApplyData->UsedEstimatedFeaturesCount;
     }
 
     size_t GetBinaryFeaturesFullCount() const {
@@ -579,7 +539,6 @@ private:
 
     void SetScaleAndBias(const NCatBoostFbs::TModelTrees* fbObj);
 
-    void PrepareApplyData() const;
     void CalcBinFeatures() const;
     void CalcUsedModelCtrs(TAtomicSharedPtr<TForApplyData> applyData) const;
     void CalcFirstLeafOffsets(TAtomicSharedPtr<TForApplyData> applyData) const;
@@ -587,7 +546,7 @@ private:
     void ProcessCatFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
     void ProcessTextFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
     void ProcessEstimatedFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
-    void ProcessEmbeddingFeatures() const;
+    void ProcessEmbeddingFeatures(TAtomicSharedPtr<TForApplyData> ref) const;
 private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
@@ -765,9 +724,10 @@ public:
      * @param end
      */
     void Truncate(size_t begin, size_t end) {
+        auto applyData = ModelTrees->GetApplyData();
         ModelTrees.GetMutable()->TruncateTrees(begin, end);
         if (CtrProvider) {
-            CtrProvider->DropUnusedTables(ModelTrees->GetUsedModelCtrBases());
+            CtrProvider->DropUnusedTables(applyData->GetUsedModelCtrBases());
         }
         if (begin > 0) {
             SetScaleAndBias({GetScaleAndBias().Scale, {}});
@@ -779,24 +739,27 @@ public:
      * @return Minimal float features vector length sufficient for this model
      */
     size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        return ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->MinimalSufficientFloatFeaturesVectorSize;
     }
     /**
      * @return Number of float features that are really used in trees
      */
     size_t GetUsedFloatFeaturesCount() const {
-        return ModelTrees->GetUsedFloatFeaturesCount();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->UsedFloatFeaturesCount;
     }
 
     /**
      * @return Number of text features that are really used in trees
      */
     size_t GetUsedTextFeaturesCount() const {
-        return ModelTrees->GetUsedTextFeaturesCount();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->UsedTextFeaturesCount;
     }
 
     size_t GetUsedEmbeddingFeaturesCount() const {
-        return ModelTrees->GetUsedEmbeddingFeaturesCount();
+        return ModelTrees->GetApplyData()->UsedEmbeddingFeaturesCount;
     }
 
     /**
@@ -810,13 +773,15 @@ public:
      * @return Expected categorical features vector length for this model
      */
     size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        return ModelTrees->GetMinimalSufficientCatFeaturesVectorSize();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->MinimalSufficientCatFeaturesVectorSize;
     }
     /**
     * @return Number of float features that are really used in trees
     */
     size_t GetUsedCatFeaturesCount() const {
-        return ModelTrees->GetUsedCatFeaturesCount();
+        auto applyData = ModelTrees->GetApplyData();
+        return applyData->UsedCatFeaturesCount;
     }
 
     /**
@@ -848,10 +813,11 @@ public:
     //! Check if TFullModel instance has valid CTR provider.
     // If no ctr features present it will return true
     bool HasValidCtrProvider() const {
+        auto applyData = ModelTrees->GetApplyData();
         if (!CtrProvider) {
-            return ModelTrees->GetUsedModelCtrs().empty();
+            return applyData->UsedModelCtrs.empty();
         }
-        return CtrProvider->HasNeededCtrs(ModelTrees->GetUsedModelCtrs());
+        return CtrProvider->HasNeededCtrs(applyData->UsedModelCtrs);
     }
 
     //! Check if TFullModel instance has valid Text processing collection

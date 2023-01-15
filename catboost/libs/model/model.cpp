@@ -293,7 +293,8 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
                                   TextFeatures,
                                   EmbeddingFeatures,
                                   ApproxDimension);
-    const auto& leafOffsets = GetFirstLeafOffsets();
+    auto applyData = GetApplyData();
+    const auto& leafOffsets = applyData->TreeFirstLeafOffsets;
 
     const auto treeSizes = GetModelTreeData()->GetTreeSizes();
     const auto treeSplits = GetModelTreeData()->GetTreeSplits();
@@ -429,32 +430,13 @@ static_assert(sizeof(TRepackedBin) == sizeof(NCatBoostFbs::TRepackedBin));
 
 void TModelTrees::ClearRuntimeData() const {
     TGuard<TAdaptiveLock> guardApply(MutableDataLock);
-    ApplyData.Drop();
     RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>{};
     RuntimeData.Drop();
+    ApplyData.Drop();
 }
 
 void TModelTrees::UpdateRuntimeData() const {
     ClearRuntimeData();
-}
-
-void TModelTrees::PrepareApplyData() const {
-    if (ApplyData) {
-        return;
-    }
-    TGuard<TAdaptiveLock> guard(MutableDataLock);
-    if (ApplyData) {
-        return;
-    }
-
-    auto applyData = MakeAtomicShared<TForApplyData>();
-    ProcessFloatFeatures(applyData);
-    ProcessCatFeatures(applyData);
-    ProcessTextFeatures(applyData);
-    ProcessEstimatedFeatures(applyData);
-    CalcUsedModelCtrs(applyData);
-    CalcFirstLeafOffsets(applyData);
-    ApplyData = applyData;
 }
 
 void TModelTrees::ProcessFloatFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
@@ -484,8 +466,7 @@ void TModelTrees::ProcessTextFeatures(TAtomicSharedPtr<TForApplyData> ref) const
     }
 }
 
-void TModelTrees::ProcessEmbeddingFeatures() const {
-    auto& ref = ApplyData;
+void TModelTrees::ProcessEmbeddingFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
     for (const auto& feature : TextFeatures) {
         if (feature.UsedInModel()) {
             ++ref->UsedEmbeddingFeaturesCount;
@@ -499,9 +480,6 @@ void TModelTrees::ProcessEstimatedFeatures(TAtomicSharedPtr<TForApplyData> apply
 }
 
 void TModelTrees::CalcBinFeatures() const {
-    if (RuntimeData) {
-        return;
-    }
     TGuard<TAdaptiveLock> guard(MutableDataLock);
     if (RuntimeData) {
         return;
@@ -700,7 +678,8 @@ void TModelTrees::ConvertObliviousToAsymmetric() {
 }
 
 TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
-    const auto& firstLeafOfsets = GetFirstLeafOffsets();
+    auto applyData = GetApplyData();
+    const auto& firstLeafOfsets = applyData->TreeFirstLeafOffsets;
     Y_ASSERT(IsSorted(firstLeafOfsets.begin(), firstLeafOfsets.end()));
     TVector<ui32> treeLeafCounts;
     treeLeafCounts.reserve(GetTreeCount());
@@ -1539,7 +1518,8 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
 {
     auto& data = trees.GetModelTreeData();
     const auto& binFeatures = trees.GetBinFeatures();
-    const auto& leafOffsets = trees.GetFirstLeafOffsets();
+    auto applyData = trees.GetApplyData();
+    const auto& leafOffsets = applyData->TreeFirstLeafOffsets;
     for (size_t treeIdx = 0; treeIdx < data->GetTreeSizes().size(); ++treeIdx) {
         TVector<TModelSplit> modelSplits;
         for (int splitIdx = data->GetTreeStartOffsets()[treeIdx];

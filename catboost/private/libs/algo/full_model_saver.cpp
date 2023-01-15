@@ -363,7 +363,7 @@ namespace NCB {
 
     static bool NeedTargetClasses(const TFullModel& coreModel) {
         return AnyOf(
-            coreModel.ModelTrees->GetUsedModelCtrs(),
+            coreModel.ModelTrees->GetApplyData()->UsedModelCtrs,
             [](const TModelCtr& modelCtr) {
                 return NeedTargetClassifier(modelCtr.Base.CtrType);
             }
@@ -648,16 +648,15 @@ namespace NCB {
             PerfectHashedToHashedCatValuesMap,
             "PerfectHashedToHashedCatValuesMap has not been specified"
         );
-
+        auto applyData = dstModel->ModelTrees->GetApplyData();
         if (requiresStaticCtrProvider) {
             dstModel->CtrProvider = new TStaticCtrProvider;
 
             TMutex lock;
-
             CalcFinalCtrs(
                 datasetDataForFinalCtrs,
                 *featureCombinationToProjectionMap,
-                dstModel->ModelTrees->GetUsedModelCtrBases(),
+                applyData->GetUsedModelCtrBases(),
                 [&dstModel, &lock](TCtrValueTable&& table) {
                     with_lock(lock) {
                         dstModel->CtrProvider->AddCtrCalcerData(std::move(table));
@@ -668,7 +667,7 @@ namespace NCB {
             dstModel->UpdateDynamicData();
         } else {
             dstModel->CtrProvider = new TStaticCtrOnFlightSerializationProvider(
-                dstModel->ModelTrees->GetUsedModelCtrBases(),
+                applyData->GetUsedModelCtrBases(),
                 [this,
                  datasetDataForFinalCtrs = std::move(datasetDataForFinalCtrs),
                  featureCombinationToProjectionMap] (

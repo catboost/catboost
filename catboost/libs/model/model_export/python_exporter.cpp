@@ -25,7 +25,8 @@ namespace NCB {
     };
 
     static void WriteModelCTRs(IOutputStream& out, const TFullModel& model, TIndent& indent) {
-        const auto neededCtrs = model.ModelTrees->GetUsedModelCtrs();
+        auto applyData = model.ModelTrees->GetApplyData();
+        const auto& neededCtrs = applyData->UsedModelCtrs;
         if (neededCtrs.empty()) {
             return;
         }
@@ -38,7 +39,7 @@ namespace NCB {
 
         TVector<TCompressedModelCtr> compressedModelCtrs = CompressModelCtrs(neededCtrs);
 
-        out << indent << "used_model_ctrs_count = " << model.ModelTrees->GetUsedModelCtrs().size() << "," << '\n';
+        out << indent << "used_model_ctrs_count = " << applyData->UsedModelCtrs.size() << "," << '\n';
         out << indent++ << "compressed_model_ctrs = [" << '\n';
 
         comma.ResetCount(compressedModelCtrs.size());
@@ -143,8 +144,9 @@ namespace NCB {
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1, "Export of MultiClassification model to Python is not supported.");
+        auto applyData = model.ModelTrees->GetApplyData();
 
-        if (!model.ModelTrees->GetUsedModelCtrs().empty()) {
+        if (!applyData->UsedModelCtrs.empty()) {
             WriteCTRStructs();
         }
 
@@ -226,7 +228,7 @@ namespace NCB {
         Out << indent << "scale = " << model.GetScaleAndBias().Scale << '\n';
         Out << indent << "bias = " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero() << '\n';
 
-        if (!model.ModelTrees->GetUsedModelCtrs().empty()) {
+        if (!applyData->UsedModelCtrs.empty()) {
             WriteModelCTRs(Out, model, indent);
             Out << '\n' << '\n';
             Out << NResource::Find("catboost_model_export_python_ctr_calcer") << '\n';

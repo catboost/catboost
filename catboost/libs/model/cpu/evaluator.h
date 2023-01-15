@@ -20,7 +20,8 @@
 namespace NCB::NModelEvaluation {
 
     using TTreeCalcFunction = std::function<void(
-        const TModelTrees& ModelTrees,
+        const TModelTrees& modelTrees,
+        const TModelTrees::TForApplyData& applyData,
         const TCPUEvaluatorQuantizedData*,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVec,
@@ -117,8 +118,9 @@ namespace NCB::NModelEvaluation {
             quantizedData.QuantizedData = NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(binFeaturesHolder));
         }
 
-        TVector<ui32> transposedHash(blockSize * trees.GetUsedCatFeaturesCount());
-        TVector<float> ctrs(trees.GetUsedModelCtrs().size() * blockSize);
+        auto applyData = trees.GetApplyData();
+        TVector<ui32> transposedHash(blockSize * applyData->UsedCatFeaturesCount);
+        TVector<float> ctrs(applyData->UsedModelCtrs.size() * blockSize);
         ui32 estimatedFeaturesNum = 0;
         if (textProcessingCollection) {
             estimatedFeaturesNum += textProcessingCollection->TotalNumberOfOutputFeatures();
@@ -132,6 +134,7 @@ namespace NCB::NModelEvaluation {
             const auto docCountInBlock = Min(blockSize, docCount - blockStart);
             BinarizeFeatures(
                 trees,
+                *applyData,
                 ctrProvider,
                 textProcessingCollection,
                 embeddingProcessingCollection,
@@ -182,7 +185,8 @@ namespace NCB::NModelEvaluation {
     ) {
         Y_ASSERT(treeEnd >= treeStart);
         const size_t treeCount = treeEnd - treeStart;
-        Y_ASSERT(trees.GetFirstLeafOffsets().size() >= treeEnd);
+        auto applyData = trees.GetApplyData();
+        Y_ASSERT(applyData->TreeFirstLeafOffsets.size() >= treeEnd);
         CB_ENSURE(treeLeafIndexes.size() == docCount * treeCount,
                   "`treeLeafIndexes` size is insufficient: "
                       LabeledOutput(treeLeafIndexes.size(), docCount * treeCount));
@@ -202,6 +206,7 @@ namespace NCB::NModelEvaluation {
                 [&](size_t docCountInBlock, const TCPUEvaluatorQuantizedData* quantizedData) {
                     calcTrees(
                         trees,
+                        *applyData,
                         quantizedData,
                         docCountInBlock,
                         indexesWritePtr,
@@ -226,6 +231,7 @@ namespace NCB::NModelEvaluation {
             [&](size_t docCountInBlock, const TCPUEvaluatorQuantizedData* quantizedData) {
                 calcTrees(
                     trees,
+                    *applyData,
                     quantizedData,
                     docCountInBlock,
                     transposedLeafIndexesPtr,

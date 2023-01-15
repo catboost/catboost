@@ -120,7 +120,8 @@ static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& mo
     const auto weights = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
     const auto treeSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
     const int approxDimension = model.ModelTrees->GetDimensionsCount();
-    auto leafOffsetPtr = model.ModelTrees->GetFirstLeafOffsets();
+    auto applyData = model.ModelTrees->GetApplyData();
+    auto leafOffsetPtr = applyData->TreeFirstLeafOffsets.data();
     for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
         double weightSumInTree = 0;
         const size_t offset = leafOffsetPtr[treeIdx] / approxDimension;
