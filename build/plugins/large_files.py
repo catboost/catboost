@@ -7,14 +7,22 @@ PLACEHOLDER_EXT = "external"
 
 def onlarge_files(unit, *args):
     """
-        @usage LARGE_FILES(Files...)
+        @usage LARGE_FILES([AUTOUPDATED] Files...)
 
-        Use alrge file ether from working copy or from remote storage via placeholder <File>.remote
-        If <File> is presemt locally (and not a symlink!) it will be copied to build directory.
-        Otherwise macro will try to locate <File>.remote, parse it retrieve ot during build phase.
+        Use large file ether from working copy or from remote storage via placeholder <File>.external
+        If <File> is present locally (and not a symlink!) it will be copied to build directory.
+        Otherwise macro will try to locate <File>.external, parse it retrieve ot during build phase.
     """
     args = list(args)
+
+    if args and args[0] == 'AUTOUPDATED':
+        args = args[1:]
+
     for arg in args:
+        if arg == 'AUTOUPDATED':
+            unit.message(["warn", "Please set AUTOUPDATED argument before other file names"])
+            continue
+
         src = unit.resolve_arc_path(arg)
         if src.startswith("$S"):
             msg = "Used local large file {}. Don't forget to run 'ya upload --update-external' and commit {}.{}".format(src, src, PLACEHOLDER_EXT)
