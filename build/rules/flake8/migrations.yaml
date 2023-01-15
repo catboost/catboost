@@ -1056,7 +1056,6 @@ migrations:
     - sandbox/projects/yabs/auto_supbs_2/lib/distribution_issue_processor
     - sandbox/projects/yabs/auto_supbs_2/lib/order_processor_lib
     - sandbox/projects/yabs/auto_supbs_2/lib/simple_issue_processor
-    - sandbox/projects/yabs/bases/YabsServerMakeBinBases/helpers
     - sandbox/projects/yabs/nanpu/tasks/DiffTask
     - sandbox/projects/yabs/qa/ammo_module/requestlog
     - sandbox/projects/yabs/qa/tasks/YabsBinarySearchHelper
@@ -1492,7 +1491,6 @@ migrations:
     - cloud/netinfra/rknfilter/yc_rkn_config_node
     - cmnt/tools/regression/request_classes
     - crypta/cm/services/quoter/bin/test
-    - cv/cbir_search/tools/similar_pool/scrape_serp_from_middle
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/augmenters
     - cv/short2long/nirvana/ut
     - cv/short2long/training/yt_calc_factors
@@ -1500,13 +1498,8 @@ migrations:
     - datalens/backend/bi-billing
     - datalens/backend/bi-billing/bi_billing
     - datalens/backend/bi-billing/bi_billing/resources
-    - datalens/backend/bi-billing/tests/db
     - datalens/backend/dls
     - datalens/backend/dls/yadls
-    - datalens/backend/dls/yadls/logging
-    - datalens/backend/sqlalchemy-statface-api
-    - datalens/backend/sqlalchemy-statface-api/sqlalchemy_statface_api
-    - datalens/backend/sqlalchemy-statface-api/tests
     - devtools/contrib/statistics/auto_import
     - devtools/distbuild/dejavu/cache_requester/client/py
     - devtools/local_cache/ac/tests/perfac
@@ -1730,7 +1723,6 @@ migrations:
     - modadvert/programs/white_list_spam_client/libs
     - modadvert/tools/accept_campaigns
     - mssngr/botfarm/src/bot
-    - mssngr/botplatform/src/bots/api
     - mssngr/tools/tests
     - music/analytics/jam-sox/music_lib/financial_reports/tests/unit
     - music/tools/download-info
@@ -2805,8 +2797,6 @@ migrations:
     ignore:
     - F541
     prefixes:
-    - datalens/backend/bi-common
-    - datalens/backend/bi-common/bicommon
     - education/media_platform/services/api/it
     - education/schoolbook/analytics/ml/boosting/lib
     - education/schoolbook/analytics/ml/boosting/ut
@@ -3097,7 +3087,6 @@ migrations:
     - cv/imgclassifiers/framework/nirvana/runners/yt_runner/ut
     - cv/short2long/nirvana/ut
     - cv/verticals/auto_ru/reconstruct_360/lib
-    - datalens/backend/bi-billing/tests/db
     - devtools/ya/test/tests/go
     - dict/lm/ngrams/tools/build_ngrams/test/with_yql
     - dict/lm/sources/tools/parse_logs/test
@@ -3161,7 +3150,6 @@ migrations:
     - market/idx/tools/subzero
     - market/pylibrary/async_publishing/tests
     - mds/mastermind/mastermind-cache/tests/http_tests/drooz_like_server
-    - mds/nscfg/server
     - mds/walle_cms/cms/lib/tests
     - metrika/admin/python/bishop/frontend/bishop
     - metrika/core/programs/mobile-giga-events-writer/tests/functional
