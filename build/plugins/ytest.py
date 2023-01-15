@@ -427,43 +427,6 @@ def onadd_ytest(unit, *args):
         save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
-# TODO remove ADD_TEST macro support
-def onadd_test(unit, *args):
-    flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
-                                                     "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
-    test_type = flat_args[0]
-    test_files = flat_args[1:]
-    if test_type in ["PEP8", "PY_FLAKES"]:
-        unit.message(['warn', 'ADD_TEST(PEP8|PY_FLAKES) is no longer supported'])
-        return
-
-    custom_deps = spec_args.get('DEPENDS', [])
-    timeout = spec_args.get("TIMEOUT", [])
-    if timeout:
-        timeout = timeout[0]
-    else:
-        timeout = '0'
-    fork_mode = []
-    if 'FORK_SUBTESTS' in spec_args:
-        fork_mode.append('subtests')
-    if 'FORK_TESTS' in spec_args:
-        fork_mode.append('tests')
-    fork_mode = fork_mode or spec_args.get('FORK_MODE', [])
-    split_factor = ''.join(spec_args.get('SPLIT_FACTOR', [])) or ''
-    test_size = ''.join(spec_args.get('SIZE', [])) or 'SMALL'
-    test_dir = unit.path()
-    tags = _get_test_tags(unit, spec_args)
-    requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = spec_args.get("DATA", []) + get_norm_paths(unit, 'TEST_DATA_VALUE')
-    python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
-    if test_type == "PY_TEST":
-        old_pytest = True
-    else:
-        old_pytest = False
-
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, None, old_pytest)
-
-
 def onadd_check(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
                                                      "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
