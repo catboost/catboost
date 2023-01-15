@@ -1342,7 +1342,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #define _LIBCPP_HAS_NO_BUILTIN_ADDRESSOF
 #endif
 
-#if !__has_builtin(__builtin_is_constant_evaluated) && _GNUC_VER < 900
+#if !__has_builtin(__builtin_is_constant_evaluated) && _GNUC_VER < 900 || __CUDACC_VER_MAJOR__ == 10
 #define _LIBCPP_HAS_NO_BUILTIN_IS_CONSTANT_EVALUATED
 #endif
 
