@@ -453,7 +453,7 @@ void TNlpParser::Execute(const wchar16* text, size_t len, const wchar16** textSt
                 data = Buffer.Data();
                 dest = data;
                 const size_t n = p - text;
-                TCharTraits<wchar16>::copy(dest, text, n);
+                std::char_traits<wchar16>::copy(dest, text, n);
                 dest += n;
             }
 
@@ -500,7 +500,7 @@ void TNlpParser::Execute(const wchar16* text, size_t len, const wchar16** textSt
                 // UTF8 is bad or too short (for example: %action-%61%62%63)
                 // copy text as is:
                 size_t n = p - start;
-                TCharTraits<wchar16>::copy(dest, start, n);
+                std::char_traits<wchar16>::copy(dest, start, n);
                 dest += n;
             }
         } else if (dest)

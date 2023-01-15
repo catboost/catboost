@@ -55,7 +55,7 @@ public:
 
 private:
     void TestCase(const wchar16* s1, const char* s2, bool backwardCompatible = true, bool spacePreserve = false, bool urlDecode = true, const TString* origLensStr = nullptr) {
-        TestCase(s1, TCharTraits<wchar16>::length(s1), s2, backwardCompatible, spacePreserve, urlDecode, origLensStr);
+        TestCase(s1, std::char_traits<wchar16>::length(s1), s2, backwardCompatible, spacePreserve, urlDecode, origLensStr);
     }
     void TestCase(const wchar16* s1, size_t n1, const char* s2, bool backwardCompatible = true, bool spacePreserve = false, bool urlDecode = true, const TString* origLensStr = nullptr);
 };
