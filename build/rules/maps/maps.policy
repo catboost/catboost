@@ -63,7 +63,7 @@ ALLOW taxi/antifraud/mult_id -> maps/libs/geolib
 ALLOW taxi/graph/external/graph2/tests/mapmatcher -> maps/libs/mms
 ALLOW taxi/graph/external/graph2/tests/mapmatcher -> maps/libs/mms
 ALLOW taxi/graph/libs/easyview_helpers -> maps/analyzer/libs/common
-ALLOW taxi/graph/libs/easyview_helpers -> maps/tools/easyview/lib
+ALLOW taxi/graph/libs/easyview_helpers -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/libs/graph -> maps/analyzer/libs/data
 ALLOW taxi/graph/libs/graph -> maps/analyzer/libs/graphmatching
 ALLOW taxi/graph/libs/graph -> maps/libs/common
@@ -79,7 +79,7 @@ ALLOW taxi/graph/libs/graph -> maps/libs/snap
 ALLOW taxi/graph/libs/graph -> maps/libs/succinct_rtree/serialization
 ALLOW taxi/graph/libs/graph -> maps/routing/common
 ALLOW taxi/graph/libs/graph -> maps/routing/turn_penalties
-ALLOW taxi/graph/libs/graph -> maps/tools/easyview/lib
+ALLOW taxi/graph/libs/graph -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/libs/graph-test -> maps/libs/geolib
 ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/common
 ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/data
@@ -96,7 +96,7 @@ ALLOW taxi/graph/libs/mapmatcher -> maps/libs/snap
 ALLOW taxi/graph/libs/mapmatcher -> maps/libs/succinct_rtree/serialization
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/common
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/turn_penalties
-ALLOW taxi/graph/libs/mapmatcher -> maps/tools/easyview/lib
+ALLOW taxi/graph/libs/mapmatcher -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/common
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/graph-spatial
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/router
@@ -106,7 +106,7 @@ ALLOW taxi/graph/libs/nearest_edges -> maps/libs/road_graph
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/road_graph/serialization
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/snap
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/succinct_rtree/serialization
-ALLOW taxi/graph/libs/nearest_edges -> maps/tools/easyview/lib
+ALLOW taxi/graph/libs/nearest_edges -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/libs/predict -> maps/analyzer/libs/common
 ALLOW taxi/graph/libs/probmatching -> maps/analyzer/libs/mapmatching
 ALLOW taxi/graph/libs/routing -> maps/libs/common
@@ -127,7 +127,7 @@ ALLOW taxi/graph/libs/tests/nearest_edges -> maps/libs/jams/static-graph
 ALLOW taxi/graph/libs/tests/routing -> maps/libs/road_graph
 ALLOW taxi/graph/tools/bench-nearest-edges -> maps/libs/jams/static-graph
 ALLOW taxi/graph/tools/bench-nearest-edges -> maps/libs/road_graph
-ALLOW taxi/graph/tools/find-one-way-gates -> maps/tools/easyview/lib
+ALLOW taxi/graph/tools/find-one-way-gates -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/analyzer/libs/track_generator
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/libs/mms
 ALLOW taxi/graph/tools/lib -> maps/libs/road_graph
