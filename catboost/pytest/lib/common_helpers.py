@@ -152,7 +152,7 @@ def generate_random_labeled_dataset(
                 value = features_range[0] + (features_range[1] - features_range[0]) * (v1 / features_density)
             features[sample_idx, feature_idx] = features_dtype(value)
 
-    labels = [random.choice(labels) for i in range(n_samples)]
+    labels = [random.choice(labels) for _ in range(n_samples)]
 
     return (features, labels)
 
@@ -245,7 +245,7 @@ def compare_metrics_with_diff(custom_metric, fit_eval, calc_eval, eps=1e-7):
     head_fit = next(csv_fit)
     head_calc = next(csv_calc)
 
-    if isinstance(custom_metric, basestring):
+    if isinstance(custom_metric, str):
         custom_metric = [custom_metric]
 
     for metric_name in deepcopy(custom_metric):
@@ -335,10 +335,11 @@ def load_dataset_as_dataframe(data_file, columns_metadata, has_header=False):
     df = read_csv(
         data_file,
         sep='\t',
-        names=columns_metadata['column_names'],
-        dtype=columns_metadata['column_dtypes'],
-        skiprows=1 if has_header else 0
+        header=1 if has_header else None
     )
+
+    df.columns = columns_metadata['column_names']
+    df = df.astype(columns_metadata['column_dtypes'])
 
     result = {}
     result['target'] = df.iloc[:, columns_metadata['column_type_to_indices']['Label'][0]].values

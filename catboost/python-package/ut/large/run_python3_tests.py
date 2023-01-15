@@ -57,7 +57,7 @@ def test(py_ver, case):
             env=python_env,
             cwd=yatest.common.test_output_path()
         )
-    except yatest.common.process.ExecutionError, e:
+    except yatest.common.process.ExecutionError as e:
         stdout = e.execution_result.std_out
         stderr = e.execution_result.std_err
         assert 0, "python%s: %s\n%s\n%s" % (py_ver, case, stdout, stderr)

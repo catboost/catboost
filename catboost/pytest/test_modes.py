@@ -101,7 +101,7 @@ class TestModeNormalizeModel(object):
         return model_with_set_scale_bias
 
     def get_minmax(self, eval_result):
-        data = map(float, open(eval_result).readlines()[1:])
+        data = list(map(float, open(eval_result).readlines()[1:]))
         return min(data), max(data)
 
     @pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty'])

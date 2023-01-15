@@ -330,7 +330,7 @@ def test_multiregression_target_permutation_invariance(boosting_type, n_trees, t
 
     evals = []
     for perm in permutations(range(target_count)):
-        inv_perm = range(target_count)
+        inv_perm = list(range(target_count))
         for i, j in enumerate(perm):
             inv_perm[j] = i
 
@@ -3706,7 +3706,7 @@ def test_classification_progress_restore(boosting_type):
         import shutil
         import string
         letters = string.ascii_lowercase
-        train_random_name = ''.join(random.choice(letters) for i in xrange(8))
+        train_random_name = ''.join(random.choice(letters) for i in range(8))
         shutil.copy(data_file('adult', 'train_small'), train_random_name)
         cmd = [
             '--loss-function', 'Logloss',
@@ -6263,7 +6263,7 @@ def fit_calc_cksum(fit_stem, calc_stem, test_shuffles):
             '-m', model_path,
             '--output-path', eval_path,
         ))
-        cksum = hashlib.md5(open(eval_path).read()).hexdigest()
+        cksum = hashlib.md5(open(eval_path, 'rb').read()).hexdigest()
         if last_cksum is None:
             last_cksum = cksum
             continue
@@ -9330,13 +9330,13 @@ def test_text_processing_options(dictionaries, loss_function):
     test_eval_path = yatest.common.test_output_path('test.eval')
     calc_eval_path = yatest.common.test_output_path('calc.eval')
 
-    dictionaries = ','.join([key + ':' + value for key, value in dictionaries.items()])
+    dictionaries = ','.join([key + ':' + value for key, value in sorted(dictionaries.items())])
     feature_estimators = 'BM25,BoW,NaiveBayes'
 
     pool_name = 'rotten_tomatoes'
     test_file = data_file(pool_name, 'test')
     cd_file = data_file(pool_name, 'cd')
-    cmd = (
+    cmd = [
         '--loss-function', loss_function,
         '--eval-metric', 'Accuracy',
         '-f', data_file(pool_name, 'train'),
@@ -9353,7 +9353,7 @@ def test_text_processing_options(dictionaries, loss_function):
         '--eval-file', test_eval_path,
         '--output-columns', 'RawFormulaVal',
         '--use-best-model', 'false',
-    )
+    ]
     execute_catboost_fit('CPU', cmd)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])

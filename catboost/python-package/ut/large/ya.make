@@ -1,6 +1,6 @@
 
 
-PY2TEST()
+PY3TEST()
 
 SIZE(LARGE)
 TAG(ya:dirty ya:fat ya:force_sandbox ya:nofuse)

@@ -5,7 +5,7 @@ import tempfile
 import time
 import yatest.common
 import yatest.common.network
-from common_helpers import *  # noqa
+from .common_helpers import *  # noqa
 import zipfile
 
 from testpath.tempdir import TemporaryDirectory
