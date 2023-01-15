@@ -970,7 +970,6 @@ migrations:
     - yql/tools/docs/wiki2markdown
     - yql/tools/mrjob/test
     - yql/tools/qplayer
-    - yt/yt/tests/integration/tests
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/analyze_yt_ops
     - yweb/antiporno/cp_conv/prepare_suggestive_cp_img_basket
