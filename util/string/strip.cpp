@@ -7,7 +7,7 @@ bool Collapse(const TString& from, TString& to, size_t maxLen) {
 
 void CollapseText(const TString& from, TString& to, size_t maxLen) {
     Collapse(from, to, maxLen);
-    Strip(to);
+    StripInPlace(to);
     if (to.size() >= maxLen) {
         to.remove(maxLen - 5); // " ..."
         to.reverse();
