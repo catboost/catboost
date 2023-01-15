@@ -545,3 +545,7 @@
 - source_filter: "^speechkit/libs/spotter"
   includes:
     - threads.h: speechkit/libs/spotter/c11-threads/threads.h
+
+- source_filter: "^voicetech/spotter/embedded"
+  includes:
+    - threads.h: speechkit/libs/spotter/c11-threads/threads.h
