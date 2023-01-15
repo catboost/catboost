@@ -5,6 +5,7 @@
 #include <catboost/private/libs/distributed/worker.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/logging/logging.h>
@@ -34,10 +35,12 @@ void RunWorker(
 
     NJson::TJsonValue plainJsonParams;
     NJson::ReadJsonTree(plainJsonParamsAsString, &plainJsonParams, /*throwOnError*/ true);
+    ConvertIgnoredFeaturesFromStringToIndices(trainDataProvider->MetaInfo, &plainJsonParams);
 
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputJsonOptions;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &catBoostJsonOptions, &outputJsonOptions);
+    ConvertParamsToCanonicalFormat(trainDataProvider->MetaInfo, &catBoostJsonOptions);
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
     catBoostOptions.Load(catBoostJsonOptions);
