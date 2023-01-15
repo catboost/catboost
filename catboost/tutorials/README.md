@@ -51,6 +51,9 @@ It's better to start CatBoost exploring from this basic tutorials.
 * [Feature statistics tutorial](model_analysis/feature_statistics_tutorial.ipynb)
     * This tutorial shows how to calculate feature statistics for catboost model.
 
+* [CatBoost PredictionDiff Feature Importance Tutorial](./prediction_diff_feature_importance_tutorial.ipynb)
+    * This tutorials shows how to use PredictionDiff feature importances.
+
 ## Custom loss
 
 * [Custom Metrics Tutorial](custom_loss/custom_metric_tutorial.md)

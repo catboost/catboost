@@ -14,3 +14,6 @@
 
 * [Feature statistics tutorial](./feature_statistics_tutorial.ipynb)
     * This tutorial shows how to calculate feature statistics for catboost model.
+
+* [CatBoost PredictionDiff Feature Importance Tutorial](./prediction_diff_feature_importance_tutorial.ipynb)
+    * This tutorials shows how to use PredictionDiff feature importances.
