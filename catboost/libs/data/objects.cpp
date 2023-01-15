@@ -1297,7 +1297,7 @@ void NCB::DbgDumpQuantizedFeatures(
                     for (auto i : xrange(block.size())) {
                         auto objectIdx = i + blockStartOffset;
                         (*out) << "(floatFeature=" << *floatFeatureIdx << ',' << LabeledOutput(objectIdx)
-                            << ").bin=" << ui32(block[objectIdx]) << Endl;
+                            << ").bin=" << ui32(block[i]) << Endl;
                     }
                 }
             );
@@ -1311,7 +1311,7 @@ void NCB::DbgDumpQuantizedFeatures(
                     for (auto i : xrange(block.size())) {
                         auto objectIdx = i + blockStartOffset;
                         (*out) << "(catFeature=" << *catFeatureIdx << ',' << LabeledOutput(objectIdx)
-                            << ").bin=" << ui32(block[objectIdx]) << Endl;
+                            << ").bin=" << ui32(block[i]) << Endl;
                     }
                 }
             );
