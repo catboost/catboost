@@ -51,11 +51,11 @@ def test_indent(rootlogger):
 
 def test_readable_output_dictargs(rootlogger):
 
-    out = rootlogger.format_message(["test"], [1])
-    assert out == ["1 [test]\n"]
+    out = rootlogger._format_message(["test"], [1])
+    assert out == "1 [test]\n"
 
-    out2 = rootlogger.format_message(["test"], ["test", {"a": 1}])
-    assert out2 == ["test [test]\n", "    a: 1\n"]
+    out2 = rootlogger._format_message(["test"], ["test", {"a": 1}])
+    assert out2 == "test [test]\n    a: 1\n"
 
 
 def test_setprocessor(rootlogger):
@@ -76,18 +76,3 @@ def test_setprocessor(rootlogger):
     log2("seen")
     tags, args = l2[0]
     assert args == ("seen",)
-
-
-def test_setmyprocessor(rootlogger):
-    log = rootlogger.get("1")
-    log2 = log.get("2")
-    out = []
-    log2.setmyprocessor(lambda *args: out.append(args))
-    log("not seen")
-    assert not out
-    log2(42)
-    assert len(out) == 1
-    tags, args = out[0]
-    assert "1" in tags
-    assert "2" in tags
-    assert args == (42,)

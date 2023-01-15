@@ -1,19 +1,18 @@
 """
 Tracing utils
 """
-from .callers import _Result
 
 
 class TagTracer(object):
     def __init__(self):
-        self._tag2proc = {}
-        self.writer = None
+        self._tags2proc = {}
+        self._writer = None
         self.indent = 0
 
     def get(self, name):
         return TagTracerSub(self, (name,))
 
-    def format_message(self, tags, args):
+    def _format_message(self, tags, args):
         if isinstance(args[-1], dict):
             extra = args[-1]
             args = args[:-1]
@@ -27,26 +26,28 @@ class TagTracer(object):
 
         for name, value in extra.items():
             lines.append("%s    %s: %s\n" % (indent, name, value))
-        return lines
 
-    def processmessage(self, tags, args):
-        if self.writer is not None and args:
-            lines = self.format_message(tags, args)
-            self.writer("".join(lines))
+        return "".join(lines)
+
+    def _processmessage(self, tags, args):
+        if self._writer is not None and args:
+            self._writer(self._format_message(tags, args))
         try:
-            self._tag2proc[tags](tags, args)
+            processor = self._tags2proc[tags]
         except KeyError:
             pass
+        else:
+            processor(tags, args)
 
     def setwriter(self, writer):
-        self.writer = writer
+        self._writer = writer
 
     def setprocessor(self, tags, processor):
         if isinstance(tags, str):
             tags = tuple(tags.split(":"))
         else:
             assert isinstance(tags, tuple)
-        self._tag2proc[tags] = processor
+        self._tags2proc[tags] = processor
 
 
 class TagTracerSub(object):
@@ -55,29 +56,7 @@ class TagTracerSub(object):
         self.tags = tags
 
     def __call__(self, *args):
-        self.root.processmessage(self.tags, args)
-
-    def setmyprocessor(self, processor):
-        self.root.setprocessor(self.tags, processor)
+        self.root._processmessage(self.tags, args)
 
     def get(self, name):
         return self.__class__(self.root, self.tags + (name,))
-
-
-class _TracedHookExecution(object):
-    def __init__(self, pluginmanager, before, after):
-        self.pluginmanager = pluginmanager
-        self.before = before
-        self.after = after
-        self.oldcall = pluginmanager._inner_hookexec
-        assert not isinstance(self.oldcall, _TracedHookExecution)
-        self.pluginmanager._inner_hookexec = self
-
-    def __call__(self, hook, hook_impls, kwargs):
-        self.before(hook.name, hook_impls, kwargs)
-        outcome = _Result.from_call(lambda: self.oldcall(hook, hook_impls, kwargs))
-        self.after(outcome, hook.name, hook_impls, kwargs)
-        return outcome.get_result()
-
-    def undo(self):
-        self.pluginmanager._inner_hookexec = self.oldcall

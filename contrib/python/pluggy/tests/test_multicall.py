@@ -1,20 +1,11 @@
 import pytest
 from pluggy import HookCallError, HookspecMarker, HookimplMarker
 from pluggy.hooks import HookImpl
-from pluggy.callers import _multicall, _legacymulticall, _LegacyMultiCall
+from pluggy.callers import _multicall, _legacymulticall
 
 
 hookspec = HookspecMarker("example")
 hookimpl = HookimplMarker("example")
-
-@pytest.mark.skip
-def test_uses_copy_of_methods():
-    out = [lambda: 42]
-    mc = _LegacyMultiCall(out, {})
-    repr(mc)
-    out[:] = []
-    res = mc.execute()
-    return res == 42
 
 
 def MC(methods, kwargs, firstresult=False):

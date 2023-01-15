@@ -2,11 +2,17 @@ PY23_LIBRARY()
 
 
 
-VERSION(0.9.0)
+VERSION(0.13.1)
 
 LICENSE(MIT)
 
 NO_LINT()
+
+IF (PYTHON2)
+    PEERDIR(
+        contrib/python/importlib-metadata
+    )
+ENDIF()
 
 PY_SRCS(
     TOP_LEVEL
