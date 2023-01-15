@@ -18,12 +18,6 @@ ADDINCL(
     GLOBAL contrib/libs/cxxsupp/libcxxrt
 )
 
-IF (CLANG OR USE_LTO)
-    PEERDIR(
-        contrib/libs/cxxsupp/builtins
-    )
-ENDIF ()
-
 NO_RUNTIME()
 NO_COMPILER_WARNINGS()
 
