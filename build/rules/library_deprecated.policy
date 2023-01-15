@@ -2,3 +2,9 @@ ALLOW kernel/geo -> library/cpp/deprecated/small_array
 ALLOW ysite/yandex/clicks -> library/cpp/deprecated/small_array
 ALLOW ysite/yandex/indexuser -> library/cpp/deprecated/small_array
 DENY .* -> library/cpp/deprecated/small_array
+ALLOW jupytercloud/arcadia_kernel -> library/python/clickhouse_client
+ALLOW market/idx/export/mbi_qdata_reporter/bin -> library/python/clickhouse_client
+ALLOW sandbox/projects/oko -> library/python/clickhouse_client
+ALLOW statbox/python-statinfra -> library/python/clickhouse_client
+ALLOW quality/ab_testing/cofe/bin/lib/files/cofe_kernel_yql -> library/python/clickhouse_client
+DENY .* -> library/python/clickhouse_client
