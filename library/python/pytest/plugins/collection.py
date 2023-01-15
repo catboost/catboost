@@ -73,9 +73,8 @@ def pytest_ignore_collect(module, session, filenames_from_full_filters, accept_f
     test_file_filter = getattr(session.config.option, 'test_file_filter', None)
     if test_file_filter is None:
         return False
-    for filename in test_file_filter:  # in test_file_filter may be only one filename
-        if module.name != filename.replace("/", "."):
-            return True
+    if module.name != test_file_filter.replace("/", "."):
+        return True
     return False
 
 
