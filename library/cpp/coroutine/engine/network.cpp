@@ -51,7 +51,7 @@ namespace NCoro {
         for (auto i : xrange(nfds)) {
             cont->Executor()->ScheduleIoWait(events.Data() + i);
         }
-        cont->SwitchTo(cont->Executor()->SchedContext());
+        cont->Switch();
 
         if (cont->Cancelled()) {
             return ECANCELED;
