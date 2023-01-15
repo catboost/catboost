@@ -33,6 +33,7 @@ namespace {
             }
 
             void DoExecute() override {
+                TThread::SetCurrentThreadName("NehTFunc");
                 TVersionedServiceMap mp;
                 while (true) {
                     IRequestRef req = Parent->RQ_->Next();

@@ -3,6 +3,7 @@
 #include "asio.h"
 
 #include <util/thread/factory.h>
+#include <util/system/thread.h>
 
 namespace NAsio {
     class TIOServiceExecutor: public IThreadFactory::IThreadAble {
@@ -18,6 +19,7 @@ namespace NAsio {
         }
 
         void DoExecute() override {
+            TThread::SetCurrentThreadName("NehAsioExecutor");
             Srv_.Run();
         }
 
