@@ -18,8 +18,6 @@ PEERDIR(
     library/python/windows
 )
 
-NO_LINT()
-
 END()
 
 RECURSE_FOR_TESTS(test)

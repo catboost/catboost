@@ -32,6 +32,4 @@ PEERDIR(
     library/python/fs
 )
 
-NO_LINT()
-
 END()
