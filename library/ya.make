@@ -11,8 +11,6 @@ RECURSE(
     chromium_trace/benchmark
     chromium_trace/examples
     chromium_trace/ut
-    comptrie
-    comptrie/loader
     cpp
     dns
     dns/ut
