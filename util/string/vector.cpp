@@ -53,7 +53,7 @@ static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar
     }
 
     if (*(delim + 1)) {
-        TStringDelimiter<const TChr> d(delim, std::char_traits<TChr>::length(delim));
+        TStringDelimiter<const TChr> d(delim, TCharTraits<TChr>::length(delim));
 
         DoSplit0(res, str, d, maxFields, options);
     } else {

@@ -1,41 +1,12 @@
 #pragma once
 
-// Some of these includes are just a legacy from previous implementation.
-// We don't need them here, but removing them is tricky because it breaks all
-// kinds of builds downstream
-#include "mem_copy.h"
-#include "ptr.h"
-#include "utility.h"
-
-#include <util/charset/unidata.h>
-#include <util/system/platform.h>
+#include <string_view>
 #include <util/system/yassert.h>
 
-#include <contrib/libs/libc_compat/string.h>
+#include "chartraits.h"
+#include "utility.h"
 
-#include <cctype>
-#include <cstring>
-#include <string>
-#include <string_view>
-
-
-namespace NStringPrivate {
-    template <class TCharType>
-    size_t GetStringLengthWithLimit(const TCharType* s, size_t maxlen) {
-        Y_ASSERT(s);
-        size_t i = 0;
-        for (; i != maxlen && s[i]; ++i)
-            ;
-        return i;
-    }
-
-    inline size_t GetStringLengthWithLimit(const char* s, size_t maxlen) {
-        Y_ASSERT(s);
-        return strnlen(s, maxlen);
-    }
-}
-
-template <typename TDerived, typename TCharType, typename TTraitsType = std::char_traits<TCharType>>
+template <typename TDerived, typename TCharType, typename TTraitsType = TCharTraits<TCharType>>
 class TStringBase {
     using TStringView = std::basic_string_view<TCharType>;
     using TStringViewWithTraits = std::basic_string_view<TCharType, TTraitsType>;

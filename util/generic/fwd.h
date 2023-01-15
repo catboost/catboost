@@ -4,17 +4,18 @@
 
 #include <stlfwd>
 
+//strings
 template <class TCharType>
-using TCharTraits = std::char_traits<TCharType>;
+class TCharTraits;
 
-template <typename TCharType, typename TTraits = std::char_traits<TCharType>>
+template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
 class TBasicString;
 
 using TString = TBasicString<char>;
 using TUtf16String = TBasicString<wchar16>;
 using TUtf32String = TBasicString<wchar32>;
 
-template <typename TCharType, typename TTraits = std::char_traits<TCharType>>
+template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
 class TBasicStringBuf;
 
 using TStringBuf = TBasicStringBuf<char>;

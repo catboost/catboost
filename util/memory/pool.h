@@ -7,10 +7,9 @@
 #include <util/generic/bitops.h>
 #include <util/generic/utility.h>
 #include <util/generic/intrlist.h>
+#include <util/generic/chartraits.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/singleton.h>
-
-#include <string>
 #include <utility>
 
 /**
@@ -206,14 +205,14 @@ public:
 
     template <typename TChar>
     inline TChar* Append(const TChar* str) {
-        return Append(str, std::char_traits<TChar>::length(str) + 1); // include terminating zero byte
+        return Append(str, TCharTraits<TChar>::length(str) + 1); // include terminating zero byte
     }
 
     template <typename TChar>
     inline TChar* Append(const TChar* str, size_t len) {
         TChar* ret = static_cast<TChar*>(Allocate(len * sizeof(TChar)));
 
-        std::char_traits<TChar>::copy(ret, str, len);
+        TCharTraits<TChar>::copy(ret, str, len);
 
         return ret;
     }
@@ -227,7 +226,7 @@ public:
     inline TBasicStringBuf<TChar> AppendCString(const TBasicStringBuf<TChar>& buf) {
         TChar* ret = static_cast<TChar*>(Allocate((buf.size() + 1) * sizeof(TChar)));
 
-        std::char_traits<TChar>::copy(ret, buf.data(), buf.size());
+        TCharTraits<TChar>::copy(ret, buf.data(), buf.size());
         *(ret + buf.size()) = 0;
         return TBasicStringBuf<TChar>(ret, buf.size());
     }

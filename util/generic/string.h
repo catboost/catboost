@@ -13,6 +13,7 @@
 #include <util/system/atomic.h>
 
 #include "utility.h"
+#include "chartraits.h"
 #include "bitops.h"
 #include "explicit_type.h"
 #include "reserve.h"
@@ -1403,7 +1404,7 @@ private:
     TBasicString& replace(size_t pos, size_t del, const TCharType* pc, size_t pos1, size_t ins, size_t len1) {
         size_t len = length();
         // 'pc' can point to a single character that is not null terminated, so in this case TTraits::length must not be called
-        len1 = pc ? (len1 == TBase::npos ? (ins == TBase::npos ? TTraits::length(pc) : NStringPrivate::GetStringLengthWithLimit(pc, ins + pos1)) : len1) : 0;
+        len1 = pc ? (len1 == TBase::npos ? (ins == TBase::npos ? TTraits::length(pc) : TTraits::GetLength(pc, ins + pos1)) : len1) : 0;
 
         pos = Min(pos, len);
         pos1 = Min(pos1, len1);
