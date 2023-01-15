@@ -61,6 +61,10 @@ struct TOneLineReader final : public ILineDataReader {
             return true;
         }
     }
+
+    bool ReadLine(TString*, TString*) override {
+        Y_UNREACHABLE();
+    }
 private:
     TMaybe<TString> Header;
     TString DataLine;
