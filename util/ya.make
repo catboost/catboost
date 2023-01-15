@@ -13,6 +13,7 @@ PEERDIR(
     util/charset
     contrib/libs/zlib
     contrib/libs/double-conversion
+    contrib/restricted/murmurhash
 )
 
 PEERDIR(
