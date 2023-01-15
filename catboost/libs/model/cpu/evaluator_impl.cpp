@@ -471,6 +471,9 @@ namespace NCB::NModelEvaluation {
         const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
         const TNonSymmetricTreeStepNode* treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
         std::fill(indexesVec + firstDocId, indexesVec + docCountInBlock, trees.GetModelTreeData()->GetTreeStartOffsets()[treeId]);
+        if (binFeatures == nullptr) {
+            return;
+        }
         size_t countStopped = 0;
         while (countStopped != docCountInBlock - firstDocId) {
             countStopped = 0;
@@ -509,7 +512,8 @@ namespace NCB::NModelEvaluation {
             const ui32 treeStartIndex = trees.GetModelTreeData()->GetTreeStartOffsets()[treeId];
             __m128i* indexesVec = reinterpret_cast<__m128i*>(indexes);
             size_t docId = 0;
-            for (; docId + 8 <= docCountInBlock; docId += 8, indexesVec+=2) {
+            // handle special case of model containing only empty splits
+            for (; binFeaturesI != nullptr && docId + 8 <= docCountInBlock; docId += 8, indexesVec+=2) {
                 const ui8* __restrict binFeatures = binFeaturesI + docId;
                 __m128i index0 = _mm_set1_epi32(treeStartIndex);
                 __m128i index1 = _mm_set1_epi32(treeStartIndex);
@@ -717,9 +721,11 @@ namespace NCB::NModelEvaluation {
         const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
         const TNonSymmetricTreeStepNode* treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
         const auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
+        // handle special empty-model case when there is no any splits at all
+        const bool skipWork = quantizedData->QuantizedData.GetSize() == 0;
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
             index = trees.GetModelTreeData()->GetTreeStartOffsets()[treeId];
-            while (true) {
+            while (!skipWork) {
                 const auto* stepNode = treeStepNodes + index;
                 const TRepackedBin split = treeSplitsPtr[index];
                 ui8 featureValue = binFeatures[split.FeatureIndex];

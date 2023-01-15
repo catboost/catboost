@@ -537,22 +537,35 @@ void TModelTrees::CalcBinFeatures() {
     TVector<TRepackedBin> repackedBins;
 
     auto treeSplits = GetModelTreeData()->GetTreeSplits();
-    for (const auto& binSplit : treeSplits) {
-        const auto& feature = ref.BinFeatures[binSplit];
-        const auto& featureIndex = splitIds[binSplit];
-        Y_ENSURE(
-            featureIndex.FeatureIdx <= 0xffff,
-            "Too many features in model, ask catboost team for support"
-        );
-        TRepackedBin rb;
-        rb.FeatureIndex = featureIndex.FeatureIdx;
-        if (feature.Type != ESplitType::OneHotFeature) {
-            rb.SplitIdx = featureIndex.SplitIdx;
-        } else {
-            rb.XorMask = ((~featureIndex.SplitIdx) & 0xff);
-            rb.SplitIdx = 0xff;
+    // All the "trees" have no conditions, should treat them carefully
+    // Case only valid for nonsymmetric trees
+    if (splitIds.empty() && !treeSplits.empty()) {
+        for (const auto& binSplit : treeSplits) {
+            CB_ENSURE_INTERNAL(binSplit == 0, "expected 0 as empty nodes marker");
         }
-        repackedBins.push_back(rb);
+        CB_ENSURE_INTERNAL(
+            !IsOblivious(),
+            "Expected asymmetric trees: Split ids present and are zeroes, but there is no actual splits in model"
+        );
+        repackedBins.resize(treeSplits.size(), TRepackedBin{});
+    } else {
+        for (const auto& binSplit : treeSplits) {
+            const auto& feature = ref.BinFeatures[binSplit];
+            const auto& featureIndex = splitIds[binSplit];
+            Y_ENSURE(
+                featureIndex.FeatureIdx <= 0xffff,
+                "Too many features in model, ask catboost team for support"
+            );
+            TRepackedBin rb;
+            rb.FeatureIndex = featureIndex.FeatureIdx;
+            if (feature.Type != ESplitType::OneHotFeature) {
+                rb.SplitIdx = featureIndex.SplitIdx;
+            } else {
+                rb.XorMask = ((~featureIndex.SplitIdx) & 0xff);
+                rb.SplitIdx = 0xff;
+            }
+            repackedBins.push_back(rb);
+        }
     }
     RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>::CreateOwning(std::move(repackedBins));
 }
