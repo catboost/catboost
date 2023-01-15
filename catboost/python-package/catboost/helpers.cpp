@@ -112,6 +112,7 @@ TVector<double> EvalMetricsForUtils(
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<TGroupId>& groupId,
+    const TVector<float>& groupWeight,
     const TVector<TSubgroupId>& subgroupId,
     const TVector<TPair>& pairs,
     int threadCount
@@ -137,7 +138,7 @@ TVector<double> EvalMetricsForUtils(
         queriesInfo = *NCB::MakeGroupInfos(
             objectGrouping,
             subgroupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TSubgroupId>>(subgroupId),
-            NCB::TWeights(groupId.size()),
+            groupWeight.empty() ? NCB::TWeights(groupId.size()) : NCB::TWeights(TVector<float>(groupWeight)),
             pairs
         ).Get();
     }

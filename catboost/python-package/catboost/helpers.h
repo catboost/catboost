@@ -58,6 +58,7 @@ TVector<double> EvalMetricsForUtils(
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<TGroupId>& groupId,
+    const TVector<float>& groupWeight,
     const TVector<TSubgroupId>& subgroupId,
     const TVector<TPair>& pairs,
     int threadCount

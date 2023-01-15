@@ -956,6 +956,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TString& metricName,
         const TVector[float]& weight,
         const TVector[TGroupId]& groupId,
+        const TVector[float]& groupWeight,
         const TVector[TSubgroupId]& subgroup_id,
         const TVector[TPair]& pairs,
         int threadCount
@@ -5289,7 +5290,10 @@ cdef to_tvector(np.ndarray[double, ndim=1, mode="c"] x):
     return result
 
 
-cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, subgroup_id_param, pairs_param, thread_count):
+cpdef _eval_metric_util(
+    label_param, approx_param, metric, weight_param, group_id_param,
+    group_weight_param, subgroup_id_param, pairs_param, thread_count
+):
     if (len(label_param[0]) != len(approx_param[0])):
         raise CatBoostError('Label and approx should have same sizes.')
     doc_count = len(label_param[0]);
@@ -5318,6 +5322,12 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
         for i in range(doc_count):
             get_id_object_bytes_string_representation(group_id_param[i], &group_id_strbuf)
             group_id[i] = CalcGroupIdFor(<TStringBuf>group_id_strbuf)
+    
+    cdef TVector[float] group_weight
+    if group_weight_param is not None:
+        if (len(group_weight_param) != doc_count):
+            raise CatBoostError('Label and group weight should have same sizes.')
+        group_weight = to_tvector(np.array(group_weight_param, dtype='double').ravel())
 
     cdef TString subgroup_id_strbuf
 
@@ -5338,7 +5348,17 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
     thread_count = UpdateThreadCount(thread_count);
 
-    return EvalMetricsForUtils(<TConstArrayRef[TVector[float]]>(label), approx, to_arcadia_string(metric), weight, group_id, subgroup_id, pairs, thread_count)
+    return EvalMetricsForUtils(
+        <TConstArrayRef[TVector[float]]>(label),
+        approx,
+        to_arcadia_string(metric),
+        weight,
+        group_id,
+        group_weight,
+        subgroup_id,
+        pairs,
+        thread_count
+    )
 
 
 cpdef _get_confusion_matrix(model, pool, thread_count):
