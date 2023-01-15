@@ -6,7 +6,7 @@
 
     <groupId>ai.catboost</groupId>
     <artifactId>catboost-spark-aggregate_2.11</artifactId>
-    <version>0.25.1</version>
+    <version>0.26</version>
     <packaging>pom</packaging>
     <name>CatBoost for Apache Spark Aggregate project</name>
     <description>CatBoost for Apache Spark Aggregate project</description>
