@@ -27,8 +27,7 @@ public:
     }
 
 public:
-    Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION inline bool Empty() const noexcept {
         return (Prev_ == this) && (Next_ == this);
     }
 
@@ -358,8 +357,7 @@ public:
         return !Empty();
     }
 
-    Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION inline bool Empty() const noexcept {
         return End_.Empty();
     }
 
@@ -763,8 +761,7 @@ public:
         return !Empty();
     }
 
-    Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION inline bool Empty() const noexcept {
         return Begin_ == nullptr;
     }
 

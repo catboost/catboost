@@ -252,13 +252,11 @@ public:
         return *Dummy_;
     }
     /// for STL compatibility only, Empty() usage is recommended
-    Y_PURE_FUNCTION
-    bool empty() const noexcept {
+    Y_PURE_FUNCTION bool empty() const noexcept {
         return Empty();
     }
 
-    Y_PURE_FUNCTION
-    bool Empty() const noexcept {
+    Y_PURE_FUNCTION bool Empty() const noexcept {
         return 0 == Size_;
     }
     /// for STL compatibility only, Begin() usage is recommended

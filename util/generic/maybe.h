@@ -295,8 +295,7 @@ public:
         return this->Defined_;
     }
 
-    Y_PURE_FUNCTION
-    constexpr bool Empty() const noexcept {
+    Y_PURE_FUNCTION constexpr bool Empty() const noexcept {
         return !Defined();
     }
 

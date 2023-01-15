@@ -7,15 +7,13 @@
 extern "C" {
 #endif
 
-/*
+    /*
  * MurmurHash was written by Austin Appleby.
  * Forward declared here to avoid inclusions of contrib/restricted
  */
-Y_PURE_FUNCTION
-uint32_t MurmurHash2(const void * key, size_t len, uint32_t seed) noexcept;
+    Y_PURE_FUNCTION uint32_t MurmurHash2(const void* key, size_t len, uint32_t seed) noexcept;
 
-Y_PURE_FUNCTION
-uint64_t MurmurHash64A(const void* key, size_t len, uint64_t seed) noexcept;
+    Y_PURE_FUNCTION uint64_t MurmurHash64A(const void* key, size_t len, uint64_t seed) noexcept;
 
 #ifdef __cplusplus
 }

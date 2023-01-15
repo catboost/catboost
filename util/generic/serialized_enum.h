@@ -247,8 +247,7 @@ namespace NEnumSerializationRuntime {
                 return Ref.size();
             }
 
-            Y_PURE_FUNCTION
-            bool empty() const {
+            Y_PURE_FUNCTION bool empty() const {
                 return Ref.empty();
             }
 
@@ -371,8 +370,7 @@ namespace NEnumSerializationRuntime {
                 return Ref.size();
             }
 
-            Y_PURE_FUNCTION
-            bool empty() const {
+            Y_PURE_FUNCTION bool empty() const {
                 return Ref.empty();
             }
 
