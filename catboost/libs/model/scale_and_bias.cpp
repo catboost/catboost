@@ -26,12 +26,20 @@ void ApplyScaleAndBias(const TScaleAndBias& scaleAndBias, TArrayRef<double> data
         }
     } else { // isZeroBias = false && biasRef.size() > 1
         if (scaleAndBias.Scale != 1) {
-            for (size_t idx = 0; idx < data.size();) {
-                for (size_t dim = 0; dim < biasRef.size(); ++dim, ++idx) {
-                    data[idx] = scaleAndBias.Scale * data[idx] + biasRef[dim];
+            if (treeStart > 0) {
+                for (size_t idx = 0; idx < data.size();) {
+                    for (size_t dim = 0; dim < biasRef.size(); ++dim, ++idx) {
+                        data[idx] = scaleAndBias.Scale * data[idx];
+                    }
+                }
+            } else {
+                for (size_t idx = 0; idx < data.size();) {
+                    for (size_t dim = 0; dim < biasRef.size(); ++dim, ++idx) {
+                        data[idx] = scaleAndBias.Scale * data[idx] + biasRef[dim];
+                    }
                 }
             }
-        } else {
+        } else if (treeStart == 0) {
             for (size_t idx = 0; idx < data.size();) {
                 for (size_t dim = 0; dim < biasRef.size(); ++dim, ++idx) {
                     data[idx] += biasRef[dim];
