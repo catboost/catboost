@@ -208,6 +208,10 @@ void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
 #endif
     }
 }
+#elif defined(_win_) && defined(_32_)
+void __stdcall ContextTrampoLine(void* arg) {
+    Run(arg);
+}
 #else
 void ContextTrampoLine(void* arg) {
     Run(arg);
