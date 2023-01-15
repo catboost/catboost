@@ -1,4 +1,4 @@
-/*	$OpenBSD: queue.h,v 1.45 2018/07/12 14:22:54 sashan Exp $	*/
+/*	$OpenBSD: queue.h,v 1.46 2020/12/30 13:33:12 millert Exp $	*/
 /*	$NetBSD: queue.h,v 1.11 1996/05/16 05:17:14 mycroft Exp $	*/
 
 /*
@@ -530,5 +530,102 @@ struct {								\
 		TAILQ_INIT((head2));					\
 	}								\
 } while (0)
+
+/*
+ * Singly-linked Tail queue declarations.
+ */
+#define	STAILQ_HEAD(name, type)						\
+struct name {								\
+	struct type *stqh_first;	/* first element */		\
+	struct type **stqh_last;	/* addr of last next element */	\
+}
+
+#define	STAILQ_HEAD_INITIALIZER(head)					\
+	{ NULL, &(head).stqh_first }
+
+#define	STAILQ_ENTRY(type)						\
+struct {								\
+	struct type *stqe_next;	/* next element */			\
+}
+
+/*
+ * Singly-linked Tail queue access methods.
+ */
+#define	STAILQ_FIRST(head)	((head)->stqh_first)
+#define	STAILQ_END(head)	NULL
+#define	STAILQ_EMPTY(head)	(STAILQ_FIRST(head) == STAILQ_END(head))
+#define	STAILQ_NEXT(elm, field)	((elm)->field.stqe_next)
+
+#define STAILQ_FOREACH(var, head, field)				\
+	for ((var) = STAILQ_FIRST(head);				\
+	    (var) != STAILQ_END(head);					\
+	    (var) = STAILQ_NEXT(var, field))
+
+#define	STAILQ_FOREACH_SAFE(var, head, field, tvar)			\
+	for ((var) = STAILQ_FIRST(head);				\
+	    (var) && ((tvar) = STAILQ_NEXT(var, field), 1);		\
+	    (var) = (tvar))
+
+/*
+ * Singly-linked Tail queue functions.
+ */
+#define	STAILQ_INIT(head) do {						\
+	STAILQ_FIRST((head)) = NULL;					\
+	(head)->stqh_last = &STAILQ_FIRST((head));			\
+} while (0)
+
+#define	STAILQ_INSERT_HEAD(head, elm, field) do {			\
+	if ((STAILQ_NEXT((elm), field) = STAILQ_FIRST((head))) == NULL)	\
+		(head)->stqh_last = &STAILQ_NEXT((elm), field);		\
+	STAILQ_FIRST((head)) = (elm);					\
+} while (0)
+
+#define	STAILQ_INSERT_TAIL(head, elm, field) do {			\
+	STAILQ_NEXT((elm), field) = NULL;				\
+	*(head)->stqh_last = (elm);					\
+	(head)->stqh_last = &STAILQ_NEXT((elm), field);			\
+} while (0)
+
+#define	STAILQ_INSERT_AFTER(head, listelm, elm, field) do {		\
+	if ((STAILQ_NEXT((elm), field) = STAILQ_NEXT((elm), field)) == NULL)\
+		(head)->stqh_last = &STAILQ_NEXT((elm), field);		\
+	STAILQ_NEXT((elm), field) = (elm);				\
+} while (0)
+
+#define STAILQ_REMOVE_HEAD(head, field) do {                            \
+	if ((STAILQ_FIRST((head)) =					\
+	    STAILQ_NEXT(STAILQ_FIRST((head)), field)) == NULL)		\
+		(head)->stqh_last = &STAILQ_FIRST((head));		\
+} while (0)
+
+#define STAILQ_REMOVE_AFTER(head, elm, field) do {                      \
+	if ((STAILQ_NEXT(elm, field) =					\
+	    STAILQ_NEXT(STAILQ_NEXT(elm, field), field)) == NULL)	\
+		(head)->stqh_last = &STAILQ_NEXT((elm), field);		\
+} while (0)
+
+#define	STAILQ_REMOVE(head, elm, type, field) do {			\
+	if (STAILQ_FIRST((head)) == (elm)) {				\
+		STAILQ_REMOVE_HEAD((head), field);			\
+	} else {							\
+		struct type *curelm = (head)->stqh_first;		\
+		while (STAILQ_NEXT(curelm, field) != (elm))		\
+			curelm = STAILQ_NEXT(curelm, field);		\
+		STAILQ_REMOVE_AFTER(head, curelm, field);		\
+	}								\
+} while (0)
+
+#define	STAILQ_CONCAT(head1, head2) do {				\
+	if (!STAILQ_EMPTY((head2))) {					\
+		*(head1)->stqh_last = (head2)->stqh_first;		\
+		(head1)->stqh_last = (head2)->stqh_last;		\
+		STAILQ_INIT((head2));					\
+	}								\
+} while (0)
+
+#define	STAILQ_LAST(head, type, field)					\
+	(STAILQ_EMPTY((head)) ?	NULL :					\
+	        ((struct type *)(void *)				\
+		((char *)((head)->stqh_last) - offsetof(struct type, field))))
 
 #endif	/* !_SYS_QUEUE_H_ */

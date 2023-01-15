@@ -1,5 +1,5 @@
---- contrib/libs/libc_compat/include/uchar/uchar.h	(index)
-+++ contrib/libs/libc_compat/include/uchar/uchar.h	(working tree)
+--- a/include/uchar/uchar.h	(index)
++++ b/include/uchar/uchar.h	(working tree)
 @@ -10,11 +10,12 @@ typedef unsigned short char16_t;
  typedef unsigned char32_t;
  #endif
