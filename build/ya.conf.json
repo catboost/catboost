@@ -6072,6 +6072,13 @@
                         "os": "DARWIN"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -8973,7 +8980,7 @@
         },
         "python3": {
             "formula": {
-                "sandbox_id": 422563749,
+                "sandbox_id": 1020522806,
                 "match": "python3"
             },
             "executable": {
