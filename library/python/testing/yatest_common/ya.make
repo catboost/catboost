@@ -26,10 +26,15 @@ PY_SRCS(
 
 PEERDIR(
     contrib/python/six
-    library/python/coredump_filter
     library/python/cores
     library/python/filelock
     library/python/fs
 )
+
+IF (NOT CATBOOST_OPENSOURCE)
+    PEERDIR(
+        library/python/coredump_filter
+    )
+ENDIF()
 
 END()
