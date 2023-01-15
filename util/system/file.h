@@ -178,7 +178,6 @@ public:
     void Load(void* buf, size_t len);
     void Write(const void* buf, size_t len);
     size_t Pread(void* buf, size_t len, i64 offset) const;
-    i32 RawPread(void* buf, ui32 len, i64 offset) const;
     void Pload(void* buf, size_t len, i64 offset) const;
     void Pwrite(const void* buf, size_t len, i64 offset) const;
     void Flock(int op);
