@@ -113,6 +113,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctr_datasets_visitor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs_dataset.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\update_feature_weights.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\methods
@@ -453,6 +454,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctr_memory_usage_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs_dataset.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\update_feature_weights.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\weak_target_helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
