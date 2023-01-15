@@ -31,7 +31,7 @@ namespace NCatboostOptions {
     void TTextColumnTokenizerOptions::Load(const NJson::TJsonValue& options) {
         {
             const bool wasRead = TJsonFieldHelper<TOption<TString>>::Read(options, &TokenizerId);
-            CB_ENSURE(wasRead, "DictionaryOptions: no tokenizerId was specified");
+            CB_ENSURE(wasRead, "DictionaryOptions: no tokenizer_id was specified");
         }
         TokenizerOptions = JsonToTokenizerOptions(options);
     }
@@ -72,7 +72,7 @@ namespace NCatboostOptions {
     void TTextColumnDictionaryOptions::Load(const NJson::TJsonValue& options) {
         {
             const bool wasRead = TJsonFieldHelper<TOption<TString>>::Read(options, &DictionaryId);
-            CB_ENSURE(wasRead, "DictionaryOptions: no dictionaryId was specified");
+            CB_ENSURE(wasRead, "DictionaryOptions: no dictionary_id was specified");
         }
         JsonToDictionaryOptions(options, &DictionaryOptions.Get());
         JsonToDictionaryBuilderOptions(options, &DictionaryBuilderOptions.Get());
