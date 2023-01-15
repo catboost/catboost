@@ -31,6 +31,7 @@
 
 #include <ostream>
 #include <stdio.h>
+#include <string>
 #include <utility>
 
 namespace google {
@@ -123,7 +124,7 @@ string Status::ToString() const {
   }
 }
 
-std::ostream& operator<<(std::ostream& os, const Status& x) {
+ostream& operator<<(ostream& os, const Status& x) {
   os << x.ToString();
   return os;
 }

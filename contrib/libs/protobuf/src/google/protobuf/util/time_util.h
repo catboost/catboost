@@ -35,6 +35,7 @@
 
 #include <ctime>
 #include <ostream>
+#include <string>
 #ifdef _MSC_VER
 #include <winsock2.h>
 #else

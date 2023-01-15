@@ -85,7 +85,7 @@ bool AnyMetadata::InternalIs(const Descriptor* descriptor) const {
 }
 
 bool ParseAnyTypeUrl(const string& type_url, string* full_type_name) {
-  size_t pos = type_url.find_last_of('/');
+  size_t pos = type_url.find_last_of("/");
   if (pos == string::npos || pos + 1 == type_url.size()) {
     return false;
   }

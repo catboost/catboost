@@ -1254,7 +1254,7 @@ class TextFormat::Printer::TextGenerator
         data += buffer_size_;
         size -= buffer_size_;
       }
-      void* void_buffer;
+      void* void_buffer = NULL;
       failed_ = !output_->Next(&void_buffer, &buffer_size_);
       if (failed_) return;
       buffer_ = reinterpret_cast<char*>(void_buffer);
@@ -1275,9 +1275,9 @@ class TextFormat::Printer::TextGenerator
       // Data exceeds space in the buffer. Write what we can and request a new
       // buffer.
       if (buffer_size_ > 0) {
-        memset(buffer_, ' ', buffer_size_);
+	    memset(buffer_, ' ', buffer_size_);
         size -= buffer_size_;
-      }
+	  }
       void* void_buffer;
       failed_ = !output_->Next(&void_buffer, &buffer_size_);
       if (failed_) return;
@@ -2018,10 +2018,7 @@ void TextFormat::Printer::PrintFieldValue(const Message& message,
         printer->PrintString(*value_to_print, generator);
       } else {
         GOOGLE_DCHECK_EQ(field->type(), FieldDescriptor::TYPE_BYTES);
-        // Yandex-specific: Print bytes as strings
-        // printer->PrintBytes(*value_to_print, generator);
         printer->PrintString(*value_to_print, generator);
-        // End of Yandex-specific
       }
       break;
     }

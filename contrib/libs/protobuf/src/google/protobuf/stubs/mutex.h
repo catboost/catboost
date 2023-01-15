@@ -70,12 +70,10 @@ class LIBPROTOBUF_EXPORT Mutex {
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Mutex);
 };
 
-// Yandex-specific
-// Undefine the macros coming from re2/util/mutex.h.
+// Undefine some evil macros coming from re2/util/mutex.h
 #undef MutexLock
 #undef ReaderMutexLock
 #undef WriterMutexLock
-// End of Yandex-specific
 
 // MutexLock(mu) acquires mu when constructed and releases it when destroyed.
 class LIBPROTOBUF_EXPORT MutexLock {

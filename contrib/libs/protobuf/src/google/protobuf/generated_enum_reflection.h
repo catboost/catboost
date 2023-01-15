@@ -39,6 +39,7 @@
 #ifndef GOOGLE_PROTOBUF_GENERATED_ENUM_REFLECTION_H__
 #define GOOGLE_PROTOBUF_GENERATED_ENUM_REFLECTION_H__
 
+#include <string>
 
 #include <google/protobuf/stubs/template_util.h>
 #include <google/protobuf/generated_enum_util.h>

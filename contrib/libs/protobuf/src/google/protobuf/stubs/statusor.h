@@ -84,6 +84,7 @@
 #define GOOGLE_PROTOBUF_STUBS_STATUSOR_H_
 
 #include <new>
+#include <string>
 #include <utility>
 
 #include <google/protobuf/stubs/status.h>

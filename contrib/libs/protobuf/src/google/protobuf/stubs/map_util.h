@@ -36,6 +36,7 @@
 
 #include <stddef.h>
 #include <iterator>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -294,7 +295,7 @@ void InsertOrUpdateMany(Collection* const collection,
 }
 
 // Change the value associated with a particular key in a map or hash_map
-// of the form std::map<Key, Value*> which owns the objects pointed to by the
+// of the form map<Key, Value*> which owns the objects pointed to by the
 // value pointers.  If there was an existing value for the key, it is deleted.
 // True indicates an insert took place, false indicates an update + delete.
 template <class Collection>
@@ -369,7 +370,7 @@ void InsertOrDieNoPrint(
 // Inserts a new key and default-initialized value. Dies if the key was already
 // present. Returns a reference to the value. Example usage:
 //
-// std::map<int, SomeProto> m;
+// map<int, SomeProto> m;
 // SomeProto& proto = InsertKeyOrDie(&m, 3);
 // proto.set_field("foo");
 template <class Collection>
@@ -411,8 +412,8 @@ LookupOrInsert(Collection* const collection,
 // the results in "count_map" with element as the key and count as the value.
 //
 // Example:
-//   std::vector<string> v = {"a", "b", "c", "a", "b"};
-//   std::map<string, int> m;
+//   vector<string> v = {"a", "b", "c", "a", "b"};
+//   map<string, int> m;
 //   AddTokenCounts(v, 1, &m);
 //   assert(m["a"] == 2);
 //   assert(m["b"] == 2);
@@ -434,7 +435,7 @@ void AddTokenCounts(
 // Returns a reference to the value associated with key. If not found, a value
 // is default constructed on the heap and added to the map.
 //
-// This function is useful for containers of the form std::map<Key, Value*>, where
+// This function is useful for containers of the form map<Key, Value*>, where
 // inserting a new key, value pair involves constructing a new heap-allocated
 // Value, and storing a pointer to that in the collection.
 template <class Collection>
@@ -647,7 +648,7 @@ InsertOrReturnExisting(
 // collection.
 //
 // Examples:
-//   std::map<string, MyType*> my_map;
+//   map<string, MyType*> my_map;
 //
 // One line cleanup:
 //     delete EraseKeyReturnValuePtr(&my_map, "abc");
@@ -707,11 +708,11 @@ void AppendKeysFromMap(const MapContainer& map_container,
 // without the complexity of a SFINAE-based solution.)
 template <class MapContainer, class KeyType>
 void AppendKeysFromMap(const MapContainer& map_container,
-                       std::vector<KeyType>* key_container) {
+                       vector<KeyType>* key_container) {
   GOOGLE_CHECK(key_container != NULL);
   // We now have the opportunity to call reserve(). Calling reserve() every
   // time is a bad idea for some use cases: libstdc++'s implementation of
-  // std::vector<>::reserve() resizes the vector's backing store to exactly the
+  // vector<>::reserve() resizes the vector's backing store to exactly the
   // given size (unless it's already at least that big). Because of this,
   // the use case that involves appending a lot of small maps (total size
   // N) one by one to a vector would be O(N^2). But never calling reserve()
@@ -751,7 +752,7 @@ void AppendValuesFromMap(const MapContainer& map_container,
 // without the complexity of a SFINAE-based solution.)
 template <class MapContainer, class ValueType>
 void AppendValuesFromMap(const MapContainer& map_container,
-                         std::vector<ValueType>* value_container) {
+                         vector<ValueType>* value_container) {
   GOOGLE_CHECK(value_container != NULL);
   // See AppendKeysFromMap for why this is done.
   if (value_container->empty()) {

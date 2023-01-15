@@ -205,7 +205,7 @@ LIBPROTOBUF_EXPORT string StringReplace(const string& s, const string& oldsub,
 //    over all of them.
 // ----------------------------------------------------------------------
 LIBPROTOBUF_EXPORT void SplitStringUsing(const string& full, const char* delim,
-                                         std::vector<string>* res);
+                                         vector<string>* res);
 
 // Split a string using one or more byte delimiters, presented
 // as a nul-terminated c string. Append the components to 'result'.
@@ -217,15 +217,15 @@ LIBPROTOBUF_EXPORT void SplitStringUsing(const string& full, const char* delim,
 // ----------------------------------------------------------------------
 LIBPROTOBUF_EXPORT void SplitStringAllowEmpty(const string& full,
                                               const char* delim,
-                                              std::vector<string>* result);
+                                              vector<string>* result);
 
 // ----------------------------------------------------------------------
 // Split()
 //    Split a string using a character delimiter.
 // ----------------------------------------------------------------------
-inline std::vector<string> Split(
+inline vector<string> Split(
     const string& full, const char* delim, bool skip_empty = true) {
-  std::vector<string> result;
+  vector<string> result;
   if (skip_empty) {
     SplitStringUsing(full, delim, &result);
   } else {
@@ -242,10 +242,10 @@ inline std::vector<string> Split(
 //    another takes a pointer to the target string. In the latter case the
 //    target string is cleared and overwritten.
 // ----------------------------------------------------------------------
-LIBPROTOBUF_EXPORT void JoinStrings(const std::vector<string>& components,
+LIBPROTOBUF_EXPORT void JoinStrings(const vector<string>& components,
                                     const char* delim, string* result);
 
-inline string JoinStrings(const std::vector<string>& components,
+inline string JoinStrings(const vector<string>& components,
                           const char* delim) {
   string result;
   JoinStrings(components, delim, &result);
@@ -285,7 +285,7 @@ inline string JoinStrings(const std::vector<string>& components,
 
 LIBPROTOBUF_EXPORT int UnescapeCEscapeSequences(const char* source, char* dest);
 LIBPROTOBUF_EXPORT int UnescapeCEscapeSequences(const char* source, char* dest,
-                                                std::vector<string> *errors);
+                                                vector<string> *errors);
 
 // ----------------------------------------------------------------------
 // UnescapeCEscapeString()
@@ -304,7 +304,7 @@ LIBPROTOBUF_EXPORT int UnescapeCEscapeSequences(const char* source, char* dest,
 
 LIBPROTOBUF_EXPORT int UnescapeCEscapeString(const string& src, string* dest);
 LIBPROTOBUF_EXPORT int UnescapeCEscapeString(const string& src, string* dest,
-                                             std::vector<string> *errors);
+                                             vector<string> *errors);
 LIBPROTOBUF_EXPORT string UnescapeCEscapeString(const string& src);
 
 // ----------------------------------------------------------------------
@@ -621,17 +621,14 @@ struct LIBPROTOBUF_EXPORT AlphaNum {
   AlphaNum(T i32)
       : piece_data_(digits),
         piece_size_(FastInt32ToBufferLeft(i32, digits) - &digits[0]) {}
-
   template<class T, typename TIsInteger<T, 4, false>::TInt = 0>
   AlphaNum(T u32)
       : piece_data_(digits),
         piece_size_(FastUInt32ToBufferLeft(u32, digits) - &digits[0]) {}
-
   template<class T, typename TIsInteger<T, 8, true>::TInt = 0>
   AlphaNum(T i64)
       : piece_data_(digits),
         piece_size_(FastInt64ToBufferLeft(i64, digits) - &digits[0]) {}
-
   template<class T, typename TIsInteger<T, 8, false>::TInt = 0>
   AlphaNum(T u64)
       : piece_data_(digits),

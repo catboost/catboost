@@ -38,6 +38,7 @@
 #define GOOGLE_PROTOBUF_DESCRIPTOR_DATABASE_H__
 
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
 #include <google/protobuf/stubs/common.h>
@@ -109,8 +110,7 @@ class LIBPROTOBUF_EXPORT DescriptorDatabase {
   //
   // This method has a default implementation that always returns
   // false.
-  virtual bool FindAllFileNames(std::vector<string>* output) {
-    (void)output; // Unused
+  virtual bool FindAllFileNames(std::vector<string>* /* output */) {
     return false;
   }
 

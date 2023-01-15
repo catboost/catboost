@@ -37,7 +37,7 @@
 #include <google/protobuf/stubs/hash.h>
 
 #include <google/protobuf/message.h>
-#include "messagext.h"
+#include <google/protobuf/messagext.h>
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
@@ -56,8 +56,6 @@
 #include <google/protobuf/stubs/map_util.h>
 #include <google/protobuf/stubs/singleton.h>
 #include <google/protobuf/stubs/stl_util.h>
-
-#include <util/stream/output.h>
 
 namespace google {
 namespace protobuf {
@@ -85,10 +83,6 @@ void Message::CopyFrom(const Message& from) {
        "to: " << descriptor->full_name() << ", "
        "from: " << from.GetDescriptor()->full_name();
   ReflectionOps::Copy(from, this);
-}
-
-void Message::PrintJSON(IOutputStream& out) const {
-  out << "(Something went wrong: no PrintJSON() override provided - are you using a non-styleguided .pb.h?)";
 }
 
 string Message::GetTypeName() const {
@@ -198,6 +192,11 @@ bool Message::SerializePartialToOstream(std::ostream* output) const {
   return SerializePartialToZeroCopyStream(&zero_copy_output);
 }
 
+// Yandex-specific
+void Message::PrintJSON(IOutputStream& out) const {
+  out << "(Something went wrong: no PrintJSON() override provided - are you using a non-styleguided .pb.h?)";
+}
+
 bool Message::ParseFromStream(IInputStream* input) {
   bool res = false;
   io::TInputStreamProxy proxy(input);
@@ -253,8 +252,8 @@ bool Message::SerializeToOstream(IOutputStream* output) const {
 bool Message::SerializePartialToOstream(IOutputStream* output) const {
   return SerializePartialToStream(output);
 }
-
 // End of Yandex-specific
+
 
 // =============================================================================
 // Reflection and associated Template Specializations

@@ -41,6 +41,7 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <string>
 
 
 #include <google/protobuf/stubs/common.h>

@@ -1,7 +1,6 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "messagext.h"
-#include <google/protobuf/messageint.h>
 
 #include <util/ysaveload.h>
 #include <util/generic/yexception.h>
@@ -14,6 +13,10 @@ namespace {
 
 namespace google {
 namespace protobuf {
+
+//defined in message_lite.cc
+string InitializationErrorMessage(const char* action, const MessageLite& message);
+
 namespace io {
 
 bool ParseFromCodedStreamSeq(Message* msg, io::CodedInputStream* input) {

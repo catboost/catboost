@@ -39,6 +39,7 @@
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <set>
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <limits>
@@ -381,7 +382,7 @@ class PrefixRemover {
 // hash_maps for each object.
 //
 // The keys to these hash_maps are (parent, name) or (parent, number)
-// pairs.  Unfortunately STL doesn't provide hash functions for std::pair<>,
+// pairs.  Unfortunately STL doesn't provide hash functions for pair<>,
 // so we must invent our own.
 //
 // TODO(kenton):  Use StringPiece rather than const char* in keys?  It would
@@ -5759,7 +5760,7 @@ void DescriptorBuilder::ValidateFieldOptions(FieldDescriptor* field,
     if (!ValidateMapEntry(field, proto)) {
       AddError(field->full_name(), proto,
                DescriptorPool::ErrorCollector::OTHER,
-               "map_entry should not be set explicitly. Use std::map<KeyType, "
+               "map_entry should not be set explicitly. Use map<KeyType, "
                "ValueType> instead.");
     }
   }

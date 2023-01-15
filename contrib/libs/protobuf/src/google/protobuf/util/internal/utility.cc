@@ -222,7 +222,7 @@ const google::protobuf::EnumValue* FindEnumValueByNameWithoutUnderscoreOrNull(
       string enum_name_without_underscore = enum_value.name();
 
       // Remove underscore from the name.
-      RemoveAll(enum_name_without_underscore, '_');
+	  RemoveAll(enum_name_without_underscore, '_');
       // Make the name uppercase.
       for (string::iterator it = enum_name_without_underscore.begin();
            it != enum_name_without_underscore.end(); ++it) {

@@ -32,6 +32,7 @@
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_JSON_STREAM_PARSER_H__
 
 #include <stack>
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/stringpiece.h>

@@ -30,13 +30,11 @@
 
 // Defines classes for field comparison.
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-
 #ifndef GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__
 #define GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__
 
 #include <map>
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 
@@ -175,7 +173,7 @@ class LIBPROTOBUF_EXPORT DefaultFieldComparator : public FieldComparator {
   // basic types (instead of submessages). They return true on success. One
   // can use ResultFromBoolean() to convert that boolean to a ComparisonResult
   // value.
-  bool CompareBool(const google::protobuf::FieldDescriptor& field,
+  bool CompareBool(const google::protobuf::FieldDescriptor& /* field */,
                    bool value_1, bool value_2) {
     return value_1 == value_2;
   }
@@ -194,27 +192,27 @@ class LIBPROTOBUF_EXPORT DefaultFieldComparator : public FieldComparator {
   bool CompareFloat(const google::protobuf::FieldDescriptor& field,
                     float value_1, float value_2);
 
-  bool CompareInt32(const google::protobuf::FieldDescriptor& field,
+  bool CompareInt32(const google::protobuf::FieldDescriptor& /* field */,
                     int32 value_1, int32 value_2) {
     return value_1 == value_2;
   }
 
-  bool CompareInt64(const google::protobuf::FieldDescriptor& field,
+  bool CompareInt64(const google::protobuf::FieldDescriptor& /* field */,
                     int64 value_1, int64 value_2) {
     return value_1 == value_2;
   }
 
-  bool CompareString(const google::protobuf::FieldDescriptor& field,
+  bool CompareString(const google::protobuf::FieldDescriptor& /* field */,
                      const string& value_1, const string& value_2) {
     return value_1 == value_2;
   }
 
-  bool CompareUInt32(const google::protobuf::FieldDescriptor& field,
+  bool CompareUInt32(const google::protobuf::FieldDescriptor& /* field */,
                      uint32 value_1, uint32 value_2) {
     return value_1 == value_2;
   }
 
-  bool CompareUInt64(const google::protobuf::FieldDescriptor& field,
+  bool CompareUInt64(const google::protobuf::FieldDescriptor& /* field */,
                      uint64 value_1, uint64 value_2) {
     return value_1 == value_2;
   }
@@ -259,5 +257,3 @@ class LIBPROTOBUF_EXPORT DefaultFieldComparator : public FieldComparator {
 
 }  // namespace google
 #endif  // GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__
-
-#pragma clang diagnostic pop

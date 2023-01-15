@@ -111,6 +111,7 @@
 
 #include <assert.h>
 #include <climits>
+#include <string>
 #include <utility>
 #ifdef _MSC_VER
   // Assuming windows is always little-endian.

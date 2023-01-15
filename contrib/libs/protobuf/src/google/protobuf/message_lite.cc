@@ -39,6 +39,7 @@
 #include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/repeated_field.h>
+#include <string>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -74,6 +75,8 @@ void ByteSizeConsistencyError(size_t byte_size_before_serialization,
   GOOGLE_LOG(FATAL) << "This shouldn't be called if all the sizes are equal.";
 }
 
+} //namespace
+
 string InitializationErrorMessage(const char* action,
                                   const MessageLite& message) {
   // Note:  We want to avoid depending on strutil in the lite library, otherwise
@@ -94,6 +97,8 @@ string InitializationErrorMessage(const char* action,
   result += message.InitializationErrorString();
   return result;
 }
+
+namespace {
 
 // Several of the Parse methods below just do one thing and then call another
 // method.  In a naive implementation, we might have ParseFromString() call

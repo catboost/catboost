@@ -31,6 +31,7 @@
 #ifndef GOOGLE_PROTOBUF_UTIL_CONVERTER_DATAPIECE_H__
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_DATAPIECE_H__
 
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/stringpiece.h>

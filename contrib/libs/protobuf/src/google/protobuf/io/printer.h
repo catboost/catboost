@@ -37,6 +37,7 @@
 #ifndef GOOGLE_PROTOBUF_IO_PRINTER_H__
 #define GOOGLE_PROTOBUF_IO_PRINTER_H__
 
+#include <string>
 #include <map>
 #include <vector>
 #include <google/protobuf/stubs/common.h>
@@ -94,7 +95,7 @@ class AnnotationProtoCollector : public AnnotationCollector {
 // text with variable substitutions.  Example usage:
 //
 //   Printer printer(output, '$');
-//   std::map<string, string> vars;
+//   map<string, string> vars;
 //   vars["name"] = "Bob";
 //   printer.Print(vars, "My name is $name$.");
 //
@@ -133,7 +134,7 @@ class AnnotationProtoCollector : public AnnotationCollector {
 // that should be annotated with the same source path.  For example:
 //
 //   Printer printer(output, '$');
-//   std::map<string, string> vars;
+//   map<string, string> vars;
 //   vars["first"] = "Alice";
 //   vars["last"] = "Smith";
 //   printer.Print(vars, "My name is $first$ $last$.");
@@ -151,7 +152,7 @@ class AnnotationProtoCollector : public AnnotationCollector {
 // templates:
 //
 //   Printer printer(output, '$');
-//   std::map<string, string> vars;
+//   map<string, string> vars;
 //   vars["foo"] = "bar";
 //   vars["function"] = "call";
 //   vars["mark"] = "";

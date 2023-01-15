@@ -38,7 +38,7 @@
 
 #include <google/protobuf/map.h>
 #include <google/protobuf/map_field.h>
-#include "map_type_handler.h"
+#include <google/protobuf/map_type_handler.h>
 
 namespace google {
 namespace protobuf {

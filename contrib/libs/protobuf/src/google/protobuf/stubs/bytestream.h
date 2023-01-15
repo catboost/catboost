@@ -51,6 +51,7 @@
 #define GOOGLE_PROTOBUF_STUBS_BYTESTREAM_H_
 
 #include <stddef.h>
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/stringpiece.h>
@@ -272,7 +273,7 @@ class LIBPROTOBUF_EXPORT StringByteSink : public ByteSink {
 class LIBPROTOBUF_EXPORT NullByteSink : public ByteSink {
  public:
   NullByteSink() {}
-  virtual void Append(const char *, size_t) {}
+  virtual void Append(const char * /* data */, size_t /* n */) {}
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(NullByteSink);

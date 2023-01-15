@@ -46,9 +46,14 @@
 #ifndef GOOGLE_PROTOBUF_REPEATED_FIELD_H__
 #define GOOGLE_PROTOBUF_REPEATED_FIELD_H__
 
+#ifdef _MSC_VER
+// This is required for min/max on VS2013 only.
 #include <algorithm>
+#endif
+
 #include <iterator>
 #include <limits>
+#include <string>
 #include <google/protobuf/stubs/casts.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
@@ -102,7 +107,7 @@ inline int CalculateReserve(Iter begin, Iter end) {
 // not ever use a RepeatedField directly; they will use the get-by-index,
 // set-by-index, and add accessors that are generated for all repeated fields.
 template <typename Element>
-class RepeatedField /* PROTOBUF_FINAL */ {
+class RepeatedField {
  public:
   RepeatedField();
   explicit RepeatedField(Arena* arena);
@@ -458,7 +463,13 @@ class LIBPROTOBUF_EXPORT RepeatedPtrFieldBase {
   void Reserve(int new_size);
 
   template<typename TypeHandler>
-  void Truncate(int new_size);
+  void Truncate(int new_size) {
+    GOOGLE_DCHECK_LE(new_size, current_size_);
+    for (int i = new_size + 1; i < current_size_; i++) {
+      TypeHandler::Clear(cast<TypeHandler>(rep_->elements[i]));
+    }
+    current_size_ = new_size;
+  }
 
   int Capacity() const;
 
@@ -756,7 +767,7 @@ class StringTypeHandler {
 // RepeatedPtrField is like RepeatedField, but used for repeated strings or
 // Messages.
 template <typename Element>
-class RepeatedPtrField /* PROTOBUF_FINAL */ : public internal::RepeatedPtrFieldBase {
+class RepeatedPtrField : public internal::RepeatedPtrFieldBase {
  public:
   RepeatedPtrField();
   explicit RepeatedPtrField(::google::protobuf::Arena* arena);
@@ -799,7 +810,9 @@ class RepeatedPtrField /* PROTOBUF_FINAL */ : public internal::RepeatedPtrFieldB
   // array is grown, it will always be at least doubled in size.
   void Reserve(int new_size);
 
-  void Truncate(int new_size);
+  void Truncate(int new_size) {
+  	return RepeatedPtrFieldBase::Truncate<TypeHandler>(new_size);
+  }
 
   int Capacity() const;
 
@@ -1845,16 +1858,6 @@ inline typename TypeHandler::Type* RepeatedPtrFieldBase::ReleaseCleared() {
   return cast<TypeHandler>(rep_->elements[--rep_->allocated_size]);
 }
 
-template <typename TypeHandler>
-inline void RepeatedPtrFieldBase::Truncate(int new_size)
-{
-  GOOGLE_DCHECK_LE(new_size, current_size_);
-  for (int i = new_size + 1; i < current_size_; i++) {
-    TypeHandler::Clear(cast<TypeHandler>(rep_->elements[i]));
-  }
-  current_size_ = new_size;
-}
-
 }  // namespace internal
 
 // -------------------------------------------------------------------
@@ -2148,11 +2151,6 @@ inline void RepeatedPtrField<Element>::Reserve(int new_size) {
 template <typename Element>
 inline int RepeatedPtrField<Element>::Capacity() const {
   return RepeatedPtrFieldBase::Capacity();
-}
-
-template <typename Element>
-inline void RepeatedPtrField<Element>::Truncate(int new_size) {
-  return RepeatedPtrFieldBase::Truncate<TypeHandler>(new_size);
 }
 
 // -------------------------------------------------------------------

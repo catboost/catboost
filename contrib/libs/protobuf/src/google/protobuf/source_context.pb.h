@@ -4,6 +4,7 @@
 #ifndef PROTOBUF_google_2fprotobuf_2fsource_5fcontext_2eproto__INCLUDED
 #define PROTOBUF_google_2fprotobuf_2fsource_5fcontext_2eproto__INCLUDED
 
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 

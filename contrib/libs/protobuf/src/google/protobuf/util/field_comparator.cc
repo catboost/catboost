@@ -32,6 +32,7 @@
 
 #include <google/protobuf/util/field_comparator.h>
 
+#include <string>
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>

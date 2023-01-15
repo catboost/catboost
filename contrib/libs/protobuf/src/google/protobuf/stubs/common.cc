@@ -51,8 +51,7 @@
 #elif defined(HAVE_PTHREAD)
 #include <pthread.h>
 #else
-#  define YA_VERSION  // will be use mutex from arcadia
-#  include <util/system/mutex.h>
+#error "No suitable threading library available."
 #endif
 #if defined(__ANDROID__)
 #include <android/log.h>
@@ -268,7 +267,11 @@ void LogMessage::Finish() {
   }
 
   if (level_ == LOGLEVEL_FATAL) {
+#if PROTOBUF_USE_EXCEPTIONS
+    throw FatalException(filename_, line_, message_);
+#else
     abort();
+#endif
   }
 }
 
@@ -390,30 +393,6 @@ void Mutex::AssertHeld() {
   // TODO(kenton):  Maybe keep track of locking thread ID like with WIN32?
 }
 
-#elif defined(YA_VERSION)
-
-struct Mutex::Internal {
-  TMutex mutex;
-};
-
-Mutex::Mutex()
-  : mInternal(new Internal) {
-}
-
-Mutex::~Mutex() {
-  delete mInternal;
-}
-
-void Mutex::Lock() {
-  mInternal->mutex.Acquire();
-}
-
-void Mutex::Unlock() {
-  mInternal->mutex.Release();
-}
-
-void Mutex::AssertHeld() {}
-
 #endif
 
 // ===================================================================
@@ -453,9 +432,9 @@ struct ShutdownData {
     }
   }
 
-  std::vector<void (*)()> functions;
-  std::vector<const TProtoStringType*> strings;
-  std::vector<const MessageLite*> messages;
+  vector<void (*)()> functions;
+  vector<const TProtoStringType*> strings;
+  vector<const MessageLite*> messages;
   Mutex mutex;
 };
 
@@ -506,9 +485,9 @@ void ShutdownProtobufLibrary() {
 }
 
 #if PROTOBUF_USE_EXCEPTIONS
-FatalException::~FatalException() {}
+FatalException::~FatalException() throw() {}
 
-const char* FatalException::what() const noexcept {
+const char* FatalException::what() const throw() {
   return message_.c_str();
 }
 #endif

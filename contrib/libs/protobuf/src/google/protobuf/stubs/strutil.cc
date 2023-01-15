@@ -226,8 +226,8 @@ void SplitStringToIteratorUsing(const string& full,
 
 void SplitStringUsing(const string& full,
                       const char* delim,
-                      std::vector<string>* result) {
-  std::back_insert_iterator< std::vector<string> > it(*result);
+                      vector<string>* result) {
+  std::back_insert_iterator< vector<string> > it(*result);
   SplitStringToIteratorUsing(full, delim, it);
 }
 
@@ -264,8 +264,8 @@ void SplitStringToIteratorAllowEmpty(const StringType& full,
 }
 
 void SplitStringAllowEmpty(const string& full, const char* delim,
-                           std::vector<string>* result) {
-  std::back_insert_iterator<std::vector<string> > it(*result);
+                           vector<string>* result) {
+  std::back_insert_iterator<vector<string> > it(*result);
   SplitStringToIteratorAllowEmpty(full, delim, 0, it);
 }
 
@@ -303,7 +303,7 @@ static void JoinStringsIterator(const ITERATOR& start,
   }
 }
 
-void JoinStrings(const std::vector<string>& components,
+void JoinStrings(const vector<string>& components,
                  const char* delim,
                  string * result) {
   JoinStringsIterator(components.begin(), components.end(), delim, result);
@@ -332,7 +332,7 @@ int UnescapeCEscapeSequences(const char* source, char* dest) {
 }
 
 int UnescapeCEscapeSequences(const char* source, char* dest,
-                             std::vector<string> *errors) {
+                             vector<string> *errors) {
   GOOGLE_DCHECK(errors == NULL) << "Error reporting not implemented.";
 
   char* d = dest;
@@ -468,7 +468,7 @@ int UnescapeCEscapeString(const string& src, string* dest) {
 }
 
 int UnescapeCEscapeString(const string& src, string* dest,
-                          std::vector<string> *errors) {
+                          vector<string> *errors) {
   scoped_array<char> unescaped(new char[src.size() + 1]);
   int len = UnescapeCEscapeSequences(src.c_str(), unescaped.get(), errors);
   GOOGLE_CHECK(dest);
@@ -1625,10 +1625,10 @@ int GlobalReplaceSubstring(const string& substring,
   string tmp;
   int num_replacements = 0;
   int pos = 0;
-  for (int match_pos = s->find(substring, pos);
+  for (int match_pos = s->find(substring.data(), pos, substring.length());
        match_pos != string::npos;
        pos = match_pos + substring.length(),
-           match_pos = s->find(substring, pos)) {
+           match_pos = s->find(substring.data(), pos, substring.length())) {
     ++num_replacements;
     // Append the original content before the match.
     tmp.append(*s, pos, match_pos - pos);

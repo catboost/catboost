@@ -48,6 +48,7 @@
 #if defined(_WIN32)
 
 #include <string>
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/port.h>
 
 // Compilers on Windows other than MSVC (e.g. Cygwin, MinGW32) define the
@@ -71,7 +72,7 @@ LIBPROTOBUF_EXPORT int setmode(int fd, int mode);
 LIBPROTOBUF_EXPORT int stat(const char* path, struct _stat* buffer);
 LIBPROTOBUF_EXPORT int write(int fd, const void* buffer, size_t size);
 LIBPROTOBUF_EXPORT std::wstring testonly_path_to_winpath(
-    const std::string& path);
+    const TProtoStringType& path);
 
 }  // namespace win32
 }  // namespace internal

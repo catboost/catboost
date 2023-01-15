@@ -334,7 +334,7 @@ bool Struct::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // std::map<string, .google.protobuf.Value> fields = 1;
+      // map<string, .google.protobuf.Value> fields = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
@@ -383,7 +383,7 @@ void Struct::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // std::map<string, .google.protobuf.Value> fields = 1;
+  // map<string, .google.protobuf.Value> fields = 1;
   if (!this->fields().empty()) {
     typedef ::google::protobuf::Map< TProtoStringType, ::google::protobuf::Value >::const_pointer
         ConstPtr;
@@ -452,7 +452,7 @@ void Struct::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // std::map<string, .google.protobuf.Value> fields = 1;
+  // map<string, .google.protobuf.Value> fields = 1;
   if (!this->fields().empty()) {
     typedef ::google::protobuf::Map< TProtoStringType, ::google::protobuf::Value >::const_pointer
         ConstPtr;
@@ -528,7 +528,7 @@ size_t Struct::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // std::map<string, .google.protobuf.Value> fields = 1;
+  // map<string, .google.protobuf.Value> fields = 1;
   total_size += 1 *
       ::google::protobuf::internal::FromIntSize(this->fields_size());
   {
@@ -632,7 +632,7 @@ void Struct::InternalSwap(Struct* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // Struct
 
-// std::map<string, .google.protobuf.Value> fields = 1;
+// map<string, .google.protobuf.Value> fields = 1;
 int Struct::fields_size() const {
   return fields_.size();
 }
