@@ -155,6 +155,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
