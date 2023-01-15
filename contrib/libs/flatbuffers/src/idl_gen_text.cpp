@@ -16,10 +16,10 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
-#include "../include/flatbuffers/flatbuffers.h"
-#include "../include/flatbuffers/flexbuffers.h"
-#include "../include/flatbuffers/idl.h"
-#include "../include/flatbuffers/util.h"
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flexbuffers.h"
+#include "flatbuffers/idl.h"
+#include "flatbuffers/util.h"
 
 namespace flatbuffers {
 
@@ -292,7 +292,7 @@ struct JsonPrinter {
          it != struct_def.fields.vec.end(); ++it) {
       FieldDef &fd = **it;
       auto is_present = struct_def.fixed || table->CheckField(fd.value.offset);
-      auto output_anyway = opts.output_default_scalars_in_json &&
+      auto output_anyway = (opts.output_default_scalars_in_json || fd.key) &&
                            IsScalar(fd.value.type.base_type) && !fd.deprecated;
       if (is_present || output_anyway) {
         if (fieldout++) { AddComma(); }
