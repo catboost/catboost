@@ -182,7 +182,6 @@ migrations:
     - commerce/adv_backend/backend/management/commands/migrator
     - commerce/adv_backend/backend/validators
     - contrib/nginx/tests/tap
-    - contrib/python/falcon-cors/tests
     - crypta/audience/lib/tasks
     - crypta/audience/lib/tasks/audience
     - crypta/cm/services/quoter/bin/test
@@ -1583,7 +1582,6 @@ migrations:
     - cloud/netinfra/rknfilter/yc_rkn_common
     - cloud/netinfra/rknfilter/yc_rkn_config_node
     - cmnt/tools/regression/request_classes
-    - contrib/python/nbclient/nbclient/tests
     - crm/crm-logbroker-consumer
     - crypta/cm/services/quoter/bin/test
     - cv/cbir_search/tools/similar_pool/scrape_serp_from_middle
