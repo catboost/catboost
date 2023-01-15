@@ -191,7 +191,7 @@
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-common</artifactId>
-            <version>0.24</version>
+            <version>0.24.1</version>
         </dependency>
     </dependencies>
 </project>

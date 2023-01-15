@@ -1,3 +1,23 @@
+# Release 0.24.1
+
+## Uncertainty prediction
+Main feature of this release is total uncertainty prediction support via virtual ensembles.
+You can read the theoretical background in the preprint [Uncertainty in Gradient Boosting via Ensembles](https://arxiv.org/pdf/2006.10562v2.pdf) from our research team.
+We introduced new training parameter `posterior_sampling`, that allows to estimate total uncertainty.
+Setting `posterior_sampling=True` implies enabling Langevin boosting, setting `model_shrink_rate` to `1/(2*N)` and setting `diffusion_temperature` to `N`, where `N` is dataset size.
+CatBoost object method `virtual_ensembles_predict` splits model into `virtual_ensembles_count` submodels.
+Calling `model.virtual_ensembles_predict(.., prediction_type='TotalUncertainty')` returns mean prediction, variance (and knowledge uncertrainty for models, trained with `RMSEWithUncertainty` loss function).
+Calling `model.virtual_ensembles_predict(.., prediction_type='VirtEnsembles')` returns `virtual_ensembles_count` predictions of virtual submodels for each object.
+
+## New functionality
+* Supported non-owning model deserialization for models with categorical feature counters
+## Speedups
+* We've done lot's of speedups for sparse data loading. For example, on bosch sparse dataset preprocessing speed got 4.5x speedup while running in 28 thread setting.   
+## Bugfixes:
+* Fixed target check for PairLogitPairwise on GPU. Issue #1217
+* Supported `n_features_in_` attribute required for using CatBoost in sklearn pipelines. Issue #1363 
+
+
 # Release 0.24
 
 ## New functionality
