@@ -7,48 +7,48 @@ License: Apache License (== 2.0)
 Description: Open-source gradient boosting on decision trees with categorical
   features support out of the box.
 Authors@R: c(
-    person("Nikita", "Dmitriev", email = "nikitxskv@yandex-team.ru", role = "aut"),
-    person("Andrey", "Gulin", email = "gulin@yandex-team.ru", role = "aut",
+    person("Nikita", "Dmitriev", role = "aut"),
+    person("Andrey", "Gulin", role = "aut",
       comment = "Chief researcher, author of the algorithm and of the first implementation"),
-    person("Anna Veronika", "Dorogush", email = "annaveronika@yandex-team.ru", role = "aut"),
-    person("Stanislav", "Kirillov", email = "kizill@yandex-team.ru", role = "aut"),
+    person("Anna Veronika", "Dorogush", role = "aut"),
+    person("Stanislav", "Kirillov", role = "aut"),
     person("Victor", "Omelyanenko", role = "aut"),
-    person("Evgueni", "Petrov", email = "Evgueni-Petrov-aka-espetrov@yandex-team.ru", role = "aut"),
-    person("Andrey", "Mishenko", email = "druxa@yandex-team.ru", role = "aut"),
-    person("Pavel", "Kalinin", email = "pv-k@yandex-team.ru", role = "aut"),
-    person("Vyacheslav", "Alipov", email = "alipov@yandex-team.ru", role = "aut"),
-    person("Egor", "Samosvat", email = "sameg@yandex-team.ru", role = "aut"),
-    person("Alexander", "Kobotov", email = "cobat@yandex-team.ru", role = "aut"),
+    person("Evgueni", "Petrov", role = "aut"),
+    person("Andrey", "Mishenko", role = "aut"),
+    person("Pavel", "Kalinin", role = "aut"),
+    person("Vyacheslav", "Alipov", role = "aut"),
+    person("Egor", "Samosvat", role = "aut"),
+    person("Alexander", "Kobotov", role = "aut"),
     person("Dmitry", "Schelchkov", role = "aut"),
-    person("Vasily", "Ershov", email = "noxoomo@yandex-team.ru", role = "aut",
+    person("Vasily", "Ershov", role = "aut",
       comment = "GPU implementation"),
-    person("Vyacheslav", "Murashkin", email = "a4tunado@yandex-team.ru", role = "aut",
+    person("Vyacheslav", "Murashkin", role = "aut",
       comment = "R Package"),
     person("Roman", "Nefyodov", role = "aut", comment = "R Package"),
-    person("Anastasia", "Bezzubtseva", email = "nstbezz@yandex-team.ru", role = "aut",
+    person("Anastasia", "Bezzubtseva", role = "aut",
       comment = "R Package"),
-    person("Alexey", "Gorchakov", email = "algorc@yandex-team.ru", role = "aut",
+    person("Alexey", "Gorchakov", role = "aut",
       comment = "R Package"),
     person("Ivan", "Karev", role = "aut", comment = "Visualisation"),
     person("Sergey", "Berezhnoy", role = "aut", comment = "Visualisation"),
     person("Roman", "Rybalchenko", role = "aut", comment = "Visualisation"),
-    person("Valeriy", "Babushkin", email = "VENHEADs@yandex-team.ru", role = "aut",
+    person("Valeriy", "Babushkin", role = "aut",
       comment = "Tutorials"),
-    person("Mikhail", "Pershin", email = "pershinmr@yandex-team.ru", role = "aut",
+    person("Mikhail", "Pershin", role = "aut",
       comment = "Tutorials"),
-    person("Emil", "Kayumov", email = "emilkayumov@yandex-team.ru", role = "aut",
+    person("Emil", "Kayumov", role = "aut",
       comment = "Tutorials"),
     person("Evgeny", "Eltyshev", role = "aut", comment = "Tutorials"),
     person("Alexander", "Baranov", role = "aut", comment = "CoreML support"),
-    person("Dmitry", "Oganesyan", email = "oganes@yandex-team.ru", role = "aut",
+    person("Dmitry", "Oganesyan", role = "aut",
       comment = "R Package"),
     person("CatBoost DevTeam", role = "cph"),
     person("WLOG Solutions", role = "ctb",
       comment = "R package preparation for CRAN submission"),
-    person("Dmitry", "Baksheev", email = "dbakshee@yandex-team.ru", role = c("aut", "cre"))
+    person("Dmitry", "Baksheev", role = c("aut", "cre"))
     )
-Author: Dmitry Oganesyan [aut, cre]
-Maintainer: Dmitry Baksheev <dbakshee@yandex-team.ru>
+Author: CatBoost DevTeam [aut, cre]
+Maintainer: CatBoost DevTeam <https://catboost.ai/>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
 Suggests: caret, testthat, dplyr, e1071
