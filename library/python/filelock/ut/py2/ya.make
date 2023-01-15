@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 PEERDIR(
     library/python/filelock/ut/lib
