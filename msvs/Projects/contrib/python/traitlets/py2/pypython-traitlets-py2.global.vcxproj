@@ -84,7 +84,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.obj" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.obj" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,9 +103,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.py2.obj	</Message>
+      <Message>$B/contrib/python/traitlets/py2/join_e3e417d4d158f5e88332c340ee.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py2\join_e3e417d4d158f5e88332c340ee.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py2\join_e3e417d4d158f5e88332c340ee.py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py2\join_e3e417d4d158f5e88332c340ee.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\traitlets\py2\traitlets\tests\_warnings.py.gemk.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
