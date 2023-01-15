@@ -4,7 +4,7 @@ CatBoost Spark Package
 Setup 
 ------------
 
-####Requirements
+#### Requirements
 
 * Linux or Mac OS X. Windows support in progress.
 * Apache Spark 2.4+
@@ -14,7 +14,7 @@ Get the appropriate `catboost_spark_version` (you can look up available versions
 
 Add dependency with the appropriate `scala_compat_version` (`2.11` or `2.12`)
 
-####Java or Scala
+#### Java or Scala
 
 Maven or sbt-based build system is supported.
 
@@ -47,13 +47,12 @@ libraryDependencies ++= Seq(
 )
 ```
 
-####Python (PySpark)
+#### Python (PySpark)
 
 Just add `catboost-spark` Maven artifact with appropriate `scala_compat_version` and `catboost_spark_version` to `spark.jar.packages` Spark config parameter and import `catboost_spark` package:
 
 ```python
 from pyspark.sql import SparkSession
-from pyspark.sql.types import *
 
 sparkSession = (SparkSession.builder
 	.master(...)
@@ -124,11 +123,16 @@ val model = classifier.fit(trainPool, Array[Pool](evalPool))
 
 // apply model
 val predictions = model.transform(evalPool.data)
+println("predictions")
 predictions.show()
 
 // save model
 val savedModelPath = "/my_models/binclass_model"
 model.write.save(savedModelPath)
+
+// save model as local file in CatBoost native format
+val savedNativeModelPath = "./my_local_models/binclass_model.cbm"
+model.saveNativeModel(savedNativeModelPath)
 
 ...
 
@@ -136,8 +140,18 @@ model.write.save(savedModelPath)
 
 val loadedModel = CatBoostClassificationModel.load(savedModelPath)
 
-val predictions2 = loadedModel.transform(evalPool.data)
-predictions2.show()
+val predictionsFromLoadedModel = loadedModel.transform(evalPool.data)
+println("predictionsFromLoadedModel")
+predictionsFromLoadedModel.show()
+
+
+// load model as local file in CatBoost native format
+
+val loadedNativeModel = CatBoostClassificationModel.loadNativeModel(savedNativeModelPath)
+
+val predictionsFromLoadedNativeModel = loadedNativeModel.transform(evalPool.data)
+println("predictionsFromLoadedNativeModel")
+predictionsFromLoadedNativeModel.show()
 ```
 
 ##### Multiclassification:
@@ -187,11 +201,16 @@ val model = classifier.fit(trainPool, Array[Pool](evalPool))
 
 // apply model
 val predictions = model.transform(evalPool.data)
+println("predictions")
 predictions.show()
 
 // save model
 val savedModelPath = "/my_models/multiclass_model"
 model.write.save(savedModelPath)
+
+// save model as local file in CatBoost native format
+val savedNativeModelPath = "./my_local_models/multiclass_model.cbm"
+model.saveNativeModel(savedNativeModelPath)
 
 ...
 
@@ -199,8 +218,17 @@ model.write.save(savedModelPath)
 
 val loadedModel = CatBoostClassificationModel.load(savedModelPath)
 
-val predictions2 = loadedModel.transform(evalPool.data)
-predictions2.show()
+val predictionsFromLoadedModel = loadedModel.transform(evalPool.data)
+println("predictionsFromLoadedModel")
+predictionsFromLoadedModel.show()
+
+// load model as local file in CatBoost native format
+
+val loadedNativeModel = CatBoostClassificationModel.loadNativeModel(savedNativeModelPath)
+
+val predictionsFromLoadedNativeModel = loadedNativeModel.transform(evalPool.data)
+println("predictionsFromLoadedNativeModel")
+predictionsFromLoadedNativeModel.show()
 ```
 
 #### Regression:
@@ -250,20 +278,34 @@ val model = regressor.fit(trainPool, Array[Pool](evalPool))
 
 // apply model
 val predictions = model.transform(evalPool.data)
+println("predictions")
 predictions.show()
 
 // save model
 val savedModelPath = "/my_models/regression_model"
 model.write.save(savedModelPath)
 
+// save model as local file in CatBoost native format
+val savedNativeModelPath = "./my_local_models/regression_model.cbm"
+model.saveNativeModel(savedNativeModelPath)
+
 ...
 
 // load model (can be used in a different Spark session)
 
-val loadedModel = CatBoostClassificationModel.load(savedModelPath)
+val loadedModel = CatBoostRegressionModel.load(savedModelPath)
 
-val predictions2 = loadedModel.transform(evalPool.data)
-predictions2.show()
+val predictionsFromLoadedModel = loadedModel.transform(evalPool.data)
+println("predictionsFromLoadedModel")
+predictionsFromLoadedModel.show()
+
+// load model as local file in CatBoost native format
+
+val loadedNativeModel = CatBoostRegressionModel.loadNativeModel(savedNativeModelPath)
+
+val predictionsFromLoadedNativeModel = loadedNativeModel.transform(evalPool.data)
+println("predictionsFromLoadedNativeModel")
+predictionsFromLoadedNativeModel.show()
 
 ```
 
@@ -271,9 +313,9 @@ Refer to other usage examples in the scaladoc-generated documentation provided i
 
 ### PySpark
 
-#### Classification
+#### Classification:
 
-##### Binary classification
+##### Binary classification:
 
 ```python
 from pyspark.sql import Row,SparkSession
@@ -347,7 +389,7 @@ predictionsFromLoadedNativeModel = loadedNativeModel.transform(evalPool.data)
 predictionsFromLoadedNativeModel.show()
 ```
 
-##### Multiclassification
+##### Multiclassification:
 
 ```python
 from pyspark.sql import Row,SparkSession
@@ -421,7 +463,7 @@ predictionsFromLoadedNativeModel = loadedNativeModel.transform(evalPool.data)
 predictionsFromLoadedNativeModel.show()
 ```
 
-####Regression
+#### Regression:
 
 ```python
 from pyspark.sql import Row,SparkSession
@@ -519,7 +561,7 @@ Known limitations
 Build from source
 --------
 
-####Dependencies and requirements
+#### Dependencies and requirements
 
 * Linux or Mac OS X. Windows support in progress.
 * Python. 2.7 or 3.2+
@@ -527,7 +569,7 @@ Build from source
 * JDK 8. Newer versions of JDK are not supported yet.
 * SWIG 4.0.2+
 
-####Building steps
+#### Building steps
 
 * Clone the repository:
 
