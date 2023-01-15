@@ -378,6 +378,7 @@ def fix_path(p):
     return p
 
 def process_free_args(args, wine, bld_root, mode):
+    whole_archive_prefix = '/WHOLEARCHIVE:'
     short_names = {}
     winepath = os.path.join(os.path.dirname(wine), 'winepath')
     short_names[bld_root] = trim_path(bld_root, winepath)
@@ -389,7 +390,10 @@ def process_free_args(args, wine, bld_root, mode):
 
     process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
     def process_arg(arg):
-        return fix_path(process_link(downsize_path(arg, short_names)))
+        with_wa_prefix = arg.startswith(whole_archive_prefix)
+        prefix = whole_archive_prefix if with_wa_prefix else ''
+        without_prefix_arg = arg[len(prefix):]
+        return prefix + fix_path(process_link(downsize_path(without_prefix_arg, short_names)))
 
     result = []
     for arg in free_args:
