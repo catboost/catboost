@@ -4,7 +4,7 @@ LICENSE(MIT)
 
 
 
-VERSION(54.2.0)
+VERSION(56.0.0)
 
 PEERDIR(
     library/python/resource
@@ -113,7 +113,6 @@ PY_SRCS(
     setuptools/command/alias.py
     setuptools/command/bdist_egg.py
     setuptools/command/bdist_rpm.py
-    setuptools/command/bdist_wininst.py
     setuptools/command/build_clib.py
     setuptools/command/build_ext.py
     setuptools/command/build_py.py

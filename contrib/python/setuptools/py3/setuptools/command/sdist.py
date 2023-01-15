@@ -4,6 +4,7 @@ import os
 import sys
 import io
 import contextlib
+from glob import iglob
 
 from setuptools.extern import ordered_set
 
@@ -194,29 +195,41 @@ class sdist(sdist_add_defaults, orig.sdist):
         """Checks if license_file' or 'license_files' is configured and adds any
         valid paths to 'self.filelist'.
         """
-
-        files = ordered_set.OrderedSet()
-
         opts = self.distribution.get_option_dict('metadata')
 
-        # ignore the source of the value
-        _, license_file = opts.get('license_file', (None, None))
-
-        if license_file is None:
-            log.debug("'license_file' option was not specified")
-        else:
-            files.add(license_file)
-
+        files = ordered_set.OrderedSet()
         try:
-            files.update(self.distribution.metadata.license_files)
+            license_files = self.distribution.metadata.license_files
         except TypeError:
             log.warn("warning: 'license_files' option is malformed")
+            license_files = ordered_set.OrderedSet()
+        patterns = license_files if isinstance(license_files, ordered_set.OrderedSet) \
+            else ordered_set.OrderedSet(license_files)
 
-        for f in files:
-            if not os.path.exists(f):
-                log.warn(
-                    "warning: Failed to find the configured license file '%s'",
-                    f)
-                files.remove(f)
+        if 'license_file' in opts:
+            log.warn(
+                "warning: the 'license_file' option is deprecated, "
+                "use 'license_files' instead")
+            patterns.append(opts['license_file'][1])
 
-        self.filelist.extend(files)
+        if 'license_file' not in opts and 'license_files' not in opts:
+            # Default patterns match the ones wheel uses
+            # See https://wheel.readthedocs.io/en/stable/user_guide.html
+            # -> 'Including license files in the generated wheel file'
+            patterns = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
+
+        for pattern in patterns:
+            for path in iglob(pattern):
+                if path.endswith('~'):
+                    log.debug(
+                        "ignoring license file '%s' as it looks like a backup",
+                        path)
+                    continue
+
+                if path not in files and os.path.isfile(path):
+                    log.info(
+                        "adding license file '%s' (matched pattern '%s')",
+                        path, pattern)
+                    files.add(path)
+
+        self.filelist.extend(sorted(files))
