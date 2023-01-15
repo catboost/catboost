@@ -1,6 +1,6 @@
 #include "langmask.h"
 
-#include <library/langmask/proto/langmask.pb.h>
+#include <library/cpp/langmask/proto/langmask.pb.h>
 
 #include <util/string/vector.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/cpp/enumbitset/enumbitset.h>
-#include <library/langmask/langmask.h>
+#include <library/cpp/langmask/langmask.h>
 #include <library/cpp/token/nlptypes.h>
 
 #include <util/generic/bitmap.h>

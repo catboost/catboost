@@ -1,8 +1,8 @@
 #include <library/cpp/unittest/registar.h>
 #include <util/string/hex.h>
-#include <library/langmask/langmask.h>
-#include <library/langmask/serialization/langmask.h>
-#include <library/langmask/proto/langmask.pb.h>
+#include <library/cpp/langmask/langmask.h>
+#include <library/cpp/langmask/serialization/langmask.h>
+#include <library/cpp/langmask/proto/langmask.pb.h>
 
 class TLangMaskTest: public TTestBase {
     UNIT_TEST_SUITE(TLangMaskTest);
