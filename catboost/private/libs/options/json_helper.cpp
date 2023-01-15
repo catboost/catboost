@@ -1,7 +1,7 @@
 #include "json_helper.h"
 
-#include <library/json/json_reader.h>
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_reader.h>
+#include <library/cpp/json/json_writer.h>
 
 #include <util/stream/str.h>
 

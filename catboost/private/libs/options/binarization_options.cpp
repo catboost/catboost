@@ -3,7 +3,7 @@
 #include "restrictions.h"
 #include "json_helper.h"
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/yexception.h>

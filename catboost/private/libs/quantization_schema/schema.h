@@ -3,7 +3,7 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/data/cat_feature_perfect_hash.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/string.h>

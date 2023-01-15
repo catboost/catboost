@@ -19,7 +19,7 @@
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>

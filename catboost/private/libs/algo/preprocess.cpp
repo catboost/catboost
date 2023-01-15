@@ -10,7 +10,7 @@
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/xrange.h>
 #include <util/system/fs.h>

@@ -12,7 +12,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/model
     catboost/private/libs/options
-    library/json
+    library/cpp/json
 )
 
 END()

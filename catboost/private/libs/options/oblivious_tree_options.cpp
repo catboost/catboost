@@ -5,7 +5,7 @@
 #include <catboost/libs/logging/logging_level.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 #include <util/string/cast.h>
 
 NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETaskType taskType)

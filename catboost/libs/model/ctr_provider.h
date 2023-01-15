@@ -5,7 +5,7 @@
 #include "features.h"
 #include "ctr_value_table.h"
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>

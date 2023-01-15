@@ -42,7 +42,7 @@ PEERDIR(
     catboost/libs/train_lib
     library/cpp/getopt/small
     library/cpp/grid_creator
-    library/json
+    library/cpp/json
     library/logger
     library/svnversion
     library/cpp/text_processing/dictionary

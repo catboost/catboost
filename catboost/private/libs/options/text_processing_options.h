@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "option.h"
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 #include <library/cpp/text_processing/dictionary/options.h>
 #include <library/cpp/text_processing/tokenizer/options.h>
 #include <util/generic/array_ref.h>

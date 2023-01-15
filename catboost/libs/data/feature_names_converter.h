@@ -6,7 +6,7 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/monotone_constraints.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams);
 TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo);

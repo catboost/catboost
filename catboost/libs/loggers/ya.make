@@ -18,7 +18,7 @@ PEERDIR(
     catboost/libs/metrics
     contrib/libs/tensorboard
     library/cpp/digest/crc32c
-    library/json/writer
+    library/cpp/json/writer
 )
 
 END()

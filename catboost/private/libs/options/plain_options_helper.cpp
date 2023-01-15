@@ -7,7 +7,7 @@
 
 #include <catboost/libs/logging/logging.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/strbuf.h>
 #include <util/string/builder.h>

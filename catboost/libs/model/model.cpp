@@ -16,7 +16,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/class_label_options.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 #include <library/dbg_output/dump.h>
 #include <library/dbg_output/auto.h>
 

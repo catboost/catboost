@@ -3,7 +3,7 @@
 #include "option.h"
 #include "unimplemented_aware_option.h"
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/string.h>
 #include <util/generic/set.h>

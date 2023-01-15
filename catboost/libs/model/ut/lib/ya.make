@@ -11,7 +11,7 @@ PEERDIR(
     catboost/libs/data/ut/lib
     catboost/libs/model
     catboost/libs/train_lib
-    library/json
+    library/cpp/json
 )
 
 END()

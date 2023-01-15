@@ -8,7 +8,7 @@
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/ptr.h>
 

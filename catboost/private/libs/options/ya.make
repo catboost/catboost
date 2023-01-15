@@ -37,14 +37,14 @@ SRCS(
 )
 
 PEERDIR(
-    library/json
+    library/cpp/json
     catboost/libs/helpers
     catboost/libs/logging
     catboost/private/libs/ctr_description
     catboost/private/libs/data_util
     library/cpp/getopt/small
     library/cpp/grid_creator
-    library/json
+    library/cpp/json
     library/cpp/text_processing/dictionary
     library/cpp/text_processing/tokenizer
 )

@@ -4,7 +4,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/json/writer/json_value.h>
+#include <library/cpp/json/writer/json_value.h>
 
 #include <util/generic/map.h>
 #include <util/generic/strbuf.h>

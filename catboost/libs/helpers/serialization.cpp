@@ -1,7 +1,7 @@
 #include "serialization.h"
 #include "exception.h"
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/stream/str.h>
 
