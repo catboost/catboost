@@ -14,6 +14,7 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonDSL._
 
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row,SparkSession}
 import org.apache.spark.TaskContext
@@ -26,9 +27,11 @@ import ai.catboost.spark._
 import java.io.File
 
 
-private[spark] object Worker {
+private[spark] object CatBoostWorker {
   val usedInCurrentProcess : AtomicBoolean = new AtomicBoolean
+}
 
+private[spark] class CatBoostWorker extends Logging {
   def processPartition(
     trainingDriverListeningAddress: InetSocketAddress,
     catBoostJsonParamsString: String,
@@ -39,22 +42,29 @@ private[spark] object Worker {
     // returns (quantizedDataProvider, estimatedQuantizedDataProvider, dstRows) can return null
     getDataProvidersCallback : (TLocalExecutor) => (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[mutable.ArrayBuffer[Any]])
   ) = {
-    if (!usedInCurrentProcess.compareAndSet(false, true)) {
+    if (!CatBoostWorker.usedInCurrentProcess.compareAndSet(false, true)) {
       throw new CatBoostError("An active CatBoost worker is already present in the current process")
     }
 
     try {
+      log.info("processPartition: start")
+
       val localExecutor = new TLocalExecutor
       localExecutor.Init(threadCount)
 
       // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
       val partitionId = TaskContext.getPartitionId
+      
+      log.info("processPartition: get data providers: start")
 
       var (quantizedDataProvider, estimatedQuantizedDataProvider, _) = getDataProvidersCallback(localExecutor)
 
+      log.info("processPartition: get data providers: finish")
+      
       val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
 
       if (partitionSize != 0) {
+        log.info("processPartition: CreateTrainingDataForWorker: start")
         native_impl.CreateTrainingDataForWorker(
           partitionId,
           threadCount,
@@ -72,6 +82,7 @@ private[spark] object Worker {
             ""
           }
         )
+        log.info("processPartition: CreateTrainingDataForWorker: finish")
       }
 
       val workerPort = TrainingDriver.getWorkerPort()
@@ -116,13 +127,13 @@ private[spark] object Worker {
       }
 
     } finally {
-      usedInCurrentProcess.set(false)
+      CatBoostWorker.usedInCurrentProcess.set(false)
     }
   }
 }
 
 
-private[spark] class Workers(
+private[spark] class CatBoostWorkers(
   val spark: SparkSession,
   val workerCount: Int,
   val trainingDriverListeningPort: Int,
@@ -165,7 +176,7 @@ private[spark] class Workers(
     val dataMetaInfo = preprocessedTrainPool.createDataMetaInfo()
     val schemaForWorkers = trainDataForWorkers.schema
 
-    // copy needed because Spark will try to capture the whole Workers class and fail
+    // copy needed because Spark will try to capture the whole CatBoostWorkers class and fail
     val precomputedOnlineCtrMetaDataAsJsonStringCopy = precomputedOnlineCtrMetaDataAsJsonString
     
     if (preprocessedTrainPool.pairsData != null) {
@@ -185,7 +196,7 @@ private[spark] class Workers(
 
       cogroupedTrainData.foreachPartition {
         groups : Iterator[(Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
-          Worker.processPartition(
+          new CatBoostWorker().processPartition(
             trainingDriverListeningAddress,
             catBoostJsonParamsForWorkersString,
             quantizedFeaturesInfo,
@@ -221,7 +232,7 @@ private[spark] class Workers(
       
       repartitionedTrainDataForWorkers.foreachPartition {
         rows : Iterator[Row] => {
-          Worker.processPartition(
+          new CatBoostWorker().processPartition(
             trainingDriverListeningAddress,
             catBoostJsonParamsForWorkersString,
             quantizedFeaturesInfo,

@@ -13,6 +13,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer,ArrayBuilder}
 
+import org.apache.spark.internal.Logging
 import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg.{Vector,SparseVector,SQLDataTypes,Vectors}
 import org.apache.spark.ml.param._
@@ -316,7 +317,7 @@ class Pool (
     val quantizedFeaturesInfo: QuantizedFeaturesInfoPtr = null,
     val pairsData: DataFrame = null,
     val partitionedByGroups: Boolean = false)
-  extends Params with HasLabelCol with HasFeaturesCol with HasWeightCol {
+  extends Params with HasLabelCol with HasFeaturesCol with HasWeightCol with Logging {
 
   private[spark] def this(
     data: DataFrame,
@@ -763,10 +764,15 @@ class Pool (
     nanModeAndBordersBuilder: TNanModeAndBordersBuilder,
     quantizationParams: QuantizationParamsTrait
   ) = {
+    log.info("calcNanModesAndBorders: start")
+    
     val calcHasNansSeparately = count > QuantizationParams.MaxSubsetSizeForBuildBordersAlgorithms
     val calcHasNansFuture = Future {
       if (calcHasNansSeparately) {
-        DataHelpers.calcFeaturesHasNans(data, getFeaturesCol, this.getFeatureCount)
+        log.info("calcFeaturesHasNans: start")
+        val result = DataHelpers.calcFeaturesHasNans(data, getFeaturesCol, this.getFeatureCount)
+        log.info("calcFeaturesHasNans: finish")
+        result
       } else {
         Array[Byte]()
       }
@@ -784,18 +790,23 @@ class Pool (
 
     nanModeAndBordersBuilder.SetSampleSize(dataForBuildBorders.count.toInt)
     
+    log.info("calcNanModesAndBorders: reading data: start")
     for (row <- dataForBuildBorders.toLocalIterator) {
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
-    
+    log.info("calcNanModesAndBorders: reading data: end")
+
+    log.info("CalcBordersWithoutNans: start")
     nanModeAndBordersBuilder.CalcBordersWithoutNans(
       quantizationParams.get(quantizationParams.threadCount).getOrElse(
         SparkHelpers.getThreadCountForDriver(data.sparkSession)
       )
     )
+    log.info("CalcBordersWithoutNans: finish")
     
     val hasNansArray = Await.result(calcHasNansFuture, Duration.Inf)
     nanModeAndBordersBuilder.Finish(hasNansArray)
+    log.info("calcNanModesAndBorders: finish")
   }
 
   protected def updateCatFeaturesInfo(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) = {

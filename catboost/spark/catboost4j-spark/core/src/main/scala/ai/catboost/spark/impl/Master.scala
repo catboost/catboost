@@ -18,6 +18,7 @@ import sun.net.util.IPAddressUtil
 
 import org.apache.commons.io.FileUtils
 
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.SparkSession
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
@@ -25,15 +26,21 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 import ai.catboost.CatBoostError
 import ai.catboost.spark._
 
-private[spark] object Master {
+private[spark] object CatBoostMasterWrapper {
   // use this method to create Master instances
   def apply(
     preprocessedTrainPool: Pool,
     preprocessedEvalPools: Array[Pool],
     catBoostJsonParamsForMasterString: String,
     precomputedOnlineCtrMetaDataAsJsonString: String
-  ) : Master = {
-    val savedPoolsFuture = Future {
+  ) : CatBoostMasterWrapper = {
+    val result = new CatBoostMasterWrapper(
+      preprocessedTrainPool.data.sparkSession, 
+      catBoostJsonParamsForMasterString,
+      precomputedOnlineCtrMetaDataAsJsonString
+    )
+
+    result.savedPoolsFuture = Future {
       val threadCount = SparkHelpers.getThreadCountForDriver(preprocessedTrainPool.data.sparkSession)
       val localExecutor = new native_impl.TLocalExecutor
       localExecutor.Init(threadCount)
@@ -42,38 +49,40 @@ private[spark] object Master {
         preprocessedTrainPool,
         includeFeatures=false,
         includeEstimatedFeatures=false,
-        localExecutor=localExecutor
+        localExecutor=localExecutor,
+        dataPartName="Learn Dataset",
+        log=result.log
       )
-      val testMainAndEstimatedPoolsAsFiles = preprocessedEvalPools.map {
-        testPool => DataHelpers.downloadQuantizedPoolToTempFiles(
+      val testMainAndEstimatedPoolsAsFiles = preprocessedEvalPools.zipWithIndex.map {
+        case (testPool, idx) => DataHelpers.downloadQuantizedPoolToTempFiles(
           testPool,
           includeFeatures=true,
           includeEstimatedFeatures=true,
-          localExecutor=localExecutor
+          localExecutor=localExecutor,
+          dataPartName=s"Eval Dataset #${idx}",
+          log=result.log
         )
       }
 
       (trainPoolFiles, testMainAndEstimatedPoolsAsFiles)
     }
-    new Master(
-      preprocessedTrainPool.data.sparkSession, 
-      savedPoolsFuture, 
-      catBoostJsonParamsForMasterString,
-      precomputedOnlineCtrMetaDataAsJsonString
-    )
+
+    result
   }
 }
 
 
-private[spark] class Master(
+private[spark] class CatBoostMasterWrapper (
   val spark: SparkSession,
-  val savedPoolsFuture : Future[(PoolFilesPaths, Array[PoolFilesPaths])],
   val catBoostJsonParamsForMasterString: String,
   val precomputedOnlineCtrMetaDataAsJsonString: String,
 
+  var savedPoolsFuture : Future[(PoolFilesPaths, Array[PoolFilesPaths])] = null, // inited later
+  
   // will be set in trainCallback, called from the trainingDriver's run()
   var nativeModelResult : native_impl.TFullModel = null
-) {
+) extends Logging {
+
   private def saveHostsListToFile(hostsFilePath: Path, workersInfo: Array[WorkerInfo]) = {
     val pw = new PrintWriter(hostsFilePath.toFile)
     try {
@@ -141,8 +150,12 @@ private[spark] class Master(
     if (precomputedOnlineCtrMetaDataAsJsonString != null) {
       args += ("--precomputed-data-meta", precomputedOnlineCtrMetaDataFile.toString)
     }
+    
+    log.info("Wait until Dataset data parts are ready.")
 
     val (savedTrainPool, savedEvalMainAndEstimatedPools) = Await.result(savedPoolsFuture, Duration.Inf)
+
+    log.info("Dataset data parts are ready. Start CatBoost Master process.")
 
     args += ("--learn-set", "spark-quantized://master-part:" + savedTrainPool.mainData.toString)
     if (savedTrainPool.pairsData.isDefined) {
@@ -215,10 +228,14 @@ private[spark] class Master(
       if (failedBecauseOfWorkerConnectionLost) {
         throw new CatBoostWorkersConnectionLostException("")
       }
-      throw new CatBoostError(s"Master process failed: exited with code $returnValue")
+      throw new CatBoostError(s"CatBoost Master process failed: exited with code $returnValue")
     }
+    
+    log.info("CatBoost Master process finished successfully.")
 
+    log.info("Trained model: start loading")
     nativeModelResult = native_impl.native_impl.ReadModelWrapper(resultModelFilePath.toString)
+    log.info("Trained model: finish loading")
 
     FileUtils.deleteDirectory(tmpDirPath.toFile)
   }
