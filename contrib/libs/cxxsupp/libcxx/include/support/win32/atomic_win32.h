@@ -64,9 +64,9 @@ static inline void __c11_atomic_init(_Atomic(_Tp)* __a,  _Tp __val) {
 }
 
 static inline void __c11_atomic_thread_fence(int __order) {
-    if (__order != memory_order_relaxed) {
+    if (__order != static_cast<int>(memory_order_relaxed)) {
 #if defined(_M_IX86) || defined(_M_X64)
-        if (__order == memory_order_seq_cst) {
+        if (__order == static_cast<int>(memory_order_seq_cst)) {
             _MemoryBarrier;
         } else {
             _ReadWriteBarrier();
