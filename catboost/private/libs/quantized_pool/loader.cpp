@@ -311,7 +311,7 @@ TConstArrayRef<ui8> NCB::TCBQuantizedDataLoader::ClipByDatasetSubset(const TQuan
     const auto loadEnd = DatasetSubset.Range.End;
     if (loadStart <= chunkStart && chunkStart < loadEnd) {
         const auto* clippedStart = reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data());
-        const auto clippedSize = Min(chunkEnd - chunkStart, loadEnd - chunkStart) * valueBytes;
+        const auto clippedSize = Min<ui64>(chunkEnd - chunkStart, loadEnd - chunkStart) * valueBytes;
         return MakeArrayRef(clippedStart, clippedSize);
     } else if (chunkStart < loadStart && loadStart < chunkEnd) {
         const auto* clippedStart = reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()) + (loadStart - chunkStart) * valueBytes;
