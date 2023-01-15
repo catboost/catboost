@@ -100,6 +100,13 @@ namespace NCB {
             const TVector<TFloatFeature>& floatFeatures,
             const TVector<TCatFeature>& catFeatures);
 
+        // data is moved into - poor substitute to && because SWIG does not support it
+        TFeaturesLayout(TVector<TFeatureMetaInfo>* data);
+
+        // needed for SWIG wrapper deserialization
+        // data is moved into - poor substitute to && because SWIG does not support it
+        void Init(TVector<TFeatureMetaInfo>* data);
+
         bool EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity = false) const;
 
         bool operator==(const TFeaturesLayout& rhs) const {

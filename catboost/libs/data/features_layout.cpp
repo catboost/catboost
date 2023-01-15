@@ -158,6 +158,17 @@ TFeaturesLayout::TFeaturesLayout(
     }
 }
 
+TFeaturesLayout::TFeaturesLayout(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
+    Init(data);
+}
+
+void TFeaturesLayout::Init(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
+    for (auto& featureMetaInfo : *data) {
+        AddFeature(std::move(featureMetaInfo));
+    }
+    data->clear();
+}
+
 
 const TFeatureMetaInfo& TFeaturesLayout::GetInternalFeatureMetaInfo(
     ui32 internalFeatureIdx,
