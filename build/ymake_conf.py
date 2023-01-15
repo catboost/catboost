@@ -1317,7 +1317,6 @@ class GnuCompiler(Compiler):
                     '-Wno-int-in-bool-context',
                     '-Wno-misleading-indentation',
                     '-Wno-tautological-overlap-compare',
-                    '-Wno-unused-result',
                     '-Wno-unknown-warning-option',  # For nvcc to accept the above.
                 ))
                 self.cxx_warnings.extend((
