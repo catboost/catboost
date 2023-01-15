@@ -90,7 +90,6 @@ namespace {
     const TStringBuf schemeFulls = "fulls";
     const TStringBuf schemeHttpUnix = "http+unix";
     const TStringBuf schemePostUnix = "post+unix";
-    const TStringBuf schemeFullUnix = "full+unix";
 
     /*
         @brief  SafeWriteHeaders    write headers from hdrs to out with some checks:
