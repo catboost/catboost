@@ -3,7 +3,7 @@ PY23_LIBRARY()
 
 
 ADDINCL(
-    contrib/python/scipy
+    FOR cython contrib/python/scipy
 )
 
 NO_LINT()

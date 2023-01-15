@@ -9,7 +9,7 @@ IF (OS_WINDOWS)
 ENDIF()
 
 ADDINCL(
-    contrib/python/scipy
+    FOR cython contrib/python/scipy
     contrib/python/scipy/scipy/special
     contrib/python/scipy/scipy/special/c_misc
 )

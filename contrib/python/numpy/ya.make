@@ -22,6 +22,7 @@ PEERDIR(
 ADDINCL(
     contrib/python/numpy/numpy/core
     GLOBAL contrib/python/numpy/numpy/core/include
+    GLOBAL FOR cython contrib/python/numpy/numpy/core/include
     contrib/python/numpy/numpy/core/include/numpy
     contrib/python/numpy/numpy/core/src
     contrib/python/numpy/numpy/core/src/common

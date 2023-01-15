@@ -14,7 +14,7 @@ PEERDIR(
 )
 
 ADDINCL(
-    contrib/python/pandas/py3
+    FOR cython contrib/python/pandas/py3
     contrib/python/pandas/py3/pandas/_libs
     contrib/python/pandas/py3/pandas/_libs/src
     contrib/python/pandas/py3/pandas/_libs/src/klib
