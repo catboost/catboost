@@ -132,7 +132,7 @@ def validate_test(unit, kw):
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fat = 'ya:fat' in tags
     is_force_sandbox = 'ya:force_distbuild' not in tags and is_fat
-    is_ytexec_run = 'ya:yt' in tags and 'ya:ytexec' in tags
+    is_ytexec_run = 'ya:yt' in tags
     is_fuzzing = valid_kw.get("FUZZING", False)
     is_kvm = 'kvm' in requirements_orig
     requirements = {}
@@ -236,7 +236,7 @@ def validate_test(unit, kw):
                 break
 
     if valid_kw.get("YT-SPEC"):
-        if 'ya:yt' not in tags:
+        if not is_ytexec_run:
             errors.append("You can use YT_SPEC macro only tests marked with ya:yt tag")
         else:
             for filename in get_list("YT-SPEC"):
@@ -244,19 +244,6 @@ def validate_test(unit, kw):
                 if not os.path.exists(filename):
                     errors.append("File '{}' specified in the YT_SPEC macro doesn't exist".format(filename))
                     continue
-                if 'ya:ytexec' not in tags:
-                    try:
-                        with open(filename) as afile:
-                            data = json.load(afile)
-                    except Exception as e:
-                        errors.append("Malformed data in {}: {} ({})".format(unit.path(), e, filename))
-                        continue
-
-                    known = {'operation_spec', 'task_spec'}
-                    unknown = set(data.keys()) - known
-                    if unknown:
-                        errors.append("Don't know what to do with {} field(s) in {}. You can use only: {}".format(unknown, unit.path(), known))
-                        continue
 
     if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
@@ -278,7 +265,7 @@ def validate_test(unit, kw):
             errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
 
     unit_path = get_norm_unit_path(unit)
-    if not is_fat and "ya:noretries" in tags and 'ya:yt' not in tags \
+    if not is_fat and "ya:noretries" in tags and not is_ytexec_run \
             and not unit_path.startswith("devtools/") \
             and not unit_path.startswith("infra/kernel/") \
             and not unit_path.startswith("yt/python/yt") \
