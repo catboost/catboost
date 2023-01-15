@@ -45,4 +45,6 @@ if __name__ == '__main__':
         logging.exception(e)
         print >>sys.stderr, open(args.abs_log_path).read()
         sys.stderr.flush()
-        sys.exit(fetch_from.INFRASTRUCTURE_ERROR if fetch_from.is_temporary(e) else 1)
+
+        import error
+        sys.exit(error.ExitCodes.INFRASTRUCTURE_ERROR if fetch_from.is_temporary(e) else 1)
