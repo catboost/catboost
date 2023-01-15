@@ -25,7 +25,7 @@ class TVector {
 
 public:
     void reserve(size_t new_cap);
-    
+
     %extend {
         const T& getImpl(jint index) const throw (std::out_of_range) {
             if ((index < 0) || (index >= (jint)self->size())) {
@@ -71,7 +71,7 @@ public:
             return oldValue;
         }
     }
-    
+
     %proxycode %{
         public $javaclassname($typemap(jstype, T)[] elements) {
             this();
@@ -99,13 +99,13 @@ public:
         public int size() {
             return sizeImpl();
         }
-        
+
         public boolean add($typemap(jboxtype, T) element) {
             modCount++;
             addImpl(element);
             return true;
         }
-        
+
         public void add(int index, $typemap(jboxtype, T) element) {
             modCount++;
             addImpl(index, element);
@@ -115,9 +115,9 @@ public:
             modCount++;
             return removeImpl(index);
         }
-        
+
         // Generic serialization implementation - not very fast
-        
+
         private void writeObject(ObjectOutputStream out) throws IOException {
             int length = this.size();
             out.writeInt(length);
@@ -125,11 +125,11 @@ public:
                 out.writeObject(this.get(i));
             }
         }
-    
+
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
             this.swigCPtr = native_implJNI.new_$javaclassname();
             this.swigCMemOwn = true;
-        
+
             int length = in.readInt();
             this.reserve(length);
             for (int i = 0; i < length; ++i) {
@@ -137,7 +137,7 @@ public:
             }
         }
     %}
-    
+
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TVector<T>)
 };
 
@@ -146,16 +146,17 @@ public:
     %template(TVector_##CPPTYPE) TVector<CPPTYPE>;
 
     %native (toPrimitiveArrayImpl_##CPPTYPE) JNITYPE##Array toPrimitiveArrayImpl_##CPPTYPE(const TVector<CPPTYPE>& v);
+    %native (asDirectByteBufferImpl_##CPPTYPE) jobject asDirectByteBufferImpl_##CPPTYPE(const TVector<CPPTYPE>& v);
     %{
     extern "C" {
-        JNIEXPORT JNITYPE##Array JNICALL 
+        JNIEXPORT JNITYPE##Array JNICALL
         Java_ru_yandex_catboost_spark_catboost4j_1spark_core_src_native_1impl_native_1implJNI_toPrimitiveArrayImpl_1##CPPTYPE(
             JNIEnv* jenv,
             jclass /*cls*/,
             jlong jarg1,
             jobject /*jarg1_*/
         ) {
-            TVector<CPPTYPE>* self = *(TVector<CPPTYPE>**)&jarg1;  
+            TVector<CPPTYPE>* self = *(TVector<CPPTYPE>**)&jarg1;
             JNITYPE##Array result;
             try {
                 result = SWIG_PrimitiveArrayCppToJava(jenv, self->data(), self->size());
@@ -165,9 +166,38 @@ public:
                 SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unknown C++ exception thrown");
             }
             return result;
-        } 
-    }  
+        }
         
+        JNIEXPORT jobject JNICALL
+        Java_ru_yandex_catboost_spark_catboost4j_1spark_core_src_native_1impl_native_1implJNI_asDirectByteBufferImpl_1##CPPTYPE(
+            JNIEnv* jenv,
+            jclass /*cls*/,
+            jlong jarg1,
+            jobject /*jarg1_*/
+        ) {
+            TVector<CPPTYPE>* self = *(TVector<CPPTYPE>**)&jarg1;
+            jobject result = nullptr;
+            size_t sizeInBytes = self->size() * sizeof(CPPTYPE);
+            if (sizeInBytes > Max<jlong>()) {
+                SWIG_JavaThrowException(
+                    jenv,
+                    SWIG_JavaRuntimeException,
+                    "Size of vector is too big for java.nio.ByteBuffer"
+                );
+            } else {
+                result = jenv->NewDirectByteBuffer(self->data(), (jlong)sizeInBytes);
+                if (!result && !jenv->ExceptionCheck()) {
+                    SWIG_JavaThrowException(
+                        jenv,
+                        SWIG_JavaRuntimeException,
+                        "JNI access to direct buffers is not supported by JVM."
+                    );
+                }
+            }
+            return result;
+        }
+    }
+
     %}
 
     %extend TVector<CPPTYPE> {
@@ -175,9 +205,14 @@ public:
             public JAVATYPE[] toPrimitiveArray() {
                 return $imclassname.toPrimitiveArrayImpl_##CPPTYPE(swigCPtr, this);
             }
+            
+            // valid only until next reallocation of TVector, so, use with caution.
+            public java.nio.ByteBuffer asDirectByteBuffer() {
+                return (java.nio.ByteBuffer)$imclassname.asDirectByteBufferImpl_##CPPTYPE(swigCPtr, this);
+            }
         %}
     }
-    
+
 %enddef
 
 
@@ -185,7 +220,7 @@ EXTEND_FOR_PRIMITIVE_TYPE(i8, jbyte, byte);
 EXTEND_FOR_PRIMITIVE_TYPEL(ui16, jchar, char);
 EXTEND_FOR_PRIMITIVE_TYPE(i16, jshort, short);
 EXTEND_FOR_PRIMITIVE_TYPE(i32, jint, int);
-//EXTEND_FOR_PRIMITIVE_TYPE(i64, jlong, long);
+EXTEND_FOR_PRIMITIVE_TYPE(i64, jlong, long);
 EXTEND_FOR_PRIMITIVE_TYPE(float, jfloat, float);
 EXTEND_FOR_PRIMITIVE_TYPE(double, jdouble, double);
 

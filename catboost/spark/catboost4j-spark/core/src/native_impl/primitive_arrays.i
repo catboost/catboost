@@ -34,7 +34,7 @@
                 "Get" ## #JAVABOXEDTYPE ## "ArrayElements failed"
             );
             return false;
-        } 
+        }
 
         *output = TArrayRef<T>((T*)jarr, (size_t)size);
         return true;
@@ -44,13 +44,13 @@
         if (size > Max<jsize>()) {
             throw std::length_error("Array size is too big for JVM");
         }
-    
+
         JNITYPE##Array result = jenv->New##JAVABOXEDTYPE##Array((jsize)size);
         if (!result) {
             throw std::runtime_error("Cannot construct Java array");
         }
         jenv->Set##JAVABOXEDTYPE##ArrayRegion(result, 0, (jsize)size, ToJniPtr<JNITYPE>(data));
-        
+
         return result;
     }
 %}
@@ -96,7 +96,7 @@ PRIMITIVE_TYPE_ARRAY_IMPL(i8, jbyte, byte, Byte);
 PRIMITIVE_TYPE_ARRAY_IMPL(ui16, jchar, char, Char);
 PRIMITIVE_TYPE_ARRAY_IMPL(i16, jshort, short, Short);
 PRIMITIVE_TYPE_ARRAY_IMPL(i32, jint, int, Int);
-//PRIMITIVE_TYPE_ARRAY_IMPL(i64, jlong, long, Long);
+PRIMITIVE_TYPE_ARRAY_IMPL(i64, jlong, long, Long);
 PRIMITIVE_TYPE_ARRAY_IMPL(float, jfloat, float, Float);
 PRIMITIVE_TYPE_ARRAY_IMPL(double, jdouble, double, Double);
 
