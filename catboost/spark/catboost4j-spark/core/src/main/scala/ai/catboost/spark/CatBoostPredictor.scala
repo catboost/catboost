@@ -86,7 +86,7 @@ trait CatBoostPredictorTrait[
         if (testPool.isQuantized) {
           testPool
         } else {
-          testPool.quantize(trainPool.quantizedFeaturesInfo)
+          testPool.quantize(quantizedTrainPool.quantizedFeaturesInfo)
         }
       }
     }
