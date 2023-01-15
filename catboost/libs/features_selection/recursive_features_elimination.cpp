@@ -253,6 +253,7 @@ namespace NCB {
         const EFstrType fstrType,
         const ECalcTypeShapValues shapCalcType,
         double currentLossValue,
+        const EMetricBestValue lossBestValueType,
         THashSet<ui32>* featuresForSelectSet,
         TFeaturesSelectionSummary* summary,
         TFeaturesSelectionLossGraphBuilder* lossGraphBuilder,
@@ -281,8 +282,13 @@ namespace NCB {
                 CATBOOST_NOTICE_LOG << "Feature #" << featureIdx << " eliminated" << Endl;
                 featuresForSelectSet->erase(featureIdx);
                 summary->EliminatedFeatures.push_back(featureIdx);
-                if (fstrType == EFstrType::LossFunctionChange) {
-                    currentLossValue += featureEffect[featureIdx];
+                if (fstrType == EFstrType::LossFunctionChange && lossBestValueType != EMetricBestValue::FixedValue) {
+                    if (lossBestValueType == EMetricBestValue::Min) {
+                        currentLossValue += featureEffect[featureIdx];
+                    } else {
+                        Y_ASSERT(lossBestValueType == EMetricBestValue::Max);
+                        currentLossValue -= featureEffect[featureIdx];
+                    }
                     lossGraphBuilder->AddEstimatedPoint(summary->EliminatedFeatures.size(), currentLossValue);
                 }
                 if (++eliminatedFeaturesCount == numFeaturesToEliminateAtThisStep) {
@@ -468,6 +474,7 @@ namespace NCB {
                         fstrType,
                         featuresSelectOptions.ShapCalcType,
                         currentLossValue,
+                        lossBestValueType,
                         &featuresForSelectSet,
                         &summary,
                         &lossGraphBuilder,
