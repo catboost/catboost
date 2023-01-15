@@ -503,6 +503,13 @@ void CrossValidate(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     ConvertParamsToCanonicalFormat(trainingData.Get()->MetaInfo, &jsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+    if (catBoostOptions.DataProcessingOptions->ClassLabels->empty()) {
+        catBoostOptions.DataProcessingOptions->ClassLabels = trainingData->MetaInfo.ClassLabels;
+    } else {
+        CB_ENSURE(
+            catBoostOptions.DataProcessingOptions->ClassLabels.Get() == trainingData->MetaInfo.ClassLabels,
+            "ClassLabels in dataprocessing options and in training data must match");
+    }
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
 
