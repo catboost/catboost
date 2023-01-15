@@ -1,0 +1,5 @@
+bindings/**/*
+build/**/*
+test_data/**/*
+lib/tests/**/*
+tsconfig.json
