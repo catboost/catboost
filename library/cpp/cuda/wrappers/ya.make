@@ -14,7 +14,7 @@ SRCS(
     cuda_vec.cpp
 )
 
-IF (CUDA_VERSION STREQUAL "10.1")
+IF (CUDA_VERSION STREQUAL "10.1" OR CUDA_VERSION STREQUAL "10.2" OR CUDA_VERSION STREQUAL "11.0" )
     SRCS(
         cuda_graph.cpp
         stream_capture.cpp

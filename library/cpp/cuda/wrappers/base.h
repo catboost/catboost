@@ -20,6 +20,9 @@
 #ifdef _MSC_VER
 #define CUDA_DISABLE_4297_WARN __pragma(warning(push)); __pragma(warning(disable:4297))
 #define CUDA_RESTORE_WARNINGS __pragma(warning(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+#define CUDA_DISABLE_4297_WARN _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wexceptions\"")
+#define CUDA_RESTORE_WARNINGS _Pragma("GCC diagnostic pop")
 #else
 #define CUDA_DISABLE_4297_WARN
 #define CUDA_RESTORE_WARNINGS
