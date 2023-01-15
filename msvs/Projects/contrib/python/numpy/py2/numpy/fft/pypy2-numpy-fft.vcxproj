@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{0333D85B-95E8-3188-EEAC-9ECD9E3DA5E1}</ProjectGUID>
+    <ProjectGUID>{79555D72-58A3-8DCF-B7C1-526929BA16B4}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pynumpy-numpy-fft</ProjectName>
+    <ProjectName>pypy2-numpy-fft</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pynumpy-numpy-fft</TargetName>
+    <TargetName>pypy2-numpy-fft</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0333D85B-95E8-3188-EEAC-9ECD9E3DA5E1\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\79555D72-58A3-8DCF-B7C1-526929BA16B4\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,19 +78,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\5de94477aaf8587621077a97d2.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\fft\fftpack.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\9d2518df62157932c971964088.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\fftpack.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\fft\fftpack_litemodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\fftpack_litemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\numpy.fft.fftpack_lite.reg.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\numpy.fft.fftpack_lite.reg.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_9d2518df62157932c971964088.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -99,9 +99,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -109,15 +109,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.py2.obj;</Outputs>
+      <Message>$B/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_9d2518df62157932c971964088.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_9d2518df62157932c971964088.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/5de94477aaf8587621077a97d2.cpp" "_8353fa007bf31aea9112159262=/py_modules/numpy.fft.__init__" "_eae6bd3a2ecfcfbf3e0205ddec=resfs/src//py_modules/numpy.fft.__init__" "_0d9b39cdc5d1363d2f9a639f97=/py_code/numpy.fft.__init__" "_a20046301555ff0372cdf72acb=/py_modules/numpy.fft.fftpack" "_5f343d7221f97118ffbb0d46b2=resfs/src//py_modules/numpy.fft.fftpack" "_52eff64b7f4870c4fc6c32746d=/py_code/numpy.fft.fftpack" "_a85c16d4914c23faeb183f3e7c=/py_modules/numpy.fft.helper" "_7e20da5982bad9f0588fd1008f=resfs/src//py_modules/numpy.fft.helper" "_4e66e65936b73de77e571a10c1=/py_code/numpy.fft.helper" "_455ed06b11ed3e439c8216ca5d=/py_modules/numpy.fft.info" "_c880a09643c647a8bf402d4188=resfs/src//py_modules/numpy.fft.info" "_a78c05b09ffc017de7d4a14022=/py_code/numpy.fft.info"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/9d2518df62157932c971964088.cpp" "_f6be68803f5ec425d23bb2ec9a=/py_modules/numpy.fft.__init__" "_ef7231d6a1fcbbfa00e89f3aad=resfs/src//py_modules/numpy.fft.__init__" "_82b55f4db588cff0b05355b61f=/py_code/numpy.fft.__init__" "_f27ca2b5af58aa2ae8c707b1f6=/py_modules/numpy.fft.fftpack" "_d786604511619cbf1da78f7917=resfs/src//py_modules/numpy.fft.fftpack" "_1e79170fc2a53901065bb42d77=/py_code/numpy.fft.fftpack" "_089aaf0e162cae64e45d1a2a57=/py_modules/numpy.fft.helper" "_c20f33b5c74d5310062ea92ae4=resfs/src//py_modules/numpy.fft.helper" "_de31f83a92bd75aafc7e5c632a=/py_code/numpy.fft.helper" "_4cd370b4951c739caf39cb4572=/py_modules/numpy.fft.info" "_2daab4d63123685915c6f1407e=resfs/src//py_modules/numpy.fft.info" "_84f4059813531e05c16ea76d5e=/py_code/numpy.fft.info"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -126,9 +126,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/5de94477aaf8587621077a97d2.cpp" "_8353fa007bf31aea9112159262=/py_modules/numpy.fft.__init__" "_eae6bd3a2ecfcfbf3e0205ddec=resfs/src//py_modules/numpy.fft.__init__" "_0d9b39cdc5d1363d2f9a639f97=/py_code/numpy.fft.__init__" "_a20046301555ff0372cdf72acb=/py_modules/numpy.fft.fftpack" "_5f343d7221f97118ffbb0d46b2=resfs/src//py_modules/numpy.fft.fftpack" "_52eff64b7f4870c4fc6c32746d=/py_code/numpy.fft.fftpack" "_a85c16d4914c23faeb183f3e7c=/py_modules/numpy.fft.helper" "_7e20da5982bad9f0588fd1008f=resfs/src//py_modules/numpy.fft.helper" "_4e66e65936b73de77e571a10c1=/py_code/numpy.fft.helper" "_455ed06b11ed3e439c8216ca5d=/py_modules/numpy.fft.info" "_c880a09643c647a8bf402d4188=resfs/src//py_modules/numpy.fft.info" "_a78c05b09ffc017de7d4a14022=/py_code/numpy.fft.info"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/9d2518df62157932c971964088.cpp" "_f6be68803f5ec425d23bb2ec9a=/py_modules/numpy.fft.__init__" "_ef7231d6a1fcbbfa00e89f3aad=resfs/src//py_modules/numpy.fft.__init__" "_82b55f4db588cff0b05355b61f=/py_code/numpy.fft.__init__" "_f27ca2b5af58aa2ae8c707b1f6=/py_modules/numpy.fft.fftpack" "_d786604511619cbf1da78f7917=resfs/src//py_modules/numpy.fft.fftpack" "_1e79170fc2a53901065bb42d77=/py_code/numpy.fft.fftpack" "_089aaf0e162cae64e45d1a2a57=/py_modules/numpy.fft.helper" "_c20f33b5c74d5310062ea92ae4=resfs/src//py_modules/numpy.fft.helper" "_de31f83a92bd75aafc7e5c632a=/py_code/numpy.fft.helper" "_4cd370b4951c739caf39cb4572=/py_modules/numpy.fft.info" "_2daab4d63123685915c6f1407e=resfs/src//py_modules/numpy.fft.info" "_84f4059813531e05c16ea76d5e=/py_code/numpy.fft.info"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -136,15 +136,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/fft/5de94477aaf8587621077a97d2.cpp	</Message>
+      <Message>$B/contrib/python/numpy/py2/numpy/fft/9d2518df62157932c971964088.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\5de94477aaf8587621077a97d2.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\9d2518df62157932c971964088.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.fft.fftpack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/numpy.fft.fftpack_lite.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.fft.fftpack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/numpy.fft.fftpack_lite.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -153,9 +153,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.fft.fftpack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/numpy.fft.fftpack_lite.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.fft.fftpack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/numpy.fft.fftpack_lite.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -163,27 +163,27 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/fft/numpy.fft.fftpack_lite.reg.cpp	</Message>
+      <Message>$B/contrib/python/numpy/py2/numpy/fft/numpy.fft.fftpack_lite.reg.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\numpy.fft.fftpack_lite.reg.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\numpy.fft.fftpack_lite.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/fftpack.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/helper.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -192,21 +192,21 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/__init__.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/fftpack.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/fftpack.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/helper.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/helper.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/numpy/py2/numpy/fft/info.py-" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/info.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -214,15 +214,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/fft/__init__.py.yapyc	$B/contrib/python/numpy/numpy/fft/fftpack.py.yapyc	$B/contrib/python/numpy/numpy/fft/helper.py.yapyc	$B/contrib/python/numpy/numpy/fft/info.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\numpy\numpy\fft\__init__.py;$(SolutionDir)..\contrib\python\numpy\numpy\fft\fftpack.py;$(SolutionDir)..\contrib\python\numpy\numpy\fft\helper.py;$(SolutionDir)..\contrib\python\numpy\numpy\fft\info.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\fftpack.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\helper.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\info.py.yapyc;</Outputs>
+      <Message>$B/contrib/python/numpy/py2/numpy/fft/__init__.py.yapyc	$B/contrib/python/numpy/py2/numpy/fft/fftpack.py.yapyc	$B/contrib/python/numpy/py2/numpy/fft/helper.py.yapyc	$B/contrib/python/numpy/py2/numpy/fft/info.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\__init__.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\fftpack.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\helper.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\info.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\fftpack.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\helper.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\info.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\numpy\numpy\fft\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.yasm" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_8353fa007bf31aea9112159262.rodata" "-" "contrib/python/numpy/numpy/fft/__init__.py" "_eae6bd3a2ecfcfbf3e0205ddec.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_0d9b39cdc5d1363d2f9a639f97.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_a20046301555ff0372cdf72acb.rodata" "-" "contrib/python/numpy/numpy/fft/fftpack.py" "_5f343d7221f97118ffbb0d46b2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_52eff64b7f4870c4fc6c32746d.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_a85c16d4914c23faeb183f3e7c.rodata" "-" "contrib/python/numpy/numpy/fft/helper.py" "_7e20da5982bad9f0588fd1008f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_4e66e65936b73de77e571a10c1.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_455ed06b11ed3e439c8216ca5d.rodata" "-" "contrib/python/numpy/numpy/fft/info.py" "_c880a09643c647a8bf402d4188.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_a78c05b09ffc017de7d4a14022.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.yasm" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_f6be68803f5ec425d23bb2ec9a.rodata" "-" "contrib/python/numpy/py2/numpy/fft/__init__.py" "_ef7231d6a1fcbbfa00e89f3aad.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_82b55f4db588cff0b05355b61f.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_f27ca2b5af58aa2ae8c707b1f6.rodata" "-" "contrib/python/numpy/py2/numpy/fft/fftpack.py" "_d786604511619cbf1da78f7917.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/fftpack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_1e79170fc2a53901065bb42d77.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_089aaf0e162cae64e45d1a2a57.rodata" "-" "contrib/python/numpy/py2/numpy/fft/helper.py" "_c20f33b5c74d5310062ea92ae4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/helper.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_de31f83a92bd75aafc7e5c632a.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_4cd370b4951c739caf39cb4572.rodata" "-" "contrib/python/numpy/py2/numpy/fft/info.py" "_2daab4d63123685915c6f1407e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_84f4059813531e05c16ea76d5e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -231,9 +231,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.yasm" "$(SolutionDir)../contrib/python/numpy/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_8353fa007bf31aea9112159262.rodata" "-" "contrib/python/numpy/numpy/fft/__init__.py" "_eae6bd3a2ecfcfbf3e0205ddec.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_0d9b39cdc5d1363d2f9a639f97.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_a20046301555ff0372cdf72acb.rodata" "-" "contrib/python/numpy/numpy/fft/fftpack.py" "_5f343d7221f97118ffbb0d46b2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/fftpack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_52eff64b7f4870c4fc6c32746d.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_a85c16d4914c23faeb183f3e7c.rodata" "-" "contrib/python/numpy/numpy/fft/helper.py" "_7e20da5982bad9f0588fd1008f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/helper.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_4e66e65936b73de77e571a10c1.rodata" "$(SolutionDir)../contrib/python/numpy/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_455ed06b11ed3e439c8216ca5d.rodata" "-" "contrib/python/numpy/numpy/fft/info.py" "_c880a09643c647a8bf402d4188.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/fft/_a78c05b09ffc017de7d4a14022.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.yasm" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_f6be68803f5ec425d23bb2ec9a.rodata" "-" "contrib/python/numpy/py2/numpy/fft/__init__.py" "_ef7231d6a1fcbbfa00e89f3aad.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_82b55f4db588cff0b05355b61f.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/fftpack.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_f27ca2b5af58aa2ae8c707b1f6.rodata" "-" "contrib/python/numpy/py2/numpy/fft/fftpack.py" "_d786604511619cbf1da78f7917.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/fftpack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_1e79170fc2a53901065bb42d77.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/helper.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_089aaf0e162cae64e45d1a2a57.rodata" "-" "contrib/python/numpy/py2/numpy/fft/helper.py" "_c20f33b5c74d5310062ea92ae4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/helper.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_de31f83a92bd75aafc7e5c632a.rodata" "$(SolutionDir)../contrib/python/numpy/py2/numpy/fft/info.py" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_4cd370b4951c739caf39cb4572.rodata" "-" "contrib/python/numpy/py2/numpy/fft/info.py" "_2daab4d63123685915c6f1407e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/info.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/fft/_84f4059813531e05c16ea76d5e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -241,11 +241,11 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/fft/_5de94477aaf8587621077a97d2.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\numpy\numpy\fft\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\__init__.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\fft\fftpack.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\fftpack.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\fft\helper.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\helper.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\fft\info.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\info.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_8353fa007bf31aea9112159262.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_0d9b39cdc5d1363d2f9a639f97.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_a20046301555ff0372cdf72acb.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_52eff64b7f4870c4fc6c32746d.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_a85c16d4914c23faeb183f3e7c.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_4e66e65936b73de77e571a10c1.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_455ed06b11ed3e439c8216ca5d.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_a78c05b09ffc017de7d4a14022.rodata;</Outputs>
+      <Message>$B/contrib/python/numpy/py2/numpy/fft/_9d2518df62157932c971964088.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\__init__.py.yapyc;$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\fftpack.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\fftpack.py.yapyc;$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\helper.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\helper.py.yapyc;$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\info.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\info.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_9d2518df62157932c971964088.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_f6be68803f5ec425d23bb2ec9a.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_82b55f4db588cff0b05355b61f.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_f27ca2b5af58aa2ae8c707b1f6.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_1e79170fc2a53901065bb42d77.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_089aaf0e162cae64e45d1a2a57.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_de31f83a92bd75aafc7e5c632a.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_4cd370b4951c739caf39cb4572.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\fft\_84f4059813531e05c16ea76d5e.rodata;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\fft\fftpack.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\fft\fftpack.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

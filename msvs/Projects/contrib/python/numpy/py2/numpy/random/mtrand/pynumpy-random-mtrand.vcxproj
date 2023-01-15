@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{BF83B640-6F6B-4884-E087-B10DFDBE5504}</ProjectGUID>
+    <ProjectGUID>{D31E0F48-5EC7-F485-2DE5-8D4C8A5E28DD}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycore-src-umath</ProjectName>
+    <ProjectName>pynumpy-random-mtrand</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycore-src-umath</TargetName>
+    <TargetName>pynumpy-random-mtrand</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BF83B640-6F6B-4884-E087-B10DFDBE5504\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D31E0F48-5EC7-F485-2DE5-8D4C8A5E28DD\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,11 +57,11 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CBLAS -DHAVE_NPY_CONFIG_H=1 -DNO_ATLAS_INFO=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1 -D_LARGEFILE_SOURCE=1 -DNPY_INTERNAL_BUILD=1 -Dinit_operand_flag_tests=init5numpy4core19_operand_flag_tests -Dinit_rational_tests=init5numpy4core15_rational_tests -Dinit_struct_ufunc_tests=init5numpy4core19_struct_ufunc_tests -Dinit_umath_tests=init5numpy4core12_umath_tests -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CBLAS -DHAVE_NPY_CONFIG_H=1 -DNO_ATLAS_INFO=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1 -D_LARGEFILE_SOURCE=1 -DNPY_INTERNAL_BUILD=1 -Dinit_operand_flag_tests=init5numpy4core19_operand_flag_tests -Dinit_rational_tests=init5numpy4core15_rational_tests -Dinit_struct_ufunc_tests=init5numpy4core19_struct_ufunc_tests -Dinit_umath_tests=init5numpy4core12_umath_tests -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CBLAS -DHAVE_NPY_CONFIG_H=1 -DNO_ATLAS_INFO=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1 -D_LARGEFILE_SOURCE=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CBLAS -DHAVE_NPY_CONFIG_H=1 -DNO_ATLAS_INFO=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1 -D_LARGEFILE_SOURCE=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
       <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -78,69 +78,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\_operand_flag_tests.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\distributions.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\_rational_tests.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\initarray.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\_struct_ufunc_tests.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand\mtrand.pyx.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\_umath_tests.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\cpuid.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\extobj.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\loops.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\matmul.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._operand_flag_tests.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._rational_tests.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._struct_ufunc_tests.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._umath_tests.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\override.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\reduction.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\scalarmath.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\ufunc_object.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\ufunc_type_resolution.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\umathmodule.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand\numpy.random.mtrand.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\randomkit.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._operand_flag_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._rational_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._struct_ufunc_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._umath_tests.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/numpy.random.mtrand.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -149,21 +104,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._operand_flag_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._rational_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._struct_ufunc_tests.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/umath/numpy.core._umath_tests.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/numpy.random.mtrand.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -171,18 +114,41 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/numpy/core/src/umath/numpy.core._operand_flag_tests.reg.cpp	$B/contrib/python/numpy/numpy/core/src/umath/numpy.core._rational_tests.reg.cpp	$B/contrib/python/numpy/numpy/core/src/umath/numpy.core._struct_ufunc_tests.reg.cpp	$B/contrib/python/numpy/numpy/core/src/umath/numpy.core._umath_tests.reg.cpp	</Message>
+      <Message>$B/contrib/python/numpy/py2/numpy/random/mtrand/numpy.random.mtrand.reg.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._operand_flag_tests.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._rational_tests.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._struct_ufunc_tests.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\umath\numpy.core._umath_tests.reg.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand\numpy.random.mtrand.reg.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\cpuid.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\extobj.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\loops.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\matmul.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\override.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\reduction.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\ufunc_object.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\umath\ufunc_type_resolution.h"/>
+    <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "$(SolutionDir)../contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "$(SolutionDir)../contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx.c	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\mtrand.pyx;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand\mtrand.pyx.c;</Outputs>
+    </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\distributions.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\initarray.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\mtrand_py_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\random\mtrand\randomkit.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
