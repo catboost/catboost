@@ -624,26 +624,22 @@ Y_HIDDEN void _YandexAbort();
 #endif
 
 #ifdef __cplusplus
-    void UseCharPointerImpl(volatile const char*);
 
-    extern "C++"
-    template <typename T>
-    Y_FORCE_INLINE void DoNotOptimizeAway(T&& datum) {
-        (void)datum;
+void UseCharPointerImpl(volatile const char*);
 
+template <typename T>
+Y_FORCE_INLINE void DoNotOptimizeAway(T&& datum) {
 #if defined(_MSC_VER)
-        UseCharPointerImpl(&reinterpret_cast<volatile const char&>(datum));
-        _ReadWriteBarrier();
-#endif
-
-#if defined(__GNUC__) && defined(_x86_)
-        asm volatile(""
-                     :
-                     : "X"(datum));
+    UseCharPointerImpl(&reinterpret_cast<volatile const char&>(datum));
+    _ReadWriteBarrier();
+#elif defined(__GNUC__) && defined(_x86_)
+    asm volatile(""
+                 :
+                 : "X"(datum));
 #else
-        Y_FAKE_READ(datum);
+    Y_FAKE_READ(datum);
 #endif
-    }
+}
 
 /**
  * Use this macro to prevent unused variables elimination.

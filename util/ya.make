@@ -249,7 +249,6 @@ JOIN_SRCS(
     system/atexit.cpp
     system/backtrace.cpp
     system/compat.cpp
-    system/compiler.cpp
     system/condvar.cpp
     system/context.cpp
     system/daemon.cpp
@@ -320,6 +319,8 @@ JOIN_SRCS(
     system/yassert.cpp
     system/yield.cpp
 )
+
+SRC(system/compiler.cpp -fno-lto)
 
 IF (OS_WINDOWS)
     SRCS(
