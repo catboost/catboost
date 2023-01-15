@@ -3,7 +3,7 @@
 PY3_PROGRAM()
 
 PEERDIR(
-    contrib/python/numpy
+    contrib/python/numpy/py3
 )
 
 PY_SRCS(

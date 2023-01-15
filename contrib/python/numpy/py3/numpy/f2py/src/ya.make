@@ -7,7 +7,7 @@ LICENSE(BSD-3-Clause)
 NO_COMPILER_WARNINGS()
 
 PEERDIR(
-    contrib/python/numpy
+    contrib/python/numpy/py3
 )
 
 ADDINCL(

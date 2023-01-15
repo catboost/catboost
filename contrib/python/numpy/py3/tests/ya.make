@@ -3,7 +3,7 @@ PY3TEST()
 SIZE(MEDIUM)
 
 PEERDIR(
-    contrib/python/numpy
+    contrib/python/numpy/py3
     contrib/python/hypothesis
 )
 
