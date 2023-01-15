@@ -677,6 +677,9 @@ ALLOW alice/iot/adapters/tuya_adapter/server -> vendor/github.com/sirupsen/logru
 # SUBBOTNIK-90
 ALLOW infra/rtc/instance_resolver/pkg/clients/iss3 -> vendor/git.apache.org/thrift.git/lib/go
 
+# Benchmarks using github.com/pkg/errors
+ALLOW library/go/core/xerrors -> vendor/github.com/pkg/errors
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
