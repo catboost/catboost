@@ -962,6 +962,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
+      <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\sse\library-cpp-sse.vcxproj">
       <Project>{418E96CF-B75E-3C4F-2B82-0636CFE2782C}</Project>
     </ProjectReference>

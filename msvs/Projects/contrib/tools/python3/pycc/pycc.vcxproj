@@ -290,6 +290,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
+      <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\main\python-runtime_py3-main.vcxproj">
       <Project>{0C792E00-F359-C51E-6746-82099FC64CEC}</Project>
     </ProjectReference>

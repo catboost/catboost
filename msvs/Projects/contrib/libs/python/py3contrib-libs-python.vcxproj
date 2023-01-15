@@ -141,6 +141,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\core\library-blockcodecs-core.vcxproj">
       <Project>{BC4F6560-AAA9-63AA-0B89-2627FA172162}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
+      <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
     </ProjectReference>
