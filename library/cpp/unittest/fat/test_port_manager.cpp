@@ -1,5 +1,5 @@
-#include <library/unittest/registar.h>
-#include <library/unittest/tests_data.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/tests_data.h>
 
 bool IsFreePort(ui16 port) {
     TInet6StreamSocket sock;

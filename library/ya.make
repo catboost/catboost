@@ -75,9 +75,7 @@ RECURSE(
     token/serialization/ut
     token/ut
     unittest
-    unittest/fat
     unittest/main
-    unittest/ut
 )
 
 IF (HAVE_CUDA)

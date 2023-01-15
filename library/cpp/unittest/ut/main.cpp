@@ -1,6 +1,6 @@
-#include <library/unittest/gtest.h>
-#include <library/unittest/registar.h>
-#include <library/unittest/tests_data.h>
+#include <library/cpp/unittest/gtest.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/tests_data.h>
 
 #include <util/generic/set.h>
 #include <util/network/sock.h>
