@@ -3,6 +3,7 @@ GTEST_BETA()
 
 SRCS(
     env_ut.cpp
+    scope_ut.cpp
 )
 
 PEERDIR(
