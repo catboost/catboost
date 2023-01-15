@@ -236,15 +236,26 @@ def pytest_configure(config):
     if config.option.root_dir:
         config.rootdir = config.invocation_dir = py.path.local(config.option.root_dir)
 
-    # Arcadia paths from the test DEPENDS section of CMakeLists.txt
-    sys.path.insert(0, os.path.join(config.option.source_root, config.option.project_path))
-    sys.path.extend([os.path.join(config.option.source_root, d) for d in config.option.dep_roots])
-    sys.path.extend([os.path.join(config.option.build_root, d) for d in config.option.dep_roots])
-
+    extra_sys_path = []
+    # Arcadia paths from the test DEPENDS section of ya.make
+    extra_sys_path.append(os.path.join(config.option.source_root, config.option.project_path))
     # Build root is required for correct import of protobufs, because imports are related to the root
     # (like import devtools.dummy_arcadia.protos.lib.my_proto_pb2)
-    sys.path.append(config.option.build_root)
-    os.environ["PYTHONPATH"] = os.pathsep.join(os.environ.get("PYTHONPATH", "").split(os.pathsep) + sys.path)
+    extra_sys_path.append(config.option.build_root)
+
+    for path in config.option.dep_roots:
+        if os.path.isabs(path):
+            extra_sys_path.append(path)
+        else:
+            extra_sys_path.append(os.path.join(config.option.source_root, path))
+
+    sys_path_set = set(sys.path)
+    for path in extra_sys_path:
+        if path not in sys_path_set:
+            sys.path.append(path)
+            sys_path_set.add(path)
+
+    os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
 
     if not config.option.collectonly:
         if config.option.ya_trace_path:
