@@ -83,7 +83,7 @@ namespace NCB {
                     }
                 },
                 0,
-                subRangeIterators.size(),
+                SafeIntegerCast<int>(subRangeIterators.size()),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }

@@ -519,7 +519,7 @@ namespace NCB {
                     ForEachInSubRange(parallelUnitRanges.GetRange(id), f);
                 },
                 0,
-                (int)parallelUnitRanges.RangesCount(),
+                SafeIntegerCast<int>(parallelUnitRanges.RangesCount()),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }
@@ -562,7 +562,7 @@ namespace NCB {
                     ForEachBlockwiseInSubRange(parallelUnitRanges.GetRange(id), f);
                 },
                 0,
-                (int)parallelUnitRanges.RangesCount(),
+                SafeIntegerCast<int>(parallelUnitRanges.RangesCount()),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }

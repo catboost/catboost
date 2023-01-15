@@ -697,7 +697,7 @@ namespace NCB {
                         sparseDataPart.Values.resize(dstIdx);
                     },
                     0,
-                    (int)SparseDataParts.size(),
+                    SafeIntegerCast<int>(SparseDataParts.size()),
                     NPar::TLocalExecutor::WAIT_COMPLETE
                 );
             }

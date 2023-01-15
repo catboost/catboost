@@ -160,7 +160,7 @@ namespace NCB {
                     = rawWeights[i]*rawGroupWeights[i]*classWeights[(size_t)targetClassesArray[i]];
             },
             0,
-            (int)rawWeights.GetSize(),
+            SafeIntegerCast<int>(rawWeights.GetSize()),
             0,
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
@@ -193,7 +193,7 @@ namespace NCB {
                 groupAdjustedWeights[i] = rawWeights[i]*rawGroupWeights[i];
             },
             0,
-            (int)rawWeights.GetSize(),
+            SafeIntegerCast<int>(rawWeights.GetSize()),
             0,
             NPar::TLocalExecutor::WAIT_COMPLETE
         );

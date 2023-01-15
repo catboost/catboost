@@ -2,6 +2,7 @@
 
 #include <library/cpp/threading/future/future.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
@@ -63,18 +64,20 @@ namespace NPar {
         //
         class TExecRangeParams {
         public:
-            TExecRangeParams(int firstId, int lastId)
-                : FirstId(firstId)
-                , LastId(lastId)
+            template <typename TFirst, typename TLast>
+            TExecRangeParams(TFirst firstId, TLast lastId)
+                : FirstId(SafeIntegerCast<int>(firstId))
+                , LastId(SafeIntegerCast<int>(lastId))
             {
-                Y_ASSERT(lastId >= firstId);
+                Y_ASSERT(LastId >= FirstId);
                 SetBlockSize(1);
             }
             // Partition tasks into `blockCount` blocks of approximately equal size, each of which
             // will be executed as a separate bigger task.
             //
-            TExecRangeParams& SetBlockCount(int blockCount) {
-                BlockSize = CeilDiv(LastId - FirstId, blockCount);
+            template <typename TBlockCount>
+            TExecRangeParams& SetBlockCount(TBlockCount blockCount) {
+                BlockSize = CeilDiv(LastId - FirstId, SafeIntegerCast<int>(blockCount));
                 BlockCount = CeilDiv(LastId - FirstId, BlockSize);
                 BlockEqualToThreads = false;
                 return *this;
@@ -82,9 +85,10 @@ namespace NPar {
             // Partition tasks into blocks of approximately `blockSize` size, each of which will
             // be executed as a separate bigger task.
             //
-            TExecRangeParams& SetBlockSize(int blockSize) {
-                BlockSize = blockSize;
-                BlockCount = CeilDiv(LastId - FirstId, blockSize);
+            template <typename TBlockSize>
+            TExecRangeParams& SetBlockSize(TBlockSize blockSize) {
+                BlockSize = SafeIntegerCast<int>(blockSize);
+                BlockCount = CeilDiv(LastId - FirstId, BlockSize);
                 BlockEqualToThreads = false;
                 return *this;
             }

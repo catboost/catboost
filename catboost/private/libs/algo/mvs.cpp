@@ -159,7 +159,7 @@ void TMvsSampler::GenSampleWeights(
                     }
                 },
                 0,
-                fold->BodyTailArr.size(),
+                SafeIntegerCast<int>(fold->BodyTailArr.size()),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
             for (auto dim : xrange(approxDimension)) {
