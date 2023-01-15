@@ -1,0 +1,5 @@
+{
+  "load_extensions": {
+    "catboost-widget/extension": true
+  }
+}
