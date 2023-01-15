@@ -125,7 +125,6 @@ ALLOW regulargeo/research -> contrib/restricted/boost
 ALLOW rem/python/geobase30 -> contrib/restricted/boost
 ALLOW drive/contrib/cpp/telemetry -> contrib/restricted/boost
 ALLOW smart_devices -> contrib/restricted/boost
-ALLOW speechkit -> contrib/restricted/boost
 ALLOW statbox/libstatbox -> contrib/restricted/boost
 ALLOW taxi/uservices -> contrib/restricted/boost
 ALLOW tools/idl -> contrib/restricted/boost
