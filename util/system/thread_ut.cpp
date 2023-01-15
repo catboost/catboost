@@ -60,9 +60,11 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
         TThread::SetCurrentThreadName(setName.data());
 
         const auto getName = TThread::CurrentThreadName();
-#if defined(_darwin_) || defined(_linux_)
-        UNIT_ASSERT_VALUES_EQUAL(setName, getName);
-#endif
+        if (TThread::CanGetCurrentThreadName()) {
+            UNIT_ASSERT_VALUES_EQUAL(setName, getName);
+        } else {
+            UNIT_ASSERT_VALUES_EQUAL("", getName);
+        }
         return nullptr;
     }
 
@@ -89,9 +91,11 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
         thread.Join();
 
         const auto getName = TThread::CurrentThreadName();
-#if defined(_darwin_) || defined(_linux_)
-        UNIT_ASSERT_VALUES_EQUAL(setName, getName);
-#endif
+        if (TThread::CanGetCurrentThreadName()) {
+            UNIT_ASSERT_VALUES_EQUAL(setName, getName);
+        } else {
+            UNIT_ASSERT_VALUES_EQUAL("", getName);
+        }
         return nullptr;
     }
 

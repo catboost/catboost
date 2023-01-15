@@ -186,8 +186,10 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
             name = TThread::CurrentThreadName();
         });
         pool.Stop();
-        UNIT_ASSERT_EQUAL(name, expectedName);
-        UNIT_ASSERT_UNEQUAL(TThread::CurrentThreadName(), expectedName);
+        if (TThread::CanGetCurrentThreadName()) {
+            UNIT_ASSERT_EQUAL(name, expectedName);
+            UNIT_ASSERT_UNEQUAL(TThread::CurrentThreadName(), expectedName);
+        }
     }
 
     Y_UNIT_TEST(TestFixedThreadName) {
@@ -223,7 +225,9 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
             });
         }
         pool.Stop();
-        UNIT_ASSERT_EQUAL(names, expectedNames);
+        if (TThread::CanGetCurrentThreadName()) {
+            UNIT_ASSERT_EQUAL(names, expectedNames);
+        }
     }
 
     Y_UNIT_TEST(TestEnumeratedThreadName) {
