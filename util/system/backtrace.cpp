@@ -5,6 +5,7 @@
 
 #include <util/stream/output.h>
 #include <util/stream/format.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/singleton.h>
 #include <util/generic/string.h>
 
@@ -280,6 +281,10 @@ TString TBackTrace::PrintToString() const {
     TStringStream ss;
     PrintTo(ss);
     return ss.Str();
+}
+
+TBackTrace::operator TBackTraceView() const {
+    return TBackTraceView(Data);
 }
 
 TBackTrace TBackTrace::FromCurrentException() {

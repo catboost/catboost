@@ -23,6 +23,8 @@ using TFormatBackTraceFn = void (*)(IOutputStream*, void* const* backtrace, size
 TFormatBackTraceFn SetFormatBackTraceFn(TFormatBackTraceFn f);
 TFormatBackTraceFn GetFormatBackTraceFn();
 
+using TBackTraceView = TArrayRef<void* const>;
+
 class TBackTrace {
 private:
     static constexpr size_t CAPACITY = 300;
@@ -34,6 +36,7 @@ public:
     void Capture();
     void PrintTo(IOutputStream&) const;
     TString PrintToString() const;
+    operator TBackTraceView() const;
 
     static TBackTrace FromCurrentException();
 };
