@@ -1,6 +1,6 @@
 LIBRARY()
 
-LICENSE(Apache-2.0 MIT)
+LICENSE(MIT)
 
 # Placeholders for new GCC 4.9.2 C++ ABI which is not present on older systems
 
