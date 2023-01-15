@@ -106,7 +106,7 @@ static TVector<TMxTree> BuildTrees(
     const auto binFeatures = model.ModelTrees->GetBinFeatures();
     for (int treeIdx = 0; treeIdx < trees.ysize(); ++treeIdx) {
         auto& tree = trees[treeIdx];
-        const int leafCount = (1uLL << model.ModelTrees->GetTreeSizes()[treeIdx]);
+        const int leafCount = (1uLL << model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx]);
 
         tree.Leaves.resize(leafCount);
         for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
@@ -119,10 +119,10 @@ static TVector<TMxTree> BuildTrees(
                     * model.ModelTrees->GetDimensionsCount() + dim];
             }
         }
-        auto treeSplitsStart = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
-        auto treeSplitsStop = treeSplitsStart + model.ModelTrees->GetTreeSizes()[treeIdx];
+        auto treeSplitsStart = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+        auto treeSplitsStop = treeSplitsStart + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
         for (auto splitIdx = treeSplitsStart; splitIdx < treeSplitsStop; ++splitIdx) {
-            auto feature = GetFeature(binFeatures[model.ModelTrees->GetTreeSplits()[splitIdx]]);
+            auto feature = GetFeature(binFeatures[model.ModelTrees->GetModelTreeData()->GetTreeSplits()[splitIdx]]);
             tree.SrcFeatures.push_back(featureToIdx.at(feature));
         }
     }
@@ -135,7 +135,7 @@ static THashMap<TFeature, int, TFeatureHash> GetFeatureToIdxMap(
 {
     THashMap<TFeature, int, TFeatureHash> featureToIdx;
     const auto& modelBinFeatures = model.ModelTrees->GetBinFeatures();
-    for (auto binSplit : model.ModelTrees->GetTreeSplits()) {
+    for (auto binSplit : model.ModelTrees->GetModelTreeData()->GetTreeSplits()) {
         TFeature feature = GetFeature(modelBinFeatures[binSplit]);
         if (featureToIdx.contains(feature)) {
             continue;
@@ -197,9 +197,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         leavesStatistics = CollectLeavesStatistics(*dataset, model, localExecutor);
         weights = leavesStatistics;
     } else {
-        CB_ENSURE(!model.ModelTrees->GetLeafWeights().empty(), "CalcFeatureEffect requires either non-empty LeafWeights in model"
+        CB_ENSURE(!model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty(), "CalcFeatureEffect requires either non-empty LeafWeights in model"
             " or provided dataset");
-        weights = model.ModelTrees->GetLeafWeights();
+        weights = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
     }
 
     THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
@@ -208,7 +208,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
 
         TVector<TConstArrayRef<double>> mxTreeWeightsPresentation;
         auto leafOffsetPtr = model.ModelTrees->GetFirstLeafOffsets();
-        const auto leafSizes = model.ModelTrees->GetTreeSizes();
+        const auto leafSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
         const int approxDimension = model.ModelTrees->GetDimensionsCount();
         for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
             mxTreeWeightsPresentation.push_back(
@@ -650,7 +650,7 @@ static TVector<TVector<double>> CalcFstr(
 )
 {
     CB_ENSURE(
-        !model.ModelTrees->GetLeafWeights().empty() || (dataset != nullptr),
+        !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
     CB_ENSURE(
         model.ModelTrees->GetTextFeatures().empty(),

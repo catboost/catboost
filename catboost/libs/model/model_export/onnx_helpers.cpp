@@ -383,9 +383,9 @@ static void AddTree(
     i64 nodeIdx = 0;
 
     // Process splits
-    for (auto depth : xrange(trees.GetTreeSizes()[treeIdx])) {
+    for (auto depth : xrange(trees.GetModelTreeData()->GetTreeSizes()[treeIdx])) {
         const auto& split = trees.GetBinFeatures()[
-            trees.GetTreeSplits()[trees.GetTreeStartOffsets()[treeIdx] + (trees.GetTreeSizes()[treeIdx] - 1 - depth)]];
+            trees.GetModelTreeData()->GetTreeSplits()[trees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + (trees.GetModelTreeData()->GetTreeSizes()[treeIdx] - 1 - depth)]];
 
         int splitFlatFeatureIdx = 0;
         TString nodeMode;
@@ -424,7 +424,7 @@ static void AddTree(
     }
 
     // Process leafs
-    const double* leafValue = trees.GetLeafValues().begin() + trees.GetFirstLeafOffsets()[treeIdx];
+    const double* leafValue = trees.GetModelTreeData()->GetLeafValues().begin() + trees.GetFirstLeafOffsets()[treeIdx];
 
     for (i64 endNodeIdx = 2*nodeIdx + 1; nodeIdx < endNodeIdx; ++nodeIdx) {
         treesAttributes->nodes_treeids->add_ints(treeIdx);

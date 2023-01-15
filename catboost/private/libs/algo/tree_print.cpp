@@ -185,8 +185,8 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
     const auto binFeatures = model.ModelTrees->GetBinFeatures();
 
     size_t treeSplitEnd = (treeIdx + 1 < model.GetTreeCount())
-        ? model.ModelTrees->GetTreeStartOffsets()[treeIdx + 1]
-        : model.ModelTrees->GetTreeSplits().size();
+        ? model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx + 1]
+        : model.ModelTrees->GetModelTreeData()->GetTreeSplits().size();
 
     THashMap<ui32, TString> catFeaturesHash;
     NCB::TFeaturesLayout featuresLayout;
@@ -201,8 +201,8 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
         featuresLayout = NCB::TFeaturesLayout(model.GetNumFloatFeatures() + model.GetNumCatFeatures(), catFeaturesExternalIndexes, {}, {}, {});
     }
 
-    for (size_t splitIdx = model.ModelTrees->GetTreeStartOffsets()[treeIdx]; splitIdx < treeSplitEnd; ++splitIdx) {
-        TModelSplit binFeature = binFeatures[model.ModelTrees->GetTreeSplits()[splitIdx]];
+    for (size_t splitIdx = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx]; splitIdx < treeSplitEnd; ++splitIdx) {
+        TModelSplit binFeature = binFeatures[model.ModelTrees->GetModelTreeData()->GetTreeSplits()[splitIdx]];
         TString featureDescription = BuildDescription(featuresLayout, binFeature);
 
         if (binFeature.Type == ESplitType::OneHotFeature) {
@@ -224,11 +224,11 @@ TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, size_t t
     size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
     size_t nextTreeLeafOffset = (treeIdx + 1 < model.GetTreeCount())
         ? model.ModelTrees->GetFirstLeafOffsets()[treeIdx + 1]
-        : model.ModelTrees->GetLeafValues().size();
+        : model.ModelTrees->GetModelTreeData()->GetLeafValues().size();
 
     TVector<double> leafValues(
-        model.ModelTrees->GetLeafValues().begin() + leafOffset,
-        model.ModelTrees->GetLeafValues().begin() + nextTreeLeafOffset);
+        model.ModelTrees->GetModelTreeData()->GetLeafValues().begin() + leafOffset,
+        model.ModelTrees->GetModelTreeData()->GetLeafValues().begin() + nextTreeLeafOffset);
 
     TVector<TString> leafDescriptions;
 
@@ -249,9 +249,9 @@ TConstArrayRef<TNonSymmetricTreeStepNode> GetTreeStepNodes(const TFullModel& mod
     CB_ENSURE(treeIdx < model.GetTreeCount(),
         "Requested tree step nodes for tree " << treeIdx << ", but model has " << model.GetTreeCount());
     Y_ASSERT(!model.IsOblivious());
-    const size_t offset = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
-    const auto start = model.ModelTrees->GetNonSymmetricStepNodes().begin() + offset;
-    const auto end = start + model.ModelTrees->GetTreeSizes()[treeIdx];
+    const size_t offset = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+    const auto start = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes().begin() + offset;
+    const auto end = start + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
     return TConstArrayRef<TNonSymmetricTreeStepNode>(start, end);
 }
 
@@ -259,9 +259,9 @@ TVector<ui32> GetTreeNodeToLeaf(const TFullModel& model, size_t treeIdx) {
     CB_ENSURE(treeIdx < model.GetTreeCount(),
         "Requested tree step nodes for tree " << treeIdx << ", but model has " << model.GetTreeCount());
     Y_ASSERT(!model.IsOblivious());
-    const size_t offset = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
-    const auto start = model.ModelTrees->GetNonSymmetricNodeIdToLeafId().begin() + offset;
-    const auto end = start + model.ModelTrees->GetTreeSizes()[treeIdx];
+    const size_t offset = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+    const auto start = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().begin() + offset;
+    const auto end = start + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
     const size_t firstLeafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
     TVector<ui32> nodeToLeaf(start, end);
     for (auto& value : nodeToLeaf) {

@@ -52,6 +52,8 @@ ctypedef const np.float32_t const_float32_t
 ctypedef const np.uint32_t const_ui32_t
 ctypedef const TString const_TString
 
+ctypedef enum ECloningPolicy: Default, CloneAsSolid
+
 SPARSE_MATRIX_TYPES = (
     scipy.sparse.csr_matrix,
     scipy.sparse.coo_matrix,
@@ -1066,16 +1068,30 @@ cdef extern from "catboost/libs/model/model.h":
         ui16 LeftSubtreeDiff
         ui16 RightSubtreeDiff
 
-    cdef cppclass TModelTrees:
-        int GetDimensionCount() except +ProcessException
+    cdef cppclass IModelTreeData:
+        TConstArrayRef[int] GetTreeSplits() except +ProcessException
+        TConstArrayRef[int] GetTreeSizes() except +ProcessException
+        TConstArrayRef[TNonSymmetricTreeStepNode] GetNonSymmetricStepNodes() except +ProcessException
+        TConstArrayRef[ui32] GetNonSymmetricNodeIdToLeafId() except +ProcessException
         TConstArrayRef[double] GetLeafValues() except +ProcessException
         TConstArrayRef[double] GetLeafWeights() except +ProcessException
+
+        void SetTreeSplits(const TVector[int]&) except +ProcessException
+        void SetTreeSizes(const TVector[int]&) except +ProcessException
+        void SetNonSymmetricStepNodes(const TVector[TNonSymmetricTreeStepNode]&) except +ProcessException
+        void SetNonSymmetricNodeIdToLeafId(const TVector[ui32]&) except +ProcessException
+        void SetLeafValues(const TVector[double]&) except +ProcessException
+        void SetLeafWeights(const TVector[double]&) except +ProcessException
+        THolder[IModelTreeData] Clone(ECloningPolicy policy) except +ProcessException
+
+    cdef cppclass TModelTrees:
+        int GetDimensionCount() except +ProcessException
         TConstArrayRef[TCatFeature] GetCatFeatures() except +ProcessException
         TConstArrayRef[TTextFeature] GetTextFeatures() except +ProcessException
         TConstArrayRef[TFloatFeature] GetFloatFeatures() except +ProcessException
-        void SetLeafValues(const TVector[double]& leafValues) except +ProcessException
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
+        const THolder[IModelTreeData]& GetModelTreeData() except +ProcessException
 
         void ConvertObliviousToAsymmetric() except +ProcessException
 
@@ -4819,7 +4835,7 @@ cdef class _CatBoost:
         return None
 
     cpdef _has_leaf_weights_in_model(self):
-        return not self.__model.ModelTrees.Get().GetLeafWeights().empty()
+        return not self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafWeights().empty()
 
     cpdef _get_cat_feature_indices(self):
         cdef TConstArrayRef[TCatFeature] arrayView = self.__model.ModelTrees.Get().GetCatFeatures()
@@ -5340,16 +5356,16 @@ cdef class _CatBoost:
         return res
 
     cpdef _get_leaf_values(self):
-        return _constarrayref_of_double_to_np_array(self.__model.ModelTrees.Get().GetLeafValues())
+        return _constarrayref_of_double_to_np_array(self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafValues())
 
     cpdef _get_leaf_weights(self):
-        result = np.empty(self.__model.ModelTrees.Get().GetLeafValues().size(), dtype=_npfloat64)
+        result = np.empty(self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafValues().size(), dtype=_npfloat64)
         cdef size_t curr_index = 0
-        cdef TConstArrayRef[double] arrayView = self.__model.ModelTrees.Get().GetLeafWeights()
+        cdef TConstArrayRef[double] arrayView = self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafWeights()
         for val in arrayView:
             result[curr_index] = val
             curr_index += 1
-        assert curr_index == 0 or curr_index == self.__model.ModelTrees.Get().GetLeafValues().size(), (
+        assert curr_index == 0 or curr_index == self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafValues().size(), (
             "wrong number of leaf weights")
         return result
 
@@ -5360,10 +5376,10 @@ cdef class _CatBoost:
         assert isinstance(new_leaf_values, np.ndarray), "expected numpy.ndarray."
         assert new_leaf_values.dtype == np.float64, "leaf values should have type np.float64 (double)."
         assert len(new_leaf_values.shape) == 1, "leaf values should be a 1d-vector."
-        assert new_leaf_values.shape[0] == self.__model.ModelTrees.Get().GetLeafValues().size(), (
+        assert new_leaf_values.shape[0] == self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafValues().size(), (
             "count of leaf values should be equal to the leaf count.")
         cdef TVector[double] model_leafs = new_leaf_values
-        self.__model.ModelTrees.GetMutable().SetLeafValues(model_leafs)
+        self.__model.ModelTrees.GetMutable().GetModelTreeData().Get().SetLeafValues(model_leafs)
 
     cpdef _set_feature_names(self, feature_names):
             cdef TVector[TString] feature_names_vector

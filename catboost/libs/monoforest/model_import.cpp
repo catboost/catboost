@@ -9,12 +9,12 @@ namespace NMonoForest {
         const auto& trees = *model.ModelTrees.Get();
         CB_ENSURE(trees.IsOblivious());
 
-        const auto& treeSizes = trees.GetTreeSizes();
-        const auto& treeStartOffsets = trees.GetTreeStartOffsets();
-        const auto& leafValues = trees.GetLeafValues();
-        const auto& leafWeights = trees.GetLeafWeights();
+        const auto& treeSizes = trees.GetModelTreeData()->GetTreeSizes();
+        const auto& treeStartOffsets = trees.GetModelTreeData()->GetTreeStartOffsets();
+        const auto& leafValues = trees.GetModelTreeData()->GetLeafValues();
+        const auto& leafWeights = trees.GetModelTreeData()->GetLeafWeights();
         const auto& leafCounts = trees.GetTreeLeafCounts();
-        const auto& splits = trees.GetTreeSplits();
+        const auto& splits = trees.GetModelTreeData()->GetTreeSplits();
 
         TVector<TBinarySplit> binSplits;
         binSplits.reserve(trees.GetBinFeatures().size());

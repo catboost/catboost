@@ -31,7 +31,7 @@ static TVector<double> CalcMeanValueForTree(
 
     if (forest.IsOblivious()) {
         auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
-        const size_t maxDepth = forest.GetTreeSizes()[treeIdx];
+        const size_t maxDepth = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
         const auto& subtreeWeightsOnMaxDepth = subtreeWeights[maxDepth];
         for (size_t leafIdx = 0; leafIdx < (size_t(1) << maxDepth); ++leafIdx) {
             for (int dimension = 0; dimension < approxDimension; ++dimension) {
@@ -40,13 +40,13 @@ static TVector<double> CalcMeanValueForTree(
             }
         }
     } else {
-        const int totalNodesCount = forest.GetNonSymmetricNodeIdToLeafId().size();
-        const bool isLastTree = treeIdx == forest.GetTreeStartOffsets().size() - 1;
-        const size_t startOffset = forest.GetTreeStartOffsets()[treeIdx];
-        const size_t endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];
-        const auto leafValues = forest.GetLeafValues();
-        const auto leafWeights = forest.GetLeafWeights();
-        const auto nonSymmetricNodeIdToLeafId = forest.GetNonSymmetricNodeIdToLeafId();
+        const int totalNodesCount = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().size();
+        const bool isLastTree = treeIdx == forest.GetModelTreeData()->GetTreeStartOffsets().size() - 1;
+        const size_t startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+        const size_t endOffset = isLastTree ? totalNodesCount : forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx + 1];
+        const auto leafValues = forest.GetModelTreeData()->GetLeafValues();
+        const auto leafWeights = forest.GetModelTreeData()->GetLeafWeights();
+        const auto nonSymmetricNodeIdToLeafId = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId();
         const size_t leafValueCount = leafValues.size();
         for (size_t nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
             size_t leafIdx = nonSymmetricNodeIdToLeafId[nodeIdx];
@@ -70,12 +70,12 @@ static TVector<size_t> GetReversedSubtreeForNonObliviousTree(
     const TModelTrees& forest,
     int treeIdx
 ) {
-    const int totalNodesCount = forest.GetTreeSplits().size();
-    const bool isLastTree = static_cast<size_t>(treeIdx + 1) == forest.GetTreeStartOffsets().size();
-    const int startOffset = forest.GetTreeStartOffsets()[treeIdx];
-    const int endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];
+    const int totalNodesCount = forest.GetModelTreeData()->GetTreeSplits().size();
+    const bool isLastTree = static_cast<size_t>(treeIdx + 1) == forest.GetModelTreeData()->GetTreeStartOffsets().size();
+    const int startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+    const int endOffset = isLastTree ? totalNodesCount : forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx + 1];
     const int treeSize = endOffset - startOffset;
-    const auto nonSymmetricStepNodes = forest.GetNonSymmetricStepNodes();
+    const auto nonSymmetricStepNodes = forest.GetModelTreeData()->GetNonSymmetricStepNodes();
 
     TVector<size_t> reversedTree(treeSize, 0);
     for (int nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
@@ -102,7 +102,7 @@ static TVector<TVector<TVector<double>>> CalcSubtreeValuesForTree(
     TVector<TVector<TVector<double>>> subtreeValues;
     if (forest.IsOblivious()) {
         auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
-        const size_t treeDepth = forest.GetTreeSizes()[treeIdx];
+        const size_t treeDepth = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
         subtreeValues.resize(treeDepth + 1);
         size_t leafNum = size_t(1) << treeDepth;
         subtreeValues[treeDepth].resize(leafNum);
@@ -130,19 +130,19 @@ static TVector<TVector<TVector<double>>> CalcSubtreeValuesForTree(
             }
         }
     } else {
-        const size_t startOffset = forest.GetTreeStartOffsets()[treeIdx];
-        auto firstLeafPtr = &forest.GetLeafValues()[0];
+        const size_t startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+        auto firstLeafPtr = &forest.GetModelTreeData()->GetLeafValues()[0];
         TVector<size_t> reversedTree = GetReversedSubtreeForNonObliviousTree(forest, treeIdx);
         subtreeValues.resize(1);
         subtreeValues[0].resize(reversedTree.size(), TVector<double>(approxDimension, 0.0));
         if (reversedTree.size() == 1) {
-            size_t leafIdx = forest.GetNonSymmetricNodeIdToLeafId()[startOffset];
+            size_t leafIdx = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[startOffset];
             for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
                 subtreeValues[0][0][dimension] = firstLeafPtr[leafIdx + dimension];
             }
         } else {
             for (size_t localIdx = reversedTree.size() - 1; localIdx > 0; --localIdx) {
-                size_t leafIdx = forest.GetNonSymmetricNodeIdToLeafId()[startOffset + localIdx];
+                size_t leafIdx = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[startOffset + localIdx];
                 size_t leafWeightIdx = leafIdx / approxDimension;
                 if (leafWeightIdx < leafWeights.size()) {
                     if (!FuzzyEquals(1 + leafWeights[leafWeightIdx], 1 + 0.0)) {
@@ -180,7 +180,7 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
 ) {
     TVector<TVector<double>> subtreeWeights;
     if (forest.IsOblivious()) {
-        const int treeDepth = forest.GetTreeSizes()[treeIdx];
+        const int treeDepth = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
         subtreeWeights.resize(treeDepth + 1);
         subtreeWeights[treeDepth].resize(size_t(1) << treeDepth);
         TArrayRef<double> subtreeWeightsOnTreeDepth = MakeArrayRef(subtreeWeights[treeDepth]);
@@ -200,16 +200,16 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
             }
         }
     } else {
-        const int startOffset = forest.GetTreeStartOffsets()[treeIdx];
+        const int startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
         TVector<size_t> reversedTree = GetReversedSubtreeForNonObliviousTree(forest, treeIdx);
         subtreeWeights.resize(1); // with respect to NonSymmetric format of TObliviousTree
         subtreeWeights[0].resize(reversedTree.size(), 0);
         TArrayRef<double> subtreeWeightsOnParent = MakeArrayRef(subtreeWeights[0]);
         if (reversedTree.size() == 1) {
-            subtreeWeightsOnParent[0] = leafWeights[forest.GetNonSymmetricNodeIdToLeafId()[startOffset] / forest.GetDimensionsCount()];
+            subtreeWeightsOnParent[0] = leafWeights[forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[startOffset] / forest.GetDimensionsCount()];
         } else {
             for (size_t localIdx = reversedTree.size() - 1; localIdx > 0; --localIdx) {
-                size_t leafIdx = forest.GetNonSymmetricNodeIdToLeafId()[startOffset + localIdx] / forest.GetDimensionsCount();
+                size_t leafIdx = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[startOffset + localIdx] / forest.GetDimensionsCount();
                 if (leafIdx < leafWeights.size()) {
                     subtreeWeightsOnParent[localIdx] += leafWeights[leafIdx];
                 }
@@ -316,7 +316,7 @@ bool IsPrepareTreesCalcShapValues(
             }
             const size_t treeCount = model.GetTreeCount();
             const TModelTrees& forest = *model.ModelTrees;
-            double treesAverageLeafCount = forest.GetLeafValues().size() / treeCount;
+            double treesAverageLeafCount = forest.GetModelTreeData()->GetLeafValues().size() / treeCount;
             return treesAverageLeafCount < dataset->ObjectsGrouping->GetObjectCount();
         }
     }
@@ -331,20 +331,20 @@ static bool AreApproxesZeroForLastClass(
     const double Eps = 1e-12;
     if (forest.IsOblivious()) {
         auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
-        const size_t maxDepth = forest.GetTreeSizes()[treeIdx];
+        const size_t maxDepth = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
         for (size_t leafIdx = 0; leafIdx < (size_t(1) << maxDepth); ++leafIdx) {
             if (fabs(firstLeafPtr[leafIdx * approxDimension + approxDimension - 1]) > Eps){
                 return false;
             }
         }
     } else {
-        const int totalNodesCount = forest.GetNonSymmetricNodeIdToLeafId().size();
-        const bool isLastTree = treeIdx == forest.GetTreeStartOffsets().size() - 1;
-        const size_t startOffset = forest.GetTreeStartOffsets()[treeIdx];
-        const size_t endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];
+        const int totalNodesCount = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().size();
+        const bool isLastTree = treeIdx == forest.GetModelTreeData()->GetTreeStartOffsets().size() - 1;
+        const size_t startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+        const size_t endOffset = isLastTree ? totalNodesCount : forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx + 1];
         for (size_t nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
-            size_t leafIdx = forest.GetNonSymmetricNodeIdToLeafId()[nodeIdx];
-            if (leafIdx < forest.GetLeafValues().size() && fabs(forest.GetLeafValues()[leafIdx + approxDimension]) > Eps) {
+            size_t leafIdx = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+            if (leafIdx < forest.GetModelTreeData()->GetLeafValues().size() && fabs(forest.GetModelTreeData()->GetLeafValues()[leafIdx + approxDimension]) > Eps) {
                 return false;
             }
         }
@@ -405,7 +405,7 @@ static void InitPreparedTrees(
     const size_t treeCount = model.GetTreeCount();
     // use only if model.ModelTrees->LeafWeights is empty
     TVector<double> leafWeights;
-    if (model.ModelTrees->GetLeafWeights().empty()) {
+    if (model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty()) {
         CB_ENSURE(
             dataset,
             "PrepareTrees requires either non-empty LeafWeights in model or provided dataset"
@@ -418,7 +418,7 @@ static void InitPreparedTrees(
     preparedTrees->CalcShapValuesByLeafForAllTrees = IsPrepareTreesCalcShapValues(model, dataset, mode);
 
     if (!preparedTrees->CalcShapValuesByLeafForAllTrees) {
-        TVector<double> modelLeafWeights(model.ModelTrees->GetLeafWeights().begin(), model.ModelTrees->GetLeafWeights().end());
+        TVector<double> modelLeafWeights(model.ModelTrees->GetModelTreeData()->GetLeafWeights().begin(), model.ModelTrees->GetModelTreeData()->GetLeafWeights().end());
         preparedTrees->LeafWeightsForAllTrees
             = modelLeafWeights.empty() ? leafWeights : modelLeafWeights;
     }
@@ -456,7 +456,7 @@ static void InitLeafWeights(
     NPar::TLocalExecutor* localExecutor,
     TVector<double>* leafWeights
 ) {
-    const auto leafWeightsOfModels = model.ModelTrees->GetLeafWeights();
+    const auto leafWeightsOfModels = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
     if (leafWeightsOfModels.empty()) {
         CB_ENSURE(
             dataset,
@@ -508,7 +508,7 @@ TShapPreparedTrees PrepareTrees(
     NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(
-        !model.ModelTrees->GetLeafWeights().empty(),
+        !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
     TShapPreparedTrees preparedTrees = PrepareTrees(model, nullptr, nullptr, EPreCalcShapValues::Auto, localExecutor);

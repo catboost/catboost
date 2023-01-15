@@ -48,18 +48,18 @@ namespace NCB::NModelEvaluation {
                 Ctx.GPUModelData.FlatBordersVector = TCudaVec<float>(flatBordersVec, EMemoryType::Device);
 
                 Ctx.GPUModelData.TreeSizes = TCudaVec<ui32>(
-                    TVector<ui32>(ModelTrees->GetTreeSizes().begin(), ModelTrees->GetTreeSizes().end()),
+                    TVector<ui32>(ModelTrees->GetModelTreeData()->GetTreeSizes().begin(), ModelTrees->GetModelTreeData()->GetTreeSizes().end()),
                     EMemoryType::Device
                 );
                 Ctx.GPUModelData.TreeStartOffsets = TCudaVec<ui32>(
-                    TVector<ui32>(ModelTrees->GetTreeStartOffsets().begin(), ModelTrees->GetTreeStartOffsets().end()),
+                    TVector<ui32>(ModelTrees->GetModelTreeData()->GetTreeStartOffsets().begin(), ModelTrees->GetModelTreeData()->GetTreeStartOffsets().end()),
                     EMemoryType::Device
                 );
                 const auto& firstLeafOffsetRef = ModelTrees->GetFirstLeafOffsets();
                 TVector<ui32> firstLeafOffset(firstLeafOffsetRef.begin(), firstLeafOffsetRef.end());
                 Ctx.GPUModelData.TreeFirstLeafOffsets = TCudaVec<ui32>(firstLeafOffset, EMemoryType::Device);
                 Ctx.GPUModelData.ModelLeafs = TCudaVec<TCudaEvaluatorLeafType>(
-                    TVector<TCudaEvaluatorLeafType>(ModelTrees->GetLeafValues().begin(), ModelTrees->GetLeafValues().end()),
+                    TVector<TCudaEvaluatorLeafType>(ModelTrees->GetModelTreeData()->GetLeafValues().begin(), ModelTrees->GetModelTreeData()->GetLeafValues().end()),
                     EMemoryType::Device
                 );
                 Ctx.Stream = TCudaStream::NewStream();

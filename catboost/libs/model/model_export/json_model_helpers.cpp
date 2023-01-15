@@ -351,31 +351,31 @@ static TJsonValue GetObliviousModelTreesJson(const TModelTrees& modelTrees) {
     int leafWeightsOffset = 0;
     TJsonValue jsonValue;
     const auto& binFeatures = modelTrees.GetBinFeatures();
-    for (int treeIdx = 0; treeIdx < modelTrees.GetTreeSizes().ysize(); ++treeIdx) {
+    for (int treeIdx = 0; treeIdx < modelTrees.GetModelTreeData()->GetTreeSizes().ysize(); ++treeIdx) {
         TJsonValue tree;
-        const size_t treeLeafCount = (1uLL << modelTrees.GetTreeSizes()[treeIdx]) * modelTrees.GetDimensionsCount();
-        const size_t treeWeightsCount = (1uLL << modelTrees.GetTreeSizes()[treeIdx]);
-        if (!modelTrees.GetLeafWeights().empty()) {
+        const size_t treeLeafCount = (1uLL << modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]) * modelTrees.GetDimensionsCount();
+        const size_t treeWeightsCount = (1uLL << modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]);
+        if (!modelTrees.GetModelTreeData()->GetLeafWeights().empty()) {
             for (size_t idx = 0; idx < treeWeightsCount; ++idx) {
-                tree["leaf_weights"].AppendValue(modelTrees.GetLeafWeights()[leafWeightsOffset + idx]);
+                tree["leaf_weights"].AppendValue(modelTrees.GetModelTreeData()->GetLeafWeights()[leafWeightsOffset + idx]);
             }
         }
         tree.InsertValue("leaf_values", TJsonValue());
         for (size_t idx = 0; idx < treeLeafCount; ++idx) {
-            tree["leaf_values"].AppendValue(modelTrees.GetLeafValues()[leafValuesOffset + idx]);
+            tree["leaf_values"].AppendValue(modelTrees.GetModelTreeData()->GetLeafValues()[leafValuesOffset + idx]);
         }
         leafValuesOffset += treeLeafCount;
         leafWeightsOffset += treeWeightsCount;
         int treeSplitEnd;
-        if (treeIdx + 1 < modelTrees.GetTreeStartOffsets().ysize()) {
-            treeSplitEnd = modelTrees.GetTreeStartOffsets()[treeIdx + 1];
+        if (treeIdx + 1 < modelTrees.GetModelTreeData()->GetTreeStartOffsets().ysize()) {
+            treeSplitEnd = modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx + 1];
         } else {
-            treeSplitEnd = modelTrees.GetTreeSplits().ysize();
+            treeSplitEnd = modelTrees.GetModelTreeData()->GetTreeSplits().ysize();
         }
         tree.InsertValue("splits", TJsonValue());
-        for (int idx = modelTrees.GetTreeStartOffsets()[treeIdx]; idx < treeSplitEnd; ++idx) {
-            tree["splits"].AppendValue(ToJson(binFeatures[modelTrees.GetTreeSplits()[idx]]));
-            tree["splits"].Back().InsertValue("split_index", modelTrees.GetTreeSplits()[idx]);
+        for (int idx = modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx]; idx < treeSplitEnd; ++idx) {
+            tree["splits"].AppendValue(ToJson(binFeatures[modelTrees.GetModelTreeData()->GetTreeSplits()[idx]]));
+            tree["splits"].Back().InsertValue("split_index", modelTrees.GetModelTreeData()->GetTreeSplits()[idx]);
         }
         jsonValue.AppendValue(tree);
     }
@@ -383,13 +383,13 @@ static TJsonValue GetObliviousModelTreesJson(const TModelTrees& modelTrees) {
 }
 
 static TJsonValue BuildLeafJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
-    ui32 leafIdx = modelTrees.GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+    ui32 leafIdx = modelTrees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
     TJsonValue leafJson;
-    leafJson.InsertValue("weight", modelTrees.GetLeafWeights()[leafIdx / modelTrees.GetDimensionsCount()]);
+    leafJson.InsertValue("weight", modelTrees.GetModelTreeData()->GetLeafWeights()[leafIdx / modelTrees.GetDimensionsCount()]);
     if (modelTrees.GetDimensionsCount() == 1) {
-        leafJson.InsertValue("value", modelTrees.GetLeafValues()[leafIdx]);
+        leafJson.InsertValue("value", modelTrees.GetModelTreeData()->GetLeafValues()[leafIdx]);
     } else {
-        TConstArrayRef<double> valueRef(modelTrees.GetLeafValues().begin() + leafIdx, modelTrees.GetDimensionsCount());
+        TConstArrayRef<double> valueRef(modelTrees.GetModelTreeData()->GetLeafValues().begin() + leafIdx, modelTrees.GetDimensionsCount());
         leafJson.InsertValue("value", VectorToJson<double>({valueRef.begin(), valueRef.end()}));
     }
     return leafJson;
@@ -397,12 +397,12 @@ static TJsonValue BuildLeafJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
 
 static TJsonValue BuildTreeJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
     TJsonValue tree;
-    const TNonSymmetricTreeStepNode& node = modelTrees.GetNonSymmetricStepNodes()[nodeIdx];
+    const TNonSymmetricTreeStepNode& node = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
     if (node.LeftSubtreeDiff == 0 && node.RightSubtreeDiff == 0) {
         return BuildLeafJson(modelTrees, nodeIdx);
     } else {
-        tree.InsertValue("split", ToJson(modelTrees.GetBinFeatures()[modelTrees.GetTreeSplits()[nodeIdx]]));
-        tree["split"].InsertValue("split_index", modelTrees.GetTreeSplits()[nodeIdx]);
+        tree.InsertValue("split", ToJson(modelTrees.GetBinFeatures()[modelTrees.GetModelTreeData()->GetTreeSplits()[nodeIdx]]));
+        tree["split"].InsertValue("split_index", modelTrees.GetModelTreeData()->GetTreeSplits()[nodeIdx]);
         tree.InsertValue("left",
             node.LeftSubtreeDiff ? BuildTreeJson(modelTrees, nodeIdx + node.LeftSubtreeDiff) : BuildLeafJson(modelTrees, nodeIdx));
         tree.InsertValue("right",
@@ -413,8 +413,8 @@ static TJsonValue BuildTreeJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
 
 static TJsonValue GetNonSymmetricModelTreesJson(const TModelTrees& modelTrees) {
     TJsonValue jsonValue(JSON_ARRAY);
-    for (int treeIdx = 0; treeIdx < modelTrees.GetTreeSizes().ysize(); ++treeIdx) {
-        jsonValue.AppendValue(BuildTreeJson(modelTrees, modelTrees.GetTreeStartOffsets()[treeIdx]));
+    for (int treeIdx = 0; treeIdx < modelTrees.GetModelTreeData()->GetTreeSizes().ysize(); ++treeIdx) {
+        jsonValue.AppendValue(BuildTreeJson(modelTrees, modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx]));
     }
     return jsonValue;
 }
@@ -454,7 +454,7 @@ static void GetNonSymmetricModelTrees(const TJsonValue& jsonValue, TModelTrees* 
         nodes.emplace_back(TNonSymmetricTreeStepNode{0, 0});
         if (jsonNode.Has("value")) {
             const TJsonValue& value = jsonNode["value"];
-            nodeIdToLeafId.push_back(modelTrees->GetLeafValues().size());
+            nodeIdToLeafId.push_back(modelTrees->GetModelTreeData()->GetLeafValues().size());
             modelTrees->AddTreeSplit(0);
             if (value.GetType() == EJsonValueType::JSON_ARRAY) {
                 modelTrees->SetApproxDimension(value.GetArray().ysize());
