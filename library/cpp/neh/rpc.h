@@ -10,7 +10,7 @@
 #include <functional>
 
 namespace NNeh {
-    typedef TVector<char> TData;
+    using TData = TVector<char>;
 
     class TDataSaver: public TData, public IOutputStream {
     public:
@@ -61,7 +61,7 @@ namespace NNeh {
         TInstant ArrivalTime_;
     };
 
-    typedef TAutoPtr<IRequest> IRequestRef;
+    using IRequestRef = TAutoPtr<IRequest>;
 
     struct IOnRequest {
         virtual void OnRequest(IRequestRef req) = 0;
@@ -92,28 +92,24 @@ namespace NNeh {
         IRequest* Req_;
     };
 
-    class IRequester {
-    public:
-        virtual ~IRequester() {
-        }
+    struct IRequester {
+        virtual ~IRequester() = default;
     };
 
-    typedef TAtomicSharedPtr<IRequester> IRequesterRef;
+    using IRequesterRef = TAtomicSharedPtr<IRequester>;
 
-    class IService: public TThrRefBase {
-    public:
+    struct IService: public TThrRefBase {
         virtual void ServeRequest(const IRequestRef& request) = 0;
     };
 
-    typedef TIntrusivePtr<IService> IServiceRef;
-    typedef std::function<void(const IRequestRef&)> TServiceFunction;
+    using IServiceRef = TIntrusivePtr<IService>;
+    using TServiceFunction = std::function<void(const IRequestRef&)>;
 
     IServiceRef Wrap(const TServiceFunction& func);
 
     class IServices {
     public:
-        virtual ~IServices() {
-        }
+        virtual ~IServices() = default;
 
         /// use current thread and run #threads-1 in addition
         virtual void Loop(size_t threads) = 0;
@@ -150,7 +146,7 @@ namespace NNeh {
         virtual void DoAdd(const TString& service, IServiceRef srv) = 0;
     };
 
-    typedef TAutoPtr<IServices> IServicesRef;
+    using IServicesRef = TAutoPtr<IServices>;
     using TCheck = std::function<TMaybe<IRequest::TResponseError>(const IRequestRef&)>;
 
     IServicesRef CreateLoop();
