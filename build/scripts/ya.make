@@ -12,6 +12,7 @@ TEST_SRCS(
     build_pln_header.py
     cat.py
     check_config_h.py
+    cgo1_wrapper.py
     compile_cuda.py
     compile_java.py
     compile_jsrc.py
