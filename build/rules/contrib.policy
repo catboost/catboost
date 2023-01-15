@@ -308,12 +308,13 @@ ALLOW yweb/news/news_back/api/scripts/migrate_scripts_common -> contrib/python/M
 ALLOW yweb/news/support/viewer -> contrib/python/MySQL-python
 DENY .* -> contrib/python/MySQL-python
 
-ALLOW contrib/python/mipp/tests -> contrib/python/mipp
-ALLOW contrib/python/mpop/mpop/tests -> contrib/python/mipp
-ALLOW contrib/python/mpop -> contrib/python/mipp
-ALLOW weather/workers/nowcasting/preprocess_meteosat -> contrib/python/mipp
-ALLOW yql/udfs/common/python/python_arc -> contrib/python/mipp
-DENY .* -> contrib/python/mipp
+ALLOW contrib/deprecated/python/mipp/tests -> contrib/deprecated/python/mipp
+ALLOW contrib/deprecated/python/mpop -> contrib/deprecated/python/mipp
+ALLOW contrib/deprecated/python/mpop/mpop/tests -> contrib/deprecated/python/mpop
+ALLOW weather/workers/common/clean_satellite/utils -> contrib/deprecated/python/mpop
+ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/mipp
+DENY .* -> contrib/deprecated/python/mipp
+DENY .* -> contrib/deprecated/python/mpop
 
 DENY .* -> contrib/python/pdbpp
 
