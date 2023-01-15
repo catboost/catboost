@@ -18,7 +18,7 @@ def fix(s):
         return None
 
     # remove arguments unknown to clang-cl
-    if s == '-fcase-insensitive-paths' or s == '-fno-lto':
+    if s == '-fcase-insensitive-paths':  # or s == '-fno-lto':  # DEVTOOLSSUPPORT-3966
         return None
 
     # Paths under .ya/tools/v3/.../msvc/include are divided with '\'
