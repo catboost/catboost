@@ -1603,9 +1603,9 @@ namespace NNeh {
                     Y_UNUSED(IO_.Release());
                 }
 
-                void SendError(TResponseError error, const TString&) override {
+                void SendError(TResponseError error, const THttpErrorDetails& details) override {
                     TData data;
-                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error, TString()));
+                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error, details.Headers));
                     Y_UNUSED(IO_.Release());
                 }
 

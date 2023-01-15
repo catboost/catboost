@@ -1357,7 +1357,7 @@ namespace {
             ~TRequest() override {
                 if (!!C_) {
                     try {
-                        C_->SendError(Id(), 503, "service unavailable (request ignored)", P_->HttpVersion());
+                        C_->SendError(Id(), 503, "service unavailable (request ignored)", P_->HttpVersion(), {});
                     } catch (...) {
                         DBGOUT("~TRequest()::SendFail() exception");
                     }
@@ -1419,7 +1419,7 @@ namespace {
                 }
             }
 
-            void SendError(TResponseError err, const TString& details) override {
+            void SendError(TResponseError err, const THttpErrorDetails& details) override {
                 static const unsigned errorToHttpCode[IRequest::MaxResponseError] =
                     {
                         400,
@@ -1433,7 +1433,7 @@ namespace {
                         509};
 
                 if (!!C_) {
-                    C_->SendError(Id(), errorToHttpCode[err], details, P_->HttpVersion());
+                    C_->SendError(Id(), errorToHttpCode[err], details.Details, P_->HttpVersion(), details.Headers);
                     C_.Reset();
                 }
             }
@@ -1660,14 +1660,14 @@ namespace {
             }
 
             //called non thread-safe (from outside thread)
-            void SendError(TAtomicBase requestId, unsigned httpCode, const TString& descr, const THttpVersion& ver) {
+            void SendError(TAtomicBase requestId, unsigned httpCode, const TString& descr, const THttpVersion& ver, const TString& headers) {
                 if (Canceled_) {
                     return;
                 }
 
                 class THttpErrorResponseFormatter {
                 public:
-                    THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection) {
+                    THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection, const TString& headers) {
                         PrintHttpVersion(Answer, theVer);
                         Answer << TStringBuf(" ") << theHttpCode << TStringBuf(" ");
                         if (theDescr.size() && !THttp2Options::ErrorDetailsAsResponseBody) {
@@ -1694,6 +1694,10 @@ namespace {
                             Answer << TStringBuf("\r\nConnection: close");
                         }
 
+                        if (headers) {
+                            Answer << "\r\n" << headers;
+                        }
+
                         if (THttp2Options::ErrorDetailsAsResponseBody) {
                             Answer << TStringBuf("\r\nContent-Length:") << theDescr.size() << "\r\n\r\n" << theDescr;
                         } else {
@@ -1711,8 +1715,14 @@ namespace {
 
                 class TBuffers: public THttpErrorResponseFormatter, public TTcpSocket::IBuffers {
                 public:
-                    TBuffers(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection)
-                        : THttpErrorResponseFormatter(theHttpCode, theDescr, theVer, closeConnection)
+                    TBuffers(
+                        unsigned theHttpCode,
+                        const TString& theDescr,
+                        const THttpVersion& theVer,
+                        bool closeConnection,
+                        const TString& headers
+                    )
+                        : THttpErrorResponseFormatter(theHttpCode, theDescr, theVer, closeConnection, headers)
                         , IOVec(Parts, 1)
                     {
                     }
@@ -1724,7 +1734,7 @@ namespace {
                     TContIOVector IOVec;
                 };
 
-                TTcpSocket::TSendedData sd(new TBuffers(httpCode, descr, ver, SeenMessageWithoutKeepalive_));
+                TTcpSocket::TSendedData sd(new TBuffers(httpCode, descr, ver, SeenMessageWithoutKeepalive_, headers));
                 SendData(requestId, sd);
             }
 

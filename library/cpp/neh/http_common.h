@@ -17,6 +17,11 @@
 //common primitives for http/http2
 
 namespace NNeh {
+    struct THttpErrorDetails {
+        TString Details = {};
+        TString Headers = {};
+    };
+
     class IHttpRequest: public IRequest {
     public:
         using IRequest::SendReply;
@@ -25,6 +30,11 @@ namespace NNeh {
         virtual TStringBuf Method() const = 0;
         virtual TStringBuf Body() const = 0;
         virtual TStringBuf Cgi() const = 0;
+        void SendError(TResponseError err, const TString& details = TString()) override final {
+            SendError(err, THttpErrorDetails{.Details = details});
+        }
+
+        virtual void SendError(TResponseError err, const THttpErrorDetails& details) = 0;
     };
 
     namespace NHttp {
