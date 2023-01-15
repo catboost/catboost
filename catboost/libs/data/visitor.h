@@ -237,7 +237,8 @@ namespace NCB {
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
 
-            const NCB::TPoolQuantizationSchema& poolQuantizationSchema
+            const NCB::TPoolQuantizationSchema& poolQuantizationSchema,
+            bool wholeColumns // data passed to Add* functions will contain whole columns, not part
         ) = 0;
 
         // TCommonObjectsData

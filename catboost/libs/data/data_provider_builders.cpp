@@ -1394,7 +1394,8 @@ namespace NCB {
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
 
-            const NCB::TPoolQuantizationSchema& poolQuantizationSchema
+            const NCB::TPoolQuantizationSchema& poolQuantizationSchema,
+            bool wholeColumns
         ) override {
             CB_ENSURE(!InProcess, "Attempt to start new processing without finishing the last");
 
@@ -1511,14 +1512,16 @@ namespace NCB {
                     objectCount,
                     Data.ObjectsData.Data.QuantizedFeaturesInfo,
                     BinaryFeaturesStorage,
-                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex
+                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex,
+                    wholeColumns
                 );
                 CategoricalFeaturesStorage.PrepareForInitialization(
                     *metaInfo.FeaturesLayout,
                     objectCount,
                     Data.ObjectsData.Data.QuantizedFeaturesInfo,
                     BinaryFeaturesStorage,
-                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex
+                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex,
+                    wholeColumns
                 );
             }
 
@@ -1582,7 +1585,7 @@ namespace NCB {
                 GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx),
                 objectOffset,
                 bitsPerDocumentFeature,
-                *featuresPart,
+                std::move(featuresPart),
                 LocalExecutor
             );
         }
@@ -1597,7 +1600,7 @@ namespace NCB {
                 GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx),
                 objectOffset,
                 bitsPerDocumentFeature,
-                *featuresPart,
+                std::move(featuresPart),
                 LocalExecutor
             );
         }
@@ -1941,17 +1944,36 @@ namespace NCB {
             static_assert(FeatureType == EFeatureType::Float || FeatureType == EFeatureType::Categorical,
                 "Only float and categorical features are currently supported");
 
+            bool WholeColumns = false;
+            size_t ObjectCount = 0;
+
             /******************************************************************************************/
             // non-binary features
 
             /* shared between this builder and created data provider for efficiency
              * (can be reused for cache here if there's no more references to data
              *  (data provider was freed))
+             *
+             *   Used if WholeColumns == false
              */
             TVector<TIntrusivePtr<TVectorHolder<ui64>>> DenseDataStorage; // [perTypeFeatureIdx]
 
             // view into storage for faster access
             TVector<TArrayRef<ui64>> DenseDstView; // [perTypeFeatureIdx]
+
+            // whole columns
+
+            /*
+             * Used if WholeColumns == true
+             *  if src array data is properly aligned (as ui64, because it is used in TCompressedArray)
+             *    just copy TMaybeOwningArrayHolder as, make a copy otherwise
+             *  but const cast is used because TCompressedArray accepts only TMaybeOwningArrayHolder
+             *  whereas in fact it is used only as read-only data later in data provider
+             *  TODO(akhropov): Propagate const-correctness here
+             */
+
+            TVector<TMaybeOwningArrayHolder<ui64>> DenseWholeColumns; // [perTypeFeatureIdx]
+
 
             TVector<TIndexHelper<ui64>> IndexHelpers; // [perTypeFeatureIdx]
 
@@ -1976,11 +1998,22 @@ namespace NCB {
                 ui32 objectCount,
                 const TQuantizedFeaturesInfoPtr& quantizedFeaturesInfoPtr,
                 TBinaryFeaturesStorage& binaryStorage,
-                TConstArrayRef<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex
+                TConstArrayRef<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex,
+                bool wholeColumns
             ) {
+                ObjectCount = objectCount;
+                WholeColumns = wholeColumns;
+
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
-                DenseDataStorage.resize(perTypeFeatureCount);
-                DenseDstView.resize(perTypeFeatureCount);
+                if (WholeColumns) {
+                    DenseWholeColumns.resize(perTypeFeatureCount);
+                    DenseDataStorage.clear();
+                    DenseDstView.clear();
+                } else {
+                    DenseWholeColumns.clear();
+                    DenseDataStorage.resize(perTypeFeatureCount);
+                    DenseDstView.resize(perTypeFeatureCount);
+                }
                 IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
                 FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount);
 
@@ -2009,33 +2042,35 @@ namespace NCB {
                         = flatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
                 }
 
-                for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
-                    if (featuresLayout.GetInternalFeatureMetaInfo(
-                            perTypeFeatureIdx,
-                            FeatureType
-                        ).IsAvailable &&
-                        !FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx])
-                    {
-                        CB_ENSURE(
-                            IsAvailable[perTypeFeatureIdx],
-                            FeatureType << " feature #" << perTypeFeatureIdx
-                            << " has no data in quantized pool"
-                        );
+                if (!WholeColumns) {
+                    for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
+                        if (featuresLayout.GetInternalFeatureMetaInfo(
+                                perTypeFeatureIdx,
+                                FeatureType
+                            ).IsAvailable &&
+                            !FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx])
+                        {
+                            CB_ENSURE(
+                                IsAvailable[perTypeFeatureIdx],
+                                FeatureType << " feature #" << perTypeFeatureIdx
+                                << " has no data in quantized pool"
+                            );
 
-                        auto& maybeSharedStoragePtr = DenseDataStorage[perTypeFeatureIdx];
-                        if (!maybeSharedStoragePtr || (maybeSharedStoragePtr->RefCount() > 1)) {
-                            /* storage is either uninited or shared with some other references
-                             * so it has to be reset to be reused
-                             */
-                            DenseDataStorage[perTypeFeatureIdx] = MakeIntrusive<TVectorHolder<ui64>>();
+                            auto& maybeSharedStoragePtr = DenseDataStorage[perTypeFeatureIdx];
+                            if (!maybeSharedStoragePtr || (maybeSharedStoragePtr->RefCount() > 1)) {
+                                /* storage is either uninited or shared with some other references
+                                 * so it has to be reset to be reused
+                                 */
+                                DenseDataStorage[perTypeFeatureIdx] = MakeIntrusive<TVectorHolder<ui64>>();
+                            }
+                            maybeSharedStoragePtr->Data.yresize(
+                                IndexHelpers[perTypeFeatureIdx].CompressedSize(objectCount)
+                            );
+                            DenseDstView[perTypeFeatureIdx] =  maybeSharedStoragePtr->Data;
+                        } else {
+                            DenseDataStorage[perTypeFeatureIdx] = nullptr;
+                            DenseDstView[perTypeFeatureIdx] = TArrayRef<ui64>();
                         }
-                        maybeSharedStoragePtr->Data.yresize(
-                            IndexHelpers[perTypeFeatureIdx].CompressedSize(objectCount)
-                        );
-                        DenseDstView[perTypeFeatureIdx] =  maybeSharedStoragePtr->Data;
-                    } else {
-                        DenseDataStorage[perTypeFeatureIdx] = nullptr;
-                        DenseDstView[perTypeFeatureIdx] = TArrayRef<ui64>();
                     }
                 }
 
@@ -2050,7 +2085,7 @@ namespace NCB {
                 TFeatureIdx<FeatureType> perTypeFeatureIdx,
                 ui32 objectOffset,
                 ui8 bitsPerDocumentFeature,
-                TConstArrayRef<ui8> featuresPart,
+                TMaybeOwningConstArrayHolder<ui8> featuresPart,
                 NPar::TLocalExecutor* localExecutor
             ) {
                 if (!IsAvailable[*perTypeFeatureIdx]) {
@@ -2061,10 +2096,10 @@ namespace NCB {
                     auto packedBinaryIndex = *FeatureIdxToPackedBinaryIndex[*perTypeFeatureIdx];
                     auto dstSlice = DstBinaryView[packedBinaryIndex.PackIdx].Slice(
                         objectOffset,
-                        featuresPart.size()
+                        featuresPart.GetSize()
                     );
                     ParallelSetBinaryFeatureInPackArray(
-                        featuresPart,
+                        *featuresPart,
                         packedBinaryIndex.BitIdx,
                         /*needToClearDstBits*/ false,
                         localExecutor,
@@ -2079,23 +2114,47 @@ namespace NCB {
 
                     const auto bytesPerDocument = bitsPerDocumentFeature / (sizeof(ui8) * CHAR_BIT);
 
-                    const auto dstCapacityInBytes =
-                        DenseDstView[*perTypeFeatureIdx].size() *
-                        sizeof(decltype(*DenseDstView[*perTypeFeatureIdx].data()));
-                    const auto objectOffsetInBytes = objectOffset * bytesPerDocument;
+                    if (WholeColumns) {
+                        CB_ENSURE(objectOffset == 0, "objectOffset must be 0 for WholeColumns");
+                        const ui8* dataPtr = featuresPart.data();
 
-                    CB_ENSURE_INTERNAL(
-                        objectOffsetInBytes < dstCapacityInBytes,
-                        LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
-                    CB_ENSURE_INTERNAL(
-                        objectOffsetInBytes + featuresPart.size() <= dstCapacityInBytes,
-                        LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
+                        if (reinterpret_cast<ui64>(dataPtr) % alignof(ui64)) {
+                            // fallback to data copying if it is unaligned
+                            TVector<ui64> dataCopy;
+                            dataCopy.yresize(IndexHelpers[*perTypeFeatureIdx].CompressedSize(ObjectCount));
+                            Copy(featuresPart.begin(), featuresPart.end(), (ui8*)dataCopy.data());
+
+                            DenseWholeColumns[*perTypeFeatureIdx] =
+                                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(dataCopy));
+                        } else {
+                            DenseWholeColumns[*perTypeFeatureIdx] =
+                                TMaybeOwningArrayHolder<ui64>::CreateOwning(
+                                    TArrayRef<ui64>(
+                                        (ui64*)const_cast<ui8*>(dataPtr),
+                                        CeilDiv(featuresPart.GetSize(), sizeof(ui64))
+                                    ),
+                                    featuresPart.GetResourceHolder()
+                                );
+                        }
+                    } else {
+                        const auto dstCapacityInBytes =
+                            DenseDstView[*perTypeFeatureIdx].size() *
+                            sizeof(decltype(*DenseDstView[*perTypeFeatureIdx].data()));
+                        const auto objectOffsetInBytes = objectOffset * bytesPerDocument;
+
+                        CB_ENSURE_INTERNAL(
+                            objectOffsetInBytes < dstCapacityInBytes,
+                            LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.GetSize(), dstCapacityInBytes));
+                        CB_ENSURE_INTERNAL(
+                            objectOffsetInBytes + featuresPart.GetSize() <= dstCapacityInBytes,
+                            LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.GetSize(), dstCapacityInBytes));
 
 
-                    memcpy(
-                        ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffsetInBytes,
-                        featuresPart.data(),
-                        featuresPart.size());
+                        memcpy(
+                            ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffsetInBytes,
+                            featuresPart.data(),
+                            featuresPart.GetSize());
+                    }
                 }
             }
 
@@ -2107,17 +2166,25 @@ namespace NCB {
                 const TVector<THolder<IBinaryPacksArray>>& binaryFeaturesData,
                 TVector<THolder<TColumn>>* result
             ) {
-                CB_ENSURE_INTERNAL(
-                    DenseDataStorage.size() == DenseDstView.size(),
-                    "DenseDataStorage is inconsistent with DenseDstView; "
-                    LabeledOutput(DenseDataStorage.size(), DenseDstView.size()));
+
 
                 const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
 
-                CB_ENSURE_INTERNAL(
-                    DenseDataStorage.size() == featureCount,
-                    "DenseDataStorage is inconsistent with feature Layout; "
-                    LabeledOutput(DenseDataStorage.size(), featureCount));
+                if (WholeColumns) {
+                    CB_ENSURE_INTERNAL(
+                        DenseWholeColumns.size() == featureCount,
+                        "DenseWholeColumns is inconsistent with feature Layout; "
+                        LabeledOutput(DenseWholeColumns.size(), featureCount));
+                } else {
+                    CB_ENSURE_INTERNAL(
+                        DenseDataStorage.size() == featureCount,
+                        "DenseDataStorage is inconsistent with feature Layout; "
+                        LabeledOutput(DenseDataStorage.size(), featureCount));
+                    CB_ENSURE_INTERNAL(
+                        DenseDataStorage.size() == DenseDstView.size(),
+                        "DenseDataStorage is inconsistent with DenseDstView; "
+                        LabeledOutput(DenseDataStorage.size(), DenseDstView.size()));
+                }
 
                 result->clear();
                 result->reserve(featureCount);
@@ -2142,10 +2209,12 @@ namespace NCB {
                                     TCompressedArray(
                                         objectCount,
                                         IndexHelpers[perTypeFeatureIdx].GetBitsPerKey(),
-                                        TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                                            DenseDstView[perTypeFeatureIdx],
-                                            DenseDataStorage[perTypeFeatureIdx]
-                                        )
+                                        WholeColumns ?
+                                            std::move(DenseWholeColumns[perTypeFeatureIdx])
+                                          : TMaybeOwningArrayHolder<ui64>::CreateOwning(
+                                              DenseDstView[perTypeFeatureIdx],
+                                              DenseDataStorage[perTypeFeatureIdx]
+                                            )
                                     ),
                                     subsetIndexing
                                 )
