@@ -365,6 +365,9 @@
         },
         "black": {
             "description": "Python styler"
+        },
+        "yadi": {
+            "description": "Arcadia version of Yadi"
         }
     },
     "toolchain": {
@@ -5391,6 +5394,34 @@
                     "default": true
                 }
             ]
+        },
+        "yadi": {
+            "tools": {
+                "yadi": {
+                    "bottle": "yadi",
+                    "executable": "yadi-arc"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -7292,6 +7323,17 @@
             "executable": {
                 "black": [
                     "black"
+                ]
+            }
+        },
+        "yadi": {
+            "formula": {
+                "sandbox_id": 721593124,
+                "match": "yadi-arc"
+            },
+            "executable": {
+                "yadi-arc": [
+                    "yadi-arc"
                 ]
             }
         }
