@@ -7,6 +7,7 @@ from util.generic.maybe_ut import TestMaybe
 from util.generic.ptr_ut import TestHolder
 from util.generic.string_ut import TestStroka
 from util.generic.vector_ut import TestVector
+from util.generic.list_ut import TestList
 from util.string.cast_ut import TestFromString, TestToString
 
 # Test discovery does not work in cython modules.
@@ -20,4 +21,5 @@ __all__ = [
     'TestVector',
     'TestFromString',
     'TestToString',
+    'TestList',
 ]
