@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import base64
 import re
 import sys
 import os
@@ -31,6 +32,12 @@ try:
 except ImportError:
     # fallback for pytest script mode
     import yatest_tools as tools
+
+try:
+    from library.python import filelock
+except ImportError:
+    filelock = None
+
 
 import yatest_lib.tools
 
@@ -511,12 +518,13 @@ def pytest_runtest_makereport(item, call):
 
     def logreport(report, result, call):
         test_item = TestItem(report, result, pytest.config.option.test_suffix)
+        if not pytest.config.suite_metrics:
+            pytest.config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
+            pytest.config.ya_trace_reporter.dump_suite_metrics()
+
         pytest.config.ya_trace_reporter.on_log_report(test_item)
         if report.when == "call":
             _collect_test_rusage(item)
-            if not pytest.config.suite_metrics:
-                pytest.config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
-                pytest.config.ya_trace_reporter.dump_suite_metrics()
             pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
         elif report.when == "setup":
             pytest.config.ya_trace_reporter.on_start_test_class(test_item)
@@ -742,26 +750,36 @@ class DeselectedTestItem(CustomTestItem):
 class TraceReportGenerator(object):
 
     def __init__(self, out_file_path):
-        self.File = open(out_file_path, 'w')
+        self._filename = out_file_path
+        self._file = open(out_file_path, 'w')
         self._test_messages = {}
         self._test_duration = {}
+        # Some machinery to avoid data corruption due sloppy fork()
+        self._current_test = (None, None)
+        self._pid = os.getpid()
+        self._wreckage_filename = out_file_path + '.wreckage'
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-started', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
+        class_name = test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name
+        self._current_test = (class_name, None)
+        self.trace('test-started', {'class': class_name})
 
     def on_finish_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
         self.trace('test-finished', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_start_test_case(self, test_item):
+        class_name = yatest_lib.tools.to_utf8(test_item.class_name)
+        subtest_name = yatest_lib.tools.to_utf8(test_item.test_name)
         message = {
-            'class': yatest_lib.tools.to_utf8(test_item.class_name),
-            'subtest': yatest_lib.tools.to_utf8(test_item.test_name)
+            'class': class_name,
+            'subtest': subtest_name,
         }
         if test_item.nodeid in pytest.config.test_logs:
             message['logs'] = pytest.config.test_logs[test_item.nodeid]
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
+        self._current_test = (class_name, subtest_name)
         self.trace('subtest-started', message)
 
     def on_finish_test_case(self, test_item, duration_only=False):
@@ -819,15 +837,73 @@ class TraceReportGenerator(object):
             return ""
         return msg + "[[rst]]"
 
-    def trace(self, name, value):
+    def _dump_trace(self, name, value):
         event = {
             'timestamp': time.time(),
             'value': value,
             'name': name
         }
+
         data = to_str(json.dumps(event, ensure_ascii=False))
-        self.File.write(data + '\n')
-        self.File.flush()
+        self._file.write(data + '\n')
+        self._file.flush()
+
+    def _check_sloppy_fork(self, name, value):
+        if self._pid == os.getpid():
+            return
+
+        yatest_logger.error("Skip tracing to avoid data corruption, name = %s, value = %s", name, value)
+
+        try:
+            # Lock wreckage tracefile to avoid race if multiple tests use fork sloppily
+            if filelock:
+                lock = filelock.FileLock(self._wreckage_filename + '.lock')
+                lock.acquire()
+
+            with open(self._wreckage_filename, 'a') as afile:
+                self._file = afile
+
+                parts = [
+                    "It looks like you have leaked process - it could corrupt internal test machinery files.",
+                    "Usually it happens when you casually use fork() without os._exit(),",
+                    "which results in two pytest processes running at the same time.",
+                    "Pid of the original pytest's process is {}, however current process has {} pid.".format(self._pid, os.getpid()),
+                ]
+                if self._current_test[1]:
+                    parts.append("Most likely the problem is in '{}' test.".format(self._current_test))
+                else:
+                    parts.append("Most likely new process was created before any test was launched (during the import stage?).")
+
+                if value.get('comment'):
+                    comment = value.get('comment', '').strip()
+                    # multiline comment
+                    newline_required = '\n' if '\n' in comment else ''
+                    parts.append("Debug info: name = '{}' comment:{}{}".format(name, newline_required, comment))
+                else:
+                    val_str = json.dumps(value, ensure_ascii=False).encode('utf-8')
+                    parts.append("Debug info: name = '{}' value = '{}'".format(name, base64.b64encode(val_str)))
+
+                msg = "[[bad]]{}".format('\n'.join(parts))
+                class_name, subtest_name = self._current_test
+                if subtest_name:
+                    data = {
+                        'class': class_name,
+                        'subtest': subtest_name,
+                        'status': 'fail',
+                        'comment': msg,
+                    }
+                    # overwrite original status
+                    self._dump_trace('subtest-finished', data)
+                else:
+                    self._dump_trace('suite_event', {"errors": [('fail', msg)]})
+        except Exception as e:
+            yatest_logger.exception(e)
+        finally:
+            os._exit(38)
+
+    def trace(self, name, value):
+        self._check_sloppy_fork(name, value)
+        self._dump_trace(name, value)
 
 
 class DryTraceReportGenerator(TraceReportGenerator):
