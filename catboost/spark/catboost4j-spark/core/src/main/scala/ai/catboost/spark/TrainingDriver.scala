@@ -10,7 +10,7 @@ import ai.catboost.CatBoostError
 
 
 // use in startMasterCallback
-class CatBoostWorkersConnectionLostException(message: String) extends IOException(message) {
+private[spark] class CatBoostWorkersConnectionLostException(message: String) extends IOException(message) {
   def this(message: String, cause: Throwable) {
     this(message)
     initCause(cause)
@@ -26,7 +26,7 @@ class CatBoostWorkersConnectionLostException(message: String) extends IOExceptio
 }
 
 
-class WorkerInfo (
+private[spark] class WorkerInfo (
   val partitionId : Int,
   val partitionSize: Int,
   val host: String,
@@ -46,7 +46,7 @@ class WorkerInfo (
 }
 
 
-class UpdatableWorkersInfo (
+private[spark] class UpdatableWorkersInfo (
   private val workersInfo: Array[WorkerInfo],
   var workerRegistrationUpdatedSinceLastMasterStart : AtomicBoolean,
   val serverSocket: ServerSocket
@@ -145,7 +145,7 @@ class UpdatableWorkersInfo (
  *     Go to step 3 if there are updated workers.
  *  5) returns if master callback finished without exceptions
  */
-class TrainingDriver (
+private[spark] class TrainingDriver (
   val updatableWorkersInfo: UpdatableWorkersInfo,
   val workerInitializationTimeout: java.time.Duration,
   val startMasterCallback: Array[WorkerInfo] => Unit
@@ -213,7 +213,7 @@ class TrainingDriver (
 }
 
 // use on workers
-object TrainingDriver {
+private[spark] object TrainingDriver {
 
   /**
    * @returns CatBoost worker port. There's a possibility that this port will be reuse before binding

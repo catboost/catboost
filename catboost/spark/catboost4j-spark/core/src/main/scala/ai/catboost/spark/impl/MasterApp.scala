@@ -10,7 +10,7 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
  * On the other hand we don't want to pack separate CatBoost CLI apps for each platform in addition to
  * catboost4j-spark-impl library, so that's why there's a simple JVM-based CLI wrapper
  */
-object MasterApp {
+private[spark] object MasterApp {
   /**
    * Accepts single argument with JSON training params
    */

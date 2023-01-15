@@ -9,6 +9,7 @@ import ai.catboost.spark.params.macros.ParamGetterSetter
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._ // enums
 
 
+/** Params for training CatBoost. See documentation on [[https://catboost.ai/docs/]] for details. */
 trait TrainingParamsTrait
   extends QuantizationParamsTrait with HasLabelCol with HasFeaturesCol with HasWeightCol
 {
@@ -65,7 +66,7 @@ trait TrainingParamsTrait
     + "parameters that limit the number of iterations, the final number of trees may be less than the number "
     + "specified in this parameter. "
     + "Default value is 1000."
-    
+
   )
 
   @ParamGetterSetter
@@ -208,14 +209,14 @@ trait TrainingParamsTrait
     + "quality degradation. "
     + "Default value is 1."
   )
-  
+
   @ParamGetterSetter
   final val leafEstimationMethod: EnumParam[ELeavesEstimation] = new EnumParam[ELeavesEstimation](
     this,
     "leafEstimationMethod",
     "The method used to calculate the values in leaves. See documentation for details."
   )
-  
+
   @ParamGetterSetter
   final val leafEstimationIterations: IntParam = new IntParam(
     this,
@@ -223,9 +224,9 @@ trait TrainingParamsTrait
     "CatBoost might calculate leaf values using several gradient or newton steps instead of a single one. "
     + "This parameter regulates how many steps are done in every tree when calculating leaf values."
   )
-  
+
   @ParamGetterSetter
-  final val leafEstimationBacktracking: EnumParam[ELeavesEstimationStepBacktracking] 
+  final val leafEstimationBacktracking: EnumParam[ELeavesEstimationStepBacktracking]
     = new EnumParam[ELeavesEstimationStepBacktracking](
       this,
       "leafEstimationBacktracking",
@@ -234,7 +235,7 @@ trait TrainingParamsTrait
       + "The behaviour differs depending on the value of this parameter. See documentation for details. "
       + "Default value is 'AnyImprovement'"
     )
-  
+
   @ParamGetterSetter
   final val foldLenMultiplier: FloatParam = new FloatParam(
     this,
@@ -243,7 +244,7 @@ trait TrainingParamsTrait
     + "result is achieved with minimum values. "
     + "Default value is 2.0."
   )
-  
+
   @ParamGetterSetter
   final val approxOnFullHistory: BooleanParam = new BooleanParam(
     this,
@@ -251,14 +252,14 @@ trait TrainingParamsTrait
     "Use all the preceding rows in the fold for calculating the approximated values. This mode is slower and "
     + "in rare cases slightly more accurate."
   )
-  
+
   @ParamGetterSetter
   final val boostingType: EnumParam[EBoostingType] = new EnumParam[EBoostingType](
     this,
     "boostingType",
     "Boosting scheme. See documentation for details. Default value is 'Plain'"
   )
-  
+
   @ParamGetterSetter
   final val diffusionTemperature: FloatParam = new FloatParam(
     this,
@@ -266,14 +267,14 @@ trait TrainingParamsTrait
     "The diffusion temperature of the Stochastic Gradient Langevin Boosting mode. "
     + "Only non-negative values are supported. Default value is 10000."
   )
-  
+
   @ParamGetterSetter
   final val allowConstLabel: BooleanParam = new BooleanParam(
     this,
     "allowConstLabel",
     "Use it to train models with datasets that have equal label values for all objects."
   )
-  
+
   @ParamGetterSetter
   final val scoreFunction: EnumParam[EScoreFunction] = new EnumParam[EScoreFunction](
     this,
@@ -281,7 +282,7 @@ trait TrainingParamsTrait
     "The score type used to select the next split during the tree construction. See documentation for details. "
     + "Default value is 'Cosine'"
   )
-  
+
   @ParamGetterSetter
   final val featureWeightsMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
     this,
@@ -290,7 +291,7 @@ trait TrainingParamsTrait
     + "The score of each candidate is multiplied by the weights of features from the current split."
     + "This parameter is mutually exclusive with featureWeightsList."
   )
-  
+
   @ParamGetterSetter
   final val featureWeightsList: DoubleArrayParam = new DoubleArrayParam(
     this,
@@ -300,7 +301,7 @@ trait TrainingParamsTrait
     + "split."
     + "This parameter is mutually exclusive with featureWeightsMap."
   )
-  
+
   @ParamGetterSetter
   final val firstFeatureUsePenaltiesMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
     this,
@@ -310,7 +311,7 @@ trait TrainingParamsTrait
     + "model. Map is 'feature_name' -> penalty. See documentation for details. "
     + "This parameter is mutually exclusive with firstFeatureUsePenaltiesList."
   )
-  
+
   @ParamGetterSetter
   final val firstFeatureUsePenaltiesList: DoubleArrayParam = new DoubleArrayParam(
     this,
@@ -320,7 +321,7 @@ trait TrainingParamsTrait
     + "model. Array indices correspond to feature indices. See documentation for details. "
     + "This parameter is mutually exclusive with firstFeatureUsePenaltiesMap."
   )
-  
+
   @ParamGetterSetter
   final val penaltiesCoefficient: FloatParam = new FloatParam(
     this,
@@ -328,7 +329,7 @@ trait TrainingParamsTrait
     "A single-value common coefficient to multiply all penalties. Non-negative values are supported. "
     + "Default value is 1.0."
   )
-  
+
   @ParamGetterSetter
   final val perObjectFeaturePenaltiesMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
     this,
@@ -338,7 +339,7 @@ trait TrainingParamsTrait
     + "Map is 'feature_name' -> penalty. See documentation for details. "
     + "This parameter is mutually exclusive with perObjectFeaturePenaltiesList."
   )
-  
+
   @ParamGetterSetter
   final val perObjectFeaturePenaltiesList: DoubleArrayParam = new DoubleArrayParam(
     this,
@@ -348,7 +349,7 @@ trait TrainingParamsTrait
     + "Array indices correspond to feature indices. See documentation for details. "
     + "This parameter is mutually exclusive with perObjectFeaturePenaltiesMap."
   )
-  
+
   @ParamGetterSetter
   final val modelShrinkRate: FloatParam = new FloatParam(
     this,
@@ -356,7 +357,7 @@ trait TrainingParamsTrait
     "The constant used to calculate the coefficient for multiplying the model on each iteration. "
     + "See documentation for details."
   )
-  
+
   @ParamGetterSetter
   final val modelShrinkMode: EnumParam[EModelShrinkMode] = new EnumParam[EModelShrinkMode](
     this,
@@ -365,10 +366,10 @@ trait TrainingParamsTrait
     + "documentation for details. "
     + "Default value is 'Constant'"
   )
-  
-  
+
+
   // Overfitting detection settings
-  
+
   @ParamGetterSetter
   final val earlyStoppingRounds: IntParam = new IntParam(
     this,
@@ -376,7 +377,7 @@ trait TrainingParamsTrait
     "Sets the overfitting detector type to Iter and stops the training after the specified number of "
     + "iterations since the iteration with the optimal metric value."
   )
-  
+
   @ParamGetterSetter
   final val odType: EnumParam[EOverfittingDetectorType] = new EnumParam[EOverfittingDetectorType](
     this,
@@ -384,7 +385,7 @@ trait TrainingParamsTrait
     "The type of the overfitting detector to use. See documentation for details. "
     + "Default value is 'IncToDec'"
   )
-  
+
   @ParamGetterSetter
   final val odPval: FloatParam = new FloatParam(
     this,
@@ -393,7 +394,7 @@ trait TrainingParamsTrait
     + "value is reached. Requires that a validation dataset was input. See documentation for details."
     + "Turned off by default."
   )
-  
+
   @ParamGetterSetter
   final val odWait: IntParam = new IntParam(
     this,
@@ -402,10 +403,10 @@ trait TrainingParamsTrait
     + "See documentation for details. "
     + "Default value is 20."
   )
-  
-  
+
+
   // Output settings
-  
+
   @ParamGetterSetter
   final val loggingLevel: EnumParam[ELoggingLevel] = new EnumParam[ELoggingLevel](
     this,
@@ -413,7 +414,7 @@ trait TrainingParamsTrait
     "The logging level to output to stdout. See documentation for details. "
     + "Default value is 'Verbose'"
   )
-  
+
   @ParamGetterSetter
   final val metricPeriod: IntParam = new IntParam(
     this,
@@ -422,7 +423,7 @@ trait TrainingParamsTrait
     + " positive integer. The usage of this parameter speeds up the training. "
     + "Default value is 1."
   )
-  
+
   @ParamGetterSetter
   final val trainDir: Param[String] = new Param[String](
     this,
@@ -438,7 +439,7 @@ trait TrainingParamsTrait
     "Allow to write analytical and snapshot files during training. "
     + "Enabled by default."
   )
-  
+
   @ParamGetterSetter
   final val saveSnapshot: BooleanParam = new BooleanParam(
     this,
@@ -446,7 +447,7 @@ trait TrainingParamsTrait
     "Enable snapshotting for restoring the training progress after an interruption. If enabled, the default "
     + " period for making snapshots is 600 seconds. Use the snapshotInterval parameter to change this period."
   )
-  
+
   @ParamGetterSetter
   final val snapshotFile: Param[String] = new Param[String](
     this,
@@ -454,7 +455,7 @@ trait TrainingParamsTrait
     "The name of the file to save the training progress information in. This file is used for recovering "
     + "training after an interruption."
   )
-  
+
   @ParamGetterSetter
   final val snapshotInterval: DurationParam = new DurationParam(
     this,
@@ -465,6 +466,9 @@ trait TrainingParamsTrait
 }
 
 
+/** Params for training [[CatBoostClassifier]]. See documentation on [[https://catboost.ai/docs/]]
+ *  for details.
+ */
 trait ClassifierTrainingParamsTrait extends TrainingParamsTrait {
   @ParamGetterSetter
   final val classWeightsMap: OrderedStringMapParam[Float] = new OrderedStringMapParam[Float](
@@ -473,7 +477,7 @@ trait ClassifierTrainingParamsTrait extends TrainingParamsTrait {
     "Map from class name to weight. The values are used as multipliers for the object weights. "
     + " This parameter is mutually exclusive with classWeightsList."
   )
-  
+
   @ParamGetterSetter
   final val classWeightsList: DoubleArrayParam = new DoubleArrayParam(
     this,
@@ -481,14 +485,14 @@ trait ClassifierTrainingParamsTrait extends TrainingParamsTrait {
     "List of weights for each class. The values are used as multipliers for the object weights. "
     + " This parameter is mutually exclusive with classWeightsMap."
   )
-  
+
   @ParamGetterSetter
   final val classNames: StringArrayParam = new StringArrayParam(
     this,
     "classNames",
     "Allows to redefine the default values (consecutive integers)."
   )
-  
+
   @ParamGetterSetter
   final val autoClassWeights: EnumParam[EAutoClassWeightsType] = new EnumParam[EAutoClassWeightsType](
     this,
@@ -497,7 +501,7 @@ trait ClassifierTrainingParamsTrait extends TrainingParamsTrait {
     + " each class. The values are used as multipliers for the object weights. "
     + "Default value is 'None'"
   )
-  
+
   @ParamGetterSetter
   final val scalePosWeight: FloatParam = new FloatParam(
     this,
@@ -506,7 +510,7 @@ trait ClassifierTrainingParamsTrait extends TrainingParamsTrait {
     + "objects from class 1. "
     + "Default value is 1 (both classes have equal weight)."
   )
-  
+
   @ParamGetterSetter
   final val classesCount: IntParam = new IntParam(
     this,
@@ -514,19 +518,22 @@ trait ClassifierTrainingParamsTrait extends TrainingParamsTrait {
     "The upper limit for the numeric class label. Defines the number of classes for multiclassification. "
     + "See documentation for details."
   )
-  
-  
+
+
   // Target quantization settings
-  
+
   @ParamGetterSetter
   final val targetBorder: FloatParam = new FloatParam(
     this,
     "targetBorder",
     "If set, defines the border for converting target values to 0 and 1 classes."
-  )  
+  )
 }
 
 
+/** Params for training [[CatBoostRegressor]]. See documentation at [[https://catboost.ai/docs/]]
+ *  for details.
+ */
 trait RegressorTrainingParamsTrait extends TrainingParamsTrait {
 
 }

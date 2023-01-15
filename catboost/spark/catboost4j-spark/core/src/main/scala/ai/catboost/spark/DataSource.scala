@@ -67,7 +67,7 @@ private class SerializableConfiguration(@transient var value: Configuration) ext
   }
 }
 
-final class HadoopFileLinesReaderWrapper (
+private[spark] final class HadoopFileLinesReaderWrapper (
   val lineReader: HadoopFileLinesReader, // Iterator[Text]
   val lineCount: Long,
   val hasHeader: Boolean
@@ -97,7 +97,7 @@ final class HadoopFileLinesReaderWrapper (
 }
 
 
-final class DatasetRowsReaderIterator (
+private[spark] final class DatasetRowsReaderIterator (
   val rowsReader: TRawDatasetRowsReader,
   var currentBlockSize: Int,
   var currentBlockOffset: Int,
@@ -135,7 +135,7 @@ final class DatasetRowsReaderIterator (
   }
 }
 
-object DatasetRowsReaderIterator {
+private[spark] object DatasetRowsReaderIterator {
   def apply(
     linesReader: HadoopFileLinesReader,
     dataSchema: StructType,
@@ -309,7 +309,7 @@ object DatasetRowsReaderIterator {
 }
 
 
-object CatBoostTextFileFormat {
+private[spark] object CatBoostTextFileFormat {
   def hasHeader(catboostJsonParamsString: String) : Boolean = {
     val catBoostOptionsJson = JsonMethods.parse(catboostJsonParamsString)
     val hasHeaderParamValues = for {
@@ -401,7 +401,7 @@ object CatBoostTextFileFormat {
 }
 
 
-class CatBoostTextFileFormat
+private[spark] class CatBoostTextFileFormat
   extends TextBasedFileFormat
   with DataSourceRegister
   with Logging {

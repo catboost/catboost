@@ -17,7 +17,7 @@ import ai.catboost.CatBoostError
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
 
-object FeaturesColumnStorage {
+private[spark] object FeaturesColumnStorage {
   def apply(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : FeaturesColumnStorage = {
     val ui8FeatureIndicesVec = new TVector_i32
     val ui16FeatureIndicesVec = new TVector_i32
@@ -56,7 +56,7 @@ object FeaturesColumnStorage {
  * expose their memory via JVM's java.nio.ByteBuffer.
  * size grows dynamically by adding rows' features data
  */
-class FeaturesColumnStorage (
+private[spark] class FeaturesColumnStorage (
   val indicesUi8: Array[Int],
   val indicesUi16: Array[Int],
   val buffersUi8: Array[TVector_i64],
@@ -111,7 +111,7 @@ class FeaturesColumnStorage (
 }
 
 
-object DataHelpers {
+private[spark] object DataHelpers {
   def makeFeaturesMetadata(initialFeatureNames: Array[String]) : Metadata = {
     val featureNames = new Array[String](initialFeatureNames.length)
 

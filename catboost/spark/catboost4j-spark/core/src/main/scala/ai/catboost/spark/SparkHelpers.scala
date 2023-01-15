@@ -7,7 +7,7 @@ import org.apache.spark.sql.SparkSession
 import ai.catboost.CatBoostError
 
 
-object SparkHelpers {
+private[spark] object SparkHelpers {
   def parseMemoryOverHeadOption(memoryOverhead: String) : Long = {
     val withUnitRE = "^([\\d]+)(k|m|g|t|K|M|G|T)$".r
     val withoutUnitRE = "^([\\d]+)$".r

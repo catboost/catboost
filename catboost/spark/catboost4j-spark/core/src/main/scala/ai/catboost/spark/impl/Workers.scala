@@ -17,7 +17,7 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 import ai.catboost.spark._
 
 
-object Worker {
+private[spark] object Worker {
   def processPartition(
     trainingDriverListeningAddress: InetSocketAddress,
     catBoostJsonParamsString: String,
@@ -55,7 +55,7 @@ object Worker {
 }
 
 
-class Workers(
+private[spark] class Workers(
   val spark: SparkSession,
   val trainingDriverListeningPort: Int,
   val preprocessedTrainPool: Pool,

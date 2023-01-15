@@ -7,11 +7,11 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src._
 import ai.catboost.CatBoostError
 
 
-trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]]
+private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]]
   extends org.apache.spark.ml.PredictionModel[Vector, Model]
 {
-  var nativeModel: native_impl.TFullModel
-  var nativeDimension: Int
+  protected var nativeModel: native_impl.TFullModel
+  protected var nativeDimension: Int
 
   /**
    * Prefer batch computations operating on datasets as a whole for efficiency
