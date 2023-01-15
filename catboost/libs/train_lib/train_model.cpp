@@ -1006,15 +1006,13 @@ static void TrainModel(
     if (catBoostOptions.SystemOptions->IsMaster()) {
         InitializeMaster(catBoostOptions.SystemOptions);
         if (!haveLearnFeaturesInMemory) {
-            if (!poolLoadOptions->HostsAlreadyContainLoadedData) {
-                SetTrainDataFromQuantizedPool(
-                    *poolLoadOptions,
-                    catBoostOptions,
-                    *trainingData.Learn->ObjectsGrouping,
-                    *trainingData.Learn->MetaInfo.FeaturesLayout,
-                    &rand
-                );
-            }
+            SetTrainDataFromQuantizedPool(
+                *poolLoadOptions,
+                catBoostOptions,
+                *trainingData.Learn->ObjectsGrouping,
+                *trainingData.Learn->MetaInfo.FeaturesLayout,
+                &rand
+            );
         } else {
             SetTrainDataFromMaster(
                 trainingData,

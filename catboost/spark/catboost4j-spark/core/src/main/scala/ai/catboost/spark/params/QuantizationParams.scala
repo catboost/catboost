@@ -8,19 +8,9 @@ import ai.catboost.spark.params.macros.ParamGetterSetter
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.{EBorderSelectionType,ENanMode};
 
 
-object QuantizationParams {
-  val MaxSubsetSizeForBuildBordersAlgorithms = 200000
-}
-
-class QuantizationParams (override val uid: String)
+trait QuantizationParamsTrait
   extends Params with IgnoredFeaturesParams with ThreadCountParams
 {
-  def this() = this(
-    Identifiable.randomUID("catboostQuantizationParams")
-  )
-
-  override def copy(extra: ParamMap): QuantizationParams = defaultCopy(extra)
-
   @ParamGetterSetter
   final val perFloatFeatureQuantizaton: StringArrayParam = new StringArrayParam(
     this,
@@ -57,4 +47,16 @@ class QuantizationParams (override val uid: String)
     "inputBorders",
     "Load Custom quantization borders and missing value modes from a file (do not generate them)"
   )
+}
+
+object QuantizationParams {
+  val MaxSubsetSizeForBuildBordersAlgorithms = 200000
+}
+
+class QuantizationParams (override val uid: String)
+  extends QuantizationParamsTrait
+{
+  def this() = this(Identifiable.randomUID("catboostQuantizationParams"))
+
+  override def copy(extra: ParamMap): QuantizationParams = defaultCopy(extra)
 }

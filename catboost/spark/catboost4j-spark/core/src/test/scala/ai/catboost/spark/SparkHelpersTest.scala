@@ -3,7 +3,7 @@ package ai.catboost.spark;
 import org.junit.{Assert,Test,Ignore};
 
 class SparkHelpersTest {
-    
+
   @Test @Ignore
   @throws(classOf[Exception])
   def test_parseMemoryOverHeadOption() {

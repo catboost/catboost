@@ -16,11 +16,12 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types._
+import org.apache.spark.TaskContext
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._;
 
 import ai.catboost.CatBoostError
-import ai.catboost.spark.params.{Helpers,PoolLoadParams,QuantizationParams}
+import ai.catboost.spark.params.{Helpers,PoolLoadParams,QuantizationParams,QuantizationParamsTrait}
 import ai.catboost.spark.params.macros.ParamGetterSetter
 
 
@@ -40,7 +41,7 @@ class QuantizedRowsOutputIterator(
     objectIdx = objectIdx + 1
     return Row.fromSeq(dstRow)
   }
-  
+
   def hasNext : Boolean = {
     return objectIdx < dstRows.size
   }
@@ -67,7 +68,7 @@ object Pool {
   private def updateSparseFeaturesSize(data: DataFrame) : DataFrame = {
     val spark = data.sparkSession
     import spark.implicits._
-    
+
     // extract max feature count from data
     val maxFeatureCountDF = data.mapPartitions {
       rows => {
@@ -84,7 +85,7 @@ object Pool {
         Iterator[Int](maxFeatureCount)
       }
     }
-    
+
     var maxFeatureCount = 0
     for (featureCount <- maxFeatureCountDF.collect()) {
       if (featureCount > maxFeatureCount) {
@@ -95,7 +96,7 @@ object Pool {
     val existingFeatureNames = getFeatureNames(data, "features")
     val extendedFeatureNames = Arrays.copyOf[String](existingFeatureNames, maxFeatureCount)
     Arrays.fill(extendedFeatureNames.asInstanceOf[Array[Object]], existingFeatureNames.length, maxFeatureCount, "")
-    
+
     val updatedMetadata = DataHelpers.makeFeaturesMetadata(extendedFeatureNames)
 
     val updateFeaturesSize = udf(
@@ -107,26 +108,26 @@ object Pool {
 
     data.withColumn("features", updateFeaturesSize($"features").as("_", updatedMetadata))
   }
-  
-  
+
+
   def load(
     spark: SparkSession,
     dataPathWithScheme: String,
     columnDescription: Path = null, // API for Java, so no Option[_] here.
     params: PoolLoadParams = new PoolLoadParams()): Pool = {
-    
+
     val pathParts = dataPathWithScheme.split("://", 2)
     val (dataScheme, dataPath) =
       if (pathParts.size == 1) ("dsv", pathParts(0)) else (pathParts(0), pathParts(1))
-      
+
     val format = dataScheme match {
       case "dsv" | "libsvm" => "ai.catboost.spark.CatBoostTextFileFormat"
       case _ => throw new CatBoostError(s"Loading pool from scheme ${dataScheme} is not supported")
     }
-    
+
     val dataSourceOptions = mutable.Map[String,String]()
     dataSourceOptions.update("dataScheme", dataScheme)
-    
+
     params.extractParamMap.toSeq.foreach {
       case ParamPair(param, value) => {
         dataSourceOptions.update(param.name, value.toString)
@@ -140,12 +141,23 @@ object Pool {
         Helpers.sparkMlParamsToCatBoostJsonParamsString(params)
     )
     dataSourceOptions.update("uuid", java.util.UUID.randomUUID().toString)
-    
+
     val data = spark.read.format(format).options(dataSourceOptions).load(dataPath)
 
-    new Pool(if (dataScheme == "libsvm") updateSparseFeaturesSize(data) else data)
+    val pool = new Pool(if (dataScheme == "libsvm") updateSparseFeaturesSize(data) else data)
+
+    setColumnParamsFromLoadedData(pool)
+
+    pool
   }
-  
+
+  def setColumnParamsFromLoadedData(pool: Pool) {
+    // CatBoost loaders always use standard names, column parameter name is taken by adding "Col" suffix
+    for (name <- pool.data.columns) {
+      pool.set(name + "Col", name)
+    }
+  }
+
   def getFeatureCount(data : DataFrame, featuresCol : String) : Int = {
     val attributeGroup = AttributeGroup.fromStructField(data.schema(featuresCol))
     val optNumAttributes = attributeGroup.numAttributes
@@ -187,23 +199,21 @@ class Pool (
     override val uid: String,
     val data: DataFrame = null,
     protected var featuresLayout: TFeaturesLayout = null, // updated on demand if not initialized
-    val quantizedFeaturesInfo: QuantizedFeaturesInfoPtr = null) 
+    val quantizedFeaturesInfo: QuantizedFeaturesInfoPtr = null)
   extends Params with HasLabelCol with HasFeaturesCol with HasWeightCol {
-  
-  ensureNativeLibLoaded;
-  
+
   def this(
     data: DataFrame,
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr
-  ) = 
+  ) =
     this(
       Identifiable.randomUID("catboostPool"),
       data,
       if (quantizedFeaturesInfo != null) quantizedFeaturesInfo.GetFeaturesLayout().__deref__() else null,
       quantizedFeaturesInfo)
-  
+
   def this(data: DataFrame) = this(data, null)
-  
+
   def getFeaturesLayout : TFeaturesLayout = {
     if (featuresLayout == null) {
       if (isQuantized) {
@@ -217,7 +227,7 @@ class Pool (
     }
     featuresLayout
   }
-  
+
   /** @group setParam */
   def setLabelCol(value: String): Pool = set(labelCol, value).asInstanceOf[Pool]
 
@@ -236,7 +246,7 @@ class Pool (
       this,
       "sampleIdCol",
       "sampleId column name")
-  
+
   /**
    * Param for groupWeight column name.
    * @group param
@@ -256,7 +266,7 @@ class Pool (
       this,
       "baselineCol",
       "baseline column name")
-  
+
   /**
    * Param for groupId column name.
    * @group param
@@ -281,24 +291,71 @@ class Pool (
    */
   @ParamGetterSetter final val timestampCol: Param[String] =
     new Param[String](this, "timestampCol", "timestamp column name")
-  
+
   override def copy(extra: ParamMap): Pool = defaultCopy(extra)
-  
+
   def isQuantized: Boolean = { quantizedFeaturesInfo != null }
-  
+
   def getFeatureCount: Int = {
     getFeaturesLayout.GetExternalFeatureCount.toInt
   }
-  
+
   def getFeatureNames : Array[String] = {
     getFeaturesLayout.GetExternalFeatureIds.toArray(new Array[String](0))
   }
 
   def count : Long = data.count
-  
-  protected def createQuantizationSchema(quantizationParams: QuantizationParams) 
+
+  def getBaselineCount: Int = {
+    if (isDefined(baselineCol)) {
+      data.select(getOrDefault(baselineCol)).head.getAs[Vector](0).size
+    } else {
+      0
+    }
+  }
+
+  def getTargetType : ERawTargetType = {
+    if (isDefined(labelCol)) {
+      val dataType = data.schema(getOrDefault(labelCol)).dataType
+      dataType match {
+        case DataTypes.DoubleType | DataTypes.FloatType => ERawTargetType.Float
+        case DataTypes.IntegerType | DataTypes.LongType => ERawTargetType.Integer
+        case DataTypes.StringType => ERawTargetType.String
+        case _ => throw new CatBoostError(s"unsupported target column type: $dataType")
+      }
+    } else {
+      ERawTargetType.None
+    }
+  }
+
+  def createDataMetaInfo : TIntermediateDataMetaInfo = {
+    val result = new TIntermediateDataMetaInfo
+    result.setObjectCount(java.math.BigInteger.valueOf(count))
+    if (isQuantized) {
+      result.setFeaturesLayout(quantizedFeaturesInfo.GetFeaturesLayout)
+    } else {
+      result.setFeaturesLayout(new TFeaturesLayoutPtr(this.getFeaturesLayout))
+    }
+
+    val targetType = getTargetType
+    if (targetType != ERawTargetType.None) {
+      result.setTargetType(targetType)
+      result.setTargetCount(1)
+      //result.setClassLabelsFromJsonString()
+    }
+    result.setBaselineCount(getBaselineCount)
+    result.setHasGroupId(isDefined(groupIdCol))
+    result.setHasGroupWeight(isDefined(groupWeightCol))
+    result.setHasSubgroupIds(isDefined(subgroupIdCol))
+    result.setHasWeights(isDefined(weightCol))
+    result.setHasTimestamp(isDefined(timestampCol))
+
+    result
+  }
+
+  protected def createQuantizationSchema(quantizationParams: QuantizationParamsTrait)
     : QuantizedFeaturesInfoPtr = {
-    
+
     val dataForBuildBorders =
       if (count > QuantizationParams.MaxSubsetSizeForBuildBordersAlgorithms) {
         data.select(getFeaturesCol).sample(
@@ -308,11 +365,11 @@ class Pool (
       } else {
         data.select(getFeaturesCol)
       }
-    
+
     val featureCount = getFeatureCount
 
     val catBoostJsonParamsString = Helpers.sparkMlParamsToCatBoostJsonParamsString(quantizationParams)
-    
+
     val nanModeAndBordersBuilder = new TNanModeAndBordersBuilder(
         catBoostJsonParamsString,
         featureCount,
@@ -323,16 +380,16 @@ class Pool (
     for (row <- dataForBuildBorders.toLocalIterator) {
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
-    
+
     nanModeAndBordersBuilder.Finish(quantizationParams.getThreadCount)
   }
-    
+
   protected def createQuantized(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : Pool = {
     var featuresColumnIdx = data.schema.fieldIndex($(featuresCol));
     val threadCountForTask = SparkHelpers.getThreadCountForTask(data.sparkSession)
-    
+
     val featuresColumnName = $(featuresCol)
-    
+
     val quantizedDataSchema = StructType(
       data.schema.map {
         structField => {
@@ -345,24 +402,22 @@ class Pool (
       }
     )
     val quantizedDataEncoder = RowEncoder(quantizedDataSchema)
-    
+
     val quantizedData = data.mapPartitions(
       rowsIterator => {
-        ensureNativeLibLoaded;
-        
         val availableFeaturesIndices = native_impl.GetAvailableFloatFeatures(
           quantizedFeaturesInfo.GetFeaturesLayout().__deref__()
         ).toPrimitiveArray
-        
+
         // source features column is replaced by quantizedFeatures
         val dstRows = new ArrayBuffer[Array[Any]]
-        
+
         // as columns
         var availableFeaturesData = new Array[ArrayBuilder[Float]](availableFeaturesIndices.size)
         for (i <- 0 until availableFeaturesData.size) {
           availableFeaturesData(i) = ArrayBuilder.make[Float]
         }
-        
+
         rowsIterator.foreach {
           row => {
              val rowFields = new Array[Any](row.length)
@@ -379,51 +434,51 @@ class Pool (
              dstRows += rowFields
           }
         }
-        
+
         val availableFeaturesDataForBuilder = new TVector_TMaybeOwningConstArrayHolder_float
         for (featureData <- availableFeaturesData) {
           val result = featureData.result
           availableFeaturesDataForBuilder.add(result)
         }
-        
+
         val rawObjectsDataProviderPtr = native_impl.CreateRawObjectsDataProvider(
           quantizedFeaturesInfo.GetFeaturesLayout(),
           dstRows.size.toLong,
           availableFeaturesDataForBuilder
         )
-        
+
         // try to force cleanup of no longer used data
         availableFeaturesData = null
         System.gc()
-        
+
         val quantizedObjectsDataProvider = native_impl.Quantize(
           quantizedFeaturesInfo,
           rawObjectsDataProviderPtr,
           threadCountForTask
         )
-        
+
         QuantizedRowsOutputIterator(dstRows, featuresColumnIdx, quantizedObjectsDataProvider)
       }
     )(quantizedDataEncoder)
-    
+
     val quantizedPool = new Pool(quantizedData, quantizedFeaturesInfo)
     copyValues(quantizedPool)
   }
-    
-  def quantize(quantizationParams: QuantizationParams) : Pool = {
+
+  def quantize(quantizationParams: QuantizationParamsTrait) : Pool = {
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
     }
     createQuantized(createQuantizationSchema(quantizationParams))
   }
-    
+
   def quantize(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : Pool = {
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
     }
     createQuantized(quantizedFeaturesInfo)
   }
-  
+
   def repartition(partitionCount: Int, byGroupColumnsIfPresent: Boolean = true) : Pool = {
     val maybeGroupIdCol = get(groupIdCol)
     val newData = if (byGroupColumnsIfPresent && maybeGroupIdCol.isDefined) {

@@ -11,7 +11,6 @@ import ai.catboost.spark.params._
 
 
 class PoolLoadingTest {
-    ensureNativeLibLoaded
 
     @Test
     @throws(classOf[Exception])

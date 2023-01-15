@@ -1,5 +1,5 @@
 #include "modes.h"
-#include "bind_options.h"
+#include <catboost/private/libs/app_helpers/bind_options.h>
 
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/libs/data/load_data.h>

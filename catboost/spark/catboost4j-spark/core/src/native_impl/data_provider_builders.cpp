@@ -5,6 +5,8 @@
 
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 
+#include <library/cpp/threading/local_executor/local_executor.h>
+
 #include <util/generic/cast.h>
 #include <util/generic/xrange.h>
 
@@ -135,3 +137,28 @@ void TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buf
     writeValues(Ui8ColumnBlocks, (ui8*)dstPtr);
     writeValues(Ui16ColumnBlocks, (ui16*)(dstPtr + Ui8ColumnBlocks.size()));
 }
+
+
+TDataProviderClosureForJVM::TDataProviderClosureForJVM(
+    EDatasetVisitorType visitorType,
+    const TDataProviderBuilderOptions& options,
+    bool hasFeatures,
+    i32 threadCount
+) {
+    NPar::TLocalExecutor* localExecutor = &NPar::LocalExecutor();
+    if ((localExecutor->GetThreadCount() + 1) < threadCount) {
+        localExecutor->RunAdditionalThreads(threadCount - 1);
+    }
+    DataProviderBuilder = CreateDataProviderBuilder(
+        visitorType,
+        options,
+        TDatasetSubset::MakeColumns(hasFeatures),
+        localExecutor
+    );
+    CB_ENSURE_INTERNAL(
+        DataProviderBuilder.Get(),
+        "Failed to create data provider builder for visitor of type "
+        << visitorType
+    );
+}
+

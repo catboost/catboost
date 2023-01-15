@@ -401,3 +401,6 @@ i32 TRawDatasetRowsReader::ReadNextBlock() throw (yexception) {
 const TRawDatasetRow& TRawDatasetRowsReader::GetRow(i32 objectIdx) throw (yexception) {
     return Visitor->GetRow(objectIdx);
 }
+
+
+

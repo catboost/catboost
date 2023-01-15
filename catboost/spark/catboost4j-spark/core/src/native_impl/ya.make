@@ -9,12 +9,15 @@ SRCS(
     data_provider_builders.cpp
     features_layout.cpp
     jni_helpers.cpp
+    master.cpp
     meta_info.cpp
     quantized_features_info.cpp
     quantization.cpp
+    GLOBAL spark_quantized.cpp
     string.cpp
     native_impl.swg
     vector_output.cpp
+    worker.cpp
 )
 
 EXTRADIR(bindings/swiglib)
@@ -29,8 +32,18 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model
+    catboost/private/libs/algo
+    catboost/private/libs/app_helpers
     catboost/private/libs/data_util
+    catboost/private/libs/distributed
     catboost/private/libs/options
+    catboost/private/libs/quantized_pool
 )
+
+IF (ARCH_AARCH64 OR OS_WINDOWS)
+    ALLOCATOR(J)
+ELSE()
+    ALLOCATOR(LF)
+ENDIF()
 
 END()

@@ -1,0 +1,71 @@
+#include "worker.h"
+
+#include <catboost/private/libs/algo/data.h>
+#include <catboost/private/libs/distributed/data_types.h>
+#include <catboost/private/libs/distributed/worker.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
+
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/logging/logging.h>
+
+#include <library/cpp/json/json_reader.h>
+
+#include <util/generic/cast.h>
+#include <util/generic/ptr.h>
+
+using namespace NCB;
+
+
+void RunWorker(
+    i32 hostId,
+    i32 nodePort,
+    i32 numThreads,
+    const TString& plainJsonParamsAsString,
+    NCB::TDataProviderPtr trainDataProvider,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+) throw (yexception) {
+    CB_ENSURE(numThreads >= 1, "Non-positive number of threads specified");
+
+    auto& localData = NCatboostDistributed::TLocalTensorSearchData::GetRef();
+
+    TDataProviders pools;
+    pools.Learn = trainDataProvider;
+
+    NJson::TJsonValue plainJsonParams;
+    NJson::ReadJsonTree(plainJsonParamsAsString, &plainJsonParams, /*throwOnError*/ true);
+
+    NJson::TJsonValue catBoostJsonOptions;
+    NJson::TJsonValue outputJsonOptions;
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &catBoostJsonOptions, &outputJsonOptions);
+
+    NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
+    catBoostOptions.Load(catBoostJsonOptions);
+    catBoostOptions.SystemOptions->FileWithHosts->clear();
+    TLabelConverter labelConverter;
+
+    NPar::TLocalExecutor* localExecutor = &NPar::LocalExecutor();
+    if ((localExecutor->GetThreadCount() + 1) < numThreads) {
+        localExecutor->RunAdditionalThreads(numThreads - 1);
+    }
+
+    if (localData.Rand == nullptr) {
+        localData.Rand = MakeHolder<TRestorableFastRng64>(catBoostOptions.RandomSeed.Get() + hostId);
+    }
+
+    CATBOOST_DEBUG_LOG << "Create train data for worker " << hostId << "..." << Endl;
+    localData.TrainData = GetTrainingData(
+        std::move(pools),
+        /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
+        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
+        /*allowWriteFiles*/ false,
+        /*tmpDir*/ TString(), // does not matter, because allowWritingFiles == false
+        quantizedFeaturesInfo,
+        &catBoostOptions,
+        &labelConverter,
+        localExecutor,
+        localData.Rand.Get()
+    );
+
+    RunWorker(SafeIntegerCast<ui32>(numThreads), SafeIntegerCast<ui32>(nodePort));
+}

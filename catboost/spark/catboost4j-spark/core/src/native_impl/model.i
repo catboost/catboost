@@ -9,6 +9,8 @@
 #include <util/generic/ylimits.h>
 %}
 
+%include <bindings/swiglib/stroka.swg>
+
 %include "defaults.i"
 %include "java_helpers.i"
 %include "primitive_arrays.i"
@@ -111,5 +113,7 @@ public:
 
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TFullModel)
 };
+
+TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
 
 void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> softmax);

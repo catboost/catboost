@@ -68,22 +68,24 @@ void SetTrainDataFromQuantizedPool(
     for (int workerIdx : xrange(workerCount)) {
         TMasterEnvironment::GetRef().SharedTrainData->DeleteContextRawData(workerIdx);
     }
-    NJson::TJsonValue trainParams;
-    catBoostOptions.Save(&trainParams);
-    const auto objectsOrder = catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
-        EObjectsOrder::Ordered : EObjectsOrder::Undefined;
-    ApplyMapper<TDatasetLoader>(
-        workerCount,
-        TMasterEnvironment::GetRef().SharedTrainData,
-        TDatasetLoaderParams{
-            poolLoadOptions,
-            WriteTJsonValue(trainParams),
-            objectsOrder,
-            objectsGrouping,
-            featuresLayout,
-            rand->GenRand()
-        }
-    );
+    if (!poolLoadOptions.HostsAlreadyContainLoadedData) {
+        NJson::TJsonValue trainParams;
+        catBoostOptions.Save(&trainParams);
+        const auto objectsOrder = catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
+            EObjectsOrder::Ordered : EObjectsOrder::Undefined;
+        ApplyMapper<TDatasetLoader>(
+            workerCount,
+            TMasterEnvironment::GetRef().SharedTrainData,
+            TDatasetLoaderParams{
+                poolLoadOptions,
+                WriteTJsonValue(trainParams),
+                objectsOrder,
+                objectsGrouping,
+                featuresLayout,
+                rand->GenRand()
+            }
+        );
+    }
 }
 
 void SetTrainDataFromMaster(
