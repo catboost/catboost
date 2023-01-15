@@ -53,7 +53,7 @@ def get_default_json():
     "ARCADIA_SOURCE_PATH": "/",
     "ARCADIA_SOURCE_REVISION": -1,
     "ARCADIA_SOURCE_URL": "",
-    "BRANCH": "math",
+    "BRANCH": "unknown-vcs-branch",
     "BUILD_DATE": "",
     "BUILD_TIMESTAMP": 0,
     "BUILD_HOST": "localhost",
