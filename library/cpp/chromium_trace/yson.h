@@ -2,7 +2,7 @@
 
 #include "consumer.h"
 
-#include <library/yson/writer.h>
+#include <library/cpp/yson/writer.h>
 
 namespace NChromiumTrace {
     class TYsonTraceConsumer final: public ITraceConsumer {

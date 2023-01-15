@@ -1,8 +1,8 @@
 #include "json2yson.h"
 
-#include <library/yson/json_writer.h>
-#include <library/yson/parser.h>
-#include <library/yson/yson2json_adapter.h>
+#include <library/cpp/yson/json_writer.h>
+#include <library/cpp/yson/parser.h>
+#include <library/cpp/yson/yson2json_adapter.h>
 
 namespace NJson2Yson {
     static void WriteJsonValue(const NJson::TJsonValue& jsonValue, NYT::TYson2JsonCallbacksAdapter* adapter) {
