@@ -176,7 +176,6 @@ migrations:
     - devtools/unitybot
     - devtools/unitybot/responsibility
     - devtools/ya/test
-    - devtools/ya/test/programs/test_tool/run_ut/tests/test_ya_make
     - devtools/ya/test/tests/lib
     - devtools/ymake/tests/fat
     - devtools/ymake/tests/lib
@@ -329,7 +328,6 @@ migrations:
     - dict/tools/find_synonym
     - disk/admin/monitors/common
     - disk/admin/robot_switcher
-    - dj/services/alisa_skills/tools/bass_to_dialogs_image_uploader
     - dj/tools/viewer/custom/entity
     - education/lib/nirvana/operations/yt_nodes_deep_diff
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-515
@@ -400,8 +398,6 @@ migrations:
     - health/yamd/libs/utils
     - health/yamd/libs/utils/parsers
     - infra/awacs/vendor/awacs/pire/ut
-    - infra/callisto/agent
-    - infra/callisto/agent/v2/multibeta2
     - infra/callisto/controllers/viewer/lib2
     - infra/cqudp/src
     - infra/cqudp/src/eggs
@@ -423,7 +419,6 @@ migrations:
     - infra/rtc/janitor
     - infra/scripts/eventlog_uploader/script
     - infra/swatlib
-    - infra/vmagent/src/vmctl
     - infra/yp_drcp/lib
     - infra/yp_dru/bin
     - intranet/pypi/tests
@@ -620,8 +615,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/eval_feature/eval_feature_viewer
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/append_formula_factors
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/get_cache_from_appended_features
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_aggregation
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_aggregation/external_tests
     - quality/nirvana_tools/conveyor_operations/stove/prepare_stove_dataset
     - quality/query_expansions/proc/covfefe/makefile_update
     - quality/query_expansions/tools/tests/test_dummy_process
@@ -764,7 +757,6 @@ migrations:
     - sandbox/projects/bsyeti
     - sandbox/projects/canvas
     - sandbox/projects/canvas/video_constructor_utils
-    - sandbox/projects/clickhouse/util
     - sandbox/projects/cloud/yfm
     - sandbox/projects/common/compare_upper_results
     - sandbox/projects/common/fusion
@@ -786,16 +778,11 @@ migrations:
     - sandbox/projects/market/infra/helpers
     - sandbox/projects/market/infra/helpers/changes_helper
     - sandbox/projects/masstransit/MapsMasstransitImportVehicleTasks
-    - sandbox/projects/masstransit/MapsMasstransitPrepareMtpredictorAmmo
     - sandbox/projects/media
     - sandbox/projects/media/admins/mysqlcopydb
     - sandbox/projects/media/kp-front-nginx/config-validation
     - sandbox/projects/media_crm/tasks
     - sandbox/projects/media_crm/tasks/media_crm_deploy
-    - sandbox/projects/metrika/admins/infra/metrika_infra_upload
-    - sandbox/projects/metrika/core/metrika_core_tracker_update
-    - sandbox/projects/metrika/frontend/metrika_watch_old_release
-    - sandbox/projects/metrika/frontend/metrika_watch_release
     - sandbox/projects/metrika/mobile/sdk/helpers
     - sandbox/projects/mobile_apps/teamcity_sandbox_runner/runner
     - sandbox/projects/mobile_apps/teamcity_sandbox_runner/utils/html_log_reporter
@@ -843,15 +830,6 @@ migrations:
     - sandbox/projects/vins/MegamindPerfTest
     - sandbox/projects/vins/VinsPerfTest
     - sandbox/projects/websearch/CheckPrechargeAfterMemoryMap
-    - sandbox/projects/yabs/SysConstLifetime/const_proto
-    - sandbox/projects/yabs/SysConstLifetime/sys_const
-    - sandbox/projects/yabs/auto_supbs_2/lib/audit_issue_processor
-    - sandbox/projects/yabs/auto_supbs_2/lib/distribution_issue_processor
-    - sandbox/projects/yabs/auto_supbs_2/lib/order_processor_lib
-    - sandbox/projects/yabs/auto_supbs_2/lib/simple_issue_processor
-    - sandbox/projects/yabs/nanpu/tasks/DiffTask
-    - sandbox/projects/yabs/qa/tasks/YabsBinarySearchHelper
-    - sandbox/projects/yabs/qa/tasks/YabsServerB2BFuncShootCmp
     - sandbox/projects/yane/ParseYanswerFactLogs
     - sandbox/sdk2
     - sandbox/sdk2/vcs
@@ -1096,7 +1074,6 @@ migrations:
     - addappter/web/libs/marshmallow
     - addappter/web/libs/walrus
     - addappter/web/testing/fixtures
-    - adfox/amacs/tests/functional/tests_amacs/dynamic_monetization/v2
     - adfox/infra/amacs_config/lib
     - adfox/xpd/tests/functional/tests/socdem_service
     - adfox/xpd/tests/functional/tests/tvm_mock
@@ -1107,7 +1084,6 @@ migrations:
     - ads/logos/tasks/mediation_fast_lm_features
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
-    - ads/quality/adv_machine/cm_robot/tests/small
     - ads/quality/adv_machine/scripts/cluster_master
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/page
     - ads/quality/apc_check_py
@@ -1234,10 +1210,8 @@ migrations:
     - keyboard/dict/nirvana/config_generator/blocks
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
     - lbs/metrics/lbs_binbase_diff
-    - lbs/viewer
     - library/python/bstr
     - library/python/coredump_filter
-    - logbroker/tools/deploy/layer_test_old
     - logbroker/tools/manual/collect_capacity/base_2020
     - logbroker/tools/manual/collect_capacity/collect_pre
     - logbroker/tools/manual/collect_capacity/set_capacity_pre
@@ -1275,15 +1249,12 @@ migrations:
     - market/yamarec/yamarec/yamarec1
     - market/yamarec/yamarec/yamarec1/tasks
     - mds/elliptics/bin/dnet_cache_balancer
-    - mds/walle_cms/cms/lib
     - metrika/admin/brb/server/lib
     - metrika/admin/maas/bin/backend
     - metrika/admin/maas/bin/monitoring/maas_instances_memory
     - metrika/admin/maas/lib/core/common
     - metrika/admin/maas/lib/core/daemon
     - metrika/admin/maas/lib/core/service
-    - metrika/admin/python/clickhouse_rbac/frontend/rbac
-    - metrika/admin/python/clickhouse_rbac/frontend/rbac/idm
     - metrika/admin/python/duty/bot/lib
     - metrika/admin/python/duty/frontend/duty
     - metrika/admin/python/scripts/jrun
@@ -1307,7 +1278,6 @@ migrations:
     - mssngr/botfarm/src/bot
     - music/analytics/jam-sox/music_lib/financial_reports/tests/unit
     - music/tools/download-info
-    - passport/python/core
     - passport/python/library/distprim
     - passport/python/library/distprim/threading
     - passport/python/meltingpot/utils
@@ -1331,7 +1301,6 @@ migrations:
     - quality/functionality/turbo/analytics/quality/cms_report
     - quality/functionality/turbo/analytics/quality/samplers/cms_sampler
     - quality/functionality/turbo/autoparser/flags_postprocess/tests/medium
-    - quality/functionality/turbo/init/ut/small
     - quality/functionality/turbo/tools/pq_delete_docs
     - quality/functionality/turbo/tools/tdm
     - quality/logs/mousetrack_lib/python/tests
@@ -1365,10 +1334,6 @@ migrations:
     - sandbox/projects/avia/mysql_sync_testing_with_prod
     - sandbox/projects/balancer/load/BalancerLoadCompare
     - sandbox/projects/bitbucket/GBGAdaptor
-    - sandbox/projects/browser/autotests
-    - sandbox/projects/clickhouse/BaseOnCommitTask
-    - sandbox/projects/clickhouse/ClickhouseCommitTrigger
-    - sandbox/projects/clickhouse/ClickhouseRelease
     - sandbox/projects/devops
     - sandbox/projects/devops/HardwareGencfgGroups
     - sandbox/projects/dj/DjCompileConfig
@@ -1392,7 +1357,6 @@ migrations:
     - sandbox/projects/video
     - sandbox/projects/video/priemka/VideoRobotPriemkaSimple
     - sandbox/projects/vqe/measure_performance
-    - sandbox/projects/yabs/audit/runtime/monitoring
     - sandbox/projects/yt
     - sandbox/projects/yt/ci_tasks/packages/YtBuildCronPackage
     - sandbox/projects/yt/layers_tasks/YtBuildSpravLayerTask
@@ -1481,8 +1445,6 @@ migrations:
     - yabs/vh/frontend/test/ft/HOME-43539
     - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
-    - yt/admin/luigi/src/luigi
-    - yt/admin/luigi/src/luigi/commands/service
     - yt/cron/config/validation_tests
     - yt/cron/runner/cron_scheduler/tests
     - yt/idm-integration/integration
@@ -1549,7 +1511,6 @@ migrations:
     - quality/neural_net/bert/bert/utils/fs
     - sandbox/projects/tycoon/TycoonAdverts
     - search/base_search/tools/explain_l1
-    - search/metrics/ccc/ccc_lib
     - search/mon/rviewer/app
     - search/mon/rviewer/db
     - search/mon/rviewer/modules
@@ -1599,7 +1560,6 @@ migrations:
     - ads/quality/adv_machine/cm_robot/cmpy/fresh_stats
     - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom_attempt
     - ads/quality/adv_machine/cm_robot/cmpy/stuff
-    - ads/quality/adv_machine/cm_robot/tests/small
     - ads/quality/bid_correction/lm/pconv
     - ads/quality/embedding/join_banners
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/gram_eval
@@ -1752,7 +1712,6 @@ migrations:
     - modadvert/nirvana/m1_update_media_objects/it
     - modadvert/programs/monika/libs
     - modadvert/programs/multik/libs
-    - modadvert/programs/saas_indexer/ut
     - modadvert/programs/supermoderation_admin/libs/services
     - modadvert/programs/supermoderation_api/libs/handlers/add_objects
     - opensource/sync/bin/docs_sync/tasklet
@@ -1837,13 +1796,6 @@ migrations:
     - sandbox/projects/avia/import_marker
     - sandbox/projects/avia/trigger_revise
     - sandbox/projects/browser
-    - sandbox/projects/clickhouse/BaseOnCommitTask
-    - sandbox/projects/clickhouse/ClickhouseBuildLauncher
-    - sandbox/projects/clickhouse/ClickhouseCommitTrigger
-    - sandbox/projects/clickhouse/ClickhouseDockerHubPush
-    - sandbox/projects/clickhouse/ClickhousePerformanceComparison
-    - sandbox/projects/clickhouse/ClickhousePullRequestTrigger
-    - sandbox/projects/clickhouse/util
     - sandbox/projects/cloud/billing/build_analytics_cube/source
     - sandbox/projects/cmnt/PumpkinSettings
     - sandbox/projects/dj/AutoDeploy
@@ -1871,14 +1823,9 @@ migrations:
     - sandbox/projects/taxi/BuildDispatcherPackage
     - sandbox/projects/voicetech/common
     - sandbox/projects/wmc
-    - sandbox/projects/yabs/dropstat/base
-    - sandbox/projects/yabs/dropstat/send
-    - sandbox/projects/yabs/qa/tasks/YabsServerRunCS
-    - sandbox/projects/yabs/qa/tasks/YabsServerStatPerformanceSanitize
     - sandbox/projects/yphone/AdvisorDeployToQloud
     - sandbox/projects/yphone/JafarBuildNirvanaLayer
     - sandbox/projects/yphone/launcher
-    - search/aegir/src
     - search/alice/snippets/lib/util/parse_arc
     - search/geo/tools/collections/make_expert_collections
     - search/geo/tools/geocube/lib
@@ -1997,7 +1944,6 @@ migrations:
     - yabs/vh/cms-pgaas/ugc_api
     - yabs/vh/cms-pgaas/utils/external_services/sender
     - yabs/vh/frontend/json_templating/streams_generator/pylib
-    - yandex_io/functional_tests/volume
     - yaphone/advisor/launcher
     - ydo/database/lib
     - ydo/payments/balance_notifications_processor/lib
@@ -2008,7 +1954,6 @@ migrations:
     - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
     - yt/admin/infra_cli/src/infra_cli
-    - yt/admin/luigi/src/luigi
     - yt/idm-integration/integration
     - yweb/animals/admin_service/lib
     - yweb/antimalware/mitb/mitb_monitor/lib
@@ -2077,7 +2022,6 @@ migrations:
     - repo/yeoman/stats/lib
     - sandbox/projects/tycoon/TycoonAdverts
     - search/base_search/tools/explain_l1
-    - search/metrics/ccc/ccc_lib
     - search/mon/rviewer/app
     - search/mon/rviewer/modules
     - search/mon/rviewer/modules/clients
