@@ -54,9 +54,6 @@ migrations:
       - a.yandex-team.ru/quasar/tsup/server
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth_test
-  ST1003:
-    packages:
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/fresh_cache
   protonaming:
     packages:
       - a.yandex-team.ru/extsearch/video/content_id/proto
