@@ -1449,9 +1449,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
       <Project>D05A14C5-BA93-7AA3-1AB8-E62B001110D1</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\coredump_filter\pylibrary-python-coredump_filter.vcxproj">
-      <Project>F460E0E3-3DEA-2CD7-67E0-EA55FF40B2B0</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\pylibrary-python-cores.vcxproj">
       <Project>F7BF95C4-FA90-1985-8730-2F198D6D9964</Project>
     </ProjectReference>
