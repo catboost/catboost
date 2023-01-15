@@ -33,7 +33,7 @@ def metrics(request):
         def set_ybenchmark(cls, benchmark_values):
             for benchmark in benchmark_values["benchmark"]:
                 name = benchmark["name"]
-                for key, value in benchmark.iteritems():
+                for key, value in six.iteritems(benchmark):
                     if key != "name":
                         cls.set("{}_{}".format(name, key), value)
 
