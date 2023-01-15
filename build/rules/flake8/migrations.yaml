@@ -1212,7 +1212,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/bert/rebuild_bert_model
     - quality/nirvana_tools/conveyor_operations/bert/state_to_ynmt
     - quality/relev_tools/choice_screen/create_stove
-    - quality/relev_tools/choice_screen/formula_graph
     - quality/trailer/suggest/toloka_processor/report_yt
     - quality/webfresh/metrics/serpsets/raw_serpset_patcher/tests
     - rnd_toolbox/deckard
@@ -2254,7 +2253,6 @@ migrations:
     - infra/awacs/tools/awacszerodiffer
     - infra/awacs/tools/l3mgrctl
     - infra/awacs/vendor/awacs
-    - infra/awacs/vendor/awacs_api
     - infra/awacs/vendor/swatlib
     - infra/deploy_export_stats/contrib/thrift
     - infra/deploy_export_stats/src
@@ -4038,7 +4036,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/events/tasks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/export
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/favorites
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/instagram
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/langdetect
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/likes
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/metrics
