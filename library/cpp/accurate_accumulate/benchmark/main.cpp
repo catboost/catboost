@@ -1,5 +1,5 @@
 #include <library/cpp/accurate_accumulate/accurate_accumulate.h>
-#include <library/testing/benchmark/bench.h>
+#include <library/cpp/testing/benchmark/bench.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/singleton.h>

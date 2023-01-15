@@ -3,7 +3,6 @@
 RECURSE(
     cpp
     python
-    testing
 )
 
 IF (NOT SANITIZER_TYPE)

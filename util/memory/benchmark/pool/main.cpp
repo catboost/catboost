@@ -1,4 +1,4 @@
-#include <library/testing/benchmark/bench.h>
+#include <library/cpp/testing/benchmark/bench.h>
 
 #include <util/memory/pool.h>
 #include <util/generic/xrange.h>

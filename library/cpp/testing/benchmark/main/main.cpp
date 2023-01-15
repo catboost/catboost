@@ -1,4 +1,4 @@
-#include <library/testing/benchmark/bench.h>
+#include <library/cpp/testing/benchmark/bench.h>
 
 #include <util/generic/yexception.h>
 #include <util/stream/output.h>
