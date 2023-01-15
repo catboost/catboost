@@ -630,7 +630,7 @@ cdef extern from "catboost/private/libs/options/cross_validation_params.h":
         bool_t Stratified
         TMaybe[TVector[TVector[ui32]]] customTrainSubsets
         TMaybe[TVector[TVector[ui32]]] customTestSubsets
-        double MaxTimeSpentOnFixedCostRatio
+        double MetricUpdateInterval
         ui32 DevMaxIterationsBatchSize
         bool_t IsCalledFromSearchHyperparameters
 
@@ -5012,7 +5012,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified, bool_t as_pandas, folds, type):
+          bool_t shuffle, bool_t stratified, float metric_update_interval, bool_t as_pandas, folds, type):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -5021,6 +5021,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.PartitionRandSeed = partition_random_seed
     cvParams.Shuffle = shuffle
     cvParams.Stratified = stratified
+    cvParams.MetricUpdateInterval = metric_update_interval
 
     if type == 'Classical':
         cvParams.Type = ECrossValidation_Classical
