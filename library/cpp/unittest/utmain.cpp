@@ -640,11 +640,7 @@ static void GracefulShutdownHandler(int) {
 }
 #endif
 
-#if !defined(UTMAIN)
-#define UTMAIN NUnitTest::RunMain
-#endif
-
-int UTMAIN(int argc, char** argv) {
+int NUnitTest::RunMain(int argc, char** argv) {
 #if defined(_linux_) && defined(CLANG_COVERAGE)
     {
         struct sigaction sa;
