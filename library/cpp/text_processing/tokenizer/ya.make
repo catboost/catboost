@@ -9,6 +9,7 @@ SRCS(
 )
 
 PEERDIR(
+    library/cpp/cache
     library/cpp/json
     library/cpp/langs
     library/cpp/object_factory

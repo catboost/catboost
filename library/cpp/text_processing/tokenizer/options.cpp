@@ -17,6 +17,7 @@ static const TString SKIP_EMPTY_OPTION_NAME = "skip_empty";
 static const TString TOKEN_TYPES_OPTION_NAME = "token_types";
 static const TString SUBTOKENS_POLICY_OPTION_NAME = "subtokens_policy";
 static const TString LANGUAGES_OPTION_NAME = "languages";
+static const TString LEMMER_CACHESIZE_OPTION_NAME = "lemmer_cache_size";
 
 template <typename TType>
 static void SetOption(const TType& value, const TString& name, NJson::TJsonValue* optionsJson) {
@@ -64,6 +65,9 @@ void NTextProcessing::NTokenizer::TokenizerOptionsToJson(const TTokenizerOptions
         stringLanguages.push_back(FullNameByLanguage(language));
     }
     SetContainerOption(stringLanguages, LANGUAGES_OPTION_NAME, optionsJson);
+    if (options.LemmerCacheSize != DEFAULT_LEMMER_CACHE_SIZE) {
+        SetOption(options.LemmerCacheSize, LEMMER_CACHESIZE_OPTION_NAME, optionsJson);
+    }
 }
 
 void NTextProcessing::NTokenizer::JsonToTokenizerOptions(const NJson::TJsonValue& optionsJson, TTokenizerOptions* options) {
@@ -83,6 +87,7 @@ void NTextProcessing::NTokenizer::JsonToTokenizerOptions(const NJson::TJsonValue
     for (const auto& language : stringLanguages) {
         options->Languages.push_back(LanguageByNameOrDie(language));
     }
+    GetOption(optionsJson, LEMMER_CACHESIZE_OPTION_NAME, &options->LemmerCacheSize);
 }
 
 NJson::TJsonValue NTextProcessing::NTokenizer::TokenizerOptionsToJson(const TTokenizerOptions& options) {
@@ -100,10 +105,11 @@ TTokenizerOptions NTextProcessing::NTokenizer::JsonToTokenizerOptions(const NJso
 bool TTokenizerOptions::operator==(const TTokenizerOptions& rhs) const {
     return std::tie(
         Lowercasing, Lemmatizing, NumberProcessPolicy, NumberToken, SeparatorType, Delimiter, SplitBySet,
-        SkipEmpty, TokenTypes, SubTokensPolicy, Languages
+        SkipEmpty, TokenTypes, SubTokensPolicy, Languages, LemmerCacheSize
     ) == std::tie(
         rhs.Lowercasing, rhs.Lemmatizing, rhs.NumberProcessPolicy, rhs.NumberToken, rhs.SeparatorType,
-        rhs.Delimiter, rhs.SplitBySet, rhs.SkipEmpty, rhs.TokenTypes, rhs.SubTokensPolicy, rhs.Languages
+        rhs.Delimiter, rhs.SplitBySet, rhs.SkipEmpty, rhs.TokenTypes, rhs.SubTokensPolicy, rhs.Languages,
+        rhs.LemmerCacheSize
     );
 }
 
