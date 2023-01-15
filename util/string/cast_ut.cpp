@@ -464,7 +464,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(integer, wideCharacterCode);
     }
 
-    static void CheckMessage(TFromStringException & exc, const TString& phrase) {
+    static void CheckMessage(TFromStringException& exc, const TString& phrase) {
         TString message = exc.what();
         if (!message.Contains(phrase)) {
             Cerr << message << Endl;

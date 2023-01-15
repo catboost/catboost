@@ -9,7 +9,7 @@
 Y_UNIT_TEST_SUITE(TDaemonTest) {
 #ifdef _unix_
     template <typename Func>
-    static bool ProcessBuffer(Func && func, void* bufin, size_t size) {
+    static bool ProcessBuffer(Func&& func, void* bufin, size_t size) {
         char* buf = (char*)bufin;
         do {
             const ssize_t bytesDone = func(buf, size);

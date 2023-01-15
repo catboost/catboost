@@ -165,4 +165,4 @@ Y_UNIT_TEST_SUITE(TSocketTest) {
         NFs::Remove(localServerSockName);
     }
 
-} // unittest
+}

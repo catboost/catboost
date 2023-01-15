@@ -42,66 +42,65 @@ Y_UNIT_TEST_SUITE(TMacroVarargMapTest) {
     }
 }
 
-Y_UNIT_TEST_SUITE(TestVaArgs){
-    Y_UNIT_TEST(Count){
+Y_UNIT_TEST_SUITE(TestVaArgs) {
+    Y_UNIT_TEST(Count) {
         // UNIT_ASSERT((Y_COUNT_ARGS() == 0));  // FIXME: make this case work after __VA_OPT__ (c++20)
         UNIT_ASSERT((Y_COUNT_ARGS(1) == 1));
-UNIT_ASSERT((Y_COUNT_ARGS(1, 2) == 2));
-UNIT_ASSERT((Y_COUNT_ARGS(1, 2, 3) == 3));
-UNIT_ASSERT((Y_COUNT_ARGS(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0) == 20));
-}
+        UNIT_ASSERT((Y_COUNT_ARGS(1, 2) == 2));
+        UNIT_ASSERT((Y_COUNT_ARGS(1, 2, 3) == 3));
+        UNIT_ASSERT((Y_COUNT_ARGS(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0) == 20));
+    }
 
-Y_UNIT_TEST(GetElem) {
-    UNIT_ASSERT((Y_GET_ARG(0, 1) == 1));
-    UNIT_ASSERT((Y_GET_ARG(0, 0, 1, 2, 3, 4, 5) == 0));
-    UNIT_ASSERT((Y_GET_ARG(1, 0, 1, 2, 3, 4, 5) == 1));
-    UNIT_ASSERT((Y_GET_ARG(2, 0, 1, 2, 3, 4, 5) == 2));
-    UNIT_ASSERT((Y_GET_ARG(3, 0, 1, 2, 3, 4, 5) == 3));
-    UNIT_ASSERT((Y_GET_ARG(4, 0, 1, 2, 3, 4, 5) == 4));
-    UNIT_ASSERT((Y_GET_ARG(5, 0, 1, 2, 3, 4, 5) == 5));
-}
+    Y_UNIT_TEST(GetElem) {
+        UNIT_ASSERT((Y_GET_ARG(0, 1) == 1));
+        UNIT_ASSERT((Y_GET_ARG(0, 0, 1, 2, 3, 4, 5) == 0));
+        UNIT_ASSERT((Y_GET_ARG(1, 0, 1, 2, 3, 4, 5) == 1));
+        UNIT_ASSERT((Y_GET_ARG(2, 0, 1, 2, 3, 4, 5) == 2));
+        UNIT_ASSERT((Y_GET_ARG(3, 0, 1, 2, 3, 4, 5) == 3));
+        UNIT_ASSERT((Y_GET_ARG(4, 0, 1, 2, 3, 4, 5) == 4));
+        UNIT_ASSERT((Y_GET_ARG(5, 0, 1, 2, 3, 4, 5) == 5));
+    }
 
-Y_UNIT_TEST(MapArgs) {
+    Y_UNIT_TEST(MapArgs) {
 #define MAP(x) x + /* NOLINT */
-    // UNIT_ASSERT((Y_MAP_ARGS(MAP) 0 == 0));  // FIXME: make this case work after __VA_OPT__ (c++20)
-    UNIT_ASSERT((Y_MAP_ARGS(MAP, 1, 2, 3, 4) 0 == 10));
+        // UNIT_ASSERT((Y_MAP_ARGS(MAP) 0 == 0));  // FIXME: make this case work after __VA_OPT__ (c++20)
+        UNIT_ASSERT((Y_MAP_ARGS(MAP, 1, 2, 3, 4) 0 == 10));
 #undef MAP
-}
+    }
 
-Y_UNIT_TEST(MapArgsWithLast) {
+    Y_UNIT_TEST(MapArgsWithLast) {
 #define MAP(x) x + /* NOLINT */
 #define MAP_LAST(x) x
-    UNIT_ASSERT((Y_MAP_ARGS_WITH_LAST(MAP, MAP_LAST, 1, 2, 3, 4) == 10));
+        UNIT_ASSERT((Y_MAP_ARGS_WITH_LAST(MAP, MAP_LAST, 1, 2, 3, 4) == 10));
 #undef MAP_LAST
 #undef MAP
-}
+    }
 
-Y_UNIT_TEST(AllButLast) {
-    const char array[] = {Y_ALL_BUT_LAST(1, 2, 3, 4, 5)};
-    UNIT_ASSERT((sizeof(array) == 4));
-    UNIT_ASSERT((array[0] == 1));
-    UNIT_ASSERT((array[1] == 2));
-    UNIT_ASSERT((array[2] == 3));
-    UNIT_ASSERT((array[3] == 4));
-}
+    Y_UNIT_TEST(AllButLast) {
+        const char array[] = {Y_ALL_BUT_LAST(1, 2, 3, 4, 5)};
+        UNIT_ASSERT((sizeof(array) == 4));
+        UNIT_ASSERT((array[0] == 1));
+        UNIT_ASSERT((array[1] == 2));
+        UNIT_ASSERT((array[2] == 3));
+        UNIT_ASSERT((array[3] == 4));
+    }
 
-Y_UNIT_TEST(Last) {
-    UNIT_ASSERT((Y_LAST(1) == 1));
-    UNIT_ASSERT((Y_LAST(1, 2, 3) == 3));
-}
+    Y_UNIT_TEST(Last) {
+        UNIT_ASSERT((Y_LAST(1) == 1));
+        UNIT_ASSERT((Y_LAST(1, 2, 3) == 3));
+    }
 
-Y_UNIT_TEST(ImplDispatcher) {
+    Y_UNIT_TEST(ImplDispatcher) {
 #define I1(x) (x)
 #define I2(x, y) ((x) + (y))
 #define I3(x, y, z) ((x) + (y) + (z))
 #define I(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_3(__VA_ARGS__, I3, I2, I1)(__VA_ARGS__))
-    UNIT_ASSERT((I(1) == 1));
-    UNIT_ASSERT((I(1, 2) == 3));
-    UNIT_ASSERT((I(1, 2, 3) == 6));
+        UNIT_ASSERT((I(1) == 1));
+        UNIT_ASSERT((I(1, 2) == 3));
+        UNIT_ASSERT((I(1, 2, 3) == 6));
 #undef I
 #undef I3
 #undef I2
 #undef I1
-}
-}
-;
+    }
+};
