@@ -58,6 +58,7 @@ extern PyObject* PyInit__multiprocessing(void); // _multiprocessing
 extern PyObject* PyInit__opcode(void); // _opcode
 extern PyObject* PyInit__operator(void); // _operator
 extern PyObject* PyInit__pickle(void); // _pickle
+extern PyObject* PyInit__posixshmem(void); // _posixshmem
 #if !defined(_MSC_VER)
 extern PyObject* PyInit__posixsubprocess(void); // _posixsubprocess
 #endif
@@ -72,12 +73,14 @@ extern PyObject* PyInit__socket(void); // _socket
 extern PyObject* PyInit__sre(void); // _sre
 extern PyObject* PyInit__ssl(void); // _ssl
 extern PyObject* PyInit__stat(void); // _stat
+extern PyObject* PyInit__statistics(void); // _statistics
 extern PyObject* PyInit__string(void); // _string
 extern PyObject* PyInit__struct(void); // _struct
 extern PyObject* PyInit__symtable(void); // _symtable
 extern PyObject* PyInit__thread(void); // _thread
 extern PyObject* PyInit__tracemalloc(void); // _tracemalloc
 extern PyObject* PyInit__weakref(void); // _weakref
+extern PyObject* PyInit__xxsubinterpreters(void); // _xxsubinterpreters
 extern PyObject* PyInit__xxtestfuzz(void); // _xxtestfuzz
 extern PyObject* PyInit_array(void); // array
 extern PyObject* PyInit_atexit(void); // atexit
@@ -121,7 +124,6 @@ extern PyObject* PyInit_termios(void); // termios
 #endif
 extern PyObject* PyInit_time(void); // time
 extern PyObject* PyInit_unicodedata(void); // unicodedata
-extern PyObject* PyInit_zipimport(void); // zipimport
 extern PyObject* PyInit_zlib(void); // zlib
 #if defined(__APPLE__)
 extern PyObject* PyInit__scproxy(void); // _scproxy
@@ -187,6 +189,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"_opcode", PyInit__opcode},
     {"_operator", PyInit__operator},
     {"_pickle", PyInit__pickle},
+    {"_posixshmem", PyInit__posixshmem},
 #if !defined(_MSC_VER)
     {"_posixsubprocess", PyInit__posixsubprocess},
 #endif
@@ -201,12 +204,14 @@ struct _inittab _PyImport_Inittab[] = {
     {"_sre", PyInit__sre},
     {"_ssl", PyInit__ssl},
     {"_stat", PyInit__stat},
+    {"_statistics", PyInit__statistics},
     {"_string", PyInit__string},
     {"_struct", PyInit__struct},
     {"_symtable", PyInit__symtable},
     {"_thread", PyInit__thread},
     {"_tracemalloc", PyInit__tracemalloc},
     {"_weakref", PyInit__weakref},
+    {"_xxsubinterpreters", PyInit__xxsubinterpreters},
     {"_xxtestfuzz", PyInit__xxtestfuzz},
     {"array", PyInit_array},
     {"atexit", PyInit_atexit},
@@ -250,7 +255,6 @@ struct _inittab _PyImport_Inittab[] = {
 #endif
     {"time", PyInit_time},
     {"unicodedata", PyInit_unicodedata},
-    {"zipimport", PyInit_zipimport},
     {"zlib", PyInit_zlib},
 #if defined(__APPLE__)
     {"_scproxy", PyInit__scproxy},

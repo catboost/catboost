@@ -434,6 +434,9 @@ class Profile:
         elif 'func' in kw:
             func = kw.pop('func')
             self, *args = args
+            import warnings
+            warnings.warn("Passing 'func' as keyword argument is deprecated",
+                          DeprecationWarning, stacklevel=2)
         else:
             raise TypeError('runcall expected at least 1 positional argument, '
                             'got %d' % (len(args)-1))
@@ -444,6 +447,7 @@ class Profile:
             return func(*args, **kw)
         finally:
             sys.setprofile(None)
+    runcall.__text_signature__ = '($self, func, /, *args, **kw)'
 
 
     #******************************************************************
@@ -565,11 +569,13 @@ def main():
     import os
     from optparse import OptionParser
 
-    usage = "profile.py [-o output_file_path] [-s sort] scriptfile [arg] ..."
+    usage = "profile.py [-o output_file_path] [-s sort] [-m module | scriptfile] [arg] ..."
     parser = OptionParser(usage=usage)
     parser.allow_interspersed_args = False
     parser.add_option('-o', '--outfile', dest="outfile",
         help="Save stats to <outfile>", default=None)
+    parser.add_option('-m', dest="module", action="store_true",
+        help="Profile a library module.", default=False)
     parser.add_option('-s', '--sort', dest="sort",
         help="Sort order when printing to stdout, based on pstats.Stats class",
         default=-1)
@@ -582,16 +588,24 @@ def main():
     sys.argv[:] = args
 
     if len(args) > 0:
-        progname = args[0]
-        sys.path.insert(0, os.path.dirname(progname))
-        with open(progname, 'rb') as fp:
-            code = compile(fp.read(), progname, 'exec')
-        globs = {
-            '__file__': progname,
-            '__name__': '__main__',
-            '__package__': None,
-            '__cached__': None,
-        }
+        if options.module:
+            import runpy
+            code = "run_module(modname, run_name='__main__')"
+            globs = {
+                'run_module': runpy.run_module,
+                'modname': args[0]
+            }
+        else:
+            progname = args[0]
+            sys.path.insert(0, os.path.dirname(progname))
+            with open(progname, 'rb') as fp:
+                code = compile(fp.read(), progname, 'exec')
+            globs = {
+                '__file__': progname,
+                '__name__': '__main__',
+                '__package__': None,
+                '__cached__': None,
+            }
         runctx(code, globs, None, options.outfile, options.sort)
     else:
         parser.print_usage()

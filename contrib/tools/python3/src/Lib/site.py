@@ -73,6 +73,7 @@ import sys
 import os
 import builtins
 import _sitebuiltins
+import io
 
 # Prefixes for site-packages; add additional prefixes like /usr/local here
 PREFIXES = [sys.prefix, sys.exec_prefix]
@@ -156,7 +157,7 @@ def addpackage(sitedir, name, known_paths):
         reset = False
     fullname = os.path.join(sitedir, name)
     try:
-        f = open(fullname, "r")
+        f = io.TextIOWrapper(io.open_code(fullname))
     except OSError:
         return
     with f:
@@ -443,9 +444,9 @@ def enablerlcompleter():
             def write_history():
                 try:
                     readline.write_history_file(history)
-                except (FileNotFoundError, PermissionError):
-                    # home directory does not exist or is not writable
-                    # https://bugs.python.org/issue19891
+                except OSError:
+                    # bpo-19891, bpo-41193: Home directory does not exist
+                    # or is not writable, or the filesystem is read-only.
                     pass
 
             atexit.register(write_history)

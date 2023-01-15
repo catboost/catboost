@@ -15,9 +15,14 @@ PEERDIR(
 ADDINCL(
     contrib/restricted/libffi/include
     contrib/tools/python3/src/Include
+    contrib/tools/python3/src/Include/internal
     contrib/tools/python3/src/Modules
     contrib/tools/python3/src/Modules/_decimal/libmpdec
     contrib/tools/python3/src/PC
+)
+
+CFLAGS(
+    -DPy_BUILD_CORE_MODULE
 )
 
 NO_COMPILER_WARNINGS()
@@ -65,6 +70,7 @@ SRCS(
     _lsprof.c
     _math.c
     _multiprocessing/multiprocessing.c
+    _multiprocessing/posixshmem.c
     _multiprocessing/semaphore.c
     _opcode.c
     _operator.c
@@ -75,9 +81,11 @@ SRCS(
     _sre.c
     _ssl.c
     _stat.c
+    _statisticsmodule.c
     _struct.c
     _tracemalloc.c
     _weakref.c
+    _xxsubinterpretersmodule.c
     _xxtestfuzz/_xxtestfuzz.c
     _xxtestfuzz/fuzzer.c
     arraymodule.c

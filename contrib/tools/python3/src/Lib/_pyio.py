@@ -33,6 +33,10 @@ DEFAULT_BUFFER_SIZE = 8 * 1024  # bytes
 # Rebind for compatibility
 BlockingIOError = BlockingIOError
 
+# Does io.IOBase finalizer log the exception if the close() method fails?
+# The exception is ignored silently by default in release build.
+_IOBASE_EMITS_UNRAISABLE = (hasattr(sys, "gettotalrefcount") or sys.flags.dev_mode)
+
 
 def open(file, mode="r", buffering=-1, encoding=None, errors=None,
          newline=None, closefd=True, opener=None):
@@ -198,6 +202,11 @@ def open(file, mode="r", buffering=-1, encoding=None, errors=None,
         raise ValueError("binary mode doesn't take an errors argument")
     if binary and newline is not None:
         raise ValueError("binary mode doesn't take a newline argument")
+    if binary and buffering == 1:
+        import warnings
+        warnings.warn("line buffering (buffering=1) isn't supported in binary "
+                      "mode, the default buffer size will be used",
+                      RuntimeWarning, 2)
     raw = FileIO(file,
                  (creating and "x" or "") +
                  (reading and "r" or "") +
@@ -245,11 +254,34 @@ def open(file, mode="r", buffering=-1, encoding=None, errors=None,
         result.close()
         raise
 
+# Define a default pure-Python implementation for open_code()
+# that does not allow hooks. Warn on first use. Defined for tests.
+def _open_code_with_warning(path):
+    """Opens the provided file with mode ``'rb'``. This function
+    should be used when the intent is to treat the contents as
+    executable code.
+
+    ``path`` should be an absolute path.
+
+    When supported by the runtime, this function can be hooked
+    in order to allow embedders more control over code files.
+    This functionality is not supported on the current runtime.
+    """
+    import warnings
+    warnings.warn("_pyio.open_code() may not be using hooks",
+                  RuntimeWarning, 2)
+    return open(path, "rb")
+
+try:
+    open_code = io.open_code
+except AttributeError:
+    open_code = _open_code_with_warning
+
 
 class DocDescriptor:
     """Helper for builtins.open.__doc__
     """
-    def __get__(self, obj, typ):
+    def __get__(self, obj, typ=None):
         return (
             "open(file, mode='r', buffering=-1, encoding=None, "
                  "errors=None, newline=None, closefd=True)\n\n" +
@@ -373,15 +405,28 @@ class IOBase(metaclass=abc.ABCMeta):
 
     def __del__(self):
         """Destructor.  Calls close()."""
-        # The try/except block is in case this is called at program
-        # exit time, when it's possible that globals have already been
-        # deleted, and then the close() call might fail.  Since
-        # there's nothing we can do about such failures and they annoy
-        # the end users, we suppress the traceback.
         try:
+            closed = self.closed
+        except AttributeError:
+            # If getting closed fails, then the object is probably
+            # in an unusable state, so ignore.
+            return
+
+        if closed:
+            return
+
+        if _IOBASE_EMITS_UNRAISABLE:
             self.close()
-        except:
-            pass
+        else:
+            # The try/except block is in case this is called at program
+            # exit time, when it's possible that globals have already been
+            # deleted, and then the close() call might fail.  Since
+            # there's nothing we can do about such failures and they annoy
+            # the end users, we suppress the traceback.
+            try:
+                self.close()
+            except:
+                pass
 
     ### Inquiries ###
 
@@ -813,15 +858,14 @@ class _BufferedIOMixin(BufferedIOBase):
         return self.raw.mode
 
     def __getstate__(self):
-        raise TypeError("can not serialize a '{0}' object"
-                        .format(self.__class__.__name__))
+        raise TypeError(f"cannot pickle {self.__class__.__name__!r} object")
 
     def __repr__(self):
         modname = self.__class__.__module__
         clsname = self.__class__.__qualname__
         try:
             name = self.name
-        except Exception:
+        except AttributeError:
             return "<{}.{}>".format(modname, clsname)
         else:
             return "<{}.{} name={!r}>".format(modname, clsname, name)
@@ -1562,7 +1606,7 @@ class FileIO(RawIOBase):
             self.close()
 
     def __getstate__(self):
-        raise TypeError("cannot serialize '%s' object", self.__class__.__name__)
+        raise TypeError(f"cannot pickle {self.__class__.__name__!r} object")
 
     def __repr__(self):
         class_name = '%s.%s' % (self.__class__.__module__,
@@ -2039,13 +2083,13 @@ class TextIOWrapper(TextIOBase):
                                  self.__class__.__qualname__)
         try:
             name = self.name
-        except Exception:
+        except AttributeError:
             pass
         else:
             result += " name={0!r}".format(name)
         try:
             mode = self.mode
-        except Exception:
+        except AttributeError:
             pass
         else:
             result += " mode={0!r}".format(mode)
@@ -2299,7 +2343,7 @@ class TextIOWrapper(TextIOBase):
             # current pos.
             # Rationale: calling decoder.decode() has a large overhead
             # regardless of chunk size; we want the number of such calls to
-            # be O(1) in most situations (common decoders, non-crazy input).
+            # be O(1) in most situations (common decoders, sensible input).
             # Actually, it will be exactly 1 for fixed-size codecs (all
             # 8-bit codecs, also UTF-16 and UTF-32).
             skip_bytes = int(self._b2cratio * chars_to_skip)
@@ -2398,18 +2442,18 @@ class TextIOWrapper(TextIOBase):
             raise ValueError("tell on closed file")
         if not self._seekable:
             raise UnsupportedOperation("underlying stream is not seekable")
-        if whence == 1: # seek relative to current position
+        if whence == SEEK_CUR:
             if cookie != 0:
                 raise UnsupportedOperation("can't do nonzero cur-relative seeks")
             # Seeking to the current position should attempt to
             # sync the underlying buffer with the current position.
             whence = 0
             cookie = self.tell()
-        if whence == 2: # seek relative to end of file
+        elif whence == SEEK_END:
             if cookie != 0:
                 raise UnsupportedOperation("can't do nonzero end-relative seeks")
             self.flush()
-            position = self.buffer.seek(0, 2)
+            position = self.buffer.seek(0, whence)
             self._set_decoded_chars('')
             self._snapshot = None
             if self._decoder:

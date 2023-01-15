@@ -279,6 +279,9 @@ class FrameSummary:
         return "<FrameSummary file {filename}, line {lineno} in {name}>".format(
             filename=self.filename, lineno=self.lineno, name=self.name)
 
+    def __len__(self):
+        return 4
+
     @property
     def line(self):
         if self._line is None:
@@ -546,7 +549,7 @@ class TracebackException:
         The return value is a generator of strings, each ending in a newline.
 
         Normally, the generator emits a single string; however, for
-        SyntaxError exceptions, it emites several lines that (when
+        SyntaxError exceptions, it emits several lines that (when
         printed) display detailed information about where the syntax
         error occurred.
 

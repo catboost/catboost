@@ -2,7 +2,7 @@
 /* Traceback implementation */
 
 #include "Python.h"
-#include "internal/pystate.h"
+#include "pycore_pystate.h"
 
 #include "code.h"
 #include "frameobject.h"
@@ -87,7 +87,7 @@ tb_new_impl(PyTypeObject *type, PyObject *tb_next, PyFrameObject *tb_frame,
 }
 
 static PyObject *
-tb_dir(PyTracebackObject *self)
+tb_dir(PyTracebackObject *self, PyObject *Py_UNUSED(ignored))
 {
     return Py_BuildValue("[ssss]", "tb_frame", "tb_next",
                                    "tb_lasti", "tb_lineno");
@@ -163,11 +163,11 @@ static void
 tb_dealloc(PyTracebackObject *tb)
 {
     PyObject_GC_UnTrack(tb);
-    Py_TRASHCAN_SAFE_BEGIN(tb)
+    Py_TRASHCAN_BEGIN(tb, tb_dealloc)
     Py_XDECREF(tb->tb_next);
     Py_XDECREF(tb->tb_frame);
     PyObject_GC_Del(tb);
-    Py_TRASHCAN_SAFE_END(tb)
+    Py_TRASHCAN_END
 }
 
 static int
@@ -192,10 +192,10 @@ PyTypeObject PyTraceBack_Type = {
     sizeof(PyTracebackObject),
     0,
     (destructor)tb_dealloc, /*tp_dealloc*/
-    0,                  /*tp_print*/
+    0,                  /*tp_vectorcall_offset*/
     0,    /*tp_getattr*/
     0,                  /*tp_setattr*/
-    0,                  /*tp_reserved*/
+    0,                  /*tp_as_async*/
     0,                  /*tp_repr*/
     0,                  /*tp_as_number*/
     0,                  /*tp_as_sequence*/
@@ -227,13 +227,24 @@ PyTypeObject PyTraceBack_Type = {
     tb_new,                                     /* tp_new */
 };
 
+
+PyObject*
+_PyTraceBack_FromFrame(PyObject *tb_next, PyFrameObject *frame)
+{
+    assert(tb_next == NULL || PyTraceBack_Check(tb_next));
+    assert(frame != NULL);
+
+    return tb_create_raw((PyTracebackObject *)tb_next, frame, frame->f_lasti,
+                         PyFrame_GetLineNumber(frame));
+}
+
+
 int
 PyTraceBack_Here(PyFrameObject *frame)
 {
     PyObject *exc, *val, *tb, *newtb;
     PyErr_Fetch(&exc, &val, &tb);
-    newtb = tb_create_raw((PyTracebackObject *)tb, frame, frame->f_lasti,
-                          PyFrame_GetLineNumber(frame));
+    newtb = _PyTraceBack_FromFrame(tb, frame);
     if (newtb == NULL) {
         _PyErr_ChainExceptions(exc, val, tb);
         return -1;
@@ -786,12 +797,15 @@ dump_traceback(int fd, PyThreadState *tstate, int write_header)
     PyFrameObject *frame;
     unsigned int depth;
 
-    if (write_header)
+    if (write_header) {
         PUTS(fd, "Stack (most recent call first):\n");
+    }
 
     frame = _PyThreadState_GetFrame(tstate);
-    if (frame == NULL)
+    if (frame == NULL) {
+        PUTS(fd, "<no Python frame>\n");
         return;
+    }
 
     depth = 0;
     while (frame != NULL) {
@@ -859,9 +873,9 @@ _Py_DumpTracebackThreads(int fd, PyInterpreterState *interp,
            Python thread state of the current thread.
 
            PyThreadState_Get() doesn't give the state of the thread that caused
-           the fault if the thread released the GIL, and so this function
-           cannot be used. Read the thread specific storage (TSS) instead: call
-           PyGILState_GetThisThreadState(). */
+           the fault if the thread released the GIL, and so
+           _PyThreadState_GET() cannot be used. Read the thread specific
+           storage (TSS) instead: call PyGILState_GetThisThreadState(). */
         current_tstate = PyGILState_GetThisThreadState();
     }
 

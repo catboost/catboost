@@ -10,6 +10,7 @@ PEERDIR(
 
 ADDINCL(
     contrib/tools/python3/src/Include
+    contrib/tools/python3/src/Include/internal
     contrib/tools/python3/src/Modules
     contrib/tools/python3/src/Modules/_decimal/libmpdec
     contrib/tools/python3/src/PC
@@ -29,6 +30,10 @@ ELSEIF (OS_WINDOWS)
         Mincore.lib
         Shlwapi.lib
         Winmm.lib
+    )
+
+    CFLAGS(
+        -DPY3_DLLNAME="L\"python3\""
     )
 
     DISABLE(MSVC_INLINE_OPTIMIZED)
@@ -56,7 +61,6 @@ SRCS(
     Modules/posixmodule.c
     Modules/signalmodule.c
     Modules/timemodule.c
-    Modules/zipimport.c
     Objects/abstract.c
     Objects/accu.c
     Objects/boolobject.c
@@ -78,6 +82,7 @@ SRCS(
     Objects/frameobject.c
     Objects/funcobject.c
     Objects/genobject.c
+    Objects/interpreteridobject.c
     Objects/iterobject.c
     Objects/listobject.c
     Objects/longobject.c
@@ -88,6 +93,7 @@ SRCS(
     Objects/object.c
     Objects/obmalloc.c
     Objects/odictobject.c
+    Objects/picklebufobject.c
     Objects/rangeobject.c
     Objects/setobject.c
     Objects/sliceobject.c
@@ -98,18 +104,13 @@ SRCS(
     Objects/unicodeobject.c
     Objects/weakrefobject.c
     Parser/acceler.c
-    Parser/bitset.c
-    Parser/firstsets.c
-    Parser/grammar.c
     Parser/grammar1.c
     Parser/listnode.c
-    Parser/metagrammar.c
     Parser/myreadline.c
     Parser/node.c
     Parser/parser.c
     Parser/parsetok.c
-    Parser/pgen.c
-    Parser/printgrammar.c
+    Parser/token.c
     Parser/tokenizer.c
     Python/Python-ast.c
     Python/_warnings.c
@@ -141,12 +142,14 @@ SRCS(
     Python/hamt.c
     Python/import.c
     Python/importdl.c
+    Python/initconfig.c
     Python/marshal.c
     Python/modsupport.c
     Python/mysnprintf.c
     Python/mystrtoul.c
     Python/pathconfig.c
     Python/peephole.c
+    Python/preconfig.c
     Python/pyarena.c
     Python/pyctype.c
     Python/pyfpe.c

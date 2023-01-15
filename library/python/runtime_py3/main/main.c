@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <contrib/tools/python3/src/Include/internal/pycore_initconfig.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -72,6 +73,11 @@ static int RunModule(const char *modname)
 }
 
 static int pymain(int argc, char** argv) {
+    PyStatus status = _PyRuntime_Initialize();
+    if (PyStatus_Exception(status)) {
+        Py_ExitStatusException(status);
+    }
+
     int i, sts = 1;
     char* oldloc = NULL;
     wchar_t** argv_copy = NULL;
@@ -88,6 +94,10 @@ static int pymain(int argc, char** argv) {
         }
     }
 
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+    config.pathconfig_warnings = 0;   /* Suppress errors from getpath.c */
+
     oldloc = _PyMem_RawStrdup(setlocale(LC_ALL, NULL));
     if (!oldloc) {
         fprintf(stderr, "out of memory\n");
@@ -100,7 +110,7 @@ static int pymain(int argc, char** argv) {
         argv_copy2[i] = argv_copy[i];
         if (!argv_copy[i]) {
             fprintf(stderr, "Unable to decode the command line argument #%i\n",
-                    i + 1);
+                            i + 1);
             argc = i;
             goto error;
         }
@@ -108,6 +118,15 @@ static int pymain(int argc, char** argv) {
     setlocale(LC_ALL, oldloc);
     PyMem_RawFree(oldloc);
     oldloc = NULL;
+
+    if (argc >= 1)
+        Py_SetProgramName(argv_copy[0]);
+
+    status = Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+    if (PyStatus_Exception(status)) {
+        Py_ExitStatusException(status);
+    }
 
     const char* entry_point = getenv(env_entry_point);
     if (entry_point) {
@@ -133,10 +152,6 @@ static int pymain(int argc, char** argv) {
     }
 
     Py_InitArgcArgv(argc, argv_copy);
-    if (argc >= 1)
-        Py_SetProgramName(argv_copy[0]);
-    Py_Initialize();
-
     PySys_SetArgv(argc, argv_copy);
 
     {

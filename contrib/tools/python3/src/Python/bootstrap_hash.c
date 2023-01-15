@@ -1,4 +1,5 @@
 #include "Python.h"
+#include "pycore_initconfig.h"
 #ifdef MS_WINDOWS
 #  include <windows.h>
 /* All sample MSDN wincrypt programs include the header below. It is at least
@@ -37,8 +38,8 @@ static int
 win32_urandom_init(int raise)
 {
     /* Acquire context */
-    if (!CryptAcquireContext(&hCryptProv, NULL, NULL,
-                             PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+    if (!CryptAcquireContextW(&hCryptProv, NULL, NULL,
+                              PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
         goto error;
 
     return 0;
@@ -55,8 +56,6 @@ error:
 static int
 win32_urandom(unsigned char *buffer, Py_ssize_t size, int raise)
 {
-    Py_ssize_t chunk;
-
     if (hCryptProv == 0)
     {
         if (win32_urandom_init(raise) == -1) {
@@ -66,8 +65,8 @@ win32_urandom(unsigned char *buffer, Py_ssize_t size, int raise)
 
     while (size > 0)
     {
-        chunk = size > INT_MAX ? INT_MAX : size;
-        if (!CryptGenRandom(hCryptProv, (DWORD)chunk, buffer))
+        DWORD chunk = (DWORD)Py_MIN(size, PY_DWORD_MAX);
+        if (!CryptGenRandom(hCryptProv, chunk, buffer))
         {
             /* CryptGenRandom() failed */
             if (raise) {
@@ -547,44 +546,15 @@ _PyOS_URandomNonblock(void *buffer, Py_ssize_t size)
     return pyurandom(buffer, size, 0, 1);
 }
 
-int
-_Py_ReadHashSeed(const char *seed_text,
-                 int *use_hash_seed,
-                 unsigned long *hash_seed)
-{
-    Py_BUILD_ASSERT(sizeof(_Py_HashSecret_t) == sizeof(_Py_HashSecret.uc));
-    /* Convert a text seed to a numeric one */
-    if (seed_text && *seed_text != '\0' && strcmp(seed_text, "random") != 0) {
-        const char *endptr = seed_text;
-        unsigned long seed;
-        seed = strtoul(seed_text, (char **)&endptr, 10);
-        if (*endptr != '\0'
-            || seed > 4294967295UL
-            || (errno == ERANGE && seed == ULONG_MAX))
-        {
-            return -1;
-        }
-        /* Use a specific hash */
-        *use_hash_seed = 1;
-        *hash_seed = seed;
-    }
-    else {
-        /* Use a random hash */
-        *use_hash_seed = 0;
-        *hash_seed = 0;
-    }
-    return 0;
-}
 
-
-_PyInitError
-_Py_HashRandomization_Init(const _PyCoreConfig *config)
+PyStatus
+_Py_HashRandomization_Init(const PyConfig *config)
 {
     void *secret = &_Py_HashSecret;
     Py_ssize_t secret_size = sizeof(_Py_HashSecret_t);
 
     if (_Py_HashSecret_Initialized) {
-        return _Py_INIT_OK();
+        return _PyStatus_OK();
     }
     _Py_HashSecret_Initialized = 1;
 
@@ -609,11 +579,11 @@ _Py_HashRandomization_Init(const _PyCoreConfig *config)
            pyurandom() is non-blocking mode (blocking=0): see the PEP 524. */
         res = pyurandom(secret, secret_size, 0, 0);
         if (res < 0) {
-            return _Py_INIT_USER_ERR("failed to get random numbers "
-                                     "to initialize Python");
+            return _PyStatus_ERR("failed to get random numbers "
+                                "to initialize Python");
         }
     }
-    return _Py_INIT_OK();
+    return _PyStatus_OK();
 }
 
 
