@@ -86,14 +86,6 @@ namespace NCB {
         return baseline;
     }
 
-    namespace {
-        enum class EReadLocation {
-            BeforeSubset,
-            InSubset,
-            AfterSubset
-        };
-    }
-
     static TVector<float> ReadGroupWeights(
         const TPathWithScheme& filePath,
         TConstArrayRef<TGroupId> groupIds,
