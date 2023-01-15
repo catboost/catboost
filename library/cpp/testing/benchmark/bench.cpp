@@ -512,6 +512,7 @@ namespace {
                 .Help("run benchmarks in parallel");
 
             opts.AddLongOption('f', "format")
+                .AddLongName("benchmark_format")
                 .StoreResult(&OutFormat)
                 .RequiredArgument("FORMAT")
                 .DefaultValue("console")
