@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/lcs/lcs_via_lis.h>
+#include <library/cpp/lcs/lcs_via_lis.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>

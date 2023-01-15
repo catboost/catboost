@@ -56,6 +56,8 @@ RECURSE(
     logger/global/ut
     logger/ut
     malloc
+    lcs
+    lcs/ut
     lfalloc
     lfalloc/dbg
     lfalloc/dbg_info

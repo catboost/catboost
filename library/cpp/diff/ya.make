@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/lcs
+    library/cpp/lcs
     library/cpp/containers/stack_array
 )
 
