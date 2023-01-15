@@ -75,7 +75,10 @@ namespace NKernel {
         // https://h.yandex-team.ru/?https%3A%2F%2Fdocs.nvidia.com%2Fcuda%2Fcuda-c-programming-guide%2Findex.html%23arithmetic-instructions
         static bool HasFp16(int devId) {
             Instance.CachePropsIfNotCached(devId);
-            return std::make_tuple(GetMajorVersion(devId), GetMinorVersion(devId)) >= std::forward_as_tuple(5, 3);
+            if (GetMajorVersion(devId) < 5) {
+                return false;
+            }
+            return !(GetMajorVersion(devId) == 5 && GetMinorVersion(devId) < 3);
         }
 
         // Fast FP16 is accessible if compability version is not 6.1
@@ -84,7 +87,7 @@ namespace NKernel {
             if (!HasFp16(devId)) {
                 return false;
             }
-            return std::make_tuple(GetMajorVersion(devId), GetMinorVersion(devId)) != std::forward_as_tuple(6, 1);
+            return GetMajorVersion(devId) != 6 || GetMinorVersion(devId) != 1;
         }
     };
 
