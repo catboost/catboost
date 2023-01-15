@@ -16,6 +16,8 @@ vet_report_ext = '.vet.txt'
 
 FIXED_CGO1_SUFFIX='.fixed.cgo1.go'
 
+COMPILE_OPTIMIZATION_FLAGS=('-N',)
+
 
 def preprocess_cgo1(src_path, dst_path, source_root):
     with open(src_path, 'r') as f:
@@ -303,7 +305,10 @@ def _do_compile_go(args):
             cmd.append('-allabis')
     compile_workers = '4'
     if args.compile_flags:
-        cmd += args.compile_flags
+        if import_path == 'runtime' or import_path.startswith('runtime/'):
+            cmd.extend(x for x in args.compile_flags if x not in COMPILE_OPTIMIZATION_FLAGS)
+        else:
+            cmd.extend(args.compile_flags)
         if '-race' in args.compile_flags:
             compile_workers = '1'
     cmd += ['-pack', '-c={}'.format(compile_workers)]
