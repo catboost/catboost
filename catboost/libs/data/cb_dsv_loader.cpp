@@ -197,7 +197,7 @@ namespace NCB {
                                     {
                                         CB_ENSURE(
                                             false,
-                                            "Factor " << featureId << " cannot be parsed as float."
+                                            "Factor " << featureId << "=" << token << " cannot be parsed as float."
                                             " Try correcting column description file."
                                         );
                                     }

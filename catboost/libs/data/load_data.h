@@ -59,7 +59,7 @@ namespace NCB {
 
     // version with explicitly specified lineReader. Only supports CatBoost dsv format
     TDataProviderPtr ReadDataset(
-        THolder<ILineDataReader> lineReader,
+        THolder<ILineDataReader>&& lineReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited

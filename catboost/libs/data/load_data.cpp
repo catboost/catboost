@@ -122,7 +122,7 @@ namespace NCB {
 
 
     TDataProviderPtr ReadDataset(
-        THolder<ILineDataReader> poolReader,
+        THolder<ILineDataReader>&& poolReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited

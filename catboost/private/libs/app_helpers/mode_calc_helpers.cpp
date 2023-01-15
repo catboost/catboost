@@ -4,7 +4,6 @@
 #include <catboost/libs/data/proceed_pool_in_blocks.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/private/libs/labels/external_label_helper.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -118,7 +117,7 @@ void NCB::ReadModelAndUpdateParams(
     }
 }
 
-static NCB::TEvalResult Apply(
+NCB::TEvalResult NCB::Apply(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
     size_t begin,
@@ -217,7 +216,7 @@ void NCB::CalcModelSingleHost(
             if (IsFirstBlock) {
                 ValidateColumnOutput(params.OutputColumnsIds, *datasetPart);
             }
-            auto approx = Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, virtualEnsemblesCount, params.IsUncertaintyPrediction, &executor);
+            auto approx = NCB::Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, virtualEnsemblesCount, params.IsUncertaintyPrediction, &executor);
             const TExternalLabelsHelper visibleLabelsHelper(model);
 
             poolColumnsPrinter->UpdateColumnTypeInfo(datasetPart->MetaInfo.ColumnsInfo);
