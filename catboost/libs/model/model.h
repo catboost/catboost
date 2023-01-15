@@ -539,6 +539,7 @@ private:
         ProcessFloatFeatures();
         ProcessCatFeatures();
         ProcessTextFeatures();
+        ProcessEmbeddingFeatures();
         ProcessEstimatedFeatures();
         CalcUsedModelCtrs();
         CalcFirstLeafOffsets();
