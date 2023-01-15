@@ -1,16 +1,12 @@
-
 import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
 import os
-import imp
 
 if sys.version_info >= (3, 3):
     from collections.abc import Iterable, Sequence, Mapping, MutableMapping
 else:
     from collections import Iterable, Sequence, Mapping, MutableMapping
-
-from abc import ABCMeta, abstractmethod
 
 import warnings
 import numpy as np
@@ -87,21 +83,6 @@ def log_fixup():
     yield
     _reset_logger()
 
-_CATBOOST_SKLEARN_COMPAT_TAGS = {
-    'non_deterministic': False,
-    'requires_positive_X': False,
-    'requires_positive_y': False,
-    'X_types': ['2darray','sparse','categorical'],
-    'poor_score': True,
-    'no_validation': True,
-    'multioutput': True,
-    "allow_nan": True,
-    'stateless': False,
-    'multilabel': False,
-    '_skip_test': False,
-    'multioutput_only': False,
-    'binary_only': False,
-    'requires_fit': True}
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
@@ -1456,9 +1437,28 @@ class _CatBoostBase(object):
 
 
     def _get_tags(self):
-        tags = _CATBOOST_SKLEARN_COMPAT_TAGS
-        if self._init_params['task_type'] == 'GPU':
-            tags['non_deterministic'] = True
+        tags = {
+            'requires_positive_X': False,
+            'requires_positive_y': False,
+            'requires_y': True,
+            'poor_score': False,
+            'no_validation': True,
+            'stateless': False,
+            'multilabel': False,
+            '_skip_test': False,
+            'multioutput_only': False,
+            'binary_only': False,
+            'requires_fit': True}
+
+        params = deepcopy(self._init_params)
+        if params is None:
+            params = {}
+        _process_synonyms(params)
+
+        tags['non_deterministic'] = 'task_type' in params and params['task_type'] == 'GPU'
+        tags['multioutput'] = 'loss_function' in params and params['loss_function'] == 'MultiRMSE'
+        tags['allow_nan'] = 'nan_mode' not in params or params['nan_mode'] != 'Forbidden'
+
         return tags
 
     def get_scale_and_bias(self):
