@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import base64
+import errno
 import re
 import sys
 import os
@@ -179,10 +180,14 @@ def pytest_addoption(parser):
     parser.addoption("--test-list-path", dest="test_list_path", action="store", help="path to test list", default="")
 
 
+def from_ya_test():
+    return "YA_TEST_RUNNER" in os.environ
+
+
 def pytest_configure(config):
     config.option.continue_on_collection_errors = True
 
-    config.from_ya_test = "YA_TEST_RUNNER" in os.environ
+    config.from_ya_test = from_ya_test()
     config.test_logs = collections.defaultdict(dict)
     config.test_metrics = {}
     config.suite_metrics = {}
@@ -763,12 +768,56 @@ class TraceReportGenerator(object):
     def __init__(self, out_file_path):
         self._filename = out_file_path
         self._file = open(out_file_path, 'w')
+        self._wreckage_filename = out_file_path + '.wreckage'
         self._test_messages = {}
         self._test_duration = {}
         # Some machinery to avoid data corruption due sloppy fork()
         self._current_test = (None, None)
         self._pid = os.getpid()
-        self._wreckage_filename = out_file_path + '.wreckage'
+        self._check_intricate_respawn()
+
+    def _check_intricate_respawn(self):
+        pid_file = self._filename + '.pid'
+        try:
+            # python2 doesn't support open(f, 'x')
+            afile = os.fdopen(os.open(pid_file, os.O_WRONLY | os.O_EXCL | os.O_CREAT), 'w')
+            afile.write(str(self._pid))
+            afile.close()
+            return
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
+        # Looks like the test binary was respawned
+        if from_ya_test():
+            try:
+                with open(pid_file) as afile:
+                    prev_pid = afile.read()
+            except Exception as e:
+                prev_pid = '(failed to obtain previous pid: {})'.format(e)
+
+            parts = [
+                "Aborting test run: test machinery found that the test binary {} has already been run before.".format(sys.executable),
+                "Looks like test has incorrect respawn/relaunch logic within test binary.",
+                "Test should not try to restart itself - this is a poorly designed test case that leads to errors and could corrupt internal test machinery files.",
+                "Debug info: previous pid:{} current:{}".format(prev_pid, self._pid),
+            ]
+            msg = '\n'.join(parts)
+            yatest_logger.error(msg)
+
+            if filelock:
+                lock = filelock.FileLock(self._wreckage_filename + '.lock')
+                lock.acquire()
+
+            with open(self._wreckage_filename, 'a') as afile:
+                self._file = afile
+
+                self._dump_trace('suite_event', {"errors": [('fail', '[[bad]]' + msg)]})
+
+            raise Exception(msg)
+        else:
+            # Test binary is launched without `ya make -t`'s testing machinery - don't rely on clean environment
+            pass
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
