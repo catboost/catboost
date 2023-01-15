@@ -621,6 +621,8 @@ ALLOW .* -> vendor/github.com/lucas-clemente/quic-go
 # CONTRIB-2111 distributed lock on redis
 ALLOW .* -> vendor/github.com/go-redsync/redsync/v4
 
+ALLOW library/go/core/log/compat/logrus -> vendor/github.com/sirupsen/logrus
+
 #
 # Tools
 #
