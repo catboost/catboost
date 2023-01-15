@@ -35,7 +35,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_DOC_COMMENT_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_DOC_COMMENT_H__
 
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 
 namespace google {
 namespace protobuf {

@@ -18,16 +18,16 @@
 #error regenerate this file with a newer version of protoc.
 #endif
 
-#include <contrib/libs/protobuf/io/coded_stream.h>
-#include <contrib/libs/protobuf/arena.h>
-#include <contrib/libs/protobuf/arenastring.h>
-#include <contrib/libs/protobuf/generated_message_table_driven.h>
-#include <contrib/libs/protobuf/generated_message_util.h>
-#include <contrib/libs/protobuf/metadata.h>
-#include <contrib/libs/protobuf/message.h>
-#include <contrib/libs/protobuf/repeated_field.h>  // IWYU pragma: export
-#include <contrib/libs/protobuf/extension_set.h>  // IWYU pragma: export
-#include <contrib/libs/protobuf/unknown_field_set.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/arena.h>
+#include <google/protobuf/arenastring.h>
+#include <google/protobuf/generated_message_table_driven.h>
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/metadata.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/repeated_field.h>  // IWYU pragma: export
+#include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/unknown_field_set.h>
 #include <google/protobuf/descriptor.pb.h>
 // @@protoc_insertion_point(includes)
 #ifdef major

@@ -28,7 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "compiler/js/well_known_types_embed.h"
+#include <google/protobuf/compiler/js/well_known_types_embed.h>
 
 struct FileToc well_known_types_js[] = {
     {"any.js",

@@ -32,11 +32,11 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_lazy_message_field.h"
-#include "compiler/java/java_doc_comment.h"
-#include "compiler/java/java_helpers.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_lazy_message_field.h>
+#include <google/protobuf/compiler/java/java_doc_comment.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/io/printer.h>
 
 namespace google {
 namespace protobuf {

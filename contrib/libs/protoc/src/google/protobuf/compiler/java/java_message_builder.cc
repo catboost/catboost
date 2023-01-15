@@ -32,7 +32,7 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "compiler/java/java_message_builder.h"
+#include <google/protobuf/compiler/java/java_message_builder.h>
 
 #include <algorithm>
 #include <google/protobuf/stubs/hash.h>
@@ -43,17 +43,17 @@
 #endif
 #include <vector>
 
-#include "compiler/java/java_context.h"
-#include "compiler/java/java_doc_comment.h"
-#include "compiler/java/java_enum.h"
-#include "compiler/java/java_extension.h"
-#include "compiler/java/java_generator_factory.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
-#include "io/coded_stream.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/java/java_context.h>
+#include <google/protobuf/compiler/java/java_doc_comment.h>
+#include <google/protobuf/compiler/java/java_enum.h>
+#include <google/protobuf/compiler/java/java_extension.h>
+#include <google/protobuf/compiler/java/java_generator_factory.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "wire_format.h"
+#include <google/protobuf/wire_format.h>
 #include <google/protobuf/stubs/substitute.h>
 #include <google/protobuf/stubs/strutil.h>
 

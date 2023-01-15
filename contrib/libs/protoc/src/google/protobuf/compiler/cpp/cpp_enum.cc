@@ -34,9 +34,9 @@
 
 #include <map>
 
-#include "compiler/cpp/cpp_enum.h"
-#include "compiler/cpp/cpp_helpers.h"
-#include "io/printer.h"
+#include <google/protobuf/compiler/cpp/cpp_enum.h>
+#include <google/protobuf/compiler/cpp/cpp_helpers.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {

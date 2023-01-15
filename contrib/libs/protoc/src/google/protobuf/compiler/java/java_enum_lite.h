@@ -36,7 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_ENUM_LITE_H__
 
 #include <vector>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 
 namespace google {
 namespace protobuf {

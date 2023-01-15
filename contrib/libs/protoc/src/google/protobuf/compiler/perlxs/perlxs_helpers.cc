@@ -1,8 +1,8 @@
 #include <sstream>
 #include <vector>
-#include "compiler/perlxs/perlxs_helpers.h"
+#include <google/protobuf/compiler/perlxs/perlxs_helpers.h>
 #include "google/protobuf/descriptor.pb.h"
-#include "io/printer.h"
+#include <google/protobuf/io/printer.h>
 
 namespace google {
 namespace protobuf {

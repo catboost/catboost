@@ -30,20 +30,20 @@
 
 // Author: xiaofeng@google.com (Feng Xiao)
 
-#include "compiler/java/java_shared_code_generator.h"
+#include <google/protobuf/compiler/java/java_shared_code_generator.h>
 
 #include <memory>
 #ifndef _SHARED_PTR_H
 #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
-#include "compiler/code_generator.h"
-#include "io/printer.h"
-#include "io/zero_copy_stream.h"
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/compiler/code_generator.h>
+#include <google/protobuf/io/printer.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {

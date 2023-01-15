@@ -15,8 +15,6 @@ PEERDIR(
 )
 ADDINCL(
     GLOBAL contrib/libs/protoc/src
-    # Temporary here, MUST be removed upon re-syncing includes with upstream
-    GLOBAL contrib/libs/protoc/src/google/protobuf
 )
 
 SRCS(

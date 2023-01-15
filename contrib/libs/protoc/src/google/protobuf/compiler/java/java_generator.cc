@@ -32,21 +32,21 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "compiler/java/java_generator.h"
+#include <google/protobuf/compiler/java/java_generator.h>
 
 #include <memory>
 #ifndef _SHARED_PTR_H
 #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
-#include "compiler/java/java_file.h"
-#include "compiler/java/java_generator_factory.h"
-#include "compiler/java/java_helpers.h"
-#include "compiler/java/java_name_resolver.h"
-#include "compiler/java/java_options.h"
-#include "compiler/java/java_shared_code_generator.h"
-#include "io/printer.h"
-#include "io/zero_copy_stream.h"
+#include <google/protobuf/compiler/java/java_file.h>
+#include <google/protobuf/compiler/java/java_generator_factory.h>
+#include <google/protobuf/compiler/java/java_helpers.h>
+#include <google/protobuf/compiler/java/java_name_resolver.h>
+#include <google/protobuf/compiler/java/java_options.h>
+#include <google/protobuf/compiler/java/java_shared_code_generator.h>
+#include <google/protobuf/io/printer.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/descriptor.pb.h>
 
 #include <google/protobuf/stubs/strutil.h>

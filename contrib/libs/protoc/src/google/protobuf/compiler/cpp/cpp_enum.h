@@ -37,8 +37,8 @@
 
 #include <map>
 #include <set>
-#include "compiler/cpp/cpp_options.h"
-#include "descriptor.h"
+#include <google/protobuf/compiler/cpp/cpp_options.h>
+#include <google/protobuf/descriptor.h>
 
 namespace google {
 namespace protobuf {

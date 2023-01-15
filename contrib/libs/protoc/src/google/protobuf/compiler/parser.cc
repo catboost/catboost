@@ -39,11 +39,11 @@
 #include <limits>
 
 
-#include "compiler/parser.h"
-#include "descriptor.h"
+#include <google/protobuf/compiler/parser.h>
+#include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "wire_format.h"
-#include "io/tokenizer.h"
+#include <google/protobuf/wire_format.h>
+#include <google/protobuf/io/tokenizer.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/strutil.h>

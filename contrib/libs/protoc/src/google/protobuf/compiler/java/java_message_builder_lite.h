@@ -36,7 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_MESSAGE_BUILDER_LITE_H__
 
 #include <map>
-#include "compiler/java/java_field.h"
+#include <google/protobuf/compiler/java/java_field.h>
 
 namespace google {
 namespace protobuf {
