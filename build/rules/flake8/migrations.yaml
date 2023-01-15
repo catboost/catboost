@@ -554,7 +554,6 @@ migrations:
     - logbroker/tools/manual/alter_sqs_tables
     - logbroker/tools/manual/create_logbroker_account/lib
     - logbroker/tools/manual/load_test/load
-    - logfeller/python/logfeller/infra/release/yt/yt_tests
     - mail/collie/unistat
     - mail/contrib/ccs-caldavtester
     - mail/contrib/ccs-caldavtester/src
@@ -937,7 +936,6 @@ migrations:
     - sandbox/projects/ofd/runtime/ofd_runtime_run_tests
     - sandbox/projects/ofd/tasks/ofd_tasks_package_build
     - sandbox/projects/partner
-    - sandbox/projects/partner/tasks/build_backend
     - sandbox/projects/partner/tasks/build_frontend
     - sandbox/projects/partner/tasks/e2e_tests/misc
     - sandbox/projects/partner/tasks/misc
@@ -1012,8 +1010,6 @@ migrations:
     - travel/avia/library/python/geosearch/views
     - travel/avia/library/python/route_search
     - travel/avia/library/python/route_search/by_number
-    - travel/avia/revise
-    - travel/avia/revise/utils
     - travel/avia/ticket_daemon
     - travel/avia/ticket_daemon/ticket_daemon/partners
     - travel/avia/travelers
@@ -1277,7 +1273,6 @@ migrations:
     - alice/uniproxy/library/messenger
     - alice/uniproxy/library/messenger/ut
     - alice/uniproxy/library/musicstream
-    - alice/uniproxy/library/notificator
     - alice/uniproxy/library/subway/pull_client
     - alice/uniproxy/library/subway/server
     - alice/uniproxy/library/testing
@@ -1329,7 +1324,6 @@ migrations:
     - direct/infra/dt-dump-b2yt-data
     - district/logbroker_consumers/lib
     - district/logbroker_consumers/lib/yt
-    - dj/lib/viewer/server
     - dj/tools/rthub_profiles/acceptance/acceptance_tool
     - dj/tools/viewer/custom/entity
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
@@ -1384,7 +1378,6 @@ migrations:
     - kikimr/ci/tests/client/improved
     - kikimr/juggler/bundles/kikhouse_bundle
     - kikimr/tools/create_svp
-    - kikimr/tools/duty_bot
     - kikimr/yf/tests/embedded
     - kikimr/yf/tests/lib
     - kikimr/yf/tests/ydb
@@ -1597,8 +1590,6 @@ migrations:
     - taxi/graph/packages/taxigraphd
     - testenv/core/tools
     - testenv/core/web_server
-    - travel/avia/revise
-    - travel/avia/revise/partners
     - travel/avia/shared_flights/tasks/schedules_dumper
     - travel/avia/ticket_daemon
     - travel/avia/ticket_daemon/ticket_daemon
