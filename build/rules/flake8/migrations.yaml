@@ -364,7 +364,6 @@ migrations:
     - quality/ab_testing/cofe/projects/mapkit/via_points_and_alternatives
     - quality/ab_testing/cofe/projects/maps
     - quality/ab_testing/cofe/projects/router
-    - quality/ab_testing/cofe/projects/talents_surplus
     - quality/ab_testing/cofe/projects/tvandroid
     - quality/ab_testing/cofe/projects/uslugi/searchcost
     - quality/ab_testing/cofe/projects/yabs_clickhouse
@@ -473,7 +472,6 @@ migrations:
     - sandbox/projects/maps/common
     - sandbox/projects/marty
     - sandbox/projects/mobile_apps/android_sdk_preparer
-    - sandbox/projects/mobileads
     - sandbox/projects/mssngr/runtime/MssngrRouterLoadTest
     - sandbox/projects/news
     - sandbox/projects/nmaps
@@ -1033,7 +1031,6 @@ migrations:
     - saas/tools/refresh_mon
     - saas/tools/refresh_mon/services
     - sandbox/projects/ott/packager_management_system/lib
-    - sandbox/projects/ott/packager_management_system/lib/common/cms
     - sandbox/projects/ott/packager_management_system/lib/common/task
     - search/alice/research/src/models_compare
     - search/horadric2/cli
@@ -1070,7 +1067,6 @@ migrations:
     - smarttv/droideka/proxy/views
     - sprav/assay/feedback_training
     - sprav/assay/sunduk/update_workflows
-    - statbox/statkey/reactor/actions/google_ads
     - strm/pinger/lib
     - strm/pinger/lib/settings
     - sup/ml/super_graph/read_config
@@ -1138,7 +1134,6 @@ migrations:
     - yweb/video/faas/lib/convert
     - yweb/video/faas/lib/misc
     - yweb/video/faas/lib/os
-    - yweb/video/faas/lib/outputs/publish
     - yweb/video/faas/lib/package/hls/v3
     - yweb/video/faas/lib/telegram
     - yweb/video/faas/lib/tests/convert
