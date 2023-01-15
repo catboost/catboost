@@ -849,7 +849,7 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler1T<float>([plainJsonPtr](float rate) {
             (*plainJsonPtr)["subsample"] = rate;
         })
-        .Help("Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Bernoulli or MVS. \
+        .Help("Controls sample rate for bagging. Could be used if bootstrap-type is Poisson, Bernoulli or MVS. \
             Possible values are from (0, 1]; 0.66 by default for Bernoulli and Poisson, 0.8 by default for MVS."
         );
 
