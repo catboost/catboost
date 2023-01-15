@@ -1,6 +1,6 @@
 LIBRARY()
 
-LICENSE(MIT)
+LICENSE(MIT BSD-2-Clause)
 
 
 
