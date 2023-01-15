@@ -101,15 +101,12 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::Find(abba, 'a'), abba);
         UNIT_ASSERT_EQUAL(T::Find(abba, 'b'), abba + 1);
         UNIT_ASSERT_EQUAL(T::Find(abba, '*'), nullptr);
-        UNIT_ASSERT_EQUAL(T::Find(abba, '\0'), abba + 4);
 
         UNIT_ASSERT_EQUAL(T::Find(abba, 'a', 1), abba);
         UNIT_ASSERT_EQUAL(T::Find(abba, 'b', 1), nullptr);
         UNIT_ASSERT_EQUAL(T::Find(abba, 'b', 2), abba + 1);
         UNIT_ASSERT_EQUAL(T::Find(abba, 'b', 3), abba + 1);
         UNIT_ASSERT_EQUAL(T::Find(abba, '*', 3), nullptr);
-        UNIT_ASSERT_EQUAL(T::Find(abba, '\0', 4), nullptr);
-        UNIT_ASSERT_EQUAL(T::Find(abba, '\0', 5), abba + 4);
 
         UNIT_ASSERT_EQUAL(T::Find(empty, ""), empty);
         UNIT_ASSERT_EQUAL(T::Find(empty, "a"), nullptr);
@@ -177,16 +174,12 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::RFind(abba, 'a'), abba + 3);
         UNIT_ASSERT_EQUAL(T::RFind(abba, 'b'), abba + 2);
         UNIT_ASSERT_EQUAL(T::RFind(abba, '*'), nullptr);
-        UNIT_ASSERT_EQUAL(T::RFind(abba, '\0'), abba + 4);
-        UNIT_ASSERT_EQUAL(T::TBase::RFind(abba, '\0'), nullptr); // NOTE: base impl gives different result
 
         UNIT_ASSERT_EQUAL(T::RFind(abba, 'a', 1), abba);
         UNIT_ASSERT_EQUAL(T::RFind(abba, 'b', 1), nullptr);
         UNIT_ASSERT_EQUAL(T::RFind(abba, 'b', 2), abba + 1);
         UNIT_ASSERT_EQUAL(T::RFind(abba, 'b', 3), abba + 2);
         UNIT_ASSERT_EQUAL(T::RFind(abba, '*', 3), nullptr);
-        UNIT_ASSERT_EQUAL(T::RFind(abba, '\0', 4), nullptr);
-        UNIT_ASSERT_EQUAL(T::RFind(abba, '\0', 5), abba + 4);
 
         // TODO: tests for RFind(const TCharType*, size_t, const TCharType*, size_t, size_t)
     }

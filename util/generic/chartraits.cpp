@@ -37,19 +37,3 @@ Y_PURE_FUNCTION const char* FastFindFirstOf(const char* s, size_t len, const cha
 Y_PURE_FUNCTION const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_t setlen) {
     return TCompactStrSpn(set, set + setlen).FindFirstNotOf(s, s + len);
 }
-
-void TMutableCharTraits<wchar16>::Reverse(wchar16* start, size_t len) {
-    if (!len) {
-        return;
-    }
-    const wchar16* end = start + len;
-    TArrayHolder<wchar16> temp_buffer(new wchar16[len]);
-    wchar16* rbegin = temp_buffer.Get() + len;
-    for (wchar16* p = start; p < end;) {
-        const size_t symbol_size = W16SymbolSize(p, end);
-        rbegin -= symbol_size;
-        ::MemCopy(rbegin, p, symbol_size);
-        p += symbol_size;
-    }
-    ::MemCopy(start, temp_buffer.Get(), len);
-}
