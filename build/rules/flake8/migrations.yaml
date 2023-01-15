@@ -631,7 +631,6 @@ migrations:
     - maps/wikimap/stat/libs/common/tests/lib
     - maps/wikimap/stat/libs/common/tests/lib/dates_ut
     - maps/wikimap/stat/tasks_payment/dictionaries/public_holidays/tests
-    - maps/wikimap/stat/tasks_payment/report/lib
     - maps_adv/common/http_client
     - maps_adv/common/http_client/lib
     - market/access/puller/mt
@@ -1433,7 +1432,6 @@ migrations:
     - ads/logos/libs/reactor_runner/ut
     - ads/logos/tasks/learn_search_premium_profile
     - ads/logos/tasks/mediation_fast_lm_features
-    - ads/logos/tasks/tsar_pytorch_log
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/cross_check/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
@@ -1967,9 +1965,6 @@ migrations:
     - smart_devices/packages/generate_packages
     - smart_devices/tools/launcher2/tests/restarts
     - smarttv/alice/mm_backend/common
-    - smarttv/droideka/proxy
-    - smarttv/droideka/proxy/api
-    - smarttv/droideka/proxy/views
     - statbox/statkey/jam/jobs
     - statbox/statkey/jam/jobs/cubes/ads_facebook/v1
     - statbox/statkey/jam/jobs/cubes/superapp/autofill/v2
@@ -2748,7 +2743,6 @@ migrations:
     - search/scraper/parser_platform/parsers
     - search/scraper_over_yt/scripts/zombie_monitors
     - smart_devices/packages/tests/ya_package
-    - smarttv/droideka/proxy
     - sprav/altay/tools/auto_close/ml_predictor
     - sprav/mining/bs/scripts/postprocess
     - sprav/mining/bs/tools/extract_social_data
@@ -3161,14 +3155,10 @@ migrations:
     - search/mon/workplace/src/libs/report
     - search/scraper/parser_platform/parsers
     - smart_devices/packages/tests/config
-    - smarttv/droideka/proxy
-    - smarttv/droideka/proxy/api
-    - smarttv/droideka/proxy/views
     - sprav/assay/feedback_training
     - sprav/assay/sunduk/update_workflows
     - strm/pinger/lib
     - strm/pinger/lib/settings
-    - sup/ml/super_graph/read_config
     - travel/devops/solomon
     - travel/hotels/content_manager/lib
     - travel/hotels/content_manager/stages/yang_rooms
@@ -3212,20 +3202,10 @@ migrations:
     - web/app_host/daemons/horizon/src/server/reducers/verificators
     - web/app_host/daemons/horizon/src/server/services
     - web/app_host/daemons/horizon/src/server/services/monitoring
-    - yabs/autobudget/pylibs/setup_tables
-    - yabs/autobudget/test/audit
-    - yabs/autobudget/test/flat_cpc/integration
-    - yabs/autobudget/test/scheduler/full_cycle
-    - yabs/infra/deploy/controller
-    - yabs/stat/direct_monitoring/helpers/data_creation
-    - yabs/stat/direct_monitoring/libs
-    - ydo/tools/rubricator/validate_wizards
-    - yweb/antimalware/hitrobot/pipelines/queue_provider
     - yweb/antispam/mascot/samsara2sb/test
     - yweb/antispam/tmu/kwdeploy
     - yweb/antispam/webspam/export/tries/deploy
     - yweb/antispam/ytgr/library
-    - yweb/news/news_back/api/v3/tests
   F405:
     ignore:
     - F405
@@ -3548,7 +3528,6 @@ migrations:
     - search/mon/iconostasis_validator/bin/icval
     - search/scraper/parser_platform/parsers
     - search/scraper/parser_platform/tests
-    - smarttv/droideka/proxy
     - travel/avia/admin
     - travel/avia/admin/www/templatetags
     - travel/avia/admin/www/utils
