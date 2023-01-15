@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(BSD-2-Clause)
+
 
 
 VERSION(1.9.2)
-
-LICENSE(BSD-2-Clause)
 
 PEERDIR(
     contrib/libs/xxhash

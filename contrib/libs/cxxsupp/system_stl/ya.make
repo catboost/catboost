@@ -1,5 +1,7 @@
 LIBRARY()
 
+LICENSE(MIT)
+
 
 
 NO_PLATFORM()

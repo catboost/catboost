@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(BSD-2-Clause)
+
 
 
 VERSION(0.8.0)
-
-LICENSE(BSD-2-Clause)
 
 NO_COMPILER_WARNINGS()
 

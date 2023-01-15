@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(Apache-2.0)
+
 
 
 VERSION(2020_U3)
-
-LICENSE(Apache-2.0)
 
 ADDINCL(
     GLOBAL contrib/libs/tbb/include

@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(Apache-2.0)
+
 
 
 VERSION(2020-11-23)
-
-LICENSE(Apache-2.0)
 
 DISABLE(USE_LTO)
 

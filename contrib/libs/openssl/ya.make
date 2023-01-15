@@ -1,10 +1,10 @@
 LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
 
 
 VERSION(1.1.1g)
-
-LICENSE(OpenSSL AND SSLeay)
 
 PEERDIR(
     contrib/libs/openssl/crypto

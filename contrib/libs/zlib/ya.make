@@ -2,11 +2,11 @@
 
 LIBRARY()
 
+LICENSE(Zlib)
+
 
 
 VERSION(1.2.11)
-
-LICENSE(Zlib)
 
 ADDINCL(
     GLOBAL contrib/libs/zlib/include

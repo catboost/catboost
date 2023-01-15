@@ -1,8 +1,8 @@
 LIBRARY()
 
+LICENSE(BSD-3-Clause)
 
 
-LICENSE(OpenSSL AND SSLeay)
 
 PEERDIR(
     contrib/libs/zlib

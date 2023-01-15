@@ -1,5 +1,7 @@
 LIBRARY()
 
+LICENSE(MIT)
+
 
 
 SRCDIR(contrib/libs/cxxsupp/libcxx)
