@@ -180,19 +180,6 @@ TString TFeaturesLayout::GetExternalFeatureDescription(ui32 internalFeatureIdx, 
     return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)].Name;
 }
 
-ui32 TFeaturesLayout::GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
-    switch (type) {
-        case EFeatureType::Float:
-            return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
-        case EFeatureType::Categorical:
-            return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
-        case EFeatureType::Text:
-            return TextFeatureInternalIdxToExternalIdx[internalFeatureIdx];
-        case EFeatureType::Embedding:
-            return EmbeddingFeatureInternalIdxToExternalIdx[internalFeatureIdx];
-    }
-}
-
 ui32 TFeaturesLayout::GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
     Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
     return FeatureExternalIdxToInternalIdx[externalFeatureIdx];

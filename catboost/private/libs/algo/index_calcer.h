@@ -48,7 +48,7 @@ void SetPermutedIndices(
     TVector<TIndexType>* indices,
     NPar::TLocalExecutor* localExecutor);
 
-TVector<bool> GetIsLeafEmpty(int curDepth, const TVector<TIndexType>& indices);
+TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::TLocalExecutor* localExecutor);
 
 int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty);
 

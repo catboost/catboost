@@ -12,6 +12,7 @@
 #include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/dense_hash.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/map_merge.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 
@@ -476,16 +477,67 @@ void SetPermutedIndices(
         *indices);
 }
 
-TVector<bool> GetIsLeafEmpty(int curDepth, const TVector<TIndexType>& indices) {
-    TVector<bool> isLeafEmpty(1ull << curDepth, true);
-    size_t populatedLeafCount = 0;
-    for (auto idx : indices) {
-        populatedLeafCount += isLeafEmpty[idx];
-        isLeafEmpty[idx] = false;
-        if (populatedLeafCount == (1ull << curDepth)) {
-            break;
-        }
+static TVector<bool> GetIsLeafEmptyOpt(ui64 leafCount, TConstArrayRef<TIndexType> indices, NPar::TLocalExecutor* localExecutor) {
+    Y_ASSERT(leafCount <= 64);
+    ui64 isLeafEmptyBits;
+    MapMerge(
+        localExecutor,
+        TEqualRangesGenerator(TIndexRange(indices.ysize()), /*blockCount*/localExecutor->GetThreadCount() + 1),
+        /*map*/[=] (const auto& range, ui64* output) {
+            *output = leafCount == 64 ? -1 : (ui64(1) << leafCount) - 1;
+            for (auto idx : range.Iter()) {
+                const auto leafIdx = indices[idx];
+                *output &= ~ (ui64(1) << ui64(leafIdx));
+                if (*output == 0) {
+                    break;
+                }
+            }
+        },
+        /*merge*/[] (ui64* isLeafEmptyBits, TVector<ui64>&& outputs) {
+            for (auto output : outputs) {
+                *isLeafEmptyBits &= output;
+            }
+        },
+        &isLeafEmptyBits
+    );
+    TVector<bool> isLeafEmpty;
+    isLeafEmpty.yresize(leafCount);
+    for (auto idx : xrange(leafCount)) {
+        isLeafEmpty[idx] = isLeafEmptyBits & ui64(1);
+        isLeafEmptyBits = isLeafEmptyBits >> ui64(1);
     }
+    return isLeafEmpty;
+}
+
+TVector<bool> GetIsLeafEmpty(int curDepth, TConstArrayRef<TIndexType> indices, NPar::TLocalExecutor* localExecutor) {
+    const ui64 leafCount = ui64(1) << ui64(curDepth);
+    if (leafCount <= 64) {
+        return GetIsLeafEmptyOpt(leafCount, indices, localExecutor);
+    }
+    TVector<bool> isLeafEmpty;
+    MapMerge(
+        localExecutor,
+        TEqualRangesGenerator(TIndexRange(indices.ysize()), /*blockCount*/localExecutor->GetThreadCount() + 1),
+        /*map*/[=] (const auto& range, TVector<bool>* output) {
+            output->resize(leafCount, true);
+            size_t populatedLeafCount = 0;
+            for (auto idx : range.Iter()) {
+                const auto leafIdx = indices[idx];
+                populatedLeafCount += (*output)[leafIdx];
+                (*output)[leafIdx] = false;
+                if (populatedLeafCount == leafCount) {
+                    break;
+                }
+            }
+        },
+        /*merge*/[=] (TVector<bool>* isLeafEmpty, TVector<TVector<bool>>&& outputs) {
+            for (const auto& output : outputs) {
+                for (auto idx : xrange(leafCount)) {
+                    (*isLeafEmpty)[idx] &= output[idx];
+                }
+            }
+        },
+        &isLeafEmpty);
     return isLeafEmpty;
 }
 

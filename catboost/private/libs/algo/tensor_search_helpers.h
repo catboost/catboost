@@ -59,8 +59,9 @@ public:
 
 struct TCandidatesInfoList {
     TCandidatesInfoList() = default;
-    explicit TCandidatesInfoList(const TCandidateInfo& oneCandidate) {
-        Candidates.emplace_back(oneCandidate);
+    explicit TCandidatesInfoList(TCandidateInfo&& oneCandidate)
+    : Candidates{std::move(oneCandidate)}
+    {
     }
 
     SAVELOAD(Candidates, ShouldDropCtrAfterCalc);
