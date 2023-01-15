@@ -1190,7 +1190,6 @@ migrations:
     - quality/ab_testing/cofe/projects/geo/suggest/byak
     - quality/ab_testing/cofe/projects/uslugi/competition
     - quality/ab_testing/cofe/projects/zalogin
-    - quality/ab_testing/cofe/python/backends/nile
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
@@ -1226,7 +1225,6 @@ migrations:
     - saas/tools/refresh/import_rtyserver
     - sandbox/common/upload
     - sandbox/projects/alice_evo
-    - sandbox/projects/alice_evo/common/nirvana
     - sandbox/projects/avia/mysql_sync_testing_with_prod
     - sandbox/projects/balancer/load/BalancerLoadCompare
     - sandbox/projects/bitbucket/GBGAdaptor
@@ -1744,7 +1742,6 @@ migrations:
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
-    - yabs/server/test/ft/BSDEV-77232
     - yabs/server/test/ft/BSDEV-79055
     - yabs/server/test/ft/BSDEV-80203
     - yabs/server/test/ft/BSSERVER-12201
