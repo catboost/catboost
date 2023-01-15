@@ -429,7 +429,6 @@ migrations:
     - dict/ontodb/wikicommon/wiki
     - dict/ontodb/wikicommon/wiki_syntax
     - dict/tools/find_synonym
-    - direct/infra/dt-launch-sandbox-tests-in-release
     - disk/admin/monitors/common
     - disk/admin/robot_switcher
     - dj/services/alisa_skills/tools/bass_to_dialogs_image_uploader
@@ -552,7 +551,6 @@ migrations:
     - kikimr/library/ci/teamcity_core/core
     - kikimr/library/sched/dev/test/perf
     - kikimr/tools/cluster_analyzer
-    - kikimr/tools/dstool
     - kikimr/tools/kikimr_slice
     - library/python/testing/filter
     - library/python/testing/gtest
@@ -961,7 +959,6 @@ migrations:
     - sandbox/projects/qafw
     - sandbox/projects/qafw/ansible
     - sandbox/projects/reconf
-    - sandbox/projects/sandbox_ci/managers
     - sandbox/projects/sandbox_ci/sandbox_ci_compare_load_test
     - sandbox/projects/sandbox_ci/task
     - sandbox/projects/statinfra
@@ -1358,7 +1355,6 @@ migrations:
     - dict/ontodb/utils/export_src_codes
     - direct/infra/direct_zkcli
     - direct/infra/dt-dump-b2yt-data
-    - direct/infra/dt-launch-sandbox-tests-in-release
     - district/logbroker_consumers/lib
     - district/logbroker_consumers/lib/yt
     - dj/lib/viewer/server
@@ -1391,7 +1387,6 @@ migrations:
     - haas/graphite_sync/get_report
     - infra/awacs/awacslet/test
     - infra/deploy_queue_controller/lib
-    - infra/diskmanager/tests/server
     - infra/dist/dmover/bin/dmover
     - infra/dist/dmover/lib
     - infra/dist/dmover/lib/internal
@@ -1407,7 +1402,6 @@ migrations:
     - infra/skybit
     - infra/skybit/src
     - infra/yp_dns/tools/handle_duplicate_records/lib
-    - infra/yp_dns_api/tests
     - infra/yp_quota_distributor/lib
     - intranet/table_flow/src
     - intranet/table_flow/src/users
@@ -1419,7 +1413,6 @@ migrations:
     - kikimr/ci/tests/client/improved
     - kikimr/juggler/bundles/kikhouse_bundle
     - kikimr/tools/create_svp
-    - kikimr/tools/dstool
     - kikimr/tools/duty_bot
     - kikimr/yf/tests/embedded
     - kikimr/yf/tests/lib
@@ -1835,7 +1828,6 @@ migrations:
     - dict/ontodb/proto/direct/ut
     - dict/ontodb/proto/tools
     - direct/infra/dt-dump-b2yt-data
-    - direct/infra/dt-launch-sandbox-tests-in-release
     - drive/analytics/binary/thiefs
     - education/checking_system/api/app
     - education/checking_system/marker_checker/it
@@ -1874,12 +1866,10 @@ migrations:
     - infra/kernel/test/recipe/cgleak_check/example
     - infra/portoshell/tests
     - infra/yasm/zoom/python/tests
-    - infra/yp_dns_api/tests
     - infra/yp_quota_distributor/lib
     - intranet/pypi/src
     - intranet/table_flow/src
     - intranet/table_flow/tests
-    - kikimr/tools/dstool
     - kikimr/tools/ic_load
     - kikimr/yf/tests/no_recipe
     - kikimr/yf/tests/ydb
@@ -2131,7 +2121,6 @@ migrations:
     - travel/avia/shared_flights/lib/python/db_models
     - travel/avia/shared_flights/lib/python/tests/date_utils
     - travel/avia/shared_flights/tasks/sirena_parser
-    - travel/cpa/collectors/avia/nabortu
     - travel/library/python/sender
     - vcs/svn/migrations
     - vcs/svn/pr
