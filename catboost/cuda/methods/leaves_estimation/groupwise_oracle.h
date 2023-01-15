@@ -81,7 +81,7 @@ namespace NCatboostCuda {
                                            NPar::ILocalExecutor* localExecutor) {
             Y_UNUSED(derivatives);
             Y_UNUSED(localExecutor);
-            CB_ENSURE(false, "Langevin on GPU is not supported for groupwise oracle");
+            CB_ENSURE(!this->LeavesEstimationConfig.Langevin, "Langevin on GPU is not supported for groupwise oracle");
         }
 
         static THolder<ILeavesEstimationOracle> Create(const TGroupwiseTarget& target,
