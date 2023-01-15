@@ -20,7 +20,7 @@ using namespace NCB;
  */
 
 static TPathWithScheme GetMasterPartPath(const TPathWithScheme& poolPath) {
-    constexpr TStringBuf MASTER_PART = AsStringBuf("master-part:");
+    constexpr TStringBuf MASTER_PART = "master-part:";
 
     CB_ENSURE(
         poolPath.Path.StartsWith(MASTER_PART),
