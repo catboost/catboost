@@ -53,6 +53,8 @@ namespace NCatboostOptions {
 
         NCB::TPathWithScheme FeatureNamesPath;
 
+        bool HostsAlreadyContainLoadedData = false;
+
         TPoolLoadParams() = default;
 
         void Validate() const;
@@ -63,7 +65,7 @@ namespace NCatboostOptions {
             CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
             PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
             TimestampsFilePath, TestTimestampsFilePath, BaselineFilePath, TestBaselineFilePath,
-            ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath
+            ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath, HostsAlreadyContainLoadedData
         );
     };
 
