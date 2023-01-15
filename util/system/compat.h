@@ -97,13 +97,6 @@ void usleep(i64 len);
 
 #endif
 
-#ifdef _win_
-struct iovec { // not defined in win32 :-/
-    char* iov_base;
-    size_t iov_len;
-};
-#endif
-
 #if defined(_win_) || defined(_cygwin_)
 template <class T>
 T* strcasestr(T* str1, T* str2) {

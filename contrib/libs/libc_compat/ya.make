@@ -24,6 +24,8 @@ ENDIF()
 
 IF (OS_WINDOWS)
     ADDINCL(GLOBAL contrib/libs/libc_compat/include/windows)
+
+    SRCS(src/windows/sys/uio.c)
 ENDIF()
 
 IF (NOT MUSL AND OS_LINUX AND OS_SDK STREQUAL "ubuntu-12")
