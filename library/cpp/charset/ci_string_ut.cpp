@@ -1,7 +1,5 @@
 #include "ci_string.h"
 
-#include <library/cpp/testing/unittest/registar.h>
-
 #include <util/generic/string_ut.h>
 
 class TCaseStringTest: public TTestBase, private TStringTestImpl<TCiString, TTestData<char>> {
