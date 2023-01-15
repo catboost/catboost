@@ -242,3 +242,31 @@ def onjava_module(unit, *args):
             unit.onjava_test_deps(jdeps_val)
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
+
+
+# Ymake java modules related macroses
+
+
+def onexternal_jar(unit, *args):
+    args = list(args)
+    flat, kv = common.sort_by_keywords({'SOURCES': 1}, args)
+    if not flat:
+        ymake.report_configure_error('EXTERNAL_JAR requires exactly one resource URL of compiled jar library')
+    res = flat[0]
+    resid = res[4:] if res.startswith('sbr:') else res
+    unit.set(['JAR_LIB_RESOURCE', resid])
+    unit.set(['JAR_LIB_RESOURCE_URL', res])
+
+
+def on_check_java_srcdir(unit, *args):
+    args = list(args)
+    source_root = unit.resolve('$S')
+    mod_root = os.path.join(source_root, unit.get('MODDIR'))
+    for arg in args:
+        srcdir = unit.resolve(arg)
+        if not os.path.isabs(srcdir):
+            srcdir = os.path.join(mod_root, srcdir)
+        if not srcdir.startswith(source_root):
+            continue
+        if not os.path.exists(srcdir) or not os.path.isdir(srcdir):
+            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(os.path.relpath(srcdir, source_root)))
