@@ -1,30 +1,21 @@
-
-
 PY23_LIBRARY()
 
-LICENSE(BSD-3-Clause)
+# Proxy library
+LICENSE(Not-Applicable)
 
-VERSION(1.1.1)
 
-PY_SRCS(
-    TOP_LEVEL
-    markupsafe/_compat.py
-    markupsafe/_constants.py
-    markupsafe/__init__.py
-    markupsafe/_native.py
-)
+
+IF (PYTHON2)
+    PEERDIR(contrib/python/MarkupSafe/py2)
+ELSE()
+    PEERDIR(contrib/python/MarkupSafe/py3)
+ENDIF()
 
 NO_LINT()
 
-RESOURCE_FILES(
-    PREFIX contrib/python/MarkupSafe/
-    .dist-info/LICENSE.txt
-    .dist-info/METADATA
-    .dist-info/top_level.txt
-)
-
 END()
 
-RECURSE_FOR_TESTS(
-    tests
+RECURSE(
+    py2
+    py3
 )
