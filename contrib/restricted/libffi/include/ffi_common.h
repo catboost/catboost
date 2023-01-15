@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------
-   ffi_common.h - Copyright (C) 2011, 2012  Anthony Green
+   ffi_common.h - Copyright (C) 2011, 2012, 2013  Anthony Green
                   Copyright (C) 2007  Free Software Foundation, Inc
                   Copyright (c) 1996  Red Hat, Inc.
-
+                  
    Common internal definitions and macros. Only necessary for building
    libffi.
    ----------------------------------------------------------------------- */
@@ -19,10 +19,14 @@ extern "C" {
 /* Do not move this. Some versions of AIX are very picky about where
    this is positioned. */
 #ifdef __GNUC__
-/* mingw64 defines this already in malloc.h. */
-#ifndef alloca
-# define alloca __builtin_alloca
-#endif
+# if HAVE_ALLOCA_H
+#  include <alloca.h>
+# else
+  /* mingw64 defines this already in malloc.h. */
+#  ifndef alloca
+#    define alloca __builtin_alloca
+#  endif
+# endif
 # define MAYBE_UNUSED __attribute__((__unused__))
 #else
 # define MAYBE_UNUSED
@@ -30,16 +34,16 @@ extern "C" {
 #  include <alloca.h>
 # else
 #  ifdef _AIX
- #pragma alloca
+#   pragma alloca
 #  else
 #   ifndef alloca /* predefined by HP cc +Olibcalls */
 #    ifdef _MSC_VER
 #     define alloca _alloca
 #    else
 char *alloca ();
-#    endif
 #   endif
 #  endif
+# endif
 # endif
 #endif
 
@@ -70,13 +74,34 @@ void ffi_type_test(ffi_type *a, char *file, int line);
 #define FFI_ASSERT_VALID_TYPE(x)
 #endif
 
-#define ALIGN(v, a)  (((((size_t) (v))-1) | ((a)-1))+1)
-#define ALIGN_DOWN(v, a) (((size_t) (v)) & -a)
+/* v cast to size_t and aligned up to a multiple of a */
+#define FFI_ALIGN(v, a)  (((((size_t) (v))-1) | ((a)-1))+1)
+/* v cast to size_t and aligned down to a multiple of a */
+#define FFI_ALIGN_DOWN(v, a) (((size_t) (v)) & -a)
 
 /* Perform machine dependent cif processing */
 ffi_status ffi_prep_cif_machdep(ffi_cif *cif);
 ffi_status ffi_prep_cif_machdep_var(ffi_cif *cif,
 	 unsigned int nfixedargs, unsigned int ntotalargs);
+
+
+#if HAVE_LONG_DOUBLE_VARIANT
+/* Used to adjust size/alignment of ffi types.  */
+void ffi_prep_types (ffi_abi abi);
+#endif
+
+/* Used internally, but overridden by some architectures */
+ffi_status ffi_prep_cif_core(ffi_cif *cif,
+			     ffi_abi abi,
+			     unsigned int isvariadic,
+			     unsigned int nfixedargs,
+			     unsigned int ntotalargs,
+			     ffi_type *rtype,
+			     ffi_type **atypes);
+
+/* Translate a data pointer to a code pointer.  Needed for closures on
+   some targets.  */
+void *ffi_data_to_code_pointer (void *data) FFI_HIDDEN;
 
 /* Extended cif, used in callback from assembly routine */
 typedef struct

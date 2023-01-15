@@ -1,5 +1,6 @@
 /* -----------------------------------------------------------------------
-   closures.c - Copyright (c) 2007, 2009, 2010  Red Hat, Inc.
+   closures.c - Copyright (c) 2019 Anthony Green
+                Copyright (c) 2007, 2009, 2010 Red Hat, Inc.
                 Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc
                 Copyright (c) 2011 Plausible Labs Cooperative, Inc.
 
@@ -30,11 +31,88 @@
 #define _GNU_SOURCE 1
 #endif
 
+#include <fficonfig.h>
 #include <ffi.h>
 #include <ffi_common.h>
 
+#ifdef __NetBSD__
+#include <sys/param.h>
+#endif
+
+#if __NetBSD_Version__ - 0 >= 799007200
+/* NetBSD with PROT_MPROTECT */
+#include <sys/mman.h>
+
+#include <stddef.h>
+#include <unistd.h>
+
+static const size_t overhead =
+  (sizeof(max_align_t) > sizeof(void *) + sizeof(size_t)) ?
+    sizeof(max_align_t)
+    : sizeof(void *) + sizeof(size_t);
+
+#define ADD_TO_POINTER(p, d) ((void *)((uintptr_t)(p) + (d)))
+
+void *
+ffi_closure_alloc (size_t size, void **code)
+{
+  static size_t page_size;
+  size_t rounded_size;
+  void *codeseg, *dataseg;
+  int prot;
+
+  /* Expect that PAX mprotect is active and a separate code mapping is necessary. */
+  if (!code)
+    return NULL;
+
+  /* Obtain system page size. */
+  if (!page_size)
+    page_size = sysconf(_SC_PAGESIZE);
+
+  /* Round allocation size up to the next page, keeping in mind the size field and pointer to code map. */
+  rounded_size = (size + overhead + page_size - 1) & ~(page_size - 1);
+
+  /* Primary mapping is RW, but request permission to switch to PROT_EXEC later. */
+  prot = PROT_READ | PROT_WRITE | PROT_MPROTECT(PROT_EXEC);
+  dataseg = mmap(NULL, rounded_size, prot, MAP_ANON | MAP_PRIVATE, -1, 0);
+  if (dataseg == MAP_FAILED)
+    return NULL;
+
+  /* Create secondary mapping and switch it to RX. */
+  codeseg = mremap(dataseg, rounded_size, NULL, rounded_size, MAP_REMAPDUP);
+  if (codeseg == MAP_FAILED) {
+    munmap(dataseg, rounded_size);
+    return NULL;
+  }
+  if (mprotect(codeseg, rounded_size, PROT_READ | PROT_EXEC) == -1) {
+    munmap(codeseg, rounded_size);
+    munmap(dataseg, rounded_size);
+    return NULL;
+  }
+
+  /* Remember allocation size and location of the secondary mapping for ffi_closure_free. */
+  memcpy(dataseg, &rounded_size, sizeof(rounded_size));
+  memcpy(ADD_TO_POINTER(dataseg, sizeof(size_t)), &codeseg, sizeof(void *));
+  *code = ADD_TO_POINTER(codeseg, overhead);
+  return ADD_TO_POINTER(dataseg, overhead);
+}
+
+void
+ffi_closure_free (void *ptr)
+{
+  void *codeseg, *dataseg;
+  size_t rounded_size;
+
+  dataseg = ADD_TO_POINTER(ptr, -overhead);
+  memcpy(&rounded_size, dataseg, sizeof(rounded_size));
+  memcpy(&codeseg, ADD_TO_POINTER(dataseg, sizeof(size_t)), sizeof(void *));
+  munmap(dataseg, rounded_size);
+  munmap(codeseg, rounded_size);
+}
+#else /* !NetBSD with PROT_MPROTECT */
+
 #if !FFI_MMAP_EXEC_WRIT && !FFI_EXEC_TRAMPOLINE_TABLE
-# if __gnu_linux__
+# if __linux__ && !defined(__ANDROID__)
 /* This macro indicates it may be forbidden to map anonymous memory
    with both write and execute permission.  Code compiled when this
    option is defined will attempt to map such pages once, but if it
@@ -45,7 +123,7 @@
 #  define FFI_MMAP_EXEC_WRIT 1
 #  define HAVE_MNTENT 1
 # endif
-# if defined(X86_WIN32) || defined(X86_WIN64) || defined(__OS2__)
+# if defined(X86_WIN32) || defined(X86_WIN64) || defined(_M_ARM64) || defined(__OS2__)
 /* Windows systems may have Data Execution Protection (DEP) enabled, 
    which requires the use of VirtualMalloc/VirtualFree to alloc/free
    executable memory. */
@@ -54,7 +132,7 @@
 #endif
 
 #if FFI_MMAP_EXEC_WRIT && !defined FFI_MMAP_EXEC_SELINUX
-# ifdef __linux__
+# if defined(__linux__) && !defined(__ANDROID__)
 /* When defined to 1 check for SELinux and if SELinux is active,
    don't attempt PROT_EXEC|PROT_WRITE mapping at all, as that
    might cause audit messages.  */
@@ -64,11 +142,216 @@
 
 #if FFI_CLOSURES
 
-# if FFI_EXEC_TRAMPOLINE_TABLE
+#if FFI_EXEC_TRAMPOLINE_TABLE
+
+#ifdef __MACH__
+
+#include <mach/mach.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+extern void *ffi_closure_trampoline_table_page;
+
+typedef struct ffi_trampoline_table ffi_trampoline_table;
+typedef struct ffi_trampoline_table_entry ffi_trampoline_table_entry;
+
+struct ffi_trampoline_table
+{
+  /* contiguous writable and executable pages */
+  vm_address_t config_page;
+  vm_address_t trampoline_page;
+
+  /* free list tracking */
+  uint16_t free_count;
+  ffi_trampoline_table_entry *free_list;
+  ffi_trampoline_table_entry *free_list_pool;
+
+  ffi_trampoline_table *prev;
+  ffi_trampoline_table *next;
+};
+
+struct ffi_trampoline_table_entry
+{
+  void *(*trampoline) (void);
+  ffi_trampoline_table_entry *next;
+};
+
+/* Total number of trampolines that fit in one trampoline table */
+#define FFI_TRAMPOLINE_COUNT (PAGE_MAX_SIZE / FFI_TRAMPOLINE_SIZE)
+
+static pthread_mutex_t ffi_trampoline_lock = PTHREAD_MUTEX_INITIALIZER;
+static ffi_trampoline_table *ffi_trampoline_tables = NULL;
+
+static ffi_trampoline_table *
+ffi_trampoline_table_alloc (void)
+{
+  ffi_trampoline_table *table;
+  vm_address_t config_page;
+  vm_address_t trampoline_page;
+  vm_address_t trampoline_page_template;
+  vm_prot_t cur_prot;
+  vm_prot_t max_prot;
+  kern_return_t kt;
+  uint16_t i;
+
+  /* Allocate two pages -- a config page and a placeholder page */
+  config_page = 0x0;
+  kt = vm_allocate (mach_task_self (), &config_page, PAGE_MAX_SIZE * 2,
+		    VM_FLAGS_ANYWHERE);
+  if (kt != KERN_SUCCESS)
+    return NULL;
+
+  /* Remap the trampoline table on top of the placeholder page */
+  trampoline_page = config_page + PAGE_MAX_SIZE;
+  trampoline_page_template = (vm_address_t)&ffi_closure_trampoline_table_page;
+#ifdef __arm__
+  /* ffi_closure_trampoline_table_page can be thumb-biased on some ARM archs */
+  trampoline_page_template &= ~1UL;
+#endif
+  kt = vm_remap (mach_task_self (), &trampoline_page, PAGE_MAX_SIZE, 0x0,
+		 VM_FLAGS_OVERWRITE, mach_task_self (), trampoline_page_template,
+		 FALSE, &cur_prot, &max_prot, VM_INHERIT_SHARE);
+  if (kt != KERN_SUCCESS)
+    {
+      vm_deallocate (mach_task_self (), config_page, PAGE_MAX_SIZE * 2);
+      return NULL;
+    }
+
+  /* We have valid trampoline and config pages */
+  table = calloc (1, sizeof (ffi_trampoline_table));
+  table->free_count = FFI_TRAMPOLINE_COUNT;
+  table->config_page = config_page;
+  table->trampoline_page = trampoline_page;
+
+  /* Create and initialize the free list */
+  table->free_list_pool =
+    calloc (FFI_TRAMPOLINE_COUNT, sizeof (ffi_trampoline_table_entry));
+
+  for (i = 0; i < table->free_count; i++)
+    {
+      ffi_trampoline_table_entry *entry = &table->free_list_pool[i];
+      entry->trampoline =
+	(void *) (table->trampoline_page + (i * FFI_TRAMPOLINE_SIZE));
+
+      if (i < table->free_count - 1)
+	entry->next = &table->free_list_pool[i + 1];
+    }
+
+  table->free_list = table->free_list_pool;
+
+  return table;
+}
+
+static void
+ffi_trampoline_table_free (ffi_trampoline_table *table)
+{
+  /* Remove from the list */
+  if (table->prev != NULL)
+    table->prev->next = table->next;
+
+  if (table->next != NULL)
+    table->next->prev = table->prev;
+
+  /* Deallocate pages */
+  vm_deallocate (mach_task_self (), table->config_page, PAGE_MAX_SIZE * 2);
+
+  /* Deallocate free list */
+  free (table->free_list_pool);
+  free (table);
+}
+
+void *
+ffi_closure_alloc (size_t size, void **code)
+{
+  /* Create the closure */
+  ffi_closure *closure = malloc (size);
+  if (closure == NULL)
+    return NULL;
+
+  pthread_mutex_lock (&ffi_trampoline_lock);
+
+  /* Check for an active trampoline table with available entries. */
+  ffi_trampoline_table *table = ffi_trampoline_tables;
+  if (table == NULL || table->free_list == NULL)
+    {
+      table = ffi_trampoline_table_alloc ();
+      if (table == NULL)
+	{
+	  pthread_mutex_unlock (&ffi_trampoline_lock);
+	  free (closure);
+	  return NULL;
+	}
+
+      /* Insert the new table at the top of the list */
+      table->next = ffi_trampoline_tables;
+      if (table->next != NULL)
+	table->next->prev = table;
+
+      ffi_trampoline_tables = table;
+    }
+
+  /* Claim the free entry */
+  ffi_trampoline_table_entry *entry = ffi_trampoline_tables->free_list;
+  ffi_trampoline_tables->free_list = entry->next;
+  ffi_trampoline_tables->free_count--;
+  entry->next = NULL;
+
+  pthread_mutex_unlock (&ffi_trampoline_lock);
+
+  /* Initialize the return values */
+  *code = entry->trampoline;
+  closure->trampoline_table = table;
+  closure->trampoline_table_entry = entry;
+
+  return closure;
+}
+
+void
+ffi_closure_free (void *ptr)
+{
+  ffi_closure *closure = ptr;
+
+  pthread_mutex_lock (&ffi_trampoline_lock);
+
+  /* Fetch the table and entry references */
+  ffi_trampoline_table *table = closure->trampoline_table;
+  ffi_trampoline_table_entry *entry = closure->trampoline_table_entry;
+
+  /* Return the entry to the free list */
+  entry->next = table->free_list;
+  table->free_list = entry;
+  table->free_count++;
+
+  /* If all trampolines within this table are free, and at least one other table exists, deallocate
+   * the table */
+  if (table->free_count == FFI_TRAMPOLINE_COUNT
+      && ffi_trampoline_tables != table)
+    {
+      ffi_trampoline_table_free (table);
+    }
+  else if (ffi_trampoline_tables != table)
+    {
+      /* Otherwise, bump this table to the top of the list */
+      table->prev = NULL;
+      table->next = ffi_trampoline_tables;
+      if (ffi_trampoline_tables != NULL)
+	ffi_trampoline_tables->prev = table;
+
+      ffi_trampoline_tables = table;
+    }
+
+  pthread_mutex_unlock (&ffi_trampoline_lock);
+
+  /* Free the closure */
+  free (closure);
+}
+
+#endif
 
 // Per-target implementation; It's unclear what can reasonable be shared between two OS/architecture implementations.
 
-# elif FFI_MMAP_EXEC_WRIT /* !FFI_EXEC_TRAMPOLINE_TABLE */
+#elif FFI_MMAP_EXEC_WRIT /* !FFI_EXEC_TRAMPOLINE_TABLE */
 
 #define USE_LOCKS 1
 #define USE_DL_PREFIX 1
@@ -94,14 +377,6 @@
 /* Don't allocate more than a page unless needed.  */
 #define DEFAULT_GRANULARITY ((size_t)malloc_getpagesize)
 
-#if FFI_CLOSURE_TEST
-/* Don't release single pages, to avoid a worst-case scenario of
-   continuously allocating and releasing single pages, but release
-   pairs of pages, which should do just as well given that allocations
-   are likely to be small.  */
-#define DEFAULT_TRIM_THRESHOLD ((size_t)malloc_getpagesize)
-#endif
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -111,7 +386,7 @@
 #endif
 #include <string.h>
 #include <stdio.h>
-#if !defined(X86_WIN32) && !defined(X86_WIN64)
+#if !defined(X86_WIN32) && !defined(X86_WIN64) && !defined(_M_ARM64)
 #ifdef HAVE_MNTENT
 #include <mntent.h>
 #endif /* HAVE_MNTENT */
@@ -181,10 +456,26 @@ static int emutramp_enabled = -1;
 static int
 emutramp_enabled_check (void)
 {
-  if (getenv ("FFI_DISABLE_EMUTRAMP") == NULL)
-    return 1;
-  else
+  char *buf = NULL;
+  size_t len = 0;
+  FILE *f;
+  int ret;
+  f = fopen ("/proc/self/status", "r");
+  if (f == NULL)
     return 0;
+  ret = 0;
+
+  while (getline (&buf, &len, f) != -1)
+    if (!strncmp (buf, "PaX:", 4))
+      {
+        char emutramp;
+        if (sscanf (buf, "%*s %*c%c", &emutramp) == 1)
+          ret = (emutramp == 'E');
+        break;
+      }
+  free (buf);
+  fclose (f);
+  return ret;
 }
 
 #define is_emutramp_enabled() (emutramp_enabled >= 0 ? emutramp_enabled \
@@ -221,7 +512,7 @@ static int dlmalloc_trim(size_t) MAYBE_UNUSED;
 static size_t dlmalloc_usable_size(void*) MAYBE_UNUSED;
 static void dlmalloc_stats(void) MAYBE_UNUSED;
 
-#if !(defined(X86_WIN32) || defined(X86_WIN64) || defined(__OS2__)) || defined (__CYGWIN__) || defined(__INTERIX)
+#if !(defined(X86_WIN32) || defined(X86_WIN64) || defined(_M_ARM64) || defined(__OS2__)) || defined (__CYGWIN__) || defined(__INTERIX)
 /* Use these for mmap and munmap within dlmalloc.c.  */
 static void *dlmmap(void *, size_t, int, int, int, off_t);
 static int dlmunmap(void *, size_t);
@@ -235,7 +526,7 @@ static int dlmunmap(void *, size_t);
 #undef mmap
 #undef munmap
 
-#if !(defined(X86_WIN32) || defined(X86_WIN64) || defined(__OS2__)) || defined (__CYGWIN__) || defined(__INTERIX)
+#if !(defined(X86_WIN32) || defined(X86_WIN64) || defined(_M_ARM64) || defined(__OS2__)) || defined (__CYGWIN__) || defined(__INTERIX)
 
 /* A mutex used to synchronize access to *exec* variables in this file.  */
 static pthread_mutex_t open_temp_exec_file_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -249,9 +540,15 @@ static size_t execsize = 0;
 
 /* Open a temporary file name, and immediately unlink it.  */
 static int
-open_temp_exec_file_name (char *name)
+open_temp_exec_file_name (char *name, int flags)
 {
-  int fd = mkstemp (name);
+  int fd;
+
+#ifdef HAVE_MKOSTEMP
+  fd = mkostemp (name, flags);
+#else
+  fd = mkstemp (name);
+#endif
 
   if (fd != -1)
     unlink (name);
@@ -264,8 +561,30 @@ static int
 open_temp_exec_file_dir (const char *dir)
 {
   static const char suffix[] = "/ffiXXXXXX";
-  int lendir = strlen (dir);
-  char *tempname = __builtin_alloca (lendir + sizeof (suffix));
+  int lendir, flags;
+  char *tempname;
+#ifdef O_TMPFILE
+  int fd;
+#endif
+
+#ifdef O_CLOEXEC
+  flags = O_CLOEXEC;
+#else
+  flags = 0;
+#endif
+
+#ifdef O_TMPFILE
+  fd = open (dir, flags | O_RDWR | O_EXCL | O_TMPFILE, 0700);
+  /* If the running system does not support the O_TMPFILE flag then retry without it. */
+  if (fd != -1 || (errno != EINVAL && errno != EISDIR && errno != EOPNOTSUPP)) {
+    return fd;
+  } else {
+    errno = 0;
+  }
+#endif
+
+  lendir = (int) strlen (dir);
+  tempname = __builtin_alloca (lendir + sizeof (suffix));
 
   if (!tempname)
     return -1;
@@ -273,7 +592,7 @@ open_temp_exec_file_dir (const char *dir)
   memcpy (tempname, dir, lendir);
   memcpy (tempname + lendir, suffix, sizeof (suffix));
 
-  return open_temp_exec_file_name (tempname);
+  return open_temp_exec_file_name (tempname, flags);
 }
 
 /* Open a temporary file in the directory in the named environment
@@ -382,7 +701,7 @@ open_temp_exec_file_opts_next (void)
 }
 
 /* Return a file descriptor of a temporary zero-sized file in a
-   writable and exexutable filesystem.  */
+   writable and executable filesystem.  */
 static int
 open_temp_exec_file (void)
 {
@@ -403,6 +722,36 @@ open_temp_exec_file (void)
   while (fd == -1);
 
   return fd;
+}
+
+/* We need to allocate space in a file that will be backing a writable
+   mapping.  Several problems exist with the usual approaches:
+   - fallocate() is Linux-only
+   - posix_fallocate() is not available on all platforms
+   - ftruncate() does not allocate space on filesystems with sparse files
+   Failure to allocate the space will cause SIGBUS to be thrown when
+   the mapping is subsequently written to.  */
+static int
+allocate_space (int fd, off_t offset, off_t len)
+{
+  static size_t page_size;
+
+  /* Obtain system page size. */
+  if (!page_size)
+    page_size = sysconf(_SC_PAGESIZE);
+
+  unsigned char buf[page_size];
+  memset (buf, 0, page_size);
+
+  while (len > 0)
+    {
+      off_t to_write = (len < page_size) ? len : page_size;
+      if (write (fd, buf, to_write) < to_write)
+        return -1;
+      len -= to_write;
+    }
+
+  return 0;
 }
 
 /* Map in a chunk of memory from the temporary exec file into separate
@@ -426,7 +775,7 @@ dlmmap_locked (void *start, size_t length, int prot, int flags, off_t offset)
 
   offset = execsize;
 
-  if (ftruncate (execfd, offset + length))
+  if (allocate_space (execfd, offset, length))
     return MFAIL;
 
   flags &= ~(MAP_PRIVATE | MAP_ANONYMOUS);
@@ -441,7 +790,13 @@ dlmmap_locked (void *start, size_t length, int prot, int flags, off_t offset)
 	  close (execfd);
 	  goto retry_open;
 	}
-      ftruncate (execfd, offset);
+      if (ftruncate (execfd, offset) != 0)
+      {
+        /* Fixme : Error logs can be added here. Returning an error for
+         * ftruncte() will not add any advantage as it is being
+         * validating in the error case. */
+      }
+
       return MFAIL;
     }
   else if (!offset
@@ -453,7 +808,12 @@ dlmmap_locked (void *start, size_t length, int prot, int flags, off_t offset)
   if (start == MFAIL)
     {
       munmap (ptr, length);
-      ftruncate (execfd, offset);
+      if (ftruncate (execfd, offset) != 0)
+      {
+        /* Fixme : Error logs can be added here. Returning an error for
+         * ftruncte() will not add any advantage as it is being
+         * validating in the error case. */
+      }
       return start;
     }
 
@@ -476,10 +836,6 @@ dlmmap (void *start, size_t length, int prot,
 	  && prot == (PROT_READ | PROT_WRITE)
 	  && flags == (MAP_PRIVATE | MAP_ANONYMOUS)
 	  && fd == -1 && offset == 0);
-
-#if FFI_CLOSURE_TEST
-  printf ("mapping in %zi\n", length);
-#endif
 
   if (execfd == -1 && is_emutramp_enabled ())
     {
@@ -526,10 +882,6 @@ dlmunmap (void *start, size_t length)
   msegmentptr seg = segment_holding (gm, start);
   void *code;
 
-#if FFI_CLOSURE_TEST
-  printf ("unmapping %zi\n", length);
-#endif
-
   if (seg && (code = add_segment_exec_offset (start, seg)) != start)
     {
       int ret = munmap (code, length);
@@ -556,7 +908,7 @@ segment_holding_code (mstate m, char* addr)
 }
 #endif
 
-#endif /* !(defined(X86_WIN32) || defined(X86_WIN64) || defined(__OS2__)) || defined (__CYGWIN__) || defined(__INTERIX) */
+#endif /* !(defined(X86_WIN32) || defined(X86_WIN64) || defined(_M_ARM64) || defined(__OS2__)) || defined (__CYGWIN__) || defined(__INTERIX) */
 
 /* Allocate a chunk of memory with the given size.  Returns a pointer
    to the writable address, and sets *CODE to the executable
@@ -581,6 +933,20 @@ ffi_closure_alloc (size_t size, void **code)
   return ptr;
 }
 
+void *
+ffi_data_to_code_pointer (void *data)
+{
+  msegmentptr seg = segment_holding (gm, data);
+  /* We expect closures to be allocated with ffi_closure_alloc(), in
+     which case seg will be non-NULL.  However, some users take on the
+     burden of managing this memory themselves, in which case this
+     we'll just return data. */
+  if (seg)
+    return add_segment_exec_offset (data, seg);
+  else
+    return data;
+}
+
 /* Release a chunk of memory allocated with ffi_closure_alloc.  If
    FFI_CLOSURE_FREE_CODE is nonzero, the given address can be the
    writable or the executable address given.  Otherwise, only the
@@ -598,26 +964,6 @@ ffi_closure_free (void *ptr)
   dlfree (ptr);
 }
 
-
-#if FFI_CLOSURE_TEST
-/* Do some internal sanity testing to make sure allocation and
-   deallocation of pages are working as intended.  */
-int main ()
-{
-  void *p[3];
-#define GET(idx, len) do { p[idx] = dlmalloc (len); printf ("allocated %zi for p[%i]\n", (len), (idx)); } while (0)
-#define PUT(idx) do { printf ("freeing p[%i]\n", (idx)); dlfree (p[idx]); } while (0)
-  GET (0, malloc_getpagesize / 2);
-  GET (1, 2 * malloc_getpagesize - 64 * sizeof (void*));
-  PUT (1);
-  GET (1, 2 * malloc_getpagesize);
-  GET (2, malloc_getpagesize / 2);
-  PUT (1);
-  PUT (0);
-  PUT (2);
-  return 0;
-}
-#endif /* FFI_CLOSURE_TEST */
 # else /* ! FFI_MMAP_EXEC_WRIT */
 
 /* On many systems, memory returned by malloc is writable and
@@ -640,5 +986,13 @@ ffi_closure_free (void *ptr)
   free (ptr);
 }
 
+void *
+ffi_data_to_code_pointer (void *data)
+{
+  return data;
+}
+
 # endif /* ! FFI_MMAP_EXEC_WRIT */
 #endif /* FFI_CLOSURES */
+
+#endif /* NetBSD with PROT_MPROTECT */
