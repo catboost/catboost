@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/enumbitset/enumbitset.h>
+#include <library/cpp/enumbitset/enumbitset.h>
 #include <library/langmask/langmask.h>
 #include <library/cpp/token/nlptypes.h>
 
