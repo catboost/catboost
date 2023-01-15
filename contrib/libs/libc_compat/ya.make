@@ -79,14 +79,13 @@ IF (OS_WINDOWS)
     )
 ENDIF()
 
-IF (NOT MUSL AND OS_LINUX AND OS_SDK STREQUAL "ubuntu-12")
+IF (OS_LINUX AND NOT MUSL AND OS_SDK == "ubuntu-12")
     ADDINCL(GLOBAL contrib/libs/libc_compat/include/uchar)
 ENDIF()
 
-IF (OS_LINUX AND OS_SDK != "ubuntu-20")
+IF (OS_LINUX AND NOT MUSL AND OS_SDK != "ubuntu-20")
     SRCS(
         # reallocarray was added in glibc=2.29
-        # WARN: musl introduced reallocarray in 1.2.2
         reallocarray.c
     )
 ENDIF()
