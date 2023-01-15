@@ -37,14 +37,14 @@
 using namespace NCB;
 
 
-#define R_API_BEGIN()                                               \
-    auto loggingFunc = [](const char* str, size_t len) {            \
-        TString slicedStr(str, 0, len);                             \
-        Rprintf("%s", slicedStr.c_str());                           \
-    };                                                               \
-    SetCustomLoggingFunction(loggingFunc, loggingFunc);             \
-    *Singleton<TRPackageInitializer>();                             \
-    try {                                                           \
+#define R_API_BEGIN()                                                           \
+    auto loggingFunc = [](const char* str, size_t len, TCustomLoggingObject) {  \
+        TString slicedStr(str, 0, len);                                         \
+        Rprintf("%s", slicedStr.c_str());                                       \
+    };                                                                          \
+    SetCustomLoggingFunction(loggingFunc, loggingFunc);                         \
+    *Singleton<TRPackageInitializer>();                                         \
+    try {                                                                       \
 
 
 #define R_API_END()                                                 \

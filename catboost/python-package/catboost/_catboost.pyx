@@ -214,7 +214,8 @@ cdef extern from "Python.h":
     char* PyUnicode_AsUTF8AndSize(object s, Py_ssize_t* l)
 
 cdef extern from "catboost/libs/logging/logging.h":
-    cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
+    ctypedef void(*TCustomLoggingFunctionPtr)(const char *, size_t len, void *) except * with gil
+    cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*)
     cdef void RestoreOriginalLogger()
     cdef void ResetTraceBackend(const TString&)
 
@@ -5467,26 +5468,14 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     return rocCurve.SelectDecisionBoundaryByIntersection()
 
 
-log_cout = None
-log_cerr = None
-
-
-cdef void _CoutLogPrinter(const char* str, size_t len) except * with gil:
+cdef void _WriteLog(const char* str, size_t len, void* targetObject) except * with gil:
+    cdef streamLikeObject = <object> targetObject
     cdef bytes bytes_str = str[:len]
-    log_cout.write(to_native_str(bytes_str))
-
-
-cdef void _CerrLogPrinter(const char* str, size_t len) except * with gil:
-    cdef bytes bytes_str = str[:len]
-    log_cerr.write(to_native_str(bytes_str))
+    streamLikeObject.write(to_native_str(bytes_str))
 
 
 cpdef _set_logger(cout, cerr):
-    global log_cout
-    global log_cerr
-    log_cout = cout
-    log_cerr = cerr
-    SetCustomLoggingFunction(&_CoutLogPrinter, &_CerrLogPrinter)
+    SetCustomLoggingFunction(&_WriteLog, &_WriteLog, <void*>cout, <void*>cerr)
 
 
 cpdef _reset_logger():
