@@ -1,4 +1,4 @@
-# version 2020e
+# version unknown-dirty
 # This zic input file is in the public domain.
 R d 1916 o - Jun 14 23s 1 S
 R d 1916 1919 - O Su>=1 23s 0 -
@@ -400,7 +400,8 @@ Z Africa/Khartoum 2:10:8 - LMT 1931
 2 - CAT
 Z Africa/Juba 2:6:28 - LMT 1931
 2 SD CA%sT 2000 Ja 15 12
-3 - EAT
+3 - EAT 2021 F
+2 - CAT
 R n 1939 o - Ap 15 23s 1 S
 R n 1939 o - N 18 23s 0 -
 R n 1940 o - F 25 23s 1 S

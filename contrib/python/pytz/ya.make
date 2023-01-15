@@ -2,7 +2,7 @@
 
 PY23_LIBRARY()
 
-VERSION(2020.4)
+VERSION(2021.1)
 
 LICENSE(MIT)
 
@@ -620,7 +620,6 @@ RESOURCE_FILES(
     pytz/zoneinfo/Zulu
     pytz/zoneinfo/iso3166.tab
     pytz/zoneinfo/leapseconds
-    pytz/zoneinfo/posixrules
     pytz/zoneinfo/tzdata.zi
     pytz/zoneinfo/zone.tab
     pytz/zoneinfo/zone1970.tab
