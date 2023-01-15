@@ -159,7 +159,6 @@ migrations:
     - devtools/adept
     - devtools/distbuild/deploy/servants
     - devtools/dummy_arcadia/test/test_cache_invalidation
-    - devtools/dutybot
     - devtools/import_contrib/projects/phonenumber
     - devtools/qafw/qyp
     - devtools/qafw/rtc_deploy/lib
@@ -961,9 +960,6 @@ migrations:
     - yweb/antiporno/top_queries_cleanup/yql/test
     - yweb/antispam/adblock/viewer
     - yweb/antispam/cid/backend/miner
-    - yweb/antispam/clean_web/lib
-    - yweb/antispam/clean_web/lib/tests/medium
-    - yweb/antispam/clean_web/lib/tests/medium/module
     - yweb/antispam/clean_web/router/lib/tests/small
     - yweb/antispam/clean_web/tools/run_cm_targets
     - yweb/antispam/mascot/features/test
@@ -1082,8 +1078,6 @@ migrations:
     - aurora/scripts/parsers/zoon_ru
     - balancer/test/functional/regexp_host
     - balancer/test/functional/regexp_path
-    - billing/agency_rewards/agency_rewards
-    - billing/agency_rewards/agency_rewards/main
     - billing/apikeys/apikeys
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
@@ -2052,10 +2046,8 @@ migrations:
     - balancer/production/runtime/src/runtime
     - balancer/production/x/yasm_errors_collector
     - billing/agency_rewards/tests_platform/common
-    - billing/agency_rewards/tests_platform/generate
     - billing/agency_rewards/tests_platform/generators
     - billing/agency_rewards/tests_regression/common
-    - billing/agency_rewards/tests_regression/generate
     - billing/agency_rewards/tests_regression/generators
     - billing/apikeys/console
     - billing/balance
@@ -2432,7 +2424,6 @@ migrations:
     - library/python/yt
     - library/recipes/tvmapi
     - library/recipes/tvmtool
-    - load/projects/netort
     - logbroker/admin
     - logbroker/juggler/rtc_logbroker_juggler_bundle/src/logbroker_locked_bsgroups
     - logbroker/mops
@@ -3869,7 +3860,6 @@ migrations:
     - rtmapreduce/mrtasks/create_proto_sessions/tests
     - rtmapreduce/mrtasks/create_scarab_sessions/tests
     - rtmapreduce/mrtasks/fresh_intent/tests
-    - rtmapreduce/mrtasks/fresh_requests/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
     - rtmapreduce/mrtasks/logfeller_create_logs/tests
@@ -3885,7 +3875,6 @@ migrations:
     - rtmapreduce/mrtasks/sessions2detector/tests
     - rtmapreduce/mrtasks/sessions2trender/tests
     - rtmapreduce/mrtasks/sp_count/tests
-    - rtmapreduce/mrtasks/stocks/tests
     - rtmapreduce/mrtasks/united_geolog/tests
     - rtmapreduce/mrtasks/video_player_errors/tests
     - rtmapreduce/tests/create-sessions-mainservice-test/test
