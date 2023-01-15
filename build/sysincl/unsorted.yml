@@ -218,8 +218,6 @@
   - forwards.h
   - json_valueiterator.inl
   - value.h
-  - gnulib/printf.h
-  - gobject_probes.h
   - pthread/mit/sys/timers.h
   - ../src/config.h
   - sljit/sljitLir.c
