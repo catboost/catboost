@@ -458,7 +458,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         treeConfig.PairwiseNonDiagReg = 1;
 
         if (dataSet.HasFeatures()) {
-            featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
+            featuresScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetFeatures(),
                                                    treeConfig,
                                                    subsets,
                                                    random,
@@ -466,7 +466,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         }
 
         if (dataSet.HasPermutationDependentFeatures()) {
-            simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
+            simpleCtrScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetPermutationFeatures(),
                                                     treeConfig,
                                                     subsets,
                                                     random,

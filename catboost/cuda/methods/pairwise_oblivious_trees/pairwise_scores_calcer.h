@@ -12,7 +12,7 @@ namespace NCatboostCuda {
                                                                    const TPairwiseOptimizationSubsets& subsets,
                                                                    const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                                                    TRandom& random) {
-        return new TComputePairwiseScoresHelper(policy,
+        return MakeHolder<TComputePairwiseScoresHelper>(policy,
                                                 dataSet,
                                                 subsets,
                                                 random,
