@@ -26,6 +26,7 @@
 #include <util/generic/string.h>
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
+#include <util/generic/ylimits.h>
 #include <util/memory/blob.h>
 #include <util/stream/file.h>
 #include <util/stream/input.h>
@@ -846,6 +847,26 @@ namespace NCB {
         }
     }
 
+    static void AddFeatureDataToPool(
+        const THolder<TSrcColumnBase>& srcColumn,
+        EColumn columnType,
+        TQuantizedPool* quantizedPool
+    ) {
+        if (srcColumn) {
+            if (auto* column = dynamic_cast<TSrcColumn<ui8>*>(srcColumn.Get())) {
+                AddToPool(*column, quantizedPool);
+            } else if (auto* column = dynamic_cast<TSrcColumn<ui16>*>(srcColumn.Get())) {
+                AddToPool(*column, quantizedPool);
+            } else if (auto* column = dynamic_cast<TSrcColumn<ui32>*>(srcColumn.Get())) {
+                AddToPool(*column, quantizedPool);
+            } else {
+                Y_FAIL("Unexpected srcColumn type for feature data");
+            }
+        } else {
+            AddToPool(TSrcColumn<ui8>(columnType), quantizedPool);
+        }
+    }
+
 
     void SaveQuantizedPool(
         const TSrcData& srcData,
@@ -860,16 +881,15 @@ namespace NCB {
         pool.ColumnNames = srcData.ColumnNames;
         pool.IgnoredColumnIndices = srcData.IgnoredColumnIndices;
 
+        for (const auto& floatFeature : srcData.FloatFeatures) {
+            AddFeatureDataToPool(floatFeature, EColumn::Num, &pool);
+        }
+        for (const auto& catFeature : srcData.CatFeatures) {
+            AddFeatureDataToPool(catFeature, EColumn::Categ, &pool);
+        }
+
         AddToPool(srcData.GroupIds, &pool);
         AddToPool(srcData.SubgroupIds, &pool);
-
-        for (const auto& floatFeature : srcData.FloatFeatures) {
-            if (floatFeature) {
-                AddToPool(*floatFeature, &pool);
-            } else {
-                AddToPool(TSrcColumn<ui8>{EColumn::Num, {{}}}, &pool);
-            }
-        }
 
         AddToPool(srcData.Target, &pool);
 
@@ -886,22 +906,31 @@ namespace NCB {
     }
 
 
-    static constexpr size_t SLICE_COUNT = 512 * 1024;
-
-
-    template <class T>
-    TSrcColumn<T> GenerateSrcColumn(TConstArrayRef<T> data, EColumn columnType) {
-        TSrcColumn<T> dst;
-        dst.Type = columnType;
-
-        for (size_t idx = 0; idx < data.size(); ) {
-            size_t chunkSize = Min(
-                data.size() - idx,
-                SLICE_COUNT
-            );
-            dst.Data.push_back(TVector<T>(data.begin() + idx, data.begin() + idx + chunkSize));
-            idx += chunkSize;
+    template <class TDst, class T, EFeatureValuesType ValuesType>
+    THolder<TSrcColumnBase> GenerateSrcColumn(
+        const IQuantizedFeatureValuesHolder<T, ValuesType>& featureColumn
+    ) {
+        EColumn columnType;
+        switch (featureColumn.GetFeatureType()) {
+            case EFeatureType::Float:
+                columnType = EColumn::Num;
+                break;
+            case EFeatureType::Categorical:
+                columnType = EColumn::Categ;
+                break;
+            default:
+                CB_ENSURE_INTERNAL(false, "Unsupported feature type" << featureColumn.GetFeatureType());
         }
+        THolder<TSrcColumn<TDst>> dst(new TSrcColumn<TDst>(columnType));
+
+        auto srcIteratorPtr = featureColumn.GetBlockIterator();
+        IDynamicBlockIterator<TDst>& srcIterator
+            = dynamic_cast<IDynamicBlockIterator<TDst>&>(*srcIteratorPtr);
+
+        while (auto block = srcIterator.Next(QUANTIZED_POOL_COLUMN_DEFAULT_SLICE_COUNT)) {
+            dst->Data.push_back(TVector<TDst>(block.begin(), block.end()));
+        }
+
         return dst;
     }
 
@@ -916,30 +945,29 @@ namespace NCB {
             dynamic_cast<const TQuantizedObjectsDataProvider*>(dataProvider->ObjectsData.Get());
         CB_ENSURE(quantizedObjectsData, "Pool is not quantized");
 
-        srcData.DocumentCount = dataProvider->GetObjectCount();
-        srcData.ObjectsOrder = quantizedObjectsData->GetOrder();
-
-        TVector<TString> columnNames;
-
-        //groupIds
-        const auto& groupIds = quantizedObjectsData->GetGroupIds();
-        if (groupIds) {
-            srcData.GroupIds = GenerateSrcColumn<TGroupId>(groupIds.GetRef(), EColumn::GroupId);
-            columnNames.push_back("GroupId");
-        }
-
-        //subGroupIds
-        const auto& subGroupIds = quantizedObjectsData->GetSubgroupIds();
-        if (subGroupIds) {
-            srcData.SubgroupIds = GenerateSrcColumn<TSubgroupId>(subGroupIds.GetRef(), EColumn::SubgroupId);
-            columnNames.push_back("SubgroupId");
-        }
-
-        //floatFeatures and quantizationSchema
         const auto& quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
         const auto& featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
 
+        CB_ENSURE(
+            !featuresLayout->GetEmbeddingFeatureCount(),
+            "Quantized pool file format does not support embedding features yet");
+
+        CB_ENSURE(
+            !featuresLayout->GetTextFeatureCount(),
+            "Quantized pool file format does not support text features yet");
+
+
+        srcData.DocumentCount = dataProvider->GetObjectCount();
+        srcData.ObjectsOrder = quantizedObjectsData->GetOrder();
+
+
+        TVector<TString> columnNames;
+
         srcData.PoolQuantizationSchema.ClassLabels = dataProvider->MetaInfo.ClassLabels;
+
+        //features
+        TVector<TString> floatFeatureNames;
+        TVector<TString> catFeatureNames;
 
         for (auto externalFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
             const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(externalFeatureIdx);
@@ -955,15 +983,12 @@ namespace NCB {
                 const auto featureNanMode = quantizedFeaturesInfo->HasNanMode(floatFeatureIdx)
                     ? quantizedFeaturesInfo->GetNanMode(floatFeatureIdx)
                     : ENanMode::Forbidden;
-                srcData.PoolQuantizationSchema.Borders.push_back(std::move(featureBorders));
-                srcData.PoolQuantizationSchema.NanModes.push_back(featureNanMode);
-                srcData.PoolQuantizationSchema.FloatFeatureIndices.push_back(externalFeatureIdx);
 
                 //for floatFeatures
                 TMaybeData<const IQuantizedFloatValuesHolder*> feature =
                     quantizedObjectsData->GetFloatFeature(*floatFeatureIdx);
 
-                TMaybe<TSrcColumn<ui8>> maybeFeatureColumn;
+                THolder<TSrcColumnBase> maybeFeatureColumn;
                 if (feature) {
                     CB_ENSURE(quantizedFeaturesInfo->HasBorders(floatFeatureIdx) &&
                         quantizedFeaturesInfo->HasNanMode(floatFeatureIdx),
@@ -973,11 +998,11 @@ namespace NCB {
                         "GetFloatFeature returned nullptr for feature " << externalFeatureIdx << " which is not ignored");
 
                     //init feature
-                    auto bins = feature.GetRef()->ExtractValues<ui8>(localExecutor);
-                    maybeFeatureColumn = GenerateSrcColumn<ui8>(
-                        MakeArrayRef(bins),
-                        EColumn::Num
-                    );
+                    if (featureBorders.size() > Max<ui8>()) {
+                        maybeFeatureColumn = GenerateSrcColumn<ui16>(**feature);
+                    } else {
+                        maybeFeatureColumn = GenerateSrcColumn<ui8>(**feature);
+                    }
                 } else {
                     /* TODO(akhropov): This should be a valid check but we currently require possibility so save
                      * data without features data but with IsAvailable == true.
@@ -986,12 +1011,87 @@ namespace NCB {
                     //CB_ENSURE_INTERNAL(!featureMetaInfo.IsAvailable, "If GetFloatFeature returns Nothing(), feature must be unavailable");
                 }
 
+                srcData.PoolQuantizationSchema.Borders.push_back(std::move(featureBorders));
+                srcData.PoolQuantizationSchema.NanModes.push_back(featureNanMode);
+                srcData.PoolQuantizationSchema.FloatFeatureIndices.push_back(externalFeatureIdx);
                 srcData.FloatFeatures.push_back(std::move(maybeFeatureColumn));
-                columnNames.push_back(featureMetaInfo.Name);
+                floatFeatureNames.push_back(featureMetaInfo.Name);
             } else {
-                CB_ENSURE(false, "Saving quantization results is supported only for numerical features");
+                Y_ASSERT(featureMetaInfo.Type == EFeatureType::Categorical);
+
+                const auto catFeatureIdx =
+                    featuresLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(externalFeatureIdx);
+
+                const auto& srcCatFeaturePerfectHash =
+                    quantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+
+                TMap<ui32, TValueWithCount> dstCatFeaturePerfectHash = srcCatFeaturePerfectHash.Map;
+                if (srcCatFeaturePerfectHash.DefaultMap.Defined()) {
+                    dstCatFeaturePerfectHash.emplace(
+                        srcCatFeaturePerfectHash.DefaultMap->SrcValue,
+                        srcCatFeaturePerfectHash.DefaultMap->DstValueWithCount
+                   );
+                }
+
+                TMaybeData<const IQuantizedCatValuesHolder*> feature =
+                    quantizedObjectsData->GetCatFeature(*catFeatureIdx);
+
+                THolder<TSrcColumnBase> maybeFeatureColumn;
+                if (feature) {
+                    if (dstCatFeaturePerfectHash.size() > ((size_t)Max<ui16>() + 1)) {
+                        maybeFeatureColumn = GenerateSrcColumn<ui32>(**feature);
+                    } else if (dstCatFeaturePerfectHash.size() > ((size_t)Max<ui8>() + 1)) {
+                        maybeFeatureColumn = GenerateSrcColumn<ui16>(**feature);
+                    } else {
+                        maybeFeatureColumn = GenerateSrcColumn<ui8>(**feature);
+                    }
+                } else {
+                    /* TODO(akhropov): This should be a valid check but we currently require possibility so save
+                     * data without features data but with IsAvailable == true.
+                     * Uncomment after fixing MLTOOLS-3604
+                     */
+                    //CB_ENSURE_INTERNAL(!featureMetaInfo.IsAvailable, "If GetCatFeature returns Nothing(), feature must be unavailable");
+                }
+
+                srcData.PoolQuantizationSchema.CatFeatureIndices.push_back(externalFeatureIdx);
+                srcData.PoolQuantizationSchema.FeaturesPerfectHash.push_back(
+                    std::move(dstCatFeaturePerfectHash)
+                );
+                srcData.CatFeatures.push_back(std::move(maybeFeatureColumn));
+                catFeatureNames.push_back(featureMetaInfo.Name);
             }
         }
+
+        // TODO(akhropov): keep column indices from src raw pool columns metadata
+        TVector<size_t> localIndexToColumnIndex;
+        localIndexToColumnIndex.insert(
+            localIndexToColumnIndex.end(),
+            srcData.PoolQuantizationSchema.FloatFeatureIndices.begin(),
+            srcData.PoolQuantizationSchema.FloatFeatureIndices.end()
+        );
+        localIndexToColumnIndex.insert(
+            localIndexToColumnIndex.end(),
+            srcData.PoolQuantizationSchema.CatFeatureIndices.begin(),
+            srcData.PoolQuantizationSchema.CatFeatureIndices.end()
+        );
+
+        columnNames.insert(columnNames.end(), floatFeatureNames.begin(), floatFeatureNames.end());
+        columnNames.insert(columnNames.end(), catFeatureNames.begin(), catFeatureNames.end());
+
+        //groupIds
+        const auto& groupIds = quantizedObjectsData->GetGroupIds();
+        if (groupIds) {
+            srcData.GroupIds = GenerateSrcColumn<TGroupId>(groupIds.GetRef(), EColumn::GroupId);
+            columnNames.push_back("GroupId");
+        }
+
+        //subGroupIds
+        const auto& subGroupIds = quantizedObjectsData->GetSubgroupIds();
+        if (subGroupIds) {
+            srcData.SubgroupIds = GenerateSrcColumn<TSubgroupId>(subGroupIds.GetRef(), EColumn::SubgroupId);
+            columnNames.push_back("SubgroupId");
+        }
+
         //target
         const ERawTargetType rawTargetType = dataProvider->RawTargetData.GetTargetType();
         switch (rawTargetType) {
@@ -1081,9 +1181,13 @@ namespace NCB {
             columnNames.push_back("GroupWeight");
         }
 
-        //localIndexToColumnIndex
-        TVector<size_t> localIndexToColumnIndex(columnNames.size());
-        std::iota(localIndexToColumnIndex.begin(), localIndexToColumnIndex.end(), 0);
+        // Sequential order after features
+        // TODO(akhropov): keep column indices from src raw pool columns metadata
+        localIndexToColumnIndex.resize(columnNames.size());
+        std::iota(
+            localIndexToColumnIndex.begin() + featuresLayout->GetExternalFeatureCount(),
+            localIndexToColumnIndex.end(),
+            featuresLayout->GetExternalFeatureCount());
 
         //fill other attributes
         srcData.ColumnNames = columnNames;
