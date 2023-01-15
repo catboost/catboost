@@ -14,9 +14,25 @@
 
 using TLogFormatter = std::function<TString(ELogPriority priority, TStringBuf)>;
 
+// Logging facilities interface.
+//
+// ```cpp
+// TLog base;
+// ...
+// auto log = base;
+// log.SetFormatter([reqId](ELogPriority p, TStringBuf msg) {
+//     return TStringBuilder() << "reqid=" << reqId << "; " << msg;
+// });
+//
+// log.Write(TLOG_INFO, "begin");
+// HandleRequest(...);
+// log.Write(TLOG_INFO, "end");
+// ```
+//
+// Users are encouraged to copy `TLog` instance.
 class TLog {
 public:
-    // Construct empty logger all data will be sent to `/dev/null`
+    // Construct empty logger all writes will be spilled.
     TLog();
     // Construct file logger.
     TLog(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY);
@@ -29,29 +45,49 @@ public:
     TLog& operator=(const TLog&);
     TLog& operator=(TLog&&);
 
-    /*
-     * NOT thread-safe
-     */
+    // Change underlying backend.
+    // NOTE: not thread safe.
     void ResetBackend(THolder<TLogBackend> backend) noexcept;
+    // Reset underlying backend, `IsNullLog()` will return `true` after this call.
+    // NOTE: not thread safe.
     THolder<TLogBackend> ReleaseBackend() noexcept;
+    // Check if underlying backend is defined and is not null.
+    // NOTE: not thread safe with respect to `ResetBackend` and `ReleaseBackend`.
     bool IsNullLog() const noexcept;
 
+    // Write message to the log.
+    //
+    // @param[in] priority          Message priority to use.
+    // @param[in] message           Message to write.
+    void Write(ELogPriority priority, TStringBuf message) const;
+    // Write message to the log using `DefaultPriority()`.
     void Write(const char* data, size_t len) const;
+    // Write message to the log, but pass the message in a c-style.
     void Write(ELogPriority priority, const char* data, size_t len) const;
-    void Write(ELogPriority priority, TStringBuf data) const;
-    void Y_PRINTF_FORMAT(2, 3) AddLog(const char* format, ...) const;
+
+    // Write message to the log in a c-like printf style.
     void Y_PRINTF_FORMAT(3, 4) AddLog(ELogPriority priority, const char* format, ...) const;
+    // Write message to the log in a c-like printf style with `DefaultPriority()` priority.
+    void Y_PRINTF_FORMAT(2, 3) AddLog(const char* format, ...) const;
+
+    // Call `ReopenLog()` of the underlying backend.
     void ReopenLog();
+    // Call `ReopenLogNoFlush()` of the underlying backend.
     void ReopenLogNoFlush();
+    // Call `QueueSize()` of the underlying backend.
     size_t BackEndQueueSize() const;
 
-    /*
-     * This affects all write methods without priority argument
-     */
+    // Set log default priority.
+    // NOTE: not thread safe.
     void SetDefaultPriority(ELogPriority priority) noexcept;
+    // Get default priority
     ELogPriority DefaultPriority() const noexcept;
 
+    // Call `FiltrationLevel()` of the underlying backend.
     ELogPriority FiltrationLevel() const noexcept;
+
+    // Set current log formatter.
+    void SetFormatter(TLogFormatter formatter) noexcept;
 
     template <class T>
     inline TLogElement operator<<(const T& t) const {
@@ -59,8 +95,6 @@ public:
         ret << t;
         return ret;
     }
-
-    void SetFormatter(TLogFormatter formatter) noexcept;
 
 public:
     // These methods are deprecated and present here only for compatibility reasons (for 13 years
