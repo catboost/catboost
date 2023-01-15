@@ -143,6 +143,11 @@ void MapBuildPlainFold(TLearnContext* ctx) {
                 .InsertValue("hints", "skip_train~true");
         }
     }
+    if (ctx->Params.DataProcessingOptions->AutoClassWeights.Get() != EAutoClassWeightsType::None) {
+        // avoid issues with validation after deserialization on workers
+        jsonParams["data_processing_options"].EraseValue("auto_class_weights");
+    }
+
     const auto& plainFold = ctx->LearnProgress->Folds[0];
     Y_ASSERT(plainFold.PermutationBlockSize == plainFold.GetLearnSampleCount() ||
         plainFold.PermutationBlockSize == 1);
