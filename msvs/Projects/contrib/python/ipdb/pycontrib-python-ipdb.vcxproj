@@ -78,8 +78,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\3bb5d42471d015e91f636714ec.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\_0ea32455965b116c72de81ef52.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_0ea32455965b116c72de81ef52.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_0ea32455965b116c72de81ef52.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_0ea32455965b116c72de81ef52.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_0ea32455965b116c72de81ef52.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/ipdb/_0ea32455965b116c72de81ef52.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_0ea32455965b116c72de81ef52.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_0ea32455965b116c72de81ef52.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\_3bb5d42471d015e91f636714ec.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
@@ -134,8 +162,39 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_4024bb01423c5270764f600f44.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_4024bb01423c5270764f600f44.py2.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_0ea32455965b116c72de81ef52.yasm" "-" "ipdb.__init__ ipdb.__main__ ipdb.stdout" "_a0cdeacbc22da3049240cd77be.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_0ea32455965b116c72de81ef52.yasm" "-" "ipdb.__init__ ipdb.__main__ ipdb.stdout" "_a0cdeacbc22da3049240cd77be.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/ipdb/_0ea32455965b116c72de81ef52.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_0ea32455965b116c72de81ef52.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp" "_a0cdeacbc22da3049240cd77be=py/no_check_imports/dmmkwu6axsepmrs7s2ne5ddhzi"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/3bb5d42471d015e91f636714ec.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
@@ -153,6 +212,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp" "_a0cdeacbc22da3049240cd77be=py/no_check_imports/dmmkwu6axsepmrs7s2ne5ddhzi"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/3bb5d42471d015e91f636714ec.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
@@ -165,9 +228,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/ipdb/3bb5d42471d015e91f636714ec.cpp	$B/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp	</Message>
+      <Message>$B/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp	$B/contrib/python/ipdb/3bb5d42471d015e91f636714ec.cpp	$B/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\3bb5d42471d015e91f636714ec.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\3bb5d42471d015e91f636714ec.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
