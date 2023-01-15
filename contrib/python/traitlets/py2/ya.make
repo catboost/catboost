@@ -1,4 +1,4 @@
-PY23_LIBRARY()
+PY2_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
@@ -8,13 +8,8 @@ PROVIDES(python_traitlets)
 
 
 
-IF(PYTHON2)
-    PEERDIR(
-        contrib/python/enum34
-    )
-ENDIF()
-
 PEERDIR(
+    contrib/python/enum34
     contrib/python/decorator
     contrib/python/ipython_genutils
     contrib/python/six
