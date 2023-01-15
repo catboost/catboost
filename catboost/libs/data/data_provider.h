@@ -32,7 +32,7 @@ namespace NCB {
     using TRawBuilderData = TBuilderData<TRawObjectsData>;
     using TQuantizedBuilderData = TBuilderData<TQuantizedObjectsData>;
     using TQuantizedForCPUBuilderData = TBuilderData<TQuantizedForCPUObjectsData>;
-    
+
     TQuantizedBuilderData CastToBase(TQuantizedForCPUBuilderData&& builderData);
 
 

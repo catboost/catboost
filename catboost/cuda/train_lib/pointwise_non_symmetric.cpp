@@ -13,7 +13,7 @@ namespace NCatboostCuda {
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLoglossLossguide(GetTrainerFactoryKey(ELossFunction::Logloss, EGrowPolicy::Lossguide));
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropyLossguide(GetTrainerFactoryKey(ELossFunction::CrossEntropy, EGrowPolicy::Lossguide));
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorExpectileLossguide(GetTrainerFactoryKey(ELossFunction::Expectile, EGrowPolicy::Lossguide));
-    
+
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoissonDepthwise(GetTrainerFactoryKey(ELossFunction::Poisson, EGrowPolicy::Depthwise));
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMapeDepthwise(GetTrainerFactoryKey(ELossFunction::MAPE, EGrowPolicy::Depthwise));
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMaeDepthwise(GetTrainerFactoryKey(ELossFunction::MAE, EGrowPolicy::Depthwise));

@@ -400,7 +400,7 @@ static void InitPreparedTrees(
     ECalcTypeShapValues calcType,
     EExplainableModelOutput modelOutputType,
     NPar::TLocalExecutor* localExecutor,
-    TShapPreparedTrees* preparedTrees 
+    TShapPreparedTrees* preparedTrees
 ) {
     const size_t treeCount = model.GetTreeCount();
     // use only if model.ModelTrees->LeafWeights is empty

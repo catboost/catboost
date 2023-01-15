@@ -15,7 +15,7 @@ void PostProcessingIndependent(
     size_t documentIdx,
     bool calcInternalValues,
     double bias,
-    TVector<TVector<double>>* shapValues  
+    TVector<TVector<double>>* shapValues
 );
 
 void AddValuesToShapValuesByAllReferences(
