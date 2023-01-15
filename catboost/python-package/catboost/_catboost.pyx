@@ -33,6 +33,7 @@ from cython.operator cimport dereference, preincrement
 
 from libc.math cimport isnan, modf
 from libc.stdint cimport uint32_t, uint64_t
+from libc.string cimport memcpy
 from libcpp cimport bool as bool_t
 from libcpp cimport nullptr
 from libcpp.map cimport map as cmap
@@ -1110,6 +1111,7 @@ cdef extern from "catboost/libs/model/model.h":
         bool_t operator==(const TFullModel& other) except +ProcessException
         bool_t operator!=(const TFullModel& other) except +ProcessException
 
+        void Load(IInputStream* stream) except +ProcessException
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
         size_t GetDimensionsCount() nogil except +ProcessException
@@ -1176,6 +1178,10 @@ cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
 cdef extern from "library/cpp/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
+
+cdef extern from "util/stream/input.h":
+    cdef cppclass IInputStream:
+        size_t Read(void* buf, size_t len) except +ProcessException
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
@@ -1639,6 +1645,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         bool_t hasCatFeatures,
         bool_t hasTextFeatures
     ) nogil except +ProcessException
+
+    cdef cppclass TPythonStreamWrapper(IInputStream):
+        TPythonStreamWrapper() except +ProcessException
+        TPythonStreamWrapper(size_t (*readFunc)(char* target, size_t len)) except +ProcessException
 
 cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFeatureStatistics:
@@ -5066,6 +5076,13 @@ cdef class _CatBoost:
     cpdef _base_drop_unused_features(self):
         self.__model.ModelTrees.GetMutable().DropUnusedFeatures()
 
+    cpdef _load_from_stream(self, stream):
+        _set_file_stream(stream)
+        cdef TPythonStreamWrapper wrapper = TPythonStreamWrapper(python_stream_read_func)
+        cdef TFullModel tmp_model
+        tmp_model.Load(&wrapper)
+        self.__model.Swap(tmp_model)
+
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
@@ -5953,6 +5970,27 @@ cpdef _configure_malloc():
 
 cpdef _library_init():
     LibraryInit()
+
+
+cpdef _set_file_stream(stream):
+    global current_file_stream
+    current_file_stream = stream
+
+
+cdef size_t python_stream_read_func(char* whereToWrite, size_t bufLen):
+    global current_file_stream
+    BUF_SIZE = 16 * 1024
+    cdef size_t total_read  = 0
+    while bufLen > 0:
+        curr_read_size = min(BUF_SIZE, bufLen)
+        tmp_str = current_file_stream.read(curr_read_size)
+        total_read += len(tmp_str)
+        if len(tmp_str) == 0:
+            return total_read
+        memcpy(whereToWrite, <char*>tmp_str, len(tmp_str))
+        whereToWrite += len(tmp_str)
+        bufLen -= len(tmp_str)
+    return total_read
 
 
 cpdef compute_wx_test(baseline, test):
