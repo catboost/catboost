@@ -10,3 +10,4 @@ int mode_roc(int argc, const char* argv[]);
 int mode_model_sum(int argc, const char* argv[]);
 int mode_model_based_eval(int argc, const char* argv[]);
 int mode_select_features(int argc, const char* argv[]);
+int mode_dump_options(int argc, const char* argv[]);
