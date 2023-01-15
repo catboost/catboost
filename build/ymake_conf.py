@@ -2638,10 +2638,10 @@ class Cuda(object):
         if host != target:
             return False
 
-        if self.cuda_version.value in ('9.0', '9.1', '9.2', '10.0', '10.1'):
-            return True
+        if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2'):
+            raise ConfigureError('CUDA versions 8.x and 9.x are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
+        if self.cuda_version.value in ('10.0', '10.1'):
             return True
 
         return False
