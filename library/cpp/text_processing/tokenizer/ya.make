@@ -10,7 +10,7 @@ SRCS(
 
 PEERDIR(
     library/cpp/json
-    library/langs
+    library/cpp/langs
     library/object_factory
     library/cpp/tokenizer
 )

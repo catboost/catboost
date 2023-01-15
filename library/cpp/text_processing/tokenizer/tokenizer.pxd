@@ -10,7 +10,7 @@ cdef extern from "util/generic/hash.h" nogil:
         void clear() except +
 
 
-cdef extern from "library/langs/langs.h" nogil:
+cdef extern from "library/cpp/langs/langs.h" nogil:
     cdef cppclass ELanguage:
         pass
 

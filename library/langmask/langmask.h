@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/cpp/enumbitset/enumbitset.h>
-#include <library/langs/langs.h>
+#include <library/cpp/langs/langs.h>
 
 #include <util/generic/fwd.h>
 

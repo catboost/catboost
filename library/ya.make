@@ -7,8 +7,6 @@ RECURSE(
     langmask/python
     langmask/serialization
     langmask/ut
-    langs
-    langs/ut
     linear_regression
     linear_regression/benchmark
     linear_regression/ut
