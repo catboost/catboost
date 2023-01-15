@@ -7004,20 +7004,6 @@
         }
     },
     "bottles": {
-        "msvc2017": {
-            "formula": {
-                "sandbox_id": 623175770,
-                "match": "2017"
-            },
-            "executable": {
-                "msvc": [
-                    "bin",
-                    "Hostx64",
-                    "x64",
-                    "cl.exe"
-                ]
-            }
-        },
         "msvc2019": {
             "formula": {
                 "sandbox_id": 887495315,
