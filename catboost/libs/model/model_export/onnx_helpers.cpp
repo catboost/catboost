@@ -700,7 +700,7 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
 static int GetFloatFeatureCount(const onnx::GraphProto& onnxGraph) {
     const auto valueInfo = onnxGraph.input()[0];
     CB_ENSURE(valueInfo.type().tensor_type().shape().dimSize() == 2,
-        "Dimemsion must have format 'FloatTensorType'[0, featuresCount]");
+        "Dimension must have format 'FloatTensorType'[0, featuresCount]");
     const int featuresCount = valueInfo.type().tensor_type().shape().dim(1).dim_value();
     CB_ENSURE(featuresCount >= 1, "Count of features must be greater than one");
     return featuresCount;
