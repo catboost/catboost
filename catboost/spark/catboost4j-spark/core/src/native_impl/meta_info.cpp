@@ -44,7 +44,7 @@ struct TOneLineReader final : public ILineDataReader {
         , DataLine(singleDataLine)
     {}
 
-    ui64 GetDataLineCount() override {
+    ui64 GetDataLineCount(bool /*estimate*/) override {
         return 1;
     }
 
@@ -52,17 +52,20 @@ struct TOneLineReader final : public ILineDataReader {
         return Header;
     }
 
-    bool ReadLine(TString* line) override {
+    bool ReadLine(TString* line, ui64* lineIdx) override {
         if (DataLineProcessed) {
             return false;
         } else {
+            if (lineIdx) {
+                *lineIdx = 0;
+            }
             *line = std::move(DataLine);
             DataLineProcessed = true;
             return true;
         }
     }
 
-    bool ReadLine(TString*, TString*) override {
+    bool ReadLine(TString*, TString*, ui64*) override {
         Y_UNREACHABLE();
     }
 private:
