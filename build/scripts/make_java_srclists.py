@@ -3,6 +3,7 @@ import sys
 import argparse
 
 import process_command_files as pcf
+import java_pack_to_file as jcov
 
 
 def writelines(f, rng):
@@ -15,11 +16,14 @@ def main():
     parser.add_argument('--java')
     parser.add_argument('--groovy')
     parser.add_argument('--kotlin')
+    parser.add_argument('--coverage')
+    parser.add_argument('--source-root')
     args, remaining_args = parser.parse_known_args(args)
 
     java = []
     kotlin = []
     groovy = []
+    coverage = []
 
     cur_resources_list_file = None
     cur_srcdir = None
@@ -45,6 +49,10 @@ def main():
 
         if src.endswith(".java"):
             java.append(src)
+            if args.coverage and args.source_root:
+                rel = os.path.relpath(src, args.source_root)
+                if not rel.startswith('..' + os.path.sep):
+                    coverage.append(rel)
         elif src.endswith(".kt"):
             kotlin.append(src)
         elif src.endswith(".groovy"):
@@ -77,6 +85,8 @@ def main():
     if args.groovy:
         with open(args.groovy, 'w') as f:
             writelines(f, groovy)
+    if args.coverage:
+        jcov.write_coverage_sources(args.coverage, args.source_root, coverage)
 
     return 0
 

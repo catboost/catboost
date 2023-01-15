@@ -20,13 +20,16 @@ def get_package_name(filename):
     return ''
 
 
+def write_coverage_sources(output, srcroot, files):
+    with open(output, 'w') as afile:
+        for filename in files:
+            pname = get_package_name(os.path.join(srcroot, filename))
+            afile.write(os.path.join(pname, os.path.basename(filename)) + ':' + filename + '\n')
+
+
 def main():
     opts, files = parse_args()
-
-    with open(opts.output, 'w') as afile:
-        for filename in files:
-            pname = get_package_name(os.path.join(opts.source_root, filename))
-            afile.write(os.path.join(pname, os.path.basename(filename)) + ':' + filename + '\n')
+    write_coverage_sources(opts.output, opts.source_root, files)
 
 
 if __name__ == '__main__':
