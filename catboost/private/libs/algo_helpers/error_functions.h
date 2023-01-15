@@ -1110,7 +1110,7 @@ private:
         return TopSize;
     }
 
-    double IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
+    double CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
 };
 
 class TStochasticRankError final : public IDerCalcer {

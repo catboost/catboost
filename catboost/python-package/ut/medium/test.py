@@ -5897,6 +5897,12 @@ class TestUseWeights(object):
         assert use_weights_has_effect, "param `use_weights` has no effect\n\teval_metrics={}".format(eval_metrics)
 
 
+def test_lambda_mart():
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    cb = CatBoostRanker(loss_function='LambdaMart', iterations=3, devices='0')
+    cb.fit(pool)
+
+
 @pytest.mark.parametrize('param_type', ['indices', 'strings'])
 def test_set_cat_features_in_init(param_type):
     if param_type == 'indices':

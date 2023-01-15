@@ -183,9 +183,10 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::LambdaMart: {
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultL2Reg = 0;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultGradientIterations = 1;
-            // doesn't have Newton
+            defaultNewtonIterations = 1;
             break;
         }
         case ELossFunction::StochasticRank: {
@@ -550,7 +551,6 @@ static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::
     const auto lossFunction = lossDescription.GetLossFunction();
     CB_ENSURE(
         lossFunction != ELossFunction::StochasticFilter &&
-        lossFunction != ELossFunction::LambdaMart &&
         lossFunction != ELossFunction::StochasticRank &&
         lossFunction != ELossFunction::Quantile &&
         lossFunction != ELossFunction::MAE &&
@@ -825,8 +825,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         case ELossFunction::LambdaMart: {
             NCatboostOptions::TLossDescription lossDescription;
             const auto& lossParams = LossFunctionDescription->GetLossParamsMap();
-            CB_ENSURE(lossParams.contains("metric"), "LambdaMart requires metric param");
-            ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            ELossFunction targetMetric = lossParams.contains("metric") ? FromString<ELossFunction>(lossParams.at("metric")) : ELossFunction::NDCG;
             TVector<std::pair<TString, TString>> metricParams;
             TSet<TString> validParams;
             switch (targetMetric) {

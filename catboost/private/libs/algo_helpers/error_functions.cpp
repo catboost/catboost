@@ -416,7 +416,7 @@ void TSurvivalAftError::CalcDers(
 
         firstDerNumerator = pdfDiff;
         firstDerDenominator = Scale * cdfDiff;
-        
+
         if (der2 != nullptr) {
             Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
                         der2->ApproxDimension == approx.ysize());
@@ -435,7 +435,7 @@ void TSurvivalAftError::CalcDers(
         (*der)[0] = target_sign ? minDer1 : maxDer1;
     }
     (*der)[0] = -ClipDerivatives((*der)[0], TDerivativeConstants::MinFirstDer, TDerivativeConstants::MaxFirstDer);
-        
+
     if (der2 != nullptr) {
         der2->Data[0] = secondDerNumerator / secondDerDenominator;
         if (secondDerDenominator < TDerivativeConstants::Epsilon && (IsNan(der2->Data[0]) || !IsFinite(der2->Data[0]))) {
@@ -607,15 +607,15 @@ void TLambdaMartError::CalcDersForSingleQuery(
     Y_ASSERT(targets.size() == count);
     Y_ASSERT(ders.size() == count);
 
+    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
+
     if (count <= 1) {
         return;
     }
 
     const size_t queryTopSize = GetQueryTopSize(count);
 
-    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
-
-    double idealScore = IdealMetric(targets, queryTopSize);
+    const double idealScore = CalcIdealMetric(targets, queryTopSize);
 
     TVector<size_t> order(count);
     Iota(order.begin(), order.end(), 0);
@@ -623,45 +623,44 @@ void TLambdaMartError::CalcDersForSingleQuery(
         return approxes[a] > approxes[b];
     });
 
-    const double maxScore = approxes[order[0]];
-    const double minScore = approxes[order[count - 1]];
+    const bool isApproxesSame = (approxes[order[0]] == approxes[order[count - 1]]);
 
     double sumDer1 = 0.0;
 
     for (size_t firstId = 0; firstId < count; ++firstId) {
-        size_t boundForSecond = firstId < queryTopSize ? count : queryTopSize;
-        for (size_t secondId = 0; secondId < boundForSecond; ++secondId) {
+        size_t boundForSecondId = firstId < queryTopSize ? count : queryTopSize;
+        for (size_t secondId = 0; secondId < boundForSecondId; ++secondId) {
 
-            double firstTarget = targets[order[firstId]];
-            double secondTarget = targets[order[secondId]];
+            const double firstTarget = targets[order[firstId]];
+            const double secondTarget = targets[order[secondId]];
 
             if (firstTarget <= secondTarget) {
                 continue;
             }
 
-            double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
+            const double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
 
-            double dcgNum = CalcNumerator(firstTarget) - CalcNumerator(secondTarget);
-            double dcgDen = std::abs(1.0 / CalcDenominator(firstId) -
+            const double dcgNum = CalcNumerator(firstTarget) - CalcNumerator(secondTarget);
+            const double dcgDen = std::abs(1.0 / CalcDenominator(firstId) -
                                      1.0 / CalcDenominator(secondId));
 
             double delta = dcgNum * dcgDen / idealScore;
 
-            if (Norm && maxScore != minScore) {
+            if (Norm && !isApproxesSame) {
                 delta /= 0.01 + std::abs(approxDiff);
             }
 
-            double coeff = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
-            double hessian = coeff * (1 - coeff);
-            coeff *=  - Sigma * delta;
+            double antigrad = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
+            double hessian = antigrad * (1 - antigrad);
+            antigrad *=  - Sigma * delta;
             hessian *= Sigma * Sigma * delta;
 
-            ders[order[firstId]].Der1 += coeff;
+            ders[order[firstId]].Der1 += antigrad;
             ders[order[firstId]].Der2 += hessian;
-            ders[order[secondId]].Der1 -= coeff;
+            ders[order[secondId]].Der1 -= antigrad;
             ders[order[secondId]].Der2 += hessian;
 
-            sumDer1 -= 2 * coeff;
+            sumDer1 -= 2 * antigrad;
         }
     }
     if (Norm && sumDer1 > 0) {
@@ -673,7 +672,7 @@ void TLambdaMartError::CalcDersForSingleQuery(
     }
 }
 
-double TLambdaMartError::IdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
+double TLambdaMartError::CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
     double score = 0;
     TVector<float> sortedTargets(target.begin(), target.end());
     Sort(sortedTargets, [](float a, float b) {
