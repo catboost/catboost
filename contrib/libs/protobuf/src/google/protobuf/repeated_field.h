@@ -49,7 +49,6 @@
 #include <algorithm>
 #include <iterator>
 #include <limits>
-#include <util/generic/algorithm.h>
 #include <google/protobuf/stubs/casts.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
