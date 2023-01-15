@@ -42,6 +42,12 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             defaultGradientIterations = 1;
             break;
         }
+       case ELossFunction::MultiRMSEWithMissingValues: {
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::SurvivalAft: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
@@ -448,7 +454,7 @@ static void ValidateCtrTargetBinarization(
         CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
                       lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass ||
-                      lossFunction == ELossFunction::MultiRMSE || lossFunction == ELossFunction::SurvivalAft,
+                      lossFunction == ELossFunction::MultiRMSE || lossFunction == ELossFunction::MultiRMSEWithMissingValues || lossFunction == ELossFunction::SurvivalAft,
                   "Setting TargetBorderCount is not supported for loss function " << lossFunction);
     }
 }
@@ -667,9 +673,9 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         // we may adjust non-set BoostFromAverage in data dependant tuning
         CB_ENSURE(EqualToOneOf(lossFunction, ELossFunction::RMSE, ELossFunction::Logloss,
             ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE,
-            ELossFunction::MultiRMSE),
+            ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues),
             "You can use boost_from_average only for these loss functions now: " <<
-            "RMSE, Logloss, CrossEntropy, Quantile, MAE, MAPE or MultiRMSE.");
+            "RMSE, Logloss, CrossEntropy, Quantile, MAE, MAPE, MultiRMSE or MultiRMSEWithMissingValues.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
     }
 
