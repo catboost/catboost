@@ -108,6 +108,7 @@
   - nlist.h
   - objc/runtime.h
   - os/lock.h
+  - os/trace.h
   - panel.h
   - pthread_spis.h
   - readline/history.h
