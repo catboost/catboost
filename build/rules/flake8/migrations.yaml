@@ -1639,7 +1639,6 @@ migrations:
     - market/yamarec/yamarec/yamarec1/tasks
     - mds/elliptics/bin/dnet_cache_balancer
     - mds/walle_cms/cms/lib
-    - mds/walle_cms/cms/lib/cms
     - metrika/admin/brb/server/lib
     - metrika/admin/maas/bin/backend
     - metrika/admin/maas/bin/monitoring/maas_instances_memory
