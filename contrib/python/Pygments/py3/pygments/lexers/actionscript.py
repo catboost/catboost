@@ -25,7 +25,7 @@ class ActionScriptLexer(RegexLexer):
     """
 
     name = 'ActionScript'
-    aliases = ['as', 'actionscript']
+    aliases = ['actionscript', 'as']
     filenames = ['*.as']
     mimetypes = ['application/x-actionscript', 'text/x-actionscript',
                  'text/actionscript']
@@ -123,7 +123,7 @@ class ActionScript3Lexer(RegexLexer):
     """
 
     name = 'ActionScript 3'
-    aliases = ['as3', 'actionscript3']
+    aliases = ['actionscript3', 'as3']
     filenames = ['*.as']
     mimetypes = ['application/x-actionscript3', 'text/x-actionscript3',
                  'text/actionscript3']

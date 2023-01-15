@@ -168,9 +168,9 @@ class MoonScriptLexer(LuaLexer):
     .. versionadded:: 1.5
     """
 
-    name = "MoonScript"
-    aliases = ["moon", "moonscript"]
-    filenames = ["*.moon"]
+    name = 'MoonScript'
+    aliases = ['moonscript', 'moon']
+    filenames = ['*.moon']
     mimetypes = ['text/x-moonscript', 'application/x-moonscript']
 
     tokens = {
@@ -237,7 +237,7 @@ class ChaiscriptLexer(RegexLexer):
     """
 
     name = 'ChaiScript'
-    aliases = ['chai', 'chaiscript']
+    aliases = ['chaiscript', 'chai']
     filenames = ['*.chai']
     mimetypes = ['text/x-chaiscript', 'application/x-chaiscript']
 
@@ -1236,9 +1236,9 @@ class MiniScriptLexer(RegexLexer):
     .. versionadded:: 2.6
     """
 
-    name = "MiniScript"
-    aliases = ["ms", "miniscript"]
-    filenames = ["*.ms"]
+    name = 'MiniScript'
+    aliases = ['miniscript', 'ms']
+    filenames = ['*.ms']
     mimetypes = ['text/x-minicript', 'application/x-miniscript']
 
     tokens = {

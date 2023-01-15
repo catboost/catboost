@@ -15,12 +15,16 @@ from pygments.lexer import Lexer, RegexLexer, bygroups, do_insertions, \
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Generic
 from pygments.util import shebang_matches
+from pygments.lexers._julia_builtins import OPERATORS_LIST, DOTTED_OPERATORS_LIST, \
+    KEYWORD_LIST, BUILTIN_LIST, LITERAL_LIST
 
 __all__ = ['JuliaLexer', 'JuliaConsoleLexer']
 
+# see https://docs.julialang.org/en/v1/manual/variables/#Allowed-Variable-Names
 allowed_variable = \
-    '(?:[a-zA-Z_\u00A1-\U0010ffff]|%s)(?:[a-zA-Z_0-9\u00A1-\U0010ffff])*!*'
-
+    '(?:[a-zA-Z_\u00A1-\U0010ffff][a-zA-Z_0-9!\u00A1-\U0010ffff]*)'
+# see https://github.com/JuliaLang/julia/blob/master/src/flisp/julia_opsuffs.h
+operator_suffixes = r'[²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁᵂᵃᵇᵈᵉᵍᵏᵐᵒᵖᵗᵘᵛᵝᵞᵟᵠᵡᵢᵣᵤᵥᵦᵧᵨᵩᵪᶜᶠᶥᶦᶫᶰᶸᶻᶿ′″‴‵‶‷⁗⁰ⁱ⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₕₖₗₘₙₚₛₜⱼⱽ]*'
 
 class JuliaLexer(RegexLexer):
     """
@@ -42,21 +46,35 @@ class JuliaLexer(RegexLexer):
             (r'[^\S\n]+', Text),
             (r'#=', Comment.Multiline, "blockcomment"),
             (r'#.*$', Comment),
-            (r'[\[\]{}(),;]', Punctuation),
+            (r'[\[\](),;]', Punctuation),
 
-            # keywords
-            (r'in\b', Keyword.Pseudo),
-            (r'isa\b', Keyword.Pseudo),
-            (r'(true|false)\b', Keyword.Constant),
-            (r'(local|global|const)\b', Keyword.Declaration),
-            (words([
-                'function', 'type', 'typealias', 'abstract', 'immutable',
-                'baremodule', 'begin', 'bitstype', 'break', 'catch', 'ccall',
-                'continue', 'do', 'else', 'elseif', 'end', 'export', 'finally',
-                'for', 'if', 'import', 'importall', 'let', 'macro', 'module',
-                'mutable', 'primitive', 'quote', 'return', 'struct', 'try',
-                'using', 'while'],
-                suffix=r'\b'), Keyword),
+            # symbols
+            #   intercept range expressions first
+            (r'(' + allowed_variable + r')(\s*)(:)(' + allowed_variable + ')',
+                bygroups(Name, Text, Operator, Name)),
+            #   then match :name which does not follow closing brackets, digits, or the
+            #   ::, <:, and :> operators
+            (r'(?<![\]):<>\d.])(:' + allowed_variable + ')', String.Symbol),
+
+            # type assertions - excludes expressions like ::typeof(sin) and ::avec[1]
+            (r'(?<=::)(\s*)(' + allowed_variable + r')\b(?![(\[])', bygroups(Text, Keyword.Type)),
+            # type comparisons
+            # - MyType <: A or MyType >: A
+            ('(' + allowed_variable + r')(\s*)([<>]:)(\s*)(' + allowed_variable + r')\b(?![(\[])',
+                bygroups(Keyword.Type, Text, Operator, Text, Keyword.Type)),
+            # - <: B or >: B
+            (r'([<>]:)(\s*)(' + allowed_variable + r')\b(?![(\[])',
+                bygroups(Operator, Text, Keyword.Type)),
+            # - A <: or A >:
+            (r'\b(' + allowed_variable + r')(\s*)([<>]:)',
+                bygroups(Keyword.Type, Text, Operator)),
+
+            # operators
+            # Suffixes aren't actually allowed on all operators, but we'll ignore that
+            # since those cases are invalid Julia code.
+            (words([*OPERATORS_LIST, *DOTTED_OPERATORS_LIST], suffix=operator_suffixes), Operator),
+            (words(['.' + o for o in DOTTED_OPERATORS_LIST], suffix=operator_suffixes), Operator),
+            (words(['...', '..']), Operator),
 
             # NOTE
             # Patterns below work only for definition sites and thus hardly reliable.
@@ -64,160 +82,67 @@ class JuliaLexer(RegexLexer):
             # functions
             # (r'(function)(\s+)(' + allowed_variable + ')',
             #  bygroups(Keyword, Text, Name.Function)),
-            #
-            # types
-            # (r'(type|typealias|abstract|immutable)(\s+)(' + allowed_variable + ')',
-            #  bygroups(Keyword, Text, Name.Class)),
-
-            # type names
-            (words([
-                'ANY', 'ASCIIString', 'AbstractArray', 'AbstractChannel',
-                'AbstractFloat', 'AbstractMatrix', 'AbstractRNG',
-                'AbstractSparseArray', 'AbstractSparseMatrix',
-                'AbstractSparseVector', 'AbstractString', 'AbstractVecOrMat',
-                'AbstractVector', 'Any', 'ArgumentError', 'Array',
-                'AssertionError', 'Associative', 'Base64DecodePipe',
-                'Base64EncodePipe', 'Bidiagonal', 'BigFloat', 'BigInt',
-                'BitArray', 'BitMatrix', 'BitVector', 'Bool', 'BoundsError',
-                'Box', 'BufferStream', 'CapturedException', 'CartesianIndex',
-                'CartesianRange', 'Cchar', 'Cdouble', 'Cfloat', 'Channel',
-                'Char', 'Cint', 'Cintmax_t', 'Clong', 'Clonglong',
-                'ClusterManager', 'Cmd', 'Coff_t', 'Colon', 'Complex',
-                'Complex128', 'Complex32', 'Complex64', 'CompositeException',
-                'Condition', 'Cptrdiff_t', 'Cshort', 'Csize_t', 'Cssize_t',
-                'Cstring', 'Cuchar', 'Cuint', 'Cuintmax_t', 'Culong',
-                'Culonglong', 'Cushort', 'Cwchar_t', 'Cwstring', 'DataType',
-                'Date', 'DateTime', 'DenseArray', 'DenseMatrix',
-                'DenseVecOrMat', 'DenseVector', 'Diagonal', 'Dict',
-                'DimensionMismatch', 'Dims', 'DirectIndexString', 'Display',
-                'DivideError', 'DomainError', 'EOFError', 'EachLine', 'Enum',
-                'Enumerate', 'ErrorException', 'Exception', 'Expr',
-                'Factorization', 'FileMonitor', 'FileOffset', 'Filter',
-                'Float16', 'Float32', 'Float64', 'FloatRange', 'Function',
-                'GenSym', 'GlobalRef', 'GotoNode', 'HTML', 'Hermitian', 'IO',
-                'IOBuffer', 'IOStream', 'IPv4', 'IPv6', 'InexactError',
-                'InitError', 'Int', 'Int128', 'Int16', 'Int32', 'Int64', 'Int8',
-                'IntSet', 'Integer', 'InterruptException', 'IntrinsicFunction',
-                'InvalidStateException', 'Irrational', 'KeyError', 'LabelNode',
-                'LambdaStaticData', 'LinSpace', 'LineNumberNode', 'LoadError',
-                'LocalProcess', 'LowerTriangular', 'MIME', 'Matrix',
-                'MersenneTwister', 'Method', 'MethodError', 'MethodTable',
-                'Module', 'NTuple', 'NewvarNode', 'NullException', 'Nullable',
-                'Number', 'ObjectIdDict', 'OrdinalRange', 'OutOfMemoryError',
-                'OverflowError', 'Pair', 'ParseError', 'PartialQuickSort',
-                'Pipe', 'PollingFileWatcher', 'ProcessExitedException',
-                'ProcessGroup', 'Ptr', 'QuoteNode', 'RandomDevice', 'Range',
-                'Rational', 'RawFD', 'ReadOnlyMemoryError', 'Real',
-                'ReentrantLock', 'Ref', 'Regex', 'RegexMatch',
-                'RemoteException', 'RemoteRef', 'RepString', 'RevString',
-                'RopeString', 'RoundingMode', 'SegmentationFault',
-                'SerializationState', 'Set', 'SharedArray', 'SharedMatrix',
-                'SharedVector', 'Signed', 'SimpleVector', 'SparseMatrixCSC',
-                'StackOverflowError', 'StatStruct', 'StepRange', 'StridedArray',
-                'StridedMatrix', 'StridedVecOrMat', 'StridedVector', 'SubArray',
-                'SubString', 'SymTridiagonal', 'Symbol', 'SymbolNode',
-                'Symmetric', 'SystemError', 'TCPSocket', 'Task', 'Text',
-                'TextDisplay', 'Timer', 'TopNode', 'Tridiagonal', 'Tuple',
-                'Type', 'TypeConstructor', 'TypeError', 'TypeName', 'TypeVar',
-                'UDPSocket', 'UInt', 'UInt128', 'UInt16', 'UInt32', 'UInt64',
-                'UInt8', 'UTF16String', 'UTF32String', 'UTF8String',
-                'UndefRefError', 'UndefVarError', 'UnicodeError', 'UniformScaling',
-                'Union', 'UnitRange', 'Unsigned', 'UpperTriangular', 'Val',
-                'Vararg', 'VecOrMat', 'Vector', 'VersionNumber', 'Void', 'WString',
-                'WeakKeyDict', 'WeakRef', 'WorkerConfig', 'Zip'], suffix=r'\b'),
-                Keyword.Type),
-
-            # builtins
-            (words([
-                'ARGS', 'CPU_CORES', 'C_NULL', 'DevNull', 'ENDIAN_BOM',
-                'ENV', 'I', 'Inf', 'Inf16', 'Inf32', 'Inf64',
-                'InsertionSort', 'JULIA_HOME', 'LOAD_PATH', 'MergeSort',
-                'NaN', 'NaN16', 'NaN32', 'NaN64', 'OS_NAME',
-                'QuickSort', 'RoundDown', 'RoundFromZero', 'RoundNearest',
-                'RoundNearestTiesAway', 'RoundNearestTiesUp',
-                'RoundToZero', 'RoundUp', 'STDERR', 'STDIN', 'STDOUT',
-                'VERSION', 'WORD_SIZE', 'catalan', 'e', 'eu',
-                'eulergamma', 'golden', 'im', 'nothing', 'pi', 'γ', 'π', 'φ'],
-                suffix=r'\b'), Name.Builtin),
-
-            # operators
-            # see: https://github.com/JuliaLang/julia/blob/master/src/julia-parser.scm
-            (words((
-                # prec-assignment
-                '=', ':=', '+=', '-=', '*=', '/=', '//=', './/=', '.*=', './=',
-                '\\=', '.\\=', '^=', '.^=', '÷=', '.÷=', '%=', '.%=', '|=', '&=',
-                '$=', '=>', '<<=', '>>=', '>>>=', '~', '.+=', '.-=',
-                # prec-conditional
-                '?',
-                # prec-arrow
-                '--', '-->',
-                # prec-lazy-or
-                '||',
-                # prec-lazy-and
-                '&&',
-                # prec-comparison
-                '>', '<', '>=', '≥', '<=', '≤', '==', '===', '≡', '!=', '≠',
-                '!==', '≢', '.>', '.<', '.>=', '.≥', '.<=', '.≤', '.==', '.!=',
-                '.≠', '.=', '.!', '<:', '>:', '∈', '∉', '∋', '∌', '⊆',
-                '⊈', '⊂',
-                '⊄', '⊊',
-                # prec-pipe
-                '|>', '<|',
-                # prec-colon
-                ':',
-                # prec-plus
-                '.+', '.-', '|', '∪', '$',
-                # prec-bitshift
-                '<<', '>>', '>>>', '.<<', '.>>', '.>>>',
-                # prec-times
-                '*', '/', './', '÷', '.÷', '%', '⋅', '.%', '.*', '\\', '.\\', '&', '∩',
-                # prec-rational
-                '//', './/',
-                # prec-power
-                '^', '.^',
-                # prec-decl
-                '::',
-                # prec-dot
-                '.',
-                # unary op
-                '+', '-', '!', '√', '∛', '∜',
-            )), Operator),
 
             # chars
             (r"'(\\.|\\[0-7]{1,3}|\\x[a-fA-F0-9]{1,3}|\\u[a-fA-F0-9]{1,4}|"
              r"\\U[a-fA-F0-9]{1,6}|[^\\\'\n])'", String.Char),
 
             # try to match trailing transpose
-            (r'(?<=[.\w)\]])\'+', Operator),
+            (r'(?<=[.\w)\]])(\'' + operator_suffixes + ')+', Operator),
 
-            # strings
-            (r'"""', String, 'tqstring'),
-            (r'"', String, 'string'),
-
+            # raw strings
+            (r'(raw)(""")', bygroups(String.Affix, String), 'tqrawstring'),
+            (r'(raw)(")', bygroups(String.Affix, String), 'rawstring'),
             # regular expressions
-            (r'r"""', String.Regex, 'tqregex'),
-            (r'r"', String.Regex, 'regex'),
+            (r'(r)(""")', bygroups(String.Affix, String.Regex), 'tqregex'),
+            (r'(r)(")', bygroups(String.Affix, String.Regex), 'regex'),
+            # other strings
+            (r'(' + allowed_variable + ')?(""")', bygroups(String.Affix, String), 'tqstring'),
+            (r'(' + allowed_variable + ')?(")', bygroups(String.Affix, String), 'string'),
 
             # backticks
-            (r'`', String.Backtick, 'command'),
+            (r'(' + allowed_variable + ')?(```)', bygroups(String.Affix, String.Backtick), 'tqcommand'),
+            (r'(' + allowed_variable + ')?(`)', bygroups(String.Affix, String.Backtick), 'command'),
+
+            # type names
+            # - names that begin a curly expression
+            ('(' + allowed_variable + r')(\{)',
+                bygroups(Keyword.Type, Punctuation), 'curly'),
+            # - names as part of bare 'where'
+            (r'(where)(\s+)(' + allowed_variable + ')',
+                bygroups(Keyword, Text, Keyword.Type)),
+            # - curly expressions in general
+            (r'(\{)', Punctuation, 'curly'),
+            # - names as part of type declaration
+            (r'(abstract[ \t]+type|primitive[ \t]+type|mutable[ \t]+struct|struct)([\s()]+)(' +
+                allowed_variable + r')', bygroups(Keyword, Text, Keyword.Type)),
+
+            # macros
+            (r'@' + allowed_variable, Name.Decorator),
+            (words([*OPERATORS_LIST, '..', '.', *DOTTED_OPERATORS_LIST],
+                prefix='@', suffix=operator_suffixes), Name.Decorator),
+
+            # keywords
+            (words(KEYWORD_LIST, suffix=r'\b'), Keyword),
+            # builtin types
+            (words(BUILTIN_LIST, suffix=r'\b'), Keyword.Type),
+            # builtin literals
+            (words(LITERAL_LIST, suffix=r'\b'), Name.Builtin),
 
             # names
             (allowed_variable, Name),
-            (r'@' + allowed_variable, Name.Decorator),
 
             # numbers
-            (r'(\d+(_\d+)+\.\d*|\d*\.\d+(_\d+)+)([eEf][+-]?[0-9]+)?', Number.Float),
-            (r'(\d+\.\d*|\d*\.\d+)([eEf][+-]?[0-9]+)?', Number.Float),
-            (r'\d+(_\d+)+[eEf][+-]?[0-9]+', Number.Float),
-            (r'\d+[eEf][+-]?[0-9]+', Number.Float),
-            (r'0b[01]+(_[01]+)+', Number.Bin),
-            (r'0b[01]+', Number.Bin),
-            (r'0o[0-7]+(_[0-7]+)+', Number.Oct),
-            (r'0o[0-7]+', Number.Oct),
-            (r'0x[a-fA-F0-9]+(_[a-fA-F0-9]+)+', Number.Hex),
-            (r'0x[a-fA-F0-9]+', Number.Hex),
-            (r'\d+(_\d+)+', Number.Integer),
-            (r'\d+', Number.Integer)
+            (r'(\d+((_\d+)+)?\.(?!\.)(\d+((_\d+)+)?)?|\.\d+((_\d+)+)?)([eEf][+-]?[0-9]+)?', Number.Float),
+            (r'\d+((_\d+)+)?[eEf][+-]?[0-9]+', Number.Float),
+            (r'0x[a-fA-F0-9]+((_[a-fA-F0-9]+)+)?(\.([a-fA-F0-9]+((_[a-fA-F0-9]+)+)?)?)?p[+-]?\d+', Number.Float),
+            (r'0b[01]+((_[01]+)+)?', Number.Bin),
+            (r'0o[0-7]+((_[0-7]+)+)?', Number.Oct),
+            (r'0x[a-fA-F0-9]+((_[a-fA-F0-9]+)+)?', Number.Hex),
+            (r'\d+((_\d+)+)?', Number.Integer),
+
+            # single dot operator matched last to permit e.g. ".1" as a float
+            (words(['.']), Operator),
         ],
 
         "blockcomment": [
@@ -227,53 +152,80 @@ class JuliaLexer(RegexLexer):
             (r'[=#]', Comment.Multiline),
         ],
 
-        'string': [
-            (r'"', String, '#pop'),
-            # FIXME: This escape pattern is not perfect.
-            (r'\\([\\"\'$nrbtfav]|(x|u|U)[a-fA-F0-9]+|\d+)', String.Escape),
-            # Interpolation is defined as "$" followed by the shortest full
-            # expression, which is something we can't parse.
-            # Include the most common cases here: $word, and $(paren'd expr).
-            (r'\$' + allowed_variable, String.Interpol),
-            # (r'\$[a-zA-Z_]+', String.Interpol),
-            (r'(\$)(\()', bygroups(String.Interpol, Punctuation), 'in-intp'),
-            # @printf and @sprintf formats
-            (r'%[-#0 +]*([0-9]+|[*])?(\.([0-9]+|[*]))?[hlL]?[E-GXc-giorsux%]',
-             String.Interpol),
-            (r'.|\s', String),
+        'curly': [
+            (r'\{', Punctuation, '#push'),
+            (r'\}', Punctuation, '#pop'),
+            (allowed_variable, Keyword.Type),
+            include('root'),
         ],
 
-        'tqstring': [
+        'tqrawstring': [
             (r'"""', String, '#pop'),
-            (r'\\([\\"\'$nrbtfav]|(x|u|U)[a-fA-F0-9]+|\d+)', String.Escape),
+            (r'([^"]|"[^"][^"])+', String),
+        ],
+        'rawstring': [
+            (r'"', String, '#pop'),
+            (r'\\"', String.Escape),
+            (r'([^"\\]|\\[^"])+', String),
+        ],
+
+        # Interpolation is defined as "$" followed by the shortest full expression, which is
+        # something we can't parse.
+        # Include the most common cases here: $word, and $(paren'd expr).
+        'interp': [
             (r'\$' + allowed_variable, String.Interpol),
             (r'(\$)(\()', bygroups(String.Interpol, Punctuation), 'in-intp'),
-            (r'.|\s', String),
         ],
-
-        'regex': [
-            (r'"', String.Regex, '#pop'),
-            (r'\\"', String.Regex),
-            (r'.|\s', String.Regex),
-        ],
-
-        'tqregex': [
-            (r'"""', String.Regex, '#pop'),
-            (r'.|\s', String.Regex),
-        ],
-
-        'command': [
-            (r'`', String.Backtick, '#pop'),
-            (r'\$' + allowed_variable, String.Interpol),
-            (r'(\$)(\()', bygroups(String.Interpol, Punctuation), 'in-intp'),
-            (r'.|\s', String.Backtick)
-        ],
-
         'in-intp': [
             (r'\(', Punctuation, '#push'),
             (r'\)', Punctuation, '#pop'),
             include('root'),
-        ]
+        ],
+
+        'string': [
+            (r'(")(' + allowed_variable + r'|\d+)?', bygroups(String, String.Affix), '#pop'),
+            # FIXME: This escape pattern is not perfect.
+            (r'\\([\\"\'$nrbtfav]|(x|u|U)[a-fA-F0-9]+|\d+)', String.Escape),
+            include('interp'),
+            # @printf and @sprintf formats
+            (r'%[-#0 +]*([0-9]+|[*])?(\.([0-9]+|[*]))?[hlL]?[E-GXc-giorsux%]',
+             String.Interpol),
+            (r'[^"$%\\]+', String),
+            (r'.', String),
+        ],
+        'tqstring': [
+            (r'(""")(' + allowed_variable + r'|\d+)?', bygroups(String, String.Affix), '#pop'),
+            (r'\\([\\"\'$nrbtfav]|(x|u|U)[a-fA-F0-9]+|\d+)', String.Escape),
+            include('interp'),
+            (r'[^"$%\\]+', String),
+            (r'.', String),
+        ],
+
+        'regex': [
+            (r'(")([imsxa]*)?', bygroups(String.Regex, String.Affix), '#pop'),
+            (r'\\"', String.Regex),
+            (r'[^\\"]+', String.Regex),
+        ],
+
+        'tqregex': [
+            (r'(""")([imsxa]*)?', bygroups(String.Regex, String.Affix), '#pop'),
+            (r'[^"]+', String.Regex),
+        ],
+
+        'command': [
+            (r'(`)(' + allowed_variable + r'|\d+)?', bygroups(String.Backtick, String.Affix), '#pop'),
+            (r'\\[`$]', String.Escape),
+            include('interp'),
+            (r'[^\\`$]+', String.Backtick),
+            (r'.', String.Backtick),
+        ],
+        'tqcommand': [
+            (r'(```)(' + allowed_variable + r'|\d+)?', bygroups(String.Backtick, String.Affix), '#pop'),
+            (r'\\\$', String.Escape),
+            include('interp'),
+            (r'[^\\`$]+', String.Backtick),
+            (r'.', String.Backtick),
+        ],
     }
 
     def analyse_text(text):
@@ -287,7 +239,7 @@ class JuliaConsoleLexer(Lexer):
     .. versionadded:: 1.6
     """
     name = 'Julia console'
-    aliases = ['jlcon']
+    aliases = ['jlcon', 'julia-repl']
 
     def get_tokens_unprocessed(self, text):
         jllexer = JuliaLexer(**self.options)

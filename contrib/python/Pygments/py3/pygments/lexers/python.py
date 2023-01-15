@@ -160,6 +160,7 @@ class PythonLexer(RegexLexer):
             ("([uUbB]?)(')", bygroups(String.Affix, String.Single),
              combined('stringescape', 'sqs')),
             (r'[^\S\n]+', Text),
+            include('numbers'),
             (r'!=|==|<<|>>|:=|[-~+/*%=<>&^|.]', Operator),
             (r'[]{}:(),;[]', Punctuation),
             (r'(in|is|and|or|not)\b', Operator.Word),
@@ -168,7 +169,6 @@ class PythonLexer(RegexLexer):
             include('magicfuncs'),
             include('magicvars'),
             include('name'),
-            include('numbers'),
         ],
         'expr-inside-fstring': [
             (r'[{([]', Punctuation, 'expr-inside-fstring-inner'),
@@ -845,14 +845,14 @@ class CythonLexer(RegexLexer):
         ],
         'builtins': [
             (words((
-                '__import__', 'abs', 'all', 'any', 'apply', 'basestring', 'bin',
+                '__import__', 'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bint',
                 'bool', 'buffer', 'bytearray', 'bytes', 'callable', 'chr',
                 'classmethod', 'cmp', 'coerce', 'compile', 'complex', 'delattr',
                 'dict', 'dir', 'divmod', 'enumerate', 'eval', 'execfile', 'exit',
                 'file', 'filter', 'float', 'frozenset', 'getattr', 'globals',
                 'hasattr', 'hash', 'hex', 'id', 'input', 'int', 'intern', 'isinstance',
                 'issubclass', 'iter', 'len', 'list', 'locals', 'long', 'map', 'max',
-                'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'property',
+                'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'property', 'Py_ssize_t',
                 'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed',
                 'round', 'set', 'setattr', 'slice', 'sorted', 'staticmethod',
                 'str', 'sum', 'super', 'tuple', 'type', 'unichr', 'unicode', 'unsigned',

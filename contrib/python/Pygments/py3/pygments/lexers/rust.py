@@ -135,7 +135,7 @@ class RustLexer(RegexLexer):
             # String literals
             (r'b"', String, 'bytestring'),
             (r'"', String, 'string'),
-            (r'b?r(#*)".*?"\1', String),
+            (r'(?s)b?r(#*)".*?"\1', String),
 
             # Lifetime names
             (r"'", Operator, 'lifetime'),
@@ -152,6 +152,11 @@ class RustLexer(RegexLexer):
 
             # Attributes
             (r'#!?\[', Comment.Preproc, 'attribute['),
+
+            # Misc
+            # Lone hashes: not used in Rust syntax, but allowed in macro
+            # arguments, most famously for quote::quote!()
+            (r'#', Text),
         ],
         'comment': [
             (r'[^*/]+', Comment.Multiline),

@@ -26,7 +26,7 @@ class HaxeLexer(ExtendedRegexLexer):
     """
 
     name = 'Haxe'
-    aliases = ['hx', 'haxe', 'hxsl']
+    aliases = ['haxe', 'hxsl', 'hx']
     filenames = ['*.hx', '*.hxsl']
     mimetypes = ['text/haxe', 'text/x-haxe', 'text/x-hx']
 

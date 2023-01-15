@@ -24,7 +24,7 @@ class TeraTermLexer(RegexLexer):
     .. versionadded:: 2.4
     """
     name = 'Tera Term macro'
-    aliases = ['ttl', 'teraterm', 'teratermmacro']
+    aliases = ['teratermmacro', 'teraterm', 'ttl']
     filenames = ['*.ttl']
     mimetypes = ['text/x-teratermmacro']
 

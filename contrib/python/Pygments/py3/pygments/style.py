@@ -134,7 +134,7 @@ class StyleMeta(type):
             color = _ansimap[color]
         bgcolor = t[4]
         if bgcolor in _deprecated_ansicolors:
-            bgcolor = _deprecated_ansicolors[color]
+            bgcolor = _deprecated_ansicolors[bgcolor]
         if bgcolor in ansicolors:
             bgansicolor = bgcolor
             bgcolor = _ansimap[bgcolor]

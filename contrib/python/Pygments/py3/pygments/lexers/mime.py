@@ -21,20 +21,20 @@ __all__ = ["MIMELexer"]
 class MIMELexer(RegexLexer):
     """
     Lexer for Multipurpose Internet Mail Extensions (MIME) data. This lexer is
-    designed to process the nested mulitpart data.
+    designed to process nested multipart data.
 
     It assumes that the given data contains both header and body (and is
-    splitted by empty line). If no valid header is found, then the entire data
-    would be treated as body.
+    split at an empty line). If no valid header is found, then the entire data
+    will be treated as body.
 
     Additional options accepted:
 
     `MIME-max-level`
-        Max recurssion level for nested MIME structure. Any negative number
+        Max recursion level for nested MIME structure. Any negative number
         would treated as unlimited. (default: -1)
 
     `Content-Type`
-        Treat the data as specific content type. Useful when header is
+        Treat the data as a specific content type. Useful when header is
         missing, or this lexer would try to parse from header. (default:
         `text/plain`)
 
@@ -44,7 +44,7 @@ class MIMELexer(RegexLexer):
         would try to parse from header by default. (default: None)
 
     `Content-Transfer-Encoding`
-        Treat the data as specific encoding. Or this lexer would try to parse
+        Treat the data as a specific encoding. Or this lexer would try to parse
         from header by default. (default: None)
 
     .. versionadded:: 2.5
@@ -62,21 +62,6 @@ class MIMELexer(RegexLexer):
         self.content_transfer_encoding = options.get("Content_Transfer_Encoding")
         self.content_type = options.get("Content_Type", "text/plain")
         self.max_nested_level = get_int_opt(options, "MIME-max-level", -1)
-
-    def analyse_text(text):
-        try:
-            header, body = text.strip().split("\n\n", 1)
-            if not body.strip():
-                return 0.1
-
-            invalid_headers = MIMELexer.tokens["header"].sub("", header)
-            if invalid_headers.strip():
-                return 0.1
-            else:
-                return 1
-
-        except ValueError:
-            return 0
 
     def get_header_tokens(self, match):
         field = match.group(1)

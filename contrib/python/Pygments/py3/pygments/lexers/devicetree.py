@@ -58,7 +58,7 @@ class DevicetreeLexer(RegexLexer):
             (r'(L?)(")', bygroups(String.Affix, String), 'string'),
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'\d+', Number.Integer),
-            (r'([^\s{}/*]*)(\s*)(:)', bygroups(Name.Label, Text, Punctuation)),
+            (r'([^\s{}/*]*)(\s*)(:)', bygroups(Name.Label, Text, Punctuation), '#pop'),
             (words(('compatible', 'model', 'phandle', 'status', '#address-cells',
                     '#size-cells', 'reg', 'virtual-reg', 'ranges', 'dma-ranges',
                     'device_type', 'name'), suffix=r'\b'), Keyword.Reserved),

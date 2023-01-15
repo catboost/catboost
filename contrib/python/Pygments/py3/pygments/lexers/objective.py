@@ -440,8 +440,8 @@ class SwiftLexer(RegexLexer):
             (r'(var|let)(\s+)([a-zA-Z_]\w*)', bygroups(Keyword.Declaration,
              Text, Name.Variable)),
             (words((
-                'class', 'deinit', 'enum', 'extension', 'func', 'import', 'init',
-                'internal', 'let', 'operator', 'private', 'protocol', 'public',
+                'associatedtype', 'class', 'deinit', 'enum', 'extension', 'func', 'import',
+                'init', 'internal', 'let', 'operator', 'private', 'protocol', 'public',
                 'static', 'struct', 'subscript', 'typealias', 'var'), suffix=r'\b'),
              Keyword.Declaration)
         ],
