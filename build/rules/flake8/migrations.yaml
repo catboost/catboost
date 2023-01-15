@@ -484,7 +484,6 @@ migrations:
     - sandbox/projects/wmc
     - sandbox/projects/yabs/dropstat/base
     - sandbox/projects/yabs/dropstat/send
-    - sandbox/projects/yabs/qa/tasks/YabsServerCSAdvmachineExport
     - sandbox/projects/yabs/qa/tasks/YabsServerRunCS
     - sandbox/projects/yabs/qa/tasks/YabsServerStatPerformanceSanitize
     - sandbox/projects/yphone/AdvisorDeployToQloud
@@ -1120,10 +1119,8 @@ migrations:
     - yweb/news/news_back/api/v3/tests
     - yweb/video/faas/lib
     - yweb/video/faas/lib/analyze
-    - yweb/video/faas/lib/convert
     - yweb/video/faas/lib/misc
     - yweb/video/faas/lib/os
-    - yweb/video/faas/lib/package/hls/v3
     - yweb/video/faas/lib/telegram
     - yweb/video/faas/lib/tests/convert
     - yweb/video/faas/services
