@@ -672,6 +672,9 @@ public:
 
     void SetPredictionType(NCB::NModelEvaluation::EPredictionType predictionType) const {
         with_lock(CurrentEvaluatorLock) {
+            if (!Evaluator) {
+                Evaluator = NCB::NModelEvaluation::CreateEvaluator(FormulaEvaluatorType, *this);
+            }
             Evaluator->SetPredictionType(predictionType);
         }
     }
