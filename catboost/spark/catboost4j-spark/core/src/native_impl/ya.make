@@ -16,6 +16,7 @@ SRCS(
     GLOBAL spark_quantized.cpp
     string.cpp
     native_impl.swg
+    quantized_pool_serialization.cpp
     vector_output.cpp
     worker.cpp
 )
