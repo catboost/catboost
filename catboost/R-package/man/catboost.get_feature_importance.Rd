@@ -4,8 +4,13 @@
 \alias{catboost.get_feature_importance}
 \title{Calculate the feature importances}
 \usage{
-catboost.get_feature_importance(model, pool = NULL,
-  type = "FeatureImportance", thread_count = -1, fstr_type = NULL)
+catboost.get_feature_importance(
+  model,
+  pool = NULL,
+  type = "FeatureImportance",
+  thread_count = -1,
+  fstr_type = NULL
+)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -54,9 +59,12 @@ Default value: -1}
 
 \item{fstr_type}{Deprecated parameter, use 'type' instead.}
 }
+\value{
+Feature importances
+}
 \description{
 Calculate the feature importances (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
-(Regular feature importance, ShapValues, and Feature interaction strength).
+             (Regular feature importance, ShapValues, and Feature interaction strength).
 }
 \seealso{
 \url{https://catboost.ai/docs/features/feature-importances-calculation.html}

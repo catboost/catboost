@@ -11,9 +11,10 @@ catboost.drop_unused_features(model, ntree_end, ntree_start = 0)
 
 \item{ntree_end}{Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).}
 
-\item{ntree_start}{Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
-
-Default value: 0}
+\item{ntree_start}{Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).}
+}
+\value{
+Status, the result of dropping feature. TRUE if this succeeded, FALSE otherwise.
 }
 \description{
 Drop unused features information from model

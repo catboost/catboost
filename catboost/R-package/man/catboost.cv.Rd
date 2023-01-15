@@ -4,9 +4,16 @@
 \alias{catboost.cv}
 \title{Cross-validate model.}
 \usage{
-catboost.cv(pool, params = list(), fold_count = 3,
-  type = "Classical", partition_random_seed = 0, shuffle = TRUE,
-  stratified = FALSE, early_stopping_rounds = NULL)
+catboost.cv(
+  pool,
+  params = list(),
+  fold_count = 3,
+  type = "Classical",
+  partition_random_seed = 0,
+  shuffle = TRUE,
+  stratified = FALSE,
+  early_stopping_rounds = NULL
+)
 }
 \arguments{
 \item{pool}{Data to cross-validate on}
@@ -25,6 +32,9 @@ catboost.cv(pool, params = list(), fold_count = 3,
 
 \item{early_stopping_rounds}{Activates Iter overfitting detector with od_wait set to early_stopping_rounds.}
 }
+\value{
+A data.frame of evaluation results from cross-validation.
+}
 \description{
-Cross-validate model.
+Estimate model performance using cross-validation.
 }
