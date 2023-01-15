@@ -504,20 +504,15 @@ public:
 #endif
     }
 
-    explicit TBasicString(TExplicitType<TCharType> c) {
 #ifdef TSTRING_IS_STD_STRING
+    explicit TBasicString(TExplicitType<TCharType> c) {
         Storage_.push_back(c);
+    }
 #else
+    explicit TBasicString(TExplicitType<TCharType> c) {
         Data_ = Allocate(1);
         Data_[0] = c;
-#endif
     }
-
-#ifdef TSTRING_IS_STD_STRING
-    explicit TBasicString(TCharType c) {
-        Storage_.push_back(c);
-    }
-#else
     explicit TBasicString(const TCharRef& c) {
         Data_ = Allocate(1);
         Data_[0] = c;
