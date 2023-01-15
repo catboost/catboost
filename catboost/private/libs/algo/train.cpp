@@ -93,25 +93,9 @@ static void ScaleAllApproxes(
         *localExecutor,
         0,
         allApproxes.size(),
-        [approxMultiplier, storeExpApprox, learnApproxesCount, localExecutor, learnProgress, &allApproxes](int index) {
+        [approxMultiplier, storeExpApprox, learnApproxesCount, localExecutor, &allApproxes](int index) {
             const bool isLearnApprox = (index < learnApproxesCount);
-            if (learnProgress->StartingApprox) {
-                CB_ENSURE(!storeExpApprox);
-                const double addend = (1 - approxMultiplier) * (*learnProgress->StartingApprox);
-                UpdateApprox(
-                    [approxMultiplier, addend](
-                        TConstArrayRef<double> /* delta */,
-                        TArrayRef<double> approx,
-                        size_t idx)
-                    {
-                        approx[idx] = addend + approx[idx] * approxMultiplier;
-                    },
-                    *allApproxes[index], // stub deltas
-                    allApproxes[index],
-                    localExecutor
-                );
-            }
-            if (storeExpApprox && isLearnApprox) {
+            if (isLearnApprox && storeExpApprox) {
                 UpdateApprox(
                     [approxMultiplier](TConstArrayRef<double> /* delta */, TArrayRef<double> approx, size_t idx) {
                         approx[idx] = ApplyLearningRate<true>(approx[idx], approxMultiplier);
@@ -210,6 +194,9 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 ctx->LearnProgress.Get(),
                 ctx->LocalExecutor
             );
+            if (ctx->LearnProgress->StartingApprox.Defined()) {
+                *ctx->LearnProgress->StartingApprox = *ctx->LearnProgress->StartingApprox.Get() * modelShrinkage;
+            }
             ctx->LearnProgress->ModelShrinkHistory.push_back(modelShrinkage);
         } else {
             ctx->LearnProgress->ModelShrinkHistory.push_back(1.0);

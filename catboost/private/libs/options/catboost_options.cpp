@@ -899,17 +899,6 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 shrinkRate = 0.2;
             }
         }
-
-        if (shrinkRate.IsSet() && !BoostingOptions->BoostFromAverage.IsSet()) {
-            BoostingOptions->BoostFromAverage.Set(false);
-        }
-
-        // TODO(nikitxskv): Remove it after MLTOOLS-4158.
-        CB_ENSURE(
-            shrinkRate == 0.0f || !BoostingOptions->BoostFromAverage.Get(),
-            "You cannot use boost from average with specified model_shrink_rate option "
-            "(automatic specified for monotonic constraints and Langevin boosting)."
-        );
     }
 
     SetLeavesEstimationDefault();
