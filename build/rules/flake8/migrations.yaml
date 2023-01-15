@@ -1195,7 +1195,6 @@ migrations:
     - modadvert/libs/http
     - modadvert/libs/laas/workers/domain_threats
     - modadvert/libs/laas/workers/features_from_href
-    - modadvert/libs/sm_api/processors/xls/xls_results_proxy
     - modadvert/libs/utils/codegeneration/ut
     - modadvert/libs/utils/dictutils/ut
     - modadvert/programs/cv_app/libs
@@ -3141,7 +3140,6 @@ migrations:
     - statbox/jam/libs/superapp
     - statbox/jam/libs/zalogin
     - statbox/libstatbox/python
-    - statbox/nile
     - statbox/python-statinfra
     - statbox/step_client
     - taxi/antifraud/adhoc/TAXISECTEAM-4126
@@ -3690,7 +3688,6 @@ migrations:
     - nirvana/valhalla/tests
     - ofd/notifier/tests/test_unit/test_sender/test_event_types
     - ofd/notifier/tests/test_unit/test_sender/test_notification_types
-    - ofd/runtime/new/tests
     - passport/python/dbscripts/tests
     - passport/python/logbroker_client/account_events/tests
     - passport/python/logbroker_client/oauth/tests
