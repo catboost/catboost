@@ -674,8 +674,6 @@ migrations:
     - maps/wikimap/stat/libs/common/tests/lib
     - maps/wikimap/stat/libs/common/tests/lib/dates_ut
     - maps/wikimap/stat/tasks_payment/dictionaries/public_holidays/tests
-    - maps_adv/common/http_client
-    - maps_adv/common/http_client/lib
     - market/access/puller/mt
     - market/backctld/pyb
     - market/backctld/pyb/plugin/data_handlers
@@ -796,8 +794,6 @@ migrations:
     - passport/python/core/types/login
     - passport/python/core/validators
     - passport/python/library/yt_hdb/loader
-    - passport/python/qa/test_user_service/tus_api
-    - passport/python/qa/test_user_service/tus_api/validators
     - passport/python/social/broker
     - passport/python/social/common
     - passport/python/social/common/providers
