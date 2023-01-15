@@ -528,13 +528,13 @@ void ApplyVirtualEnsembles(
     CB_ENSURE(actualShrinkCoef >= 0.0f && actualShrinkCoef < 1.0f,
               "For Constant shrink mode: (model_shrink_rate * learning_rate) should be in [0, 1).");
 
-    auto copyerLambda = [actualShrinkCoef, evalPeriod, virtualEnsemblesCount, approxDimension, objectCount] (
+    auto copyerLambda = [approxDimension, objectCount] (
             const auto copyToNextEnsemble,
             const TVector<TVector<double>>& approx,
+            const float unshrinkCoef,
             TVector<TVector<double>>& rawValues,
             size_t vEnsembleIdx
         ) {
-        const float coef = pow(1. - actualShrinkCoef, evalPeriod * (virtualEnsemblesCount - vEnsembleIdx - 1));
         const size_t shift = vEnsembleIdx * approxDimension;
         for (size_t i = 0; i < approxDimension; ++i) {
             const auto srcPtr = approx[i].data();
@@ -545,22 +545,24 @@ void ApplyVirtualEnsembles(
                 if constexpr (copyToNextEnsemble) {
                     nextDstPtr[j] = dstPtr[j];
                 }
-                dstPtr[j] *= coef;
+                dstPtr[j] *= unshrinkCoef;
             }
         }
     };
 
     for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod, vEnsembleIdx++) {
+        const auto lastTreeIdx = Min(begin + evalPeriod, end);
         modelCalcerOnPool.ApplyModelMulti(
             EPredictionType::InternalRawFormulaVal,
             begin,
-            Min(begin + evalPeriod, end),
+            lastTreeIdx,
             &flatApprox,
             &approx);
+        const float unshrinkCoef = pow(1. - actualShrinkCoef, float(lastTreeIdx) - float(end));
         if (vEnsembleIdx != virtualEnsemblesCount - 1) {
-            copyerLambda(std::true_type(), approx, rawValues, vEnsembleIdx);
+            copyerLambda(std::true_type(), approx, unshrinkCoef, rawValues, vEnsembleIdx);
         } else {
-            copyerLambda(std::false_type(), approx, rawValues, vEnsembleIdx);
+            copyerLambda(std::false_type(), approx, 1.0f, rawValues, vEnsembleIdx);
         }
     }
 }
