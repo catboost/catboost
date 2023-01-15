@@ -1307,7 +1307,6 @@ class GnuCompiler(Compiler):
                     '-Wno-address-of-packed-member',
                     '-Wno-defaulted-function-deleted',
                     '-Wno-enum-compare-switch',
-                    '-Wno-pass-failed',
                 ))
 
             if self.tc.version_at_least(10):
