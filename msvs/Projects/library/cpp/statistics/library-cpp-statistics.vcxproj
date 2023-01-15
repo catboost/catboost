@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{898C3811-AD77-869C-24DC-EF6A89FA8399}</ProjectGUID>
+    <ProjectGUID>{49748D82-AE8B-7968-0A2A-082D68226EBD}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-statistics</ProjectName>
+    <ProjectName>library-cpp-statistics</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-statistics</TargetName>
+    <TargetName>library-cpp-statistics</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\statistics\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\898C3811-AD77-869C-24DC-EF6A89FA8399\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\statistics\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\49748D82-AE8B-7968-0A2A-082D68226EBD\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)..\library\statistics\detail.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\statistics\statistics.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\statistics\detail.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\statistics\statistics.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
