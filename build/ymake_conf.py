@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+from __future__ import print_function
+
 import base64
 import itertools
 import json
@@ -13,6 +15,8 @@ import re
 import subprocess
 import sys
 import tempfile
+
+import six
 
 logger = logging.getLogger(__name__ if __name__ != '__main__' else 'ymake_conf.py')
 
@@ -148,7 +152,7 @@ class Platform(object):
     def find_in_dict(self, dict_, default=None):
         if dict_ is None:
             return default
-        for key in dict_.iterkeys():
+        for key in six.iterkeys(dict_):
             if self._parse_os(key) == self.os:
                 return dict_[key]
         return default
@@ -244,11 +248,11 @@ def to_strings(o):
 
 
 def emit(key, *value):
-    print '{0}={1}'.format(key, ' '.join(to_strings(value)))
+    print('{0}={1}'.format(key, ' '.join(to_strings(value))))
 
 
 def emit_with_comment(comment, key, *value):
-    print '# {}'.format(comment)
+    print('# {}'.format(comment))
     emit(key, *value)
 
 
@@ -257,7 +261,7 @@ def emit_with_ignore_comment(key, *value):
 
 
 def append(key, *value):
-    print '{0}+={1}'.format(key, ' '.join(to_strings(value)))
+    print('{0}+={1}'.format(key, ' '.join(to_strings(value))))
 
 
 def emit_big(text):
@@ -273,10 +277,10 @@ def emit_big(text):
                 prefix += 1
 
         if first:  # Be pretty, prepend an empty line before the output
-            print
+            print()
             first = False
 
-        print line[prefix:]
+        print(line[prefix:])
 
 
 class Variables(dict):
@@ -289,7 +293,7 @@ class Variables(dict):
                 emit(k, self[k])
 
     def update_from_presets(self):
-        for k in self.iterkeys():
+        for k in six.iterkeys(self):
             v = preset(k)
             if v is not None:
                 self[k] = v
@@ -299,8 +303,8 @@ class Variables(dict):
             def value_check(v_):
                 return v_ is None
 
-        if any(map(value_check, self.itervalues())):
-            for k in self.iterkeys():
+        if any(map(value_check, six.itervalues(self))):
+            for k in six.iterkeys(self):
                 self[k] = reset_value
 
 
@@ -311,7 +315,7 @@ def format_env(env, list_separator=':'):
     def format(kv):
         return '${env:"%s=%s"}' % (kv[0], format_value(kv[1]))
 
-    return ' '.join(map(format, sorted(env.iteritems())))
+    return ' '.join(map(format, sorted(six.iteritems(env))))
 
 
 # TODO(somov): Проверить, используется ли это. Может быть, выпилить.
@@ -343,7 +347,7 @@ def is_negative_str(s):
 
 
 def to_bool(s, default=None):
-    if isinstance(s, basestring):
+    if isinstance(s, six.string_types):
         if is_positive_str(s):
             return True
         if is_negative_str(s):
@@ -398,7 +402,7 @@ class Options(object):
 
         argv = self.arguments
         if len(argv) < 4:
-            print >> sys.stderr, 'Usage: ArcRoot, --BuildType--, Verbosity, [Path to local.ymake]'
+            print('Usage: ArcRoot, --BuildType--, Verbosity, [Path to local.ymake]', file=sys.stderr)
             sys.exit(1)
 
         self.arcadia_root = argv[1]
@@ -646,12 +650,12 @@ class Build(object):
         """
 
         def un_unicode(o):
-            if isinstance(o, unicode):
-                return o.encode('utf-8')
+            if isinstance(o, six.text_type):
+                return six.ensure_str(o)
             if isinstance(o, list):
                 return [un_unicode(oo) for oo in o]
             if isinstance(o, dict):
-                return {un_unicode(k): un_unicode(v) for k, v in o.iteritems()}
+                return {un_unicode(k): un_unicode(v) for k, v in six.iteritems(o)}
             return o
 
         return un_unicode(json.loads(base64.b64decode(base64str)))
@@ -669,7 +673,7 @@ class YMake(object):
             self._print_conf_content(self._find_conf('ymake.parts/jbuild.ymake.conf'))
 
         if presets:
-            print '# Variables set from command line by -D options'
+            print('# Variables set from command line by -D options')
             for key in sorted(presets):
                 if key in ('MY_YMAKE_BIN', 'REAL_YMAKE_BIN'):
                     emit_with_ignore_comment(key, opts().presets[key])
@@ -726,18 +730,18 @@ class System(object):
     def print_nix_host_const():
         emit('WRITE_COMMAND', '/bin/echo', '-e')
 
-        print '''
+        print('''
 when ($USE_PYTHON) {
     C_DEFINES+= -DUSE_PYTHON
-}'''
+}''')
 
     @staticmethod
     def print_linux_const():
-        print '''
+        print('''
 when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
     C_SYSTEM_LIBRARIES_INTERCEPT+=-ldmalloc
 }
-'''
+''')
 
     def print_target_settings(self):
         emit('TARGET_PLATFORM', self.platform.os_compat)
@@ -765,13 +769,13 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
     # Misc target arch-related shortcuts
     def print_target_shortcuts(self):
         if preset('HAVE_MKL') is None:
-            print 'HAVE_MKL=no'
+            print('HAVE_MKL=no')
             if self.platform.is_linux:
-                print '''
+                print('''
   when ($ARCH_X86_64 && !$SANITIZER_TYPE) {
       HAVE_MKL=yes
   }
-'''
+''')
 
     def print_host_settings(self):
         emit('HOST_PLATFORM', self.platform.os_compat)
@@ -974,7 +978,7 @@ class ToolchainOptions(object):
     def get_env(self, convert_list=None):
         convert_list = convert_list or (lambda x: x)
         r = {}
-        for k, v in self._env.iteritems():
+        for k, v in six.iteritems(self._env):
             if isinstance(v, str):
                 r[k] = v
             elif isinstance(v, list):
@@ -1623,11 +1627,11 @@ class GnuCompiler(Compiler):
         ignore_c_args_no_deps = ['$SRCFLAGS', '$YNDEXER_ARGS', '$YNDEXER_OUTPUT', '$EXTRA_OUTPUT', '$EXTRA_COVERAGE_OUTPUT', '$CL_MACRO_INFO', '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__']
         c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c not in ignore_c_args_no_deps]
 
-        print 'macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args)
-        print 'macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {\n .CMD=%s\n}' % ' '.join(c_args_nodeps)
-        print 'macro _SRC_c(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(c_args)
-        print 'macro _SRC_m(SRC, SRCFLAGS...) {\n .CMD=$SRC_c($SRC $SRCFLAGS)\n}'
-        print 'macro _SRC_masm(SRC, SRCFLAGS...) {\n}'
+        print('macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args))
+        print('macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {\n .CMD=%s\n}' % ' '.join(c_args_nodeps))
+        print('macro _SRC_c(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(c_args))
+        print('macro _SRC_m(SRC, SRCFLAGS...) {\n .CMD=$SRC_c($SRC $SRCFLAGS)\n}')
+        print('macro _SRC_masm(SRC, SRCFLAGS...) {\n}')
 
         # fuzzing configuration
         if self.tc.is_clang:
@@ -2798,7 +2802,7 @@ class Perl(object):
     def _iter_config(self, config_keys):
         # Run perl -V:version -V:etc...
         perl_config = [self.perl] + ['-V:{}'.format(key) for key in config_keys]
-        config = get_stdout(perl_config) or ''
+        config = six.ensure_str(get_stdout(perl_config) or '')
 
         start = 0
         while True:
@@ -2867,8 +2871,8 @@ class Cuda(object):
 
         self.peerdirs = ['build/platform/cuda']
 
-        self.cuda_version_list = map(int, self.cuda_version.value.split('.')) if self.cuda_version.value else None
-        self.nvcc_std = '-std=c++14' if self.cuda_version_list >= [9, 0] else '-std=c++11'
+        self.cuda_version_list = tuple(map(int, self.cuda_version.value.split('.'))) if self.cuda_version.value else None
+        self.nvcc_std = '-std=c++14' if self.cuda_version_list >= (9, 0) else '-std=c++11'
         if self.build.tc.type == 'msvc':
             self.nvcc_std = self.nvcc_std.replace('-std=', '/std:')
 
@@ -3080,12 +3084,12 @@ class Yasm(object):
     def print_variables(self):
         d_platform = ' '.join([('-D ' + i) for i in self.platform])
         output = '${{output;noext;suf={}:SRC}}'.format('${OBJ_SUF}.o' if self.fmt != 'win' else '${OBJ_SUF}.obj')
-        print '''\
+        print('''\
 macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
     .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
 
 }}
-'''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)  # noqa E501
+'''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output))  # noqa E501
 
 
 def print_swig_config():
