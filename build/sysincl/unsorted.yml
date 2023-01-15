@@ -250,7 +250,6 @@
 
 - includes:
   - cpu-features.h
-  - cupti.h
   - cuda/include/cuComplex.h
   - cuda/include/cublas_v2.h
   - cuda/include/cuda.h
@@ -963,7 +962,6 @@
   - zend_exceptions.h
   #if MATLAB_MEX_FILE
   # unknown
-  - cuda/extras/CUPTI/include/cupti.h
   - GL/glx.h
   - CL/va_ext.h
   - sys/sysconf.h

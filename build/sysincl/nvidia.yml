@@ -1,4 +1,4 @@
-# build/platform/cuda
+# build/platform/cuda (include/ and extras/CUPTI/include/)
 - includes:
   - cooperative_groups.h
   - cuComplex.h
@@ -11,6 +11,7 @@
   - cuda_runtime.h
   - cuda_runtime_api.h
   - cufft.h
+  - cupti.h
   - curand.h
   - curand_kernel.h
   - curand_mtgp32_host.h
