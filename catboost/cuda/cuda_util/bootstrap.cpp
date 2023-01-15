@@ -270,6 +270,7 @@ namespace {
     private:
         TCudaBufferPtr<ui64> Seeds;
         TCudaBufferPtr<float> Weights;
+        TCudaBufferPtr<const float> Ders;
         float TakenFraction;
         float Lambda;
 
@@ -277,29 +278,35 @@ namespace {
 
         TMvsBootstrapRadixSortKernel() = default;
 
-        TMvsBootstrapRadixSortKernel(TCudaBufferPtr<ui64> seeds,
-                                  TCudaBufferPtr<float> weights,
-                                  float takenFraction,
-                                  float lambda)
+        TMvsBootstrapRadixSortKernel(
+            TCudaBufferPtr<ui64> seeds,
+            TCudaBufferPtr<float> weights,
+            TCudaBufferPtr<const float> ders,
+            float takenFraction,
+            float lambda)
             : Seeds(seeds)
             , Weights(weights)
+            , Ders(ders)
             , TakenFraction(takenFraction)
             , Lambda(lambda)
         {
+            Y_ASSERT(Weights.Size() == Ders.Size());
         }
 
         void Run(const TCudaStream& stream
             ) const {
             CB_ENSURE(Seeds.Size() % 256 == 0);
 
-            NKernel::MvsBootstrapRadixSort(TakenFraction, Lambda,
-                                                Weights.Get(),
-                                                Weights.Size(),
-                                                Seeds.Get(), Seeds.Size(),
-                                        stream.GetStream());
+            NKernel::MvsBootstrapRadixSort(
+                TakenFraction, Lambda,
+                Weights.Get(),
+                Ders.Get(),
+                Ders.Size(),
+                Seeds.Get(), Seeds.Size(),
+                stream.GetStream());
         }
 
-        Y_SAVELOAD_DEFINE(Seeds, Weights, TakenFraction, Lambda);
+        Y_SAVELOAD_DEFINE(Seeds, Weights, Ders, TakenFraction, Lambda);
     };
 }
 
@@ -307,23 +314,25 @@ template <typename TMapping>
 static void MvsBootstrapRadixSortImpl(
     TCudaBuffer<ui64, TMapping>& seeds,
     TCudaBuffer<float, TMapping>& weights,
+    const TCudaBuffer<float, TMapping>& ders,
     float takenFraction,
     float lambda,
     ui32 stream) {
 
     using TKernel = TMvsBootstrapRadixSortKernel;
-    LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, seeds, weights, takenFraction, lambda);
+    LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, seeds, weights, ders, takenFraction, lambda);
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                        \
-    template <>                                                                                 \
-    void MvsBootstrapRadixSort<TMapping>(                                                       \
-        TCudaBuffer<ui64, TMapping> & seeds,                                                    \
-        TCudaBuffer<float, TMapping> & weights,                                                 \
-        float takenFraction,                                                                    \
-        float lambda,                                                                           \
-        ui32 stream) {                                                                          \
-        ::MvsBootstrapRadixSortImpl(seeds, weights, takenFraction, lambda, stream); \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                            \
+    template <>                                                                     \
+    void MvsBootstrapRadixSort<TMapping>(                                           \
+        TCudaBuffer<ui64, TMapping> & seeds,                                        \
+        TCudaBuffer<float, TMapping> & weights,                                     \
+        const NCudaLib::TCudaBuffer<float, TMapping>& ders,                         \
+        float takenFraction,                                                        \
+        float lambda,                                                               \
+        ui32 stream) {                                                              \
+        ::MvsBootstrapRadixSortImpl(seeds, weights, ders, takenFraction, lambda, stream); \
     }
 
 Y_MAP_ARGS(
