@@ -83,6 +83,7 @@ ALLOW contrib/python/http_parser -> contrib/restricted/http-parser
 ALLOW contrib/python/httptools -> contrib/restricted/http-parser
 ALLOW mds -> contrib/restricted/http-parser
 ALLOW passport/python/contrib/bjoern -> contrib/restricted/http-parser
+ALLOW taxi/uservices -> contrib/restricted/http-parser
 ALLOW yt/yt/core/http -> contrib/restricted/http-parser
 ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/restricted/http-parser
 
@@ -121,6 +122,7 @@ ALLOW drive/contrib/cpp/telemetry -> contrib/restricted/boost
 ALLOW smart_devices -> contrib/restricted/boost
 ALLOW speechkit -> contrib/restricted/boost
 ALLOW statbox/libstatbox -> contrib/restricted/boost
+ALLOW taxi/uservices -> contrib/restricted/boost
 ALLOW tools/idl -> contrib/restricted/boost
 ALLOW voicetech/tools -> contrib/restricted/boost
 ALLOW weather/grid_api/lib -> contrib/restricted/boost
