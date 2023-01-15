@@ -779,4 +779,16 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
             TOptsParseResultException(&opts, Y_ARRAY_SIZE(argv), argv),
             TUsageException);
     }
+
+    Y_UNIT_TEST(TestFreeArgsStoreResult) {
+        TOptsNoDefault opts;
+        TString data;
+        int number = 0;
+        opts.AddFreeArgBinding("data", data);
+        opts.AddFreeArgBinding("number", number);
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "hello", "25"}));
+        UNIT_ASSERT_VALUES_EQUAL("hello", data);
+        UNIT_ASSERT_VALUES_EQUAL(25, number);
+        UNIT_ASSERT_VALUES_EQUAL(2, r.GetFreeArgCount());
+    }
 }
