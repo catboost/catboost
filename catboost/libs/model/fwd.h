@@ -48,6 +48,7 @@ namespace NCatBoostFbs {
     //model.fbs
     struct TKeyValue;
     struct TNonSymmetricTreeStepNode;
+    struct TRepackedBin;
     struct TModelTrees;
     struct TModelCore;
 }

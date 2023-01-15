@@ -9,6 +9,8 @@
 #include "split.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
+
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
 
@@ -61,6 +63,8 @@ struct TRepackedBin {
     ui16 FeatureIndex = 0;
     ui8 XorMask = 0;
     ui8 SplitIdx = 0;
+
+    TRepackedBin& operator=(const NCatBoostFbs::TRepackedBin*);
 };
 
 constexpr ui32 MAX_VALUES_PER_BIN = 254;
@@ -142,19 +146,6 @@ public:
          */
         TVector<TModelSplit> BinFeatures;
         ui32 EffectiveBinFeaturesBucketCount = 0;
-
-        /**
-        * This vector contains ui32 that contains such information:
-        * |     ui16     |   ui8   |   ui8  |
-        * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
-        *
-        * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or
-        *  one hot feature.
-        */
-
-        static_assert(sizeof(TRepackedBin) == 4, "");
-
-        TVector<TRepackedBin> RepackedBins;
     };
 
     struct TForApplyData {
@@ -209,6 +200,7 @@ public:
         );
 
         ClearRuntimeData();
+        ClearRepackedBins();
         {
             TReadGuard applyDataRGuard(other.ApplyDataLock);
             if (other.ApplyData.Defined()) {
@@ -221,6 +213,7 @@ public:
             if (other.RuntimeData.Defined()) {
                 TWriteGuard runtimeDataWGuard(RuntimeDataLock);
                 RuntimeData = other.RuntimeData;
+                RepackedBins = other.RepackedBins;
             }
         }
 
@@ -447,6 +440,11 @@ public:
     void ClearRuntimeData() const;
 
     /**
+     * Internal usage only. Clears RepackedBins
+     */
+    void ClearRepackedBins() const;
+
+    /**
      * List of all CTRs in model
      * @return
      */
@@ -464,8 +462,10 @@ public:
     }
 
     TConstArrayRef<TRepackedBin> GetRepackedBins() const {
-        CalcBinFeatures();
-        return RuntimeData->RepackedBins;
+        if (!RepackedBins.GetSize()) {
+            CalcBinFeatures();
+        }
+        return *RepackedBins;
     }
 
     TConstArrayRef<size_t> GetFirstLeafOffsets() const {
@@ -610,6 +610,19 @@ private:
 
     mutable TMaybe<TForApplyData> ApplyData;
     mutable TRWMutex ApplyDataLock;
+
+    /**
+    * This vector contains ui32 that contains such information:
+    * |     ui16     |   ui8   |   ui8  |
+    * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
+    *
+    * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or
+    *  one hot feature.
+    */
+
+    static_assert(sizeof(TRepackedBin) == 4, "");
+
+    mutable NCB::TMaybeOwningConstArrayHolder<TRepackedBin> RepackedBins;
 };
 
 class TCOWTreeWrapper {
@@ -741,6 +754,7 @@ public:
             SetScaleAndBias({GetScaleAndBias().Scale, {}});
         }
         UpdateDynamicData();
+        ModelTrees->ClearRepackedBins();
     }
 
     /**

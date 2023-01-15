@@ -134,6 +134,7 @@ TFullModel TModelConverter::Convert(
     }
     coreModel.SetScaleAndBias({1.0, bias});
     coreModel.UpdateDynamicData();
+    coreModel.ModelTrees->ClearRepackedBins();
     return coreModel;
 }
 
@@ -211,6 +212,7 @@ TFullModel TModelConverter::Convert(
         }
         coreModel.SetScaleAndBias({1.0, bias});
         coreModel.UpdateDynamicData();
+        coreModel.ModelTrees->ClearRepackedBins();
         return coreModel;
     }
 

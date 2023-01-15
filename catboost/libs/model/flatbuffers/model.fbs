@@ -13,6 +13,12 @@ struct TNonSymmetricTreeStepNode {
     RightSubtreeDiff: uint16;
 }
 
+struct TRepackedBin {
+    FeatureIndex: uint16 = 0;
+    XorMask: uint8 = 0;
+    SplitIdx: uint8 = 0;
+}
+
 table TModelTrees {
     ApproxDimension:int;
     TreeSplits:[int];
@@ -35,6 +41,7 @@ table TModelTrees {
     Scale:double = 1;
     Bias:double = 0;
     MultiBias:[double];
+    RepackedBins:[TRepackedBin];
 }
 
 table TModelCore {
