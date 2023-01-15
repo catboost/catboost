@@ -171,6 +171,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     return result;
 }
 
+// utility function for python_package/catboost/core.py plot_tree function
 TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeIdx, const NCB::TDataProviderPtr pool) {
     CB_ENSURE(treeIdx < model.GetTreeCount(),
         "Requested tree splits description for tree " << treeIdx << ", but model has " << model.GetTreeCount());
@@ -206,7 +207,8 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
 
         if (binFeature.Type == ESplitType::OneHotFeature) {
             CB_ENSURE(pool,
-                "Model has one hot features. Need training dataset to get correct split descriptions");
+                "Please pass training dataset to plot_tree function, "
+                "training dataset is required if categorical features are present in the model.");
             featureDescription += catFeaturesHash[(ui32)binFeature.OneHotFeature.Value];
         }
 
