@@ -18,6 +18,11 @@ ALLOW .* -> vendor/k8s.io/client-go/tools/record
 ALLOW .* -> vendor/k8s.io/client-go/tools/reference
 ALLOW .* -> vendor/k8s.io/client-go/tools/remotecommand
 ALLOW .* -> vendor/k8s.io/client-go/tools/watch
+ALLOW .* -> vendor/k8s.io/api/apps/v1
+ALLOW .* -> vendor/k8s.io/api/core/v1
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/apis/meta/v1
+ALLOW .* -> vendor/k8s.io/client-go/util/homedir
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/api/errors
 
 # CONTRIB-2195
 ALLOW .* -> vendor/github.com/timakin/bodyclose
