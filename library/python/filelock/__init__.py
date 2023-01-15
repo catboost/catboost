@@ -59,7 +59,8 @@ class _NixFileLock(AbstractFileLock):
         self._unlocker(self._lock)
 
     def __del__(self):
-        self._lock.close()
+        if hasattr(self, "_lock"):
+            self._lock.close()
 
 
 class _WinFileLock(AbstractFileLock):
