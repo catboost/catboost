@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{7FF4A650-AA1E-8970-CED7-751939DB312C}</ProjectGUID>
+    <ProjectGUID>{9D16DE2F-0DA3-2F25-E4B4-1AF0FF06A2E2}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-neh</ProjectName>
+    <ProjectName>library-cpp-neh</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-neh</TargetName>
+    <TargetName>library-cpp-neh</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\neh\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\7FF4A650-AA1E-8970-CED7-751939DB312C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\neh\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\9D16DE2F-0DA3-2F25-E4B4-1AF0FF06A2E2\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,35 +78,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\neh\conn_cache.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\factory.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\http2.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\http_common.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\neh\http_common.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\http_headers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\https.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\inproc.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\jobqueue.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\location.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\multi.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\multiclient.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\neh.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\netliba.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\netliba_udp_http.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\pipequeue.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\rpc.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\rq.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\smart_ptr.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\stat.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\tcp.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\tcp2.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\udp.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\utils.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\neh\http_common.h">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\conn_cache.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\factory.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\http2.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\http_common.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\neh\http_common.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\http_headers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\https.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\inproc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\jobqueue.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\location.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\multi.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\multiclient.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\neh.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\netliba.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\netliba_udp_http.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\pipequeue.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\rpc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\rq.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\smart_ptr.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\stat.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\tcp.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\tcp2.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\udp.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\utils.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\neh\http_common.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\neh
+cd /d $(SolutionDir)$(Configuration)\library\cpp\neh
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/neh/http_common.h" "--include-path" "library/neh/http_common.h" "--output" "$(SolutionDir)$(Configuration)/library/neh/http_common.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/neh/http_common.h" "--include-path" "library/cpp/neh/http_common.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/neh/http_common.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -115,9 +115,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\neh
+cd /d $(SolutionDir)$(Configuration)\library\cpp\neh
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/neh/http_common.h" "--include-path" "library/neh/http_common.h" "--output" "$(SolutionDir)$(Configuration)/library/neh/http_common.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/neh/http_common.h" "--include-path" "library/cpp/neh/http_common.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/neh/http_common.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -125,35 +125,35 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/neh/http_common.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\neh\http_common.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\neh\http_common.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/neh/http_common.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\neh\http_common.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\neh\http_common.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\neh\conn_cache.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\details.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\factory.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\http2.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\http_headers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\https.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\inproc.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\jobqueue.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\lfqueue.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\location.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\multi.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\multiclient.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\neh.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\netliba.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\netliba_udp_http.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\pipequeue.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\rpc.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\rq.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\smart_ptr.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\stat.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\tcp.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\tcp2.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\udp.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\utils.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\wfmo.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\conn_cache.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\details.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\factory.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\http2.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\http_headers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\https.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\inproc.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\jobqueue.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\lfqueue.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\location.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\multi.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\multiclient.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\neh.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\netliba.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\netliba_udp_http.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\pipequeue.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\rpc.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\rq.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\smart_ptr.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\stat.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\tcp.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\tcp2.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\udp.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\utils.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\wfmo.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -281,6 +281,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\push_parser\cpp-http-push_parser.vcxproj">
       <Project>{7E318157-ACEB-A54B-85C9-3F458B867B6D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\neh\asio\cpp-neh-asio.vcxproj">
+      <Project>{FAB53BC8-A8A8-6883-CF07-CD0268AAD99E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\socket\cpp-netliba-socket.vcxproj">
       <Project>{E12F8BEB-69BE-C96E-532C-837B8BD764F3}</Project>
     </ProjectReference>
@@ -331,9 +334,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\thread_local\cpp-threading-thread_local.vcxproj">
       <Project>{67BCFA78-BD05-0105-6CA9-0D028945EA69}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
-      <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>

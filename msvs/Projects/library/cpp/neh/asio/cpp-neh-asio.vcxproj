@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</ProjectGUID>
+    <ProjectGUID>{FAB53BC8-A8A8-6883-CF07-CD0268AAD99E}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-neh-asio</ProjectName>
+    <ProjectName>cpp-neh-asio</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-neh-asio</TargetName>
+    <TargetName>cpp-neh-asio</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\neh\asio\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\ACDED067-8B74-5223-7E1A-7937B35A78E1\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\neh\asio\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FAB53BC8-A8A8-6883-CF07-CD0268AAD99E\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,20 +78,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\neh\asio\asio.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\asio\deadline_timer_impl.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\asio\executor.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\asio\io_service_impl.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\asio\poll_interrupter.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\asio\tcp_acceptor_impl.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\neh\asio\tcp_socket_impl.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\asio\asio.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\asio\deadline_timer_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\asio\executor.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\asio\io_service_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\asio\poll_interrupter.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\asio\tcp_acceptor_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\asio\tcp_socket_impl.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\asio\asio.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\asio\deadline_timer_impl.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\asio\executor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\asio\io_service_impl.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\asio\poll_interrupter.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\asio\tcp_acceptor_impl.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\neh\asio\tcp_socket_impl.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\asio\asio.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\asio\deadline_timer_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\asio\executor.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\asio\io_service_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\asio\poll_interrupter.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\asio\tcp_acceptor_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\neh\asio\tcp_socket_impl.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
