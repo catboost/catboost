@@ -4,6 +4,21 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2197
+ALLOW .* -> vendor/k8s.io/client-go/kubernetes
+ALLOW .* -> vendor/k8s.io/client-go/tools/auth
+ALLOW .* -> vendor/k8s.io/client-go/tools/cache
+ALLOW .* -> vendor/k8s.io/client-go/tools/clientcmd
+ALLOW .* -> vendor/k8s.io/client-go/tools/events
+ALLOW .* -> vendor/k8s.io/client-go/tools/leaderelection
+ALLOW .* -> vendor/k8s.io/client-go/tools/metrics
+ALLOW .* -> vendor/k8s.io/client-go/tools/pager
+ALLOW .* -> vendor/k8s.io/client-go/tools/portforward
+ALLOW .* -> vendor/k8s.io/client-go/tools/record
+ALLOW .* -> vendor/k8s.io/client-go/tools/reference
+ALLOW .* -> vendor/k8s.io/client-go/tools/remotecommand
+ALLOW .* -> vendor/k8s.io/client-go/tools/watch
+
 # CONTRIB-2195
 ALLOW .* -> vendor/github.com/timakin/bodyclose
 # github.com/gostaticanalysis/comment tests depends on the unlicensed package https://github.com/tenntenn/text
