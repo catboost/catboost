@@ -129,7 +129,7 @@ public:
         if (InitialSize == 0) {
             InitialSize = NSystemInfo::GetPageSize();
         }
-        MemoryPool = new TMemoryPool(InitialSize);
+        MemoryPool = MakeHolder<TMemoryPool>(InitialSize);
     }
     TVector<TBucketStats, TPoolAllocator>& GetStats(
         const TSplitEnsemble& splitEnsemble,

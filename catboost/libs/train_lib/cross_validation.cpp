@@ -564,14 +564,14 @@ void CrossValidate(
 
     const bool isGpuDeviceType = taskType == ETaskType::GPU;
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
-        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
+        modelTrainerHolder = THolder<IModelTrainer>(TTrainerFactory::Construct(ETaskType::GPU));
     } else {
         CB_ENSURE(
             !isGpuDeviceType,
             "Can't load GPU learning library. "
             "Module was not compiled or driver  is incompatible with package. "
             "Please install latest NVDIA driver and check again");
-        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
+        modelTrainerHolder = THolder<IModelTrainer>(TTrainerFactory::Construct(ETaskType::CPU));
     }
 
     TSetLogging inThisScope(loggingLevel);

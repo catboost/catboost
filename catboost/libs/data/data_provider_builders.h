@@ -121,7 +121,7 @@ namespace NCB {
             localExecutor
         );
         *builderVisitor = dataProviderClosure->template GetVisitor<IVisitor>();
-        *dataProviderBuilder = dataProviderClosure.Release();
+        *dataProviderBuilder = std::move(dataProviderClosure);
     }
 
     /*

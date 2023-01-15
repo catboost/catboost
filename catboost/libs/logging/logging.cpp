@@ -33,7 +33,7 @@ private:
 };
 
 void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc) {
-    TCatBoostLogSettings::GetRef().Log.ResetBackend(new TCustomFuncLogger(lowPriorityFunc), new TCustomFuncLogger(highPriorityFunc));
+    TCatBoostLogSettings::GetRef().Log.ResetBackend(MakeHolder<TCustomFuncLogger>(lowPriorityFunc), MakeHolder<TCustomFuncLogger>(highPriorityFunc));
 }
 
 void RestoreOriginalLogger() {

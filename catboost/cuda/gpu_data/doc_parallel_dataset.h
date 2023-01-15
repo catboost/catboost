@@ -148,12 +148,12 @@ namespace NCatboostCuda {
             //            const ui32 loadBalancingPermutationId = 42;
             const ui32 loadBalancingPermutationId = FromString<ui32>(GetEnv("CB_LOAD_BALANCE_PERMUTATION", "42"));
 
-            LearnDocPerDevicesSplit = new TDocParallelSplit(*DataProvider,
+            LearnDocPerDevicesSplit = MakeHolder<TDocParallelSplit>(*DataProvider,
                                                             DataProvider->MetaInfo.HasGroupId
                                                                 ? GetPermutation(dataProvider, loadBalancingPermutationId)
                                                                 : GetPermutation(dataProvider, TDataPermutation::IdentityPermutationId()));
             if (TestDataProvider) {
-                TestDocPerDevicesSplit = new TDocParallelSplit(*TestDataProvider,
+                TestDocPerDevicesSplit = MakeHolder<TDocParallelSplit>(*TestDataProvider,
                                                                DataProvider->MetaInfo.HasGroupId
                                                                    ? GetPermutation(*TestDataProvider, loadBalancingPermutationId)
                                                                    : GetPermutation(*TestDataProvider, TDataPermutation::IdentityPermutationId()));

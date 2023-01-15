@@ -288,7 +288,7 @@ namespace NCudaLib {
         }
 
         void CreateNewComputationStream() {
-            Streams.push_back(new TComputationStream());
+            Streams.push_back(MakeHolder<TComputationStream>());
         }
 
         inline ui32 RequestStreamImpl() {
