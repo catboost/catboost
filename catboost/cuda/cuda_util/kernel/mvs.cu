@@ -182,7 +182,7 @@ __global__ void MvsBootstrapRadixSortImpl(
     float lambda,
     float* weights,
     ui32 size,
-    ui64* seeds,
+    const ui64* seeds,
     ui32 seedSize
 ) {
     const int blockOffset = blockIdx.x * BLOCK_THREADS * ITEMS_PER_THREAD;
@@ -239,8 +239,7 @@ __global__ void MvsBootstrapRadixSortImpl(
 
     // Set Mvs weights
     ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
-    seeds += i;
-    ui64 s = seeds[0];
+    ui64 s = __ldg(seeds + i % seedSize) + blockIdx.x;
     const float eps = std::numeric_limits<float>::epsilon();
     #pragma unroll
     for (int k = 0; k < ITEMS_PER_THREAD; k++) {
@@ -249,7 +248,6 @@ __global__ void MvsBootstrapRadixSortImpl(
             ? __fdividef(1.0f, probability)
             : 0.0f;
     }
-    seeds[0] = s;
 
     idx = blockOffset + threadIdx.x;
     #pragma unroll
@@ -266,11 +264,11 @@ void MvsBootstrapRadixSort(
     const float lambda,
     float* weights,
     ui32 size,
-    ui64* seeds,
+    const ui64* seeds,
     ui32 seedSize,
     TCudaStream stream
 ) {
-    const ui32 blockThreads = 256;
+    const ui32 blockThreads = 512;
     const ui32 SCAN_ITEMS_PER_THREAD = 8192 / blockThreads;
     const ui32 numBlocks = CeilDivide(size, blockThreads * SCAN_ITEMS_PER_THREAD);
 
@@ -278,7 +276,6 @@ void MvsBootstrapRadixSort(
         MvsBootstrapRadixSortImpl<SCAN_ITEMS_PER_THREAD, blockThreads> <<< numBlocks, blockThreads, 0, stream >>> (
             takenFraction, lambda, weights, size, seeds, seedSize
         );
-
     }
 }
 
@@ -289,7 +286,7 @@ void CalculateMvsThreshold(
     float* threshold,
     TCudaStream stream
 ) {
-    const ui32 blockThreads = 256;
+    const ui32 blockThreads = 512;
     const ui32 SCAN_ITEMS_PER_THREAD = 8192 / blockThreads;
     const ui32 numBlocks = CeilDivide(size, blockThreads * SCAN_ITEMS_PER_THREAD);
     {
