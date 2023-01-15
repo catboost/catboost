@@ -50,7 +50,7 @@ static TVector<TVector<double>> CalcSomeSoftmax(
     return probabilities;
 }
 
-static TVector<TVector<double>> CalcSoftmax(
+TVector<TVector<double>> CalcSoftmax(
     const TVector<TVector<double>>& approx,
     NPar::ILocalExecutor* executor)
 {
