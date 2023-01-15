@@ -209,6 +209,121 @@ void UpdateIndices(
     );
 }
 
+void UpdateIndicesWithSplit(
+    const TSplitNode& node,
+    const TTrainingDataProviders& trainingData,
+    const NCB::TIndexedSubset<ui32>& docsSubset,
+    const TFold& fold,
+    NPar::ILocalExecutor* localExecutor,
+    TArrayRef<TIndexType> indicesRef,
+    NCB::TIndexedSubset<ui32>* leftIndices,
+    NCB::TIndexedSubset<ui32>* rightIndices
+) {
+    const ui32 docSize = docsSubset.size();
+    const ui32* docsSubsetPtr = docsSubset.data();
+    TQuantizedObjectsDataProviderPtr objectsDataProvider;
+    TIndexedSubsetCache indexedSubsetCache; // not really updated because it is used for test only
+    const ui32* columnsIndexing = nullptr;
+    GetObjectsDataAndIndexing(
+        trainingData,
+        fold,
+        node.Split.Type == ESplitType::EstimatedFeature,
+        node.Split.IsOnline(),
+        /*objectSubsetIdx*/ 0, // 0 - learn
+        &indexedSubsetCache,
+        localExecutor,
+        &objectsDataProvider,
+        &columnsIndexing // can return nullptr
+    );
+
+    auto func = BuildNodeSplitFunction(
+        node,
+        *objectsDataProvider,
+        node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtrs(node.Split.Ctr.Projection) : nullptr,
+        /* docOffset */ 0);
+
+    // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
+    std::function<bool(ui32)> splitFunction;
+    if (!columnsIndexing) {
+        splitFunction = std::move(func);
+    } else {
+        splitFunction = [realObjIdx = columnsIndexing, func=std::move(func)](ui32 idx) {
+            return func(realObjIdx[idx]);
+        };
+    }
+    const size_t blockSize = Max<size_t>(CeilDiv<size_t>(docSize, localExecutor->GetThreadCount() + 1), 1000);
+    const TSimpleIndexRangesGenerator<size_t> rangesGenerator(TIndexRange<size_t>(docSize), blockSize);
+    const int blockCount = rangesGenerator.RangesCount();
+    TVector<size_t> leftCounts(blockCount + 1, 0);
+    TVector<size_t> rightCounts(blockCount + 1, 0);
+    TVector<TVector<ui32>> localLefts(blockCount);
+    TVector<TVector<ui32>> localRights(blockCount);
+
+    localExecutor->ExecRange(
+        [&node, indicesRef, splitFunction, &docsSubsetPtr, &rangesGenerator, &leftCounts, &rightCounts, &localLefts, &localRights](int blockId) {
+            const ui32* docsSubsetLocal = docsSubsetPtr;
+            const size_t rangeSize = rangesGenerator.GetRange(blockId).GetSize();
+            localLefts[blockId].yresize(rangeSize);
+            localRights[blockId].yresize(rangeSize);
+
+            TArrayRef<ui32> localLeftsRef(localLefts[blockId]);
+            TArrayRef<ui32> localRightsRef(localRights[blockId]);
+            size_t nLeftCount = 0;
+            size_t nRightCount = 0;
+            for (auto idx : rangesGenerator.GetRange(blockId).Iter()) {
+                const ui32 objIdx = *(docsSubsetLocal + idx);
+                const bool split = splitFunction(objIdx);
+                indicesRef[objIdx] = (~node.Left) + split * ((~node.Right) - (~node.Left));
+                if (split) {
+                    localRightsRef[nRightCount] = objIdx;
+                    ++nRightCount;
+                } else {
+                    localLeftsRef[nLeftCount] = objIdx;
+                    ++nLeftCount;
+                }
+            }
+            leftCounts[blockId + 1] = nLeftCount;
+            rightCounts[blockId + 1] = nRightCount;
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
+
+    for (int i = 1; i < blockCount + 1; ++i) {
+        leftCounts[i] += leftCounts[i - 1];
+        rightCounts[i] += rightCounts[i - 1];
+    }
+
+    const size_t nLeftCount = leftCounts[blockCount];
+    const size_t nRightCount = rightCounts[blockCount];
+
+    leftIndices->yresize(nLeftCount);
+    rightIndices->yresize(nRightCount);
+    TArrayRef<ui32> leftIndicesRef(*leftIndices);
+    TArrayRef<ui32> rightIndicesRef(*rightIndices);
+
+    localExecutor->ExecRange(
+        [leftIndicesRef, rightIndicesRef, &leftCounts, &rightCounts, &localLefts, &localRights] (int blockId) {
+            size_t leftStart = leftCounts[blockId];
+            size_t rightStart = rightCounts[blockId];
+            const size_t leftSize = leftCounts[blockId + 1] - leftStart;
+            const size_t rightSize = rightCounts[blockId + 1] - rightStart;
+            TConstArrayRef<ui32> localLeftsRef(localLefts[blockId].data(), leftSize);
+            TConstArrayRef<ui32> localRightsRef(localRights[blockId].data(), rightSize);
+            for (size_t j = 0; j < leftSize; ++j) {
+                leftIndicesRef[leftStart++] = localLeftsRef[j];
+            }
+            for (size_t j = 0; j < rightSize; ++j) {
+                rightIndicesRef[rightStart++] = localRightsRef[j];
+            }
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
+}
+
 void BuildIndicesForDataset(
     const TNonSymmetricTreeStructure& tree,
     const TTrainingDataProviders& trainingData,
