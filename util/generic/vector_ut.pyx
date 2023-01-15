@@ -42,7 +42,13 @@ class TestVector(unittest.TestCase):
         tmp3.push_back(1)
         tmp3.push_back(3)
 
+        self.assertEqual(tmp2[1], 2)
+        self.assertEqual(tmp3[1], 3)
+
         tmp3 = tmp2
+
+        self.assertEqual(tmp2[1], 2)
+        self.assertEqual(tmp3[1], 2)
 
     def test_compare(self):
         cdef TVector[int] tmp1

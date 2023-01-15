@@ -12,6 +12,7 @@ PY_SRCS(
     util
     folder/path_ut.pyx
     generic/array_ref_ut.pyx
+    generic/deque_ut.pyx
     generic/maybe_ut.pyx
     generic/ptr_ut.pyx
     generic/string_ut.pyx
