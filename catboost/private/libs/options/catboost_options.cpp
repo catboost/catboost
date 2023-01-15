@@ -551,12 +551,15 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             CB_ENSURE(classesCount > 1, "classes-count should be at least 2");
         }
         const auto& classWeights = DataProcessingOptions->ClassWeights.Get();
-        if (!classWeights.empty()) {
+        const EAutoClassWeightsType autoClassWeights = DataProcessingOptions->AutoClassWeights.Get();
+        if (!classWeights.empty() || autoClassWeights != EAutoClassWeightsType::None) {
             CB_ENSURE(lossFunction == ELossFunction::Logloss || IsMultiClassOnlyMetric(lossFunction) || IsUserDefined(lossFunction),
                       "class weights takes effect only with Logloss, MultiClass, MultiClassOneVsAll and user-defined loss functions");
-            CB_ENSURE(lossFunction != ELossFunction::Logloss || (classWeights.size() == 2),
-                      "if loss-function is Logloss, then class weights should be given for 0 and 1 classes");
-            CB_ENSURE(classesCount == 0 || classesCount == classWeights.size(), "class weights should be specified for each class in range 0, ... , classes_count - 1");
+            if (!classWeights.empty()) {
+                CB_ENSURE(lossFunction != ELossFunction::Logloss || (classWeights.size() == 2),
+                          "if loss-function is Logloss, then class weights should be given for 0 and 1 classes");
+                CB_ENSURE(classesCount == 0 || classesCount == classWeights.size(), "class weights should be specified for each class in range 0, ... , classes_count - 1");
+            }
         }
     }
 

@@ -1028,8 +1028,8 @@ def _process_synonyms(params):
     if 'scale_pos_weight' in params:
         if 'loss_function' in params and params['loss_function'] != 'Logloss':
                 raise CatBoostError('scale_pos_weight is supported only for binary classification Logloss loss')
-        if 'class_weights' in params:
-            raise CatBoostError('only one of the parameters scale_pos_weight, class_weights should be initialized.')
+        if 'class_weights' in params or 'auto_class_weights' in params:
+            raise CatBoostError('only one of the parameters scale_pos_weight, class_weights, auto_class_weights should be initialized.')
         params['class_weights'] = [1.0, params['scale_pos_weight']]
         del params['scale_pos_weight']
     if ('class_weights' in params) and isinstance(params['class_weights'], (dict, OrderedDict)):
@@ -3635,6 +3635,10 @@ class CatBoostClassifier(CatBoost):
         If dict - dict of class_name -> class_weight.
         If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
         the numbers of classes specified by each of them must be equal.
+    auto_class_weights : string [default=None]
+        Enables automatic class weights calculation. Possible values:
+            - Balanced  # weight = maxSummaryClassWeight / summaryClassWeight, statistics determined from train pool
+            - SqrtBalanced  # weight = sqrt(maxSummaryClassWeight / summaryClassWeight)
     class_names: list of strings, [default=None]
         Class names. Allows to redefine the default values for class labels (integer numbers).
         If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
@@ -3931,6 +3935,7 @@ class CatBoostClassifier(CatBoost):
         target_border=None,
         classes_count=None,
         class_weights=None,
+        auto_class_weights=None,
         class_names=None,
         one_hot_max_size=None,
         random_strength=None,

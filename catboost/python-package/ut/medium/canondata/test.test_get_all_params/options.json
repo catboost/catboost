@@ -1,4 +1,5 @@
 {
+    "auto_class_weights": "None", 
     "bayesian_matrix_reg": 0.10000000149011612, 
     "best_model_min_trees": 1, 
     "boost_from_average": true, 

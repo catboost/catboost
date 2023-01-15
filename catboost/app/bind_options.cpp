@@ -1125,6 +1125,19 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         })
         .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 
+    const auto autoClassWeightsHelp = TString::Join(
+        "Takes effect only with MultiClass/LogLoss loss functions. Must be one of: ",
+        GetEnumAllNames<EAutoClassWeightsType>(),
+        ". Default: ",
+        ToString(EAutoClassWeightsType::None));
+
+    parser.AddLongOption("auto-class-weights")
+        .RequiredArgument("String")
+        .Handler1T<EAutoClassWeightsType>([plainJsonPtr](const auto classWeightsType){
+            (*plainJsonPtr)["auto_class_weights"] = ToString(classWeightsType);
+        })
+        .Help(autoClassWeightsHelp);
+
     const auto gpuCatFeatureStorageHelp = TString::Join(
         "GPU only. Must be one of: ",
         GetEnumAllNames<EGpuCatFeaturesStorage>(),
