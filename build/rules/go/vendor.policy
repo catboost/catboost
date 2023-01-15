@@ -556,6 +556,9 @@ ALLOW .* -> vendor/github.com/minio/sha256-simd
 # CONTRIB-1979 command line editor with history
 ALLOW .* -> vendor/github.com/peterh/liner
 
+# CONTRIB-1999 strongSwan vici client library
+ALLOW .* -> vendor/github.com/strongswan/govici/vici
+
 # CONTRIB-2002 A Go implementation of RTP
 ALLOW .* -> vendor/github.com/pion/rtp
 
