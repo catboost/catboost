@@ -1,3 +1,27 @@
+# Release 0.24
+
+## New functionality
+* We've finally implemented MVS sampling for GPU training. Switched default bootstrap algorithm to MVS for RMSE loss function while training on GPU
+* Implemented near-zero cost model deserialization from memory blob. Currently, if your model doesn't use categorical features CTR counters and text features you can deserialize model from, for example, memory-mapped file.
+* Added ability to load trained models from binary string or file-like stream. To load model from bytes string use `load_model(blob=b'....')`, to deserialize form file-like stream use `load_model(stream=gzip.open('model.cbm.gz', 'rb'))`
+* Fixed auto-learning rate estimation params for GPU
+* Supported beta parameter for QuerySoftMax function on CPU and GPU
+
+## New losses and metrics
+* New loss function ```RMSEWithUncertainty``` - it allows to estimate data uncertainty for trained regression models. The trained model will give you a two-element vector for each object with the first element as regression model prediction and the second element as an estimation of data uncertainty for that prediction.
+
+## Speedups
+* Our team and our contributors (Thanks @dmsivkov!) have made major speedups for CPU training: kdd98 -9%, higgs -18%, msrank -28%
+
+## Bugfixes:
+* Fixed CatBoost model export as Python code
+* Fixed AUC metric creation
+* Add text features to `model.feature_names_`. Issue#1314
+* Allow models, trained on datasets with NaN values (Min treatment) and without NaNs in `model_sum()` or as the base model in `init_model=`. Issue #1271 
+
+## Educational materials
+* Published new [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/categorical_features/categorical_features_parameters.ipynb) on categorical features parameters. Thanks @garkavem 
+
 # Release 0.23.2
 
 ## New functionality
