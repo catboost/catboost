@@ -143,8 +143,8 @@ namespace NCB {
         const THashMap<ui32, TString>* catFeaturesHashToString
     ) {
         //TODO(eermishkina): support non symmetric trees
-        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json,
-            "Can save non symmetric trees only in cbm or Json format");
+        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json || format == EModelType::Pmml,
+            "Can save non symmetric trees only in cbm, Json, or Pmml format");
         //TODO(d-kruchinin): support text features
         CB_ENSURE(
             !model.TextProcessingCollection || format == EModelType::CatboostBinary,
