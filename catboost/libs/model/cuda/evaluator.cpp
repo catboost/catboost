@@ -220,6 +220,27 @@ namespace NCB::NModelEvaluation {
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
+            void CalcWithHashedCatAndText(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<int>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureLayout
+            ) const override {
+                ValidateInputFeatures(floatFeatures, catFeatures);
+                CB_ENSURE(
+                    catFeatures.empty(),
+                    "Cat features are not supported on GPU, should be empty"
+                );
+                CB_ENSURE(
+                    textFeatures.empty(),
+                    "Text features are not supported on GPU, should be empty"
+                );
+                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
+            }
+
             void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
                 TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,

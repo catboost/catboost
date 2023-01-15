@@ -171,6 +171,15 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(
     const int** catFeatures, size_t catFeaturesSize,
     double* result, size_t resultSize);
 
+CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const int** catFeatures, size_t catFeaturesSize,
+    const char*** textFeatures, size_t textFeaturesSize,
+    double* result, size_t resultSize);
+
+
 /**
  * Get hash for given string value
  * @param data we don't expect data to be zero terminated, so pass correct size

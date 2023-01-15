@@ -291,6 +291,18 @@ namespace NCB::NModelEvaluation {
                 );
             }
 
+            void CalcWithHashedCatAndText(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<int>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo
+            ) const override {
+                Calc(floatFeatures, catFeatures, textFeatures, treeStart, treeEnd, results, featureInfo);
+            }
+
             void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
                 TConstArrayRef<TConstArrayRef<int>> catFeatures,

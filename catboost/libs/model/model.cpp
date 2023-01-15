@@ -1016,6 +1016,19 @@ void TFullModel::Calc(
     GetCurrentEvaluator()->Calc(floatFeatures, catFeatures, treeStart, treeEnd, results, featureInfo);
 }
 
+void TFullModel::CalcWithHashedCatAndText(
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TConstArrayRef<int>> catFeatures,
+    TConstArrayRef<TVector<TStringBuf>> textFeatures,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results,
+    const TFeatureLayout* featureInfo
+) const {
+    TVector<TConstArrayRef<TStringBuf>> stringbufTextVecRefs{textFeatures.begin(), textFeatures.end()};
+    GetCurrentEvaluator()->CalcWithHashedCatAndText(floatFeatures, catFeatures, stringbufTextVecRefs, treeStart, treeEnd, results, featureInfo);
+}
+
 void TFullModel::Calc(
     TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     TConstArrayRef<TVector<TStringBuf>> catFeatures,

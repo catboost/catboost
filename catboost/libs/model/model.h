@@ -997,6 +997,41 @@ public:
     }
 
     /**
+     * Evaluate raw formula predictions on user data. Uses model trees for interval [treeStart, treeEnd)
+     * @param[in] floatFeatures
+     * @param[in] catFeatures hashed cat feature values
+     * @param[in] textFeatures
+     * @param[in] treeStart
+     * @param[in] treeEnd
+     * @param[out] results results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void CalcWithHashedCatAndText(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TConstArrayRef<int>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr) const;
+
+    /**
+     * Evaluate raw formula predictions on user data. Uses all model trees
+     * @param floatFeatures
+     * @param catFeatures hashed cat feature values
+     * @param textFeatures
+     * @param results results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void CalcWithHashedCatAndText(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TConstArrayRef<int>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        CalcWithHashedCatAndText(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
      * Evaluate raw formula prediction for one object. Uses all model trees
      * @param floatFeatures
      * @param catFeatures
