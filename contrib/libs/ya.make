@@ -27,6 +27,7 @@ RECURSE(
     lz4/generated
     lzmasdk
     nayuki_md5
+    nvidia
     onnx
     openssl
     protobuf

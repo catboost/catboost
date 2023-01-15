@@ -66,7 +66,22 @@ void TZeroMeanKernel::Run(const TCudaStream& stream) const {
     NKernel::ZeroMean(Solutions.GetForObject(SolutionsSlice.Left), rowSize, SolutionsSlice.Size(), stream.GetStream());
 }
 
-void TCholeskySolverKernel::Run(const TCudaStream& stream) const {
+THolder<TCholeskySolverKernel::TKernelContext> TCholeskySolverKernel::PrepareContext(IMemoryManager& manager) const {
+    const ui32 rowSize = Solutions.ObjectSize();
+    if (!TKernelContext::IsCuSolverFast(rowSize, Matrices.ObjectCount())) {
+        return MakeHolder<TKernelContext>();
+    }
+
+    auto context = MakeHolder<TKernelContext>(rowSize);
+    context->CuSolverBuffer = manager.Allocate<float>(context->CuSolverBufferSize);
+    context->CuSolverInfo = manager.Allocate<int>(context->BatchSize);
+    context->CuSolverLhs = manager.Allocate<float*>(context->BatchSize);
+    context->CuSolverRhs = manager.Allocate<float*>(context->BatchSize);
+
+    return context;
+}
+
+void TCholeskySolverKernel::Run(const TCudaStream& stream, TCholeskySolverKernel::TKernelContext& context) const {
     const ui32 rowSize = Solutions.ObjectSize();
     CB_ENSURE(rowSize * (rowSize + 1) / 2 == Matrices.ObjectSize());
     CB_ENSURE(Matrices.ObjectCount() == SolutionsSlice.Size());
@@ -76,6 +91,7 @@ void TCholeskySolverKernel::Run(const TCudaStream& stream) const {
                             rowSize,
                             static_cast<int>(SolutionsSlice.Size()),
                             RemoveLast,
+                            context,
                             stream.GetStream());
 
     if (RemoveLast) {
