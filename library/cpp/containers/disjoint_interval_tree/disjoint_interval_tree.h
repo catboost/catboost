@@ -43,6 +43,7 @@ public:
         return const_cast<TThis*>(this)->FindContaining(t);
     }
 
+    // Erase element. Returns true when element has been deleted, otherwise false.
     bool Erase(const T t) {
         TIterator n = FindContaining(t);
         if (n == Tree.end()) {
@@ -54,9 +55,9 @@ public:
         T& begin = const_cast<T&>(n->first);
         T& end = const_cast<T&>(n->second);
 
-        // optimization hack
+        // Optimization hack.
         if (t == begin) {
-            if (++begin == end) { // OK to change key since intervals do not intersect
+            if (++begin == end) { // OK to change key since intervals do not intersect.
                 Tree.erase(n);
                 return true;
             }
@@ -72,6 +73,70 @@ public:
 
         Y_ASSERT(begin < end);
         return true;
+    }
+
+    // Erase interval. Returns number of elements removed from set.
+    size_t EraseInterval(const T begin, const T end) {
+        Y_ASSERT(begin < end);
+
+        if (Empty()) {
+            return 0;
+        }
+
+        size_t elementsRemoved = 0;
+
+        TIterator completelyRemoveBegin = Tree.lower_bound(begin);
+        if ((completelyRemoveBegin != Tree.end() && completelyRemoveBegin->first > begin && completelyRemoveBegin != Tree.begin())
+            || completelyRemoveBegin == Tree.end()) {
+            // Look at the interval. It could contain [begin, end).
+            TIterator containingBegin = completelyRemoveBegin;
+            --containingBegin;
+            if (containingBegin->first < begin && begin < containingBegin->second) { // Contains begin.
+                if (containingBegin->second > end) { // Contains end.
+                    const T prevEnd = containingBegin->second;
+                    Y_ASSERT(containingBegin->second - begin <= NumElements);
+
+                    Y_ASSERT(containingBegin->second - containingBegin->first > end - begin);
+                    containingBegin->second = begin;
+                    InsertIntervalImpl(end, prevEnd);
+
+                    elementsRemoved = end - begin;
+                    NumElements -= elementsRemoved;
+                    return elementsRemoved;
+                } else {
+                    elementsRemoved += containingBegin->second - begin;
+                    containingBegin->second = begin;
+                }
+            }
+        }
+
+        TIterator completelyRemoveEnd = completelyRemoveBegin != Tree.end() ? Tree.lower_bound(end) : Tree.end();
+        if (completelyRemoveEnd != Tree.end() && completelyRemoveEnd != Tree.begin() && completelyRemoveEnd->first != end) {
+            TIterator containingEnd = completelyRemoveEnd;
+            --containingEnd;
+            if (containingEnd->second > end) {
+                T& leftBorder = const_cast<T&>(containingEnd->first);
+
+                Y_ASSERT(leftBorder < end);
+
+                --completelyRemoveEnd; // Don't remove the whole interval.
+
+                // Optimization hack.
+                elementsRemoved += end - leftBorder;
+                leftBorder = end; // OK to change key since intervals do not intersect.
+            }
+        }
+
+        for (TIterator i = completelyRemoveBegin; i != completelyRemoveEnd; ++i) {
+            elementsRemoved += i->second - i->first;
+        }
+
+        Tree.erase(completelyRemoveBegin, completelyRemoveEnd);
+
+        Y_ASSERT(elementsRemoved <= NumElements);
+        NumElements -= elementsRemoved;
+
+        return elementsRemoved;
     }
 
     void Swap(TDisjointIntervalTree& rhv) {
