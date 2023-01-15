@@ -27,7 +27,7 @@ namespace NPrivate {
     /// @see https://gmplib.org/~tege/divcnst-pldi94.pdf
     template <typename TDivisor, typename TDividend, typename MulUnsignedUpper>
     class TReciprocalDivisor {
-        static_assert(sizeof(TDivisor) <= sizeof(TDividend));
+        static_assert(sizeof(TDivisor) <= sizeof(TDividend), "TDivisor and TDividend should have the same size");
     public:
         constexpr TReciprocalDivisor() noexcept = default;
 

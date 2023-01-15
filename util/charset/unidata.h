@@ -301,7 +301,7 @@ inline wchar32 ToTitle(wchar32 ch) {
 
 inline int ToDigit(wchar32 ch) {
     ui32 i = NUnicode::NPrivate::CharInfo(ch);
-    return (i & IS_DIGIT) ? (i >> SVAL_OFFSET) : -1;
+    return (i & IS_DIGIT) ? static_cast<int>(i >> SVAL_OFFSET) : -1;
 }
 
 // BIDI properties
