@@ -110,11 +110,11 @@ void NCatboostCuda::TPairwiseScoreCalcer::Compute() {
     TScopedCacheHolder cacheHolder;
 
     for (auto& helper : Helpers) {
-        Solutions[helper.first] = new TBinaryFeatureSplitResults;
+        Solutions[helper.first] = MakeHolder<TBinaryFeatureSplitResults>();
 
         if (StoreTempResults) {
-            Solutions[helper.first]->LinearSystems = new TStripeBuffer<float>;
-            Solutions[helper.first]->SqrtMatrices = new TStripeBuffer<float>;
+            Solutions[helper.first]->LinearSystems = MakeHolder<TStripeBuffer<float>>();
+            Solutions[helper.first]->SqrtMatrices = MakeHolder<TStripeBuffer<float>>();
         }
     }
 

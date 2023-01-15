@@ -8,8 +8,8 @@
 #define YSYSLOGINIT_FLAGS(ident, facility, flags)                                                                                    \
     struct TLogIniter {                                                                                                              \
         TLogIniter() {                                                                                                               \
-            SysLogInstance().ResetBackend(                                                                                           \
-                (ident) ? (TLogBackend*)(new TSysLogBackend((ident), (facility), (flags))) : (TLogBackend*)(new TNullLogBackend())); \
+            SysLogInstance().ResetBackend(THolder<TLogBackend>(                                                                      \
+                (ident) ? (TLogBackend*)(new TSysLogBackend((ident), (facility), (flags))) : (TLogBackend*)(new TNullLogBackend())));\
         }                                                                                                                            \
     } Y_CAT(loginit, __LINE__);
 
