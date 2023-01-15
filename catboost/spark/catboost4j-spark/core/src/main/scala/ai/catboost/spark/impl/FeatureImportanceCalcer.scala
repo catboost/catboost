@@ -32,10 +32,11 @@ class FeatureImportanceCalcer extends Logging {
       includeEstimatedFeatures=false,
       includePairsIfPresent=false,
       dstColumnNames=Array[String](),
+      dstRowLength=0,
       (
         dataProvider: TDataProviderPtr,
         estimatedDataProvider: TDataProviderPtr,
-        dstRows: mutable.ArrayBuffer[mutable.ArrayBuffer[Any]],
+        dstRows: mutable.ArrayBuffer[Array[Any]],
         localExecutor: TLocalExecutor
       ) => {
         val leavesWeights = native_impl.CollectLeavesStatisticsWrapper(
@@ -132,10 +133,11 @@ class FeatureImportanceCalcer extends Logging {
       includeEstimatedFeatures=false,
       includePairsIfPresent=true,
       dstColumnNames=Array[String](),
+      dstRowLength=0,
       (
         dataProvider: TDataProviderPtr,
         estimatedDataProvider: TDataProviderPtr,
-        dstRows: mutable.ArrayBuffer[mutable.ArrayBuffer[Any]],
+        dstRows: mutable.ArrayBuffer[Array[Any]],
         localExecutor: TLocalExecutor
       ) => {
         val result = native_impl.CalcFeatureEffectLossChangeMetricStatsWrapper(
@@ -277,10 +279,11 @@ class FeatureImportanceCalcer extends Logging {
       includeEstimatedFeatures=false,
       includePairsIfPresent=true,
       dstColumnNames=outputColumns,
+      dstRowLength=dstSchema.length - 1,
       (
         dataProvider: TDataProviderPtr,
         estimatedDataProvider: TDataProviderPtr,
-        dstRows: mutable.ArrayBuffer[mutable.ArrayBuffer[Any]],
+        dstRows: mutable.ArrayBuffer[Array[Any]],
         localExecutor: TLocalExecutor
       ) => {
         val result = native_impl.CalcShapValuesWithPreparedTreesWrapper(
@@ -295,20 +298,20 @@ class FeatureImportanceCalcer extends Logging {
         (if (modelDimensionsCount > 1) {
           (0 until objectCount).map(
             objectIdx => {
-              dstRows(objectIdx) += new linalg.DenseMatrix(
+              val shapValues = new linalg.DenseMatrix(
                 modelDimensionsCount,
                 shapValuesCount,
                 result.Get(objectIdx).toPrimitiveArray,
                 isTransposed=true
               )
-              Row.fromSeq(dstRows(objectIdx).toSeq)
+              Row.fromSeq(dstRows(objectIdx).toSeq :+ shapValues)
             }
           )
         } else {
           (0 until objectCount).map(
             objectIdx => {
-              dstRows(objectIdx) += new linalg.DenseVector(result.Get(objectIdx).toPrimitiveArray)
-              Row.fromSeq(dstRows(objectIdx).toSeq)
+              val shapValues = new linalg.DenseVector(result.Get(objectIdx).toPrimitiveArray)
+              Row.fromSeq(dstRows(objectIdx).toSeq :+ shapValues)
             }
           )
         }).toIterator
@@ -378,10 +381,11 @@ class FeatureImportanceCalcer extends Logging {
       includeEstimatedFeatures=false,
       includePairsIfPresent=true,
       dstColumnNames=outputColumns,
+      dstRowLength=outputColumnCount,
       (
         dataProvider: TDataProviderPtr,
         estimatedDataProvider: TDataProviderPtr,
-        dstRows: mutable.ArrayBuffer[mutable.ArrayBuffer[Any]],
+        dstRows: mutable.ArrayBuffer[Array[Any]],
         localExecutor: TLocalExecutor
       ) => {
         val result = native_impl.CalcShapInteractionValuesWithPreparedTreesWrapper(
@@ -395,11 +399,10 @@ class FeatureImportanceCalcer extends Logging {
         val objectCount = result.GetObjectCount
         val shapInteractionValuesCount = result.GetShapInteractionValuesCount
         (if (modelDimensionsCount > 1) {
-          val placeholder = new Array[Any](4)
+          val dstRow = new Array[Any](outputColumnCount + 4)
           (0 until objectCount).flatMap(
             objectIdx => {
-              var dstRow = dstRows(objectIdx)
-              dstRow ++= placeholder
+              Array.copy(dstRows(objectIdx), 0, dstRow, 0, outputColumnCount)
               (0 until modelDimensionsCount).flatMap(
                 dimension => {
                   dstRow(outputColumnCount) = dimension
@@ -421,11 +424,10 @@ class FeatureImportanceCalcer extends Logging {
             }
           )
         } else {
-          val placeholder = new Array[Any](3)
+          val dstRow = new Array[Any](outputColumnCount + 3)
           (0 until objectCount).flatMap(
             objectIdx => {
-              var dstRow = dstRows(objectIdx)
-              dstRow ++= placeholder
+              Array.copy(dstRows(objectIdx), 0, dstRow, 0, outputColumnCount)
               val values = result.Get(objectIdx).toPrimitiveArray
               (0 until shapInteractionValuesCount).flatMap(
                 idx1 => {

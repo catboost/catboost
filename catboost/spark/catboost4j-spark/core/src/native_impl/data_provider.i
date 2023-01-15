@@ -9,8 +9,24 @@
 
 
 namespace NCB {
-    class TRawObjectsDataProviderPtr;
+    class TObjectsDataProviderPtr;
+
+    class TRawObjectsDataProviderPtr {
+    public:
+        %extend {
+            TObjectsDataProviderPtr ToBase() const {
+                return (*self);
+            }
+        }
+    };
+    
     class TQuantizedObjectsDataProviderPtr {
+    public:
+        %extend {
+            TObjectsDataProviderPtr ToBase() const {
+                return (*self);
+            }
+        }
     };
 
 

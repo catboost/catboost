@@ -40,7 +40,7 @@ private[spark] class CatBoostWorker extends Logging {
     threadCount: Int,
     
     // returns (quantizedDataProvider, estimatedQuantizedDataProvider, dstRows) can return null
-    getDataProvidersCallback : (TLocalExecutor) => (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[mutable.ArrayBuffer[Any]])
+    getDataProvidersCallback : (TLocalExecutor) => (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[Array[Any]])
   ) = {
     if (!CatBoostWorker.usedInCurrentProcess.compareAndSet(false, true)) {
       throw new CatBoostError("An active CatBoost worker is already present in the current process")

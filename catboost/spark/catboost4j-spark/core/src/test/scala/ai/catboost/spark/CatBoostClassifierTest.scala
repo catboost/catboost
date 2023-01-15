@@ -159,6 +159,7 @@ class CatBoostClassifierTest {
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = classifier.fit(pool)
+    val quantizedPool = pool.quantize()
     
     val expectedRawPrediction = Seq(
       (
@@ -266,6 +267,14 @@ class CatBoostClassifierTest {
           )
           
           TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+          
+          // check apply on quantized
+          val quantizedPredictions = model.transformPool(quantizedPool)
+          
+          TestHelpers.assertEqualsWithPrecision(
+            expectedPredictions.drop("features"),
+            quantizedPredictions.drop("features")
+          )
         }
       }
     }
@@ -825,6 +834,7 @@ class CatBoostClassifierTest {
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
 
     val model = classifier.fit(pool)
+    val quantizedPool = pool.quantize()
     
     val expectedRawPrediction = Seq(
       (
@@ -944,6 +954,14 @@ class CatBoostClassifierTest {
           )
           
           TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+          
+          // check apply on quantized
+          val quantizedPredictions = model.transformPool(quantizedPool)
+          
+          TestHelpers.assertEqualsWithPrecision(
+            expectedPredictions.drop("features"),
+            quantizedPredictions.drop("features")
+          )
         }
       }
     }

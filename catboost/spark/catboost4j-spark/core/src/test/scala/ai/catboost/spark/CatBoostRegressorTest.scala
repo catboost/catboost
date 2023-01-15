@@ -96,6 +96,15 @@ class CatBoostRegressorTest {
     val predictions = model.transform(pool.data)
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+    
+    // check apply on quantized
+    val quantizedPool = pool.quantize()
+    val quantizedPredictions = model.transformPool(quantizedPool)
+    
+    TestHelpers.assertEqualsWithPrecision(
+      expectedPredictions.drop("features"),
+      quantizedPredictions.drop("features")
+    )
   }
 
   @Test
