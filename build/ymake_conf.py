@@ -2006,6 +2006,10 @@ class MSVCToolchainOptions(ToolchainOptions):
             sdk_dir = os.environ.get('WindowsSdkDir')
             self.sdk_version = os.environ.get('WindowsSDKVersion').replace('\\', '')
             vc_install_dir = os.environ.get('VCToolsInstallDir')
+            # fix for cxx_std detection problem introduced in r7740071 when running in native VS toolkit commandline:
+            # in that case ya make gets 'system_cxx' configuration name and cxx_std is obviously missing in that config
+            # so default 'c++20' is substituted and we need to hotfix it here
+            self.cxx_std = 'c++17'
 
             if any([x is None for x in (sdk_dir, self.sdk_version, vc_install_dir)]):
                 raise ConfigureError('No %WindowsSdkDir%, %WindowsSDKVersion% or %VCINSTALLDIR% present. Please, run vcvars64.bat to setup preferred environment.')
