@@ -497,7 +497,7 @@ def _get_command_output_file(cmd, ext):
     parts = [get_command_name(cmd)]
     if 'YA_RETRY_INDEX' in os.environ:
         parts.append('retry{}'.format(os.environ.get('YA_RETRY_INDEX')))
-    if int(os.environ.get('YA_SPLIT_COUNT', '0')):
+    if int(os.environ.get('YA_SPLIT_COUNT', '0')) > 1:
         parts.append('chunk{}'.format(os.environ.get('YA_SPLIT_INDEX', '0')))
 
     filename = '.'.join(parts + [ext])
