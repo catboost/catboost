@@ -766,9 +766,9 @@ EXPORT_FUNCTION CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP ver
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     EPredictionType predictionType;
-    CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
-              "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
-
+    CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType) &&
+              !IsUncertaintyPredictionType(predictionType) && predictionType != EPredictionType::InternalRawFormulaVal,
+              "Unsupported prediction type: 'Probability', 'LogProbability', 'Class', 'RawFormulaVal', 'Exponent' or 'RMSEWithUncertainty' was expected");
     TVector<TVector<double>> prediction = ApplyModelMulti(*model,
                                                           *pool,
                                                           asLogical(verboseParam),
@@ -814,6 +814,34 @@ EXPORT_FUNCTION CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP los
     for (size_t i = 0, k = 0; i < dataRows; ++i) {
         for (size_t j = 0; j < prediction.size(); ++j) {
             ptr_result[k++] = prediction[j][i];
+        }
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostPredictVirtualEnsembles_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
+                            SEXP typeParam, SEXP treeCountEndParam, SEXP virtualEnsemblesCountParam, SEXP threadCountParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    EPredictionType predictionType;
+    CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType) && IsUncertaintyPredictionType(predictionType),
+              "Unsupported virtual ensembles prediction type: 'VirtEnsembles' or 'TotalUncertainty' was expected");
+    TVector<TVector<double>> prediction = ApplyUncertaintyPredictions(*model,
+                                                                      *pool,
+                                                                      asLogical(verboseParam),
+                                                                      predictionType,
+                                                                      asInteger(treeCountEndParam),
+                                                                      asInteger(virtualEnsemblesCountParam),
+                                                                      UpdateThreadCount(asInteger(threadCountParam)));
+    size_t predictionSize = prediction.size() * pool->ObjectsGrouping->GetObjectCount();
+    result = PROTECT(allocVector(REALSXP, predictionSize));
+    for (size_t i = 0, k = 0; i < pool->ObjectsGrouping->GetObjectCount(); ++i) {
+        for (size_t j = 0; j < prediction.size(); ++j) {
+            REAL(result)[k++] = prediction[j][i];
         }
     }
     R_API_END();

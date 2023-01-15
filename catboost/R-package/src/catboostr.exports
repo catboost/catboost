@@ -19,6 +19,7 @@ C CatBoostPoolNumTrees_R
 C CatBoostPoolSlice_R
 C CatBoostPredictMulti_R
 C CatBoostPrepareEval_R
+C CatBoostPredictVirtualEnsembles_R
 C CatBoostReadModel_R
 C CatBoostSerializeModel_R
 C CatBoostShrinkModel_R
