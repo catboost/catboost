@@ -221,6 +221,11 @@ class LIBPROTOBUF_EXPORT StringPiece {
   {
   }
 
+  StringPiece(std::string_view str)
+  	  : ptr_(str.data()), length_(str.size())
+  {
+  }
+
   StringPiece(const char* offset, stringpiece_ssize_type len)
       : ptr_(offset), length_(len) {
     assert(len >= 0);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/generic/fwd.h>
+#include <util/generic/strbuf.h>
 #include <util/generic/utility.h>
 #include <util/system/defaults.h>
 
@@ -120,6 +121,10 @@ public:
     /// Returns a const pointer of unsigned char type to the data array.
     inline const unsigned char* AsUnsignedCharPtr() const noexcept {
         return (const unsigned char*)Data();
+    }
+
+    inline TStringBuf AsStringBuf() const noexcept {
+        return TStringBuf(AsCharPtr(), size());
     }
 
     /// Drops the data array.
