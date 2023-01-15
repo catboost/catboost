@@ -2028,6 +2028,8 @@ class MSVCToolchainOptions(ToolchainOptions):
             if self.version_at_least(2019):
                 self.sdk_version = '10.0.18362.0'
                 sdk_dir = '$(WINDOWS_KITS-sbr:1939557911)'
+                if is_positive('MSVC20'):  # XXX: temporary flag, remove after DTCC-123 is completed
+                    self.cxx_std = 'c++latest'
             else:
                 self.sdk_version = '10.0.16299.0'
                 sdk_dir = '$(WINDOWS_KITS-sbr:1379398385)'
