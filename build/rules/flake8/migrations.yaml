@@ -240,7 +240,6 @@ migrations:
     - maps/renderer/stylerepo/lib
     - maps/renderer/stylerepo/utils/lib
     - maps/wikimap/feedback/pushes/addresses/make_pushes/tests
-    - maps/wikimap/mapspro/services/mrc/drive/firmware_updater/client/scripts
     - maps/wikimap/stat/assessment/report/tests
     - maps/wikimap/stat/kpi/valuable_edits/users_home_regions/lib
     - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
@@ -1142,7 +1141,6 @@ migrations:
     - datalens/backend/dls
     - datalens/backend/dls/yadls
     - devtools/signer/signer
-    - devtools/ya/exts
     - dict/lm/sources/lib/launcher
     - dict/ontodb/isa/libshorttext/converter/stemmer
     - dict/ontodb/report/common
@@ -1208,7 +1206,6 @@ migrations:
     - search/rpslimiter/storage/src/model
     - skynet/kernel
     - skynet/kernel/util/sys/user
-    - testenv/core/declarative
     - travel/avia/admin
     - travel/avia/admin/i18n
     - travel/avia/admin/promosearch
