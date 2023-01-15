@@ -451,7 +451,7 @@ ALLOW dict/mt/make/modules/corpus/alchemy -> contrib/python/sqlalchemy/sqlalchem
 ALLOW dict/ontodb/tools/ontodbfixes/migration/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW drive/analytics/pybase/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW education/media_platform/services/api/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW education/services/sections/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW education/yaschool/services/sections/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW extsearch/images/robot/rtrobot/panel -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW extsearch/video/robot/youtube_grabber/ugc/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW geoproduct/geocrm_search/data_import -> contrib/python/sqlalchemy/sqlalchemy-1.2
