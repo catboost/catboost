@@ -90,10 +90,10 @@ migrations:
       - a.yandex-team.ru/mds/valve/proto
       - a.yandex-team.ru/rtline/library/executor/proto
       - a.yandex-team.ru/rtline/library/time_restriction/proto
-      - a.yandex-team.ru/rtline/services/drive/frontend/data/proto
-      - a.yandex-team.ru/rtline/services/drive/frontend/database/drive/proto
-      - a.yandex-team.ru/rtline/services/drive/frontend/proto
-      - a.yandex-team.ru/rtline/services/drive/frontend/support_center/feedback/proto
+      - a.yandex-team.ru/drive/backend/data/proto
+      - a.yandex-team.ru/drive/backend/database/drive/proto
+      - a.yandex-team.ru/drive/backend/proto
+      - a.yandex-team.ru/drive/backend/support_center/feedback/proto
       - a.yandex-team.ru/drive/library/cpp/weather/proto
       - a.yandex-team.ru/drive/telematics/protocol/proto
       - a.yandex-team.ru/drive/telematics/server/location/proto
