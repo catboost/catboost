@@ -49,6 +49,17 @@ ALLOW contrib/python/gino -> library/python/pyscopg2
 ALLOW contrib/python/psycopg2/tests -> mail/devpack
 ALLOW contrib/python/asn1crypto -> library/python/symbols/crypto
 ALLOW contrib/python/win_unicode_console -> library/python/symbols/win_unicode_console
+
+ALLOW contrib/tests/python -> library/python/fs
+
+ALLOW contrib/tests/subversion -> vcs/svn/run
+ALLOW contrib/tests/subversion -> vcs/svn/test
+
+ALLOW contrib/tests/subvertpy -> devtools/ya/exts
+ALLOW contrib/tests/subvertpy -> devtools/ya/yalibrary/svn/testing
+ALLOW contrib/tests/subvertpy -> library/python/windows
+ALLOW contrib/tests/subvertpy -> vcs/svn/wc/client
+
 ALLOW contrib/tools/unbound -> infra/libs
 ALLOW contrib/tools/unbound -> library/cpp/proto_config
 DENY contrib -> .*
