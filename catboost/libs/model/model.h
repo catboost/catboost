@@ -669,6 +669,12 @@ public:
         }
     }
 
+    void SetPredictionType(NCB::NModelEvaluation::EPredictionType predictionType) const {
+        with_lock(CurrentEvaluatorLock) {
+            Evaluator->SetPredictionType(predictionType);
+        }
+    }
+
     bool operator==(const TFullModel& other) const {
         return *ModelTrees == *other.ModelTrees;
     }

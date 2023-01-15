@@ -40,6 +40,14 @@ CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrappe
 
 typedef void ModelCalcerHandle;
 
+enum EApiPredictionType {
+    APT_RAW_FORMULA_VAL = 0,
+    APT_EXPONENT = 1,
+    APT_RMSE_WITH_UNCERTAINTY = 2,
+    APT_PROBABILITY = 3,
+    APT_CLASS = 4,
+};
+
 /**
  * Create empty model handle
  * @return
@@ -85,6 +93,11 @@ CATBOOST_API bool LoadFullModelFromBuffer(
  * Use CUDA gpu device for model evaluation
 */
 CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
+
+/**
+ * Set prediction type for model evaluation
+*/
+CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, EApiPredictionType predictionType);
 
 /**
  * **Use this method only if you really understand what you want.**
@@ -199,6 +212,59 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(
     const char*** textFeatures, size_t textFeaturesSize,
     double* result, size_t resultSize);
 
+/**
+ * Methods equivalent to the methods above
+ * only returning a prediction for the specific class
+ * @param classId number of the class should be in [0, modelApproxDimension - 1]
+ * @param resultSize result size should be equal to docCount
+*/
+CATBOOST_API bool PredictSpecificClassFlat(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    int classId,
+    double* result, size_t resultSize);
+
+CATBOOST_API bool PredictSpecificClass(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const char*** catFeatures, size_t catFeaturesSize,
+    int classId,
+    double* result, size_t resultSize);
+
+CATBOOST_API bool PredictSpecificClassText(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const char*** catFeatures, size_t catFeaturesSize,
+    const char*** textFeatures, size_t textFeaturesSize,
+    int classId,
+    double* result, size_t resultSize);
+
+CATBOOST_API bool PredictSpecificClassSingle(
+    ModelCalcerHandle* modelHandle,
+    const float* floatFeatures, size_t floatFeaturesSize,
+    const char** catFeatures, size_t catFeaturesSize,
+    int classId,
+    double* result, size_t resultSize);
+
+CATBOOST_API bool PredictSpecificClassWithHashedCatFeatures(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const int** catFeatures, size_t catFeaturesSize,
+    int classId,
+    double* result, size_t resultSize);
+
+CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextFeatures(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const int** catFeatures, size_t catFeaturesSize,
+    const char*** textFeatures, size_t textFeaturesSize,
+    int classId,
+    double* result, size_t resultSize);
 
 /**
  * Get hash for given string value
