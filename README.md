@@ -21,10 +21,6 @@ Main advantages of CatBoost:
   - Fast GPU and multi-GPU support for training out of the box.
   - Visualization tools [included](https://catboost.ai/docs/features/visualization.html).
 
-Gradient Boosting Survey
---------------
-We want to make the best Gradient Boosting library in the world. Please, help us to do so! Complete our [survey](https://forms.yandex.ru/surveys/10011699/?lang=en) to help us understand what is important for GBDT users.
-
 Get Started and Documentation
 --------------
 All CatBoost documentation is available [here](https://catboost.ai/docs/concepts/about.html).
@@ -42,6 +38,8 @@ Next you may want to investigate:
 * [Feature importance calculation](https://catboost.ai/docs/features/feature-importances-calculation.html)
 * [Regular](https://catboost.ai/docs/features/prediction.html#prediction) and [staged](https://catboost.ai/docs/features/staged-prediction.html#staged-prediction) predictions
 
+If you cannot open documentation in your browser try adding yastatic.net and yastat.net to the list of allowed domains in your privacy badger. 
+
 Catboost models in production
 --------------
 If you want to evaluate Catboost model in your application read [model api documentation](https://github.com/catboost/catboost/tree/master/catboost/CatboostModelAPI.md).
@@ -54,7 +52,7 @@ Questions and bug reports
 
 Help to Make CatBoost Better
 ----------------------------
-* Check out [help wanted](https://github.com/catboost/catboost/labels/help%20wanted) issues to see what can be improved, or open an issue if you want something.
+* Check out [open problems](https://github.com/catboost/catboost/blob/master/open_problems/open_problems.md) and [help wanted issues](https://github.com/catboost/catboost/labels/help%20wanted) to see what can be improved, or open an issue if you want something.
 * Add your stories and experience to [Awesome CatBoost](AWESOME.md).
 * To contribute to CatBoost you need to first read CLA text and add to your pull request, that you agree to the terms of the CLA. More information can be found
 in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTING.md)
