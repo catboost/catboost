@@ -155,9 +155,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
       <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
-      <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
