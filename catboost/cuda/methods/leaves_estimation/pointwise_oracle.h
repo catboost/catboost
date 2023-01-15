@@ -92,12 +92,12 @@ namespace NCatboostCuda {
 
             auto derCalcer = CreatePermutationDerCalcer(TObjective(target), std::move(indices));
 
-            return new TOracle(estimationConfig,
+            return THolder<ILeavesEstimationOracle>(new TOracle(estimationConfig,
                                std::move(derCalcer),
                                std::move(bins),
                                std::move(offsets),
                                std::move(cursor),
-                               binCount);
+                               binCount));
         }
 
     private:

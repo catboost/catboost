@@ -30,7 +30,7 @@ namespace NCatboostCuda {
         void SetPoint(TConstVec&& point) {
             Point = std::move(point);
             PointOnCpuCached = false;
-            Cache = new TScopedCacheHolder;
+            Cache = MakeHolder<TScopedCacheHolder>();
         }
 
         TMetricHolder Compute(const IGpuMetric* metric) final {

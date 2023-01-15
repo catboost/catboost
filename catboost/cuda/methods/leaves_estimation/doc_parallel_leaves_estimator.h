@@ -30,7 +30,7 @@ namespace NCatboostCuda {
             task.Model = model;
             task.Cursor = std::move(cursor);
             task.DataSet = &dataSet;
-            task.DerCalcerFactory = new TOracleFactory<TTarget>(target);
+            task.DerCalcerFactory = MakeHolder<TOracleFactory<TTarget>>(target);
             Tasks.push_back(std::move(task));
             return *this;
         }
