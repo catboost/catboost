@@ -1479,9 +1479,9 @@ migrations:
     - cv/short2long/nirvana/ut
     - cv/short2long/training/yt_calc_factors
     - datacloud/log_reader/lib
-    - datalens/backend/bi-billing
-    - datalens/backend/bi-billing/bi_billing
-    - datalens/backend/bi-billing/bi_billing/resources
+    - datalens/backend/app/bi_billing
+    - datalens/backend/app/bi_billing/bi_billing
+    - datalens/backend/app/bi_billing/bi_billing/resources
     - datalens/backend/app/dls
     - datalens/backend/app/dls/yadls
     - devtools/contrib/statistics/auto_import
@@ -2224,7 +2224,7 @@ migrations:
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
-    - datalens/backend/bi-materializer
+    - datalens/backend/app/bi_materializer
     - dict/mt/analytics/make/tools/toloka/simple_toloka
     - dict/mt/make/modules/bleu/tests
     - dict/mt/make/modules/bpe/tests
