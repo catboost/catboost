@@ -1,6 +1,7 @@
 import _common as common
 import ymake
 import json
+import os
 import base64
 
 
@@ -136,6 +137,18 @@ def onjava_module(unit, *args):
 
     if unit.get('DIRECT_DEPS_ONLY_VALUE') == 'yes':
         data['DIRECT_DEPS_ONLY'] = extract_macro_calls(unit, 'DIRECT_DEPS_ONLY_VALUE', args_delim)
+
+    if unit.get('JAVA_EXTERNAL_DEPENDENCIES_VALUE'):
+        valid = []
+        for dep in sum(extract_macro_calls(unit, 'JAVA_EXTERNAL_DEPENDENCIES_VALUE', args_delim), []):
+            if os.path.normpath(dep).startswith('..'):
+                ymake.report_configure_error('{}: {} - relative paths in JAVA_EXTERNAL_DEPENDENCIES is not allowed'.format(unit.path(), dep))
+            elif os.path.isabs(dep):
+                ymake.report_configure_error('{}: {} absolute paths in JAVA_EXTERNAL_DEPENDENCIES is not allowed'.format(unit.path(), dep))
+            else:
+                valid.append(dep)
+        if valid:
+            data['EXTERNAL_DEPENDENCIES'] = [valid]
 
     if unit.get('MAKE_UBERJAR_VALUE') == 'yes':
         if unit.get('MODULE_TYPE') != 'JAVA_PROGRAM':
