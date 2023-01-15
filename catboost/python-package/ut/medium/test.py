@@ -9115,3 +9115,36 @@ def test_same_params(params):
     params['loss_function'] = 'Logloss'
     CatBoost(params).fit(train_pool).save_model(model_path)
     assert CatBoost().load_model(model_path).get_params() == params
+
+
+@pytest.mark.parametrize('task', ['binclass', 'multiclass'])
+@pytest.mark.parametrize('metric', ['TotalF1', 'MCC', 'F1', 'Precision', 'Recall'])
+@pytest.mark.parametrize('use_weights', [True, False])
+def test_eval_metric_with_weights(task_type, task, metric, use_weights):
+    X = np.random.random()
+    if task == 'multiclass' and metric in ('F1', 'Precision', 'Recall'):
+        pytest.skip('Metric with multiple values is not allowed to use as eval_metric')
+    np.random.seed(0)
+    X = np.random.random(size=(100, 10))
+    if task == 'binclass':
+        y = [0] * 30 + [1] * 70
+    else:
+        y = [0] * 20 + [1] * 30 + [2] * 50
+    np.random.shuffle(y)
+    weight = np.random.random(size=100)
+    pool = Pool(X, y, weight=weight)
+
+    full_metric_name = '{}:use_weights={}'.format(metric, str(use_weights).lower())
+    full_metric_name_inverse = '{}:use_weights={}'.format(metric, str(not use_weights).lower())
+    model = CatBoostClassifier(
+        loss_function='Logloss' if task == 'binclass' else 'MultiClass',
+        iterations=1,
+        eval_metric=full_metric_name,
+        task_type=task_type
+    )
+    model.fit(pool)
+    fit_metric = model.evals_result_['learn'][full_metric_name]
+    eval_metric = model.eval_metrics(pool, full_metric_name)[full_metric_name]
+    eval_metric_inverse = model.eval_metrics(pool, full_metric_name_inverse)[full_metric_name_inverse]
+    assert not np.array_equal(eval_metric, eval_metric_inverse)
+    assert np.array_equal(fit_metric, eval_metric)
