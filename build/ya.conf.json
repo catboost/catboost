@@ -401,6 +401,9 @@
         },
         "grpc_cli": {
             "description": "GRPC command-line tool"
+        },
+        "buf": {
+            "description": "Protobuf lint and breaking change detector"
         }
     },
     "toolchain": {
@@ -5539,6 +5542,22 @@
                     "default": true
                 }
             ]
+        },
+        "buf": {
+            "tools": {
+                "buf": {
+                    "bottle": "buf",
+                    "executable": "buf"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -7633,6 +7652,17 @@
             "executable": {
                 "grpc_cli": [
                     "grpc_cli"
+                ]
+            }
+        },
+        "buf": {
+            "formula": {
+                "sandbox_id": 813444352,
+                "match": "buf"
+            },
+            "executable": {
+                "buf": [
+                    "buf"
                 ]
             }
         }
