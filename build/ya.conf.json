@@ -365,6 +365,9 @@
         "btt": {
             "description": "analyse block i/o traces produces by blktrace"
         },
+        "lz4": {
+            "description": "Compress or decompress .lz4 files"
+        },
         "optrace": {
             "description": "optrace records output files written by each process",
             "visible": false
@@ -5340,6 +5343,22 @@
                 }
             ]
         },
+        "lz4": {
+            "tools": {
+                "lz4": {
+                    "bottle": "lz4",
+                    "executable": "lz4"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "blktrace": {
             "tools": {
                 "blkparse": {
@@ -7433,6 +7452,17 @@
                     "kvmtool",
                     "lkvm"
                 ]
+            }
+        },
+        "lz4": {
+            "formula": {
+                "sandbox_id": [
+                    756420904
+                ],
+                "match": "infra/kernel/tools/lz4"
+            },
+            "executable": {
+                "lz4": ["lz4", "usr", "bin", "lz4"]
             }
         },
         "blktrace": {
