@@ -24,7 +24,7 @@ ALLOW contrib/deprecated/http-parser -> contrib/deprecated/http-parser
 ALLOW mds -> contrib/deprecated/http-parser
 ALLOW devtools/experimental/mds -> contrib/deprecated/http-parser
 ALLOW contrib/libs/libgit2 -> contrib/deprecated/http-parser
-ALLOW yweb/robot/fetcher/fetcher/user/http/http_parser -> contrib/deprecated/http-parser
+ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/deprecated/http-parser
 DENY .* -> contrib/deprecated/http-parser
 
 ALLOW contrib/deprecated/uriparser -> contrib/deprecated/uriparser
