@@ -91,8 +91,11 @@ ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 # tensorflow requires special version of abseil (std::string has to be replaced with TString)
 ALLOW contrib/libs/tf-1.14 -> contrib/restricted/abseil-cpp-tstring
 ALLOW contrib/libs/tf-2.4  -> contrib/restricted/abseil-cpp-tstring
-# google/ruy is yet another library for matrix multiplication,
-# but there are no limitations preventing it to be moved into contrib/libs upon request
+# gemmlowp, libxsmm, ruy are yet another libraries for matrix multiplication.
+# They are restricted in order to keep contrib/libs tidy,
+# but there are no limitations preventing them to be moved into contrib/libs upon request
+ALLOW contrib/libs/tf-2.4 -> contrib/restricted/gemmlowp
+ALLOW contrib/libs/tf-2.4 -> contrib/restricted/libxsmm
 ALLOW contrib/libs/tf-2.4 -> contrib/restricted/ruy
 # Use util provided API to access CPU information instead
 ALLOW contrib/libs/tf-2.4 -> contrib/restricted/cpuinfo
