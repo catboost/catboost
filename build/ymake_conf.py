@@ -1625,7 +1625,9 @@ class Linker(object):
             return Linker.LLD
 
         elif self.build.target.is_linux:
-            if self.tc.is_clang:
+            # DEVTOOLS-6782: LLD8 fails to link LTO builds with in-memory ELF objects larger than 4 GiB
+            blacklist_lld = is_positive('CLANG7') and is_positive('USE_LTO') and not is_positive('MUSL')
+            if self.tc.is_clang and not blacklist_lld:
                 return Linker.LLD
             else:
                 # GCC et al.
