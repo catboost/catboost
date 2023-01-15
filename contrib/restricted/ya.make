@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    abseil-cpp
     libffi
 )
 

@@ -39,6 +39,8 @@ RECURSE(
     snappy
     sqlite3
     tbb
+    tcmalloc
+    tcmalloc/dynamic
     tensorboard
     xxhash
     xz
