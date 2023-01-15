@@ -401,3 +401,7 @@ DENY .* -> contrib/python/pymqi
 # https://st.yandex-team.ru/CONTRIB-1839
 ALLOW datalens/backend/dls -> contrib/python/Quart
 DENY .* -> contrib/python/Quart
+
+# https://st.yandex-team.ru/CONTRIB-1954
+ALLOW contrib/python/glom -> contrib/python/face
+DENY .* -> contrib/python/face
