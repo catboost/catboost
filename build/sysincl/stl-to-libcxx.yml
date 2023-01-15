@@ -50,10 +50,6 @@
   includes:
   - __config:   contrib/libs/cxxsupp/libcxx/include/__config
 
-- source_filter: "yandex_io/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
-  includes:
-  - __config:   contrib/libs/cxxsupp/libcxx/include/__config
-
 - includes:
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm
   - any:                       contrib/libs/cxxsupp/libcxx/include/any
