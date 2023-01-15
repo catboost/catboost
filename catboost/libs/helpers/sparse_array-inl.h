@@ -1002,6 +1002,22 @@ namespace NCB {
         F&& f,
         TSize maxBlockSize
     ) const {
+        ForBlockNonDefault(
+            [f] (auto indexingBlock, auto valuesBlock) {
+                for (auto i : xrange(indexingBlock.size())) {
+                    f(indexingBlock[i], valuesBlock[i]);
+                }
+            },
+            maxBlockSize
+        );
+    }
+
+    template <class TValue, class TContainer, class TSize>
+    template <class F>
+    inline void TSparseArrayBase<TValue, TContainer, TSize>::ForBlockNonDefault(
+        F&& f,
+        TSize maxBlockSize
+    ) const {
         ISparseArrayIndexingBlockIteratorPtr<TSize> indexingBlockIterator;
         TSize nonDefaultBegin = 0;
         Indexing->GetBlockIteratorAndNonDefaultBegin(
@@ -1019,9 +1035,7 @@ namespace NCB {
             TConstArrayRef<TValue> valuesBlock = nonDefaultValuesBlockIterator.NextExact(
                 indexingBlock.size()
             );
-            for (auto i : xrange(indexingBlock.size())) {
-                f(indexingBlock[i], valuesBlock[i]);
-            }
+            f(indexingBlock, valuesBlock);
         }
     }
 
