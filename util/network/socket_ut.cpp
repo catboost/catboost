@@ -308,7 +308,7 @@ void TPollTest::TestPollInOut() {
 
     int expectedCount = 0;
     for (size_t i = 0; i < connectedSockets.size(); ++i) {
-        pollfd fd = {(i % 5 == 4) ? INVALID_SOCKET : *connectedSockets[i], POLLIN | POLLOUT, 0};
+        pollfd fd = {(i % 5 == 4) ? INVALID_SOCKET : static_cast<SOCKET>(*connectedSockets[i]), POLLIN | POLLOUT, 0};
         fds.push_back(fd);
         if (i % 5 != 4)
             ++expectedCount;
