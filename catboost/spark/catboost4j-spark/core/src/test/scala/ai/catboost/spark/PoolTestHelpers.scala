@@ -68,6 +68,8 @@ object PoolTestHelpers {
                 rRow.getAs[Vector](fieldIdx).toArray,
                 1e-6
               )
+            case BinaryType =>
+              java.util.Arrays.equals(lRow.getAs[Array[Byte]](fieldIdx), rRow.getAs[Array[Byte]](fieldIdx))
             case _ =>
               Assert.assertEquals(lRow(fieldIdx), rRow(fieldIdx))
           }
