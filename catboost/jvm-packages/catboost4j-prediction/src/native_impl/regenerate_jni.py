@@ -37,7 +37,7 @@ def _get_native_lib_dir(relative=None):
         relative = _get_arcadia_root()
     return os.path.join(
         relative,
-        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/native'.split('/')))
+        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/native_impl'.split('/')))
 
 
 def _get_classes_dir():

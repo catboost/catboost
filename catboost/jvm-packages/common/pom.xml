@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ai.catboost</groupId>
-    <artifactId>catboost-prediction</artifactId>
+    <artifactId>catboost-common</artifactId>
     <version>0.23.2</version>
     <packaging>jar</packaging>
-    <name>CatBoost model applier</name>
-    <description>Java module to apply CatBoost models</description>
+    <name>CatBoost common library</name>
+    <description>Java module for common CatBoost functionality</description>
     <url>https://catboost.ai</url>
 
     <licenses>
@@ -51,36 +51,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <id>Build dynamic library with JNI for model inference</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>python</executable>
-                            <arguments>
-                                <argument>${basedir}/../tools/build_native_for_maven.py</argument>
-                                <argument>${basedir}</argument>
-                                <argument>catboost4j-prediction</argument>
-                                <argument>--build</argument>
-                                <argument>release</argument>
-                                <argument>--no-src-links</argument>
-                                <argument>-DOS_SDK=local</argument>
-                                <argument>-DHAVE_CUDA=no</argument>
-                                <argument>-DUSE_SYSTEM_JDK=${java.home}</argument>
-                                <argument>-DJAVA_HOME=${java.home}</argument>>
-                            </arguments>
-                            <workingDirectory>${user.dir}</workingDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
@@ -99,25 +69,6 @@
                         <id>attach-sources</id>
                         <goals>
                             <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-                <configuration>
-                    <encoding>
-                        utf-8
-                    </encoding>
-                    <source>8</source>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -174,24 +125,5 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
         </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <version>1.7.25</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>ai.catboost</groupId>
-            <artifactId>catboost-common</artifactId>
-            <version>0.23.2</version>
-        </dependency> 
     </dependencies>
 </project>

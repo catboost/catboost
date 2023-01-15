@@ -1,4 +1,4 @@
-package ai.catboost;
+package ai.catboost.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,34 +6,9 @@ import org.slf4j.LoggerFactory;
 import javax.validation.constraints.NotNull;
 import java.io.*;
 
-/**
- * Shared library loader, this class is intended to be an extension point for users of this modele. If you want to
- * define a custom loader for shared library you may override this class via `-classpath`, only requirement on your
- * your class will be to have {@link #handle()} method that returns CatBoostJNI class.
- */
-class NativeLib {
+
+public class NativeLib {
     private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
-
-    static {
-        try {
-            smartLoad("catboost4j-prediction");
-        } catch (Exception ex) {
-            logger.error("Failed to load native library", ex);
-            throw new RuntimeException(ex);
-        }
-    }
-
-    /**
-     * @return JNI handle for CatBoost model application.
-     */
-    @NotNull
-    public static CatBoostJNI handle() {
-        return SingletonHolder.catBoostJNI;
-    }
-
-    private static final class SingletonHolder {
-        public static final CatBoostJNI catBoostJNI = new CatBoostJNI();
-    }
 
     /**
      * Load libName, first will try try to load libName from default location then will try to load library from JAR.
@@ -41,7 +16,7 @@ class NativeLib {
      * @param libName
      * @throws IOException
      */
-    private static void smartLoad(final @NotNull String libName) throws IOException {
+    public static void smartLoad(final @NotNull String libName) throws IOException {
         try {
             loadNativeLibraryFromJar(libName);
         } catch (IOException ioe) {
