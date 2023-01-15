@@ -1,5 +1,5 @@
-#include "thread_safe_cache.h"
-
+#include <library/cpp/cache/cache.h>
+#include <library/cpp/cache/thread_safe_cache.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 struct TStrokaWeighter {
@@ -368,8 +368,11 @@ Y_UNIT_TEST_SUITE(TThreadSafeCacheTest) {
             return i;
         }
         TValue* CreateObject(ui32 i) const override {
+            Creations++;
             return new TString(VALS[i]);
         }
+
+        mutable i32 Creations = 0;
     };
 
     Y_UNIT_TEST(SimpleTest) {
@@ -377,6 +380,29 @@ Y_UNIT_TEST_SUITE(TThreadSafeCacheTest) {
             const TString data = *TCache::Get<TCallbacks>(i);
             UNIT_ASSERT(data == VALS[i]);
         }
+    }
+
+    Y_UNIT_TEST(InsertUpdateTest) {
+        TCallbacks callbacks;
+        TCache cache(callbacks, 10);
+
+        cache.Insert(2, MakeAtomicShared<TString>("hj"));
+        TAtomicSharedPtr<TString> item = cache.Get(2);
+
+        UNIT_ASSERT(callbacks.Creations == 0);
+        UNIT_ASSERT(*item == "hj");
+
+        cache.Insert(2, MakeAtomicShared<TString>("hjk"));
+        item = cache.Get(2);
+
+        UNIT_ASSERT(callbacks.Creations == 0);
+        UNIT_ASSERT(*item == "hj");
+
+        cache.Update(2, MakeAtomicShared<TString>("hjk"));
+        item = cache.Get(2);
+
+        UNIT_ASSERT(callbacks.Creations == 0);
+        UNIT_ASSERT(*item == "hjk");
     }
 }
 
