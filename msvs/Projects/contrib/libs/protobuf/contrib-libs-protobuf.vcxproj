@@ -439,14 +439,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wrappers.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\text_format.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\unknown_field_set.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\delimited_message_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\field_comparator.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\field_mask_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\json_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\message_differencer.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\time_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\type_resolver.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\util\type_resolver_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite_inl.h"/>
