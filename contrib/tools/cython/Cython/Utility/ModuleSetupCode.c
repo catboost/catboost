@@ -4,6 +4,10 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wunused-function"
+#if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
+// Ignore tp_print initializer. Need for ya make -DUSE_SYSTEM_PYTHON=3.8
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #endif
 
 #include <stddef.h> /* For offsetof */
