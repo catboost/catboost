@@ -1,6 +1,7 @@
 #include "string.h"
 
 #include <util/string/ascii.h>
+#include <util/system/sanitizers.h>
 #include <util/system/sys_alloc.h>
 #include <util/charset/wide.h>
 
@@ -14,8 +15,25 @@ namespace NDetail {
         size_t Buf[4];
     };
 
-    static const TStaticData STATIC_DATA = {{0, 0, 0}, {0, 0, 0, 0}};
+#ifdef __cpp_constinit
+    constinit
+#endif
+    static TStaticData STATIC_DATA = {{0, 0, 0}, {0, 0, 0, 0}};
     void const* STRING_DATA_NULL = STATIC_DATA.Buf;
+
+    namespace {
+        static struct TStaticDataBufService {
+            TStaticDataBufService() {
+                NSan::AnnotateBenignRaceSized(__FILE__, __LINE__, &STATIC_DATA.Buf, sizeof(STATIC_DATA.Buf),
+                    "STATIC_DATA.Buf: only writing zeroes is allowed, so it is essentially constant");
+            }
+            ~TStaticDataBufService() {
+                for (auto value : STATIC_DATA.Buf) {
+                    Y_ASSERT(!value);
+                }
+            }
+        } StaticDataBufService;
+    }
 
     template <typename TCharType>
     TCharType* Allocate(size_t oldLen, size_t newLen, TStringData* oldData) {
