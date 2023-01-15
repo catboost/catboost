@@ -1940,6 +1940,10 @@ class LD(Linker):
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
         shared_flag = '-shared'
         exec_shared_flag = '-pie -fPIE -Wl,--unresolved-symbols=ignore-all -rdynamic' if self.target.is_linux else ''
+        if self.whole_archive:
+            srcs_globals = self.whole_archive + ' ${rootrel;ext=.a:SRCS_GLOBAL} ' + self.no_whole_archive + ' ${rootrel;ext=.o:SRCS_GLOBAL}'
+        else:
+            srcs_globals = '${rootrel:SRCS_GLOBAL}'
 
         ld_env_style = '${cwd:ARCADIA_BUILD_ROOT} $TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}'
 
@@ -1955,14 +1959,14 @@ class LD(Linker):
         emit('REAL_LINK_EXE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '$LINK_SCRIPT_EXE_FLAGS',
              '$GCCFILTER',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
+             '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
              ld_env_style)
 
         # Executable Shared Library
 
         emit('REAL_LINK_EXEC_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET ${pre=--whole-archive :WHOLE_ARCHIVE_PEERS}', arch_flag, '$LINK_DYN_LIB_FLAGS',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', exec_shared_flag, soname_flag, exe_flags,
+             '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', exec_shared_flag, soname_flag, exe_flags,
              ld_env_style)
         emit_big('''
         macro REAL_LINK_EXEC_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
@@ -1976,7 +1980,7 @@ class LD(Linker):
         emit('LINK_DYN_LIB_FLAGS')
         emit('REAL_LINK_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET ${pre=--whole-archive :WHOLE_ARCHIVE_PEERS}', arch_flag, '$LINK_DYN_LIB_FLAGS',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', shared_flag, soname_flag, exe_flags,
+             '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', shared_flag, soname_flag, exe_flags,
              ld_env_style)
         emit_big('''
         macro REAL_LINK_DYN_LIB_IMPL(WHOLE_ARCHIVE_PEERS...) {
@@ -1995,18 +1999,18 @@ class LD(Linker):
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE %s $ARCADIA_BUILD_ROOT %s' % (self.llvm_ar_format, self.ar_plugin or 'None')
-
+        tail_link_lib = '$AUTO_INPUT ${kv;hide:"p AR"} $TOOLCHAIN_ENV ${kv;hide:"pc light-red"} ${kv;hide:"show_out"}'
         # Static Library
 
-        emit('LINK_LIB', '$GENERATE_MF &&', archiver, '$TARGET $AUTO_INPUT ${kv;hide:"p AR"}',
-             '$TOOLCHAIN_ENV ${kv;hide:"pc light-red"} ${kv;hide:"show_out"}')
+        emit('LINK_LIB', '$GENERATE_MF &&', archiver, '$TARGET', tail_link_lib)
+        emit('GLOBAL_LINK_LIB', archiver, '$GLOBAL_TARGET', tail_link_lib)
 
         # "Fat Object" : pre-linked global objects and static library with all dependencies
         def emit_link_fat_obj(cmd_name, *extended_flags):
             prefix = ['$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP &&',
                       '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --build-root $ARCADIA_BUILD_ROOT']
             suffix = [arch_flag,
-                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs ${rootrel:SRCS_GLOBAL} -Ya,peers $PEERS',
+                      '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs', srcs_globals, '-Ya,peers $PEERS',
                       '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
                       '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}']
             emit(cmd_name, *(prefix + list(extended_flags) + suffix))
@@ -2600,34 +2604,41 @@ class MSVCLinker(MSVC, Linker):
              '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
              )
 
-        emit('REAL_LINK_DYN_LIB', ' ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-            --ya-start-command-file ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
-            ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
-            $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file')
+        # we split srcs_global into two groups: libs and objs
+        # # each group can be in its own command file
+        # first group need /WHOLEARCHIVE: prefix which will be added in fix_msvc_output.py or run_msvc_wine.py
+        # the tail of link commands will be added in the third command file
+        srcs_globals = '--start-wa --ya-start-command-file ${qe;rootrel;ext=.lib:SRCS_GLOBAL} --ya-end-command-file --end-wa \
+                        --ya-start-command-file ${qe;rootrel;ext=.obj:SRCS_GLOBAL} --ya-end-command-file'
+        emit('REAL_LINK_DYN_LIB', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+             ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE}',
+             srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
+             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file')
 
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD')
+
+        head_link_lib = '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} --ya-start-command-file'
+        tail_link_lib = '${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}'
+        emit('LINK_LIB', '${GENERATE_MF} &&', head_link_lib, '/OUT:${qe;rootrel:TARGET}', tail_link_lib)
+        emit('GLOBAL_LINK_LIB', head_link_lib, '/OUT:${qe;rootrel:GLOBAL_TARGET}', tail_link_lib)
 
         emit_big('''
             when ($EXPORTS_FILE) {
                 LINK_IMPLIB_VALUE=$LINK_IMPLIB
                 EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
-            }
+            }''')
 
-            LINK_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} --ya-start-command-file /OUT:${qe;rootrel:TARGET} \
-            ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}
+        emit('LINK_EXE', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET}',
+             '${LINK_EXTRA_OUTPUT}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
+             ${qe;rootrel:PEERS} --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-            LINK_EXE=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} --ya-start-command-file /OUT:${qe;rootrel:TARGET} \
-            ${LINK_EXTRA_OUTPUT} ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
-            ${qe;rootrel:PEERS} --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
+        emit('LINK_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-            LINK_DYN_LIB=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
+        emit('LINK_EXEC_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+             /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
+             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
 
-            LINK_EXEC_DYN_LIB=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-            --ya-start-command-file /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
-            ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
-            $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
-
-            LINK_FAT_OBJECT=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}''')  # noqa E501
+        emit('LINK_FAT_OBJECT', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')  # noqa E501
 
 
 # TODO(somov): Rename!
