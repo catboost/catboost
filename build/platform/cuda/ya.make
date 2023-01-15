@@ -21,8 +21,6 @@ IF (USE_ARCADIA_CUDA)
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1647896014) # CUDA Toolkit 11.0.2 for Linux x86-64
             ELSEIF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2077988857) # CUDA Toolkit 10.1.168 for Linux x86-64
-            ELSEIF (CUDA_VERSION == "10.0")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:840560679) # CUDA Toolkit 10.0.130 for Linux x86-64
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
@@ -54,8 +52,6 @@ IF (USE_ARCADIA_CUDA)
         IF (OS_DARWIN AND ARCH_X86_64)
             IF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:978727023) # CUDA Toolkit 10.1.168 for macOS x86-64
-            ELSEIF (CUDA_VERSION == "10.0")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:840563990) # CUDA Toolkit 10.0.130 for macOS x86-64
             ENDIF()
 
         ELSE()
@@ -70,8 +66,6 @@ IF (USE_ARCADIA_CUDA)
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1896564605) # CUDA Toolkit 11.1.1 for Windows x86-64
             ELSEIF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:978734165) # CUDA Toolkit 10.1.168 for Windows x86-64
-            ELSEIF (CUDA_VERSION == "10.0")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:840570409) # CUDA Toolkit 10.0.130 for Windows x86-64
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
@@ -88,18 +82,13 @@ ENDIF()
 IF (USE_ARCADIA_CUDA_HOST_COMPILER)
     IF (HOST_OS_LINUX AND HOST_ARCH_X86_64)
         IF (OS_LINUX AND ARCH_X86_64)
-            IF (CUDA_VERSION == "10.0")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:531642148) # Clang 5.0.0 for linux
-            ELSE()
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:1886578148) # Clang 11.0.0 for linux-x86_64
-                IF (CUDA_VERSION VERSION_LT "11.2")
-                    # Equivalent to nvcc -allow-unsupported-compiler (present since 11.0).
-                    CFLAGS(GLOBAL "-D__NV_NO_HOST_COMPILER_CHECK")
-                ENDIF()
+            DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:1886578148) # Clang 11.0.0 for linux-x86_64
+            IF (CUDA_VERSION VERSION_LT "11.2")
+                # Equivalent to nvcc -allow-unsupported-compiler (present since 11.0).
+                CFLAGS(GLOBAL "-D__NV_NO_HOST_COMPILER_CHECK")
             ENDIF()
         ELSEIF(OS_LINUX AND ARCH_AARCH64)
             DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:1886578148) # Clang 11.0.0 for linux-x86_64
-
         ELSE()
             ENABLE(CUDA_HOST_COMPILER_NOT_FOUND)
         ENDIF()
@@ -121,8 +110,6 @@ IF (USE_ARCADIA_CUDA_HOST_COMPILER)
             SET(__XCODE_RESOURCE_NAME CUDA_HOST_TOOLCHAIN)
             IF (CUDA_VERSION == "10.1")
                 SET(__XCODE_TOOLCHAIN_VERSION "9.2") # (not latest)
-            ELSEIF (CUDA_VERSION == "10.0")
-                SET(__XCODE_TOOLCHAIN_VERSION "9.2") # (not latest)
             ELSE()
                 SET(__XCODE_TOOLCHAIN_VERSION "")
                 ENABLE(CUDA_HOST_COMPILER_NOT_FOUND)
@@ -140,9 +127,7 @@ IF (USE_ARCADIA_CUDA_HOST_COMPILER)
             # devtools/tools_build/pack_sdk.py msvc out.tar
             # Note: it will contain patched "VC/Auxiliary/Build/vcvarsall.bat"
             # to prevent "nvcc fatal   : Host compiler targets unsupported OS."
-            IF (CUDA_HOST_MSVC_VERSION == "14.13.26128")
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:631304468)
-            ELSEIF (CUDA_HOST_MSVC_VERSION == "14.28.29910")
+            IF (CUDA_HOST_MSVC_VERSION == "14.28.29910")
                 DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:2153212401)
             ELSE()
                 MESSAGE(FATAL_ERROR "Unexpected or unspecified Microsoft Visual C++ CUDA host compiler version")
