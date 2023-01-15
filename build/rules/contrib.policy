@@ -185,13 +185,7 @@ ALLOW sport/backend/sport -> contrib/python/django/django-1.11
 ALLOW sport/backend/tests/projects/batches -> contrib/python/django/django-1.11
 ALLOW sport/backend/tests -> contrib/python/django/django-1.11
 ALLOW sport/backend -> contrib/python/django/django-1.11
-ALLOW travel/avia/admin -> contrib/python/django/django-1.11
-ALLOW travel/avia/avia_api -> contrib/python/django/django-1.11
-ALLOW travel/avia/avia_stats -> contrib/python/django/django-1.11
-ALLOW travel/avia/backend -> contrib/python/django/django-1.11
-ALLOW travel/avia/library/avia_data -> contrib/python/django/django-1.11
-ALLOW travel/avia/library/common -> contrib/python/django/django-1.11
-ALLOW travel/avia/library/python/django_namedtuples -> contrib/python/django/django-1.11
+ALLOW travel/avia/.* -> contrib/python/django/django-1.11
 ALLOW travel/rasp/admin -> contrib/python/django/django-1.11
 ALLOW travel/rasp/library/python/common -> contrib/python/django/django-1.11
 ALLOW travel/library/python/entrypoint -> contrib/python/django/django-1.11
@@ -298,9 +292,8 @@ ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
 ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
 # avia task to migrate from MySQL-python https://st.yandex-team.ru/RASPTICKETS-18201
+ALLOW travel/avia/.* -> contrib/python/MySQL-python
 ALLOW travel/library/recipe_utils -> contrib/python/MySQL-python
-ALLOW travel/avia/dump_data/lib/model_classes -> contrib/python/MySQL-python
-ALLOW travel/avia/library/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/admin -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/python/common -> contrib/python/MySQL-python
