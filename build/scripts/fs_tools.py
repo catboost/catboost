@@ -18,6 +18,8 @@ def link_or_copy(src, dst):
     except OSError as e:
         if e.errno == errno.EEXIST:
             print('link_or_copy: destination file already exists: {}'.format(dst), file=sys.stderr)
+        if e.errno == errno.ENOENT:
+            print('link_or_copy: source file doesn\'t exists: {}'.format(src), file=sys.stderr)
         raise
 
 
