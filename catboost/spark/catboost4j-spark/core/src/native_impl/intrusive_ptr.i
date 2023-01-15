@@ -7,8 +7,6 @@
 template <class T>
 class TIntrusivePtr {
 public:
-    inline TIntrusivePtr(T* t = nullptr) noexcept;
-
     T *operator->() const noexcept {
         return pointee;
     }
@@ -27,6 +25,14 @@ public:
     %typemap(javainterfaces) TIntrusivePtr<T> "Serializable"
      
     %proxycode %{
+        public $javaclassname($typemap(jstype, T) pointee) {
+            this();
+            if (pointee != null) {
+                pointee.releaseMem();
+                this.Set(pointee);
+            }
+        }
+    
         private void writeObject(ObjectOutputStream out) throws IOException {
             out.writeObject(this.Get());
         }
