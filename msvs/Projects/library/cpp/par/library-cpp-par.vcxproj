@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</ProjectGUID>
+    <ProjectGUID>{67D7246F-3DB6-3A4E-DA0A-2432DE8B35CE}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-par</ProjectName>
+    <ProjectName>library-cpp-par</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-par</TargetName>
+    <TargetName>library-cpp-par</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\par\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\33DA38DE-6DFE-3983-55A4-A689CCC58EFD\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\par\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\67D7246F-3DB6-3A4E-DA0A-2432DE8B35CE\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,26 +78,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\par\compression.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\distr_tree.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_context.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_exec.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_host.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\par\par_host_stats.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_jobreq.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_log.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_master.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_mr.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_network.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_remote.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_util.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\par\par_wb.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\par\par_host_stats.h">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\compression.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\distr_tree.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_context.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_exec.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_host.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\par\par_host_stats.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_jobreq.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_log.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_master.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_mr.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_network.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_remote.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_util.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\par\par_wb.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\par\par_host_stats.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\par
+cd /d $(SolutionDir)$(Configuration)\library\cpp\par
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/par/par_host_stats.h" "--include-path" "library/par/par_host_stats.h" "--output" "$(SolutionDir)$(Configuration)/library/par/par_host_stats.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/par/par_host_stats.h" "--include-path" "library/cpp/par/par_host_stats.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/par/par_host_stats.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -106,9 +106,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\par
+cd /d $(SolutionDir)$(Configuration)\library\cpp\par
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/par/par_host_stats.h" "--include-path" "library/par/par_host_stats.h" "--output" "$(SolutionDir)$(Configuration)/library/par/par_host_stats.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/par/par_host_stats.h" "--include-path" "library/cpp/par/par_host_stats.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/par/par_host_stats.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -116,26 +116,26 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/par/par_host_stats.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\par\par_host_stats.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\par\par_host_stats.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/par/par_host_stats.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\par\par_host_stats.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\par\par_host_stats.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\par\compression.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\distr_tree.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_context.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_exec.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_host.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_jobreq.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_locked_hash.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_log.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_master.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_mr.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_network.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_remote.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_settings.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\par\par_wb.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\compression.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\distr_tree.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_context.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_exec.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_host.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_jobreq.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_locked_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_log.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_master.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_mr.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_network.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_remote.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_settings.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\par\par_wb.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
