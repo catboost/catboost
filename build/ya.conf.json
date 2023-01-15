@@ -248,6 +248,9 @@
         "apphost": {
             "description": "Run local apphost instance"
         },
+        "news": {
+            "description": "Run news team tools"
+        },
         "go_1.14.4": {
             "description": "Run go tool (1.14.4)"
         },
@@ -4950,6 +4953,28 @@
                 }
             ]
         },
+        "news": {
+            "tools": {
+                "news": {
+                    "bottle": "news",
+                    "executable": "news_launcher"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "golang_1_14_4": {
             "tools": {
                 "golang_1.14.4": {
@@ -7094,6 +7119,17 @@
             "executable": {
                 "app_host_launcher": [
                     "app_host_launcher"
+                ]
+            }
+        },
+        "news": {
+            "formula": {
+                "sandbox_id": 743435163,
+                "match": "news_launcher"
+            },
+            "executable": {
+                "news_launcher": [
+                    "news_launcher"
                 ]
             }
         },
