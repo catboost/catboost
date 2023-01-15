@@ -991,7 +991,7 @@ namespace NPlugins {
                 scoped_ptr<io::ZeroCopyOutputStream> output(
                     OutputDirectory_->OpenForInsert(fileName, scope));
                 io::Printer printer(output.get(), '$');
-                printer.Print("#include <contrib/libs/protobuf/messagext.h>\n");
+                printer.Print("#include <google/protobuf/messagext.h>\n");
             }
 
             void GenerateHeaderIncludeExtensions() {
@@ -1000,7 +1000,7 @@ namespace NPlugins {
                 scoped_ptr<io::ZeroCopyOutputStream> output(
                     OutputDirectory_->OpenForInsert(fileName, scope));
                 io::Printer printer(output.get(), '$');
-                printer.Print("#include <contrib/libs/protobuf/json_util.h>\n");
+                printer.Print("#include <google/protobuf/json_util.h>\n");
             }
 
         private:

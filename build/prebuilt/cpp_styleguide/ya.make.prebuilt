@@ -13,6 +13,8 @@ IF (HOST_OS_DARWIN AND HOST_ARCH_X86_64 OR
         sbr:1601134039 FOR WIN32
     )
 
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/cpp_styleguide/ya.make.induced_deps)
+
     PRIMARY_OUTPUT(${ARCADIA_CPP_STYLEGUIDE_RESOURCE_GLOBAL}/cpp_styleguide${MODULE_SUFFIX})
 
     END()

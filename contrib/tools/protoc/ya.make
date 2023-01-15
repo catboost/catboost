@@ -24,5 +24,6 @@ IF (NOT PREBUILT)
         src/google/protobuf/compiler/main.cc
     )
 
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/protoc/ya.make.induced_deps)
     END()
 ENDIF()

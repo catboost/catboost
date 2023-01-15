@@ -39,5 +39,8 @@ IF (NOT PREBUILT)
         cpp_plugin.cc
     )
 
+
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/grpc_cpp/ya.make.induced_deps)
+
     END()
 ENDIF()

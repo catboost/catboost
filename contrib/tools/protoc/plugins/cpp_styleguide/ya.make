@@ -17,5 +17,7 @@ IF (NOT PREBUILT)
         cpp_styleguide.cpp
     )
 
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/cpp_styleguide/ya.make.induced_deps)
+
     END()
 ENDIF()
