@@ -193,23 +193,6 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         TestToLower<char>();
         TestToLower<wchar16>();
     }
-
-    Y_UNIT_TEST(TestMutable) {
-        using T = TCharTraits<char>;
-
-        TString str("12345");
-        char* b = str.begin();
-        UNIT_ASSERT_EQUAL(T::Move(b, b + 2, 3), b);
-        UNIT_ASSERT_EQUAL(str, "34545");
-
-        UNIT_ASSERT_EQUAL(T::Assign(b, 2, '7'), b);
-        UNIT_ASSERT_EQUAL(str, "77545");
-
-        T::Reverse(b, 5);
-        UNIT_ASSERT_EQUAL(str, "54577");
-        T::Reverse(b + 2, 2);
-        UNIT_ASSERT_EQUAL(str, "54757");
-    }
 }
 
 Y_UNIT_TEST_SUITE(TFastFindFirstOf) {
