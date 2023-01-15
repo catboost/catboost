@@ -1637,18 +1637,8 @@ class Linker(object):
             return Linker.LLD
 
         elif self.build.target.is_linux:
-            if not self.build.host.is_linux:
-                # DEVTOOLS-7709: cross-LLD does not work with Arcadia toolchain
-                return None
-            elif self.tc.is_clang:
-                if is_positive('USE_LTO') and not is_positive('MUSL'):
-                    # DEVTOOLS-6782: LLD fails to link LTO builds with in-memory ELF objects larger than 4 GiB
-                    return Linker.GOLD
-                elif (is_positive('CLANG10') or is_positive('CLANG11')) and (is_positive('USE_LTO') or is_positive('USE_THINLTO')):
-                    # DEVTOOLS-7709: LLD has to be updated to 11.
-                    return Linker.GOLD
-                else:
-                    return Linker.LLD
+            if self.tc.is_clang:
+                return Linker.LLD
             else:
                 # GCC et al.
                 return Linker.GOLD
