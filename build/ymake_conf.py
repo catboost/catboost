@@ -2654,13 +2654,13 @@ class MSVCLinker(MSVC, Linker):
         emit('LINK_EXE_FLAGS', '$LINK_EXE_FLAGS_PER_TYPE')
 
         emit('LINK_IMPLIB_VALUE')
-        emit('LINK_IMPLIB', '/IMPLIB:${output;noext;rootrel:REALPRJNAME.lib}')
+        emit('LINK_IMPLIB', '/IMPLIB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.lib}')
 
         # TODO(nslus): DEVTOOLS-1868 remove restriction.
         if self.tc.under_wine:
             emit('LINK_EXTRA_OUTPUT')
         else:
-            emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel:REALPRJNAME.pdb}')
+            emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.pdb}')
 
         if not self.tc.under_wine:
             emit('LIB_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'lib')
