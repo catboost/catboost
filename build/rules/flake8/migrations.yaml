@@ -752,9 +752,6 @@ migrations:
     - orgvisits/library/python/text_tools
     - orgvisits/library/python/yt_jobs/tests
     - orgvisits/metrics/ugc_feedback/ctr
-    - passport/cpp/daemons/kolmogor/ut_medium
-    - passport/cpp/daemons/xunistater/ut_py
-    - passport/go/daemons/tvmtool/ut_py2
     - passport/python/adm_api/views/meltingpot
     - passport/python/core
     - passport/python/core/builders/blackbox/tests
