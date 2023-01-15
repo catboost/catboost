@@ -35,6 +35,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_ENUM_LITE_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_ENUM_LITE_H__
 
+#include <string>
 #include <vector>
 #include <google/protobuf/descriptor.h>
 

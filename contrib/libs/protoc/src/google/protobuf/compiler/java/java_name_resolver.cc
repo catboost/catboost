@@ -31,6 +31,7 @@
 #include <google/protobuf/compiler/java/java_name_resolver.h>
 
 #include <map>
+#include <string>
 
 
 #include <google/protobuf/compiler/java/java_helpers.h>

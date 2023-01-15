@@ -35,6 +35,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_HELPERS_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_HELPERS_H__
 
+#include <string>
 #include <google/protobuf/compiler/java/java_context.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/descriptor.pb.h>

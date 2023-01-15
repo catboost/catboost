@@ -133,6 +133,6 @@ class ImmutableServiceGenerator : public ServiceGenerator {
 }  // namespace java
 }  // namespace compiler
 }  // namespace protobuf
-}  // namespace google
 
 #endif  // NET_PROTO2_COMPILER_JAVA_SERVICE_H__
+}  // namespace google

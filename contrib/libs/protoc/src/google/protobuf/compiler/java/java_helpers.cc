@@ -172,7 +172,7 @@ string UniqueFileScopeIdentifier(const Descriptor* descriptor) {
 string CamelCaseFieldName(const FieldDescriptor* field) {
   string fieldName = UnderscoresToCamelCase(field);
   if ('0' <= fieldName[0] && fieldName[0] <= '9') {
-    return "_" + fieldName;
+    return '_' + fieldName;
   }
   return fieldName;
 }

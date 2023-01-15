@@ -86,7 +86,7 @@ TypeNameMap MakeTypeNameTable() {
 const TypeNameMap kTypeNames = MakeTypeNameTable();
 
 // Camel-case the field name and append "Entry" for generated map entry name.
-// e.g. std::map<KeyType, ValueType> foo_map => FooMapEntry
+// e.g. map<KeyType, ValueType> foo_map => FooMapEntry
 string MapEntryName(const string& field_name) {
   string result;
   static const char kSuffix[] = "Entry";
@@ -543,12 +543,10 @@ bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
       // Store the syntax into the file.
       if (file != NULL) file->set_syntax(syntax_identifier_);
     } else if (!stop_after_syntax_identifier_) {
-      // Yandex-specific: disable warning about syntax (default is proto2)
-      // GOOGLE_LOG(WARNING) << "No syntax specified for the proto file: "
-      //              << file->name() << ". Please use 'syntax = \"proto2\";' "
-      //              << "or 'syntax = \"proto3\";' to specify a syntax "
-      //              << "version. (Defaulted to proto2 syntax.)";
-      // End of Yandex-specific
+      //GOOGLE_LOG(WARNING) << "No syntax specified for the proto file: "
+      //             << file->name() << ". Please use 'syntax = \"proto2\";' "
+      //             << "or 'syntax = \"proto3\";' to specify a syntax "
+      //             << "version. (Defaulted to proto2 syntax.)";
       syntax_identifier_ = "proto2";
     }
 
@@ -1020,7 +1018,7 @@ void Parser::GenerateMapEntry(const MapField& map_field,
   //
   // The following definition:
   //   message Foo {
-  //     std::map<string, string> value = 1 [enforce_utf8 = false];
+  //     map<string, string> value = 1 [enforce_utf8 = false];
   //   }
   // will be interpreted as:
   //   message Foo {

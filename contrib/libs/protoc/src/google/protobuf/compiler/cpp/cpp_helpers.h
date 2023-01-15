@@ -36,6 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_CPP_HELPERS_H__
 
 #include <map>
+#include <string>
 #include <google/protobuf/compiler/cpp/cpp_options.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/descriptor.h>
@@ -296,10 +297,8 @@ bool HasWeakFields(const FileDescriptor* desc);
 
 // Returns true if the "required" restriction check should be ignored for the
 // given field.
-inline static bool ShouldIgnoreRequiredFieldCheck(const FieldDescriptor* field,
-                                                  const Options& options) {
-  (void)field; // Unused
-  (void)options; // Unused
+inline static bool ShouldIgnoreRequiredFieldCheck(const FieldDescriptor* /* field */,
+                                                  const Options& /* options */) {
   return false;
 }
 

@@ -62,7 +62,6 @@ void SetCommonFieldVariables(const FieldDescriptor* descriptor,
                              std::map<string, string>* variables,
                              const Options& options) {
   (*variables)["name"] = FieldName(descriptor);
-  (*variables)["rname"] = descriptor->name();
   (*variables)["index"] = SimpleItoa(descriptor->index());
   (*variables)["number"] = SimpleItoa(descriptor->number());
   (*variables)["classname"] = ClassName(FieldScope(descriptor), false);

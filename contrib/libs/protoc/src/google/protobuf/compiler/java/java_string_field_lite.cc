@@ -34,6 +34,7 @@
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
 #include <map>
+#include <string>
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>

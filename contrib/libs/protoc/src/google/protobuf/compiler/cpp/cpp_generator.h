@@ -37,6 +37,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_CPP_GENERATOR_H__
 #define GOOGLE_PROTOBUF_COMPILER_CPP_GENERATOR_H__
 
+#include <string>
 #include <google/protobuf/compiler/code_generator.h>
 
 namespace google {

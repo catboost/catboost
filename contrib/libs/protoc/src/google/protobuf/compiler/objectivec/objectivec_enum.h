@@ -28,37 +28,46 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: kenton@google.com (Kenton Varda)
-//  Based on original Protocol Buffers design by
-//  Sanjay Ghemawat, Jeff Dean, and others.
-//
-// This file exists solely to document the google::protobuf::compiler namespace.
-// It is not compiled into anything, but it may be read by an automated
-// documentation generator.
+#ifndef GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_ENUM_H__
+#define GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_ENUM_H__
+
+#include <string>
+#include <set>
+#include <vector>
+#include <google/protobuf/descriptor.h>
 
 namespace google {
+namespace protobuf {
+namespace io {
+class Printer;  // printer.h
+}
+}
 
 namespace protobuf {
+namespace compiler {
+namespace objectivec {
 
-// Implementation of the Protocol Buffer compiler.
-//
-// This package contains code for parsing .proto files and generating code
-// based on them.  There are two reasons you might be interested in this
-// package:
-// - You want to parse .proto files at runtime.  In this case, you should
-//   look at importer.h.  Since this functionality is widely useful, it is
-//   included in the libprotobuf base library; you do not have to link against
-//   libprotoc.
-// - You want to write a custom protocol compiler which generates different
-//   kinds of code, e.g. code in a different language which is not supported
-//   by the official compiler.  For this purpose, command_line_interface.h
-//   provides you with a complete compiler front-end, so all you need to do
-//   is write a custom implementation of CodeGenerator and a trivial main()
-//   function.  You can even make your compiler support the official languages
-//   in addition to your own.  Since this functionality is only useful to those
-//   writing custom compilers, it is in a separate library called "libprotoc"
-//   which you will have to link against.
-namespace compiler {}
+class EnumGenerator {
+ public:
+  explicit EnumGenerator(const EnumDescriptor* descriptor);
+  ~EnumGenerator();
 
+  void GenerateHeader(io::Printer* printer);
+  void GenerateSource(io::Printer* printer);
+
+  const string& name() const { return name_; }
+
+ private:
+  const EnumDescriptor* descriptor_;
+  vector<const EnumValueDescriptor*> base_values_;
+  vector<const EnumValueDescriptor*> all_values_;
+  const string name_;
+
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EnumGenerator);
+};
+
+}  // namespace objectivec
+}  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+#endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_ENUM_H__

@@ -40,6 +40,7 @@
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/hash.h>
+#include <string>
 #include <vector>
 #include <map>
 #include <set>

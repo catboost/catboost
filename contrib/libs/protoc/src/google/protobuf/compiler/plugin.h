@@ -62,6 +62,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_PLUGIN_H__
 #define GOOGLE_PROTOBUF_COMPILER_PLUGIN_H__
 
+#include <string>
 
 #include <google/protobuf/stubs/common.h>
 namespace google {

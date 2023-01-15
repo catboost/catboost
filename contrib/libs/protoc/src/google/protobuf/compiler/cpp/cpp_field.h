@@ -40,6 +40,7 @@
 #ifndef _SHARED_PTR_H
 #error #include <google/protobuf/stubs/shared_ptr.h>
 #endif
+#include <string>
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/compiler/cpp/cpp_options.h>

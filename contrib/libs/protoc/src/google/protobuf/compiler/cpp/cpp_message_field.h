@@ -36,6 +36,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_CPP_MESSAGE_FIELD_H__
 
 #include <map>
+#include <string>
 #include <google/protobuf/compiler/cpp/cpp_field.h>
 
 namespace google {
