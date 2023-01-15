@@ -223,7 +223,6 @@ migrations:
     - crypta/graph/v1/python
     - crypta/graph/v1/python/data_imports/import_logs
     - crypta/graph/v1/python/utils
-    - crypta/lib/python/yt/test_helpers
     - crypta/utils/upload_to_logbroker/lib
     - crypta/utils/vault/server/lib
     - cv/imageproc/ocr/tools/nirvana/blocks_dataset/extract_pdf_boxes
@@ -1774,7 +1773,6 @@ migrations:
     - extsearch/video/robot/crawling/player_testing/services/live_capture
     - extsearch/video/robot/crawling/player_testing/services/live_proxy
     - extsearch/video/robot/previews/hitman/lost_preview_status
-    - extsearch/video/ugc/sqs_moderation/mod2
     - extsearch/ymusic/tools/crawl_test_data
     - extsearch/ymusic/tools/generate_test_data
     - infra/kernel/test/recipe/cgleak_check/example
@@ -2013,8 +2011,6 @@ migrations:
     - travel/avia/library/python/iata_correction
     - travel/avia/shared_flights/admin/app/view
     - travel/avia/shared_flights/data_importer
-    - travel/avia/shared_flights/lib/python/db_models
-    - travel/avia/shared_flights/lib/python/tests/date_utils
     - travel/avia/shared_flights/tasks/sirena_parser
     - travel/library/python/sender
     - vcs/svn/migrations
