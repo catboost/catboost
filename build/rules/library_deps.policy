@@ -4,6 +4,7 @@ ALLOW library -> util
 ALLOW library -> library
 ALLOW library -> certs
 ALLOW library/.*/(n)?yt -> mapreduce/yt
+ALLOW library/java -> devtools/junit5-runner
 ALLOW library/java/.*/ut -> devtools/(jtest)|(junit-runner)
 ALLOW library/java/hnsw/ut -> devtools/(jtest)|(junit-runner)
 ALLOW library/python/.*/test -> devtools/ya/(test)|(exts)
