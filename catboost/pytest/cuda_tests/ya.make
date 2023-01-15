@@ -17,7 +17,7 @@ DEPENDS(
 
 SIZE(MEDIUM)
 
-TAG(ya:yt ya:ytexec)
+TAG(ya:yt)
 
 YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
 
