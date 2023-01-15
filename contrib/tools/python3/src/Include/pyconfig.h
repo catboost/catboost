@@ -26,7 +26,11 @@
 #endif
 
 #if defined(__APPLE__)
-#include "pyconfig-osx.h"
+#  if defined(__arm64__)
+#    include "pyconfig-osx-arm64.h"
+#  else
+#    include "pyconfig-osx.h"
+#  endif
 #endif
 
 #if defined(_MSC_VER)
