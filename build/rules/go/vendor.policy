@@ -202,7 +202,7 @@ ALLOW .* -> vendor/gorm.io/driver/postgres
 ALLOW .* -> vendor/github.com/jonboulle/clockwork
 
 # LRU Cache with TTL
-ALLOW .* -> vendor/github.com/karlseguin/ccache
+ALLOW .* -> vendor/github.com/karlseguin/ccache/v2
 
 # Garbage collector-sensitive patricia tree for IP/CIDR tagging
 ALLOW .* -> vendor/github.com/kentik/patricia
