@@ -30,6 +30,7 @@ public:
 
 private:
     ModelCalcerHandle* Handle = nullptr;
+    bool ModelLoaded = false;
 
     Napi::Array CalcPredictionHash(Napi::Env env,
                                    const TVector<float>& floatFeatures,

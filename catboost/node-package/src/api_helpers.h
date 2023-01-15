@@ -13,32 +13,37 @@
 
 namespace NHelper {
 
-// Checks if the condition is true, throws JS exception otherwise.
-inline void Check(Napi::Env env, bool condition, const std::string& message) {
+// Checks if the condition is true, schedules JS exception otherwise.
+// Returns false if check failed.
+inline bool Check(Napi::Env env, bool condition, const std::string& message) {
     if (!condition) {
         Napi::TypeError::New(env, message)
 	    .ThrowAsJavaScriptException();
     }
+
+    return condition;
 }
 
 // Checks if the pointer is not null, throws JS exception otherwise.
 template <typename T>
-inline void CheckNotNull(Napi::Env env, T* ptr, const std::string& message) {
-    Check(env, ptr != nullptr, message);
+inline bool CheckNotNull(Napi::Env env, T* ptr, const std::string& message) {
+    return Check(env, ptr != nullptr, message);
 }
 
 // Checks that the model handle is not null. As this should never be the case throws internal error.
-inline void CheckNotNullHandle(Napi::Env env, ModelCalcerHandle* handle) {
+inline bool CheckNotNullHandle(Napi::Env env, ModelCalcerHandle* handle) {
     return CheckNotNull(env, handle, "Internal error - null handle encountered");
 }
 
 // Checks that the return status of C API is true, returns error in JS exception otherwise.
-inline void CheckStatus(Napi::Env& env, bool status) {
+inline bool CheckStatus(Napi::Env& env, bool status) {
     if (!status) {
         const char* errorMessage = GetErrorString();
         CheckNotNull(env, errorMessage, "Internal error - error message expected, but missing");
         Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
     }
+
+    return status;
 }
 
 // Matrix types in N-API
