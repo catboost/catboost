@@ -17,8 +17,6 @@ RECURSE(
     comptrie/ut
     comptrie/benchmark
     cpp
-    dbg_output
-    dbg_output/ut
     dns
     dns/ut
     enumbitset

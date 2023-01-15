@@ -8,7 +8,7 @@
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/dbg_output/dump.h>
+#include <library/cpp/dbg_output/dump.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>

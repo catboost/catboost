@@ -1,4 +1,4 @@
-#include <library/dbg_output/dump.h>
+#include <library/cpp/dbg_output/dump.h>
 #include <library/unittest/registar.h>
 
 #include <util/stream/str.h>
