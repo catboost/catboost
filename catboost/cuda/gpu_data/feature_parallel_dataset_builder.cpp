@@ -99,7 +99,8 @@ namespace NCatboostCuda {
                                                                                                                              dataSetsHolder.GetCtrTargets(),
                                                                                                                              TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
                                                                                                                                                                std::move(weights),
-                                                                                                                                                               std::move(indices)),
+                                                                                                                                                               std::move(indices),
+                                                                                                                                                               /*isPairWeights*/ false),
                                                                                                                              std::move(inverseIndices),
                                                                                                                              std::move(permutation)));
         }
@@ -304,7 +305,8 @@ namespace NCatboostCuda {
                                                                      dataSetsHolder.GetCtrTargets(),
                                                                      TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
                                                                                                        std::move(weights),
-                                                                                                       std::move(indices)),
+                                                                                                       std::move(indices),
+                                                                                                       /*isPairWeights*/ false),
                                                                      std::move(inverseIndices),
                                                                      GetPermutation(*LinkedTest, 0u, 1u))
 

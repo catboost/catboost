@@ -325,6 +325,7 @@ namespace NCatboostCuda {
                             weights);
 
             TParent::Target.Weights = weights.ConstCopyView();
+            TParent::Target.StorePairWeights = true;
 
             {
                 const auto& pairWeights = TParent::GetSamplesGrouping().GetPairsWeights();
