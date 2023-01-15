@@ -1,5 +1,7 @@
 package ai.catboost.spark
 
+import org.json4s.JObject
+
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.classification.{ProbabilisticClassificationModel,ProbabilisticClassifier}
@@ -220,17 +222,31 @@ class CatBoostClassifier (override val uid: String)
   protected override def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool]
-  ) : (Pool, Array[Pool]) = {
+  ) : (Pool, Array[Pool], JObject) = {
+    val classNamesFromLabelData = if (ai.catboost.spark.params.Helpers.classNamesAreKnown(this)) {
+      None
+    } else {
+      Some(DataHelpers.getClassNamesFromLabelData(quantizedTrainPool.data, getLabelCol))
+    }
+
     if (!isDefined(lossFunction)) {
       if (isDefined(targetBorder)) {
         set(lossFunction, "Logloss")
       } else {
-        val distinctLabelValuesCount = quantizedTrainPool.data.select(getLabelCol).distinct.count
+        val distinctLabelValuesCount = if (classNamesFromLabelData.isDefined) {
+          classNamesFromLabelData.get.length.toLong
+        } else {
+          quantizedTrainPool.data.select(getLabelCol).distinct.count
+        }
         set(lossFunction, if (distinctLabelValuesCount > 2) "MultiClass" else "Logloss")
       }
     }
 
-    (quantizedTrainPool, quantizedEvalPools)
+    (
+      quantizedTrainPool,
+      quantizedEvalPools,
+      ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this, classNamesFromLabelData)
+    )
   }
 
   protected override def createModel(nativeModel: native_impl.TFullModel): CatBoostClassificationModel = {
