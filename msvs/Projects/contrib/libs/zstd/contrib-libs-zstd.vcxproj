@@ -195,6 +195,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\lib\legacy\zstd_v07.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\include\zstd.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\bitstream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\compiler.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\cpu.h"/>
@@ -238,7 +239,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\legacy\zstd_v06.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\legacy\zstd_v07.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\zstd.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\zstd.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
