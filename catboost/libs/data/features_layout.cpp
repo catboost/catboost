@@ -131,6 +131,42 @@ TFeaturesLayout::TFeaturesLayout(
     UpdateFeaturesMetaInfo(embeddingFeatures, EFeatureType::Embedding);
 }
 
+TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
+    TConstArrayRef<TColumn> columns,
+    TMaybe<const TVector<TString>*> featureNames
+) {
+    TVector<TString> finalFeatureNames;
+    if (featureNames) {
+        finalFeatureNames = **featureNames;
+    }
+    TVector<ui32> catFeatureIndices;
+    TVector<ui32> textFeatureIndices;
+    TVector<ui32> embeddingFeatureIndices;
+
+    ui32 featureIdx = 0;
+    for (const auto& column : columns) {
+        if (IsFactorColumn(column.Type)) {
+            if (!featureNames) {
+                finalFeatureNames.push_back(column.Id);
+            }
+            if (column.Type == EColumn::Categ) {
+                catFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::Text) {
+                textFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::NumVector) {
+                embeddingFeatureIndices.push_back(featureIdx);
+            }
+            ++featureIdx;
+        }
+    }
+    return MakeIntrusive<TFeaturesLayout>(
+        featureIdx,
+        catFeatureIndices,
+        textFeatureIndices,
+        embeddingFeatureIndices,
+        finalFeatureNames);
+}
+
 TFeaturesLayout::TFeaturesLayout(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
     Init(data);
 }

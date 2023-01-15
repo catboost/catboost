@@ -2,6 +2,7 @@
 
 #include <catboost/private/libs/options/load_options.h>
 
+#include <library/cpp/getopt/small/last_getopt.h>
 #include <library/cpp/json/json_value.h>
 
 #include <util/generic/string.h>
@@ -37,4 +38,19 @@ void InitOptions(
 void CopyIgnoredFeaturesToPoolParams(
     const NJson::TJsonValue& catBoostJsonOptions,
     NCatboostOptions::TPoolLoadParams* poolLoadParams
+);
+
+void BindQuantizerBinarizationParams(
+    NLastGetopt::TOpts* parserPtr,
+    NJson::TJsonValue* plainJsonPtr
+);
+
+void BindQuantizerDataProcessingParams(
+    NLastGetopt::TOpts* parserPtr,
+    NJson::TJsonValue* plainJsonPtr
+);
+
+void BindQuantizerPoolLoadParams(
+    NLastGetopt::TOpts* parser,
+    NCatboostOptions::TPoolLoadParams* loadParamsPtr
 );

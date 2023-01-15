@@ -2,6 +2,7 @@
 
 #include "feature_index.h"
 
+#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/features.h>
 #include <catboost/private/libs/options/enums.h>
@@ -80,6 +81,9 @@ struct TDumper<NCB::TFeatureMetaInfo> {
 
 
 namespace NCB {
+    class TFeaturesLayout;
+    using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
+
     class TFeaturesLayout final : public TAtomicRefCount<TFeaturesLayout> {
     public:
         // needed because of default init in Cython and because of BinSaver
@@ -112,6 +116,11 @@ namespace NCB {
         // needed for SWIG wrapper deserialization
         // data is moved into - poor substitute to && because SWIG does not support it
         void Init(TVector<TFeatureMetaInfo>* data);
+
+        // create from columns info
+        static TFeaturesLayoutPtr CreateFeaturesLayout(
+            TConstArrayRef<TColumn> columns,
+            TMaybe<const TVector<TString>*> featureNames);
 
         bool EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity = false) const;
 
@@ -290,8 +299,6 @@ namespace NCB {
             }
         }
     };
-
-    using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
 
     void CheckCompatibleForApply(
         const TFeaturesLayout& learnFeaturesLayout,
