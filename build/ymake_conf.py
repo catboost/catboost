@@ -1279,6 +1279,8 @@ class GnuCompiler(Compiler):
 
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
+                if not self.target.is_ios:
+                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
 
             if self.tc.version_at_least(8):
                 self.cxx_warnings.extend((
@@ -1287,8 +1289,6 @@ class GnuCompiler(Compiler):
                     '-Wno-enum-compare-switch',
                     '-Wno-pass-failed',
                 ))
-                if not self.target.is_ios:
-                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
