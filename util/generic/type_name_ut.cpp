@@ -49,7 +49,7 @@ Y_UNIT_TEST_SUITE(TypeName) {
         UNIT_ASSERT_VALUES_EQUAL(TypeName<double>(), "double");
 
 #ifdef _MSC_VER
-        UNIT_ASSERT_VALUES_EQUAL(TypeName<std::string>(), "class std::__y1::basic_string<char, std::__y1::char_traits<char>, std::__y1::allocator<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName<std::string>(), "class std::__y1::basic_string<char,struct std::__y1::char_traits<char>,class std::__y1::allocator<char> >");
         UNIT_ASSERT_VALUES_EQUAL(TypeName<std::runtime_error>(), "class std::runtime_error");
 #else
         UNIT_ASSERT_VALUES_EQUAL(TypeName<std::string>(), "std::__y1::basic_string<char, std::__y1::char_traits<char>, std::__y1::allocator<char> >");
@@ -85,7 +85,7 @@ Y_UNIT_TEST_SUITE(TypeName) {
         std::string string;
         std::runtime_error err("This is awful");
 #ifdef _MSC_VER
-        UNIT_ASSERT_VALUES_EQUAL(TypeName(&string), "class std::__y1::basic_string<char, std::__y1::char_traits<char>, std::__y1::allocator<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName(&string), "class std::__y1::basic_string<char,struct std::__y1::char_traits<char>,class std::__y1::allocator<char> >");
         UNIT_ASSERT_VALUES_EQUAL(TypeName(&err), "class std::runtime_error");
 #else
         UNIT_ASSERT_VALUES_EQUAL(TypeName(&string), "std::__y1::basic_string<char, std::__y1::char_traits<char>, std::__y1::allocator<char> >");
