@@ -535,6 +535,28 @@ def test_averagegain(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_queryauc(boosting_type):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    cmd = (
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '--custom-metric', 'QueryAUC:hints=skip_train~false',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_queryaverage(boosting_type):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')

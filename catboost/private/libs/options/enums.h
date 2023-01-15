@@ -196,6 +196,7 @@ enum class ELossFunction {
     /* ranking metrics */
     AverageGain,
     QueryAverage,
+    QueryAUC,
     PFound,
     PrecisionAt,
     RecallAt,

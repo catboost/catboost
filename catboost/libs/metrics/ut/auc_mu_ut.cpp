@@ -1,11 +1,17 @@
 #include <catboost/libs/metrics/auc_mu.h>
 #include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/metrics/metric_holder.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>
 #include <util/generic/array_ref.h>
+#include <catboost/private/libs/data_types/query.h>
+#include <catboost/libs/metrics/sample.h>
+
+
 
 constexpr double EPS = 1e-8;
 
@@ -207,11 +213,71 @@ Y_UNIT_TEST_SUITE(AUCMuMetricTests) {
         }
     }
 
+    static void TestQueryMuAuc(
+        TString description, // description of mu auc metric
+        const TVector<TVector<double>>& prediction,
+        const TVector<float>& targets,
+        const TVector<float>& weights,
+        const TVector<TQueryInfo> queryInfos,
+        const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing()
+    ) {
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(31);
+
+        const auto queryAUC = std::move(CreateMetricsFromDescription({description}, 2).front());
+
+        TMetricHolder metricHm(2);
+
+        for (const auto& info: queryInfos) {
+            TVector<NMetrics::TSample> samples;
+            auto startIdx = info.Begin;
+            auto endIdx = info.End;
+
+            TVector<float> currentTarget(targets.begin() + startIdx, targets.begin() + endIdx);
+            const auto convertedTarget = TConstArrayRef<float>(currentTarget);
+            TVector<float> currentWeight(weights.begin() + startIdx, weights.begin() + endIdx);
+            const auto convertedWeight = TConstArrayRef<float>(currentWeight);
+
+            TVector<TVector<double>> currentApprox(prediction.begin() + startIdx, prediction.begin() + endIdx);
+
+            metricHm.Stats[0] += CalcMuAuc(currentApprox, convertedTarget, convertedWeight, 1, misclassCostMatrix);
+            metricHm.Stats[1] += 1;
+
+        }
+
+        const auto metric = queryAUC->Eval(
+            prediction,
+            targets,
+            weights,
+            queryInfos,
+            0,
+            queryInfos.size(),
+            executor);
+
+
+        UNIT_ASSERT_VALUES_EQUAL(metric.Stats.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(metric.Stats.size(), metricHm.Stats.size());
+        UNIT_ASSERT_DOUBLES_EQUAL(metric.Stats[1], metricHm.Stats[1], EPS);
+        UNIT_ASSERT_DOUBLES_EQUAL(metric.Stats[0], metricHm.Stats[0], EPS);
+    }
+
     Y_UNIT_TEST(SimpleTest) {
         TestMuAuc(
             {{0.5, 0.3, 0.05}, {0.45, 0.4, 0.45}, {0.05, 0.3, 0.5}},
             {0, 1, 2},
             {1, 1, 1}
+        );
+    }
+
+    Y_UNIT_TEST(SimpleQueryTest) {
+        TQueryInfo info(0, 3);
+
+        TestQueryMuAuc(
+            "QueryAUC:type=Mu",
+            {{0.5, 0.3, 0.05}, {0.45, 0.4, 0.45}, {0.05, 0.3, 0.5}}, // predicts
+            {0, 1, 2}, // targets
+            {1, 1, 1}, // weights
+            {info}
         );
     }
 

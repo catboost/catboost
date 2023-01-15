@@ -395,6 +395,7 @@ TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
 
 static bool IsFromAucFamily(ELossFunction loss) {
     return loss == ELossFunction::AUC
+        || loss == ELossFunction::QueryAUC
         || loss == ELossFunction::NormalizedGini;
 }
 
