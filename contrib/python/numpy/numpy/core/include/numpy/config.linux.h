@@ -37,7 +37,7 @@
 #define HAVE_STRTOLD_L 1
 #endif
 #define HAVE_FALLOCATE 1
-#if !defined(__aarch64__)
+#if !defined(__aarch64__) && !defined(__powerpc__)
 #define HAVE_XMMINTRIN_H 1
 #define HAVE_EMMINTRIN_H 1
 #endif
