@@ -240,9 +240,6 @@ migrations:
     - maps/infra/apiteka/client/tests
     - maps/infra/balancer_deployer
     - maps/infra/ecstatic/tool/ecstatic_api
-    - maps/infra/sedem/lib
-    - maps/infra/sedem/modules
-    - maps/infra/sedem/tests/release/machine
     - maps/masstransit/tools/gtfs_utils/converter/lib
     - maps/poi/notification/lib
     - maps/pylibs/fixtures
