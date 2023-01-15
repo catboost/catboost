@@ -261,7 +261,7 @@ void THttpParser::OnEof() {
 }
 
 bool THttpParser::DecodeContent() {
-    if (!ContentEncoding_) {
+    if (!ContentEncoding_ || ContentEncoding_ == "identity") {
         DecodedContent_ = Content_;
         return false;
     }
