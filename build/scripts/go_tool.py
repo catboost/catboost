@@ -87,7 +87,7 @@ def preprocess_args(args):
     assert args.output is None or args.output_root == os.path.dirname(args.output)
     assert args.output_root.startswith(args.build_root_dir)
     args.module_path = args.output_root[len(args.build_root_dir):]
-    args.source_module_dir = os.path.join(args.source_root, args.module_path) + os.path.sep
+    args.source_module_dir = os.path.join(args.source_root, args.test_import_path or args.module_path) + os.path.sep
     assert len(args.module_path) > 0
     args.import_path, args.is_std = get_import_path(args.module_path)
 
