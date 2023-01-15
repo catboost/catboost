@@ -248,6 +248,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\disjoint_interval_tree\cpp-containers-disjoint_interval_tree.vcxproj">
+      <Project>{714BB916-D8B1-F05C-1BDE-86526ED8C5CA}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\intrusive_rb_tree\cpp-containers-intrusive_rb_tree.vcxproj">
       <Project>{B43F59AA-F4C6-C980-DC64-0ED89BEB2617}</Project>
     </ProjectReference>

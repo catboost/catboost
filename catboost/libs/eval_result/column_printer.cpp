@@ -90,7 +90,10 @@ namespace NCB {
         TVector<TString> headers;
         headers.reserve(classCount);
         bool isUncertainty = IsUncertaintyPredictionType(predictionType);
-        auto lossFunction = FromString<ELossFunction>(lossFunctionName);
+        TMaybe<ELossFunction> lossFunction = Nothing();
+        if (!lossFunctionName.empty()) {
+            lossFunction = FromString<ELossFunction>(lossFunctionName);
+        }
         bool isRMSEWithUncertainty = lossFunction == ELossFunction::RMSEWithUncertainty;
         if (isUncertainty) {
             TVector<TString> uncertaintyHeaders;
@@ -100,12 +103,12 @@ namespace NCB {
                     uncertaintyHeaders.push_back("Var");
                 }
             } else {
-                if (IsRegressionMetric(lossFunction)) {
+                if (IsRegressionMetric(*lossFunction)) {
                     uncertaintyHeaders = {"MeanPredictions", "KnowledgeUnc"}; // KnowledgeUncertainty
                     if (isRMSEWithUncertainty) {
                         uncertaintyHeaders.push_back("DataUnc"); // DataUncertainty
                     }
-                } else if (IsBinaryClassOnlyMetric(lossFunction)) {
+                } else if (IsBinaryClassOnlyMetric(*lossFunction)) {
                     uncertaintyHeaders = {"DataUnc", "TotalUnc"};
                 } else {
                     CB_ENSURE(false, "unsupported loss function for uncertainty " << lossFunction);
@@ -133,7 +136,7 @@ namespace NCB {
             TStringBuilder str;
             str << predictionType;
             if (classCount > 1) {
-                if (FromString<ELossFunction>(lossFunctionName) == ELossFunction::RMSEWithUncertainty) {
+                if (lossFunction == ELossFunction::RMSEWithUncertainty) {
                     if (classId == 0) {
                         str << "Mean";
                     } else {

@@ -1,6 +1,7 @@
 LIBRARY(yutil)
 
 
+SUBSCRIBER(g:util-subscribers)
 
 NEED_CHECK()
 

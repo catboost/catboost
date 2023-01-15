@@ -10,6 +10,8 @@ RECURSE(
     dense_hash
     dense_hash/dense_hash_benchmark
     dense_hash/ut
+    disjoint_interval_tree
+    disjoint_interval_tree/ut
     flat_hash
     flat_hash/benchmark
     flat_hash/lib
