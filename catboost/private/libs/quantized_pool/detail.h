@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/idl/pool/proto/metainfo.pb.h>
+
 #include <catboost/libs/column_description/column.h>
 
 namespace NCB {
@@ -48,5 +50,7 @@ namespace NCB {
         constexpr ui32 GetFakeSubgroupIdColumnIndex(ui32 columnCount) {
             return columnCount + 2;
         }
+
+        EColumn IdlColumnTypeToEColumn(NCB::NIdl::EColumnType pbType);
     }
 }

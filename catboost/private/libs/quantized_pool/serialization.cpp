@@ -1,4 +1,5 @@
 #include "serialization.h"
+#include "detail.h"
 #include "pool.h"
 #include "loader.h"
 
@@ -41,6 +42,7 @@ using NCB::NIdl::TPoolQuantizationSchema;
 using NCB::NQuantizationDetail::GetFakeDocIdColumnIndex;
 using NCB::NQuantizationDetail::GetFakeGroupIdColumnIndex;
 using NCB::NQuantizationDetail::GetFakeSubgroupIdColumnIndex;
+using NCB::NQuantizationDetail::IdlColumnTypeToEColumn;
 
 static const char Magic[] = "CatboostQuantizedPool";
 static const size_t MagicSize = Y_ARRAY_SIZE(Magic);  // yes, with terminating zero
@@ -380,52 +382,7 @@ void NCB::AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* co
 
     for (const auto [columnIndex, localIndex] : pool->ColumnIndexToLocalIndex) {
         const auto pbType = metainfo.GetColumnIndexToType().at(columnIndex);
-        EColumn type;
-        switch (pbType) {
-            case NCB::NIdl::CT_UNKNOWN:
-                ythrow TCatBoostException() << "unknown column type in quantized pool";
-            case NCB::NIdl::CT_NUMERIC:
-                type = EColumn::Num;
-                break;
-            case NCB::NIdl::CT_LABEL:
-                type = EColumn::Label;
-                break;
-            case NCB::NIdl::CT_WEIGHT:
-                type = EColumn::Weight;
-                break;
-            case NCB::NIdl::CT_GROUP_WEIGHT:
-                type = EColumn::GroupWeight;
-                break;
-            case NCB::NIdl::CT_BASELINE:
-                type = EColumn::Baseline;
-                break;
-            case NCB::NIdl::CT_SUBGROUP_ID:
-                type = EColumn::SubgroupId;
-                break;
-            case NCB::NIdl::CT_DOCUMENT_ID:
-                type = EColumn::SampleId;
-                break;
-            case NCB::NIdl::CT_GROUP_ID:
-                type = EColumn::GroupId;
-                break;
-            case NCB::NIdl::CT_CATEGORICAL:
-                type = EColumn::Categ;
-                break;
-            case NCB::NIdl::CT_SPARSE:
-                type = EColumn::Sparse;
-                break;
-            case NCB::NIdl::CT_TIMESTAMP:
-                type = EColumn::Timestamp;
-                break;
-            case NCB::NIdl::CT_PREDICTION:
-                type = EColumn::Prediction;
-                break;
-            case NCB::NIdl::CT_AUXILIARY:
-                type = EColumn::Auxiliary;
-                break;
-        }
-
-        pool->ColumnTypes[localIndex] = type;
+        pool->ColumnTypes[localIndex] = NCB::NQuantizationDetail::IdlColumnTypeToEColumn(pbType);
 
         const auto it = metainfo.GetColumnIndexToName().find(columnIndex);
         if (it != metainfo.GetColumnIndexToName().end()) {
@@ -472,7 +429,7 @@ static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<ui8> blob) {
 static void ParseQuantizedPool(
     const TMaybe<std::function<void(TConstArrayRef<ui8>)>>& onMetainfo,
     const TMaybe<std::function<void(TConstArrayRef<ui8>)>>& onBorders,
-    const TMaybe<std::function<void(ui32)>>& onColumn,
+    const TMaybe<std::function<bool(ui32)>>& onColumn, // ignore column chunks if returns false
     const TMaybe<std::function<void(TConstArrayRef<ui8>, ui32, ui32)>>& onChunk,
     TConstArrayRef<ui8> blob
 ) {
@@ -507,8 +464,9 @@ static void ParseQuantizedPool(
         ui32 featureIndex;
         ReadLittleEndian(&featureIndex, &epilog);
 
+        bool ignoreColumnChucks = false;
         if (onColumn) {
-            (*onColumn)(featureIndex);
+            ignoreColumnChucks = !(*onColumn)(featureIndex);
         }
 
         ui32 chunkCount;
@@ -521,7 +479,7 @@ static void ParseQuantizedPool(
         TVector<ui8> featureEpilog(featureEpilogBytes);
         CB_ENSURE(featureEpilogBytes == epilog.Load(featureEpilog.data(), featureEpilogBytes));
         const auto* featureEpilogPtr = featureEpilog.data();
-        if (!onChunk) {
+        if (ignoreColumnChucks || !onChunk) {
             continue;
         }
         for (ui32 chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex) {
@@ -555,9 +513,8 @@ namespace {
 
 NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) {
     CB_ENSURE_INTERNAL(
-        params.DatasetSubset.Range == NCB::TDatasetSubset().Range &&
-        params.DatasetSubset.HasFeatures == NCB::TDatasetSubset().HasFeatures,
-        "Scheme quantized supports only default load subset"
+        params.DatasetSubset.Range == NCB::TDatasetSubset().Range,
+        "Scheme quantized supports only default load subset range"
     );
 
     NCB::TQuantizedPool pool;
@@ -588,13 +545,20 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
     THashMap<ui32, EColumn> stringColumnIndexToColumnType;
 
     TVector<NCB::TQuantizedPool::TChunkDescription>* currentChunksPointer = nullptr;
-    auto parseColumn = [&] (ui32 columnIndex) {
+    auto parseColumn = [&] (ui32 columnIndex) -> bool {
         CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(columnIndex),
             "Quantized pool should have unique column indices, but " <<
             LabeledOutput(columnIndex) << " is repeated.");
 
         const bool isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(columnIndex, poolMetainfo);
         if (!isFakeColumn) {
+            if (!params.DatasetSubset.HasFeatures) {
+                auto pbColumnType = poolMetainfo.columnindextotype().at(columnIndex);
+                if (IsFactorColumn(IdlColumnTypeToEColumn(pbColumnType))) {
+                    return false;
+                }
+            }
+
             const auto localFeatureIndex = pool.Chunks.size();
             pool.ColumnIndexToLocalIndex.emplace(columnIndex, localFeatureIndex);
             pool.Chunks.push_back({});
@@ -614,6 +578,7 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
             stringColumnChunks.push_back({});
             currentChunksPointer = &stringColumnChunks.back();
         }
+        return true;
     };
     auto parseChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
         const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(bytes.data());
@@ -802,8 +767,9 @@ size_t NCB::EstimateIdsLength(const TStringBuf path) {
     };
     TVector<TVector<NCB::TQuantizedPool::TChunkDescription>> stringColumnChunks;
     bool isFakeColumn = false;
-    auto parseColumn = [&] (ui32 columnIndex) {
+    auto parseColumn = [&] (ui32 columnIndex) -> bool {
         isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(columnIndex, poolMetainfo);
+        return true;
     };
     size_t estimatedIdsLength = 0;
     auto parseChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
@@ -1014,7 +980,11 @@ namespace NCB {
                         EColumn::Num
                     );
                 } else {
-                    CB_ENSURE_INTERNAL(featureMetaInfo.IsIgnored, "If GetFloatFeature returns Nothing(), feature must be ignored");
+                    /* TODO(akhropov): This should be a valid check but we currently require possibility so save
+                     * data without features data but with IsAvailable == true.
+                     * Uncomment after fixing MLTOOLS-3604
+                     */
+                    //CB_ENSURE_INTERNAL(!featureMetaInfo.IsAvailable, "If GetFloatFeature returns Nothing(), feature must be unavailable");
                 }
 
                 srcData->FloatFeatures.emplace_back(maybeFeatureColumn);
