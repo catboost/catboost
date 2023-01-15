@@ -9,7 +9,8 @@ VERSION(2020-11-01)
 LICENSE(BSD-3-Clause)
 
 ADDINCL(
-    GLOBAL contrib/libs/re2
+    GLOBAL contrib/libs/re2/include
+    contrib/libs/re2
 )
 
 NO_COMPILER_WARNINGS()
