@@ -248,6 +248,10 @@
   - BaseTsd.h
   - iphlpapi.h
 
+- source_filter: "^(?!contrib/python/line_profiler/)"
+  includes:
+  - timers.h
+
 - includes:
   - cpu-features.h
   - cuda/include/cuComplex.h
@@ -329,7 +333,6 @@
   - sys/timespec.h
   - sys/umtx.h
   - sys/uuid.h
-  - timers.h
   - ucred.h
   - varargs.h
   - vm/vm_param.h
