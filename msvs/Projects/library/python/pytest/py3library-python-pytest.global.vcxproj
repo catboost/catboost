@@ -185,8 +185,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.vcxproj">
       <Project>{C993C962-3FFE-726E-1312-B37C3A414F52}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3dateutil.vcxproj">
-      <Project>{4F62D972-C51F-BBC3-4B6A-266C6674E907}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3contrib-python-dateutil.vcxproj">
+      <Project>{D274033C-8742-EABF-10AB-335A323CB8E0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\py3contrib-python-decorator.vcxproj">
       <Project>{45DD0FCB-695D-6F82-16DE-881C23E1603F}</Project>

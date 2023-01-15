@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{FE4737C8-2A2F-0823-F470-7ABFC1224FD1}</ProjectGUID>
+    <ProjectGUID>{52998C9B-98CF-0A7C-791C-62BBE3A2F357}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3dateutil.global</ProjectName>
+    <ProjectName>py3contrib-python-dateutil.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3dateutil.global</TargetName>
+    <TargetName>py3contrib-python-dateutil.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\dateutil\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FE4737C8-2A2F-0823-F470-7ABFC1224FD1\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\52998C9B-98CF-0A7C-791C-62BBE3A2F357\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

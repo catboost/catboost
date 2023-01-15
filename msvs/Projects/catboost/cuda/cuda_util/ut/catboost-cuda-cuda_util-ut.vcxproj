@@ -270,11 +270,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\pycontrib-python-contextlib2.global.vcxproj">
       <Project>{316F54BD-5BD5-E215-D004-3FF525553F89}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3dateutil.global.vcxproj">
-      <Project>{FE4737C8-2A2F-0823-F470-7ABFC1224FD1}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3contrib-python-dateutil.global.vcxproj">
+      <Project>{52998C9B-98CF-0A7C-791C-62BBE3A2F357}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pydateutil.global.vcxproj">
-      <Project>{28449A2D-9756-365D-D635-24069E167DDC}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.global.vcxproj">
+      <Project>{28BC0A92-3221-62FA-F608-FBCCA255765A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\py3contrib-python-decorator.global.vcxproj">
       <Project>{7A615C49-54FB-FC5B-3AF1-FFFF42F416EC}</Project>
