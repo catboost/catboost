@@ -31,13 +31,15 @@
 #endif
 
 enum EContPoll {
-    CONT_POLL_READ = 1,
-    CONT_POLL_WRITE = 2,
-    CONT_POLL_ONE_SHOT = 4,         // Disable after first event
-    CONT_POLL_MODIFY = 8,           // Modify already added event
-    CONT_POLL_EDGE_TRIGGERED = 16,  // Notify only about new events
-    CONT_POLL_BACKLOG_EMPTY = 32,   // Backlog is empty (seen end of request, EAGAIN or truncated read)
+    CONT_POLL_READ           = 1,
+    CONT_POLL_WRITE          = 2,
+    CONT_POLL_RDHUP          = 4,
+    CONT_POLL_ONE_SHOT       = 8,  // Disable after first event
+    CONT_POLL_MODIFY         = 16, // Modify already added event
+    CONT_POLL_EDGE_TRIGGERED = 32, // Notify only about new events
+    CONT_POLL_BACKLOG_EMPTY  = 64, // Backlog is empty (seen end of request, EAGAIN or truncated read)
 };
+
 
 static inline bool IsSocket(SOCKET fd) noexcept {
     int val = 0;
@@ -244,6 +246,10 @@ public:
             e.events |= EPOLLOUT;
         }
 
+        if (what & CONT_POLL_RDHUP) {
+            e.events |= EPOLLRDHUP;
+        }
+
         e.data.ptr = data;
 
         if ((what & CONT_POLL_MODIFY) || epoll_ctl(Fd_, EPOLL_CTL_ADD, fd, &e) == -1) {
@@ -290,6 +296,11 @@ public:
 
         if (event->events & EPOLLOUT) {
             ret |= CONT_POLL_WRITE;
+        }
+
+
+        if (event->events & EPOLLRDHUP) {
+            ret |= CONT_POLL_RDHUP;
         }
 
         return ret;
@@ -660,7 +671,7 @@ public:
 
     static inline int ExtractFilter(const TEvent* event) noexcept {
         if (TBase::ExtractStatus(event)) {
-            return CONT_POLL_READ | CONT_POLL_WRITE;
+            return CONT_POLL_READ | CONT_POLL_WRITE | CONT_POLL_RDHUP;
         }
 
         return TBase::ExtractFilterImpl(event);

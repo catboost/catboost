@@ -190,6 +190,12 @@ namespace {
             ret |= POLLOUT;
         }
 
+#if defined(_linux_)
+        if (flags & CONT_POLL_RDHUP) {
+            ret |= POLLRDHUP;
+        }
+#endif
+
         return ret;
     }
 
@@ -259,6 +265,12 @@ namespace {
                     filter |= CONT_POLL_WRITE;
                 }
 
+#if defined(_linux_)
+                if (ev & POLLRDHUP) {
+                    filter |= CONT_POLL_RDHUP;
+                }
+#endif
+
                 if (ev & POLLERR) {
                     status = EIO;
                 } else if (ev & POLLHUP && pfd.events & POLLOUT) {
@@ -269,7 +281,7 @@ namespace {
                 }
 
                 if (status) {
-                    filter = CONT_POLL_READ | CONT_POLL_WRITE;
+                    filter = CONT_POLL_READ | CONT_POLL_WRITE | CONT_POLL_RDHUP;
                 }
 
                 const TEvent res = {
