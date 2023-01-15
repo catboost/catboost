@@ -182,21 +182,15 @@ static inline bool Strip(const TString& from, TString& to) {
     return StripString(from, to);
 }
 
-// deprecated version, use Strip instead
-static inline bool strip(const TString& from, TString& to) {
-    return StripString(from, to);
-}
-
 /// Removes leading and trailing spaces from the string.
-inline TString& Strip(TString& s) {
+inline TString& StripInPlace(TString& s) {
     Strip(s, s);
     return s;
 }
 
-// deprecated version, use Strip(TString& s) instead
-inline TString& strip(TString& s) {
-    Strip(s, s);
-    return s;
+/// Deprecated and dangerous overload of StripInPlace
+inline TString& Strip(TString& s) {
+    return StripInPlace(s);
 }
 
 /// Returns a copy of the given string with removed leading and trailing spaces.
@@ -205,12 +199,6 @@ inline TString Strip(const TString& s) {
     TString ret = s;
     Strip(ret, ret);
     return ret;
-}
-
-// deprecated version, use TString Strip(const TString& s) instead
-inline TString strip(const TString& s) Y_WARN_UNUSED_RESULT;
-inline TString strip(const TString& s) {
-    return Strip(s);
 }
 
 template <class TChar, class TWhitespaceFunc>
@@ -249,20 +237,15 @@ bool CollapseImpl(const TStringType& from, TStringType& to, size_t maxLen, const
 
 bool Collapse(const TString& from, TString& to, size_t maxLen = 0);
 
-// deprecated version, use Collapse instead
-inline bool collapse(const TString& from, TString& to, size_t maxLen = 0) {
-    return Collapse(from, to, maxLen);
+/// Replaces several consequtive space symbols with one (processing is limited to maxLen bytes)
+inline TString& CollapseInPlace(TString& s, size_t maxLen = 0) {
+    Collapse(s, s, maxLen);
+    return s;
 }
 
-/// Replaces several consequtive space symbols with one (processing is limited to maxLen bytes)
+/// Deprecated and dangerous overload of CollapseInPlace
 inline TString& Collapse(TString& s, size_t maxLen = 0) {
-    Collapse(s, s, maxLen);
-    return s;
-}
-// deprecated version, use Collapse instead
-inline TString& collapse(TString& s, size_t maxLen = 0) {
-    Collapse(s, s, maxLen);
-    return s;
+    return CollapseInPlace(s, maxLen);
 }
 
 /// Replaces several consequtive space symbols with one (processing is limited to maxLen bytes)
@@ -270,10 +253,6 @@ inline TString Collapse(const TString& s, size_t maxLen = 0) {
     TString ret;
     Collapse(s, ret, maxLen);
     return ret;
-}
-// deprecated version, use Collapse instead
-inline TString collapse(const TString& s, size_t maxLen = 0) {
-    return Collapse(s, maxLen);
 }
 
 void CollapseText(const TString& from, TString& to, size_t maxLen);
