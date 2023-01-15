@@ -211,7 +211,6 @@ namespace {
         }
 
         bool WasBuilt = false;
-
         const TFeatureEstimators& FeatureEstimators;
         const TTextDigitizers& TextDigitizers;
 
@@ -226,8 +225,109 @@ namespace {
 
         NPar::TLocalExecutor* LocalExecutor;
     };
-}
 
+    class TEmbeddingCollectionBuilder {
+    public:
+        TEmbeddingCollectionBuilder(
+            const TFeatureEstimators& estimators,
+            NPar::TLocalExecutor* localExecutor
+        )
+            : WasBuilt(false)
+            , FeatureEstimators(estimators)
+            , PerEmbeddingFeatureCalcers()
+            , LocalExecutor(localExecutor)
+        {
+        }
+        void AddFeatureEstimator(
+            const TGuid& calcerId,
+            TConstArrayRef<TEstimatedFeature> estimatedFeatures
+        ) {
+            TEstimatorSourceId estimatorSourceId = FeatureEstimators.GetEstimatorSourceFeatureIdx(calcerId);
+            const ui32 FeatureIdx = estimatorSourceId.TextFeatureId;
+
+            TVector<ui32> localIds;
+            for (const auto& estimatedFeature : estimatedFeatures) {
+                localIds.push_back(estimatedFeature.LocalIndex);
+            }
+
+            const ui32 calcerFlatIdx = AddCalcer(MakeFinalFeatureCalcer(calcerId, MakeConstArrayRef(localIds)));
+
+            AddEstimatedFeature(FeatureIdx, calcerFlatIdx, estimatedFeatures);
+            RegisterIndices(
+                FeatureIdx,
+                calcerFlatIdx
+            );
+        }
+
+        void Build(
+            TEmbeddingProcessingCollection* embeddingProcessingCollection
+        ) {
+            CB_ENSURE_INTERNAL(!WasBuilt, "TEmbeddingCollectionBuilder: Build can be done only once");
+            WasBuilt = true;
+
+            EraseIf(
+                PerEmbeddingFeatureCalcers,
+                [&] (TVector<ui32>& calcers) {
+                    return calcers.empty();
+                }
+            );
+
+            *embeddingProcessingCollection = TEmbeddingProcessingCollection(
+                Calcers, PerEmbeddingFeatureCalcers
+            );
+        }
+
+        TVector<TEstimatedFeature>& GetFeatures() {
+            return EstimatedFeatures;
+        }
+    private:
+        ui32 AddCalcer(TEmbeddingFeatureCalcerPtr&& calcer) {
+            const ui32 calcerId = Calcers.size();
+            Calcers.push_back(calcer);
+            return calcerId;
+        }
+        void AddEstimatedFeature(
+            ui32 FeatureId,
+            ui32 calcerFlatIdx,
+            TConstArrayRef<TEstimatedFeature> estimatedFeatures
+        )  {
+            const auto& calcer = Calcers[calcerFlatIdx];
+            for (ui32 localIndex: xrange(calcer->FeatureCount())) {
+                TEstimatedFeature estimatedFeature = TEstimatedFeature{
+                    SafeIntegerCast<int>(FeatureId),
+                    calcer->Id(),
+                    SafeIntegerCast<int>(localIndex)
+                };
+                if (localIndex < estimatedFeatures.size()) {
+                    estimatedFeature.Borders = estimatedFeatures[localIndex].Borders;
+                }
+                EstimatedFeatures.push_back(estimatedFeature);
+            }
+        }
+        TEmbeddingFeatureCalcerPtr MakeFinalFeatureCalcer(const TGuid& calcerId, TConstArrayRef<ui32> featureIds) {
+            TFeatureEstimatorPtr estimator = FeatureEstimators.GetEstimatorByGuid(calcerId);
+
+            auto calcerHolder = estimator->MakeFinalFeatureCalcer(featureIds, LocalExecutor);
+            TEmbeddingFeatureCalcerPtr calcerPtr = dynamic_cast<TEmbeddingFeatureCalcer*>(calcerHolder.Release());
+            CB_ENSURE(calcerPtr, "CalcerPtr == null after MakeFinalFeatureCalcer");
+            CB_ENSURE(estimator->Id() == calcerPtr->Id(), "Estimator.Id() != Calcer.Id()");
+            return calcerPtr;
+        }
+        void RegisterIndices(ui32 FeatureId, ui32 calcerId) {
+            if (PerEmbeddingFeatureCalcers.size() < FeatureId + 1) {
+                PerEmbeddingFeatureCalcers.resize(FeatureId + 1);
+            }
+            PerEmbeddingFeatureCalcers[FeatureId].push_back(calcerId);
+        }
+    private:
+        bool WasBuilt = false;
+        const TFeatureEstimators& FeatureEstimators;
+        TVector<TVector<ui32>> PerEmbeddingFeatureCalcers;
+        TVector<TEmbeddingFeatureCalcerPtr> Calcers;
+        TVector<TEstimatedFeature> EstimatedFeatures;
+        NPar::TLocalExecutor* LocalExecutor;
+    };
+}
 
 namespace NCB {
 
@@ -499,8 +599,10 @@ namespace NCB {
                 LearnObjectsData->GetQuantizedFeaturesInfo()->GetTextDigitizers();
 
             TTextProcessingCollection textProcessingCollection;
+            TEmbeddingProcessingCollection embeddingProcessingCollection;
             TVector<TEstimatedFeature> remappedEstimatedFeatures;
-            CreateTextProcessingCollection(
+            remappedEstimatedFeatures.reserve(dstModel->ModelTrees->GetEstimatedFeatures().size());
+            CreateProcessingCollections(
                 *FeatureEstimators,
                 textDigitizers,
                 TVector<TEstimatedFeature>(
@@ -508,11 +610,17 @@ namespace NCB {
                     dstModel->ModelTrees->GetEstimatedFeatures().end()
                 ),
                 &textProcessingCollection,
+                &embeddingProcessingCollection,
                 &remappedEstimatedFeatures,
                 localExecutor
             );
 
-            dstModel->TextProcessingCollection = MakeIntrusive<TTextProcessingCollection>(textProcessingCollection);
+            if (!textProcessingCollection.Empty()) {
+                dstModel->TextProcessingCollection = MakeIntrusive<TTextProcessingCollection>(textProcessingCollection);
+            }
+            if (!embeddingProcessingCollection.Empty()) {
+                dstModel->EmbeddingProcessingCollection = MakeIntrusive<TEmbeddingProcessingCollection>(embeddingProcessingCollection);
+            }
             dstModel->UpdateEstimatedFeaturesIndices(std::move(remappedEstimatedFeatures));
         }
 
@@ -604,11 +712,12 @@ namespace NCB {
         );
     }
 
-    void CreateTextProcessingCollection(
+    void CreateProcessingCollections(
         const TFeatureEstimators& featureEstimators,
         const TTextDigitizers& textDigitizers,
         const TVector<TEstimatedFeature>& estimatedFeatures,
         TTextProcessingCollection* textProcessingCollection,
+        TEmbeddingProcessingCollection* embeddingProcessingCollection,
         TVector<TEstimatedFeature>* reorderedEstimatedFeatures,
         NPar::TLocalExecutor* localExecutor
     ) {
@@ -623,20 +732,38 @@ namespace NCB {
             localExecutor
         );
 
+        TEmbeddingCollectionBuilder embeddingCollectionBuilder(
+            featureEstimators,
+            localExecutor
+        );
+
         TVector<TEstimatedFeature> usedEstimatedFeatures;
         TGuid lastCalcerId = estimatedFeatures[0].CalcerId;
 
         for (const auto& estimatedFeature: estimatedFeatures) {
             const TGuid currentCalcerIndex = estimatedFeature.CalcerId;
             if (lastCalcerId != currentCalcerIndex) {
-                textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+                if (featureEstimators.GetEstimatorSourceType(lastCalcerId) == EFeatureType::Text) {
+                    textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+                } else {
+                    embeddingCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+                }
                 lastCalcerId = currentCalcerIndex;
                 usedEstimatedFeatures.clear();
             }
             usedEstimatedFeatures.push_back(estimatedFeature);
         }
-        textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+        if (featureEstimators.GetEstimatorSourceType(lastCalcerId) == EFeatureType::Text) {
+            textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+        } else {
+            embeddingCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+        }
         textCollectionBuilder.Build(textProcessingCollection, reorderedEstimatedFeatures);
+        embeddingCollectionBuilder.Build(embeddingProcessingCollection);
+
+        for (auto feature : embeddingCollectionBuilder.GetFeatures()) {
+            reorderedEstimatedFeatures->push_back(feature);
+        }
     };
 
     void ExportFullModel(

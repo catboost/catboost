@@ -82,6 +82,14 @@ TVector<TTextFeature> CreateTextFeatures(const NCB::TFeaturesLayout& featuresLay
     );
 }
 
+TVector<TEmbeddingFeature> CreateEmbeddingFeatures(const NCB::TFeaturesLayout& featuresLayout) {
+    return CreateFeatures<TEmbeddingFeature, EFeatureType::Embedding>(
+        featuresLayout,
+        [] (TEmbeddingFeature&) {
+            //Dimension!!!
+        }
+    );
+}
 
 void ConfigureMalloc() {
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS

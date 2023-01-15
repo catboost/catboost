@@ -86,6 +86,18 @@ namespace NCB {
             return Guid;
         }
 
+        THolder<IFeatureCalcer> MakeFinalFeatureCalcer(
+            TConstArrayRef<ui32> featureIndices,
+            NPar::TLocalExecutor* executor) const override {
+
+            Y_UNUSED(executor);
+
+            THolder<TFeatureCalcer> calcer = EstimateFeatureCalcer();
+            calcer->SetId(Id());
+            calcer->TrimFeatures(featureIndices);
+            return calcer;
+        }
+
     protected:
         void Calc(
             const TFeatureCalcer& featureCalcer,

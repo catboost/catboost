@@ -24,6 +24,7 @@ TVector<TTextFeature> CreateTextFeatures(const NCB::TFeaturesLayout& featuresLay
 
 TVector<TCatFeature> CreateCatFeatures(const NCB::TFeaturesLayout& featuresLayout);
 
+TVector<TEmbeddingFeature> CreateEmbeddingFeatures(const NCB::TFeaturesLayout& featuresLayout);
 
 void ConfigureMalloc();
 

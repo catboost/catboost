@@ -230,7 +230,7 @@ TFullModel SimpleTextModel(
         textFeatures.emplace_back(textFeature);
     }
 
-    TObliviousTreeBuilder treeBuilder(TVector<TFloatFeature>{}, TVector<TCatFeature>{}, textFeatures, 1);
+    TObliviousTreeBuilder treeBuilder(TVector<TFloatFeature>{}, TVector<TCatFeature>{}, textFeatures, TVector<TEmbeddingFeature>{}, 1);
 
     {
         const int docCount = textFeaturesValues[0].size();
@@ -249,7 +249,7 @@ TFullModel SimpleTextModel(
         ui32 estimatedFeatureIdx = 0;
         for (const auto& producedFeature: textCollection->GetProducedFeatures()) {
             TEstimatedFeatureSplit estimatedFeatureSplit{
-                SafeIntegerCast<int>(producedFeature.TextFeatureId),
+                SafeIntegerCast<int>(producedFeature.FeatureId),
                 producedFeature.CalcerId,
                 SafeIntegerCast<int>(producedFeature.LocalId),
                 /* split */ 0.f
@@ -327,7 +327,7 @@ TFullModel SimpleAsymmetricModel() {
         }
     };
 
-    TNonSymmetricTreeModelBuilder builder(floatFeatures, TVector<TCatFeature>{}, TVector<TTextFeature>{}, 1);
+    TNonSymmetricTreeModelBuilder builder(floatFeatures, TVector<TCatFeature>{}, TVector<TTextFeature>{}, TVector<TEmbeddingFeature>{}, 1);
 
     THolder<TNonSymmetricTreeNode> treeHead = MakeHolder<TNonSymmetricTreeNode>();
     treeHead->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));

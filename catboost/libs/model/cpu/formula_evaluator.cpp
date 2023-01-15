@@ -5,14 +5,17 @@
 
 namespace NCB::NModelEvaluation {
     namespace NDetail {
-        template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor, typename TTextFeatureAccessor>
+        template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor,
+                  typename TTextFeatureAccessor, typename TEmbeddingFeatureAccessor>
         inline void CalcGeneric(
             const TModelTrees& trees,
             const TIntrusivePtr<ICtrProvider>& ctrProvider,
             const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
+            const TIntrusivePtr<TEmbeddingProcessingCollection>& embeddingProcessingCollection,
             TFloatFeatureAccessor floatFeatureAccessor,
             TCatFeatureAccessor catFeaturesAccessor,
             TTextFeatureAccessor textFeatureAccessor,
+            TEmbeddingFeatureAccessor embeddingFeatureAccessor,
             size_t docCount,
             size_t treeStart,
             size_t treeEnd,
@@ -50,9 +53,11 @@ namespace NCB::NModelEvaluation {
                 trees,
                 ctrProvider,
                 textProcessingCollection,
+                embeddingProcessingCollection,
                 floatFeatureAccessor,
                 catFeaturesAccessor,
                 textFeatureAccessor,
+                embeddingFeatureAccessor,
                 docCount,
                 blockSize,
                 [&] (size_t docCountInBlock, const TCPUEvaluatorQuantizedData* quantizedData) {
@@ -79,6 +84,7 @@ namespace NCB::NModelEvaluation {
                 : ModelTrees(fullModel.ModelTrees)
                 , CtrProvider(fullModel.CtrProvider)
                 , TextProcessingCollection(fullModel.TextProcessingCollection)
+                , EmbeddingProcessingCollection(fullModel.EmbeddingProcessingCollection)
             {}
 
             void SetPredictionType(EPredictionType type) override {
@@ -156,6 +162,7 @@ namespace NCB::NModelEvaluation {
                     *ModelTrees,
                     CtrProvider,
                     TextProcessingCollection,
+                    EmbeddingProcessingCollection,
                     [&transposedFeatures](TFeaturePosition floatFeature, size_t index) -> float {
                         return transposedFeatures[floatFeature.FlatIndex][index];
                     },
@@ -163,6 +170,7 @@ namespace NCB::NModelEvaluation {
                         return ConvertFloatCatFeatureToIntHash(transposedFeatures[catFeature.FlatIndex][index]);
                     },
                     TCpuEvaluator::TextFeatureAccessorStub,
+                    TCpuEvaluator::EmbeddingFeatureAccessorStub,
                     *docCount,
                     treeStart,
                     treeEnd,
@@ -200,6 +208,7 @@ namespace NCB::NModelEvaluation {
                     *ModelTrees,
                     CtrProvider,
                     TextProcessingCollection,
+                    EmbeddingProcessingCollection,
                     [&features](TFeaturePosition position, size_t index) -> float {
                         return features[index][position.FlatIndex];
                     },
@@ -207,6 +216,7 @@ namespace NCB::NModelEvaluation {
                         return ConvertFloatCatFeatureToIntHash(features[index][position.FlatIndex]);
                     },
                     TCpuEvaluator::TextFeatureAccessorStub,
+                    TCpuEvaluator::EmbeddingFeatureAccessorStub,
                     features.size(),
                     treeStart,
                     treeEnd,
@@ -234,6 +244,7 @@ namespace NCB::NModelEvaluation {
                     *ModelTrees,
                     CtrProvider,
                     TextProcessingCollection,
+                    EmbeddingProcessingCollection,
                     [&features](TFeaturePosition position, size_t ) -> float {
                         return features[position.FlatIndex];
                     },
@@ -241,6 +252,7 @@ namespace NCB::NModelEvaluation {
                         return ConvertFloatCatFeatureToIntHash(features[position.FlatIndex]);
                     },
                     TCpuEvaluator::TextFeatureAccessorStub,
+                    TCpuEvaluator::EmbeddingFeatureAccessorStub,
                     1,
                     treeStart,
                     treeEnd,
@@ -291,6 +303,7 @@ namespace NCB::NModelEvaluation {
                     *ModelTrees,
                     CtrProvider,
                     TextProcessingCollection,
+                    EmbeddingProcessingCollection,
                     [&floatFeatures](TFeaturePosition position, size_t index) -> float {
                         return floatFeatures[index][position.Index];
                     },
@@ -300,6 +313,7 @@ namespace NCB::NModelEvaluation {
                     [&textFeatures](TFeaturePosition position, size_t index) -> TStringBuf {
                         return textFeatures[index][position.Index];
                     },
+                    TCpuEvaluator::EmbeddingFeatureAccessorStub,
                     docCount,
                     treeStart,
                     treeEnd,
@@ -350,6 +364,7 @@ namespace NCB::NModelEvaluation {
                     *ModelTrees,
                     CtrProvider,
                     TextProcessingCollection,
+                    EmbeddingProcessingCollection,
                     [&floatFeatures](TFeaturePosition position, size_t index) -> float {
                         return floatFeatures[index][position.Index];
                     },
@@ -358,6 +373,48 @@ namespace NCB::NModelEvaluation {
                     },
                     [&textFeatures](TFeaturePosition position, size_t index) -> TStringBuf {
                         return textFeatures[index][position.Index];
+                    },
+                    TCpuEvaluator::EmbeddingFeatureAccessorStub,
+                    docCount,
+                    treeStart,
+                    treeEnd,
+                    PredictionType,
+                    results,
+                    featureInfo
+                );
+            }
+
+            void Calc(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo
+            ) const {
+                if (!featureInfo) {
+                    featureInfo = ExtFeatureLayout.Get();
+                }
+                ValidateInputFeatures(floatFeatures, catFeatures, textFeatures, featureInfo);
+                const size_t docCount = Max(catFeatures.size(), floatFeatures.size(), textFeatures.size());
+                CalcGeneric(
+                    *ModelTrees,
+                    CtrProvider,
+                    TextProcessingCollection,
+                    EmbeddingProcessingCollection,
+                    [&floatFeatures](TFeaturePosition position, size_t index) -> float {
+                        return floatFeatures[index][position.Index];
+                    },
+                    [&catFeatures](TFeaturePosition position, size_t index) -> int {
+                        return CalcCatFeatureHash(catFeatures[index][position.Index]);
+                    },
+                    [&textFeatures](TFeaturePosition position, size_t index) -> TStringBuf {
+                        return textFeatures[index][position.Index];
+                    },
+                    [&embeddingFeatures](TFeaturePosition position, size_t index) -> TConstArrayRef<float> {
+                        return embeddingFeatures[index][position.Index];
                     },
                     docCount,
                     treeStart,
@@ -592,10 +649,16 @@ namespace NCB::NModelEvaluation {
                 Y_UNUSED(position, index);
                 CB_ENSURE(false, "This type of apply interface is not implemented with text features yet");
             }
+
+            static TConstArrayRef<float> EmbeddingFeatureAccessorStub(TFeaturePosition position, size_t index) {
+                Y_UNUSED(position, index);
+                CB_ENSURE(false, "This type of apply interface is not implemented with embedding features yet");
+            }
         private:
             TCOWTreeWrapper ModelTrees;
             const TIntrusivePtr<ICtrProvider> CtrProvider;
             const TIntrusivePtr<TTextProcessingCollection> TextProcessingCollection;
+            const TIntrusivePtr<TEmbeddingProcessingCollection> EmbeddingProcessingCollection;
             EPredictionType PredictionType = EPredictionType::RawFormulaVal;
             TMaybe<TFeatureLayout> ExtFeatureLayout;
         };

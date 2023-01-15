@@ -26,6 +26,15 @@ namespace NCB {
             } else {
                 RegParam = 0.00005;
             }
+            if (options.Has("ClassLikehode")) {
+                Likehood = FromString<bool>(options["Regularization"].GetString());
+            } else {
+                Likehood = false;
+            }
+            FeaturesCount = ProjectionDim;
+            if (Likehood) {
+                FeaturesCount += GetTarget().NumClasses;
+            }
             CB_ENSURE(
                 ProjectionDim > 0,
                 "Dimension of the projection should be positive"
@@ -36,19 +45,20 @@ namespace NCB {
             );
             CB_ENSURE(
                 RegParam >= 0,
-                "Regularisation coefficient shoul be positive"
+                "Regularisation coefficient should be positive"
             );
         }
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             TEstimatedFeaturesMeta meta;
-            meta.FeaturesCount = ProjectionDim;
+            meta.FeaturesCount = FeaturesCount;
             meta.Type.resize(meta.FeaturesCount, EFeatureCalcerType::LDA);
             return meta;
         }
 
         TLinearDACalcer CreateFeatureCalcer() const override {
-            return TLinearDACalcer(GetLearnDataset().GetDimension(), GetTarget().NumClasses, ProjectionDim, RegParam);
+            return TLinearDACalcer(GetLearnDataset().GetDimension(), GetTarget().NumClasses,
+                                   ProjectionDim, RegParam, Likehood);
         }
 
         TLinearDACalcerVisitor CreateCalcerVisitor() const override {
@@ -57,7 +67,9 @@ namespace NCB {
 
     private:
         ui32 ProjectionDim;
+        ui32 FeaturesCount;
         float RegParam;
+        bool Likehood;
     };
 
     class TKNNEstimator final : public TEmbeddingBaseEstimator<TKNNCalcer, TKNNCalcerVisitor>{

@@ -3,6 +3,8 @@
 #include <catboost/private/libs/text_features/feature_calcer.h>
 #include <catboost/private/libs/embeddings/embedding_dataset.h>
 
+#include <catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h>
+
 
 namespace NCB {
 
@@ -17,9 +19,8 @@ namespace NCB {
 
         virtual void Compute(const TEmbeddingsArray& vector, TOutputFloatIterator outputFeaturesIterator) const = 0;
 
-        //TODO: oganes
-        //void Save(IOutputStream* stream) const;
-        //void Load(IInputStream* stream);
+        void Save(IOutputStream* stream) const final;
+        void Load(IInputStream* stream) final;
 
         TGuid Id() const override {
             return Guid;
@@ -33,7 +34,31 @@ namespace NCB {
         TConstArrayRef<ui32> GetActiveFeatureIndices() const;
 
     protected:
-        class TFeatureCalcerFbs;
+        class TEmbeddingCalcerFbs {
+        public:
+            using TCalcerFbsImpl = flatbuffers::Offset<void>;
+            using ECalcerFbsType = NCatBoostFbs::TAnyEmbeddingCalcer;
+
+            TEmbeddingCalcerFbs(
+                ECalcerFbsType calcerFbsType,
+                TCalcerFbsImpl featureCalcerFbs
+            )
+                : CalcerType(calcerFbsType)
+                , CalcerFlatBuffer(featureCalcerFbs)
+            {}
+
+            ECalcerFbsType GetCalcerType() const {
+                return CalcerType;
+            }
+
+            const TCalcerFbsImpl& GetCalcerFlatBuffer() const {
+                return CalcerFlatBuffer;
+            }
+
+        private:
+            ECalcerFbsType CalcerType;
+            TCalcerFbsImpl CalcerFlatBuffer;
+        };
 
         template <class F>
         void ForEachActiveFeature(F&& func) const {
@@ -41,6 +66,18 @@ namespace NCB {
                 func(featureId);
             }
         }
+
+        NCatBoostFbs::TGuid GetFbsGuid() const {
+            return CreateFbsGuid(Guid);
+        }
+
+        virtual TEmbeddingCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const;
+        virtual void SaveLargeParameters(IOutputStream*) const;
+
+        virtual void LoadParametersFromFB(const NCatBoostFbs::TEmbeddingCalcer*);
+        virtual void LoadLargeParameters(IInputStream*);
+
+        flatbuffers::Offset<flatbuffers::Vector<uint32_t>> ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const;
 
     private:
         TVector<ui32> ActiveFeatureIndices;
@@ -52,5 +89,19 @@ namespace NCB {
         virtual void Update(ui32 classId, const TEmbeddingsArray& vector, TEmbeddingFeatureCalcer* featureCalcer) = 0;
     };
 
+    using TEmbeddingFeatureCalcerPtr = TIntrusivePtr<TEmbeddingFeatureCalcer>;
+    using TEmbeddingFeatureCalcerFactory = NObjectFactory::TParametrizedObjectFactory<TEmbeddingFeatureCalcer,
+                                                                                      EFeatureCalcerType>;
+
+    class TEmbeddingCalcerSerializer {
+    public:
+        static void Save(IOutputStream* stream, const TEmbeddingFeatureCalcer& calcer);
+        static TEmbeddingFeatureCalcerPtr Load(IInputStream* stream);
+
+    private:
+        static constexpr std::array<char, 16> CalcerMagic = {"EmbedCalcerV1"};
+        static constexpr ui32 MagicSize = CalcerMagic.size();
+        static constexpr ui32 Alignment = 16;
+    };
 };
 

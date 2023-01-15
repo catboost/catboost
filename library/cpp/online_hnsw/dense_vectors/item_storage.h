@@ -40,6 +40,10 @@ namespace NOnlineHnsw {
         size_t GetSize() const {
             return Data.size() * sizeof(TVectorComponent);
         }
+
+        const TVector<TVectorComponent>& GetVector() const {
+            return Data;
+        }
     private:
         const size_t Dimension;
         TVector<TVectorComponent> Data;

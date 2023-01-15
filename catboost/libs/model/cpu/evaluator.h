@@ -60,6 +60,7 @@ namespace NCB::NModelEvaluation {
             trees,
             ctrProvider,
             TIntrusivePtr<TTextProcessingCollection>(),
+            TIntrusivePtr<TEmbeddingProcessingCollection>(),
             floatFeatureAccessor,
             catFeaturesAccessor,
             [](TFeaturePosition, size_t) -> TStringBuf {
@@ -68,6 +69,13 @@ namespace NCB::NModelEvaluation {
                     "Trying to access text data from model.Calc() interface which has no text features"
                 );
                 return "Undefined";
+            },
+            [](TFeaturePosition, size_t) -> TConstArrayRef<float> {
+                CB_ENSURE_INTERNAL(
+                    false,
+                    "Trying to access embedding data from model.Calc() interface which has no embedding features"
+                );
+                return {};
             },
             docCount,
             blockSize,
@@ -80,15 +88,18 @@ namespace NCB::NModelEvaluation {
         typename TFloatFeatureAccessor,
         typename TCatFeatureAccessor,
         typename TTextFeatureAccessor,
+        typename TEmbeddingFeatureAccessor,
         typename TFunctor
     >
     inline void ProcessDocsInBlocks(
         const TModelTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
+        const TIntrusivePtr<TEmbeddingProcessingCollection>& embeddingProcessingCollection,
         TFloatFeatureAccessor floatFeatureAccessor,
         TCatFeatureAccessor catFeaturesAccessor,
         TTextFeatureAccessor textFeatureAccessor,
+        TEmbeddingFeatureAccessor embeddingFeatureAccessor,
         size_t docCount,
         size_t blockSize,
         TFunctor callback,
@@ -108,11 +119,14 @@ namespace NCB::NModelEvaluation {
 
         TVector<ui32> transposedHash(blockSize * trees.GetUsedCatFeaturesCount());
         TVector<float> ctrs(trees.GetUsedModelCtrs().size() * blockSize);
-        TVector<float> estimatedFeatures;
+        ui32 estimatedFeaturesNum = 0;
         if (textProcessingCollection) {
-            // TODO(d-kruchinin): replace to GetUsedEstimatedFeatures.size() after creation TrimFeatures
-            estimatedFeatures = TVector<float>(textProcessingCollection->TotalNumberOfOutputFeatures() * blockSize);
+            estimatedFeaturesNum += textProcessingCollection->TotalNumberOfOutputFeatures();
         }
+        if (embeddingProcessingCollection) {
+            estimatedFeaturesNum += embeddingProcessingCollection->TotalNumberOfOutputFeatures();
+        }
+        TVector<float> estimatedFeatures(estimatedFeaturesNum * blockSize);
 
         for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
             const auto docCountInBlock = Min(blockSize, docCount - blockStart);
@@ -120,9 +134,11 @@ namespace NCB::NModelEvaluation {
                 trees,
                 ctrProvider,
                 textProcessingCollection,
+                embeddingProcessingCollection,
                 floatFeatureAccessor,
                 catFeaturesAccessor,
                 textFeatureAccessor,
+                embeddingFeatureAccessor,
                 blockStart,
                 blockStart + docCountInBlock,
                 &quantizedData,

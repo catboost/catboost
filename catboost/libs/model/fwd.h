@@ -33,6 +33,7 @@ namespace NCatBoostFbs {
     struct TFloatFeature;
     struct TCatFeature;
     struct TTextFeature;
+    struct TEmbeddingFeature;
     struct TOneHotFeature;
     struct TEstimatedFeature;
     struct TFloatSplit;

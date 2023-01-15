@@ -24,6 +24,7 @@ SRCS(
 PEERDIR(
     catboost/libs/cat_feature
     catboost/private/libs/ctr_description
+    catboost/private/libs/embedding_features
     catboost/private/libs/text_features
     catboost/libs/helpers
     catboost/libs/logging

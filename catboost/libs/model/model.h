@@ -13,6 +13,7 @@
 
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
+#include <catboost/private/libs/embedding_features/embedding_processing_collection.h>
 
 #include <library/cpp/json/json_value.h>
 
@@ -152,10 +153,12 @@ public:
         size_t UsedFloatFeaturesCount = 0;
         size_t UsedCatFeaturesCount = 0;
         size_t UsedTextFeaturesCount = 0;
+        size_t UsedEmbeddingFeaturesCount = 0;
         size_t UsedEstimatedFeaturesCount = 0;
         size_t MinimalSufficientFloatFeaturesVectorSize = 0;
         size_t MinimalSufficientCatFeaturesVectorSize = 0;
         size_t MinimalSufficientTextFeaturesVectorSize = 0;
+        size_t MinimalSufficientEmbeddingFeaturesVectorSize = 0;
         /**
          * List of all TModelCTR used in model
          */
@@ -181,6 +184,7 @@ public:
             CatFeatures,
             FloatFeatures,
             TextFeatures,
+            EmbeddingFeatures,
             OneHotFeatures,
             CtrFeatures,
             EstimatedFeatures,
@@ -192,6 +196,7 @@ public:
             other.CatFeatures,
             other.FloatFeatures,
             other.TextFeatures,
+            other.EmbeddingFeatures,
             other.OneHotFeatures,
             other.CtrFeatures,
             other.EstimatedFeatures,
@@ -232,6 +237,7 @@ public:
             CatFeatures,
             FloatFeatures,
             TextFeatures,
+            EmbeddingFeatures,
             OneHotFeatures,
             CtrFeatures,
             EstimatedFeatures,
@@ -247,6 +253,7 @@ public:
             other.CatFeatures,
             other.FloatFeatures,
             other.TextFeatures,
+            other.EmbeddingFeatures,
             other.OneHotFeatures,
             other.CtrFeatures,
             other.EstimatedFeatures,
@@ -347,6 +354,10 @@ public:
         return TConstArrayRef<TTextFeature>(TextFeatures.begin(), TextFeatures.end());
     }
 
+    TConstArrayRef<TEmbeddingFeature> GetEmbeddingFeatures() const {
+        return TConstArrayRef<TEmbeddingFeature>(EmbeddingFeatures.begin(), EmbeddingFeatures.end());
+    }
+
     TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const {
         return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.begin(), EstimatedFeatures.end());
     }
@@ -370,6 +381,10 @@ public:
         TextFeatures = textFeatures;
     }
 
+    void SetEmbeddingFeatures(const TVector<TEmbeddingFeature>& embeddingFeatures) {
+        EmbeddingFeatures = embeddingFeatures;
+    }
+
     void SetEstimatedFeatures(const TVector<TEstimatedFeature>& estimatedFeatures) {
         EstimatedFeatures = estimatedFeatures;
     }
@@ -378,7 +393,8 @@ public:
         const TSet<TModelSplit>& modelSplitSet,
         const TVector<size_t>& floatFeaturesInternalIndexesMap,
         const TVector<size_t>& catFeaturesInternalIndexesMap,
-        const TVector<size_t>& textFeaturesInternalIndexesMap
+        const TVector<size_t>& textFeaturesInternalIndexesMap,
+        const TVector<size_t>& embeddingFeaturesInternalIndexesMap
     );
 
     void ApplyFeatureNames(const TVector<TString>& featureNames) {
@@ -534,6 +550,16 @@ public:
         return ApplyData->MinimalSufficientTextFeaturesVectorSize;
     }
 
+    size_t GetUsedEmbeddingFeaturesCount() const {
+        CB_ENSURE(ApplyData.Defined(), "runtime data should be initialized");
+        return ApplyData->UsedEmbeddingFeaturesCount;
+    }
+
+    size_t GetMinimalSufficientEmbeddingFeaturesVectorSize() const {
+        CB_ENSURE(ApplyData.Defined(), "runtime data should be initialized");
+        return ApplyData->MinimalSufficientEmbeddingFeaturesVectorSize;
+    }
+
     size_t GetUsedEstimatedFeaturesCount() const {
         PrepareApplyData();
         return ApplyData->UsedEstimatedFeaturesCount;
@@ -552,7 +578,8 @@ public:
         return (size_t)Max(
             CatFeatures.empty() ? 0 : CatFeatures.back().Position.FlatIndex + 1,
             FloatFeatures.empty() ? 0 : FloatFeatures.back().Position.FlatIndex + 1,
-            TextFeatures.empty() ? 0 : TextFeatures.back().Position.FlatIndex + 1
+            TextFeatures.empty() ? 0 : TextFeatures.back().Position.FlatIndex + 1,
+            EmbeddingFeatures.empty() ? 0 : EmbeddingFeatures.back().Position.FlatIndex + 1
         );
     }
 
@@ -577,6 +604,7 @@ private:
     void ProcessCatFeatures() const;
     void ProcessTextFeatures() const;
     void ProcessEstimatedFeatures() const;
+    void ProcessEmbeddingFeatures() const;
 private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
@@ -599,7 +627,11 @@ private:
 
     //! Text features used in model
     TVector<TTextFeature> TextFeatures;
-    //! Computed on text features used in model
+
+    //! Embedding features used in model
+    TVector<TEmbeddingFeature> EmbeddingFeatures;
+
+    //! Computed on text and embedding features used in model
     TVector<TEstimatedFeature> EstimatedFeatures;
 
     //! For computing final formula result as `Scale * sumTrees + Bias`
@@ -665,6 +697,7 @@ public:
     THashMap<TString, TString> ModelInfo;
     TIntrusivePtr<ICtrProvider> CtrProvider;
     TIntrusivePtr<NCB::TTextProcessingCollection> TextProcessingCollection;
+    TIntrusivePtr<NCB::TEmbeddingProcessingCollection> EmbeddingProcessingCollection;
 private:
     EFormulaEvaluatorType FormulaEvaluatorType = EFormulaEvaluatorType::CPU;
     TAdaptiveLock CurrentEvaluatorLock;
@@ -710,6 +743,7 @@ public:
             }
         }
         DoSwap(TextProcessingCollection, other.TextProcessingCollection);
+        DoSwap(EmbeddingProcessingCollection, other.EmbeddingProcessingCollection);
     }
 
     /**
@@ -724,6 +758,10 @@ public:
      */
     bool HasTextFeatures() const {
         return GetUsedTextFeaturesCount() != 0;
+    }
+
+    bool HasEmbeddingFeatures() const {
+        return GetUsedEmbeddingFeaturesCount() != 0;
     }
 
     /**
@@ -775,6 +813,10 @@ public:
      */
     size_t GetUsedTextFeaturesCount() const {
         return ModelTrees->GetUsedTextFeaturesCount();
+    }
+
+    size_t GetUsedEmbeddingFeaturesCount() const {
+        return ModelTrees->GetUsedEmbeddingFeaturesCount();
     }
 
     /**
@@ -835,6 +877,10 @@ public:
     //! Check if TFullModel instance has valid Text processing collection
     bool HasValidTextProcessingCollection() const {
         return (bool) TextProcessingCollection;
+    }
+
+    bool HasValidEmbeddingProcessingCollection() const {
+        return (bool) EmbeddingProcessingCollection;
     }
 
     //! Get normalization parameters used to compute final formula from sum of trees

@@ -207,6 +207,7 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
     Y_UNIT_TEST(DifferentCreationTest) {
         TVector<NCBTest::TTextFeature> textFeatures;
         TTextProcessingCollection fromTrainTextProcessingCollection;
+        TEmbeddingProcessingCollection embeddingProcessingCollection;
 
         {
             TFeatureEstimatorsPtr estimators;
@@ -223,11 +224,12 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
 
             TVector<TEstimatedFeature> reorderedEstimatedFeatures;
 
-            CreateTextProcessingCollection(
+            CreateProcessingCollections(
                 *estimators,
                 textDigitizers,
                 estimatedFeatures,
                 &fromTrainTextProcessingCollection,
+                &embeddingProcessingCollection,
                 &reorderedEstimatedFeatures,
                 &localExecutor
             );
@@ -258,14 +260,16 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
         );
 
         TTextProcessingCollection textProcessingCollection;
+        TEmbeddingProcessingCollection embeddingProcessingCollection;
 
         {
             TVector<TEstimatedFeature> textCollectionEstimatedFeatures;
-            CreateTextProcessingCollection(
+            CreateProcessingCollections(
                 *estimators,
                 textDigitizers,
                 fullEstimatedFeatures,
                 &textProcessingCollection,
+                &embeddingProcessingCollection,
                 &textCollectionEstimatedFeatures,
                 &localExecutor
             );
@@ -290,11 +294,12 @@ Y_UNIT_TEST_SUITE(TextCollectionBuilderTest) {
 
                 {
                     TVector<TEstimatedFeature> reorderedEstimatedFeatures;
-                    CreateTextProcessingCollection(
+                    CreateProcessingCollections(
                         *estimators,
                         textDigitizers,
                         partEstimatedFeatures,
                         &partialTextCollection,
+                        &embeddingProcessingCollection,
                         &reorderedEstimatedFeatures,
                         &localExecutor
                     );

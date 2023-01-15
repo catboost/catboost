@@ -486,6 +486,7 @@ void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullM
         featuresMetaData.FloatFeatures,
         featuresMetaData.CategoricalFeatures,
         {},
+        {},
         approxDimension
     );
     for (size_t i = 0; i < treesSplits.size(); ++i) {

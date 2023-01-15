@@ -13,16 +13,16 @@ namespace NCB {
     struct TEvaluatedFeature {
     public:
         TEvaluatedFeature(
-            ui32 textFeatureId,
+            ui32 featureId,
             TGuid calcerId,
             ui32 localId)
-            : TextFeatureId(textFeatureId)
+            : FeatureId(featureId)
             , CalcerId(std::move(calcerId))
             , LocalId(localId)
         {}
 
     public:
-        ui32 TextFeatureId;
+        ui32 FeatureId;
         TGuid CalcerId;
         ui32 LocalId;
     };
@@ -115,6 +115,10 @@ namespace NCB {
 
         bool operator==(const TTextProcessingCollection& rhs);
         bool operator!=(const TTextProcessingCollection& rhs);
+
+        bool Empty() {
+            return FeatureCalcers.empty();
+        }
 
     private:
         ui32 GetFirstTextFeatureCalcer(ui32 textFeatureIdx) const;
