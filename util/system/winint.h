@@ -36,5 +36,8 @@
 
 #undef IGNORE
 #undef ERROR
+#undef TRANSPARENT
+
+#undef CM_NONE
 
 #endif
