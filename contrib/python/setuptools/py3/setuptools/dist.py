@@ -52,23 +52,9 @@ def _get_unpatched(cls):
 
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
-
     if mv is None:
-        if self.long_description_content_type or self.provides_extras:
-            mv = StrictVersion('2.1')
-        elif (self.maintainer is not None or
-              self.maintainer_email is not None or
-              getattr(self, 'python_requires', None) is not None or
-              self.project_urls):
-            mv = StrictVersion('1.2')
-        elif (self.provides or self.requires or self.obsoletes or
-                self.classifiers or self.download_url):
-            mv = StrictVersion('1.1')
-        else:
-            mv = StrictVersion('1.0')
-
+        mv = StrictVersion('2.1')
         self.metadata_version = mv
-
     return mv
 
 
@@ -120,7 +106,7 @@ def read_pkg_file(self, file):
     self.author_email = _read_field_from_msg(msg, 'author-email')
     self.maintainer_email = None
     self.url = _read_field_from_msg(msg, 'home-page')
-    self.license = _read_field_from_msg(msg, 'license')
+    self.license = _read_field_unescaped_from_msg(msg, 'license')
 
     if 'download-url' in msg:
         self.download_url = _read_field_from_msg(msg, 'download-url')
@@ -171,24 +157,20 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     write_field('Summary', single_line(self.get_description()))
     write_field('Home-page', self.get_url())
 
-    if version < StrictVersion('1.2'):
-        write_field('Author', self.get_contact())
-        write_field('Author-email', self.get_contact_email())
-    else:
-        optional_fields = (
-            ('Author', 'author'),
-            ('Author-email', 'author_email'),
-            ('Maintainer', 'maintainer'),
-            ('Maintainer-email', 'maintainer_email'),
-        )
+    optional_fields = (
+        ('Author', 'author'),
+        ('Author-email', 'author_email'),
+        ('Maintainer', 'maintainer'),
+        ('Maintainer-email', 'maintainer_email'),
+    )
 
-        for field, attr in optional_fields:
-            attr_val = getattr(self, attr)
+    for field, attr in optional_fields:
+        attr_val = getattr(self, attr, None)
+        if attr_val is not None:
+            write_field(field, attr_val)
 
-            if attr_val is not None:
-                write_field(field, attr_val)
-
-    write_field('License', self.get_license())
+    license = rfc822_escape(self.get_license())
+    write_field('License', license)
     if self.download_url:
         write_field('Download-URL', self.download_url)
     for project_url in self.project_urls.items():
@@ -201,11 +183,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if keywords:
         write_field('Keywords', keywords)
 
-    if version >= StrictVersion('1.2'):
-        for platform in self.get_platforms():
-            write_field('Platform', platform)
-    else:
-        self._write_list(file, 'Platform', self.get_platforms())
+    for platform in self.get_platforms():
+        write_field('Platform', platform)
 
     self._write_list(file, 'Classifier', self.get_classifiers())
 
