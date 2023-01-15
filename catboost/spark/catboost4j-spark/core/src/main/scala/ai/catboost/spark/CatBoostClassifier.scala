@@ -11,6 +11,7 @@ import org.apache.spark.ml.util._
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 
+import ai.catboost.spark.impl.CtrsContext
 import ai.catboost.spark.params._
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
@@ -343,7 +344,7 @@ class CatBoostClassifier (override val uid: String)
   protected override def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool]
-  ) : (Pool, Array[Pool], JObject) = {
+  ) : (Pool, Array[Pool], JObject, CtrsContext) = {
     val classNamesFromLabelData = if (ai.catboost.spark.params.Helpers.classNamesAreKnown(this)) {
       None
     } else {
@@ -364,10 +365,17 @@ class CatBoostClassifier (override val uid: String)
       log.info(s"lossFunction has been inferred as '${this.getLossFunction}'")
     }
 
+    val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(
+      this, 
+      classNamesFromLabelData
+    )
+    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
+        = addEstimatedCtrFeatures(quantizedTrainPool, quantizedEvalPools, catBoostJsonParams)
     (
-      quantizedTrainPool,
-      quantizedEvalPools,
-      ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this, classNamesFromLabelData)
+      preprocessedTrainPool, 
+      preprocessedEvalPools, 
+      catBoostJsonParams, 
+      ctrsContext
     )
   }
 

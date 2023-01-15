@@ -1,8 +1,10 @@
 #include "data_provider_builders.h"
 
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/data/visitor.h>
 
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
@@ -10,14 +12,24 @@
 #include <util/generic/cast.h>
 #include <util/generic/xrange.h>
 
+#include <util/system/env.h>
+
 using namespace NCB;
 
 
 TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     TFeaturesLayoutPtr featuresLayout,
     i64 objectCount,
-    TVector<TMaybeOwningConstArrayHolder<float>>* columnwiseFloatFeaturesData
+    TVector<TMaybeOwningConstArrayHolder<float>>* columnwiseFloatFeaturesData,
+    TVector<TMaybeOwningConstArrayHolder<i32>>* columnwiseCatFeaturesData,
+    i32 maxUniqCatFeatureValues,
+    i32 threadCount
 ) throw (yexception) {
+    CB_ENSURE(threadCount >= 1, "Invalid thread count: " << threadCount);
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
     auto loaderFunc = [&] (IRawFeaturesOrderDataVisitor* visitor) {
         TDataMetaInfo metaInfo;
         metaInfo.ObjectCount = SafeIntegerCast<ui32>(objectCount);
@@ -29,15 +41,48 @@ TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
             {}
         );
 
-        auto srcColumnsIterator = columnwiseFloatFeaturesData->begin();
-        featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
-            [&] (TFloatFeatureIdx idx) {
-                visitor->AddFloatFeature(
-                    *idx,
-                    MakeTypeCastArrayHolder<float, float>(*srcColumnsIterator++)
-                );
+        {
+            auto srcFloatColumnsIterator = columnwiseFloatFeaturesData->begin();
+            featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
+                [&] (TFloatFeatureIdx idx) {
+                    visitor->AddFloatFeature(
+                        featuresLayout->GetFloatFeatureInternalIdxToExternalIdx()[*idx],
+                        MakeTypeCastArrayHolder<float, float>(*srcFloatColumnsIterator++)
+                    );
+                }
+            );
+        }
+        if (!columnwiseCatFeaturesData->empty()) {
+            TVector<ui32> integerValueHashes; // hashes for "0", "1" ... etc.
+            for (auto i : xrange((ui32)maxUniqCatFeatureValues)) {
+                integerValueHashes.push_back(CalcCatFeatureHash(ToString(i)));
             }
-        );
+
+            auto srcCatColumnsIterator = columnwiseCatFeaturesData->begin();
+            featuresLayout->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+                [&] (TCatFeatureIdx idx) {
+                    TConstArrayRef<i32> integerCatValues = **(srcCatColumnsIterator++);
+
+                    TVector<ui32> hashedCatFeatureValues;
+                    hashedCatFeatureValues.yresize(objectCount);
+
+                    localExecutor.ExecRangeBlockedWithThrow(
+                        [&] (int i) {
+                            hashedCatFeatureValues[i] = integerValueHashes[integerCatValues[i]];
+                        },
+                        0,
+                        SafeIntegerCast<int>(objectCount),
+                        /*batchSizeOrZeroForAutoBatchSize*/ 0,
+                        NPar::TLocalExecutor::WAIT_COMPLETE
+                    );
+
+                    visitor->AddCatFeature(
+                        featuresLayout->GetCatFeatureInternalIdxToExternalIdx()[*idx],
+                        TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(hashedCatFeatureValues))
+                    );
+                }
+            );
+        }
         visitor->Finish();
     };
     TRawObjectsDataProviderPtr result(
@@ -47,9 +92,66 @@ TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     );
     {
         TVector<TMaybeOwningConstArrayHolder<float>>().swap(*columnwiseFloatFeaturesData);
+        TVector<TMaybeOwningConstArrayHolder<i32>>().swap(*columnwiseCatFeaturesData);
     }
     return result;
 }
+
+template <class TDst, class TSrc>
+bool TryMakeTransformIterator(
+    IDynamicBlockIteratorBasePtr& valuesIterator,
+    TVector<IDynamicBlockIteratorPtr<TDst>>* iterators
+) {
+    if (auto* blockOfTIterator = dynamic_cast<IDynamicBlockIterator<TSrc>*>(valuesIterator.Get())) {
+        iterators->push_back(
+            MakeBlockTransformerIterator<TDst, TSrc>(
+                IDynamicBlockIteratorPtr<TSrc>(blockOfTIterator),
+                [] (TConstArrayRef<TSrc> src, TArrayRef<TDst> dst) {
+                    Copy(src.begin(), src.end(), dst.begin());
+                }
+            )
+        );
+        Y_UNUSED(valuesIterator.Release());
+        return true;
+    }
+    return false;
+}
+
+template <class T>
+void MakeTransformIterator(
+    IDynamicBlockIteratorBasePtr valuesIterator, // moved into
+    TVector<IDynamicBlockIteratorPtr<T>>* iterators
+) {
+    if (TryMakeTransformIterator<T, ui8>(valuesIterator, iterators)) {
+        return;
+    }
+    if (TryMakeTransformIterator<T, ui16>(valuesIterator, iterators)) {
+        return;
+    }
+    if (TryMakeTransformIterator<T, ui32>(valuesIterator, iterators)) {
+        return;
+    }
+    CB_ENSURE_INTERNAL(false, "valuesIterator is of unknown type");
+}
+
+template <class T>
+void AddColumn(
+    IDynamicBlockIteratorBasePtr valuesIterator, // moved into
+    TVector<IDynamicBlockIteratorPtr<T>>* iterators,
+    TVector<TConstArrayRef<T>>* blocks,
+    size_t* lastColumnBlockSize
+) {
+
+    if (auto* blockOfTIterator = dynamic_cast<IDynamicBlockIterator<T>*>(valuesIterator.Get())) {
+        iterators->push_back(IDynamicBlockIteratorPtr<T>(blockOfTIterator));
+        Y_UNUSED(valuesIterator.Release());
+    } else {
+        MakeTransformIterator(std::move(valuesIterator), iterators);
+    }
+    blocks->push_back(iterators->back()->Next());
+    *lastColumnBlockSize = blocks->back().size();
+}
+
 
 TQuantizedRowAssembler::TQuantizedRowAssembler(
     TQuantizedObjectsDataProviderPtr objectsData
@@ -64,21 +166,56 @@ TQuantizedRowAssembler::TQuantizedRowAssembler(
 
             size_t lastColumnBlockSize;
             if (quantizedFeaturesInfo.GetBorders(idx).size() > 255) {
-                Ui16ColumnIterators.push_back(
-                    IDynamicBlockIteratorPtr<ui16>(
-                        dynamic_cast<IDynamicBlockIterator<ui16>*>(valuesIterator.Release())
-                    )
+                AddColumn<ui16>(
+                    std::move(valuesIterator),
+                    &Ui16ColumnIterators,
+                    &Ui16ColumnBlocks,
+                    &lastColumnBlockSize
                 );
-                Ui16ColumnBlocks.push_back(Ui16ColumnIterators.back()->Next());
-                lastColumnBlockSize = Ui16ColumnBlocks.back().size();
             } else {
-                Ui8ColumnIterators.push_back(
-                    IDynamicBlockIteratorPtr<ui8>(
-                        dynamic_cast<IDynamicBlockIterator<ui8>*>(valuesIterator.Release())
-                    )
+                AddColumn<ui8>(
+                    std::move(valuesIterator),
+                    &Ui8ColumnIterators,
+                    &Ui8ColumnBlocks,
+                    &lastColumnBlockSize
                 );
-                Ui8ColumnBlocks.push_back(Ui8ColumnIterators.back()->Next());
-                lastColumnBlockSize = Ui8ColumnBlocks.back().size();
+            }
+            if (BlocksSize) {
+                CB_ENSURE_INTERNAL(lastColumnBlockSize == BlocksSize, "All column block sizes must be equal");
+            } else {
+                BlocksSize = lastColumnBlockSize;
+            }
+        }
+    );
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&] (TCatFeatureIdx idx) {
+            const IQuantizedCatValuesHolder* valuesHolder = *(objectsData->GetNonPackedCatFeature(*idx));
+            IDynamicBlockIteratorBasePtr valuesIterator = valuesHolder->GetBlockIterator();
+
+            ui32 uniqValuesCount = quantizedFeaturesInfo.GetUniqueValuesCounts(idx).OnAll;
+
+            size_t lastColumnBlockSize;
+            if (uniqValuesCount > ((ui32)Max<ui16>() + 1)) {
+                AddColumn<ui32>(
+                    std::move(valuesIterator),
+                    &Ui32ColumnIterators,
+                    &Ui32ColumnBlocks,
+                    &lastColumnBlockSize
+                );
+            } else if (uniqValuesCount > ((ui32)Max<ui8>() + 1)) {
+                AddColumn<ui16>(
+                    std::move(valuesIterator),
+                    &Ui16ColumnIterators,
+                    &Ui16ColumnBlocks,
+                    &lastColumnBlockSize
+                );
+            } else {
+                AddColumn<ui8>(
+                    std::move(valuesIterator),
+                    &Ui8ColumnIterators,
+                    &Ui8ColumnBlocks,
+                    &lastColumnBlockSize
+                );
             }
             if (BlocksSize) {
                 CB_ENSURE_INTERNAL(lastColumnBlockSize == BlocksSize, "All column block sizes must be equal");
@@ -91,7 +228,9 @@ TQuantizedRowAssembler::TQuantizedRowAssembler(
 
 i32 TQuantizedRowAssembler::GetObjectBlobSize() const {
     return SafeIntegerCast<i32>(
-        sizeof(ui8) * Ui8ColumnBlocks.size() + sizeof(ui16) * Ui16ColumnBlocks.size()
+        sizeof(ui8) * Ui8ColumnBlocks.size()
+        + sizeof(ui16) * Ui16ColumnBlocks.size()
+        + sizeof(ui32) * Ui32ColumnBlocks.size()
     );
 }
 
@@ -123,6 +262,7 @@ void TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buf
 
         updateBlocks(Ui8ColumnBlocks, Ui8ColumnIterators);
         updateBlocks(Ui16ColumnBlocks, Ui16ColumnIterators);
+        updateBlocks(Ui32ColumnBlocks, Ui32ColumnIterators);
 
         CB_ENSURE(BlocksSize != 0, "Dataset does not contain an element with index " << objectIdx);
     }
@@ -137,7 +277,10 @@ void TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buf
     };
 
     writeValues(Ui8ColumnBlocks, (ui8*)dstPtr);
-    writeValues(Ui16ColumnBlocks, (ui16*)(dstPtr + Ui8ColumnBlocks.size()));
+    dstPtr += sizeof(ui8) * Ui8ColumnBlocks.size();
+    writeValues(Ui16ColumnBlocks, (ui16*)dstPtr);
+    dstPtr += sizeof(ui16) * Ui16ColumnBlocks.size();
+    writeValues(Ui32ColumnBlocks, (ui32*)dstPtr);
 }
 
 

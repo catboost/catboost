@@ -2,7 +2,12 @@
 
 #include <catboost/libs/data/features_layout.h>
 
+#include <catboost/private/libs/options/enums.h>
+
+#include <util/generic/array_ref.h>
+#include <util/generic/cast.h>
 #include <util/generic/fwd.h>
+#include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <util/system/types.h>
 
@@ -25,4 +30,31 @@ NCB::TFeaturesLayout MakeFeaturesLayout(
     const TVector<i32>& ignoredFeatures
 ) throw (yexception);
 
-TVector<i32> GetAvailableFloatFeatures(const NCB::TFeaturesLayout& featuresLayout) throw(yexception);
+NCB::TFeaturesLayoutPtr CloneWithSelectedFeatures(
+    const NCB::TFeaturesLayout& featuresLayout,
+    TConstArrayRef<i32> selectedFeatures
+) throw (yexception);
+
+template <EFeatureType FeatureType>
+TVector<i32> GetAvailableFeatures(const NCB::TFeaturesLayout& featuresLayout) throw (yexception) {
+    TVector<i32> result;
+    featuresLayout.IterateOverAvailableFeatures<FeatureType>(
+        [&] (NCB::TFeatureIdx<FeatureType> idx) {
+            result.push_back(SafeIntegerCast<i32>(*idx));
+        }
+    );
+
+    return result;
+}
+
+template <EFeatureType FeatureType>
+TVector<i32> GetAvailableFeaturesFlatIndices(const NCB::TFeaturesLayout& featuresLayout) throw (yexception) {
+    TVector<i32> result;
+    featuresLayout.IterateOverAvailableFeatures<FeatureType>(
+        [&] (NCB::TFeatureIdx<FeatureType> idx) {
+            result.push_back(SafeIntegerCast<i32>(featuresLayout.GetExternalFeatureIdx(*idx, FeatureType)));
+        }
+    );
+
+    return result;
+}

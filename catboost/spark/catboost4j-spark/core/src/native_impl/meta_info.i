@@ -93,6 +93,17 @@ public:
 
 public:
     bool HasUnknownNumberOfSparseFeatures = false;
+    
+    %extend {
+        TIntermediateDataMetaInfo SetAvailableFeatures(TConstArrayRef<i32> selectedFeatures) {
+            TIntermediateDataMetaInfo selfWithSelectedFeatures = *self;
+            selfWithSelectedFeatures.FeaturesLayout = CloneWithSelectedFeatures(
+                *(self->FeaturesLayout), 
+                selectedFeatures
+            );
+            return selfWithSelectedFeatures;
+        }
+    }
 
     %typemap(javaimports) TIntermediateDataMetaInfo "import java.io.*;"
     %typemap(javainterfaces) TIntermediateDataMetaInfo "Serializable"

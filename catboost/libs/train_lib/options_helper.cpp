@@ -27,7 +27,7 @@ static void SetOneHotMaxSizeAndPrintNotice(
 }
 
 
-static void UpdateOneHotMaxSize(
+void UpdateOneHotMaxSize(
     ui32 maxCategoricalFeaturesUniqValuesOnLearn,
     bool hasLearnTarget,
     NCatboostOptions::TCatBoostOptions* catBoostOptions) {

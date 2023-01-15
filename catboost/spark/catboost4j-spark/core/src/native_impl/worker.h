@@ -13,7 +13,9 @@ void CreateTrainingDataForWorker(
     i32 numThreads,
     const TString& plainJsonParamsAsString,
     NCB::TDataProviderPtr trainDataProvider,
-    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    NCB::TDataProviderPtr trainEstimatedDataProvider, // can be nullptr
+    const TString& precomputedOnlineCtrMetaDataAsJsonString
 ) throw (yexception);
 
 // needed for forwarding exceptions from C++ to JVM

@@ -22,10 +22,9 @@
 using namespace NCB;
 
 
-static TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
-    const TString& plainJsonParamsAsString,
-    int featureCount,
-    const TVector<TString>& featureNames
+TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
+    const TFeaturesLayout& featuresLayout,
+    const TString& plainJsonParamsAsString
 ) throw (yexception) {
     NJson::TJsonValue plainJsonParams;
 
@@ -44,11 +43,7 @@ static TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
     }
 
     TDataMetaInfo metaInfo;
-    metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
-        SafeIntegerCast<ui32>(featureCount),
-        /*catFeatureIndices*/ TVector<ui32>{}, // TODO(akhropov): cat features are not supported yet
-        featureNames
-    );
+    metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
 
     TQuantizationOptions quantizationOptions;
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
@@ -65,19 +60,10 @@ static TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
 }
 
 TNanModeAndBordersBuilder::TNanModeAndBordersBuilder(
-    const TString& plainJsonParamsAsString,
-    i32 featureCount,
-    const TVector<TString>& featureNames,
-    i32 sampleSize
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
 ) throw (yexception)
-    : SampleSize(SafeIntegerCast<size_t>(sampleSize))
+    : QuantizedFeaturesInfo(quantizedFeaturesInfo)
 {
-    QuantizedFeaturesInfo = PrepareQuantizationParameters(
-        plainJsonParamsAsString,
-        featureCount,
-        featureNames
-    );
-
     const TFeaturesLayout& featuresLayout = *(QuantizedFeaturesInfo->GetFeaturesLayout());
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
@@ -91,6 +77,10 @@ TNanModeAndBordersBuilder::TNanModeAndBordersBuilder(
     );
 
     Data.resize(FeatureIndicesToCalc.size());
+}
+
+void TNanModeAndBordersBuilder::SetSampleSize(i32 sampleSize) throw (yexception) {
+    SampleSize = sampleSize;
     for (auto& featureData : Data) {
         featureData.reserve(sampleSize);
     }
@@ -105,7 +95,7 @@ void TNanModeAndBordersBuilder::AddSample(TConstArrayRef<double> objectData) thr
     }
 }
 
-TQuantizedFeaturesInfoPtr TNanModeAndBordersBuilder::Finish(i32 threadCount) throw (yexception) {
+void TNanModeAndBordersBuilder::Finish(i32 threadCount) throw (yexception) {
     CB_ENSURE(threadCount >= 1);
 
     NPar::TLocalExecutor localExecutor;
@@ -167,7 +157,6 @@ TQuantizedFeaturesInfoPtr TNanModeAndBordersBuilder::Finish(i32 threadCount) thr
         SafeIntegerCast<int>(FeatureIndicesToCalc.size()),
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
-    return QuantizedFeaturesInfo;
 }
 
 TQuantizedObjectsDataProviderPtr Quantize(
@@ -196,22 +185,42 @@ TQuantizedObjectsDataProviderPtr Quantize(
     );
 }
 
-void GetActiveFloatFeaturesIndices(
+void GetActiveFeaturesIndices(
+    NCB::TFeaturesLayoutPtr featuresLayout,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-    TVector<i32>* ui8Indices,
-    TVector<i32>* ui16Indices
+    TVector<i32>* ui8FlatIndices,
+    TVector<i32>* ui16FlatIndices,
+    TVector<i32>* ui32FlatIndices
 ) throw (yexception) {
-    const auto& featuresLayout = *(quantizedFeaturesInfo->GetFeaturesLayout());
+    ui8FlatIndices->clear();
+    ui16FlatIndices->clear();
+    ui32FlatIndices->clear();
 
-    ui8Indices->clear();
-    ui16Indices->clear();
-
-    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+    featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
         [&] (TFloatFeatureIdx idx) {
+            i32 flatIdx = SafeIntegerCast<i32>(
+                featuresLayout->GetExternalFeatureIdx(*idx, EFeatureType::Float)
+            );
             if (quantizedFeaturesInfo->GetBorders(idx).size() > 255) {
-                ui16Indices->push_back(SafeIntegerCast<i32>(*idx));
+                ui16FlatIndices->push_back(flatIdx);
             } else {
-                ui8Indices->push_back(SafeIntegerCast<i32>(*idx));
+                ui8FlatIndices->push_back(flatIdx);
+            }
+        }
+    );
+    featuresLayout->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&] (TCatFeatureIdx idx) {
+            i32 flatIdx = SafeIntegerCast<i32>(
+                featuresLayout->GetExternalFeatureIdx(*idx, EFeatureType::Categorical)
+            );
+
+            ui32 uniqValuesCount = quantizedFeaturesInfo->GetUniqueValuesCounts(idx).OnAll;
+            if (uniqValuesCount > ((ui32)Max<ui16>() + 1)) {
+                ui32FlatIndices->push_back(flatIdx);
+            } else if (uniqValuesCount > ((ui32)Max<ui8>() + 1)) {
+                ui16FlatIndices->push_back(flatIdx);
+            } else {
+                ui8FlatIndices->push_back(flatIdx);
             }
         }
     );

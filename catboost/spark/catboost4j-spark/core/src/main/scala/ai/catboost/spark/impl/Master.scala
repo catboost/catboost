@@ -30,7 +30,8 @@ private[spark] object Master {
   def apply(
     preprocessedTrainPool: Pool,
     preprocessedEvalPools: Array[Pool],
-    catBoostJsonParamsForMasterString: String
+    catBoostJsonParamsForMasterString: String,
+    precomputedOnlineCtrMetaDataAsJsonString: String
   ) : Master = {
     val savedPoolsFuture = Future {
       val threadCount = SparkHelpers.getThreadCountForDriver(preprocessedTrainPool.data.sparkSession)
@@ -38,19 +39,26 @@ private[spark] object Master {
       val trainPoolFiles = DataHelpers.downloadQuantizedPoolToTempFiles(
         preprocessedTrainPool,
         includeFeatures=false,
-        threadCount
+        includeEstimatedFeatures=false,
+        threadCount=threadCount
       )
-      val testPoolsFiles = preprocessedEvalPools.map {
+      val testMainAndEstimatedPoolsAsFiles = preprocessedEvalPools.map {
         testPool => DataHelpers.downloadQuantizedPoolToTempFiles(
           testPool,
           includeFeatures=true,
-          threadCount
+          includeEstimatedFeatures=true,
+          threadCount=threadCount
         )
-      }.toArray
+      }
 
-      (trainPoolFiles, testPoolsFiles)
+      (trainPoolFiles, testMainAndEstimatedPoolsAsFiles)
     }
-    new Master(preprocessedTrainPool.data.sparkSession, savedPoolsFuture, catBoostJsonParamsForMasterString)
+    new Master(
+      preprocessedTrainPool.data.sparkSession, 
+      savedPoolsFuture, 
+      catBoostJsonParamsForMasterString,
+      precomputedOnlineCtrMetaDataAsJsonString
+    )
   }
 }
 
@@ -59,6 +67,7 @@ private[spark] class Master(
   val spark: SparkSession,
   val savedPoolsFuture : Future[(PoolFilesPaths, Array[PoolFilesPaths])],
   val catBoostJsonParamsForMasterString: String,
+  val precomputedOnlineCtrMetaDataAsJsonString: String,
 
   // will be set in trainCallback, called from the trainingDriver's run()
   var nativeModelResult : native_impl.TFullModel = null
@@ -98,6 +107,15 @@ private[spark] class Master(
 
     val jsonParamsFile = tmpDirPath.resolve("json_params")
     Files.write(jsonParamsFile, catBoostJsonParamsForMasterString.getBytes(StandardCharsets.UTF_8))
+    
+    var precomputedOnlineCtrMetaDataFile: Path = null
+    if (precomputedOnlineCtrMetaDataAsJsonString != null) {
+      precomputedOnlineCtrMetaDataFile =  tmpDirPath.resolve("precomputed_online_ctr_metadata")
+      Files.write(
+        precomputedOnlineCtrMetaDataFile,
+        precomputedOnlineCtrMetaDataAsJsonString.getBytes(StandardCharsets.UTF_8)
+      )
+    }
 
     val args = mutable.ArrayBuffer[String](
       "--node-type", "Master",
@@ -105,6 +123,12 @@ private[spark] class Master(
       "--params-file", jsonParamsFile.toString,
       "--file-with-hosts", hostsFilePath.toString,
       "--hosts-already-contain-loaded-data",
+      /* permutations on master are impossible when data is preloaded on hosts, shuffling is performed in Spark 
+       * on the preprocessing phase
+       */
+      "--has-time", 
+      "--max-ctr-complexity", "1",
+      "--final-ctr-computation-mode", "Skip", // final ctrs are computed in post-processing
       "--model-file", resultModelFilePath.toString
     )
 
@@ -112,25 +136,36 @@ private[spark] class Master(
     if (driverNativeMemoryLimit.isDefined) {
       args += ("--used-ram-limit", driverNativeMemoryLimit.get.toString)
     }
+    if (precomputedOnlineCtrMetaDataAsJsonString != null) {
+      args += ("--precomputed-data-meta", precomputedOnlineCtrMetaDataFile.toString)
+    }
 
-    val (savedTrainPool, savedEvalPools) = Await.result(savedPoolsFuture, Duration.Inf)
+    val (savedTrainPool, savedEvalMainAndEstimatedPools) = Await.result(savedPoolsFuture, Duration.Inf)
 
     args += ("--learn-set", "spark-quantized://master-part:" + savedTrainPool.mainData.toString)
     if (savedTrainPool.pairsData.isDefined) {
       args += ("--learn-pairs", "dsv-grouped-with-idx://" + savedTrainPool.pairsData.get.toString)
     }
-    if (!savedEvalPools.isEmpty) {
+    if (!savedEvalMainAndEstimatedPools.isEmpty) {
       args += (
         "--test-set",
-        savedEvalPools.map(
+        savedEvalMainAndEstimatedPools.map(
             poolFilesPaths => "spark-quantized://master-part:" + poolFilesPaths.mainData
         ).mkString(",")
       )
       if (savedTrainPool.pairsData.isDefined) { // if train pool has pairs so do test pools
         args += (
           "--test-pairs",
-          savedEvalPools.map(
+          savedEvalMainAndEstimatedPools.map(
               poolFilesPaths => "dsv-grouped-with-idx://" + poolFilesPaths.pairsData.get.toString
+          ).mkString(",")
+        )
+      }
+      if (precomputedOnlineCtrMetaDataAsJsonString != null) {
+        args += (
+          "--test-precomputed-set",
+          savedEvalMainAndEstimatedPools.map(
+            poolFilesPaths => "spark-quantized://master-part:" + poolFilesPaths.estimatedCtrData.get.toString
           ).mkString(",")
         )
       }

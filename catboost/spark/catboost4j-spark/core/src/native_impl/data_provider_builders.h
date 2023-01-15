@@ -18,7 +18,10 @@
 NCB::TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     NCB::TFeaturesLayoutPtr featuresLayout,
     i64 objectCount,
-    TVector<NCB::TMaybeOwningConstArrayHolder<float>>* columnwiseFloatFeaturesData
+    TVector<NCB::TMaybeOwningConstArrayHolder<float>>* columnwiseFloatFeaturesData,
+    TVector<NCB::TMaybeOwningConstArrayHolder<i32>>* columnwiseCatFeaturesData,
+    i32 maxUniqCatFeatureValues,
+    i32 threadCount
 ) throw (yexception);
 
 
@@ -36,9 +39,11 @@ private:
 
     TVector<NCB::IDynamicBlockIteratorPtr<ui8>> Ui8ColumnIterators;
     TVector<NCB::IDynamicBlockIteratorPtr<ui16>> Ui16ColumnIterators;
+    TVector<NCB::IDynamicBlockIteratorPtr<ui32>> Ui32ColumnIterators;
 
     TVector<TConstArrayRef<ui8>> Ui8ColumnBlocks;
     TVector<TConstArrayRef<ui16>> Ui16ColumnBlocks;
+    TVector<TConstArrayRef<ui32>> Ui32ColumnBlocks;
 };
 
 

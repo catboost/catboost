@@ -23,7 +23,9 @@ void CreateTrainingDataForWorker(
     i32 numThreads,
     const TString& plainJsonParamsAsString,
     NCB::TDataProviderPtr trainDataProvider,
-    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    NCB::TDataProviderPtr trainEstimatedDataProvider,
+    const TString& precomputedOnlineCtrMetaDataAsJsonString
 ) throw (yexception) {
     CB_ENSURE(numThreads >= 1, "Non-positive number of threads specified");
 
@@ -70,6 +72,24 @@ void CreateTrainingDataForWorker(
         localExecutor,
         localData.Rand.Get()
     );
+
+    if (trainEstimatedDataProvider) {
+        CATBOOST_DEBUG_LOG << "Create precomputed train data for worker " << hostId << "..." << Endl;
+
+        localData.PrecomputedSingleOnlineCtrDataForSingleFold.ConstructInPlace();
+        localData.PrecomputedSingleOnlineCtrDataForSingleFold->Meta
+            = TPrecomputedOnlineCtrMetaData::DeserializeFromJson(
+                precomputedOnlineCtrMetaDataAsJsonString
+              );
+        localData.PrecomputedSingleOnlineCtrDataForSingleFold->DataProviders.Learn
+            = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+                trainEstimatedDataProvider->ObjectsData.Get()
+              );
+        CB_ENSURE_INTERNAL(
+            localData.PrecomputedSingleOnlineCtrDataForSingleFold->DataProviders.Learn,
+            "Precomputed data: Non-quantized objects data specified"
+        );
+    }
 }
 
 

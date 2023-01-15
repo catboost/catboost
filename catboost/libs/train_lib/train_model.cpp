@@ -817,7 +817,9 @@ namespace {
                     = (trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo()
                         ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
                        > ctx.Params.CatFeatureParams->OneHotMaxSize.Get());
-                CB_ENSURE(!calcCtrs, "CTRs are not yet supported in distributed training on CPU");
+                CB_ENSURE(
+                    !calcCtrs || (ctx.Params.CatFeatureParams->MaxTensorComplexity.Get() == 1),
+                    "MaxTensorComplexity > 1 is not yet supported in distributed training on CPU");
 
                 MapBuildPlainFold(&ctx);
             }
@@ -1154,6 +1156,14 @@ void TrainModel(
     }
 
     TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
+    if (loadOptions.PrecomputedMetadataFile) {
+        precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrData(
+            catBoostOptions.GetTaskType(),
+            loadOptions,
+            &executor,
+            &profile
+        );
+    }
 
     TVector<TString> outputColumns;
     if (!evalOutputFileName.empty() && !pools.Test.empty()) {

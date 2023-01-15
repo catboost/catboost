@@ -6,6 +6,7 @@ NO_WERROR()
 
 SRCS(
     apply_result_iterator.cpp
+    ctrs.cpp
     dataset_rows_reader.cpp
     data_provider_builders.cpp
     features_layout.cpp
@@ -14,6 +15,7 @@ SRCS(
     master.cpp
     meta_info.cpp
     model.cpp
+    options_helper.cpp
     pairs.cpp
     quantized_features_info.cpp
     quantization.cpp
@@ -32,11 +34,13 @@ PEERDIR(
     library/cpp/grid_creator
     library/cpp/json
     library/cpp/threading/local_executor
+    catboost/libs/cat_feature
     catboost/libs/column_description
     catboost/libs/data
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model
+    catboost/libs/train_lib
     catboost/private/libs/algo
     catboost/private/libs/app_helpers
     catboost/private/libs/data_util

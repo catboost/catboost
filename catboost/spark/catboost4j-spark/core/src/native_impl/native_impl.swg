@@ -26,6 +26,8 @@
 
 %include "groupid.i"
 
+%include "local_executor.i"
+
 %include "column.i"
 %include "cd_parser.i"
 %include "features_layout.i"
@@ -38,7 +40,11 @@
 %include "pairs.i"
 %include "quantization.i"
 
+%include "ctrs.i"
+
 %include "quantized_pool_serialization.i"
+
+%include "options_helper.i"
 
 %include "model.i"
 

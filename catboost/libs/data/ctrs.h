@@ -6,9 +6,13 @@
 
 #include <util/generic/fwd.h>
 #include <util/generic/hash.h>
+#include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/generic/yexception.h>
 #include <util/digest/multi.h>
 #include <util/system/types.h>
+
+#include <tuple>
 
 
 namespace NCB {
@@ -49,6 +53,10 @@ namespace NCB {
         i32 CounterCount = 0;
 
     public:
+        bool operator==(const TOnlineCtrUniqValuesCounts& rhs) const {
+            return std::tie(Count, CounterCount) == std::tie(rhs.Count, rhs.CounterCount);
+        }
+
         i32 GetMaxUniqueValueCount() const {
             return Max(Count, CounterCount);
         }
@@ -62,9 +70,28 @@ namespace NCB {
     };
 
 
-    struct TPrecomputedOnlineCtrData {
-        TEstimatedForCPUObjectsDataProviders DataProviders;
+    struct TPrecomputedOnlineCtrMetaData {
         THashMap<TOnlineCtrIdx, ui32> OnlineCtrIdxToFeatureIdx;
-        TVector<TOnlineCtrUniqValuesCounts> ValuesCounts; // [catFeatureIdx]
+        THashMap<ui32, TOnlineCtrUniqValuesCounts> ValuesCounts; // [catFeatureIdx]
+
+    public:
+        bool operator==(const TPrecomputedOnlineCtrMetaData& rhs) const {
+            return std::tie(OnlineCtrIdxToFeatureIdx, ValuesCounts)
+                == std::tie(rhs.OnlineCtrIdxToFeatureIdx, rhs.ValuesCounts);
+        }
+
+        void Append(TPrecomputedOnlineCtrMetaData& add);
+
+        // Use JSON as string to be able to use in JVM binding as well
+        TString SerializeToJson() const;
+        static TPrecomputedOnlineCtrMetaData DeserializeFromJson(
+            const TString& serializedJson
+        );
+    };
+
+
+    struct TPrecomputedOnlineCtrData {
+        TPrecomputedOnlineCtrMetaData Meta;
+        TEstimatedForCPUObjectsDataProviders DataProviders;
     };
 }

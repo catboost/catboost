@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer,ArrayBuilder}
 
 import org.apache.spark.ml.attribute._
-import org.apache.spark.ml.linalg.{Vector,SparseVector,Vectors}
+import org.apache.spark.ml.linalg.{Vector,SparseVector,SQLDataTypes,Vectors}
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.param.shared._
 import org.apache.spark.ml.util.Identifiable
@@ -247,6 +247,45 @@ object Pool {
       attributes.get.map { attribute => attribute.name.getOrElse("") }.toArray
     }
   }
+  
+  /**
+   * @return array of flat feature index to uniq cat features values count
+   */
+  private[spark] def getCatFeaturesUniqValueCounts(data: DataFrame, featuresCol: String) : Array[Int] = {
+    val featureCount = getFeatureCount(data, featuresCol)
+
+    val attributes = AttributeGroup.fromStructField(data.schema(featuresCol)).attributes
+    if (attributes.isEmpty) {
+      val result = new Array[Int](featureCount)
+      Arrays.fill(result.asInstanceOf[Array[Object]], 0, featureCount, 0)
+      result
+    } else {
+      if (attributes.get.size != featureCount) {
+        throw new CatBoostError(
+          s"number of attributes (${attributes.get.size}) is not equal to featureCount ($featureCount)"
+        )
+      }
+      attributes.get.map {
+        case nominalAttribute : NominalAttribute => {
+          if (nominalAttribute.numValues.isDefined) {
+            nominalAttribute.numValues.get
+          } else {
+            if (nominalAttribute.values.isEmpty) {
+              throw new CatBoostError(
+                "Neither numValues nor values is defined for categorical feature attribute"
+              )
+            }
+            nominalAttribute.values.get.length
+          }
+        }
+        case _ => 0
+      }.toArray
+    }
+  }
+
+  private[spark] def getCatFeaturesMaxUniqValueCount(data: DataFrame, featuresCol: String) : Int = {
+    getCatFeaturesUniqValueCounts(data, featuresCol).max
+  }
 }
 
 
@@ -374,11 +413,35 @@ class Pool (
       if (isQuantized) {
         throw new CatBoostError("featuresLayout must be defined for quantized pool")
       }
-      featuresLayout = native_impl.MakeFeaturesLayout(
-        Pool.getFeatureCount(data, $(featuresCol)),
-        new TVector_TString(Pool.getFeatureNames(data, $(featuresCol))),
-        /*ignoredFeatures*/ new TVector_i32()
-      )
+
+      val featuresMetaInfo = new TVector_TFeatureMetaInfo
+
+      val attributes = AttributeGroup.fromStructField(data.schema($(featuresCol))).attributes
+      if (attributes.isEmpty) {
+        val featureCount = Pool.getFeatureCount(data, $(featuresCol))
+        for (i <- 0 until featureCount) {
+          val featureMetaInfo = new TFeatureMetaInfo
+          featureMetaInfo.setType(EFeatureType.Float)
+          featuresMetaInfo.add(featureMetaInfo)
+        }
+      } else {
+        for (attribute <- attributes.get) {
+          val featureMetaInfo = new TFeatureMetaInfo
+          attribute match {
+            case nominal : NominalAttribute => {
+              featureMetaInfo.setType(EFeatureType.Categorical)
+            }
+            case numerical => {
+              featureMetaInfo.setType(EFeatureType.Float)
+            }
+          }
+          featureMetaInfo.setName(attribute.name.getOrElse(""))
+          featuresMetaInfo.add(featureMetaInfo)
+        }
+      }
+
+      featuresLayout = new TFeaturesLayout
+      featuresLayout.Init(featuresMetaInfo)
     }
     featuresLayout
   }
@@ -458,6 +521,29 @@ class Pool (
   def getFeatureNames : Array[String] = {
     getFeaturesLayout.GetExternalFeatureIds.toArray(new Array[String](0))
   }
+  
+  def getCatFeaturesUniqValueCounts : Array[Int] = {
+    if (isQuantized) {
+      native_impl.GetCategoricalFeaturesUniqueValuesCounts(quantizedFeaturesInfo.__deref__).toPrimitiveArray 
+    } else {
+      Pool.getCatFeaturesUniqValueCounts(data, $(featuresCol)) 
+    }
+  }
+  
+  def getEstimatedFeatureCount: Int = {
+    if (isQuantized) {
+      if (data.schema.fieldNames.contains("_estimatedFeatures")) {
+        if (data.count == 0) {
+          throw new CatBoostError("Cannot get estimated feature count from empty DataFrame")
+        }
+        data.first().getAs[Array[Byte]]("_estimatedFeatures").length
+      } else {
+        0
+      }
+    } else {
+      0
+    }
+  }
 
   /** @return Number of objects in the dataset, similar to the same method of
    *  [[org.apache.spark.sql.Dataset]]
@@ -517,10 +603,11 @@ class Pool (
 
     result
   }
-
-  protected def createQuantizationSchema(quantizationParams: QuantizationParamsTrait)
-    : QuantizedFeaturesInfoPtr = {
-
+  
+  protected def calcNanModesAndBorders(
+    nanModeAndBordersBuilder: TNanModeAndBordersBuilder,
+    quantizationParams: QuantizationParamsTrait
+  ) = {
     val dataForBuildBorders =
       if (count > QuantizationParams.MaxSubsetSizeForBuildBordersAlgorithms) {
         data.select(getFeaturesCol).sample(
@@ -531,17 +618,8 @@ class Pool (
         data.select(getFeaturesCol)
       }
 
-    val featureCount = getFeatureCount
-
-    val catBoostJsonParamsString = Helpers.sparkMlParamsToCatBoostJsonParamsString(quantizationParams)
-
-    val nanModeAndBordersBuilder = new TNanModeAndBordersBuilder(
-        catBoostJsonParamsString,
-        featureCount,
-        new TVector_TString(getFeatureNames),
-        dataForBuildBorders.count.toInt
-    )
-
+    nanModeAndBordersBuilder.SetSampleSize(dataForBuildBorders.count.toInt)
+    
     for (row <- dataForBuildBorders.toLocalIterator) {
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
@@ -553,9 +631,37 @@ class Pool (
     )
   }
 
+  protected def updateCatFeaturesInfo(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) = {
+    val catFeaturesUniqValueCounts = Pool.getCatFeaturesUniqValueCounts(data, $(featuresCol))
+    native_impl.UpdateCatFeaturesInfo(catFeaturesUniqValueCounts, quantizedFeaturesInfo.Get)
+  }
+
+  protected def createQuantizationSchema(quantizationParams: QuantizationParamsTrait)
+    : QuantizedFeaturesInfoPtr = {
+
+    val catBoostJsonParamsString = Helpers.sparkMlParamsToCatBoostJsonParamsString(quantizationParams)
+    val quantizedFeaturesInfo = native_impl.PrepareQuantizationParameters(
+      getFeaturesLayout,
+      catBoostJsonParamsString
+    )
+
+    val nanModeAndBordersBuilder = new TNanModeAndBordersBuilder(quantizedFeaturesInfo)
+
+    if (nanModeAndBordersBuilder.HasFeaturesToCalc) {
+      calcNanModesAndBorders(nanModeAndBordersBuilder, quantizationParams)
+    }
+
+    updateCatFeaturesInfo(quantizedFeaturesInfo)
+
+    quantizedFeaturesInfo
+  }
+
   protected def createQuantized(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) : Pool = {
     var featuresColumnIdx = data.schema.fieldIndex($(featuresCol));
     val threadCountForTask = SparkHelpers.getThreadCountForTask(data.sparkSession)
+    val catFeaturesMaxUniqValueCount = native_impl.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(
+      quantizedFeaturesInfo.__deref__()
+    )
 
     val featuresColumnName = $(featuresCol)
 
@@ -574,18 +680,15 @@ class Pool (
 
     val quantizedData = data.mapPartitions(
       rowsIterator => {
-        val availableFeaturesIndices = native_impl.GetAvailableFloatFeatures(
-          quantizedFeaturesInfo.GetFeaturesLayout().__deref__()
-        ).toPrimitiveArray
-
         // source features column will be replaced by quantizedFeatures
         val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
           rowsIterator,
           featuresColumnIdx,
           quantizedFeaturesInfo.GetFeaturesLayout(),
-          availableFeaturesIndices,
+          catFeaturesMaxUniqValueCount,
           keepRawFeaturesInDstRows = false,
-          dstRowLength = quantizedDataSchema.length
+          dstRowLength = quantizedDataSchema.length,
+          threadCount = threadCountForTask
         )
 
         val quantizedObjectsDataProvider = native_impl.Quantize(
@@ -650,6 +753,7 @@ class Pool (
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
     }
+    updateCatFeaturesInfo(quantizedFeaturesInfo) // because there can be new values
     createQuantized(quantizedFeaturesInfo)
   }
 

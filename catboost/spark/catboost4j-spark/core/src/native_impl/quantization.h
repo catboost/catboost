@@ -10,22 +10,35 @@
 #include <util/system/types.h>
 
 
+namespace NCB {
+    class TFeaturesLayout;
+}
+
+
+NCB::TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
+    const NCB::TFeaturesLayout& featuresLayout,
+    const TString& plainJsonParamsAsString
+) throw (yexception);
+
+
 class TNanModeAndBordersBuilder {
 public:
-    TNanModeAndBordersBuilder(
-        const TString& plainJsonParamsAsString,
-        i32 featureCount,
-        const TVector<TString>& featureNames,
-        i32 sampleSize
-    ) throw (yexception);
+    TNanModeAndBordersBuilder(NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo) throw (yexception);
+
+    bool HasFeaturesToCalc() const {
+        return !FeatureIndicesToCalc.empty();
+    }
+
+    // call before Finish and preferably before adding samples
+    void SetSampleSize(i32 sampleSize) throw (yexception);
 
     void AddSample(TConstArrayRef<double> objectData) throw (yexception);
 
-    // returns with updated parameters
-    NCB::TQuantizedFeaturesInfoPtr Finish(i32 threadCount) throw (yexception);
+    // updates parameters in quantizedFeaturesInfo passed to constructor
+    void Finish(i32 threadCount) throw (yexception);
 
 private:
-    size_t SampleSize;
+    size_t SampleSize = 0;
     TVector<ui32> FeatureIndicesToCalc;
     NCB::TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     TVector<TVector<float>> Data; // [featureIdxToCalc]
@@ -39,8 +52,10 @@ NCB::TQuantizedObjectsDataProviderPtr Quantize(
 ) throw (yexception);
 
 
-void GetActiveFloatFeaturesIndices(
+void GetActiveFeaturesIndices(
+    NCB::TFeaturesLayoutPtr featuresLayout,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-    TVector<i32>* ui8Indices,
-    TVector<i32>* ui16Indices
+    TVector<i32>* ui8FlatIndices,
+    TVector<i32>* ui16FlatIndices,
+    TVector<i32>* ui32FlatIndices
 ) throw (yexception);

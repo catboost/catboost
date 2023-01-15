@@ -477,12 +477,14 @@ TLearnProgress::TLearnProgress(
         !isForWorkerLocalData || (foldsCreationParams.LearningFoldCount == 0),
         "foldsCreationParams.LearningFoldCount != 0 for worker local data"
     );
-    CB_ENSURE_INTERNAL(
-        !precomputedSingleOnlineCtrDataForSingleFold || (foldsCreationParams.LearningFoldCount == 0),
-        "foldsCreationParams.LearningFoldCount != 0 with specified precomputedSingleOnlineCtrDataForSingleFold"
-    );
 
     TQuantizedFeaturesInfoPtr onlineEstimatedQuantizedFeaturesInfo;
+
+    TIntrusivePtr<TPrecomputedOnlineCtr> precomputedSingleOnlineCtrs;
+    if (precomputedSingleOnlineCtrDataForSingleFold) {
+        precomputedSingleOnlineCtrs = MakeIntrusive<TPrecomputedOnlineCtr>();
+        precomputedSingleOnlineCtrs->Data = *precomputedSingleOnlineCtrDataForSingleFold;
+    }
 
     Folds.reserve(foldsCreationParams.LearningFoldCount);
 
@@ -527,7 +529,7 @@ TLearnProgress::TLearnProgress(
                     StartingApprox,
                     estimatedFeaturesQuantizationOptions,
                     onlineEstimatedQuantizedFeaturesInfo,
-                    /*precomputedSingleOnlineCtrs*/ nullptr,
+                    (!isSingleHost || (foldIdx == 0)) ? precomputedSingleOnlineCtrs : nullptr,
                     &Rand,
                     localExecutor
                 )
@@ -541,8 +543,6 @@ TLearnProgress::TLearnProgress(
             }
         }
     }
-
-    TIntrusivePtr<TPrecomputedOnlineCtr> precomputedSingleOnlineCtrs;
 
     AveragingFold = TFold::BuildPlainFold(
         data,

@@ -187,7 +187,10 @@ private:
         TRestorableFastRng64* rand
     );
 
-    void InitOwnedOnlineCtrs(const NCB::TTrainingDataProviders& data);
+    void InitOnlineCtrs(
+        const NCB::TTrainingDataProviders& data,
+        TIntrusivePtr<TPrecomputedOnlineCtr> precomputedSingleOnlineCtrs = nullptr
+    );
 
 public:
     TVector<TQueryInfo> LearnQueriesInfo;

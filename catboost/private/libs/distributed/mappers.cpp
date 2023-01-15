@@ -558,7 +558,6 @@ namespace NCatboostDistributed {
         TInput* bestSplit,
         TOutput* /*unused*/
     ) const {
-        Y_ASSERT(bestSplit->Type != ESplitType::OnlineCtr);
         auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         SetPermutedIndices(

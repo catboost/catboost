@@ -9,6 +9,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/logging/logging.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
@@ -204,7 +205,7 @@ TFold TFold::BuildDynamicFold(
         rand
     );
 
-    ff.InitOwnedOnlineCtrs(data);
+    ff.InitOnlineCtrs(data);
 
     return ff;
 }
@@ -299,11 +300,7 @@ TFold TFold::BuildPlainFold(
         rand
     );
 
-    if (precomputedSingleOnlineCtrs) {
-        ff.OnlineSingleCtrs = std::move(precomputedSingleOnlineCtrs);
-    } else {
-        ff.InitOwnedOnlineCtrs(data);
-    }
+    ff.InitOnlineCtrs(data, precomputedSingleOnlineCtrs);
 
     return ff;
 }
@@ -393,7 +390,10 @@ void TFold::InitOnlineEstimatedFeatures(
     );
 }
 
-void TFold::InitOwnedOnlineCtrs(const NCB::TTrainingDataProviders& data) {
+void TFold::InitOnlineCtrs(
+    const NCB::TTrainingDataProviders& data,
+    TIntrusivePtr<TPrecomputedOnlineCtr> precomputedSingleOnlineCtrs
+) {
     TVector<TIndexRange<size_t>> datasetsObjectRanges;
     size_t offset = 0;
     datasetsObjectRanges.push_back(TIndexRange<size_t>(0, data.Learn->GetObjectCount()));
@@ -404,9 +404,18 @@ void TFold::InitOwnedOnlineCtrs(const NCB::TTrainingDataProviders& data) {
         offset += size;
     }
 
-    OwnedOnlineSingleCtrs = new TOwnedOnlineCtr();
-    OnlineSingleCtrs.Reset(OwnedOnlineSingleCtrs);
-    OwnedOnlineSingleCtrs->DatasetsObjectRanges = datasetsObjectRanges;
+    if (precomputedSingleOnlineCtrs) {
+        CATBOOST_DEBUG_LOG << "Fold: Use precomputed online single ctrs\n";
+
+        OnlineSingleCtrs = std::move(precomputedSingleOnlineCtrs);
+        OwnedOnlineSingleCtrs = nullptr;
+    } else {
+        CATBOOST_DEBUG_LOG << "Fold: Use owned online single ctrs\n";
+
+        OwnedOnlineSingleCtrs = new TOwnedOnlineCtr();
+        OnlineSingleCtrs.Reset(OwnedOnlineSingleCtrs);
+        OwnedOnlineSingleCtrs->DatasetsObjectRanges = datasetsObjectRanges;
+    }
 
     OwnedOnlineCtrs = new TOwnedOnlineCtr();
     OnlineCtrs.Reset(OwnedOnlineCtrs);

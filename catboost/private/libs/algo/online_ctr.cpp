@@ -54,7 +54,7 @@ TConstArrayRef<ui8> TPrecomputedOnlineCtr::GetData(const TCtr& ctr, ui32 dataset
         = (datasetIdx == 0) ? *(Data.DataProviders.Learn) : *(Data.DataProviders.Test[datasetIdx - 1]);
 
     const IQuantizedFloatValuesHolder& column
-        = **(dataProvider.GetNonPackedFloatFeature(Data.OnlineCtrIdxToFeatureIdx.at(onlineCtrIdx)));
+        = **(dataProvider.GetNonPackedFloatFeature(Data.Meta.OnlineCtrIdxToFeatureIdx.at(onlineCtrIdx)));
 
     const TQuantizedFloatValuesHolder& columnImpl
         = dynamic_cast<const NCB::TQuantizedFloatValuesHolder&>(column);
