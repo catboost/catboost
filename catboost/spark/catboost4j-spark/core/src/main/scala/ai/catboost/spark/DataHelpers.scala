@@ -363,7 +363,7 @@ private[spark] object DataHelpers {
     for (i <- 0 until featureNames.size) {
       val name = initialFeatureNames(i)
       if (name.isEmpty) {
-        val generatedName = s"_f$i"
+        val generatedName = i.toString
         if (featureNamesSet.contains(generatedName)) {
           throw new CatBoostError(
             s"""Unable to use generated name "$generatedName" for feature with unspecified name because"""
