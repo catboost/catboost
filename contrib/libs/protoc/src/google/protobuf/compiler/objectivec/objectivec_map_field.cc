@@ -32,11 +32,8 @@
 #include <string>
 
 #include <google/protobuf/compiler/objectivec/objectivec_map_field.h>
-#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/compiler/objectivec/objectivec_helpers.h>
 #include <google/protobuf/io/printer.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/substitute.h>
 
 namespace google {
 namespace protobuf {
@@ -88,9 +85,9 @@ MapFieldGenerator::MapFieldGenerator(const FieldDescriptor* descriptor,
                                      const Options& options)
     : RepeatedFieldGenerator(descriptor, options) {
   const FieldDescriptor* key_descriptor =
-      descriptor->message_type()->FindFieldByName("key");
+      descriptor->message_type()->map_key();
   const FieldDescriptor* value_descriptor =
-      descriptor->message_type()->FindFieldByName("value");
+      descriptor->message_type()->map_value();
   value_field_generator_.reset(FieldGenerator::Make(value_descriptor, options));
 
   // Pull over some variables_ from the value.
@@ -99,22 +96,24 @@ MapFieldGenerator::MapFieldGenerator(const FieldDescriptor* descriptor,
   variables_["default_name"] = value_field_generator_->variable("default_name");
 
   // Build custom field flags.
-  std::vector<string> field_flags;
+  std::vector<TProtoStringType> field_flags;
   field_flags.push_back("GPBFieldMapKey" + GetCapitalizedType(key_descriptor));
   // Pull over the current text format custom name values that was calculated.
   if (variables_["fieldflags"].find("GPBFieldTextFormatNameCustom") !=
-      string::npos) {
+      TProtoStringType::npos) {
     field_flags.push_back("GPBFieldTextFormatNameCustom");
   }
   // Pull over some info from the value's flags.
-  const string& value_field_flags =
+  const TProtoStringType& value_field_flags =
       value_field_generator_->variable("fieldflags");
-  if (value_field_flags.find("GPBFieldHasDefaultValue") != string::npos) {
+  if (value_field_flags.find("GPBFieldHasDefaultValue") != TProtoStringType::npos) {
     field_flags.push_back("GPBFieldHasDefaultValue");
   }
-  if (value_field_flags.find("GPBFieldHasEnumDescriptor") != string::npos) {
+  if (value_field_flags.find("GPBFieldHasEnumDescriptor") !=
+      TProtoStringType::npos) {
     field_flags.push_back("GPBFieldHasEnumDescriptor");
   }
+
   variables_["fieldflags"] = BuildFlagsString(FLAGTYPE_FIELD, field_flags);
 
   ObjectiveCType value_objc_type = GetObjectiveCType(value_descriptor);
@@ -129,7 +128,7 @@ MapFieldGenerator::MapFieldGenerator(const FieldDescriptor* descriptor,
         "NSMutableDictionary<NSString*, " +
         value_field_generator_->variable("storage_type") + "*>";
   } else {
-    string class_name("GPB");
+    TProtoStringType class_name("GPB");
     class_name += MapEntryTypeName(key_descriptor, true);
     class_name += MapEntryTypeName(value_descriptor, false);
     class_name += "Dictionary";
@@ -162,17 +161,27 @@ void MapFieldGenerator::FinishInitialization(void) {
 }
 
 void MapFieldGenerator::DetermineForwardDeclarations(
-    std::set<string>* fwd_decls) const {
+    std::set<TProtoStringType>* fwd_decls) const {
   RepeatedFieldGenerator::DetermineForwardDeclarations(fwd_decls);
   const FieldDescriptor* value_descriptor =
       descriptor_->message_type()->FindFieldByName("value");
   if (GetObjectiveCType(value_descriptor) == OBJECTIVECTYPE_MESSAGE) {
-    const string& value_storage_type =
+    const TProtoStringType& value_storage_type =
         value_field_generator_->variable("storage_type");
     fwd_decls->insert("@class " + value_storage_type);
   }
 }
 
+void MapFieldGenerator::DetermineObjectiveCClassDefinitions(
+    std::set<TProtoStringType>* fwd_decls) const {
+  // Class name is already in "storage_type".
+  const FieldDescriptor* value_descriptor =
+      descriptor_->message_type()->FindFieldByName("value");
+  if (GetObjectiveCType(value_descriptor) == OBJECTIVECTYPE_MESSAGE) {
+    fwd_decls->insert(ObjCClassDeclaration(
+        value_field_generator_->variable("storage_type")));
+  }
+}
 
 }  // namespace objectivec
 }  // namespace compiler

@@ -46,11 +46,11 @@ OneofGenerator::OneofGenerator(const OneofDescriptor* descriptor)
   variables_["enum_name"] = OneofEnumName(descriptor_);
   variables_["name"] = OneofName(descriptor_);
   variables_["capitalized_name"] = OneofNameCapitalized(descriptor_);
-  variables_["raw_index"] = SimpleItoa(descriptor_->index());
+  variables_["raw_index"] = StrCat(descriptor_->index());
   const Descriptor* msg_descriptor = descriptor_->containing_type();
   variables_["owning_message_class"] = ClassName(msg_descriptor);
 
-  string comments;
+  TProtoStringType comments;
   SourceLocation location;
   if (descriptor_->GetSourceLocation(&location)) {
     comments = BuildCommentsString(location, true);
@@ -65,7 +65,7 @@ OneofGenerator::~OneofGenerator() {}
 void OneofGenerator::SetOneofIndexBase(int index_base) {
   int index = descriptor_->index() + index_base;
   // Flip the sign to mark it as a oneof.
-  variables_["index"] = SimpleItoa(-index);
+  variables_["index"] = StrCat(-index);
 }
 
 void OneofGenerator::GenerateCaseEnum(io::Printer* printer) {
@@ -76,15 +76,15 @@ void OneofGenerator::GenerateCaseEnum(io::Printer* printer) {
   printer->Print(
       variables_,
       "$enum_name$_GPBUnsetOneOfCase = 0,\n");
-  string enum_name = variables_["enum_name"];
+  TProtoStringType enum_name = variables_["enum_name"];
   for (int j = 0; j < descriptor_->field_count(); j++) {
     const FieldDescriptor* field = descriptor_->field(j);
-    string field_name = FieldNameCapitalized(field);
+    TProtoStringType field_name = FieldNameCapitalized(field);
     printer->Print(
         "$enum_name$_$field_name$ = $field_number$,\n",
         "enum_name", enum_name,
         "field_name", field_name,
-        "field_number", SimpleItoa(field->number()));
+        "field_number", StrCat(field->number()));
   }
   printer->Outdent();
   printer->Print(
@@ -120,17 +120,17 @@ void OneofGenerator::GenerateClearFunctionImplementation(io::Printer* printer) {
   printer->Print(
       variables_,
       "void $owning_message_class$_Clear$capitalized_name$OneOfCase($owning_message_class$ *message) {\n"
-      "  GPBDescriptor *descriptor = [message descriptor];\n"
+      "  GPBDescriptor *descriptor = [$owning_message_class$ descriptor];\n"
       "  GPBOneofDescriptor *oneof = [descriptor.oneofs objectAtIndex:$raw_index$];\n"
-      "  GPBMaybeClearOneof(message, oneof, $index$, 0);\n"
+      "  GPBClearOneof(message, oneof);\n"
       "}\n");
 }
 
-string OneofGenerator::DescriptorName(void) const {
+TProtoStringType OneofGenerator::DescriptorName(void) const {
   return variables_.find("name")->second;
 }
 
-string OneofGenerator::HasIndexAsString(void) const {
+TProtoStringType OneofGenerator::HasIndexAsString(void) const {
   return variables_.find("index")->second;
 }
 

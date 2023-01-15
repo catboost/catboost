@@ -609,5 +609,7 @@ Build from source
 git clone https://github.com/catboost/catboost.git
 ```
 
-* Open the `catboost/catboost/spark/catboost4j-spark` directory from the local copy of the CatBoost repository.
-* Use [usual maven build phases](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
+* Go to `catboost/catboost/spark/catboost4j-spark` directory from the local copy of the CatBoost repository.
+* Run `python ./generate_projects/generate.py` to generate Maven projects for all supported Spark and Scala versions combinations.
+* Go to sub-directories `./projects/spark_<spark_compat_version>_<scala_compat_version>` for `spark_compat_version` and `scala_compat_version` you are interested in.
+* Use [usual maven build phases](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html) in these directories.

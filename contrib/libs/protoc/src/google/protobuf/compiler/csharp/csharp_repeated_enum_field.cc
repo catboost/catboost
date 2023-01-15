@@ -31,7 +31,6 @@
 #include <sstream>
 
 #include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/compiler/plugin.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/io/printer.h>
@@ -48,8 +47,8 @@ namespace compiler {
 namespace csharp {
 
 RepeatedEnumFieldGenerator::RepeatedEnumFieldGenerator(
-    const FieldDescriptor* descriptor, int fieldOrdinal, const Options *options)
-    : FieldGeneratorBase(descriptor, fieldOrdinal, options) {
+    const FieldDescriptor* descriptor, int presenceIndex, const Options *options)
+    : FieldGeneratorBase(descriptor, presenceIndex, options) {
 }
 
 RepeatedEnumFieldGenerator::~RepeatedEnumFieldGenerator() {
@@ -79,18 +78,30 @@ void RepeatedEnumFieldGenerator::GenerateMergingCode(io::Printer* printer) {
 }
 
 void RepeatedEnumFieldGenerator::GenerateParsingCode(io::Printer* printer) {
+  GenerateParsingCode(printer, true);
+}
+
+void RepeatedEnumFieldGenerator::GenerateParsingCode(io::Printer* printer, bool use_parse_context) {
   printer->Print(
     variables_,
-    "$name$_.AddEntriesFrom(input, _repeated_$name$_codec);\n");
+    use_parse_context
+    ? "$name$_.AddEntriesFrom(ref input, _repeated_$name$_codec);\n"
+    : "$name$_.AddEntriesFrom(input, _repeated_$name$_codec);\n");
 }
 
 void RepeatedEnumFieldGenerator::GenerateSerializationCode(io::Printer* printer) {
-  printer->Print(
-    variables_,
-    "$name$_.WriteTo(output, _repeated_$name$_codec);\n");
+  GenerateSerializationCode(printer, true);
 }
 
-void RepeatedEnumFieldGenerator::GenerateSerializedSizeCode(io::Printer* printer) {  
+void RepeatedEnumFieldGenerator::GenerateSerializationCode(io::Printer* printer, bool use_write_context) {
+  printer->Print(
+    variables_,
+    use_write_context
+    ? "$name$_.WriteTo(ref output, _repeated_$name$_codec);\n"
+    : "$name$_.WriteTo(output, _repeated_$name$_codec);\n");
+}
+
+void RepeatedEnumFieldGenerator::GenerateSerializedSizeCode(io::Printer* printer) {
   printer->Print(
     variables_,
     "size += $name$_.CalculateSize(_repeated_$name$_codec);\n");
@@ -116,6 +127,16 @@ void RepeatedEnumFieldGenerator::WriteToString(io::Printer* printer) {
 void RepeatedEnumFieldGenerator::GenerateCloningCode(io::Printer* printer) {
   printer->Print(variables_,
     "$name$_ = other.$name$_.Clone();\n");
+}
+
+void RepeatedEnumFieldGenerator::GenerateExtensionCode(io::Printer* printer) {
+  WritePropertyDocComment(printer, descriptor_);
+  AddDeprecatedFlag(printer);
+  printer->Print(
+    variables_,
+    "$access_level$ static readonly pb::RepeatedExtension<$extended_type$, $type_name$> $property_name$ =\n"
+    "  new pb::RepeatedExtension<$extended_type$, $type_name$>($number$, "
+    "pb::FieldCodec.ForEnum($tag$, x => (int) x, x => ($type_name$) x));\n");
 }
 
 void RepeatedEnumFieldGenerator::GenerateFreezingCode(io::Printer* printer) {

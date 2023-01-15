@@ -34,21 +34,18 @@
 
 #include <google/protobuf/compiler/cpp/cpp_field.h>
 #include <memory>
-#ifndef _SHARED_PTR_H
-#error #include <google/protobuf/stubs/shared_ptr.h>
-#endif
 
 #include <google/protobuf/compiler/cpp/cpp_helpers.h>
 #include <google/protobuf/compiler/cpp/cpp_primitive_field.h>
 #include <google/protobuf/compiler/cpp/cpp_string_field.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/compiler/cpp/cpp_enum_field.h>
 #include <google/protobuf/compiler/cpp/cpp_map_field.h>
 #include <google/protobuf/compiler/cpp/cpp_message_field.h>
 #include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/wire_format.h>
 #include <google/protobuf/io/printer.h>
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/wire_format.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {
@@ -59,42 +56,30 @@ namespace cpp {
 using internal::WireFormat;
 
 void SetCommonFieldVariables(const FieldDescriptor* descriptor,
-                             std::map<string, string>* variables,
+                             std::map<TProtoStringType, TProtoStringType>* variables,
                              const Options& options) {
+  SetCommonVars(options, variables);
+  (*variables)["ns"] = Namespace(descriptor, options);
   (*variables)["name"] = FieldName(descriptor);
-  (*variables)["index"] = SimpleItoa(descriptor->index());
-  (*variables)["number"] = SimpleItoa(descriptor->number());
+  (*variables)["index"] = StrCat(descriptor->index());
+  (*variables)["number"] = StrCat(descriptor->number());
   (*variables)["classname"] = ClassName(FieldScope(descriptor), false);
   (*variables)["declared_type"] = DeclaredTypeMethodName(descriptor->type());
+  (*variables)["field_member"] = FieldName(descriptor) + "_";
 
-  // non_null_ptr_to_name is usable only if has_$name$ is true.  It yields a
-  // pointer that will not be NULL.  Subclasses of FieldGenerator may set
-  // (*variables)["non_null_ptr_to_name"] differently.
-  (*variables)["non_null_ptr_to_name"] =
-      StrCat("&this->", FieldName(descriptor), "()");
+  (*variables)["tag_size"] = StrCat(
+      WireFormat::TagSize(descriptor->number(), descriptor->type()));
+  (*variables)["deprecated_attr"] = DeprecatedAttribute(options, descriptor);
 
-  (*variables)["tag_size"] = SimpleItoa(
-    WireFormat::TagSize(descriptor->number(), descriptor->type()));
-  (*variables)["deprecation"] = descriptor->options().deprecated()
-      ? " PROTOBUF_DEPRECATED" : "";
-  (*variables)["deprecated_attr"] = descriptor->options().deprecated()
-      ? "GOOGLE_PROTOBUF_DEPRECATED_ATTR " : "";
-
-  (*variables)["cppget"] = "Get";
-
-  if (HasFieldPresence(descriptor->file())) {
-    (*variables)["set_hasbit"] =
-        "set_has_" + FieldName(descriptor) + "();";
-    (*variables)["clear_hasbit"] =
-        "clear_has_" + FieldName(descriptor) + "();";
+  (*variables)["set_hasbit"] = "";
+  (*variables)["clear_hasbit"] = "";
+  if (HasHasbit(descriptor)) {
+    (*variables)["set_hasbit_io"] =
+        "_Internal::set_has_" + FieldName(descriptor) + "(&_has_bits_);";
   } else {
-    (*variables)["set_hasbit"] = "";
-    (*variables)["clear_hasbit"] = "";
+    (*variables)["set_hasbit_io"] = "";
   }
-
-  // By default, empty string, so that generic code used for both oneofs and
-  // singular fields can be written.
-  (*variables)["oneof_prefix"] = "";
+  (*variables)["annotate_accessor"] = "";
 
   // These variables are placeholders to pick out the beginning and ends of
   // identifiers for annotations (when doing so with existing variables would
@@ -104,72 +89,79 @@ void SetCommonFieldVariables(const FieldDescriptor* descriptor,
   (*variables)["}"] = "";
 }
 
-void SetCommonOneofFieldVariables(const FieldDescriptor* descriptor,
-                                  std::map<string, string>* variables) {
-  const string prefix = descriptor->containing_oneof()->name() + "_.";
-  (*variables)["oneof_prefix"] = prefix;
+void FieldGenerator::SetHasBitIndex(int32 has_bit_index) {
+  if (!HasHasbit(descriptor_)) {
+    GOOGLE_CHECK_EQ(has_bit_index, -1);
+    return;
+  }
+  variables_["set_hasbit"] = StrCat(
+      "_has_bits_[", has_bit_index / 32, "] |= 0x",
+      strings::Hex(1u << (has_bit_index % 32), strings::ZERO_PAD_8), "u;");
+  variables_["clear_hasbit"] = StrCat(
+      "_has_bits_[", has_bit_index / 32, "] &= ~0x",
+      strings::Hex(1u << (has_bit_index % 32), strings::ZERO_PAD_8), "u;");
+}
+
+void SetCommonOneofFieldVariables(
+    const FieldDescriptor* descriptor,
+    std::map<TProtoStringType, TProtoStringType>* variables) {
+  const TProtoStringType prefix = descriptor->containing_oneof()->name() + "_.";
   (*variables)["oneof_name"] = descriptor->containing_oneof()->name();
-  (*variables)["non_null_ptr_to_name"] =
+  (*variables)["field_member"] =
       StrCat(prefix, (*variables)["name"], "_");
 }
 
 FieldGenerator::~FieldGenerator() {}
 
-void FieldGenerator::
-GenerateMergeFromCodedStreamWithPacking(io::Printer* printer) const {
-  // Reaching here indicates a bug. Cases are:
-  //   - This FieldGenerator should support packing, but this method should be
-  //     overridden.
-  //   - This FieldGenerator doesn't support packing, and this method should
-  //     never have been called.
-  GOOGLE_LOG(FATAL) << "GenerateMergeFromCodedStreamWithPacking() "
-             << "called on field generator that does not support packing.";
-
-}
-
 FieldGeneratorMap::FieldGeneratorMap(const Descriptor* descriptor,
-                                     const Options& options)
-    : descriptor_(descriptor),
-      options_(options),
-      field_generators_(
-          new google::protobuf::scoped_ptr<FieldGenerator>[descriptor->field_count()]) {
+                                     const Options& options,
+                                     MessageSCCAnalyzer* scc_analyzer)
+    : descriptor_(descriptor), field_generators_(descriptor->field_count()) {
   // Construct all the FieldGenerators.
   for (int i = 0; i < descriptor->field_count(); i++) {
-    field_generators_[i].reset(MakeGenerator(descriptor->field(i), options));
+    field_generators_[i].reset(
+        MakeGenerator(descriptor->field(i), options, scc_analyzer));
   }
 }
 
-FieldGenerator* FieldGeneratorMap::MakeGenerator(const FieldDescriptor* field,
-                                                 const Options& options) {
+FieldGenerator* FieldGeneratorMap::MakeGoogleInternalGenerator(
+    const FieldDescriptor* field, const Options& options,
+    MessageSCCAnalyzer* scc_analyzer) {
+
+  return nullptr;
+}
+
+FieldGenerator* FieldGeneratorMap::MakeGenerator(
+    const FieldDescriptor* field, const Options& options,
+    MessageSCCAnalyzer* scc_analyzer) {
+  FieldGenerator* generator =
+      MakeGoogleInternalGenerator(field, options, scc_analyzer);
+  if (generator) {
+    return generator;
+  }
+
   if (field->is_repeated()) {
     switch (field->cpp_type()) {
       case FieldDescriptor::CPPTYPE_MESSAGE:
         if (field->is_map()) {
           return new MapFieldGenerator(field, options);
         } else {
-          return new RepeatedMessageFieldGenerator(field, options);
+          return new RepeatedMessageFieldGenerator(field, options,
+                                                   scc_analyzer);
         }
       case FieldDescriptor::CPPTYPE_STRING:
-        switch (field->options().ctype()) {
-          default:  // RepeatedStringFieldGenerator handles unknown ctypes.
-          case FieldOptions::STRING:
-            return new RepeatedStringFieldGenerator(field, options);
-        }
+        return new RepeatedStringFieldGenerator(field, options);
       case FieldDescriptor::CPPTYPE_ENUM:
         return new RepeatedEnumFieldGenerator(field, options);
       default:
         return new RepeatedPrimitiveFieldGenerator(field, options);
     }
-  } else if (field->containing_oneof()) {
+  } else if (field->real_containing_oneof()) {
     switch (field->cpp_type()) {
       case FieldDescriptor::CPPTYPE_MESSAGE:
-        return new MessageOneofFieldGenerator(field, options);
+        return new MessageOneofFieldGenerator(field, options, scc_analyzer);
       case FieldDescriptor::CPPTYPE_STRING:
-        switch (field->options().ctype()) {
-          default:  // StringOneofFieldGenerator handles unknown ctypes.
-          case FieldOptions::STRING:
-            return new StringOneofFieldGenerator(field, options);
-        }
+        return new StringOneofFieldGenerator(field, options);
       case FieldDescriptor::CPPTYPE_ENUM:
         return new EnumOneofFieldGenerator(field, options);
       default:
@@ -178,13 +170,9 @@ FieldGenerator* FieldGeneratorMap::MakeGenerator(const FieldDescriptor* field,
   } else {
     switch (field->cpp_type()) {
       case FieldDescriptor::CPPTYPE_MESSAGE:
-        return new MessageFieldGenerator(field, options);
+        return new MessageFieldGenerator(field, options, scc_analyzer);
       case FieldDescriptor::CPPTYPE_STRING:
-        switch (field->options().ctype()) {
-          default:  // StringFieldGenerator handles unknown ctypes.
-          case FieldOptions::STRING:
-            return new StringFieldGenerator(field, options);
-        }
+        return new StringFieldGenerator(field, options);
       case FieldDescriptor::CPPTYPE_ENUM:
         return new EnumFieldGenerator(field, options);
       default:

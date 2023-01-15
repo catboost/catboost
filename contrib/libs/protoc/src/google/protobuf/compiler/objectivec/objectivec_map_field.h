@@ -47,16 +47,20 @@ class MapFieldGenerator : public RepeatedFieldGenerator {
  public:
   virtual void FinishInitialization(void);
 
+  MapFieldGenerator(const MapFieldGenerator&) = delete;
+  MapFieldGenerator& operator=(const MapFieldGenerator&) = delete;
+
  protected:
   MapFieldGenerator(const FieldDescriptor* descriptor, const Options& options);
   virtual ~MapFieldGenerator();
 
-  virtual void DetermineForwardDeclarations(std::set<string>* fwd_decls) const;
+  virtual void DetermineObjectiveCClassDefinitions(
+      std::set<TProtoStringType>* fwd_decls) const;
+  virtual void DetermineForwardDeclarations(
+      std::set<TProtoStringType>* fwd_decls) const;
 
  private:
-  scoped_ptr<FieldGenerator> value_field_generator_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MapFieldGenerator);
+  std::unique_ptr<FieldGenerator> value_field_generator_;
 };
 
 }  // namespace objectivec

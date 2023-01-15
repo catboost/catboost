@@ -59,13 +59,15 @@ IF (OS_WINDOWS)
     ENDIF()
 ENDIF()
 
+IF (OS_DARWIN AND ARCH_ARM64)
+    SET(DARWIN_ARM64 yes)
+ENDIF()
+
 NO_COMPILER_WARNINGS()
 
 NO_RUNTIME()
 
 CFLAGS(
-    -DDSO_NONE
-    -DAESNI_ASM
     -DOPENSSL_BN_ASM_MONT
     -DOPENSSL_CPUID_OBJ
     -DSHA1_ASM
@@ -73,6 +75,13 @@ CFLAGS(
     -DSHA512_ASM
     -DZLIB
 )
+
+IF (NOT IOS_ARM64 AND NOT DARWIN_ARM64)
+    CFLAGS(
+        -DDSO_NONE
+        -DAESNI_ASM
+    )
+ENDIF()
 
 IF (NOT WINDOWS_I686)
     CFLAGS(
@@ -893,6 +902,7 @@ IF (OS_DARWIN AND ARCH_ARM64)
         bn/bn_asm.c
         camellia/camellia.c
         camellia/cmll_cbc.c
+        dso/dso_dlfcn.c
         rc4/rc4_enc.c
         rc4/rc4_skey.c
         whrlpool/wp_block.c

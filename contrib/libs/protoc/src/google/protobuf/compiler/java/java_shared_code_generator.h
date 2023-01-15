@@ -36,9 +36,6 @@
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_SHARED_CODE_GENERATOR_H__
 
 #include <memory>
-#ifndef _SHARED_PTR_H
-#error #include <google/protobuf/stubs/shared_ptr.h>
-#endif
 #include <string>
 #include <vector>
 
@@ -47,18 +44,20 @@
 
 namespace google {
 namespace protobuf {
-  class FileDescriptor;        // descriptor.h
-  namespace compiler {
-    class GeneratorContext;    // code_generator.h
-    namespace java {
-      class ClassNameResolver;       // name_resolver.h
-    }
-  }
-  namespace io {
-    class Printer;             // printer.h
-  }
+class FileDescriptor;  // descriptor.h
+namespace compiler {
+class GeneratorContext;  // code_generator.h
+namespace java {
+class ClassNameResolver;  // name_resolver.h
 }
+}  // namespace compiler
+namespace io {
+class Printer;  // printer.h
+}
+}  // namespace protobuf
+}  // namespace google
 
+namespace google {
 namespace protobuf {
 namespace compiler {
 namespace java {
@@ -71,22 +70,21 @@ class SharedCodeGenerator {
   ~SharedCodeGenerator();
 
   void Generate(GeneratorContext* generator_context,
-                std::vector<string>* file_list,
-                std::vector<string>* annotation_file_list);
+                std::vector<TProtoStringType>* file_list,
+                std::vector<TProtoStringType>* annotation_file_list);
 
   void GenerateDescriptors(io::Printer* printer);
 
  private:
-  google::protobuf::scoped_ptr<ClassNameResolver> name_resolver_;
+  std::unique_ptr<ClassNameResolver> name_resolver_;
   const FileDescriptor* file_;
   const Options options_;
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(SharedCodeGenerator);
 };
 
-
 }  // namespace java
 }  // namespace compiler
 }  // namespace protobuf
-
 }  // namespace google
+
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_SHARED_CODE_GENERATOR_H__

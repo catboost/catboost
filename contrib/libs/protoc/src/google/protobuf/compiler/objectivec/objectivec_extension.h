@@ -31,39 +31,37 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_EXTENSION_H__
 #define GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_EXTENSION_H__
 
-#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/printer.h>
 
 namespace google {
-namespace protobuf {
-class FieldDescriptor;  // descriptor.h
-namespace io {
-class Printer;  // printer.h
-}
-}
-
 namespace protobuf {
 namespace compiler {
 namespace objectivec {
 
 class ExtensionGenerator {
  public:
-  ExtensionGenerator(const string& root_class_name,
+  ExtensionGenerator(const TProtoStringType& root_class_name,
                      const FieldDescriptor* descriptor);
   ~ExtensionGenerator();
+
+  ExtensionGenerator(const ExtensionGenerator&) = delete;
+  ExtensionGenerator& operator=(const ExtensionGenerator&) = delete;
 
   void GenerateMembersHeader(io::Printer* printer);
   void GenerateStaticVariablesInitialization(io::Printer* printer);
   void GenerateRegistrationSource(io::Printer* printer);
+  void DetermineObjectiveCClassDefinitions(std::set<TProtoStringType>* fwd_decls);
 
  private:
-  string method_name_;
-  string root_class_and_method_name_;
+  TProtoStringType method_name_;
+  TProtoStringType root_class_and_method_name_;
   const FieldDescriptor* descriptor_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionGenerator);
 };
+
 }  // namespace objectivec
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_MESSAGE_H__

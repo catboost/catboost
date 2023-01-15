@@ -31,7 +31,6 @@
 #include <sstream>
 
 #include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/compiler/plugin.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/io/printer.h>
@@ -60,7 +59,7 @@ void SourceGeneratorBase::WriteGeneratedCodeAttributes(io::Printer* printer) {
 }
 
 TProtoStringType SourceGeneratorBase::class_access_level() {
-  return (IsDescriptorProto(descriptor_) || this->options()->internal_access) ? "internal" : "public";
+  return this->options()->internal_access ? "internal" : "public";
 }
 
 const Options* SourceGeneratorBase::options() {
