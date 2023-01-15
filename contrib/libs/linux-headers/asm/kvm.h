@@ -1,5 +1,5 @@
 #if defined(__arm__)
-#include "kvm_arm.h"
+#error unavailable for arm
 #elif defined(__aarch64__)
 #include "kvm_arm64.h"
 #elif defined(__powerpc__)
