@@ -7091,10 +7091,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [
-                    972161282,
-                    972161254
-                ],
+                "sandbox_id": 999930595,
                 "match": "yo"
             },
             "executable": {
