@@ -71,8 +71,9 @@
 #include <stdio.h>
 
 #include <algorithm>
-#include <util/generic/string.h>
+#include <string>
 #include <vector>
+#include <util/generic/string.h>
 
 namespace snappy {
 
@@ -1342,7 +1343,7 @@ bool RawUncompress(Source* compressed, char* uncompressed) {
   return InternalUncompress(compressed, &output);
 }
 
-bool Uncompress(const char* compressed, size_t n, TString* uncompressed) {
+bool Uncompress(const char* compressed, size_t n, std::string* uncompressed) {
   size_t ulength;
   if (!GetUncompressedLength(compressed, n, &ulength)) {
     return false;
@@ -1354,6 +1355,20 @@ bool Uncompress(const char* compressed, size_t n, TString* uncompressed) {
   }
   STLStringResizeUninitialized(uncompressed, ulength);
   return RawUncompress(compressed, n, string_as_array(uncompressed));
+}
+
+bool Uncompress(const char* compressed, size_t n, TString* uncompressed) {
+  size_t ulength;
+  if (!GetUncompressedLength(compressed, n, &ulength)) {
+    return false;
+  }
+  // On 32-bit builds: max_size() < kuint32max.  Check for that instead
+  // of crashing (e.g., consider externally specified compressed data).
+  if (ulength > uncompressed->max_size()) {
+    return false;
+  }
+  uncompressed->ReserveAndResize(ulength);
+  return RawUncompress(compressed, n, uncompressed->begin());
 }
 
 // A Writer that drops everything on the floor and just does validation
@@ -1411,12 +1426,24 @@ void RawCompress(const char* input,
 }
 
 size_t Compress(const char* input, size_t input_length,
-                TString* compressed) {
+                std::string* compressed) {
   // Pre-grow the buffer to the max length of the compressed output
   STLStringResizeUninitialized(compressed, MaxCompressedLength(input_length));
 
   size_t compressed_length;
   RawCompress(input, input_length, string_as_array(compressed),
+              &compressed_length);
+  compressed->resize(compressed_length);
+  return compressed_length;
+}
+
+size_t Compress(const char* input, size_t input_length,
+                TString* compressed) {
+  // Pre-grow the buffer to the max length of the compressed output
+  compressed->ReserveAndResize(MaxCompressedLength(input_length));
+
+  size_t compressed_length;
+  RawCompress(input, input_length, compressed->begin(),
               &compressed_length);
   compressed->resize(compressed_length);
   return compressed_length;

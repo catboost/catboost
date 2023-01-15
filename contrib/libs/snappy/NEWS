@@ -2,7 +2,7 @@ Snappy v1.1.8, January 15th 2020:
 
   * Small performance improvements.
 
-  * Removed snappy::string alias for TString.
+  * Removed snappy::string alias for std::string.
 
   * Improved CMake configuration.
 
