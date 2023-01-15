@@ -76,7 +76,7 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
        - Module [PY3_LIBRARY](#module_PY3_LIBRARY)
        - Module [PY3_PROGRAM](#module_PY3_PROGRAM)
        - Module [PYCR_PROGRAM](#module_PYCR_PROGRAM)
-       - Module [PYTEST_BIN](#module_PYTEST_BIN)
+       - Module [PY2TEST_BIN](#module_PY2TEST_BIN)
        - Module [PY_ANY_MODULE](#module_PY_ANY_MODULE)
        - Module [PY_PACKAGE](#module_PY_PACKAGE)
        - Module [RECURSIVE_LIBRARY](#module_RECURSIVE_LIBRARY)
@@ -102,8 +102,8 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
        - Module [Y_BENCHMARK](#module_Y_BENCHMARK)
        - Module [_BASE_PROGRAM](#module__BASE_PROGRAM)
        - Module [_BASE_PY3_PROGRAM](#module__BASE_PY3_PROGRAM)
-       - Module [_BASE_PYTEST](#module__BASE_PYTEST)
-       - Module [_BASE_PY_PROGRAM](#module__BASE_PY_PROGRAM)
+       - Module [_BASE_PY2TEST](#module__BASE_PY2TEST)
+       - Module [_BASE_PY2_PROGRAM](#module__BASE_PY2_PROGRAM)
        - Module [_BASE_UNIT](#module__BASE_UNIT)
        - Module [_BASE_UNITTEST](#module__BASE_UNITTEST)
        - Module [_DLL_COMPATIBLE_LIBRARY](#module__DLL_COMPATIBLE_LIBRARY)
@@ -158,7 +158,7 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
        - Macros [SRC_C_SSSE3](#macro_SRC_C_SSSE3) .. [TASKLET](#macro_TASKLET)
        - Macros [TASKLET_REG](#macro_TASKLET_REG) .. [UBERJAR_APPENDING_TRANSFORMER](#macro_UBERJAR_APPENDING_TRANSFORMER)
        - Macros [UBERJAR_HIDE_EXCLUDE_PATTERN](#macro_UBERJAR_HIDE_EXCLUDE_PATTERN) .. [USE_ERROR_PRONE](#macro_USE_ERROR_PRONE)
-       - Macros [USE_EXT_PROTO](#macro_USE_EXT_PROTO) .. [USE_PYTHON3](#macro_USE_PYTHON3)
+       - Macros [USE_EXT_PROTO](#macro_USE_EXT_PROTO) .. [USE_PYTHON23](#macro_USE_PYTHON23)
        - Macros [USE_RECIPE](#macro_USE_RECIPE) .. [WITH_JDK](#macro_WITH_JDK)
        - Macros [WITH_KOTLIN](#macro_WITH_KOTLIN) .. [YQL_LAST_ABI_VERSION](#macro_YQL_LAST_ABI_VERSION)
        - Macros [YT_SPEC](#macro_YT_SPEC) .. [_BUILDWITH_CYTHON_CPP_DEP](#macro__BUILDWITH_CYTHON_CPP_DEP)
@@ -582,7 +582,7 @@ Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
 The test module for Python 3.x based on py.test
 
 This module is compatible only with PYTHON3-tagged modules and selects peers from multimodules accordingly.
-This module is only compatible with Arcadia Python build (to avoid tests duplication from Python2/3-tests). For non-Arcadia python use PYTEST.
+This module is only compatible with Arcadia Python build (to avoid tests duplication from Python2/3-tests). For non-Arcadia python use PY2TEST.
 
 Documentation: https://wiki.yandex-team.ru/yatool/test/#testynapytest
 Documentation about the Arcadia test system: https://wiki.yandex-team.ru/yatool/test/
@@ -609,7 +609,7 @@ Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
 pycare-specific program module. Generates pycare configs in addition to producing the program.
 If name is not specified it will be generated from the name of the containing project directory.
 
-###### Module [PYTEST\_BIN][]() _#deprecated_ <a name="module_PYTEST_BIN"></a>
+###### Module [PY2TEST\_BIN][]() _#deprecated_ <a name="module_PY2TEST_BIN"></a>
 Same as PY2TEST. Don't use this, use PY2TEST instead.
 
 ###### Module [PY\_ANY\_MODULE][](name major\_ver [minor\_ver] [EXPORTS symlist\_file] [PREFIX prefix]) <a name="module_PY_ANY_MODULE"></a>
@@ -764,10 +764,10 @@ This only compatible with PYTHON3-tagged modules and selects those from multimod
 
 Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs/
 
-###### Module [\_BASE\_PYTEST][]  _# internal_ <a name="module__BASE_PYTEST"></a>
+###### Module [\_BASE\_PY2TEST][]  _# internal_ <a name="module__BASE_PY2TEST"></a>
 Base logic of Python 2.x py.test modules: common module properties and dependencies.
 
-###### Module [\_BASE\_PY\_PROGRAM][] _#internal_ <a name="module__BASE_PY_PROGRAM"></a>
+###### Module [\_BASE\_PY\_PROGRAM][] _#internal_ <a name="module__BASE_PY2_PROGRAM"></a>
 The base module for all Python 2.x binary programs. Adds linking logic, relevant module properties and
 dependency on Python 2.x interpreter. Also adds import tests on all sources including PEERDIR'ed libraries.
 Links all Python 2.x libraries and Python 2.x interpreter into itself to form regular executable.
@@ -893,10 +893,10 @@ Not documented yet.
 ###### Macro [ADD\_PERL\_MODULE][](Dir ModuleName) <a name="macro_ADD_PERL_MODULE"></a>
 Add dependency on specified Perl module to the library
 
-###### Macro [ADD\_PYTEST\_BIN][] <a name="macro_ADD_PYTEST_BIN"></a>
+###### Macro [ADD\_PY2TEST\_BIN][] <a name="macro_ADD_PY2TEST_BIN"></a>
 Not documented yet.
 
-###### Macro [ADD\_PYTEST\_SCRIPT][] <a name="macro_ADD_PYTEST_SCRIPT"></a>
+###### Macro [ADD\_PY2TEST\_SCRIPT][] <a name="macro_ADD_PY2TEST_SCRIPT"></a>
 Not documented yet.
 
 ###### Macro [ADD\_WAR][]([INCLUDE Path Pattern...] [EXCLUDE Path Pattern...] [INCLUDE\_DEFAULT Pattern...] [EXCLUDE\_DEFAULT Pattern...]) <a name="macro_ADD_WAR"></a>
@@ -2392,7 +2392,7 @@ Sets varname to value
 ###### Macro [SETUP\_EXECTEST][] <a name="macro_SETUP_EXECTEST"></a>
 Not documented yet.
 
-###### Macro [SETUP\_PYTEST\_BIN][] <a name="macro_SETUP_PYTEST_BIN"></a>
+###### Macro [SETUP\_PY2TEST\_BIN][] <a name="macro_SETUP_PY2TEST_BIN"></a>
 Not documented yet.
 
 ###### Macro [SETUP\_RUN\_PYTHON][] <a name="macro_SETUP_RUN_PYTHON"></a>
@@ -2687,7 +2687,7 @@ Add dependency on Perl 5.14 to your LIBRARY
 ###### Macro [USE\_PERL\_LIB][]() <a name="macro_USE_PERL_LIB"></a>
 Add dependency on Perl to your LIBRARY
 
-###### Macro [USE\_PYTHON2][]() <a name="macro_USE_PYTHON2"></a>
+###### Macro [USE\_PYTHON2][]() <a name="macro_USE_PYTHON22"></a>
 This adds Python 2.x runtime library to your LIBRARY and makes it Python2-compatible.
 Compatibility means proper PEERDIRs, ADDINCLs and variant selection on PEERDIRs to multimodules.
 
@@ -2697,7 +2697,7 @@ If you'd like to use #include <Python.h> with both Python2 and Python3 convert y
 
 @see: [PY2\_LIBRARY](#module\_PY2\_LIBRARY), [PY3\_LIBRARY](#module\_PY3\_LIBRARY), [PY23\_LIBRARY](#multimodule\_PY23\_LIBRARY)
 
-###### Macro [USE\_PYTHON3][]() <a name="macro_USE_PYTHON3"></a>
+###### Macro [USE\_PYTHON3][]() <a name="macro_USE_PYTHON23"></a>
 This adds Python3 library to your LIBRARY and makes it Python3-compatible.
 Compatibility means proper PEERDIRs, ADDINCLs and variant selection on PEERDIRs to multimodules.
 
@@ -2810,7 +2810,7 @@ https://yql.yandex-team.ru/docs/yt/udf/cpp/
 ###### Macro [\_ARCADIA\_PYTHON3\_ADDINCL][]()  _# internal_ <a name="macro__ARCADIA_PYTHON3_ADDINCL"></a>
 This macro sets up Python3 headers for modules with Arcadia python (e.g. PY3\_LIBRARY) and configures module as Python 3.x.
 
-###### Macro [\_ARCADIA\_PYTHON\_ADDINCL][]()  _# internal_ <a name="macro__ARCADIA_PYTHON_ADDINCL"></a>
+###### Macro [\_ARCADIA\_PYTHON\_ADDINCL][]()  _# internal_ <a name="macro__ARCADIA_PYTHON2_ADDINCL"></a>
 This macro sets up Python headers for modules with Arcadia python (e.g. PY2\_LIBRARY) and configures module as Python 2.x.
 
 ###### Macro [\_BARE\_LINK\_MODULE][]() _# internal_ <a name="macro__BARE_LINK_MODULE"></a>
@@ -3037,7 +3037,7 @@ Not documented yet.
 ###### Macro \_PYTHON\_ADDINCL()  _# internal_ <a name="macro__PYTHON3_ADDINCL"></a>
 This macro sets up Python 3.x headers for both Arcadia and non-Arcadia python.
 
-###### Macro [\_PYTHON\_ADDINCL][]()  _# internal_ <a name="macro__PYTHON_ADDINCL"></a>
+###### Macro [\_PYTHON\_ADDINCL][]()  _# internal_ <a name="macro__PYTHON2_ADDINCL"></a>
 This macro sets up Python 2.x headers for both Arcadia and non-Arcadia python.
 
 ###### Macro [\_PY\_COMPILE\_BYTECODE][](SrcX Src) _# internal_ <a name="macro__PY_COMPILE_BYTECODE"></a>
@@ -3363,7 +3363,7 @@ Not documented yet.
  [PY3\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L3289
  [PY3\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1478
  [PYCR\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1516
- [PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1839
+ [PY2TEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1839
  [PY\_ANY\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L2207
  [PY\_PACKAGE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L2827
  [RECURSIVE\_LIBRARY]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L2135
@@ -3389,7 +3389,7 @@ Not documented yet.
  [Y\_BENCHMARK]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1958
  [\_BASE\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1397
  [\_BASE\_PY3\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L3363
- [\_BASE\_PYTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1821
+ [\_BASE\_PY2TEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1821
  [\_BASE\_PY\_PROGRAM]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L3315
  [\_BASE\_UNIT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L973
  [\_BASE\_UNITTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L1543
@@ -3426,8 +3426,8 @@ Not documented yet.
  [ADD\_COMPILABLE\_TRANSLIT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L4198
  [ADD\_DLLS\_TO\_JAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L3695
  [ADD\_PERL\_MODULE]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L4086
- [ADD\_PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L580
- [ADD\_PYTEST\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L555
+ [ADD\_PY2TEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L580
+ [ADD\_PY2TEST\_SCRIPT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L555
  [ADD\_WAR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L3588
  [ADD\_YTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L361
  [ALLOCATOR]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L4114
@@ -3737,7 +3737,7 @@ Not documented yet.
  [SECONDARY\_OUTPUT]: https://a.yandex-team.ru/arc/trunk/arcadia/build/ymake.core.conf?rev=8171758#L6807
  [SET]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8171758#L14
  [SETUP\_EXECTEST]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L860
- [SETUP\_PYTEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L844
+ [SETUP\_PY2TEST\_BIN]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L844
  [SETUP\_RUN\_PYTHON]: https://a.yandex-team.ru/arc/trunk/arcadia/build/plugins/ytest.py?rev=8171758#L872
  [SET\_APPEND]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8171758#L14
  [SET\_APPEND\_WITH\_GLOBAL]: https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ymake/yndex/builtin.cpp?rev=8171758#L14
