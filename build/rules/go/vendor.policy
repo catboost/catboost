@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2177 testing helpers for terraform
+ALLOW .* -> vendor/github.com/gruntwork-io/terratest/modules/terraform
+
 # CONTRIB-2078 provides functions to retrieve system, kernel and process metrics from the pseudo-filesystem proc.
 ALLOW .* -> vendor/github.com/prometheus/procfs
 
