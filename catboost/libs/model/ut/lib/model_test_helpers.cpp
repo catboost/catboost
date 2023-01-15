@@ -377,9 +377,7 @@ TFullModel SimpleAsymmetricModel() {
     return model;
 }
 
-TFullModel TrainCatOnlyModel() {
-    TTempDir trainDir;
-
+TFullModel DefaultTrainCatOnlyModel(const NJson::TJsonValue& params) {
     TDataProviders dataProviders;
     dataProviders.Learn = CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
@@ -395,9 +393,9 @@ TFullModel TrainCatOnlyModel() {
 
             visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
 
-            visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"a", "b", "c"});
-            visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "e", "f"});
-            visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"g", "h", "k"});
+            visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"a", "a", "b"});
+            visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "c", "d"});
+            visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"e", "f", "f"});
 
             visitor->AddTarget(
                 MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{1.0f, 0.0f, 0.2f})
@@ -410,10 +408,7 @@ TFullModel TrainCatOnlyModel() {
 
     TFullModel model;
     TEvalResult evalResult;
-    NJson::TJsonValue params;
-    params.InsertValue("iterations", 5);
-    params.InsertValue("random_seed", 1);
-    params.InsertValue("train_dir", trainDir.Name());
+
     TrainModel(
         params,
         nullptr,
@@ -428,6 +423,25 @@ TFullModel TrainCatOnlyModel() {
     );
 
     return model;
+}
+
+TFullModel TrainCatOnlyModel() {
+    TTempDir trainDir;
+    NJson::TJsonValue params;
+    params.InsertValue("iterations", 5);
+    params.InsertValue("random_seed", 1);
+    params.InsertValue("train_dir", trainDir.Name());
+    return DefaultTrainCatOnlyModel(params);
+}
+
+TFullModel TrainCatOnlyNoOneHotModel() {
+    TTempDir trainDir;
+    NJson::TJsonValue params;
+    params.InsertValue("iterations", 5);
+    params.InsertValue("random_seed", 1);
+    params.InsertValue("train_dir", trainDir.Name());
+    params.InsertValue("one_hot_max_size", 0);
+    return DefaultTrainCatOnlyModel(params);
 }
 
 TFullModel MultiValueFloatModel() {

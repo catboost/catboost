@@ -40,13 +40,15 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
     }
 
     Y_UNIT_TEST(TestSerializeDeserializeFullModelNonOwning) {
-        TFullModel model = TrainFloatCatboostModel();
-
-        TStringStream strStream;
-        model.Save(&strStream);
-        TFullModel deserializedModel;
-        deserializedModel.InitNonOwning(strStream.Data(), strStream.Size());
-        UNIT_ASSERT_EQUAL(model, deserializedModel);
+        auto check = [&](const TFullModel& model) {
+            TStringStream strStream;
+            model.Save(&strStream);
+            TFullModel deserializedModel;
+            deserializedModel.InitNonOwning(strStream.Data(), strStream.Size());
+            UNIT_ASSERT_EQUAL(model, deserializedModel);
+        };
+        check(TrainFloatCatboostModel());
+        check(TrainCatOnlyNoOneHotModel());
     }
 
     Y_UNIT_TEST(TestSerializeDeserializeCoreML) {

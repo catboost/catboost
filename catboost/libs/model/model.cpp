@@ -711,11 +711,10 @@ void TModelTrees::FBDeserializeNonOwning(const NCatBoostFbs::TModelTrees* fbObj)
     SetScaleAndBias(fbObj);
 
 #define ENSURE_NO_FEATURE(var) \
-    CB_ENSURE(!fbObj->var() || !fbObj->var()->size(), "Model contains not float or oneHot features")
+    CB_ENSURE(!fbObj->var() || !fbObj->var()->size(), "Model contains not float/oneHot/cat features")
 
     ENSURE_NO_FEATURE(TextFeatures);
     ENSURE_NO_FEATURE(EstimatedFeatures);
-    ENSURE_NO_FEATURE(CtrFeatures);
 #undef ENSURE_NO_FEATURE
 
     DeserializeFeatures(fbObj);
@@ -1095,23 +1094,17 @@ void TFullModel::Load(IInputStream* s) {
 }
 
 void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
-    CB_ENSURE(binarySize > 8, "Invalid binary size");
-
     using namespace flatbuffers;
     using namespace NCatBoostFbs;
-    ui32 fileDescriptor = *static_cast<const ui32*>(binaryBuffer);
+
+    TMemoryInput in(binaryBuffer, binarySize);
+    ui32 fileDescriptor;
+    ::Load(&in, fileDescriptor);
     CB_ENSURE(fileDescriptor == GetModelFormatDescriptor(), "Incorrect model file descriptor");
 
-    auto dataPtr = static_cast<const ui8*>(binaryBuffer);
-    size_t coreSize = *reinterpret_cast<const ui32*>(dataPtr+4);
-    const ui8* fbPtr = static_cast<const ui8*>(coreSize == 0xffffffff ? dataPtr+16 : dataPtr+8);
-    if (coreSize == 0xffffffff) {
-        CB_ENSURE(binarySize > 12, "Invalid binary size");
-        coreSize = *reinterpret_cast<const ui64*>(dataPtr+8);
-        CB_ENSURE(coreSize + 16 == binarySize, "Invalid binary size");
-    } else {
-        CB_ENSURE(coreSize + 8 == binarySize, "Invalid binary size");
-    }
+    size_t coreSize = ::LoadSize(&in);
+    const ui8* fbPtr = reinterpret_cast<const ui8*>(in.Buf());
+    in.Skip(coreSize);
 
     {
         flatbuffers::Verifier verifier(fbPtr, coreSize, 64 /* max depth */, 256000000 /* max tables */);
@@ -1125,7 +1118,30 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
         ModelTrees.GetMutable()->FBDeserializeNonOwning(fbModelCore->ModelTrees());
     }
 
-    CB_ENSURE(!fbModelCore->ModelPartIds() || !fbModelCore->ModelPartIds()->size(), "Model contains not float or oneHot features");
+    TVector<TString> modelParts;
+    if (fbModelCore->ModelPartIds()) {
+        for (auto part : *fbModelCore->ModelPartIds()) {
+            modelParts.emplace_back(part->str());
+        }
+    }
+
+    if (!modelParts.empty()) {
+        for (const auto& modelPartId : modelParts) {
+            if (modelPartId == TStaticCtrProvider::ModelPartId()) {
+                auto ptr = new TStaticCtrProvider;
+                CtrProvider = ptr;
+                ptr->LoadNonOwning(&in);
+            } else if (modelPartId == NCB::TTextProcessingCollection::GetStringIdentifier()) {
+                CB_ENSURE(false, "Model contains not float/oneHot/cat features");
+            } else {
+                CB_ENSURE(
+                        false,
+                        "Got unknown partId = " << modelPartId << " via deserialization"
+                                                << "only static ctr and text processing collection model parts are supported"
+                );
+            }
+        }
+    }
     UpdateDynamicData();
 }
 

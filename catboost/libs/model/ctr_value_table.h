@@ -99,7 +99,7 @@ public:
     void Load(IInputStream* s);
 
     void LoadSolid(void* buf, size_t length);
-
+    void LoadThin(TMemoryInput* in);
 public:
     TModelCtrBase ModelCtrBase;
     int CounterDenominator = 0;

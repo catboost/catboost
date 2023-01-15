@@ -1133,8 +1133,6 @@ cdef extern from "catboost/libs/model/model.h":
         TVector[TJsonValue] GetModelClassLabels() except +ProcessException
         TScaleAndBias GetScaleAndBias() except +ProcessException
         void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
-
-        @staticmethod
         void InitNonOwning(const void* binaryBuffer, size_t binarySize) except +ProcessException
 
     cdef cppclass EModelType:
