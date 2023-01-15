@@ -37,7 +37,7 @@ integer type, which means that arithmetical operations must be defined for it.
 serialize the value type to a continuous memory buffer, deserialize it
 back, and quickly determine its size using the pointer to the beginning of this
 memory buffer. Good packers have already been written for most types, and they are available in
-library/packers. For more information, please refer to the documentation for these packers.
+library/cpp/packers. For more information, please refer to the documentation for these packers.
 
 The set.h file defines a modification for cases when keys must be stored
 without values.

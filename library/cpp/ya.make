@@ -68,6 +68,9 @@ RECURSE(
     lfalloc/dbg
     lfalloc/dbg_info
     lfalloc/yt
+    linear_regression
+    linear_regression/benchmark
+    linear_regression/ut
     logger
     logger/global
     logger/global/ut
@@ -75,6 +78,8 @@ RECURSE(
     malloc
     on_disk
     openssl
+    packers
+    packers/ut
     par
     pop_count
     pop_count/benchmark

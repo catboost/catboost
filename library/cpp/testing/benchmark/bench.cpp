@@ -5,7 +5,7 @@
 #include <library/cpp/colorizer/output.h>
 #include <library/cpp/getopt/small/last_getopt.h>
 #include <library/cpp/json/json_value.h>
-#include <library/linear_regression/linear_regression.h>
+#include <library/cpp/linear_regression/linear_regression.h>
 #include <library/cpp/threading/poor_man_openmp/thread_helper.h>
 
 #include <util/system/hp_timer.h>
