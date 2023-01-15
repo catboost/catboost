@@ -128,13 +128,8 @@ namespace NCB {
                 ui32 columnNumber;
                 TString columnName;
                 ParseOutputColumnByIndex(name, &columnNumber, &columnName);
-                if (pool.MetaInfo.ColumnsInfo.Defined()) {
-                    CB_ENSURE(columnNumber < pool.MetaInfo.ColumnsInfo->Columns.size(),
-                              "column number " << columnNumber << " is out of range");
-                } else {
-                    CB_ENSURE(columnNumber < pool.MetaInfo.FeaturesLayout->GetExternalFeatureCount(),
+                CB_ENSURE(columnNumber < pool.MetaInfo.FeaturesLayout->GetExternalFeatureCount(),
                         "column number " << columnNumber << " is out of range");
-                }
             } else {
                 CB_ENSURE(featureIds.contains(name), "Pool doesn't has column with name `" << name << "`.");
                 CB_ENSURE(notQuantizedPool,
@@ -295,7 +290,7 @@ namespace NCB {
                 ParseOutputColumnByIndex(outputColumn, &columnNumber, &columnName);
 
                 columnPrinter.push_back(
-                    MakeHolder<TNumColumnPrinter>(
+                    MakeHolder<TFeatureColumnPrinter>(
                         poolColumnsPrinter,
                         columnNumber,
                         columnName,

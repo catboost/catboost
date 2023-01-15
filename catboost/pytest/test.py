@@ -7608,8 +7608,6 @@ def test_apply_output_column_by_idx():
     execute_catboost_fit('CPU', cmd)
 
     column_names = [
-        'User_ID',
-        'Product_ID',
         'Gender',
         'Age',
         'Occupation',
@@ -7619,10 +7617,10 @@ def test_apply_output_column_by_idx():
         'Product_Category_1',
         'Product_Category_2',
         'Product_Category_3',
-        'Purchase'
     ]
-    output_columns = ','.join(['#{}:{}'.format(idx, name) for idx, name in enumerate(column_names)])
-    output_columns = 'RawFormulaVal,' + output_columns
+    output_columns = ['#{}:{}'.format(idx, name) for idx, name in enumerate(column_names)]
+    output_columns = ['RawFormulaVal'] + ['GroupId', 'SampleId'] + output_columns + ['Label']
+    output_columns = ','.join(output_columns)
 
     cmd = (
         CATBOOST_PATH, 'calc',
@@ -7636,8 +7634,10 @@ def test_apply_output_column_by_idx():
     yatest.common.execute(cmd)
 
     with open(output_eval_path, 'r') as f:
+        f.readline()
         eval_lines = f.readlines()
     with open(test, 'r') as f:
+        f.readline()
         test_lines = f.readlines()
 
     assert len(eval_lines) == len(test_lines)

@@ -802,7 +802,7 @@ cdef extern from "catboost/private/libs/algo/roc_curve.h":
 
         void Output(const TString& outputPath) except +ProcessException
 
-cdef extern from "catboost/libs/eval_result/eval_helpers.h":
+cdef extern from "catboost/libs/eval_result/eval_helpers.h" namespace "NCB":
     cdef TVector[TVector[double]] PrepareEval(
         const EPredictionType predictionType,
         const TMaybe[TString]& lossFunctionName,
