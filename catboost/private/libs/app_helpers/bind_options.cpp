@@ -742,15 +742,16 @@ static void BindFeaturesSelectParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         });
     parser
         .AddLongOption("features-selection-algorithm")
-        .Help("Which algorithm to use for features selection.")
+        .Help(TString::Join(
+            "Which algorithm to use for features selection.\n",
+            "Should be one of: ", GetEnumAllNames<EFeaturesSelectionAlgorithm>()))
         .Handler1T<EFeaturesSelectionAlgorithm>([plainJsonPtr](const auto algorithm) {
             (*plainJsonPtr)["features_selection_algorithm"] = ToString(algorithm);
         });
     parser
         .AddLongOption("shap-calc-type")
         .DefaultValue("Regular")
-        .Help(TString::Join(
-            "Should be one of: ", GetEnumAllNames<ECalcTypeShapValues>()))
+        .Help("Should be one of: 'Approximate', 'Regular', 'Exact'.")
         .Handler1T<ECalcTypeShapValues>([plainJsonPtr](const ECalcTypeShapValues calcType) {
             (*plainJsonPtr)["shap_calc_type"] = ToString(calcType);
         });
