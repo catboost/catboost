@@ -682,6 +682,8 @@ def do_link_test(args):
 
     test_lib_args = copy_args(args) if args.srcs else None
     xtest_lib_args = copy_args(args) if args.xtest_srcs else None
+    if xtest_lib_args is not None:
+        xtest_lib_args.embed = args.embed_xtest if args.embed_xtest else None
 
     ydx_file_name = None
     xtest_ydx_file_name = None
@@ -727,6 +729,7 @@ def do_link_test(args):
     with open(test_main_name, "w") as f:
         f.write(test_main_content)
     test_args = copy_args(args)
+    test_args.embed = None
     test_args.srcs = [test_main_name]
     if test_args.test_import_path is None:
         # it seems that we can do it unconditionally, but this kind
@@ -792,6 +795,7 @@ if __name__ == '__main__':
     parser.add_argument('++ydx-file', default='')
     parser.add_argument('++debug-root-map', default=None)
     parser.add_argument('++embed', action='append', nargs='*')
+    parser.add_argument('++embed_xtest', action='append', nargs='*')
     args = parser.parse_args(args)
 
     arc_project_prefix = args.arc_project_prefix
