@@ -2037,6 +2037,7 @@ class LD(Linker):
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
         emit_link_fat_obj('LINK_FAT_OBJECT', '--obj=$TARGET', '--lib=${output:REALPRJNAME.a}')
         emit_link_fat_obj('LINK_RECURSIVE_LIBRARY', '--lib=$TARGET', '--with-own-obj', '--with-global-srcs')
+        emit_link_fat_obj('LINK_FAT_OBJECT_LIBRARY', '--lib=$TARGET', '$FAT_OBJECT_ARGS', '$FAT_OBJECT_OUTS')
 
         emit('LIBRT', '-lrt')
         emit('MD5LIB', '-lcrypt')
