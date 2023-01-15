@@ -1249,6 +1249,9 @@ class GnuCompiler(Compiler):
         if self.target.is_linux or self.target.is_android or self.target.is_cygwin:
             self.c_defines.append('-D_GNU_SOURCE')
 
+        if self.tc.is_clang and self.target.is_linux and self.target.is_x86_64:
+            self.c_defines.append('-D_YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE')
+
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
             if self.tc.version_at_least(7):

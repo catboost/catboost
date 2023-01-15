@@ -273,11 +273,21 @@ void TBackTrace::Capture() {
 }
 
 void TBackTrace::PrintTo(IOutputStream& out) const {
-    FormatBackTrace(&out, Data, Size);
+    FormatBackTraceFn(&out, Data, Size);
 }
 
 TString TBackTrace::PrintToString() const {
     TStringStream ss;
     PrintTo(ss);
     return ss.Str();
+}
+
+TBackTrace TBackTrace::FromCurrentException() {
+#ifdef _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE
+    TBackTrace result;
+    result.Size = __cxxabiv1::__cxa_collect_current_exception_backtrace(result.Data, CAPACITY);
+    return result;
+#else
+    return TBackTrace();
+#endif
 }

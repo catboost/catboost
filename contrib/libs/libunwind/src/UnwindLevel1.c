@@ -38,6 +38,15 @@ static _Unwind_Reason_Code
 unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *exception_object) {
   __unw_init_local(cursor, uc);
 
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+  _Unwind_Backtrace_Buffer* backtrace_buffer =
+      exception_object->exception_class == _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_PRIMARY_CLASS ||
+          exception_object->exception_class == _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_DEPENDENT_CLASS ?
+      (_Unwind_Backtrace_Buffer *)(
+          (char*)exception_object - _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_MAGIC_OFFSET) - 1
+      : NULL;
+#endif
+
   // Walk each frame looking for a place to stop.
   while (true) {
     // Ask libunwind to get next frame (skip over first which is
@@ -56,6 +65,14 @@ unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *except
           (void *)exception_object);
       return _URC_FATAL_PHASE1_ERROR;
     }
+
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+    if (backtrace_buffer && backtrace_buffer->size < _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE) {
+        unw_word_t pc;
+        __unw_get_reg(cursor, UNW_REG_IP, &pc);
+        backtrace_buffer->backtrace[backtrace_buffer->size++] = (void *)pc;
+    }
+#endif
 
     // See if frame has code to run (has personality routine).
     unw_proc_info_t frameInfo;
