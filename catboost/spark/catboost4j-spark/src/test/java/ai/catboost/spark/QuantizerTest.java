@@ -17,13 +17,13 @@ import ru.yandex.catboost.spark.catboost4j_spark.src.native_impl.*;
 public class QuantizerTest {
 
     private void testBestSplit(
-        FloatVector values,
-        FloatVector initialBorders,
-        FloatVector expectedBorders
+        TVector_float values,
+        TVector_float initialBorders,
+        TVector_float expectedBorders
     ) throws Exception {
         Quantizer quantizer = new Quantizer();
 
-        FloatVector borders = new FloatVector();
+        TVector_float borders = new TVector_float();
 
         boolp hasDefaultQuantizedBin = new boolp();
         TDefaultQuantizedBin defaultQuantizedBin = new TDefaultQuantizedBin();
@@ -55,9 +55,9 @@ public class QuantizerTest {
     public void testEmpty() throws Exception {
         Quantizer quantizer = new Quantizer();
         
-        FloatVector values = new FloatVector();
-        FloatVector initialBorders = null;
-        FloatVector borders = new FloatVector();
+        TVector_float values = new TVector_float();
+        TVector_float initialBorders = null;
+        TVector_float borders = new TVector_float();
 
         testBestSplit(values, initialBorders, borders);
     }
@@ -66,9 +66,9 @@ public class QuantizerTest {
     public void testTwoElements() throws Exception {
         Quantizer quantizer = new Quantizer();
 
-        FloatVector values = new FloatVector(new float[] {0.12f, 0.33f});
-        FloatVector initialBorders = null;
-        FloatVector borders = new FloatVector(new float[] {0.225f});
+        TVector_float values = new TVector_float(new float[] {0.12f, 0.33f});
+        TVector_float initialBorders = null;
+        TVector_float borders = new TVector_float(new float[] {0.225f});
 
         testBestSplit(values, initialBorders, borders);
     }
@@ -77,9 +77,9 @@ public class QuantizerTest {
     public void testManyElements() throws Exception {
         Quantizer quantizer = new Quantizer();
 
-        FloatVector values = new FloatVector(new float[] {0.12f, 0.33f, 0.33f, 0.75f, 1.1f, 1.2f});
-        FloatVector initialBorders = null;
-        FloatVector borders = new FloatVector(new float[] {0.225f, 0.54f, 0.925f, 1.15f});
+        TVector_float values = new TVector_float(new float[] {0.12f, 0.33f, 0.33f, 0.75f, 1.1f, 1.2f});
+        TVector_float initialBorders = null;
+        TVector_float borders = new TVector_float(new float[] {0.225f, 0.54f, 0.925f, 1.15f});
 
         testBestSplit(values, initialBorders, borders);
     }
@@ -88,9 +88,9 @@ public class QuantizerTest {
     public void testInitialBorders() throws Exception {
         Quantizer quantizer = new Quantizer();
 
-        FloatVector values = new FloatVector(new float[] {0.12f, 0.33f, 0.33f, 0.75f, 1.1f, 1.2f});
-        FloatVector initialBorders = new FloatVector(new float[] {0.5f, 0.6f});
-        FloatVector borders = new FloatVector(new float[] {0.225f, 0.5f, 0.925f, 1.15f});
+        TVector_float values = new TVector_float(new float[] {0.12f, 0.33f, 0.33f, 0.75f, 1.1f, 1.2f});
+        TVector_float initialBorders = new TVector_float(new float[] {0.5f, 0.6f});
+        TVector_float borders = new TVector_float(new float[] {0.225f, 0.5f, 0.925f, 1.15f});
 
         testBestSplit(values, initialBorders, borders);
     }

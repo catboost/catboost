@@ -50,9 +50,9 @@ namespace NSplitSelection {
     };
 }
 
+%include "primitive_arrays.i"
+%include "maybe_owning_array_holder.i"
 %include "tvector.i"
-
-%template(FloatVector) TVector<float>;
 
 %include <typemaps.i>
 
