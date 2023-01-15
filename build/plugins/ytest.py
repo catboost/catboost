@@ -802,7 +802,7 @@ def _dump_test(
     if test_cwd:
         test_cwd = test_cwd.replace("$TEST_CWD_VALUE", "").replace('"MACRO_CALLS_DELIM"', "").strip()
     if binary_path:
-        if fork_test_files == 'on':
+        if fork_test_files == 'on' or unit.get('FORK_TEST_FILES_FILTER') == 'yes':
             tests = test_files
         else:
             tests = [os.path.basename(binary_path)]
