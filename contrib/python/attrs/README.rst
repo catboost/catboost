@@ -1,29 +1,29 @@
-.. image:: https://www.attrs.org/en/latest/_static/attrs_logo.png
-   :alt: attrs Logo
+.. raw:: html
 
-======================================
-``attrs``: Classes Without Boilerplate
-======================================
-
-.. image:: https://readthedocs.org/projects/attrs/badge/?version=stable
-   :target: https://www.attrs.org/en/stable/?badge=stable
-   :alt: Documentation Status
-
-.. image:: https://github.com/python-attrs/attrs/workflows/CI/badge.svg?branch=master
-   :target: https://github.com/python-attrs/attrs/actions?workflow=CI
-   :alt: CI Status
-
-.. image:: https://codecov.io/github/python-attrs/attrs/branch/master/graph/badge.svg
-   :target: https://codecov.io/github/python-attrs/attrs
-   :alt: Test Coverage
-
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
-   :alt: Code style: black
+   <p align="center">
+      <a href="https://www.attrs.org/">
+         <img src="./docs/_static/attrs_logo.svg" width="35%" alt="attrs" />
+      </a>
+   </p>
+   <p align="center">
+      <a href="https://www.attrs.org/en/stable/?badge=stable">
+          <img src="https://readthedocs.org/projects/attrs/badge/?version=stable" alt="Documentation Status" />
+      </a>
+      <a href="https://github.com/python-attrs/attrs/actions?workflow=CI">
+          <img src="https://github.com/python-attrs/attrs/workflows/CI/badge.svg?branch=main" alt="CI Status" />
+      </a>
+      <a href="https://codecov.io/github/python-attrs/attrs">
+          <img src="https://codecov.io/github/python-attrs/attrs/branch/main/graph/badge.svg" alt="Test Coverage" />
+      </a>
+      <a href="https://github.com/psf/black">
+          <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black" />
+      </a>
+   </p>
 
 .. teaser-begin
 
 ``attrs`` is the Python package that will bring back the **joy** of **writing classes** by relieving you from the drudgery of implementing object protocols (aka `dunder <https://nedbatchelder.com/blog/200605/dunder.html>`_ methods).
+`Trusted by NASA <https://docs.github.com/en/github/setting-up-and-managing-your-github-profile/personalizing-your-profile#list-of-qualifying-repositories-for-mars-2020-helicopter-contributor-badge>`_ for Mars missions since 2020!
 
 Its main goal is to help you to write **concise** and **correct** software without slowing down your code.
 
