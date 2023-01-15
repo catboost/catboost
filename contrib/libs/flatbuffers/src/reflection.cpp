@@ -669,8 +669,7 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
     }
   }
 
-  if (!v.EndTable())
-    return false;
+  if (!v.EndTable()) return false;
 
   return true;
 }

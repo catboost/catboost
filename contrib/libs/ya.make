@@ -13,7 +13,6 @@ RECURSE(
     expat
     fastlz
     flatbuffers
-    flatbuffers/samples
     fmath
     gamma_function_apache_math_port
     jdk
