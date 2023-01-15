@@ -104,26 +104,26 @@ public:
         // For some reason, parser sometimes passes chunks like '{};' here,
         // so we handle each symbol separately.
         for (const char& sym : text.Data) {
-            if ('{' == sym) {
+            if ('{' == sym && InValue != InEnumState && InValueCall != InEnumState) {
                 BodyDetected = true;
                 continue;
-            } else if ('=' == sym) {
+            } else if ('=' == sym && InValueCall != InEnumState) {
                 InEnumState = InValue;
                 continue;
-            } else if ('(' == sym && (InValue == InEnumState || InValueCall == InEnumState)) {
-                // there may be constexpr function / macro call in value part,
+            } else if (('(' == sym || '{' == sym) && (InValue == InEnumState || InValueCall == InEnumState)) {
+                // there may be constexpr function / constructor / macro call in value part,
                 // handle them appropriately
                 InEnumState = InValueCall;
                 ++BracesBalance;
                 AppendValue(sym);
                 continue;
-            } else if (')' == sym && InValueCall == InEnumState) {
+            } else if ((')' == sym || '}' == sym) && InValueCall == InEnumState) {
                 if (!--BracesBalance) {
                     InEnumState = InValue;
                 }
                 AppendValue(sym);
                 continue;
-            } else if (',' == sym && InValueCall != InEnumState) {
+            } else if ((',' == sym || '}' == sym) && InValueCall != InEnumState) {
                 AddEnumItem();
                 continue;
             } else if (InValue == InEnumState || InValueCall == InEnumState) {
