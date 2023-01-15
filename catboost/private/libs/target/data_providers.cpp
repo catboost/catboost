@@ -323,8 +323,6 @@ namespace NCB {
         TMaybe<ui32> knownModelApproxDimension,
         const TInputClassificationInfo& inputClassificationInfo
     ) {
-        CB_ENSURE(!metricDescriptions.empty(), "No metrics specified");
-
         auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
             return AnyOf(
                 metricDescriptions,
@@ -808,7 +806,10 @@ namespace NCB {
         EAutoClassWeightsType autoClassWeights = EAutoClassWeightsType::None;
 
         TMaybe<NCatboostOptions::TLossDescription> modelLossDescription;
-        if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
+        if (const auto* modelInfoLoss = MapFindPtr(model.ModelInfo, "loss_function")) {
+            modelLossDescription.ConstructInPlace();
+            modelLossDescription->Load(ReadTJsonValue(*modelInfoLoss));
+        } else if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
             NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
 
             if (paramsJson.Has("data_processing_options")) {
@@ -823,18 +824,19 @@ namespace NCB {
             if (paramsJson.Has("loss_function")) {
                 modelLossDescription.ConstructInPlace();
                 modelLossDescription->Load(paramsJson["loss_function"]);
+            }
+        }
+        if (modelLossDescription) {
+            if (!classCount && IsBinaryClassOnlyMetric(modelLossDescription->LossFunction)) {
+                CB_ENSURE_INTERNAL(
+                    model.GetDimensionsCount() == 1,
+                    "model trained with binary classification function has ApproxDimension="
+                    << model.GetDimensionsCount()
+                );
+            }
 
-                if (!classCount && IsBinaryClassOnlyMetric(modelLossDescription->LossFunction)) {
-                    CB_ENSURE_INTERNAL(
-                        model.GetDimensionsCount() == 1,
-                        "model trained with binary classification function has ApproxDimension="
-                        << model.GetDimensionsCount()
-                    );
-                }
-
-                if (updatedMetricsDescriptions.empty()) {
-                    updatedMetricsDescriptions.push_back(*modelLossDescription);
-                }
+            if (updatedMetricsDescriptions.empty()) {
+                updatedMetricsDescriptions.push_back(*modelLossDescription);
             }
         }
 
@@ -966,13 +968,15 @@ namespace NCB {
         const TString ParamsJsonKey = "params";
         const TString DataProcessingOptionsJsonKey = "data_processing_options";
         const TString TargetBorderJsonKey = "target_border";
-        const TString LossJsonKey = "loss_function";
+        const TString LossKey = "loss_function";
 
         NCatboostOptions::TLossDescription lossDescription;
-        if (model.ModelInfo.contains(ParamsJsonKey)) {
+        if (model.ModelInfo.contains(LossKey)) {
+            lossDescription.Load(ReadTJsonValue(model.ModelInfo.at(LossKey)));
+        } else if (model.ModelInfo.contains(ParamsJsonKey)) {
             const auto& params = ReadTJsonValue(model.ModelInfo.at(ParamsJsonKey));
-            if (params.Has(LossJsonKey)) {
-                lossDescription.Load(params[LossJsonKey]);
+            if (params.Has(LossKey)) {
+                lossDescription.Load(params[LossKey]);
             }
         }
 
