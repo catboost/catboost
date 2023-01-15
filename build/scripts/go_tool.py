@@ -280,9 +280,9 @@ def decode_vet_report(json_report):
             messages = []
             for _, module_diags in six.iteritems(full_diags):
                 for _, type_diags in six.iteritems(module_diags):
-                     for diag in type_diags:
-                         messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
-            report = '\n'.join(sorted(messages)).encode('UTF-8')
+                    for diag in type_diags:
+                        messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
+            report = '\n'.join(messages).encode('UTF-8')
 
     return report
 
