@@ -262,7 +262,7 @@ inline bool WireFormatLite::ReadRepeatedFixedSizePrimitive(
   // reading the value: the maximum number of elements that can be read is
   // known outside of the loop.
   const void* void_pointer;
-  intptr_t size;
+  int size;
   input->GetDirectBufferPointerInline(&void_pointer, &size);
   if (size > 0) {
     const uint8* buffer = reinterpret_cast<const uint8*>(void_pointer);
@@ -271,8 +271,7 @@ inline bool WireFormatLite::ReadRepeatedFixedSizePrimitive(
 
     // parentheses around (std::min) prevents macro expansion of min(...)
     int elements_available =
-        (std::min)(values->Capacity() - values->size(),
-          static_cast<int>(size / per_value_size));
+        (std::min)(values->Capacity() - values->size(), size / per_value_size);
     int num_read = 0;
     while (num_read < elements_available &&
            (buffer = io::CodedInputStream::ExpectTagFromArray(
