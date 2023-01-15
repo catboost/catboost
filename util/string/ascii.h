@@ -31,10 +31,12 @@ namespace NPrivate {
         using type = T;
     };
 
+#ifndef TSTRING_IS_STD_STRING
     template <class String>
     struct TDereference<TBasicCharRef<String>> {
         using type = typename String::value_type;
     };
+#endif
 
     template <class T>
     using TDereferenced = typename TDereference<T>::type;
@@ -50,10 +52,12 @@ namespace NPrivate {
         return c >= static_cast<T>(0) && c <= static_cast<T>(127);
     }
 
+#ifndef TSTRING_IS_STD_STRING
     template <class String>
     bool RangeOk(const TBasicCharRef<String>& c) {
         return RangeOk(static_cast<typename String::value_type>(c));
     }
+#endif
 }
 
 constexpr bool IsAscii(const int c) noexcept {

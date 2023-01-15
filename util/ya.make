@@ -247,6 +247,10 @@ IF (ARCH_ARM)
     CFLAGS(-D_FORTIFY_SOURCE=0)
 ENDIF()
 
+IF (TSTRING_IS_STD_STRING)
+    CFLAGS(GLOBAL -DTSTRING_IS_STD_STRING)
+ENDIF()
+
 JOIN_SRCS(
     all_system_1.cpp
     system/atexit.cpp

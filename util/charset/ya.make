@@ -4,6 +4,10 @@ LIBRARY()
 
 NO_UTIL()
 
+IF (TSTRING_IS_STD_STRING)
+    CFLAGS(GLOBAL -DTSTRING_IS_STD_STRING)
+ENDIF()
+
 JOIN_SRCS(
     all_charset.cpp
     generated/unidata.cpp
