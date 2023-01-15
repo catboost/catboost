@@ -29,12 +29,6 @@ IF (NOT PREBUILT)
 
     SRCDIR(contrib/libs/grpc/src/compiler)
 
-    IF (OS_LINUX AND NOT MUSL)
-        CFLAGS(
-            -DGPR_BACKWARDS_COMPATIBILITY_MODE=1
-        )
-    ENDIF()
-
     SRCS(
         cpp_plugin.cc
     )
