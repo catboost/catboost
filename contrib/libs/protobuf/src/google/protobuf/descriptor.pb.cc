@@ -396,27 +396,25 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_ATTRIBUTE_SECTION
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FileOptions, php_class_prefix_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FileOptions, php_namespace_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FileOptions, uninterpreted_option_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FileOptions, python_package_),
   0,
   1,
+  9,
   10,
   11,
-  12,
-  18,
+  17,
   2,
+  12,
   13,
   14,
   15,
   16,
-  17,
-  9,
+  8,
   3,
   4,
   5,
   6,
   7,
   ~0u,
-  8,
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MessageOptions, _has_bits_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MessageOptions, _internal_metadata_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MessageOptions, _extensions_),
@@ -582,20 +580,20 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_ATTR
   { 133, 141, sizeof(EnumValueDescriptorProto)},
   { 144, 152, sizeof(ServiceDescriptorProto)},
   { 155, 166, sizeof(MethodDescriptorProto)},
-  { 172, 197, sizeof(FileOptions)},
-  { 217, 227, sizeof(MessageOptions)},
-  { 232, 244, sizeof(FieldOptions)},
-  { 251, 257, sizeof(OneofOptions)},
-  { 258, 266, sizeof(EnumOptions)},
-  { 269, 276, sizeof(EnumValueOptions)},
-  { 278, 285, sizeof(ServiceOptions)},
-  { 287, 295, sizeof(MethodOptions)},
-  { 298, 305, sizeof(UninterpretedOption_NamePart)},
-  { 307, 319, sizeof(UninterpretedOption)},
-  { 326, 336, sizeof(SourceCodeInfo_Location)},
-  { 341, 347, sizeof(SourceCodeInfo)},
-  { 348, 357, sizeof(GeneratedCodeInfo_Annotation)},
-  { 361, 367, sizeof(GeneratedCodeInfo)},
+  { 172, 196, sizeof(FileOptions)},
+  { 215, 225, sizeof(MessageOptions)},
+  { 230, 242, sizeof(FieldOptions)},
+  { 249, 255, sizeof(OneofOptions)},
+  { 256, 264, sizeof(EnumOptions)},
+  { 267, 274, sizeof(EnumValueOptions)},
+  { 276, 283, sizeof(ServiceOptions)},
+  { 285, 293, sizeof(MethodOptions)},
+  { 296, 303, sizeof(UninterpretedOption_NamePart)},
+  { 305, 317, sizeof(UninterpretedOption)},
+  { 324, 334, sizeof(SourceCodeInfo_Location)},
+  { 339, 345, sizeof(SourceCodeInfo)},
+  { 346, 355, sizeof(GeneratedCodeInfo_Annotation)},
+  { 359, 365, sizeof(GeneratedCodeInfo)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -804,7 +802,7 @@ void AddDescriptorsImpl() {
       "\022\023\n\013output_type\030\003 \001(\t\022/\n\007options\030\004 \001(\0132\036"
       ".google.protobuf.MethodOptions\022\037\n\020client"
       "_streaming\030\005 \001(\010:\005false\022\037\n\020server_stream"
-      "ing\030\006 \001(\010:\005false\"\210\006\n\013FileOptions\022\024\n\014java"
+      "ing\030\006 \001(\010:\005false\"\360\005\n\013FileOptions\022\024\n\014java"
       "_package\030\001 \001(\t\022\034\n\024java_outer_classname\030\010"
       " \001(\t\022\"\n\023java_multiple_files\030\n \001(\010:\005false"
       "\022)\n\035java_generate_equals_and_hash\030\024 \001(\010B"
@@ -821,69 +819,69 @@ void AddDescriptorsImpl() {
       "ift_prefix\030\' \001(\t\022\030\n\020php_class_prefix\030( \001"
       "(\t\022\025\n\rphp_namespace\030) \001(\t\022C\n\024uninterpret"
       "ed_option\030\347\007 \003(\0132$.google.protobuf.Unint"
-      "erpretedOption\022\026\n\016python_package\030+ \001(\t\":"
-      "\n\014OptimizeMode\022\t\n\005SPEED\020\001\022\r\n\tCODE_SIZE\020\002"
-      "\022\020\n\014LITE_RUNTIME\020\003*\t\010\350\007\020\200\200\200\200\002J\004\010&\020\'\"\362\001\n\016"
-      "MessageOptions\022&\n\027message_set_wire_forma"
-      "t\030\001 \001(\010:\005false\022.\n\037no_standard_descriptor"
-      "_accessor\030\002 \001(\010:\005false\022\031\n\ndeprecated\030\003 \001"
-      "(\010:\005false\022\021\n\tmap_entry\030\007 \001(\010\022C\n\024uninterp"
-      "reted_option\030\347\007 \003(\0132$.google.protobuf.Un"
-      "interpretedOption*\t\010\350\007\020\200\200\200\200\002J\004\010\010\020\tJ\004\010\t\020\n"
-      "\"\236\003\n\014FieldOptions\022:\n\005ctype\030\001 \001(\0162#.googl"
-      "e.protobuf.FieldOptions.CType:\006STRING\022\016\n"
-      "\006packed\030\002 \001(\010\022\?\n\006jstype\030\006 \001(\0162$.google.p"
-      "rotobuf.FieldOptions.JSType:\tJS_NORMAL\022\023"
-      "\n\004lazy\030\005 \001(\010:\005false\022\031\n\ndeprecated\030\003 \001(\010:"
-      "\005false\022\023\n\004weak\030\n \001(\010:\005false\022C\n\024uninterpr"
-      "eted_option\030\347\007 \003(\0132$.google.protobuf.Uni"
-      "nterpretedOption\"/\n\005CType\022\n\n\006STRING\020\000\022\010\n"
-      "\004CORD\020\001\022\020\n\014STRING_PIECE\020\002\"5\n\006JSType\022\r\n\tJ"
-      "S_NORMAL\020\000\022\r\n\tJS_STRING\020\001\022\r\n\tJS_NUMBER\020\002"
-      "*\t\010\350\007\020\200\200\200\200\002J\004\010\004\020\005\"^\n\014OneofOptions\022C\n\024uni"
+      "erpretedOption\":\n\014OptimizeMode\022\t\n\005SPEED\020"
+      "\001\022\r\n\tCODE_SIZE\020\002\022\020\n\014LITE_RUNTIME\020\003*\t\010\350\007\020"
+      "\200\200\200\200\002J\004\010&\020\'\"\362\001\n\016MessageOptions\022&\n\027messag"
+      "e_set_wire_format\030\001 \001(\010:\005false\022.\n\037no_sta"
+      "ndard_descriptor_accessor\030\002 \001(\010:\005false\022\031"
+      "\n\ndeprecated\030\003 \001(\010:\005false\022\021\n\tmap_entry\030\007"
+      " \001(\010\022C\n\024uninterpreted_option\030\347\007 \003(\0132$.go"
+      "ogle.protobuf.UninterpretedOption*\t\010\350\007\020\200"
+      "\200\200\200\002J\004\010\010\020\tJ\004\010\t\020\n\"\236\003\n\014FieldOptions\022:\n\005cty"
+      "pe\030\001 \001(\0162#.google.protobuf.FieldOptions."
+      "CType:\006STRING\022\016\n\006packed\030\002 \001(\010\022\?\n\006jstype\030"
+      "\006 \001(\0162$.google.protobuf.FieldOptions.JST"
+      "ype:\tJS_NORMAL\022\023\n\004lazy\030\005 \001(\010:\005false\022\031\n\nd"
+      "eprecated\030\003 \001(\010:\005false\022\023\n\004weak\030\n \001(\010:\005fa"
+      "lse\022C\n\024uninterpreted_option\030\347\007 \003(\0132$.goo"
+      "gle.protobuf.UninterpretedOption\"/\n\005CTyp"
+      "e\022\n\n\006STRING\020\000\022\010\n\004CORD\020\001\022\020\n\014STRING_PIECE\020"
+      "\002\"5\n\006JSType\022\r\n\tJS_NORMAL\020\000\022\r\n\tJS_STRING\020"
+      "\001\022\r\n\tJS_NUMBER\020\002*\t\010\350\007\020\200\200\200\200\002J\004\010\004\020\005\"^\n\014One"
+      "ofOptions\022C\n\024uninterpreted_option\030\347\007 \003(\013"
+      "2$.google.protobuf.UninterpretedOption*\t"
+      "\010\350\007\020\200\200\200\200\002\"\223\001\n\013EnumOptions\022\023\n\013allow_alias"
+      "\030\002 \001(\010\022\031\n\ndeprecated\030\003 \001(\010:\005false\022C\n\024uni"
       "nterpreted_option\030\347\007 \003(\0132$.google.protob"
-      "uf.UninterpretedOption*\t\010\350\007\020\200\200\200\200\002\"\223\001\n\013En"
-      "umOptions\022\023\n\013allow_alias\030\002 \001(\010\022\031\n\ndeprec"
-      "ated\030\003 \001(\010:\005false\022C\n\024uninterpreted_optio"
-      "n\030\347\007 \003(\0132$.google.protobuf.Uninterpreted"
-      "Option*\t\010\350\007\020\200\200\200\200\002J\004\010\005\020\006\"}\n\020EnumValueOpti"
-      "ons\022\031\n\ndeprecated\030\001 \001(\010:\005false\022C\n\024uninte"
-      "rpreted_option\030\347\007 \003(\0132$.google.protobuf."
-      "UninterpretedOption*\t\010\350\007\020\200\200\200\200\002\"{\n\016Servic"
-      "eOptions\022\031\n\ndeprecated\030! \001(\010:\005false\022C\n\024u"
-      "ninterpreted_option\030\347\007 \003(\0132$.google.prot"
-      "obuf.UninterpretedOption*\t\010\350\007\020\200\200\200\200\002\"\255\002\n\r"
-      "MethodOptions\022\031\n\ndeprecated\030! \001(\010:\005false"
-      "\022_\n\021idempotency_level\030\" \001(\0162/.google.pro"
-      "tobuf.MethodOptions.IdempotencyLevel:\023ID"
-      "EMPOTENCY_UNKNOWN\022C\n\024uninterpreted_optio"
-      "n\030\347\007 \003(\0132$.google.protobuf.Uninterpreted"
-      "Option\"P\n\020IdempotencyLevel\022\027\n\023IDEMPOTENC"
-      "Y_UNKNOWN\020\000\022\023\n\017NO_SIDE_EFFECTS\020\001\022\016\n\nIDEM"
-      "POTENT\020\002*\t\010\350\007\020\200\200\200\200\002\"\236\002\n\023UninterpretedOpt"
-      "ion\022;\n\004name\030\002 \003(\0132-.google.protobuf.Unin"
-      "terpretedOption.NamePart\022\030\n\020identifier_v"
-      "alue\030\003 \001(\t\022\032\n\022positive_int_value\030\004 \001(\004\022\032"
-      "\n\022negative_int_value\030\005 \001(\003\022\024\n\014double_val"
-      "ue\030\006 \001(\001\022\024\n\014string_value\030\007 \001(\014\022\027\n\017aggreg"
-      "ate_value\030\010 \001(\t\0323\n\010NamePart\022\021\n\tname_part"
-      "\030\001 \002(\t\022\024\n\014is_extension\030\002 \002(\010\"\325\001\n\016SourceC"
-      "odeInfo\022:\n\010location\030\001 \003(\0132(.google.proto"
-      "buf.SourceCodeInfo.Location\032\206\001\n\010Location"
-      "\022\020\n\004path\030\001 \003(\005B\002\020\001\022\020\n\004span\030\002 \003(\005B\002\020\001\022\030\n\020"
-      "leading_comments\030\003 \001(\t\022\031\n\021trailing_comme"
-      "nts\030\004 \001(\t\022!\n\031leading_detached_comments\030\006"
-      " \003(\t\"\247\001\n\021GeneratedCodeInfo\022A\n\nannotation"
-      "\030\001 \003(\0132-.google.protobuf.GeneratedCodeIn"
-      "fo.Annotation\032O\n\nAnnotation\022\020\n\004path\030\001 \003("
-      "\005B\002\020\001\022\023\n\013source_file\030\002 \001(\t\022\r\n\005begin\030\003 \001("
-      "\005\022\013\n\003end\030\004 \001(\005B\212\001\n\023com.google.protobufB\020"
-      "DescriptorProtosZ>github.com/golang/prot"
-      "obuf/protoc-gen-go/descriptor;descriptor"
-      "\242\002\003GPB\252\002\032Google.Protobuf.Reflection"
+      "uf.UninterpretedOption*\t\010\350\007\020\200\200\200\200\002J\004\010\005\020\006\""
+      "}\n\020EnumValueOptions\022\031\n\ndeprecated\030\001 \001(\010:"
+      "\005false\022C\n\024uninterpreted_option\030\347\007 \003(\0132$."
+      "google.protobuf.UninterpretedOption*\t\010\350\007"
+      "\020\200\200\200\200\002\"{\n\016ServiceOptions\022\031\n\ndeprecated\030!"
+      " \001(\010:\005false\022C\n\024uninterpreted_option\030\347\007 \003"
+      "(\0132$.google.protobuf.UninterpretedOption"
+      "*\t\010\350\007\020\200\200\200\200\002\"\255\002\n\rMethodOptions\022\031\n\ndepreca"
+      "ted\030! \001(\010:\005false\022_\n\021idempotency_level\030\" "
+      "\001(\0162/.google.protobuf.MethodOptions.Idem"
+      "potencyLevel:\023IDEMPOTENCY_UNKNOWN\022C\n\024uni"
+      "nterpreted_option\030\347\007 \003(\0132$.google.protob"
+      "uf.UninterpretedOption\"P\n\020IdempotencyLev"
+      "el\022\027\n\023IDEMPOTENCY_UNKNOWN\020\000\022\023\n\017NO_SIDE_E"
+      "FFECTS\020\001\022\016\n\nIDEMPOTENT\020\002*\t\010\350\007\020\200\200\200\200\002\"\236\002\n\023"
+      "UninterpretedOption\022;\n\004name\030\002 \003(\0132-.goog"
+      "le.protobuf.UninterpretedOption.NamePart"
+      "\022\030\n\020identifier_value\030\003 \001(\t\022\032\n\022positive_i"
+      "nt_value\030\004 \001(\004\022\032\n\022negative_int_value\030\005 \001"
+      "(\003\022\024\n\014double_value\030\006 \001(\001\022\024\n\014string_value"
+      "\030\007 \001(\014\022\027\n\017aggregate_value\030\010 \001(\t\0323\n\010NameP"
+      "art\022\021\n\tname_part\030\001 \002(\t\022\024\n\014is_extension\030\002"
+      " \002(\010\"\325\001\n\016SourceCodeInfo\022:\n\010location\030\001 \003("
+      "\0132(.google.protobuf.SourceCodeInfo.Locat"
+      "ion\032\206\001\n\010Location\022\020\n\004path\030\001 \003(\005B\002\020\001\022\020\n\004sp"
+      "an\030\002 \003(\005B\002\020\001\022\030\n\020leading_comments\030\003 \001(\t\022\031"
+      "\n\021trailing_comments\030\004 \001(\t\022!\n\031leading_det"
+      "ached_comments\030\006 \003(\t\"\247\001\n\021GeneratedCodeIn"
+      "fo\022A\n\nannotation\030\001 \003(\0132-.google.protobuf"
+      ".GeneratedCodeInfo.Annotation\032O\n\nAnnotat"
+      "ion\022\020\n\004path\030\001 \003(\005B\002\020\001\022\023\n\013source_file\030\002 \001"
+      "(\t\022\r\n\005begin\030\003 \001(\005\022\013\n\003end\030\004 \001(\005B\214\001\n\023com.g"
+      "oogle.protobufB\020DescriptorProtosH\001Z>gith"
+      "ub.com/golang/protobuf/protoc-gen-go/des"
+      "criptor;descriptor\242\002\003GPB\252\002\032Google.Protob"
+      "uf.Reflection"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 5835);
+      descriptor, 5813);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "google/protobuf/descriptor.proto", &protobuf_RegisterTypes);
 }
@@ -1185,7 +1183,6 @@ failure:
 
 void FileDescriptorSet::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.FileDescriptorSet)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -1206,7 +1203,6 @@ void FileDescriptorSet::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* FileDescriptorSet::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.FileDescriptorSet)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -1707,7 +1703,6 @@ failure:
 
 void FileDescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.FileDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -1814,7 +1809,6 @@ void FileDescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* FileDescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.FileDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -2853,7 +2847,6 @@ failure:
 
 void DescriptorProto_ExtensionRange::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.DescriptorProto.ExtensionRange)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -2884,7 +2877,6 @@ void DescriptorProto_ExtensionRange::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* DescriptorProto_ExtensionRange::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.DescriptorProto.ExtensionRange)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -3272,7 +3264,6 @@ failure:
 
 void DescriptorProto_ReservedRange::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.DescriptorProto.ReservedRange)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -3297,7 +3288,6 @@ void DescriptorProto_ReservedRange::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* DescriptorProto_ReservedRange::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.DescriptorProto.ReservedRange)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -3755,7 +3745,6 @@ failure:
 
 void DescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.DescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -3845,7 +3834,6 @@ void DescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* DescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.DescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -4671,7 +4659,6 @@ failure:
 
 void ExtensionRangeOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.ExtensionRangeOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -4696,7 +4683,6 @@ void ExtensionRangeOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ExtensionRangeOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.ExtensionRangeOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -5202,7 +5188,6 @@ failure:
 
 void FieldDescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.FieldDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -5295,7 +5280,6 @@ void FieldDescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* FieldDescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.FieldDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -6212,7 +6196,6 @@ failure:
 
 void OneofDescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.OneofDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -6243,7 +6226,6 @@ void OneofDescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* OneofDescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.OneofDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -6663,7 +6645,6 @@ failure:
 
 void EnumDescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.EnumDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -6701,7 +6682,6 @@ void EnumDescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* EnumDescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.EnumDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -7177,7 +7157,6 @@ failure:
 
 void EnumValueDescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.EnumValueDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -7213,7 +7192,6 @@ void EnumValueDescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* EnumValueDescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.EnumValueDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -7674,7 +7652,6 @@ failure:
 
 void ServiceDescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.ServiceDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -7712,7 +7689,6 @@ void ServiceDescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ServiceDescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.ServiceDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -8263,7 +8239,6 @@ failure:
 
 void MethodDescriptorProto::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.MethodDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -8324,7 +8299,6 @@ void MethodDescriptorProto::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* MethodDescriptorProto::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.MethodDescriptorProto)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -8847,7 +8821,6 @@ const int FileOptions::kSwiftPrefixFieldNumber;
 const int FileOptions::kPhpClassPrefixFieldNumber;
 const int FileOptions::kPhpNamespaceFieldNumber;
 const int FileOptions::kUninterpretedOptionFieldNumber;
-const int FileOptions::kPythonPackageFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 FileOptions::FileOptions()
@@ -8898,10 +8871,6 @@ FileOptions::FileOptions(const FileOptions& from)
   if (from.has_php_namespace()) {
     php_namespace_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.php_namespace_);
   }
-  python_package_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (from.has_python_package()) {
-    python_package_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.python_package_);
-  }
   ::memcpy(&cc_enable_arenas_, &from.cc_enable_arenas_,
     static_cast<size_t>(reinterpret_cast<char*>(&optimize_for_) -
     reinterpret_cast<char*>(&cc_enable_arenas_)) + sizeof(optimize_for_));
@@ -8918,7 +8887,6 @@ void FileOptions::SharedCtor() {
   swift_prefix_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   php_class_prefix_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   php_namespace_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  python_package_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&cc_enable_arenas_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&deprecated_) -
       reinterpret_cast<char*>(&cc_enable_arenas_)) + sizeof(deprecated_));
@@ -8939,7 +8907,6 @@ void FileOptions::SharedDtor() {
   swift_prefix_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   php_class_prefix_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   php_namespace_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  python_package_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void FileOptions::SetCachedSize(int size) const {
@@ -9008,19 +8975,13 @@ void FileOptions::Clear() {
       (*php_namespace_.UnsafeRawStringPointer())->clear();
     }
   }
-  if (cached_has_bits & 0x00000100u) {
-    GOOGLE_DCHECK(!python_package_.IsDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited()));
-    (*python_package_.UnsafeRawStringPointer())->clear();
-  }
-  if (cached_has_bits & 65024u) {
+  if (cached_has_bits & 65280u) {
     ::memset(&cc_enable_arenas_, 0, static_cast<size_t>(
-        reinterpret_cast<char*>(&py_generic_services_) -
-        reinterpret_cast<char*>(&cc_enable_arenas_)) + sizeof(py_generic_services_));
+        reinterpret_cast<char*>(&php_generic_services_) -
+        reinterpret_cast<char*>(&cc_enable_arenas_)) + sizeof(php_generic_services_));
   }
-  if (cached_has_bits & 458752u) {
-    ::memset(&php_generic_services_, 0, static_cast<size_t>(
-        reinterpret_cast<char*>(&deprecated_) -
-        reinterpret_cast<char*>(&php_generic_services_)) + sizeof(deprecated_));
+  if (cached_has_bits & 196608u) {
+    deprecated_ = false;
     optimize_for_ = 1;
   }
   _has_bits_.Clear();
@@ -9311,22 +9272,6 @@ bool FileOptions::MergePartialFromCodedStream(
         break;
       }
 
-      // optional string python_package = 43;
-      case 43: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(90u /* 346 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_python_package()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-            this->python_package().data(), static_cast<int>(this->python_package().length()),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "google.protobuf.FileOptions.python_package");
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
       // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
       case 999: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
@@ -9367,7 +9312,6 @@ failure:
 
 void FileOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.FileOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -9394,13 +9338,13 @@ void FileOptions::SerializeWithCachedSizes(
   }
 
   // optional .google.protobuf.FileOptions.OptimizeMode optimize_for = 9 [default = SPEED];
-  if (cached_has_bits & 0x00040000u) {
+  if (cached_has_bits & 0x00020000u) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       9, this->optimize_for(), output);
   }
 
   // optional bool java_multiple_files = 10 [default = false];
-  if (cached_has_bits & 0x00000400u) {
+  if (cached_has_bits & 0x00000200u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(10, this->java_multiple_files(), output);
   }
 
@@ -9415,37 +9359,37 @@ void FileOptions::SerializeWithCachedSizes(
   }
 
   // optional bool cc_generic_services = 16 [default = false];
-  if (cached_has_bits & 0x00002000u) {
+  if (cached_has_bits & 0x00001000u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(16, this->cc_generic_services(), output);
   }
 
   // optional bool java_generic_services = 17 [default = false];
-  if (cached_has_bits & 0x00004000u) {
+  if (cached_has_bits & 0x00002000u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(17, this->java_generic_services(), output);
   }
 
   // optional bool py_generic_services = 18 [default = false];
-  if (cached_has_bits & 0x00008000u) {
+  if (cached_has_bits & 0x00004000u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(18, this->py_generic_services(), output);
   }
 
   // optional bool java_generate_equals_and_hash = 20 [deprecated = true];
-  if (cached_has_bits & 0x00000800u) {
+  if (cached_has_bits & 0x00000400u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(20, this->java_generate_equals_and_hash(), output);
   }
 
   // optional bool deprecated = 23 [default = false];
-  if (cached_has_bits & 0x00020000u) {
+  if (cached_has_bits & 0x00010000u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(23, this->deprecated(), output);
   }
 
   // optional bool java_string_check_utf8 = 27 [default = false];
-  if (cached_has_bits & 0x00001000u) {
+  if (cached_has_bits & 0x00000800u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(27, this->java_string_check_utf8(), output);
   }
 
   // optional bool cc_enable_arenas = 31 [default = false];
-  if (cached_has_bits & 0x00000200u) {
+  if (cached_has_bits & 0x00000100u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(31, this->cc_enable_arenas(), output);
   }
 
@@ -9500,18 +9444,8 @@ void FileOptions::SerializeWithCachedSizes(
   }
 
   // optional bool php_generic_services = 42 [default = false];
-  if (cached_has_bits & 0x00010000u) {
+  if (cached_has_bits & 0x00008000u) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(42, this->php_generic_services(), output);
-  }
-
-  // optional string python_package = 43;
-  if (cached_has_bits & 0x00000100u) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->python_package().data(), static_cast<int>(this->python_package().length()),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "google.protobuf.FileOptions.python_package");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      43, this->python_package(), output);
   }
 
   // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
@@ -9534,7 +9468,6 @@ void FileOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* FileOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.FileOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -9564,13 +9497,13 @@ void FileOptions::SerializeWithCachedSizes(
   }
 
   // optional .google.protobuf.FileOptions.OptimizeMode optimize_for = 9 [default = SPEED];
-  if (cached_has_bits & 0x00040000u) {
+  if (cached_has_bits & 0x00020000u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       9, this->optimize_for(), target);
   }
 
   // optional bool java_multiple_files = 10 [default = false];
-  if (cached_has_bits & 0x00000400u) {
+  if (cached_has_bits & 0x00000200u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(10, this->java_multiple_files(), target);
   }
 
@@ -9586,37 +9519,37 @@ void FileOptions::SerializeWithCachedSizes(
   }
 
   // optional bool cc_generic_services = 16 [default = false];
-  if (cached_has_bits & 0x00002000u) {
+  if (cached_has_bits & 0x00001000u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(16, this->cc_generic_services(), target);
   }
 
   // optional bool java_generic_services = 17 [default = false];
-  if (cached_has_bits & 0x00004000u) {
+  if (cached_has_bits & 0x00002000u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(17, this->java_generic_services(), target);
   }
 
   // optional bool py_generic_services = 18 [default = false];
-  if (cached_has_bits & 0x00008000u) {
+  if (cached_has_bits & 0x00004000u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(18, this->py_generic_services(), target);
   }
 
   // optional bool java_generate_equals_and_hash = 20 [deprecated = true];
-  if (cached_has_bits & 0x00000800u) {
+  if (cached_has_bits & 0x00000400u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(20, this->java_generate_equals_and_hash(), target);
   }
 
   // optional bool deprecated = 23 [default = false];
-  if (cached_has_bits & 0x00020000u) {
+  if (cached_has_bits & 0x00010000u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(23, this->deprecated(), target);
   }
 
   // optional bool java_string_check_utf8 = 27 [default = false];
-  if (cached_has_bits & 0x00001000u) {
+  if (cached_has_bits & 0x00000800u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(27, this->java_string_check_utf8(), target);
   }
 
   // optional bool cc_enable_arenas = 31 [default = false];
-  if (cached_has_bits & 0x00000200u) {
+  if (cached_has_bits & 0x00000100u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(31, this->cc_enable_arenas(), target);
   }
 
@@ -9676,19 +9609,8 @@ void FileOptions::SerializeWithCachedSizes(
   }
 
   // optional bool php_generic_services = 42 [default = false];
-  if (cached_has_bits & 0x00010000u) {
+  if (cached_has_bits & 0x00008000u) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(42, this->php_generic_services(), target);
-  }
-
-  // optional string python_package = 43;
-  if (cached_has_bits & 0x00000100u) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->python_package().data(), static_cast<int>(this->python_package().length()),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "google.protobuf.FileOptions.python_package");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        43, this->python_package(), target);
   }
 
   // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
@@ -9792,13 +9714,6 @@ size_t FileOptions::ByteSizeLong() const {
 
   }
   if (_has_bits_[8 / 32] & 65280u) {
-    // optional string python_package = 43;
-    if (has_python_package()) {
-      total_size += 2 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->python_package());
-    }
-
     // optional bool cc_enable_arenas = 31 [default = false];
     if (has_cc_enable_arenas()) {
       total_size += 2 + 1;
@@ -9834,13 +9749,13 @@ size_t FileOptions::ByteSizeLong() const {
       total_size += 2 + 1;
     }
 
-  }
-  if (_has_bits_[16 / 32] & 458752u) {
     // optional bool php_generic_services = 42 [default = false];
     if (has_php_generic_services()) {
       total_size += 2 + 1;
     }
 
+  }
+  if (_has_bits_[16 / 32] & 196608u) {
     // optional bool deprecated = 23 [default = false];
     if (has_deprecated()) {
       total_size += 2 + 1;
@@ -9921,40 +9836,36 @@ void FileOptions::MergeFrom(const FileOptions& from) {
   }
   if (cached_has_bits & 65280u) {
     if (cached_has_bits & 0x00000100u) {
-      set_has_python_package();
-      python_package_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.python_package_);
-    }
-    if (cached_has_bits & 0x00000200u) {
       cc_enable_arenas_ = from.cc_enable_arenas_;
     }
-    if (cached_has_bits & 0x00000400u) {
+    if (cached_has_bits & 0x00000200u) {
       java_multiple_files_ = from.java_multiple_files_;
     }
-    if (cached_has_bits & 0x00000800u) {
+    if (cached_has_bits & 0x00000400u) {
       java_generate_equals_and_hash_ = from.java_generate_equals_and_hash_;
     }
-    if (cached_has_bits & 0x00001000u) {
+    if (cached_has_bits & 0x00000800u) {
       java_string_check_utf8_ = from.java_string_check_utf8_;
     }
-    if (cached_has_bits & 0x00002000u) {
+    if (cached_has_bits & 0x00001000u) {
       cc_generic_services_ = from.cc_generic_services_;
     }
-    if (cached_has_bits & 0x00004000u) {
+    if (cached_has_bits & 0x00002000u) {
       java_generic_services_ = from.java_generic_services_;
     }
-    if (cached_has_bits & 0x00008000u) {
+    if (cached_has_bits & 0x00004000u) {
       py_generic_services_ = from.py_generic_services_;
+    }
+    if (cached_has_bits & 0x00008000u) {
+      php_generic_services_ = from.php_generic_services_;
     }
     _has_bits_[0] |= cached_has_bits;
   }
-  if (cached_has_bits & 458752u) {
+  if (cached_has_bits & 196608u) {
     if (cached_has_bits & 0x00010000u) {
-      php_generic_services_ = from.php_generic_services_;
-    }
-    if (cached_has_bits & 0x00020000u) {
       deprecated_ = from.deprecated_;
     }
-    if (cached_has_bits & 0x00040000u) {
+    if (cached_has_bits & 0x00020000u) {
       optimize_for_ = from.optimize_for_;
     }
     _has_bits_[0] |= cached_has_bits;
@@ -9999,7 +9910,6 @@ void FileOptions::InternalSwap(FileOptions* other) {
   swift_prefix_.Swap(&other->swift_prefix_);
   php_class_prefix_.Swap(&other->php_class_prefix_);
   php_namespace_.Swap(&other->php_namespace_);
-  python_package_.Swap(&other->python_package_);
   swap(cc_enable_arenas_, other->cc_enable_arenas_);
   swap(java_multiple_files_, other->java_multiple_files_);
   swap(java_generate_equals_and_hash_, other->java_generate_equals_and_hash_);
@@ -10152,13 +10062,13 @@ void FileOptions::set_allocated_java_outer_classname(TProtoStringType* java_oute
 
 // optional bool java_multiple_files = 10 [default = false];
 bool FileOptions::has_java_multiple_files() const {
-  return (_has_bits_[0] & 0x00000400u) != 0;
+  return (_has_bits_[0] & 0x00000200u) != 0;
 }
 void FileOptions::set_has_java_multiple_files() {
-  _has_bits_[0] |= 0x00000400u;
+  _has_bits_[0] |= 0x00000200u;
 }
 void FileOptions::clear_has_java_multiple_files() {
-  _has_bits_[0] &= ~0x00000400u;
+  _has_bits_[0] &= ~0x00000200u;
 }
 void FileOptions::clear_java_multiple_files() {
   java_multiple_files_ = false;
@@ -10176,13 +10086,13 @@ void FileOptions::set_java_multiple_files(bool value) {
 
 // optional bool java_generate_equals_and_hash = 20 [deprecated = true];
 bool FileOptions::has_java_generate_equals_and_hash() const {
-  return (_has_bits_[0] & 0x00000800u) != 0;
+  return (_has_bits_[0] & 0x00000400u) != 0;
 }
 void FileOptions::set_has_java_generate_equals_and_hash() {
-  _has_bits_[0] |= 0x00000800u;
+  _has_bits_[0] |= 0x00000400u;
 }
 void FileOptions::clear_has_java_generate_equals_and_hash() {
-  _has_bits_[0] &= ~0x00000800u;
+  _has_bits_[0] &= ~0x00000400u;
 }
 void FileOptions::clear_java_generate_equals_and_hash() {
   java_generate_equals_and_hash_ = false;
@@ -10200,13 +10110,13 @@ void FileOptions::set_java_generate_equals_and_hash(bool value) {
 
 // optional bool java_string_check_utf8 = 27 [default = false];
 bool FileOptions::has_java_string_check_utf8() const {
-  return (_has_bits_[0] & 0x00001000u) != 0;
+  return (_has_bits_[0] & 0x00000800u) != 0;
 }
 void FileOptions::set_has_java_string_check_utf8() {
-  _has_bits_[0] |= 0x00001000u;
+  _has_bits_[0] |= 0x00000800u;
 }
 void FileOptions::clear_has_java_string_check_utf8() {
-  _has_bits_[0] &= ~0x00001000u;
+  _has_bits_[0] &= ~0x00000800u;
 }
 void FileOptions::clear_java_string_check_utf8() {
   java_string_check_utf8_ = false;
@@ -10224,13 +10134,13 @@ void FileOptions::set_java_string_check_utf8(bool value) {
 
 // optional .google.protobuf.FileOptions.OptimizeMode optimize_for = 9 [default = SPEED];
 bool FileOptions::has_optimize_for() const {
-  return (_has_bits_[0] & 0x00040000u) != 0;
+  return (_has_bits_[0] & 0x00020000u) != 0;
 }
 void FileOptions::set_has_optimize_for() {
-  _has_bits_[0] |= 0x00040000u;
+  _has_bits_[0] |= 0x00020000u;
 }
 void FileOptions::clear_has_optimize_for() {
-  _has_bits_[0] &= ~0x00040000u;
+  _has_bits_[0] &= ~0x00020000u;
 }
 void FileOptions::clear_optimize_for() {
   optimize_for_ = 1;
@@ -10312,13 +10222,13 @@ void FileOptions::set_allocated_go_package(TProtoStringType* go_package) {
 
 // optional bool cc_generic_services = 16 [default = false];
 bool FileOptions::has_cc_generic_services() const {
-  return (_has_bits_[0] & 0x00002000u) != 0;
+  return (_has_bits_[0] & 0x00001000u) != 0;
 }
 void FileOptions::set_has_cc_generic_services() {
-  _has_bits_[0] |= 0x00002000u;
+  _has_bits_[0] |= 0x00001000u;
 }
 void FileOptions::clear_has_cc_generic_services() {
-  _has_bits_[0] &= ~0x00002000u;
+  _has_bits_[0] &= ~0x00001000u;
 }
 void FileOptions::clear_cc_generic_services() {
   cc_generic_services_ = false;
@@ -10336,13 +10246,13 @@ void FileOptions::set_cc_generic_services(bool value) {
 
 // optional bool java_generic_services = 17 [default = false];
 bool FileOptions::has_java_generic_services() const {
-  return (_has_bits_[0] & 0x00004000u) != 0;
+  return (_has_bits_[0] & 0x00002000u) != 0;
 }
 void FileOptions::set_has_java_generic_services() {
-  _has_bits_[0] |= 0x00004000u;
+  _has_bits_[0] |= 0x00002000u;
 }
 void FileOptions::clear_has_java_generic_services() {
-  _has_bits_[0] &= ~0x00004000u;
+  _has_bits_[0] &= ~0x00002000u;
 }
 void FileOptions::clear_java_generic_services() {
   java_generic_services_ = false;
@@ -10360,13 +10270,13 @@ void FileOptions::set_java_generic_services(bool value) {
 
 // optional bool py_generic_services = 18 [default = false];
 bool FileOptions::has_py_generic_services() const {
-  return (_has_bits_[0] & 0x00008000u) != 0;
+  return (_has_bits_[0] & 0x00004000u) != 0;
 }
 void FileOptions::set_has_py_generic_services() {
-  _has_bits_[0] |= 0x00008000u;
+  _has_bits_[0] |= 0x00004000u;
 }
 void FileOptions::clear_has_py_generic_services() {
-  _has_bits_[0] &= ~0x00008000u;
+  _has_bits_[0] &= ~0x00004000u;
 }
 void FileOptions::clear_py_generic_services() {
   py_generic_services_ = false;
@@ -10384,13 +10294,13 @@ void FileOptions::set_py_generic_services(bool value) {
 
 // optional bool php_generic_services = 42 [default = false];
 bool FileOptions::has_php_generic_services() const {
-  return (_has_bits_[0] & 0x00010000u) != 0;
+  return (_has_bits_[0] & 0x00008000u) != 0;
 }
 void FileOptions::set_has_php_generic_services() {
-  _has_bits_[0] |= 0x00010000u;
+  _has_bits_[0] |= 0x00008000u;
 }
 void FileOptions::clear_has_php_generic_services() {
-  _has_bits_[0] &= ~0x00010000u;
+  _has_bits_[0] &= ~0x00008000u;
 }
 void FileOptions::clear_php_generic_services() {
   php_generic_services_ = false;
@@ -10408,13 +10318,13 @@ void FileOptions::set_php_generic_services(bool value) {
 
 // optional bool deprecated = 23 [default = false];
 bool FileOptions::has_deprecated() const {
-  return (_has_bits_[0] & 0x00020000u) != 0;
+  return (_has_bits_[0] & 0x00010000u) != 0;
 }
 void FileOptions::set_has_deprecated() {
-  _has_bits_[0] |= 0x00020000u;
+  _has_bits_[0] |= 0x00010000u;
 }
 void FileOptions::clear_has_deprecated() {
-  _has_bits_[0] &= ~0x00020000u;
+  _has_bits_[0] &= ~0x00010000u;
 }
 void FileOptions::clear_deprecated() {
   deprecated_ = false;
@@ -10432,13 +10342,13 @@ void FileOptions::set_deprecated(bool value) {
 
 // optional bool cc_enable_arenas = 31 [default = false];
 bool FileOptions::has_cc_enable_arenas() const {
-  return (_has_bits_[0] & 0x00000200u) != 0;
+  return (_has_bits_[0] & 0x00000100u) != 0;
 }
 void FileOptions::set_has_cc_enable_arenas() {
-  _has_bits_[0] |= 0x00000200u;
+  _has_bits_[0] |= 0x00000100u;
 }
 void FileOptions::clear_has_cc_enable_arenas() {
-  _has_bits_[0] &= ~0x00000200u;
+  _has_bits_[0] &= ~0x00000100u;
 }
 void FileOptions::clear_cc_enable_arenas() {
   cc_enable_arenas_ = false;
@@ -10799,69 +10709,6 @@ FileOptions::uninterpreted_option() const {
   return uninterpreted_option_;
 }
 
-// optional string python_package = 43;
-bool FileOptions::has_python_package() const {
-  return (_has_bits_[0] & 0x00000100u) != 0;
-}
-void FileOptions::set_has_python_package() {
-  _has_bits_[0] |= 0x00000100u;
-}
-void FileOptions::clear_has_python_package() {
-  _has_bits_[0] &= ~0x00000100u;
-}
-void FileOptions::clear_python_package() {
-  python_package_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  clear_has_python_package();
-}
-const TProtoStringType& FileOptions::python_package() const {
-  // @@protoc_insertion_point(field_get:google.protobuf.FileOptions.python_package)
-  return python_package_.GetNoArena();
-}
-void FileOptions::set_python_package(const TProtoStringType& value) {
-  set_has_python_package();
-  python_package_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:google.protobuf.FileOptions.python_package)
-}
-#if LANG_CXX11
-void FileOptions::set_python_package(TProtoStringType&& value) {
-  set_has_python_package();
-  python_package_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:google.protobuf.FileOptions.python_package)
-}
-#endif
-void FileOptions::set_python_package(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  set_has_python_package();
-  python_package_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), TProtoStringType(value));
-  // @@protoc_insertion_point(field_set_char:google.protobuf.FileOptions.python_package)
-}
-void FileOptions::set_python_package(const char* value, size_t size) {
-  set_has_python_package();
-  python_package_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      TProtoStringType(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:google.protobuf.FileOptions.python_package)
-}
-TProtoStringType* FileOptions::mutable_python_package() {
-  set_has_python_package();
-  // @@protoc_insertion_point(field_mutable:google.protobuf.FileOptions.python_package)
-  return python_package_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-TProtoStringType* FileOptions::release_python_package() {
-  // @@protoc_insertion_point(field_release:google.protobuf.FileOptions.python_package)
-  clear_has_python_package();
-  return python_package_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-void FileOptions::set_allocated_python_package(TProtoStringType* python_package) {
-  if (python_package != NULL) {
-    set_has_python_package();
-  } else {
-    clear_has_python_package();
-  }
-  python_package_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), python_package);
-  // @@protoc_insertion_point(field_set_allocated:google.protobuf.FileOptions.python_package)
-}
-
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
 
 // ===================================================================
@@ -11058,7 +10905,6 @@ failure:
 
 void MessageOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.MessageOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -11104,7 +10950,6 @@ void MessageOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* MessageOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.MessageOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -11656,7 +11501,6 @@ failure:
 
 void FieldOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.FieldOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -11714,7 +11558,6 @@ void FieldOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* FieldOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.FieldOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -12234,7 +12077,6 @@ failure:
 
 void OneofOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.OneofOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -12259,7 +12101,6 @@ void OneofOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* OneofOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.OneofOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -12580,7 +12421,6 @@ failure:
 
 void EnumOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.EnumOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -12616,7 +12456,6 @@ void EnumOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* EnumOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.EnumOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -12996,7 +12835,6 @@ failure:
 
 void EnumValueOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.EnumValueOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -13027,7 +12865,6 @@ void EnumValueOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* EnumValueOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.EnumValueOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -13363,7 +13200,6 @@ failure:
 
 void ServiceOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.ServiceOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -13394,7 +13230,6 @@ void ServiceOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ServiceOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.ServiceOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -13760,7 +13595,6 @@ failure:
 
 void MethodOptions::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.MethodOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -13797,7 +13631,6 @@ void MethodOptions::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* MethodOptions::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.MethodOptions)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -14184,7 +14017,6 @@ failure:
 
 void UninterpretedOption_NamePart::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.UninterpretedOption.NamePart)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -14214,7 +14046,6 @@ void UninterpretedOption_NamePart::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* UninterpretedOption_NamePart::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.UninterpretedOption.NamePart)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -14705,7 +14536,6 @@ failure:
 
 void UninterpretedOption::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.UninterpretedOption)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -14768,7 +14598,6 @@ void UninterpretedOption::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* UninterpretedOption::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.UninterpretedOption)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -15512,7 +15341,6 @@ failure:
 
 void SourceCodeInfo_Location::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.SourceCodeInfo.Location)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -15579,7 +15407,6 @@ void SourceCodeInfo_Location::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* SourceCodeInfo_Location::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.SourceCodeInfo.Location)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -16175,7 +16002,6 @@ failure:
 
 void SourceCodeInfo::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.SourceCodeInfo)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -16196,7 +16022,6 @@ void SourceCodeInfo::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* SourceCodeInfo::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.SourceCodeInfo)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -16530,7 +16355,6 @@ failure:
 
 void GeneratedCodeInfo_Annotation::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.GeneratedCodeInfo.Annotation)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -16576,7 +16400,6 @@ void GeneratedCodeInfo_Annotation::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* GeneratedCodeInfo_Annotation::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.GeneratedCodeInfo.Annotation)
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -17017,7 +16840,6 @@ failure:
 
 void GeneratedCodeInfo::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  Y_UNUSED(output);
   // @@protoc_insertion_point(serialize_start:google.protobuf.GeneratedCodeInfo)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -17038,7 +16860,6 @@ void GeneratedCodeInfo::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* GeneratedCodeInfo::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  Y_UNUSED(deterministic);
   (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.GeneratedCodeInfo)
   ::google::protobuf::uint32 cached_has_bits = 0;
