@@ -4,6 +4,7 @@ LIBRARY()
 
 PEERDIR(
     contrib/tools/python3/src
+    library/cpp/resource
 )
 
 ADDINCL(
@@ -12,6 +13,7 @@ ADDINCL(
 
 SRCS(
     main.c
+    get_py_main.cpp
 )
 
 END()
