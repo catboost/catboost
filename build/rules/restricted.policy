@@ -142,7 +142,7 @@ ALLOW .* -> contrib/restricted/librseq/headeronly
 
 # Default policies:
 
-# 1. All peerdirs within contrib/restricted are permitted
+# 1. Do not restrict contrib
 ALLOW contrib -> contrib/restricted
 
 # 2. Allow junk for debug purposes
