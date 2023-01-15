@@ -6435,3 +6435,12 @@ migrations:
     - ads/libs/py_lmcompute/ft
     - ads/libs/py_autobudget/mt/test_attribution_preprocessor
     - ads/bigkv/tensor_transport/tests
+    - yt/admin/ytcfgen/tests/unit
+    - scarab/api/python3
+    - release_machine/release_machine/sqla/release_engine
+    - release_machine/release_machine/services
+    - mssngr/botplatform/src/vins_core
+    - mssngr/botplatform/src/bots/core/migrations
+    - cloud/identity/proto
+    - cloud/gauthling/gauthling_daemon/proto
+
