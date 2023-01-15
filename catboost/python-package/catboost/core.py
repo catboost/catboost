@@ -4971,6 +4971,9 @@ class CatBoostRegressor(CatBoost):
             verbose=None,
             parent_method_name='score'
         )
+        loss = self._object._get_loss_function_name()
+        if loss == 'RMSEWithUncertainty':
+            predictions = predictions[:, 0]
         total_sum_of_squares = np.sum((y - y.mean(axis=0)) ** 2)
         residual_sum_of_squares = np.sum((y - predictions) ** 2)
         return 1 - residual_sum_of_squares / total_sum_of_squares
