@@ -16,22 +16,18 @@ using TLogFormatter = std::function<TString(ELogPriority priority, TStringBuf)>;
 
 class TLog {
 public:
-    /*
-     * construct empty logger
-     */
+    // Construct empty logger all data will be sent to `/dev/null`
     TLog();
-
-    /*
-     * construct file logger
-     */
+    // Construct file logger.
     TLog(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY);
-
-    /*
-     * construct any type of logger :)
-     */
+    // Construct any type of logger
     TLog(THolder<TLogBackend> backend);
 
+    TLog(const TLog&);
+    TLog(TLog&&);
     ~TLog();
+    TLog& operator=(const TLog&);
+    TLog& operator=(TLog&&);
 
     /*
      * NOT thread-safe
@@ -42,20 +38,12 @@ public:
 
     void Write(const char* data, size_t len) const;
     void Write(ELogPriority priority, const char* data, size_t len) const;
-    void Write(ELogPriority priority, const TStringBuf data) const;
+    void Write(ELogPriority priority, TStringBuf data) const;
     void Y_PRINTF_FORMAT(2, 3) AddLog(const char* format, ...) const;
     void Y_PRINTF_FORMAT(3, 4) AddLog(ELogPriority priority, const char* format, ...) const;
     void ReopenLog();
     void ReopenLogNoFlush();
     size_t BackEndQueueSize() const;
-
-    /*
-     * compat methods, remove in near future...
-     */
-    bool OpenLog(const char* path, ELogPriority lp = LOG_MAX_PRIORITY);
-    bool IsOpen() const noexcept;
-    void AddLogVAList(const char* format, va_list lst);
-    void CloseLog();
 
     /*
      * This affects all write methods without priority argument
@@ -74,10 +62,18 @@ public:
 
     void SetFormatter(TLogFormatter formatter) noexcept;
 
+public:
+    // These methods are deprecated and present here only for compatibility reasons (for 13 years
+    // already ...). Do not use them.
+    bool OpenLog(const char* path, ELogPriority lp = LOG_MAX_PRIORITY);
+    bool IsOpen() const noexcept;
+    void AddLogVAList(const char* format, va_list lst);
+    void CloseLog();
+
 private:
     class TImpl;
-    TSimpleIntrusivePtr<TImpl> Impl_;
-    TLogFormatter Formatter;
+    TIntrusivePtr<TImpl> Impl_;
+    TLogFormatter Formatter_;
 };
 
 THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, bool threaded = false);
