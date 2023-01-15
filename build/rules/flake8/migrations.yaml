@@ -1559,7 +1559,6 @@ migrations:
     - infra/shawshank/tests
     - infra/skybit
     - infra/skybit/src
-    - infra/yp/monitoring/yp_dns_monitoring
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_dns_api/tests
     - infra/yp_quota_distributor/lib
@@ -1725,7 +1724,6 @@ migrations:
     - quality/neural_net/bert/tools/autobert
     - quality/neural_net/bert/tools/autobert/builders
     - quality/nirvana_tools/conveyor_operations/bert/rebuild_bert_model
-    - quality/nirvana_tools/conveyor_operations/bert/save_bert_model_ynmt/external_tests
     - quality/nirvana_tools/conveyor_operations/bert/state_to_ynmt
     - quality/relev_tools/choice_screen/create_stove
     - quality/relev_tools/choice_screen/formula_graph
@@ -1921,7 +1919,6 @@ migrations:
     - ydo/bg_task_processor/tests/tasks_tests
     - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
-    - ydo/tools/workers_quality/strikomat
     - yt/admin/luigi/src/luigi
     - yt/admin/luigi/src/luigi/commands/service
     - yt/cfg/cmd/yasm-alerts
