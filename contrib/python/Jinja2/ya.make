@@ -2,7 +2,9 @@ PY23_LIBRARY(Jinja2)
 
 
 
-VERSION(2.10.1)
+VERSION(2.11.3)
+
+LICENSE(BSD-3-Clause)
 
 PEERDIR(
     contrib/python/MarkupSafe
@@ -46,9 +48,24 @@ IF (PYTHON3)
     )
 ENDIF()
 
+RESOURCE_FILES(
+    PREFIX contrib/python/Jinja2/
+    .dist-info/METADATA
+    .dist-info/entry_points.txt
+    .dist-info/top_level.txt
+)
+
 NO_LINT()
 
+NO_CHECK_IMPORTS(
+    jinja2.asyncfilters
+)
+
 END()
+
+RECURSE(
+    examples
+)
 
 RECURSE_FOR_TESTS(
     tests

@@ -1,4 +1,4 @@
-PY23_LIBRARY()
+PY23_TEST()
 
 
 
@@ -11,12 +11,18 @@ PY_SRCS(
     res/__init__.py
 )
 
+DATA(
+    arcadia/contrib/python/Jinja2/tests/res
+)
+
 RESOURCE_FILES(
     PREFIX contrib/python/Jinja2/tests/
     res/templates/broken.html
     res/templates/foo/test.html
+    res/templates/mojibake.txt
     res/templates/syntaxerror.html
     res/templates/test.html
+    res/templates2/foo
 )
 
 TEST_SRCS(
@@ -35,6 +41,7 @@ TEST_SRCS(
     test_loader.py
     test_nativetypes.py
     test_regression.py
+    test_runtime.py
     test_security.py
     test_tests.py
     test_utils.py
@@ -50,8 +57,3 @@ ENDIF()
 NO_LINT()
 
 END()
-
-RECURSE_FOR_TESTS(
-    py2
-    py3
-)
