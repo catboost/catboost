@@ -15,13 +15,18 @@
 #include <util/system/types.h>
 
 
+namespace NPar {
+    class TLocalExecutor;
+}
+
+
 NCB::TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     NCB::TFeaturesLayoutPtr featuresLayout,
     i64 objectCount,
     TVector<NCB::TMaybeOwningConstArrayHolder<float>>* columnwiseFloatFeaturesData,
     TVector<NCB::TMaybeOwningConstArrayHolder<i32>>* columnwiseCatFeaturesData,
     i32 maxUniqCatFeatureValues,
-    i32 threadCount
+    NPar::TLocalExecutor* localExecutor
 ) throw (yexception);
 
 
@@ -53,8 +58,8 @@ public:
     TDataProviderClosureForJVM(
         NCB::EDatasetVisitorType visitorType,
         const NCB::TDataProviderBuilderOptions& options,
-        bool hasFeatures = true,
-        i32 threadCount = 1
+        bool hasFeatures,
+        NPar::TLocalExecutor* localExecutor
     ) throw (yexception);
 
     template <class IVisitor>

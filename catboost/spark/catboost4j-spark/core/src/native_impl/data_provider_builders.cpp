@@ -23,13 +23,8 @@ TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
     TVector<TMaybeOwningConstArrayHolder<float>>* columnwiseFloatFeaturesData,
     TVector<TMaybeOwningConstArrayHolder<i32>>* columnwiseCatFeaturesData,
     i32 maxUniqCatFeatureValues,
-    i32 threadCount
+    NPar::TLocalExecutor* localExecutor
 ) throw (yexception) {
-    CB_ENSURE(threadCount >= 1, "Invalid thread count: " << threadCount);
-
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(threadCount - 1);
-
     auto loaderFunc = [&] (IRawFeaturesOrderDataVisitor* visitor) {
         TDataMetaInfo metaInfo;
         metaInfo.ObjectCount = SafeIntegerCast<ui32>(objectCount);
@@ -66,7 +61,7 @@ TRawObjectsDataProviderPtr CreateRawObjectsDataProvider(
                     TVector<ui32> hashedCatFeatureValues;
                     hashedCatFeatureValues.yresize(objectCount);
 
-                    localExecutor.ExecRangeBlockedWithThrow(
+                    localExecutor->ExecRangeBlockedWithThrow(
                         [&] (int i) {
                             hashedCatFeatureValues[i] = integerValueHashes[integerCatValues[i]];
                         },
@@ -288,12 +283,8 @@ TDataProviderClosureForJVM::TDataProviderClosureForJVM(
     EDatasetVisitorType visitorType,
     const TDataProviderBuilderOptions& options,
     bool hasFeatures,
-    i32 threadCount
+    NPar::TLocalExecutor* localExecutor
 ) throw (yexception) {
-    NPar::TLocalExecutor* localExecutor = &NPar::LocalExecutor();
-    if ((localExecutor->GetThreadCount() + 1) < threadCount) {
-        localExecutor->RunAdditionalThreads(threadCount - 1);
-    }
     DataProviderBuilder = CreateDataProviderBuilder(
         visitorType,
         options,

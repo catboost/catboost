@@ -43,7 +43,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
   protected def getResultIteratorForApply(
     rawObjectsDataProvider: SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr,
     dstRows: mutable.ArrayBuffer[Array[Any]], // guaranteed to be non-empty
-    threadCountForTask: Int
+    localExecutor: TLocalExecutor
   ) : Iterator[Row]
 
   override def transformImpl(dataset: Dataset[_]): DataFrame = {
@@ -71,6 +71,9 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       val resultAsRDD = dataFrame.rdd.mapPartitions(
         rowsIterator => {
           if (rowsIterator.hasNext) {
+            val localExecutor = new TLocalExecutor
+            localExecutor.Init(threadCountForTask)
+
             val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
               rowsIterator,
               featuresColumnIdx,
@@ -78,9 +81,9 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
               maxUniqCatFeatureValues,
               keepRawFeaturesInDstRows = true,
               dstRowLength = dstRowLength,
-              threadCount = threadCountForTask
+              localExecutor = localExecutor
             )
-            getResultIteratorForApply(rawObjectsDataProviderPtr, dstRows, threadCountForTask)
+            getResultIteratorForApply(rawObjectsDataProviderPtr, dstRows, localExecutor)
           } else {
             Iterator[Row]()
           }

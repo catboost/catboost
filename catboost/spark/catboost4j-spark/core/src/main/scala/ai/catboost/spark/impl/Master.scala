@@ -35,19 +35,21 @@ private[spark] object Master {
   ) : Master = {
     val savedPoolsFuture = Future {
       val threadCount = SparkHelpers.getThreadCountForDriver(preprocessedTrainPool.data.sparkSession)
+      val localExecutor = new native_impl.TLocalExecutor
+      localExecutor.Init(threadCount)
 
       val trainPoolFiles = DataHelpers.downloadQuantizedPoolToTempFiles(
         preprocessedTrainPool,
         includeFeatures=false,
         includeEstimatedFeatures=false,
-        threadCount=threadCount
+        localExecutor=localExecutor
       )
       val testMainAndEstimatedPoolsAsFiles = preprocessedEvalPools.map {
         testPool => DataHelpers.downloadQuantizedPoolToTempFiles(
           testPool,
           includeFeatures=true,
           includeEstimatedFeatures=true,
-          threadCount=threadCount
+          localExecutor=localExecutor
         )
       }
 
