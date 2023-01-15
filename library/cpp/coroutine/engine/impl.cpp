@@ -1,5 +1,7 @@
 #include "impl.h"
 
+#include <util/generic/scope.h>
+#include <util/thread/singleton.h>
 #include <util/stream/format.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
@@ -218,6 +220,10 @@ void TContExecutor::ScheduleExecutionNow(TCont* cont) noexcept {
     Ready_.PushBack(cont);
 }
 
+namespace {
+    Y_POD_THREAD(TContExecutor*) thisThreadExecutor = nullptr;
+}
+
 void TContExecutor::Activate(TCont* cont) noexcept {
     Current_ = cont;
     cont->Scheduled_ = false;
@@ -230,8 +236,17 @@ void TContExecutor::DeleteScheduled() noexcept {
     });
 }
 
+TCont* RunningCont() {
+    return thisThreadExecutor ? thisThreadExecutor->Running() : nullptr;
+}
+
 void TContExecutor::RunScheduler() noexcept {
     try {
+        thisThreadExecutor = this;
+        Y_DEFER {
+            thisThreadExecutor = nullptr;
+        };
+
         while (true) {
             Ready_.Append(ReadyNext_);
 
