@@ -121,10 +121,9 @@ Y_UNIT_TEST_SUITE(TExactLeavesEstimationTest) {
             TVector<float> cpuPoint(numberOfLeaves);
             TVector<float> gpuPoint(numberOfLeaves);
 
+            NCudaLib::TCudaProfiler &profiler = NCudaLib::GetCudaManager().GetProfiler();
+            SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
             {
-                NCudaLib::TCudaProfiler &profiler = NCudaLib::GetCudaManager().GetProfiler();
-                SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
-
                 auto guardCpu = profiler.Profile(TStringBuilder() << "Computed approx on CPU for #" <<
                                                                   numberOfObjects << " objects and #" << numberOfLeaves
                                                                   << " leaves: ");
@@ -134,8 +133,8 @@ Y_UNIT_TEST_SUITE(TExactLeavesEstimationTest) {
                                                                   numberOfObjects << " objects and #" << numberOfLeaves
                                                                   << " leaves: ");
                 CalculatePointOnGPU(gpuPoint, values, weights, bins, lossDescription, numberOfLeaves);
-                profiler.PrintInfo();
             }
+            profiler.PrintInfo();
 
 
             UNIT_ASSERT(cpuPoint.size() == gpuPoint.size());
