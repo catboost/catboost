@@ -396,7 +396,6 @@ migrations:
     - infra/heartbeat/src/daemon
     - infra/kernel/tools/coroner
     - infra/netconfig/utils/pinger/lib
-    - infra/orly/lib
     - infra/porto/api_py
     - infra/portoshell
     - infra/portoshell/src
@@ -645,8 +644,6 @@ migrations:
     - saas/tools/devops/lib23/tests/py2
     - saas/tools/devops/lib23/tests/py23
     - samogon/libs/sandbox
-    - sandbox/client
-    - sandbox/client/platforms
     - sandbox/common/projects_handler
     - sandbox/projects/BuildBegemotLightTestConfig
     - sandbox/projects/BuildNewsPackage
@@ -2315,7 +2312,6 @@ migrations:
     - infra/nanny/sepelib/src
     - infra/nanny/vendor/object-validator
     - infra/nanny/vendor/porto_python
-    - infra/orly/third_party/etcd3
     - infra/qyp/account_manager/src
     - infra/qyp/deploy
     - infra/qyp/integration_tests
@@ -3367,13 +3363,6 @@ migrations:
     - yt/python/contrib/python-urllib3
     - yt/python/yt
     - yt/yt/experiments/dyntables_stress_test
-    - yt/yt/experiments/grpc_proxy_python_sample
-    - yt/yt/experiments/streaming/trampoline
-    - yt/yt/server/scheduler_simulator/scripts/bin/extract_event_log
-    - yt/yt/server/scheduler_simulator/scripts/bin/extract_preemption_info
-    - yt/yt/server/scheduler_simulator/scripts/bin/simulator_operation_decompressor
-    - yt/yt/server/scheduler_simulator/scripts/lib
-    - yt/yt/tests/integration
     - yweb/antimalware/threats_db/core
     - yweb/antimalware/visual_html_parser/yandex-search-antivirus-discovery
     - yweb/antiporno/bert/development/python/lib/google_bert
