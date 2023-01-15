@@ -178,6 +178,16 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 const TFeatureLayout* featureInfo = nullptr
             ) const = 0;
 
+            void Calc(
+                    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                    TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                    TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                    TArrayRef<double> results,
+                    const TFeatureLayout* featureInfo = nullptr
+            ) const {
+                Calc(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+            }
+
             template <typename TCatFeatureType>
             void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
