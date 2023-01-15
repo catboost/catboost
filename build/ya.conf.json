@@ -7045,7 +7045,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [994272460],
+                "sandbox_id": [
+                    994272460
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -9030,7 +9032,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 995140307,
+                "sandbox_id": 995980916,
                 "match": "app_host_launcher"
             },
             "executable": {
