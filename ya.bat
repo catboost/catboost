@@ -5,6 +5,7 @@ call :dbg Ya Simple Windows Launcher (Debug)
 call :find_ya
 if ERRORLEVEL 1 exit /b 1
 call :dbg Ya: %YA_BAT_REAL%
+call :fix_env
 call :find_python
 if ERRORLEVEL 1 exit /b 1
 call :dbg Python: "%YA_BAT_PYTHON%"
@@ -17,6 +18,16 @@ set YA_BAT_REAL=%~dp0ya
 if exist "%YA_BAT_REAL%" exit /b 0
 call :err Ya not found
 exit /b 1
+
+:fix_env
+call :dbg Fixing environment...
+for /f "delims=: tokens=2" %%F in ('chcp') do (
+    if "%%F" == " 65001" (
+        call :dbg -- Forcing I/O encoding for python: utf-8
+        set PYTHONIOENCODING=utf-8
+    )
+)
+exit /b 0
 
 :find_python
 call :dbg Searching for python in PATH...
