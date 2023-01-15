@@ -474,6 +474,9 @@ ALLOW .* -> vendor/github.com/google/tink/go
 # CONTRIB-1907 Parser of the Graphviz DOT language
 ALLOW .* -> vendor/github.com/awalterschulze/gographviz
 
+# CONTRIB-1923 memcache client
+ALLOW .* -> vendor/github.com/bradfitz/gomemcache
+
 #
 # Temporary exceptions.
 #
