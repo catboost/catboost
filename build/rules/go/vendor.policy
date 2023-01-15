@@ -598,6 +598,9 @@ ALLOW .* -> vendor/github.com/google/btree
 
 # CONTRIB-2084 Word transformation
 ALLOW .* -> vendor/github.com/jinzhu/inflection
+#
+# CONTRIB-2069
+ALLOW .* -> vendor/github.com/coredhcp/coredhcp
 
 #
 # Tools
