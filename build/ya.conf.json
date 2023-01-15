@@ -2970,6 +2970,13 @@
                         "arch": "aarch64"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -5512,7 +5519,7 @@
         },
         "python": {
             "formula": {
-                "sandbox_id": 465552932,
+                "sandbox_id": 706382834,
                 "match": "Python"
             },
             "executable": {
