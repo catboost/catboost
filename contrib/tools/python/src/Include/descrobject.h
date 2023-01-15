@@ -9,10 +9,10 @@ typedef PyObject *(*getter)(PyObject *, void *);
 typedef int (*setter)(PyObject *, PyObject *, void *);
 
 typedef struct PyGetSetDef {
-    char *name;
+    const char *name;
     getter get;
     setter set;
-    char *doc;
+    const char *doc;
     void *closure;
 } PyGetSetDef;
 
