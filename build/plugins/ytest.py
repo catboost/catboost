@@ -761,6 +761,7 @@ def onjava_test_deps(unit, *args):
     mode = args[0]
 
     path = get_norm_unit_path(unit)
+    ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
 
     test_record = {
         'SOURCE-FOLDER-PATH': path,
@@ -776,6 +777,7 @@ def onjava_test_deps(unit, *args):
         'TAG': '',
         'SIZE': 'SMALL',
         'IGNORE_CLASSPATH_CLASH': ' '.join(get_values_list(unit, 'JAVA_IGNORE_CLASSPATH_CLASH_VALUE')),
+        'NO_JBUILD': 'yes' if ymake_java_test else 'no',
 
         # JTEST/JTEST_FOR only
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
@@ -785,6 +787,9 @@ def onjava_test_deps(unit, *args):
     }
     if mode == 'strict':
         test_record['STRICT_CLASSPATH_CLASH'] = 'yes'
+
+    if ymake_java_test:
+        test_record['CLASSPATH'] = '${DART_CLASSPATH}'
 
     data = dump_test(unit, test_record)
     unit.set_property(['DART_DATA', data])
