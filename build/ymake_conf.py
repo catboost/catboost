@@ -2831,6 +2831,7 @@ class Cuda(object):
 
     def cuda_windows_host_compiler(self):
         vc_version = {
+            '11.1': '14.13.26128',  # (not latest)
             '10.1': '14.13.26128',  # (not latest)
             '10.0': '14.13.26128',  # (not latest)
             '9.2': '14.13.26128',
