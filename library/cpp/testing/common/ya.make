@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     env.cpp
     env_tmpl.cpp.in
+    network.cpp
     scope.cpp
 )
 
