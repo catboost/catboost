@@ -5,6 +5,7 @@ import collection.mutable.HashMap
 import collection.JavaConverters._
 
 import java.nio.file.{Files,Path}
+import java.util.Arrays
 
 import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.linalg._
@@ -395,6 +396,41 @@ private[spark] object DataHelpers {
       case DataTypes.StringType => iterator.map{ _.getString(0) }.toArray
       case _ => throw new CatBoostError("Unsupported data type for Label")
     }
+  }
+  
+  // returns Array[Byte] because it is easier to pass to native code
+  def calcFeaturesHasNans(data: DataFrame, featuresColumn: String, featureCount: Int) : Array[Byte] = {
+    val featuresColIdx = data.schema.fieldIndex(featuresColumn)
+    
+    import data.sparkSession.implicits._
+    val partialResultDf = data.mapPartitions(
+      rows => {
+        var result = new Array[Byte](featureCount)
+        Arrays.fill(result, 0.toByte)
+        for (row <- rows) {
+          val featureValues = row.getAs[Vector](featuresColIdx).toArray
+          for (i <- 0 until featureCount) {
+            if (featureValues(i) != featureValues(i)) { // inequality check is fast IsNan
+              result(i) = 1.toByte
+            }
+          }
+        }
+        Iterator[Array[Byte]](result)
+      }
+    )
+
+    var result = new Array[Byte](featureCount)
+    Arrays.fill(result, 0.toByte)
+    
+    for (partialResult <- partialResultDf.toLocalIterator.asScala) {
+      for (i <- 0 until featureCount) {
+        if (partialResult(i) == 1.toByte) {
+          result(i) = 1.toByte
+        }
+      }
+    }
+
+    result
   }
 
   /**
