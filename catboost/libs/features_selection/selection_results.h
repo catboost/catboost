@@ -8,10 +8,12 @@
 namespace NCB {
 
     struct TFeaturesSelectionLossGraph {
-        TVector<double> LossValues;  // 0 - with all features, 1 - without first eliminated feature, 2 - without two eliminited features, ...
-        TVector<ui32> MainIndices;   // indices with precise loss value after model fitting (without using fstr)
+        TVector<ui32> RemovedFeaturesCount;     // Number of removed features at each point of graph
+        TVector<double> LossValues;             // Loss value at each point of graph
+        TVector<ui32> MainIndices;              // indices with precise loss value after model fitting (without using fstr)
 
         Y_SAVELOAD_DEFINE(
+            RemovedFeaturesCount,
             LossValues,
             MainIndices
         );

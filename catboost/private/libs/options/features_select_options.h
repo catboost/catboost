@@ -25,6 +25,7 @@ namespace NCatboostOptions {
         TOption<int> Steps;
         TOption<bool> TrainFinalModel;
         TOption<TString> ResultPath;
+        TOption<NCB::EFeaturesSelectionAlgorithm> Algorithm;
         TOption<ECalcTypeShapValues> ShapCalcType;
     };
 }

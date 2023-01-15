@@ -15,6 +15,7 @@ namespace NCB {
 
     static TJsonValue ToJson(const TFeaturesSelectionLossGraph& lossGraph) {
         TJsonValue lossGraphJson(JSON_MAP);
+        lossGraphJson["removed_features_count"] = ToJsonArray(lossGraph.RemovedFeaturesCount);
         lossGraphJson["loss_values"] = ToJsonArray(lossGraph.LossValues);
         lossGraphJson["main_indices"] = ToJsonArray(lossGraph.MainIndices);
         return lossGraphJson;

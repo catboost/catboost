@@ -390,4 +390,10 @@ namespace NCB {
         String,
         None
     };
+
+    enum class EFeaturesSelectionAlgorithm {
+        RecursiveByPredictionValuesChange,
+        RecursiveByLossFunctionChange,
+        RecursiveByShapValues
+    };
 }

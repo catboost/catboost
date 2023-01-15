@@ -105,6 +105,163 @@ namespace NCB {
             TFeaturesSelectionSummary* const Summary;
             bool IsNextLoadValid = false;
         };
+
+        class TFeaturesSelectionLossGraphBuilder {
+        public:
+            TFeaturesSelectionLossGraphBuilder(TFeaturesSelectionLossGraph* lossGraph)
+                : LossGraph(lossGraph)
+                {}
+
+            void AddEstimatedPoint(ui32 removedFeaturesCount, double lossValue) {
+                Y_ASSERT(LossGraph->RemovedFeaturesCount.empty() || LossGraph->RemovedFeaturesCount.back() < removedFeaturesCount);
+                LossGraph->RemovedFeaturesCount.push_back(removedFeaturesCount);
+                LossGraph->LossValues.push_back(lossValue);
+            }
+
+            void AddPrecisePoint(ui32 removedFeaturesCount, double lossValue) {
+                Y_ASSERT(LossGraph->RemovedFeaturesCount.empty() || LossGraph->RemovedFeaturesCount.back() <= removedFeaturesCount);
+                if (!LossGraph->RemovedFeaturesCount.empty() && LossGraph->RemovedFeaturesCount.back() == removedFeaturesCount) {
+                    AdaptLossGraphValues(lossValue);
+                } else {
+                    LossGraph->RemovedFeaturesCount.push_back(removedFeaturesCount);
+                    LossGraph->LossValues.push_back(lossValue);
+                    LossGraph->MainIndices.push_back(LossGraph->LossValues.size() - 1);
+                }
+            }
+        private:
+            TFeaturesSelectionLossGraph* const LossGraph;
+
+        private:
+            void AdaptLossGraphValues(double lossValue) {
+                Y_ASSERT(!LossGraph->LossValues.empty());
+
+                const double expectedLossValue = LossGraph->LossValues.back();
+                const double prevLossValue = LossGraph->LossValues[LossGraph->MainIndices.back()];
+                const double expectedChange = expectedLossValue - prevLossValue;
+                const double realChange = lossValue - prevLossValue;
+                const double coef = Abs(expectedChange) < 1e-9 ? 0.0 : realChange / expectedChange;
+                CATBOOST_DEBUG_LOG << "Graph adaptation coef: " << coef << Endl;
+                for (size_t idx = LossGraph->LossValues.size() - 1; idx > LossGraph->MainIndices.back(); --idx) {
+                    LossGraph->LossValues[idx] = prevLossValue + (LossGraph->LossValues[idx] - prevLossValue) * coef;
+                }
+                LossGraph->MainIndices.push_back(LossGraph->LossValues.size() - 1);
+            }
+        };
+    }
+
+
+    template <typename TCalcLoss>
+    static void EliminateFeaturesBasedOnShapValues(
+        const TFullModel& model,
+        const TDataProviderPtr testPool,
+        const ui32 numFeaturesToEliminateAtThisStep,
+        const ECalcTypeShapValues shapCalcType,
+        double currentLossValue,
+        const TCalcLoss& calcLoss,
+        TVector<TVector<double>> approx,
+        THashSet<ui32>* featuresForSelectSet,
+        TFeaturesSelectionSummary* summary,
+        TFeaturesSelectionLossGraphBuilder* lossGraphBuilder,
+        NPar::ILocalExecutor* executor
+    ) {
+        CATBOOST_DEBUG_LOG << "Calc Shap Values" << Endl;
+        TVector<TVector<TVector<double>>> shapValues = CalcShapValuesMulti(
+            model,
+            *testPool.Get(),
+            /*referenceDataset*/ nullptr,
+            /*fixedFeatureParams*/ Nothing(),
+            /*logPeriod*/1000000,
+            EPreCalcShapValues::Auto,
+            executor,
+            shapCalcType
+        );
+
+        NPar::ILocalExecutor::TExecRangeParams blockParams(0, static_cast<int>(testPool->GetObjectCount()));
+        blockParams.SetBlockCount(executor->GetThreadCount() + 1);
+
+        CATBOOST_DEBUG_LOG << "Select features to eliminate" << Endl;
+        const size_t approxDimension = approx.size();
+        for (ui32 i = 0; i < numFeaturesToEliminateAtThisStep; ++i) {
+            THashMap<ui32, double> featureToLossValueChange;
+            for (auto featureIdx : *featuresForSelectSet) {
+                executor->ExecRange([&](ui32 docIdx) {
+                    for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
+                        approx[dimensionIdx][docIdx] -= shapValues[docIdx][dimensionIdx][featureIdx];
+                    }
+                }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+                featureToLossValueChange[featureIdx] = calcLoss(approx) - currentLossValue;
+                executor->ExecRange([&](ui32 docIdx) {
+                    for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
+                        approx[dimensionIdx][docIdx] += shapValues[docIdx][dimensionIdx][featureIdx];
+                    }
+                }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+            }
+            ui32 worstFeatureIdx = featureToLossValueChange.begin()->first;
+            for (auto [featureIdx, featureLossValueChange] : featureToLossValueChange) {
+                CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has loss function change " << featureLossValueChange << Endl;
+                if (featureLossValueChange < featureToLossValueChange[worstFeatureIdx]) {
+                    worstFeatureIdx = featureIdx;
+                }
+            }
+            executor->ExecRange([&](ui32 docIdx) {
+                for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
+                    approx[dimensionIdx][docIdx] -= shapValues[docIdx][dimensionIdx][worstFeatureIdx];
+                }
+            }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+
+            CATBOOST_INFO_LOG << "Feature #" << worstFeatureIdx << " eliminated" << Endl;
+            featuresForSelectSet->erase(worstFeatureIdx);
+            summary->EliminatedFeatures.push_back(worstFeatureIdx);
+            currentLossValue += featureToLossValueChange[worstFeatureIdx];
+            lossGraphBuilder->AddEstimatedPoint(summary->EliminatedFeatures.size(), currentLossValue);
+        }
+    }
+
+
+    static void EliminateFeaturesBasedOnFeatureEffect(
+        const TFullModel& model,
+        const TDataProviderPtr testPool,
+        const ui32 numFeaturesToEliminateAtThisStep,
+        const EFstrType fstrType,
+        const ECalcTypeShapValues shapCalcType,
+        double currentLossValue,
+        THashSet<ui32>* featuresForSelectSet,
+        TFeaturesSelectionSummary* summary,
+        TFeaturesSelectionLossGraphBuilder* lossGraphBuilder,
+        NPar::ILocalExecutor* executor
+    ) {
+        CATBOOST_DEBUG_LOG << "Calc Feature Effect" << Endl;
+        TVector<double> featureEffect = CalcRegularFeatureEffect(
+            model,
+            testPool,
+            fstrType,
+            executor,
+            shapCalcType
+        );
+
+        TVector<ui32> featureIndices(featureEffect.size());
+        Iota(featureIndices.begin(), featureIndices.end(), 0);
+        SortBy(featureIndices, [&](ui32 featureIdx) {
+            return featureEffect[featureIdx];
+        });
+
+        CATBOOST_DEBUG_LOG << "Select features to eliminate" << Endl;
+        ui32 eliminatedFeaturesCount = 0;
+        for (ui32 featureIdx : featureIndices) {
+            if (featuresForSelectSet->contains(featureIdx)) {
+                CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has effect " << featureEffect[featureIdx] << Endl;
+                CATBOOST_INFO_LOG << "Feature #" << featureIdx << " eliminated" << Endl;
+                featuresForSelectSet->erase(featureIdx);
+                summary->EliminatedFeatures.push_back(featureIdx);
+                if (fstrType == EFstrType::LossFunctionChange) {
+                    currentLossValue += featureEffect[featureIdx];
+                    lossGraphBuilder->AddEstimatedPoint(summary->EliminatedFeatures.size(), currentLossValue);
+                }
+                if (++eliminatedFeaturesCount == numFeaturesToEliminateAtThisStep) {
+                    break;
+                }
+            }
+        }
     }
 
 
@@ -144,24 +301,6 @@ namespace NCB {
     }
 
 
-    static void AdaptLossGraphValues(
-        double lossValue,
-        TFeaturesSelectionSummary* summary
-    ) {
-        Y_ASSERT(!summary->LossGraph.LossValues.empty());
-
-        const double expectedLossValue = summary->LossGraph.LossValues.back();
-        const double prevLossValue = summary->LossGraph.LossValues[summary->LossGraph.MainIndices.back()];
-        const double expectedChange = expectedLossValue - prevLossValue;
-        const double realChange = lossValue - prevLossValue;
-        const double coef = Abs(expectedChange) < 1e-9 ? 0.0 : realChange / expectedChange;
-        CATBOOST_DEBUG_LOG << "Graph adaptation coef: " << coef << Endl;
-        for (size_t idx = summary->LossGraph.LossValues.size() - 1; idx > summary->LossGraph.MainIndices.back(); --idx) {
-            summary->LossGraph.LossValues[idx] = prevLossValue + (summary->LossGraph.LossValues[idx] - prevLossValue) * coef;
-        }
-        summary->LossGraph.MainIndices.push_back(summary->LossGraph.LossValues.size() - 1);
-    }
-
     TFeaturesSelectionSummary DoRecursiveFeaturesElimination(
         const TCatBoostOptions& catBoostOptions,
         const TOutputFilesOptions& outputFileOptions,
@@ -187,6 +326,8 @@ namespace NCB {
         if (outputFileOptions.SaveSnapshot() && NFs::Exists(outputFileOptions.GetSnapshotFilename())) {
             callbacks->LoadSnapshot(catBoostOptions.GetTaskType(), outputFileOptions.GetSnapshotFilename());
         }
+        TFeaturesSelectionLossGraphBuilder lossGraphBuilder(&summary.LossGraph);
+
         trainingData = MakeFeatureSubsetTrainingData(summary.EliminatedFeatures, trainingData);
         for (auto feature : summary.EliminatedFeatures) {
             featuresForSelectSet.erase(feature);
@@ -256,67 +397,46 @@ namespace NCB {
             TVector<TVector<double>> approx = applyModel(model);
             double currentLossValue = calcLoss(approx);
 
-            if (summary.LossGraph.LossValues.size() > 0) {
-                AdaptLossGraphValues(
-                    currentLossValue,
-                    &summary
-                );
-            } else {
-                summary.LossGraph.LossValues.push_back(currentLossValue);
-                summary.LossGraph.MainIndices.push_back(0);
-            }
+            lossGraphBuilder.AddPrecisePoint(summary.EliminatedFeatures.size(), currentLossValue);
 
-            CATBOOST_DEBUG_LOG << "Calc Shap Values" << Endl;
-            TVector<TVector<TVector<double>>> shapValues = CalcShapValuesMulti(
-                model,
-                *testPool.Get(),
-                /*referenceDataset*/ nullptr,
-                /*fixedFeatureParams*/ Nothing(),
-                /*logPeriod*/1000000,
-                EPreCalcShapValues::Auto,
-                executor,
-                featuresSelectOptions.ShapCalcType
-            );
-
-            NPar::ILocalExecutor::TExecRangeParams blockParams(0, static_cast<int>(testPool->GetObjectCount()));
-            blockParams.SetBlockCount(executor->GetThreadCount() + 1);
-
-            CATBOOST_DEBUG_LOG << "Select features to eliminate" << Endl;
-            TVector<ui32> eliminatedFeatures;
-            for (ui32 i = 0; i < numFeaturesToEliminateBySteps[step]; ++i) {
-                THashMap<ui32, double> featureToLossValueChange;
-                for (auto featureIdx : featuresForSelectSet) {
-                    executor->ExecRange([&](ui32 docIdx) {
-                        for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
-                            approx[dimensionIdx][docIdx] -= shapValues[docIdx][dimensionIdx][featureIdx];
-                        }
-                    }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
-                    featureToLossValueChange[featureIdx] = calcLoss(approx) - currentLossValue;
-                    executor->ExecRange([&](ui32 docIdx) {
-                        for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
-                            approx[dimensionIdx][docIdx] += shapValues[docIdx][dimensionIdx][featureIdx];
-                        }
-                    }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+            switch (featuresSelectOptions.Algorithm) {
+                case EFeaturesSelectionAlgorithm::RecursiveByShapValues: {
+                    EliminateFeaturesBasedOnShapValues(
+                        model,
+                        testPool,
+                        numFeaturesToEliminateBySteps[step],
+                        featuresSelectOptions.ShapCalcType,
+                        currentLossValue,
+                        calcLoss,
+                        std::move(approx),
+                        &featuresForSelectSet,
+                        &summary,
+                        &lossGraphBuilder,
+                        executor
+                    );
+                    break;
                 }
-                ui32 worstFeatureIdx = featureToLossValueChange.begin()->first;
-                for (auto [featureIdx, featureLossValueChange] : featureToLossValueChange) {
-                    CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has loss function change " << featureLossValueChange << Endl;
-                    if (featureLossValueChange < featureToLossValueChange[worstFeatureIdx]) {
-                        worstFeatureIdx = featureIdx;
-                    }
+                case EFeaturesSelectionAlgorithm::RecursiveByPredictionValuesChange:
+                case EFeaturesSelectionAlgorithm::RecursiveByLossFunctionChange: {
+                    EFstrType fstrType = featuresSelectOptions.Algorithm == EFeaturesSelectionAlgorithm::RecursiveByPredictionValuesChange
+                        ? EFstrType::PredictionValuesChange
+                        : EFstrType::LossFunctionChange;
+                    EliminateFeaturesBasedOnFeatureEffect(
+                        model,
+                        testPool,
+                        numFeaturesToEliminateBySteps[step],
+                        fstrType,
+                        featuresSelectOptions.ShapCalcType,
+                        currentLossValue,
+                        &featuresForSelectSet,
+                        &summary,
+                        &lossGraphBuilder,
+                        executor
+                    );
+                    break;
                 }
-                executor->ExecRange([&](ui32 docIdx) {
-                    for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
-                        approx[dimensionIdx][docIdx] -= shapValues[docIdx][dimensionIdx][worstFeatureIdx];
-                    }
-                }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
-
-                CATBOOST_INFO_LOG << "Feature #" << worstFeatureIdx << " eliminated" << Endl;
-                featuresForSelectSet.erase(worstFeatureIdx);
-                eliminatedFeatures.push_back(worstFeatureIdx);
-                summary.EliminatedFeatures.push_back(worstFeatureIdx);
-                currentLossValue += featureToLossValueChange[worstFeatureIdx];
-                summary.LossGraph.LossValues.push_back(currentLossValue);
+                default:
+                    CB_ENSURE_INTERNAL(false, "Unsupported algorithm: " << featuresSelectOptions.Algorithm);
             }
 
             trainingData = MakeFeatureSubsetTrainingData(summary.EliminatedFeatures, trainingData);
@@ -327,10 +447,7 @@ namespace NCB {
             const TFullModel finalModel = trainModel();
             const double lossValue = calcLoss(applyModel(finalModel));
 
-            AdaptLossGraphValues(
-                lossValue,
-                &summary
-            );
+            lossGraphBuilder.AddPrecisePoint(summary.EliminatedFeatures.size(), lossValue);
 
             CATBOOST_INFO_LOG << "Save final model" << Endl;
             ExportFullModel(
