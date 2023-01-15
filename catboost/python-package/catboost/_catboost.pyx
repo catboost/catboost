@@ -508,6 +508,8 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
         const TFullModel& model,
         const TString& userParametersJson)
 
+cdef extern from "catboost/libs/model/utils.h":
+    cdef TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model) nogil except +ProcessException
 
 cdef extern from "library/cpp/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
@@ -974,12 +976,6 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TJsonValue& plainOptions,
         const TDataMetaInfo& trainDataMetaInfo,
         const TMaybe[TDataMetaInfo]& trainDataMetaInfo
-    ) nogil except +ProcessException
-
-    cdef TJsonValue GetPlainJsonWithAllOptions(
-        const TFullModel& model,
-        bool_t hasCatFeatures,
-        bool_t hasTextFeatures
     ) nogil except +ProcessException
 
     cdef cppclass TPythonStreamWrapper(IInputStream):
@@ -4583,14 +4579,7 @@ cdef class _CatBoost:
             return {}
 
     cpdef _get_plain_params(self):
-        hasCatFeatures = len(self._get_cat_feature_indices()) != 0
-        hasTextFeatures = len(self._get_text_feature_indices()) != 0
-        cdef TJsonValue plainOptions = GetPlainJsonWithAllOptions(
-            dereference(self.__model),
-            hasCatFeatures,
-            hasTextFeatures
-        )
-        return loads(to_native_str(WriteTJsonValue(plainOptions)))
+        return loads(to_native_str(WriteTJsonValue(GetPlainJsonWithAllOptions(dereference(self.__model)))))
 
     def _get_tree_count(self):
         return self.__model.GetTreeCount()
