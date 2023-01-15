@@ -1,6 +1,7 @@
 UNITTEST_FOR(util)
 
 
+SUBSCRIBER(g:util-subscribers)
 
 SRCS(
     digest/fnv_ut.cpp

@@ -1,4 +1,5 @@
 
+SUBSCRIBER(g:util-subscribers)
 
 RECURSE(
     to_lower

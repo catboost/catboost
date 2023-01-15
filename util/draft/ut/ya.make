@@ -1,6 +1,7 @@
 UNITTEST()
 
 
+SUBSCRIBER(g:util-subscribers)
 
 SRCDIR(util/draft)
 
