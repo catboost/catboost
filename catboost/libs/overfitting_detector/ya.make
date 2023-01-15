@@ -12,7 +12,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/private/libs/options
-    library/statistics
+    library/cpp/statistics
 )
 
 GENERATE_ENUM_SERIALIZATION(overfitting_detector.h)

@@ -70,6 +70,8 @@ RECURSE(
     resource
     resource/ut
     sse
+    statistics
+    statistics/ut
     streams
     string_utils
     svnversion
