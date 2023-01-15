@@ -8680,9 +8680,25 @@ def test_uncertainty_prediction(virtual_ensembles_count, prediction_type, loss_f
         '-m', output_model_path,
         '--output-path', formula_predict_path,
         '--virtual-ensembles-count', virtual_ensembles_count,
-        '--prediction-type', prediction_type
+        '--prediction-type', prediction_type,
     )
     yatest.common.execute(calc_cmd)
+
+    model = catboost.CatBoost()
+    model.load_model(output_model_path)
+    pool = catboost.Pool(test_path, column_description=cd_path)
+    py_preds = model.virtual_ensembles_predict(
+        pool,
+        prediction_type=prediction_type,
+        virtual_ensembles_count=int(virtual_ensembles_count))
+
+    cli_preds = np.genfromtxt(
+        formula_predict_path,
+        delimiter='\t',
+        dtype=float,
+        skip_header=True)
+    assert(np.allclose(py_preds.reshape(-1,), cli_preds[:, 1:].reshape(-1,), rtol=1e-10))
+
     return local_canonical_file(formula_predict_path)
 
 
