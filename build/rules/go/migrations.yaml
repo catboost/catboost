@@ -298,8 +298,6 @@ migrations:
       - a.yandex-team.ru/mds/valve/pkg/worker
       - a.yandex-team.ru/rtc/mediator/fanout
       - a.yandex-team.ru/rtc/mediator/fanout_test
-      - a.yandex-team.ru/rtc/mediator/server
-      - a.yandex-team.ru/rtc/mediator/server_test
       - a.yandex-team.ru/talents/facebackend/server
       - a.yandex-team.ru/transfer_manager/go/pkg/source/pg
       - a.yandex-team.ru/travel/avia/flight_status_receiver/internal/collectors
