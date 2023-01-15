@@ -83,11 +83,19 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_processing_collection.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\knn.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\embedding_features\lda.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVVVJFMvY2F0Ym9vc3QvcHJpdmF0ZS9saWJzL2VtYmVkZGluZ19mZWF0dXJlcy9mbGF0YnVmZmVycy9lbWJlZGRpbmdfZmVhdHVyZV9jYWxjZXJzLmZic3EKdYVxC2Iu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -98,23 +106,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVVVJFMvY2F0Ym9vc3QvcHJpdmF0ZS9saWJzL2VtYmVkZGluZ19mZWF0dXJlcy9mbGF0YnVmZmVycy9lbWJlZGRpbmdfZmVhdHVyZV9jYWxjZXJzLmZic3EKdYVxC2Iu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.bfbs;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVVbJFMvY2F0Ym9vc3QvcHJpdmF0ZS9saWJzL2VtYmVkZGluZ19mZWF0dXJlcy9mbGF0YnVmZmVycy9lbWJlZGRpbmdfcHJvY2Vzc2luZ19jb2xsZWN0aW9uLmZic3EKdYVxC2Iu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)$(Configuration)" "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,20 +122,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVEF91c2VyX2V4dHJhX2FyZ3NxB11xCFUFX3BhdGhxCVVbJFMvY2F0Ym9vc3QvcHJpdmF0ZS9saWJzL2VtYmVkZGluZ19mZWF0dXJlcy9mbGF0YnVmZmVycy9lbWJlZGRpbmdfcHJvY2Vzc2luZ19jb2xsZWN0aW9uLmZic3EKdYVxC2Iu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.bfbs;</Outputs>
+      <Message>$B/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h	$B/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.bfbs;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.bfbs;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_calcers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_feature_calcer.h"/>
@@ -151,6 +140,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\flatbuffers\libs-helpers-flatbuffers.vcxproj">
+      <Project>{EC63A982-A3AC-CD58-0813-FF9DC10C9825}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
