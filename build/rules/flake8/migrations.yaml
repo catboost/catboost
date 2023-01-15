@@ -1,77 +1,4 @@
 migrations:
-  F403:
-    ignore:
-    - F403
-    prefixes:
-    - adfox/infra/registrator
-    - adfox/infra/registrator/lib
-    - ads/libs/py_dssm_lib/dssm_applier
-    - ads/libs/py_ml_factors/matrixnet
-    - ads/libs/py_vw_lib
-    - ads/nirvana/xfactor-yt
-    - ads/tools/mx_feature_remapper
-    - ads/watchman/contrib/flask-restplus-patched
-    - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
-    - alice/analytics/utils/marty/run_nirvana_instance
-    - alice/uniproxy/library/notificator
-    - alice/uniproxy/library/notificator_api
-    - arc/tables_creation/tests
-    - browser/infra/ci/backend
-    - browser/infra/ci/backend/ci/settings
-    - cloud/ai/speechkit/stt/tests/data_pipeline/join
-    - cv/short2long/nirvana/lib
-    - devtools/signer/signer
-    - dict/ontodb/cmpy/lib
-    - dict/ontodb/isa/libshorttext/converter/stemmer
-    - dict/ontodb/report/common
-    - dict/ontodb/utils/export_src_codes
-    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
-    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - extsearch/geo/recommender/runtime/config/generation
-    - mail/freezing_tests/active_users_aggregation
-    - maps/analyzer/tools/online_jams/pylib
-    - maps/tools/naviguide/tools/extract_uuid_info
-    - market/seo/offer_base
-    - mediapers/feature_machine/nirvana/script_runner
-    - metrika/core/test_framework/steps/clients
-    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
-    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
-    - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - passport/python/api/tests/views/bundle/change_avatar
-    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
-    - quality/neural_net/bert/bert/utils/distributed
-    - quality/neural_net/bert/bert/utils/fs
-    - sandbox/projects/tycoon/TycoonAdverts
-    - search/base_search/tools/explain_l1
-    - search/metrics/ccc/ccc_lib
-    - search/mon/rviewer/app
-    - search/mon/rviewer/db
-    - search/mon/rviewer/modules
-    - search/mon/rviewer/modules/clients
-    - search/mon/rviewer/modules/orchestrator
-    - travel/avia/avia_api
-    - travel/avia/avia_api/avia/settings
-    - travel/avia/avia_api/avia/v1/schemas
-    - travel/avia/avia_api/tests
-    - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/tests
-    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
-    - travel/avia/ticket_daemon_api/tests
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
-    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
-    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
-    - voicetech/asr/tools/language_model/tests/test_linear_merge
-    - yabs/outdoor/viewer/back/logic
-    - yt/yt/tests/integration/tests
   W605:
     ignore:
     - W605
@@ -102,7 +29,6 @@ migrations:
     - ads/libs/py_prgmg
     - ads/libs/py_prgmg/factors
     - ads/libs/py_test_mapreduce
-    - ads/libs/py_yt2logbroker
     - ads/logos/libs/core
     - ads/logos/libs/core/ut
     - ads/ml_engine/learn/result/flow_generate_extended_fstr
@@ -177,14 +103,6 @@ migrations:
     - alice/vins/tools/vins_tools
     - alice/vins/tools/vins_tools/nlu/ner
     - alice/vins/tools/vins_tools/utils
-    - antiadblock/adblock_rule_sonar/tests
-    - antiadblock/configs_api/tests/functional
-    - antiadblock/cryprox/cryprox
-    - antiadblock/cryprox/cryprox/common
-    - antiadblock/cryprox/cryprox/common/tools
-    - antiadblock/cryprox/cryprox/config
-    - antiadblock/cryprox/cryprox/service
-    - antiadblock/cryprox/tests/unit
     - antirobot/tools/daily_routine/lib
     - april/web/bas/bm
     - april/web/bas/bm/utils
@@ -512,7 +430,6 @@ migrations:
     - infra/qyp/vmctl/src
     - infra/reconf_juggler/tools/jdiff/tests
     - infra/rtc/janitor
-    - infra/rtc/juggler/bundle/tests
     - infra/scripts/eventlog_uploader/script
     - infra/swatlib
     - infra/vmagent/src/vmctl
@@ -546,7 +463,6 @@ migrations:
     - logbroker/tools/manual/alter_sqs_tables
     - logbroker/tools/manual/create_logbroker_account/lib
     - logbroker/tools/manual/load_test/load
-    - mail/collie/unistat
     - mail/contrib/ccs-caldavtester
     - mail/contrib/ccs-caldavtester/src
     - mail/contrib/ccs-caldavtester/verifiers
@@ -646,8 +562,6 @@ migrations:
     - modadvert/programs/saas_indexer/libs
     - modadvert/programs/transfer_manager/libs
     - modadvert/programs/update_flags_offline/tables_manager/libs
-    - mssngr/botplatform/src/bots/common
-    - mssngr/botplatform/src/bots/common/yamb
     - mssngr/router/tests/lib
     - mssngr/router/tools/state_cache_updater_v2
     - opensource/sync/bin/arc2git
@@ -732,8 +646,6 @@ migrations:
     - quality/relev_tools/lboost_ops/nirvana/operations/main/tests
     - quality/trailer/suggest/services/maps/conveyors/doc_features/chronostat
     - quality/trailer/suggest/services/maps/conveyors/pool/make_pointwise_pool
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg/utils
     - quality/trailer/suggest/services/maps/tools/retrieval_test
     - quality/trailer/suggest_dict/suggest_framework/tools
     - quality/user_sessions/market/custom_statistics
@@ -778,7 +690,6 @@ migrations:
     - rt-research/multik/deploy/deploy
     - rt-research/multik/tasks/labeling/catalogia_candidates
     - rtmapreduce/mrtasks/create_sessions/diff_tool
-    - saas/library/python/nanny_rest/tests/fake
     - saas/tools/devops/fban
     - saas/tools/devops/lib
     - saas/tools/devops/lib23/tests/py2
@@ -995,8 +906,6 @@ migrations:
     - travel/avia/library/python/geosearch/views
     - travel/avia/library/python/route_search
     - travel/avia/library/python/route_search/by_number
-    - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/ticket_daemon/partners
     - travel/avia/travelers
     - travel/avia/travelers/application
     - travel/avia/travelers/application/validations/bonus_card_types
@@ -1010,8 +919,6 @@ migrations:
     - travel/rasp/library/python/geosearch/views
     - travel/rasp/library/python/route_search
     - travel/rasp/library/python/route_search/by_number
-    - travel/rasp/rasp_scripts
-    - travel/rasp/rasp_scripts/scripts/long_haul/export
     - travel/rasp/train_api
     - travel/rasp/train_api/scripts
     - travel/rasp/train_api/tests
@@ -1051,7 +958,6 @@ migrations:
     - yabs/server/infra/trivial_cron
     - yabs/server/infra/validator/hooks_bin/coredumps_cloud
     - yabs/server/infra/validator/hooks_bin/shoot_search
-    - yabs/server/libs/config/helpers
     - yabs/server/libs/config/tests/updater
     - yabs/server/libs/internal_ver/depgrapher/lib
     - yabs/server/libs/py_markdown_strings
@@ -1099,7 +1005,6 @@ migrations:
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/server/test/qabs_bsserver_pytest/db
     - yabs/server/test/tools/oneshot_tester/lib
-    - yabs/server/tools/config/launcher
     - yabs/stat/dropstat2/api/lib
     - yabs/stat/infra/clickhouse/repair_master_report
     - yabs/utils/autosupbs/pylibs/tasks_generator
@@ -1140,7 +1045,6 @@ migrations:
     - yweb/antispam/adblock/viewer
     - yweb/antispam/cid/backend/miner
     - yweb/antispam/clean_web/lib
-    - yweb/antispam/clean_web/lib/module
     - yweb/antispam/clean_web/lib/tests/medium
     - yweb/antispam/clean_web/lib/tests/medium/module
     - yweb/antispam/clean_web/router/lib/tests/small
@@ -1259,9 +1163,7 @@ migrations:
     - alice/uniproxy/library/subway/server
     - alice/uniproxy/library/testing
     - alice/uniproxy/library/testing/mocks
-    - alice/uniproxy/library/uaas
     - alice/uniproxy/library/unimemcached
-    - alice/uniproxy/library/web_handlers
     - alice/uniproxy/tools/balancer_top
     - apphost/conf/tests/blackbox
     - april/badb
@@ -1279,7 +1181,6 @@ migrations:
     - billing/bcl/bcl
     - billing/refs/refs
     - browser/infra/yaml_merger/tests
-    - cloud/filestore/public/sdk/python/client
     - cloud/iam/token_agent/bin
     - cloud/marketplace/queue/yc_marketplace_queue
     - cloud/netinfra/rknfilter/yc_rkn_common
@@ -1342,7 +1243,6 @@ migrations:
     - infra/porto/api_py
     - infra/qemu/vmexec
     - infra/qyp/vmproxy/tests
-    - infra/rtc_sla_tentacles/backend/lib/harvesters
     - infra/shawshank/tests
     - infra/skybit
     - infra/skybit/src
@@ -1362,7 +1262,6 @@ migrations:
     - lbs/viewer
     - library/python/bstr
     - library/python/coredump_filter
-    - logbroker/public/client/lib
     - logbroker/tools/deploy/layer_test_old
     - logbroker/tools/manual/collect_capacity/base_2020
     - logbroker/tools/manual/collect_capacity/collect_pre
@@ -1372,15 +1271,11 @@ migrations:
     - logbroker/tools/startrek/st
     - mail/devpack/lib
     - mail/devpack/lib/components
-    - mail/docker_tests
-    - mail/docker_tests/tests_common/steps
     - mail/python/fake_mulcagate
     - mail/python/theatre/app
     - mail/python/theatre/app/log_helpers
     - mail/tools/sql_execute_per_shard/lib
     - maps/analytics/legacy/nile/statadhoc-8703-site-api-report
-    - maps/analytics/tools/lama/lib
-    - maps/analytics/tools/lama/lib/providers
     - maps/analyzer/pylibs/envkit
     - maps/automotive/carwashes/tests/src
     - maps/automotive/qa/metrics/common/ut
@@ -1389,12 +1284,8 @@ migrations:
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
-    - maps/infra/sedem/machine/lib
-    - maps/infra/sedem/machine/lib/endpoints
     - maps/poi/statistics/protected_geo_product/impressions/bebr
     - maps/pylibs/infrastructure_api/arc
-    - maps/renderer/stylerepo/lib
-    - maps/renderer/stylerepo/tests
     - maps/search/metrics/pipeline/geo/geocoder/lib
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
@@ -1408,7 +1299,6 @@ migrations:
     - market/sre/services/cema/lib/classes
     - market/sre/services/tablo-idm-licenser/lib
     - market/sre/tools/hyperion-tools/yandex-market-hyp2bb/lib
-    - market/sre/tools/logkeeper/logkeeper
     - market/yamarec/yamarec/yamarec1
     - market/yamarec/yamarec/yamarec1/tasks
     - mds/elliptics/bin/dnet_cache_balancer
@@ -1452,7 +1342,6 @@ migrations:
     - plus/gift/gift/admin
     - quality/ab_testing/cofe/projects/geo/navigator/common
     - quality/ab_testing/cofe/projects/geo/suggest/byak
-    - quality/ab_testing/cofe/projects/push
     - quality/ab_testing/cofe/projects/uslugi/competition
     - quality/ab_testing/cofe/projects/zalogin
     - quality/ab_testing/cofe/python/backends/nile
@@ -1551,7 +1440,6 @@ migrations:
     - smart_devices/tools/launcher2/tests/restarts
     - smarttv/alice/mm_backend/common
     - statbox/statkey/jam/jobs
-    - statbox/statkey/jam/jobs/cubes/ads_facebook/v1
     - statbox/statkey/jam/jobs/cubes/superapp/autofill/v2
     - statbox/statkey/jam/jobs/cubes/superapp/bi_turboappweb_turbo_counter/v2
     - statbox/statkey/jam/jobs/cubes/superapp/cohorts_daily/v2
@@ -1565,13 +1453,6 @@ migrations:
     - testenv/core/web_server
     - travel/avia/shared_flights/tasks/schedules_dumper
     - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/ticket_daemon
-    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
-    - travel/avia/ticket_daemon/ticket_daemon/daemon
-    - travel/avia/ticket_daemon/ticket_daemon/partners
-    - travel/avia/ticket_daemon_api
-    - travel/avia/ticket_daemon_api/tests
-    - travel/avia/ticket_daemon_api/tests/handlers/v3
     - travel/hotels/suggest/builder
     - travel/hotels/suggest/metrics_builder
     - travel/rasp/content/rzdParser
@@ -1595,7 +1476,6 @@ migrations:
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting/layers
     - weather/workers/warnings/push
-    - web/app_host/tools/proto_converter
     - yabs/analytics/anomaly_analyzer/src
     - yabs/analytics/new_traffic_generation/src
     - yabs/analytics/traffic_generation/z_2_barnavig_click_counter
@@ -1653,6 +1533,76 @@ migrations:
     - zootopia/analytics/ml/features/geo_features/idle_duration_features
     - zootopia/analytics/ml/join_features/lib
     - zootopia/analytics/ml/util/logs_context_manager/lib
+  F403:
+    ignore:
+    - F403
+    prefixes:
+    - adfox/infra/registrator
+    - adfox/infra/registrator/lib
+    - ads/libs/py_dssm_lib/dssm_applier
+    - ads/libs/py_ml_factors/matrixnet
+    - ads/libs/py_vw_lib
+    - ads/nirvana/xfactor-yt
+    - ads/tools/mx_feature_remapper
+    - ads/watchman/contrib/flask-restplus-patched
+    - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
+    - alice/analytics/utils/marty/run_nirvana_instance
+    - alice/uniproxy/library/notificator
+    - alice/uniproxy/library/notificator_api
+    - arc/tables_creation/tests
+    - browser/infra/ci/backend
+    - browser/infra/ci/backend/ci/settings
+    - cloud/ai/speechkit/stt/tests/data_pipeline/join
+    - cv/short2long/nirvana/lib
+    - devtools/signer/signer
+    - dict/ontodb/cmpy/lib
+    - dict/ontodb/isa/libshorttext/converter/stemmer
+    - dict/ontodb/report/common
+    - dict/ontodb/utils/export_src_codes
+    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
+    - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
+    - extsearch/geo/recommender/runtime/config/generation
+    - mail/freezing_tests/active_users_aggregation
+    - maps/analyzer/tools/online_jams/pylib
+    - maps/tools/naviguide/tools/extract_uuid_info
+    - market/seo/offer_base
+    - mediapers/feature_machine/nirvana/script_runner
+    - metrika/core/test_framework/steps/clients
+    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
+    - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
+    - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
+    - passport/python/api/tests/views/bundle/change_avatar
+    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
+    - quality/neural_net/bert/bert/utils/distributed
+    - quality/neural_net/bert/bert/utils/fs
+    - sandbox/projects/tycoon/TycoonAdverts
+    - search/base_search/tools/explain_l1
+    - search/metrics/ccc/ccc_lib
+    - search/mon/rviewer/app
+    - search/mon/rviewer/db
+    - search/mon/rviewer/modules
+    - search/mon/rviewer/modules/clients
+    - search/mon/rviewer/modules/orchestrator
+    - travel/avia/avia_api
+    - travel/avia/avia_api/avia/settings
+    - travel/avia/avia_api/avia/v1/schemas
+    - travel/avia/avia_api/tests
+    - travel/avia/ticket_daemon
+    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
+    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
+    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
+    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
+    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
+    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
+    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
+    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
+    - voicetech/asr/tools/language_model/tests/test_linear_merge
+    - yabs/outdoor/viewer/back/logic
+    - yt/yt/tests/integration/tests
   F401:
     ignore:
     - F401
@@ -1674,8 +1624,6 @@ migrations:
     - ads/nirvana/automl/pipelines/offline_pytorch/full_example
     - ads/nirvana/gensim_w2v
     - ads/nirvana/mappers/w2v_recommender
-    - ads/pytorch/lib/online_learning/production/train_ctl/lib
-    - ads/pytorch/lib/run/ut
     - ads/quality/adv_machine/cm_robot/cmpy/fresh_stats
     - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom_attempt
     - ads/quality/adv_machine/cm_robot/cmpy/stuff
@@ -1719,8 +1667,6 @@ migrations:
     - clickhouse/utils/github
     - crypta/cm/services/common/test_utils
     - crypta/cm/services/quoter/bin/test
-    - crypta/graph/fingerprint/match/lib
-    - crypta/graph/fingerprint/match/tests
     - crypta/lab/test/yt
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
@@ -1786,7 +1732,6 @@ migrations:
     - lbs/research/LBS381_choosing_gsm_over_wifi/calc_stats
     - lbs/research_tools/find_keys_causing_losses
     - library/python/async_clients
-    - logbroker/public/client/lib
     - logbroker/tools/deploy_consistency_test
     - mail/collectors/tests-system/src
     - mail/github/calendar-attach-processor
@@ -1808,8 +1753,6 @@ migrations:
     - maps/infra/ecstatic/tool/ecstatic_api
     - maps/pylibs/test_helpers
     - maps/qa/passed_by_assessors/markup_script
-    - maps/renderer/stylerepo/lib
-    - maps/renderer/stylerepo/utils/lib
     - maps/wikimap/feedback/pushes/addresses/make_pushes/tests
     - maps/wikimap/stat/kpi/valuable_edits/users_home_regions/lib
     - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
@@ -2085,7 +2028,6 @@ migrations:
     - yabs/server/test/pylibs/simulator
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/server/test/tools/lua_test_generator/lib
-    - yabs/stat/yabs-yt-audit/audits/billable_event_vs_archive
     - yabs/utils/log_stats/test
     - yabs/vh/cms-pgaas/cms_common
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib/lib/sport_client
@@ -2151,7 +2093,6 @@ migrations:
     - library/python/cyson
     - library/python/cyson/cyson
     - mail/freezing_tests/active_users_aggregation
-    - mail/python/sendr-qtools/src/sendr_aiopg/tests
     - maps/analyzer/tools/online_jams/pylib
     - maps/tools/naviguide/tools/extract_uuid_info
     - market/seo/offer_base
@@ -2169,8 +2110,6 @@ migrations:
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/celery_tasks
     - quality/neural_net/bert/bert/utils/distributed
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg
-    - quality/trailer/suggest/services/maps/pygeosg/pygeosg/processing
     - quality/user_sessions/py_amon/cbir
     - quality/user_sessions/py_amon/images
     - repo/yeoman/data/lib
@@ -2188,9 +2127,6 @@ migrations:
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/tests
     - travel/avia/ticket_daemon
-    - travel/avia/ticket_daemon/tests
-    - travel/avia/ticket_daemon/ticket_daemon/api/models_utils
-    - travel/avia/ticket_daemon_api/tests
     - vcs/svn/flat
     - vcs/svn/hooks/test
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
@@ -6443,4 +6379,3 @@ migrations:
     - mssngr/botplatform/src/bots/core/migrations
     - cloud/identity/proto
     - cloud/gauthling/gauthling_daemon/proto
-
