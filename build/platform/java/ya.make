@@ -6,4 +6,5 @@ RECURSE(
     jacoco-agent
     kotlin
     jstyle_lib
+    scriptgen
 )
