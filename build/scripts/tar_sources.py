@@ -1,11 +1,11 @@
 import argparse
 import os
-import subprocess
 import tarfile
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--exts', nargs='*', default=None)
     parser.add_argument('--input', required=True)
     parser.add_argument('--output', required=True)
 
@@ -18,7 +18,7 @@ def main():
     py_srcs = []
     for root, _, files in os.walk(args.input):
         for f in files:
-            if f.endswith('.py'):
+            if not args.exts or f.endswith(tuple(args.exts)):
                 py_srcs.append(os.path.join(root, f))
 
     with tarfile.open(args.output, 'w') as out:

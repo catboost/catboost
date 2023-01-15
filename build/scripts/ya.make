@@ -23,7 +23,6 @@ TEST_SRCS(
     coverage-info.py
     cpp_flatc_wrapper.py
     create_jcoverage_report.py
-    create_pysrc.py
     extract_asrc.py
     extract_jacoco_report.py
     f2c.py
@@ -74,6 +73,7 @@ TEST_SRCS(
     stdout2stderr.py
     symlink.py
     tar_directory.py
+    tar_sources.py
     tared_protoc.py
     touch.py
     unpacking_jtest_runner.py
