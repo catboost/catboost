@@ -168,10 +168,6 @@ ALLOW yaphone/dialer/project -> contrib/python/django/django-1.11
 ALLOW yaphone/utils/geo -> contrib/python/django/django-1.11
 DENY .* -> contrib/python/django/django-1.11
 
-# django-2.2 constraints
-ALLOW contrib/python/.*/tests? -> contrib/python/django/django-2.2
-DENY contrib/python -> contrib/python/django/django-2.2
-
 ALLOW maps -> maps/contrib
 DENY .* -> maps/contrib
 
@@ -443,26 +439,18 @@ ALLOW cloud/support/dutybot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW cloud/support/mdb-support-bot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW comdep_analytics/crm_advisor/lib/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW comdep_analytics/crm_advisor/lib/log -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/aiopg/aiopg/sa -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/apscheduler/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/Authlib -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/clickhouse-sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/fastapi-utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/flask_admin/flask_admin/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/flask_admin -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/flask_sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/geoalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/graphene_sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/graphene_sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/ipython-sql -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/jupyterhub/jupyterhub/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/jupyterhub -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/marshmallow-sqlalchemy/py2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/marshmallow-sqlalchemy/py3 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/SQLAlchemy-Continuum -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -503,9 +491,6 @@ ALLOW intranet/vconf/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/wiki/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/wiki/src.template -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW intranet/yandex_directory/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW jupytercloud/arcadia_kernel.libra_noyql.inc -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW jupytercloud/backend/db/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW jupytercloud/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW keyboard/analytics/toloka/daemon/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW mail/callmeback/callmeback/stages/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW mail/callmeback/callmeback/stages/db_stats -> contrib/python/sqlalchemy/sqlalchemy-1.2
