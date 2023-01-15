@@ -211,8 +211,6 @@ migrations:
       - a.yandex-team.ru/infra/porto/proto
       - a.yandex-team.ru/infra/rtc/rebootctl/proto
       - a.yandex-team.ru/infra/ya_salt/proto
-      - a.yandex-team.ru/kikimr/yf/job_service/public/proto
-      - a.yandex-team.ru/kikimr/yf/yf_service/public/proto
       - a.yandex-team.ru/library/cpp/eventlog/proto
       - a.yandex-team.ru/market/idx/golibrary/pbsn/proto
       - a.yandex-team.ru/mds/valve/proto
