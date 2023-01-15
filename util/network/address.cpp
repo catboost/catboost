@@ -140,6 +140,16 @@ IRemoteAddrPtr NAddr::GetSockAddr(SOCKET s) {
     return addr;
 }
 
+IRemoteAddrPtr NAddr::GetPeerAddr(SOCKET s) {
+    auto addr = MakeHolder<TOpaqueAddr>();
+
+    if (getpeername(s, addr->MutableAddr(), addr->LenPtr()) < 0) {
+        ythrow TSystemError() << "getpeername() failed";
+    }
+
+    return addr;
+}
+
 static const in_addr& InAddr(const IRemoteAddr& addr) {
     return ((const sockaddr_in*)addr.Addr())->sin_addr;
 }
