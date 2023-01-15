@@ -106,8 +106,17 @@
         "javac11": {
             "description": "Run javac 11"
         },
+        "java15": {
+            "description": "Run java 15"
+        },
+        "javac15": {
+            "description": "Run javac 15"
+        },
         "jar": {
             "description": "Run jar"
+        },
+        "jar15": {
+            "description": "Run jar from jdk15"
         },
         "jq": {
             "description": "Run jq"
@@ -3987,6 +3996,42 @@
                 }
             ]
         },
+        "jdk15": {
+            "tools": {
+                "javac15": {
+                    "bottle": "jdk15",
+                    "executable": "javac15"
+                },
+                "java15": {
+                    "bottle": "jdk15",
+                    "executable": "java15"
+                },
+                "jar15": {
+                    "bottle": "jdk15",
+                    "executable": "jar15"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "svn17": {
             "tools": {
                 "svn": {
@@ -6487,6 +6532,30 @@
                     "java"
                 ],
                 "jar11": [
+                    "bin",
+                    "jar"
+                ]
+            }
+        },
+        "jdk15": {
+            "formula": {
+                "sandbox_id": [
+                    823158461,
+                    823183568,
+                    823899886
+                ],
+                "match": "openjdk"
+            },
+            "executable": {
+                "javac15": [
+                    "bin",
+                    "javac"
+                ],
+                "java15": [
+                    "bin",
+                    "java"
+                ],
+                "jar15": [
                     "bin",
                     "jar"
                 ]
