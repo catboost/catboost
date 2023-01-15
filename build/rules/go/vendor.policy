@@ -615,6 +615,9 @@ ALLOW .* -> vendor/github.com/osrg/gobgp
 #
 ALLOW .* -> vendor/github.com/lucas-clemente/quic-go
 
+# CONTRIB-2111 distributed lock on redis
+ALLOW .* -> vendor/github.com/go-redsync/redsync/v4
+
 #
 # Tools
 #
