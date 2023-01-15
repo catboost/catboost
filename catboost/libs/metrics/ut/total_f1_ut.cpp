@@ -1,7 +1,6 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
-#include <catboost/libs/metrics/enums.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 

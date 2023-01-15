@@ -3,7 +3,6 @@
 #include "metric_holder.h"
 #include "caching_metric.h"
 #include "pfound.h"
-#include "enums.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/data_types/query.h>

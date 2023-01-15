@@ -2,7 +2,6 @@
 #include "metric.h"
 #include "description_utils.h"
 #include "classification_utils.h"
-#include "enums.h"
 #include "kappa.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
@@ -1185,13 +1184,13 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
         case ELossFunction::Precision: {
             return CreateMetricClasswise<TPrecisionCachingMetric>(config.approxDimension, config);
         }
-        case ELossFunction::Recall: 
+        case ELossFunction::Recall:
             return CreateMetricClasswise<TRecallCachingMetric>(config.approxDimension, config);
             break;
         case ELossFunction::Kappa:
             AppendTemporaryMetricsVector(TKappaMetric::Create(config), &result);
             break;
-        
+
         case ELossFunction::WKappa:
             AppendTemporaryMetricsVector(TWKappaMetric::Create(config), &result);
             break;
