@@ -2850,7 +2850,6 @@ namespace {
 
 TVector<THolder<IMetric>> TNormalizedGini::Create(const TMetricConfig& config) {
     if (config.ApproxDimension == 1) {
-        config.ValidParams->insert("border");
         return AsVector(MakeHolder<TNormalizedGini>(config.Params));
     }
     TVector<THolder<IMetric>> result;
@@ -3362,7 +3361,8 @@ void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 namespace {
     struct TPrecisionAtKMetric final: public TAdditiveMetric {
         explicit TPrecisionAtKMetric(const TLossParams& params,
-                                     int topSize);
+                                     int topSize,
+                                     float targetBorder);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
 
@@ -3380,22 +3380,24 @@ namespace {
         double GetFinalError(const TMetricHolder& error) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
-        static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 // static.
 TVector<THolder<IMetric>> TPrecisionAtKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
     config.ValidParams->insert("border");
-    return AsVector(MakeHolder<TPrecisionAtKMetric>(config.Params, topSize));
+    return AsVector(MakeHolder<TPrecisionAtKMetric>(config.Params, topSize, targetBorder));
 }
 
-TPrecisionAtKMetric::TPrecisionAtKMetric(const TLossParams& params, int topSize)
+TPrecisionAtKMetric::TPrecisionAtKMetric(const TLossParams& params, int topSize, float targetBorder)
         : TAdditiveMetric(ELossFunction::PrecisionAt, params)
-        , TopSize(topSize) {
+        , TopSize(topSize)
+        , TargetBorder(targetBorder) {
     UseWeights.SetDefaultValue(true);
 }
 
@@ -3441,7 +3443,7 @@ void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 
 namespace {
     struct TRecallAtKMetric final: public TAdditiveMetric {
-        explicit TRecallAtKMetric(const TLossParams& params, int topSize);
+        explicit TRecallAtKMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3458,21 +3460,23 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 TVector<THolder<IMetric>> TRecallAtKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
     config.ValidParams->insert("border");
-    return AsVector(MakeHolder<TRecallAtKMetric>(config.Params, topSize));
+    return AsVector(MakeHolder<TRecallAtKMetric>(config.Params, topSize, targetBorder));
 }
 
-TRecallAtKMetric::TRecallAtKMetric(const TLossParams& params, int topSize)
+TRecallAtKMetric::TRecallAtKMetric(const TLossParams& params, int topSize, float targetBorder)
         : TAdditiveMetric(ELossFunction::RecallAt, params)
-        , TopSize(topSize) {
+        , TopSize(topSize)
+        , TargetBorder(targetBorder) {
     UseWeights.SetDefaultValue(true);
 }
 
@@ -3518,7 +3522,7 @@ void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TMAPKMetric final: public TAdditiveMetric {
-        explicit TMAPKMetric(const TLossParams& params, int topSize);
+        explicit TMAPKMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -3535,22 +3539,24 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 // static.
 TVector<THolder<IMetric>> TMAPKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
     config.ValidParams->insert("border");
-    return AsVector(MakeHolder<TMAPKMetric>(config.Params, topSize));
+    return AsVector(MakeHolder<TMAPKMetric>(config.Params, topSize, targetBorder));
 }
 
-TMAPKMetric::TMAPKMetric(const TLossParams& params, int topSize)
+TMAPKMetric::TMAPKMetric(const TLossParams& params, int topSize, float targetBorder)
         : TAdditiveMetric(ELossFunction::MAP, params)
-        , TopSize(topSize) {
+        , TopSize(topSize)
+        , TargetBorder(targetBorder) {
     UseWeights.SetDefaultValue(true);
 }
 
@@ -4818,7 +4824,7 @@ void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*)
 
 namespace {
     struct TMRRMetric final: public TAdditiveMetric {
-        explicit TMRRMetric(const TLossParams& params, int topSize);
+        explicit TMRRMetric(const TLossParams& params, int topSize, float targetBorder);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         TMetricHolder EvalSingleThread(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -4834,23 +4840,33 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        static inline double CalcQueryReciprocalRank(const double* approxes, const float* target, int querySize, int topSize);
+        static inline double CalcQueryReciprocalRank(const double* approxes, const float* target,
+                                                     int querySize, int topSize, float targetBorder);
 
         const int TopSize;
+        const float TargetBorder;
     };
 }
 
 TVector<THolder<IMetric>> TMRRMetric::Create(const TMetricConfig& config) {
     const int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
+    const float targetBorder = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "border", GetDefaultTargetBorder());
     config.ValidParams->insert("top");
-    return AsVector(MakeHolder<TMRRMetric>(config.Params, topSize));
+    config.ValidParams->insert("border");
+    return AsVector(MakeHolder<TMRRMetric>(config.Params, topSize, targetBorder));
 }
 
-double TMRRMetric::CalcQueryReciprocalRank(const double* approxes, const float* targets, int querySize, int topSize) {
+double TMRRMetric::CalcQueryReciprocalRank(
+    const double* approxes,
+    const float* targets,
+    int querySize,
+    int topSize,
+    float targetBorder
+) {
     bool foundRelevantApprox = false;
     double maxRelevantApprox = std::numeric_limits<double>::lowest();
     for (int i = 0; i < querySize; ++i) {
-        if (targets[i] > 0) {
+        if (targets[i] > targetBorder) {
             foundRelevantApprox = true;
             maxRelevantApprox = Max(maxRelevantApprox, approxes[i]);
         }
@@ -4862,7 +4878,7 @@ double TMRRMetric::CalcQueryReciprocalRank(const double* approxes, const float* 
     int pos = 1;
     const int maxPos = topSize == -1 ? querySize : Min(querySize, topSize);
     for (int i = 0; i < querySize && pos <= maxPos; ++i) {
-        pos += approxes[i] > maxRelevantApprox || approxes[i] == maxRelevantApprox && targets[i] <= 0;
+        pos += approxes[i] > maxRelevantApprox || approxes[i] == maxRelevantApprox && targets[i] <= targetBorder;
     }
     return pos <= maxPos ? 1.0 / pos : 0.0;
 }
@@ -4883,7 +4899,8 @@ TMetricHolder TMRRMetric::EvalSingleThread(const TConstArrayRef<TConstArrayRef<d
                 approx[0].data() + qidInfo.Begin,
                 target.data() + qidInfo.Begin,
                 qidInfo.End - qidInfo.Begin,
-                TopSize);
+                TopSize,
+                TargetBorder);
         const float queryWeight = UseWeights ? qidInfo.Weight : 1.f;
         result.Stats[0] += queryWeight * qrr;
         result.Stats[1] += queryWeight;
@@ -4895,9 +4912,10 @@ EErrorType TMRRMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-TMRRMetric::TMRRMetric(const TLossParams& params, int topSize)
+TMRRMetric::TMRRMetric(const TLossParams& params, int topSize, float targetBorder)
     : TAdditiveMetric(ELossFunction::MRR, params)
     , TopSize(topSize)
+    , TargetBorder(targetBorder)
 {
     UseWeights.SetDefaultValue(true);
 }
