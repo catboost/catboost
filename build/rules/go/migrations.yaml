@@ -193,3 +193,49 @@ migrations:
       - a.yandex-team.ru/games/backend/pkg/users_service
       - a.yandex-team.ru/games/backend/internal/db_utils
       - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/fresh_cache
+  protonaming:
+    packages:
+      - a.yandex-team.ru/alice/library/response_similarity/proto
+      - a.yandex-team.ru/arc/api/proto
+      - a.yandex-team.ru/arc/api/public
+      - a.yandex-team.ru/crypta/graph/soup/config/proto
+      - a.yandex-team.ru/devtools/distbuild/matchmaker/idl/proto
+      - a.yandex-team.ru/extsearch/video/content_id/proto
+      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ad/proto
+      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/proto
+      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/proto
+      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/qproxy/proto
+      - a.yandex-team.ru/infra/diskmanager/proto
+      - a.yandex-team.ru/infra/hmserver/proto
+      - a.yandex-team.ru/infra/maxwell/go/proto
+      - a.yandex-team.ru/infra/nanny2/proto
+      - a.yandex-team.ru/infra/orly/proto
+      - a.yandex-team.ru/infra/porto/proto
+      - a.yandex-team.ru/infra/rtc/rebootctl/proto
+      - a.yandex-team.ru/infra/ya_salt/proto
+      - a.yandex-team.ru/kikimr/yf/job_service/public/proto
+      - a.yandex-team.ru/kikimr/yf/yf_service/public/proto
+      - a.yandex-team.ru/library/cpp/eventlog/proto
+      - a.yandex-team.ru/market/idx/golibrary/pbsn/proto
+      - a.yandex-team.ru/mds/valve/proto
+      - a.yandex-team.ru/mds/yarl/proto
+      - a.yandex-team.ru/rtline/library/executor/proto
+      - a.yandex-team.ru/rtline/library/time_restriction/proto
+      - a.yandex-team.ru/rtline/services/drive/frontend/data/proto
+      - a.yandex-team.ru/rtline/services/drive/frontend/database/drive/proto
+      - a.yandex-team.ru/rtline/services/drive/frontend/proto
+      - a.yandex-team.ru/rtline/services/drive/frontend/support_center/feedback/proto
+      - a.yandex-team.ru/rtline/services/drive/library/weather/proto
+      - a.yandex-team.ru/rtline/services/drive/telematics/protocol/proto
+      - a.yandex-team.ru/rtline/services/drive/telematics/server/location/proto
+      - a.yandex-team.ru/rtmapreduce/tools/sli/proto
+      - a.yandex-team.ru/transfer_manager/go/cmd/yql_server/proto
+      - a.yandex-team.ru/transfer_manager/go/proto
+      - a.yandex-team.ru/travel/buses/backend/internal/common/proto
+      - a.yandex-team.ru/travel/proto
+      - a.yandex-team.ru/travel/rasp/train_bandit_api/proto
+      - a.yandex-team.ru/travel/rasp/train_offer_storage/proto
+      - a.yandex-team.ru/yabs/proto
+      - a.yandex-team.ru/yql/api/go/worker/proto
+      - a.yandex-team.ru/yweb/video/faas/proto
+      - a.yandex-team.ru/zen/integration/proto
