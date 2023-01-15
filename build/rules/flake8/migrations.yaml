@@ -373,7 +373,6 @@ migrations:
     - extsearch/video/robot/rt_transcoder/metarobot/tests
     - extsearch/video/robot/rt_transcoder/transcoder/tests
     - extsearch/ymusic/scripts/reindex
-    - groups
     - haas/cmis/hwr_allocation
     - haas/cmis/hwr_allocation/allocation_methods
     - health/articles/articles_pipeline
@@ -1233,7 +1232,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/bert/state_to_ynmt
     - quality/relev_tools/choice_screen/create_stove
     - quality/relev_tools/choice_screen/formula_graph
-    - quality/relev_tools/choice_screen/learn_basket
     - quality/trailer/suggest/toloka_processor/report_yt
     - quality/webfresh/metrics/serpsets/raw_serpset_patcher/tests
     - rnd_toolbox/deckard
@@ -3014,7 +3012,6 @@ migrations:
     - sandbox/projects/sonic
     - sandbox/projects/sport_wizard
     - sandbox/projects/stoker
-    - sandbox/projects/suggest/dicts/Music
     - sandbox/projects/suggest/dicts/News
     - sandbox/projects/suggest/dicts/TailDictionary
     - sandbox/projects/suggest/tools
