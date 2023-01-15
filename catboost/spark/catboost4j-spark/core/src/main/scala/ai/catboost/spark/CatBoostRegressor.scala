@@ -91,7 +91,8 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
 /** Class to train [[CatBoostRegressionModel]]
  *   The default optimized loss function is `RMSE`
  *
- * @example Basic example.
+ * ===Examples===
+ * Basic example.
  * {{{
  *  val spark = SparkSession.builder()
  *    .master("local[*]")
@@ -128,7 +129,7 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
  *  predictions.show()
  * }}}
  *
- * @example Example with alternative loss function.
+ * Example with alternative loss function.
  * {{{
  *  ...<initialize trainPool, evalPool>
  *  val regressor = new CatBoostRegressor().setLossFunction("MAE")
@@ -141,14 +142,15 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
  * Supports standard Spark MLLib serialization. Data can be saved to distributed filesystem like HDFS or
  * local files.
  *
- * @example Save
+ * ===Examples:===
+ * Save:
  * {{{
  *   val regressor = new CatBoostRegressor().setLossFunction("MAE")
  *   val path = "/home/user/catboost_regressors/regressor0"
  *   regressor.write.save(path)
  * }}}
  *
- * @example Load
+ * Load:
  * {{{
  *   val path = "/home/user/catboost_regressors/regressor0"
  *   val regressor = CatBoostRegressor.load(path)

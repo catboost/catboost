@@ -113,7 +113,8 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
  *   - `MultiClass` — The label column has more than two different values and the targetBorder parameter is
  *     not specified.
  *
- * @example Binary classification.
+ * ===Examples===
+ * Binary classification.
  * {{{
  *  val spark = SparkSession.builder()
  *    .master("local[*]")
@@ -150,7 +151,7 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
  *  predictions.show()
  * }}}
  *
- * @example Multiclassification.
+ * Multiclassification.
  * {{{
  *  val spark = SparkSession.builder()
  *    .master("local[*]")
@@ -191,14 +192,15 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
  * Supports standard Spark MLLib serialization. Data can be saved to distributed filesystem like HDFS or
  * local files.
  *
- * @example Save
+ * ===Examples==
+ * Save:
  * {{{
  *   val classifier = new CatBoostClassifier().setIterations(100)
  *   val path = "/home/user/catboost_classifiers/classifier0"
  *   classifier.write.save(path)
  * }}}
  *
- * @example Load
+ * Load:
  * {{{
  *   val path = "/home/user/catboost_classifiers/classifier0"
  *   val classifier = CatBoostClassifier.load(path)
