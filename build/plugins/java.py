@@ -76,10 +76,12 @@ def ongenerate_script(unit, *args):
 
 def onjava_module(unit, *args):
     args_delim = unit.get('ARGS_DELIM')
+    idea_only = 'yes' if 'IDEA_ONLY' in args else 'no'
 
     data = {
         'BUNDLE_NAME': unit.name(),
         'PATH': unit.path(),
+        'IDEA_ONLY': idea_only,
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
         'MANAGED_PEERS': '${MANAGED_PEERS}',
@@ -234,7 +236,7 @@ def onjava_module(unit, *args):
     dart = 'JAVA_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
     unit.set_property(['JAVA_DART_DATA', dart])
-    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
+    if not idea_only and unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
         jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
         if jdeps_val and jdeps_val not in ('yes', 'no', 'strict'):
             ymake.report_configure_error('CHECK_JAVA_DEPS: "yes", "no" or "strict" required')
