@@ -422,6 +422,9 @@
         },
         "iceflame": {
             "description": "Performance data collection and analysis"
+        },
+        "wall-e": {
+            "description": "Client for Wall-E"
         }
     },
     "toolchain": {
@@ -6214,6 +6217,28 @@
                     "default": true
                 }
             ]
+        },
+        "wall-e": {
+            "tools": {
+                "wall-e": {
+                    "bottle": "wall-e",
+                    "executable": "wall-e"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -8523,6 +8548,17 @@
             "executable": {
                 "iceflame": [
                     "iceflame"
+                ]
+            }
+        },
+        "wall-e": {
+            "formula": {
+                "sandbox_id": 840434964,
+                "match": "wall-e"
+            },
+            "executable": {
+                "wall-e": [
+                    "wall-e"
                 ]
             }
         }
