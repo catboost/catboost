@@ -8236,6 +8236,8 @@ def test_eval_feature_relative_fold_size():
 
 
 TEST_METRIC_DESCRIPTION_METRICS_LIST = ['Logloss', 'Precision', 'AUC']
+
+
 @pytest.mark.parametrize('dataset_has_weights', [True, False], ids=['dataset_has_weights=True', 'dataset_has_weights=False'])
 @pytest.mark.parametrize('eval_metric_loss', TEST_METRIC_DESCRIPTION_METRICS_LIST,
                          ids=['eval_loss=' + mode for mode in TEST_METRIC_DESCRIPTION_METRICS_LIST])
