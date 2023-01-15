@@ -19,7 +19,7 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 
 
 object Generator {
-  def generateCorePyPrologue(out: PrintWriter) = {
+  def generateCorePyPrologue(sparkCompatVersion: String, out: PrintWriter) = {
     out.println(
       s"""
 import collections
@@ -30,12 +30,35 @@ from py4j.java_gateway import JavaObject
 
 from pyspark import keyword_only, SparkContext
 from pyspark.ml.classification import JavaClassificationModel
+"""
+    )
+
+    if (sparkCompatVersion.startsWith("3.")) {
+        out.println("from pyspark.ml.regression import JavaRegressionModel")
+    }
+
+    out.println(
+      s"""
 import pyspark.ml.common
 from pyspark.ml.common import inherit_doc
 from pyspark.ml.param import Param, Params
-from pyspark.ml.util import JavaPredictionModel, JavaMLReader, JavaMLWriter, JavaMLWritable, MLReadable
+from pyspark.ml.util import JavaMLReader, JavaMLWriter, JavaMLWritable, MLReadable
+"""
+    )
+
+    if (!sparkCompatVersion.startsWith("3.")) {
+      out.println(
+        s"""
+from pyspark.ml.util import JavaPredictionModel
+from pyspark.ml.wrapper import JavaModel
+"""
+      )
+    }
+
+    out.println(
+      s"""
 import pyspark.ml.wrapper
-from pyspark.ml.wrapper import JavaParams, JavaEstimator, JavaModel, JavaWrapper
+from pyspark.ml.wrapper import JavaParams, JavaEstimator, JavaWrapper
 from pyspark.sql import DataFrame, SparkSession
 
 
@@ -525,6 +548,7 @@ ${generateForwardedAccessors(forwardedAccessors)}
     modelBaseClassName: String,
     estimatorDoc: String,
     modelDoc: String,
+    sparkCompatVersion: String,
     out: PrintWriter
   ) = {
     val estimatorClassName = typeOf[EstimatorClass].typeSymbol.name.toString.split("\\.").last
@@ -607,9 +631,17 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
             java_model = self._java_obj.fit(_py2java(sc, trainDataset), evalDatasetsAsJavaObject)
             return $modelClassName(java_model)
 
+@inherit_doc"""
+    )
 
-@inherit_doc
-class $modelClassName(JavaModel, $modelBaseClassName, MLReadable, JavaMLWritable):
+    if (sparkCompatVersion.startsWith("3.")) {
+      out.print(s"class $modelClassName($modelBaseClassName, MLReadable, JavaMLWritable):")
+    } else {
+      out.print(s"class $modelClassName(JavaModel, $modelBaseClassName, MLReadable, JavaMLWritable):")
+    }
+
+  out.println(
+      s"""
     "\""
     $modelDoc
     "\""
@@ -848,7 +880,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
 
 """
     )
-    if (modelBaseClassName == "JavaClassificationModel") {
+    if (!sparkCompatVersion.startsWith("3.") && (modelBaseClassName == "JavaClassificationModel")) {
       // Add methods that are defined in JavaClassificationModel only since Spark 3.0.0
       out.println(
 s"""
@@ -913,10 +945,15 @@ __all__ = [
   }
   
   /**
-   * @param args expects 2 arguments: 1st argument - package version, 2nd argument - output dir
+   * @param args expects 3 arguments: 
+   *  1) package version
+   *  2) output dir
+   *  3) spark compat version (like '2.4')
    */
   def main(args: Array[String]) : Unit = {
     try {
+      val sparkCompatVersion = args(2)
+      
       val modulePath = new File(args(1))
       modulePath.mkdirs()
       
@@ -935,7 +972,7 @@ __all__ = [
       
       val corePyWriter = new PrintWriter(new File(modulePath, "core.py"))
       try {
-        generateCorePyPrologue(corePyWriter)
+        generateCorePyPrologue(sparkCompatVersion, corePyWriter)
         generateStandardParamsWrapper(new params.PoolLoadParams(), corePyWriter)
         generateStandardParamsWrapper(new params.QuantizationParams(), corePyWriter)
         generatePoolWrapper(corePyWriter)
@@ -943,9 +980,10 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostRegressor, 
           new CatBoostRegressionModel(new native_impl.TFullModel()), 
-          "JavaPredictionModel", 
+          if (sparkCompatVersion.startsWith("3.")) { "JavaRegressionModel" } else { "JavaPredictionModel" },
           "Class to train CatBoostRegressionModel",
           "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
+          sparkCompatVersion,
           corePyWriter
         )
         generateEstimatorAndModelWrapper(
@@ -954,6 +992,7 @@ __all__ = [
           "JavaClassificationModel", 
           "Class to train CatBoostClassificationModel",
           "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
+          sparkCompatVersion,
           corePyWriter
         )
       } finally {
