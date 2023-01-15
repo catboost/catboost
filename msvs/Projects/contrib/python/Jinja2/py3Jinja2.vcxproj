@@ -79,6 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\1e8ac552adcaebc9f2469080fd.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\919a62b664c1c21491ad3d22f3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\fa9605cad4ab6b62449cc9ed55.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_3fa8d7bf6deda859a6c336284d.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_1e8ac552adcaebc9f2469080fd.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -106,6 +108,60 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/Jinja2/_1e8ac552adcaebc9f2469080fd.py3.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_1e8ac552adcaebc9f2469080fd.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_1e8ac552adcaebc9f2469080fd.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_919a62b664c1c21491ad3d22f3.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_919a62b664c1c21491ad3d22f3.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_919a62b664c1c21491ad3d22f3.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/include" "-I" "$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.py3.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\loaders.py.cddh.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -188,6 +244,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_17c82974c0e816073295f55c69.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_17c82974c0e816073295f55c69.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm" "-" "jinja2.asyncfilters" "_7aebb9905b16c0dc093ecfdf89.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm" "-" "jinja2.asyncfilters" "_7aebb9905b16c0dc093ecfdf89.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_fa9605cad4ab6b62449cc9ed55.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_fa9605cad4ab6b62449cc9ed55.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -208,7 +291,15 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/919a62b664c1c21491ad3d22f3.cpp" "_91ebc6b07d70f9433ccf5d2299=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_1ef9b829778b120a64fc8c4d6f=resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_af8fbf2abdac15deaf41639321=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_4f884034afa370a97cb8a0d699=resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_5d65ee4f528c493e8715b83290=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt" "_17140c17ff89177c11329257e5=resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp" "_e83085c401105d4e985addb3f3=resfs/src/resfs/file/py/jinja2/loaders.py.yapyc3" "_c6103e7e6838c77b49987f6771=resfs/file/py/jinja2/loaders.py.yapyc3" "_6cdee150c040d6ea34383fe4c6=resfs/src/resfs/file/py/jinja2/meta.py" "_ca9e2f7d702b0557675cc3d2b2=resfs/file/py/jinja2/meta.py" "_e46c43c9a7589f6641db07e2e0=resfs/src/resfs/file/py/jinja2/meta.py.yapyc3" "_a45f41464c1a314f0f02d6f650=resfs/file/py/jinja2/meta.py.yapyc3" "_641d1f3cbfceccbf2ff1fb77fa=resfs/src/resfs/file/py/jinja2/nativetypes.py" "_0bf422984c6770cd27cb0a2c66=resfs/file/py/jinja2/nativetypes.py" "_01dbf3ad973ab21a13239b2b76=resfs/src/resfs/file/py/jinja2/nativetypes.py.yapyc3" "_cc6ce75c57e85ff0f133f896f4=resfs/file/py/jinja2/nativetypes.py.yapyc3" "_39c4b848cea67c5eb4ac684d2b=resfs/src/resfs/file/py/jinja2/nodes.py" "_db29278785d77909b65426ba2b=resfs/file/py/jinja2/nodes.py" "_46665ecb05849e1e11204d1003=resfs/src/resfs/file/py/jinja2/nodes.py.yapyc3" "_be36184a0a6a7321e1d9e1e65f=resfs/file/py/jinja2/nodes.py.yapyc3" "_883fddd2f9955e916062d628a8=resfs/src/resfs/file/py/jinja2/optimizer.py" "_5bc7004744467d6b9e1ad39e08=resfs/file/py/jinja2/optimizer.py" "_d7a86697cf18f3295db066f7ce=resfs/src/resfs/file/py/jinja2/optimizer.py.yapyc3" "_91cd9537802b381f150d69b5fb=resfs/file/py/jinja2/optimizer.py.yapyc3" "_9b84684b648480f255fe08473a=resfs/src/resfs/file/py/jinja2/parser.py" "_780f9d9f30fc412c56f93585d5=resfs/file/py/jinja2/parser.py" "_257436f1be31af62902dbc1e7d=resfs/src/resfs/file/py/jinja2/parser.py.yapyc3" "_601d2d785922873f9ad60be4be=resfs/file/py/jinja2/parser.py.yapyc3" "_035f82d02397a0c37539250a16=resfs/src/resfs/file/py/jinja2/runtime.py" "_62934942c8c973297aa790a72e=resfs/file/py/jinja2/runtime.py" "_6ce091bf51bb3675b1f5a84603=resfs/src/resfs/file/py/jinja2/runtime.py.yapyc3" "_5bbfd659ad09d5df888e858b17=resfs/file/py/jinja2/runtime.py.yapyc3" "_5d4d0bcbc717f30e2635c0073e=resfs/src/resfs/file/py/jinja2/sandbox.py" "_252fed92c89c54af7ae304bc64=resfs/file/py/jinja2/sandbox.py" "_4ff1df950a141ffcbfe484bead=resfs/src/resfs/file/py/jinja2/sandbox.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/fa9605cad4ab6b62449cc9ed55.cpp" "_7aebb9905b16c0dc093ecfdf89=py/no_check_imports/wa46wnunnku6vcrt6b2xe5fdsy"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +326,15 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/919a62b664c1c21491ad3d22f3.cpp" "_91ebc6b07d70f9433ccf5d2299=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_1ef9b829778b120a64fc8c4d6f=resfs/file/contrib/python/Jinja2/.dist-info/METADATA" "_af8fbf2abdac15deaf41639321=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_4f884034afa370a97cb8a0d699=resfs/file/contrib/python/Jinja2/.dist-info/entry_points.txt" "_5d65ee4f528c493e8715b83290=resfs/src/resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt" "_17140c17ff89177c11329257e5=resfs/file/contrib/python/Jinja2/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp" "_e83085c401105d4e985addb3f3=resfs/src/resfs/file/py/jinja2/loaders.py.yapyc3" "_c6103e7e6838c77b49987f6771=resfs/file/py/jinja2/loaders.py.yapyc3" "_6cdee150c040d6ea34383fe4c6=resfs/src/resfs/file/py/jinja2/meta.py" "_ca9e2f7d702b0557675cc3d2b2=resfs/file/py/jinja2/meta.py" "_e46c43c9a7589f6641db07e2e0=resfs/src/resfs/file/py/jinja2/meta.py.yapyc3" "_a45f41464c1a314f0f02d6f650=resfs/file/py/jinja2/meta.py.yapyc3" "_641d1f3cbfceccbf2ff1fb77fa=resfs/src/resfs/file/py/jinja2/nativetypes.py" "_0bf422984c6770cd27cb0a2c66=resfs/file/py/jinja2/nativetypes.py" "_01dbf3ad973ab21a13239b2b76=resfs/src/resfs/file/py/jinja2/nativetypes.py.yapyc3" "_cc6ce75c57e85ff0f133f896f4=resfs/file/py/jinja2/nativetypes.py.yapyc3" "_39c4b848cea67c5eb4ac684d2b=resfs/src/resfs/file/py/jinja2/nodes.py" "_db29278785d77909b65426ba2b=resfs/file/py/jinja2/nodes.py" "_46665ecb05849e1e11204d1003=resfs/src/resfs/file/py/jinja2/nodes.py.yapyc3" "_be36184a0a6a7321e1d9e1e65f=resfs/file/py/jinja2/nodes.py.yapyc3" "_883fddd2f9955e916062d628a8=resfs/src/resfs/file/py/jinja2/optimizer.py" "_5bc7004744467d6b9e1ad39e08=resfs/file/py/jinja2/optimizer.py" "_d7a86697cf18f3295db066f7ce=resfs/src/resfs/file/py/jinja2/optimizer.py.yapyc3" "_91cd9537802b381f150d69b5fb=resfs/file/py/jinja2/optimizer.py.yapyc3" "_9b84684b648480f255fe08473a=resfs/src/resfs/file/py/jinja2/parser.py" "_780f9d9f30fc412c56f93585d5=resfs/file/py/jinja2/parser.py" "_257436f1be31af62902dbc1e7d=resfs/src/resfs/file/py/jinja2/parser.py.yapyc3" "_601d2d785922873f9ad60be4be=resfs/file/py/jinja2/parser.py.yapyc3" "_035f82d02397a0c37539250a16=resfs/src/resfs/file/py/jinja2/runtime.py" "_62934942c8c973297aa790a72e=resfs/file/py/jinja2/runtime.py" "_6ce091bf51bb3675b1f5a84603=resfs/src/resfs/file/py/jinja2/runtime.py.yapyc3" "_5bbfd659ad09d5df888e858b17=resfs/file/py/jinja2/runtime.py.yapyc3" "_5d4d0bcbc717f30e2635c0073e=resfs/src/resfs/file/py/jinja2/sandbox.py" "_252fed92c89c54af7ae304bc64=resfs/file/py/jinja2/sandbox.py" "_4ff1df950a141ffcbfe484bead=resfs/src/resfs/file/py/jinja2/sandbox.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/fa9605cad4ab6b62449cc9ed55.cpp" "_7aebb9905b16c0dc093ecfdf89=py/no_check_imports/wa46wnunnku6vcrt6b2xe5fdsy"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -243,9 +342,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Jinja2/1e8ac552adcaebc9f2469080fd.cpp	$B/contrib/python/Jinja2/1f853d7a29cbec1ff8bd475748.cpp	$B/contrib/python/Jinja2/421be46edc778f6a883ccd58bf.cpp	$B/contrib/python/Jinja2/7bff6417ba20aa2f1468e1c02f.cpp	$B/contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp	</Message>
+      <Message>$B/contrib/python/Jinja2/1e8ac552adcaebc9f2469080fd.cpp	$B/contrib/python/Jinja2/1f853d7a29cbec1ff8bd475748.cpp	$B/contrib/python/Jinja2/421be46edc778f6a883ccd58bf.cpp	$B/contrib/python/Jinja2/7bff6417ba20aa2f1468e1c02f.cpp	$B/contrib/python/Jinja2/919a62b664c1c21491ad3d22f3.cpp	$B/contrib/python/Jinja2/d3b3f7990615378dc7c35e88df.cpp	$B/contrib/python/Jinja2/fa9605cad4ab6b62449cc9ed55.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\1e8ac552adcaebc9f2469080fd.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\1f853d7a29cbec1ff8bd475748.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\421be46edc778f6a883ccd58bf.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\7bff6417ba20aa2f1468e1c02f.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\d3b3f7990615378dc7c35e88df.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\1e8ac552adcaebc9f2469080fd.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\1f853d7a29cbec1ff8bd475748.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\421be46edc778f6a883ccd58bf.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\7bff6417ba20aa2f1468e1c02f.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\919a62b664c1c21491ad3d22f3.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\d3b3f7990615378dc7c35e88df.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\fa9605cad4ab6b62449cc9ed55.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -300,6 +399,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/Jinja2/join_3fa8d7bf6deda859a6c336284d.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\421be46edc778f6a883ccd58bf.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\1f853d7a29cbec1ff8bd475748.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\d3b3f7990615378dc7c35e88df.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\7bff6417ba20aa2f1468e1c02f.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_3fa8d7bf6deda859a6c336284d.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\Jinja2\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.yasm" "-" "contrib/python/Jinja2/.dist-info/METADATA" "_91ebc6b07d70f9433ccf5d2299.rodata" "$(SolutionDir)../contrib/python/Jinja2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_1ef9b829778b120a64fc8c4d6f.rodata" "-" "contrib/python/Jinja2/.dist-info/entry_points.txt" "_af8fbf2abdac15deaf41639321.rodata" "$(SolutionDir)../contrib/python/Jinja2/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_4f884034afa370a97cb8a0d699.rodata" "-" "contrib/python/Jinja2/.dist-info/top_level.txt" "_5d65ee4f528c493e8715b83290.rodata" "$(SolutionDir)../contrib/python/Jinja2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_17140c17ff89177c11329257e5.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.yasm" "-" "contrib/python/Jinja2/.dist-info/METADATA" "_91ebc6b07d70f9433ccf5d2299.rodata" "$(SolutionDir)../contrib/python/Jinja2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_1ef9b829778b120a64fc8c4d6f.rodata" "-" "contrib/python/Jinja2/.dist-info/entry_points.txt" "_af8fbf2abdac15deaf41639321.rodata" "$(SolutionDir)../contrib/python/Jinja2/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_4f884034afa370a97cb8a0d699.rodata" "-" "contrib/python/Jinja2/.dist-info/top_level.txt" "_5d65ee4f528c493e8715b83290.rodata" "$(SolutionDir)../contrib/python/Jinja2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/_17140c17ff89177c11329257e5.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Jinja2/_919a62b664c1c21491ad3d22f3.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\Jinja2\.dist-info\METADATA;$(SolutionDir)..\contrib\python\Jinja2\.dist-info\entry_points.txt;$(SolutionDir)..\contrib\python\Jinja2\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_919a62b664c1c21491ad3d22f3.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_1ef9b829778b120a64fc8c4d6f.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_4f884034afa370a97cb8a0d699.rodata;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_17140c17ff89177c11329257e5.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\Jinja2\jinja2\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
