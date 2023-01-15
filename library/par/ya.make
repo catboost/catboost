@@ -23,7 +23,7 @@ GENERATE_ENUM_SERIALIZATION(par_host_stats.h)
 
 PEERDIR(
     library/cpp/binsaver
-    library/blockcodecs
+    library/cpp/blockcodecs
     library/chromium_trace
     library/cpp/containers/ring_buffer
     library/cpp/digest/crc32c

@@ -49,7 +49,7 @@ SRCS(
 PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
-    library/blockcodecs
+    library/cpp/blockcodecs
     library/cuda/wrappers
     library/cpp/threading/future
     library/cpp/threading/local_executor
