@@ -4,6 +4,7 @@
 namespace NMonoForest {
     THolder<IModelImporter<TObliviousTree>> MakeCatBoostImporter(const TFullModel& model) {
         TCatBoostGrid grid(model);
+        auto scaleAndBias = model.GetScaleAndBias();
 
         const auto& trees = *model.ModelTrees.Get();
         CB_ENSURE(trees.IsOblivious());
@@ -21,6 +22,7 @@ namespace NMonoForest {
             binSplits.emplace_back(grid.ToBinarySplit(split));
         }
 
+
         int leafValuesOffset = 0;
         int leafWeightsOffset = 0;
         TAdditiveModel<TObliviousTree> additiveModel;
@@ -32,6 +34,11 @@ namespace NMonoForest {
             TVector<double> treeLeafValues(
                 leafValues.begin() + leafValuesOffset,
                 leafValues.begin() + leafValuesOffset + leafCounts[tree] * trees.GetDimensionsCount());
+
+            double  bias = tree == 0 ? scaleAndBias.Bias : 0;
+            for (auto& leafVal : treeLeafValues) {
+                leafVal = scaleAndBias.Scale * (bias + leafVal);
+            }
             leafValuesOffset += leafCounts[tree] * trees.GetDimensionsCount();
             TVector<double> treeLeafWeights(
                 leafWeights.begin() + leafWeightsOffset,
