@@ -18,68 +18,6 @@
 #include "tests_data.h"
 #include "registar.h"
 
-#ifdef _win_
-const char* DIR_SEPARATORS = "/\\";
-#else
-const char* DIR_SEPARATORS = "/";
-#endif
-
-TString GetArcadiaTestsData() {
-    TString envPath = GetEnv("ARCADIA_TESTS_DATA_DIR");
-    if (envPath) {
-        return envPath;
-    }
-
-    const char* workDir = getcwd(nullptr, 0);
-    if (!workDir)
-        return "";
-
-    TString path(workDir);
-    free((void*)workDir);
-    while (!path.empty()) {
-        TString dataDir = path + "/arcadia_tests_data";
-        if (IsDir(dataDir))
-            return dataDir;
-
-        size_t pos = path.find_last_of(DIR_SEPARATORS);
-        if (pos == TString::npos)
-            pos = 0;
-        path.erase(pos);
-    }
-
-    return "";
-}
-
-TString GetWorkPath() {
-    TString envPath = GetEnv("TEST_WORK_PATH");
-    if (envPath) {
-        return envPath;
-    }
-    char* cwd = getcwd(nullptr, 0);
-    TString workPath = TString(cwd);
-    free(cwd);
-    return workPath;
-}
-
-TFsPath GetYaPath() {
-    TString envPath = GetEnv("YA_CACHE_DIR");
-    if (!envPath) {
-        envPath = GetHomeDir() + "/.ya";
-    }
-    return envPath;
-}
-
-TFsPath GetOutputPath() {
-    return GetWorkPath() + "/testing_out_stuff";
-}
-
-TString GetRamDrivePath() {
-    return GetEnv("YA_TEST_RAM_DRIVE_PATH");
-}
-
-TString GetOutputRamDrivePath() {
-    return GetEnv("YA_TEST_OUTPUT_RAM_DRIVE_PATH");
-}
 
 class TPortManager::TPortManagerImpl {
     class TPortGuard {

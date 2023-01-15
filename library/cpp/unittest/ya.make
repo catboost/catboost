@@ -7,6 +7,7 @@ PEERDIR(
     library/cpp/dbg_output
     library/cpp/diff
     library/cpp/json/writer
+    library/cpp/testing/common
 )
 
 SRCS(
@@ -16,7 +17,6 @@ SRCS(
     registar.cpp
     tests_data.cpp
     utmain.cpp
-    env.cpp.in
 )
 
 END()
