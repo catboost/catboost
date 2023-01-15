@@ -6,8 +6,8 @@ RECURSE(
     accurate_accumulate/benchmark/metrics
     archive/ut
     binsaver
-    binsaver/ut_util
     binsaver/ut
+    binsaver/ut_util
     blockcodecs
     blockcodecs/fuzz
     blockcodecs/ut
@@ -60,12 +60,12 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
-    langs
-    langs/ut
     langmask
     langmask/proto
     langmask/serialization
     langmask/ut
+    langs
+    langs/ut
     lcs
     lcs/ut
     lfalloc
@@ -110,11 +110,11 @@ RECURSE(
     text_processing
     threading
     token
+    tokenizer
+    tokenizer/ut
     token/serialization
     token/serialization/ut
     token/ut
-    tokenizer
-    tokenizer/ut
     unicode
     yson
     yson/node
