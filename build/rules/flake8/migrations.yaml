@@ -1899,7 +1899,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14390
     - yabs/server/test/ft/BSSERVER-14407
     - yabs/server/test/ft/BSSERVER-15684
-    - yabs/server/test/ft/BSSERVER-8899
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/json_templating/streams_generator/pylib/ut
@@ -2409,7 +2408,6 @@ migrations:
     - voicetech/vqe/pylibs
     - weather/admin
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
-    - weather/workers/common/outer_execution
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
     - web/app_host/tools/upper_template_generator/src/graph
