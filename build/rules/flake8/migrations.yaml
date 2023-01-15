@@ -147,7 +147,6 @@ migrations:
     - education/services/sections/app
     - entity/ontodb/tasks/vloggers
     - entity/ontodb/util/yt_helpers
-    - entity/recommender/nirvana/operations/yam/yam_albums_tracks
     - entity/recommender/nirvana/operations/yam/yam_positions
     - entity/recommender/tools/recommender_beta
     - entity/ugc/robot/tools/installed_apps_sites_activity_loader/lib
@@ -812,11 +811,6 @@ migrations:
     - direct/infra/mysql_manager/mymgr
     - direct/infra/mysql_manager/zkguard
     - direct/infra/mysql_manager/zkguard-runit-gen
-    - distribution_interface/backend/backend/audi
-    - distribution_interface/backend/backend/intake
-    - distribution_interface/backend/backend/product
-    - distribution_interface/backend/backend/util
-    - distribution_interface/backend/backend/util/clients
     - douber/backend/api/clients
     - douber/backend/api/views/cargo
     - douber/backend/api/views/evacuator
