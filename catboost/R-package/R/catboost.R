@@ -109,6 +109,9 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
     if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path) || !is.character(feature_names_path))
         stop("Path must be a string.")
 
+    pool_path <- path.expand(pool_path)
+    cd_path <- path.expand(cd_path)
+
     pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose)
     attributes(pool) <- list(.Dimnames = list(NULL, NULL), class = "catboost.Pool")
     return(pool)
@@ -282,6 +285,8 @@ catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NUL
         column_description <- rbind(column_description, data.frame(index = nrow(column_description) + factors - 1,
                                                                    type = rep("Categ", length(factors))))
     }
+    pool_path <- path.expand(pool_path)
+    cd_path <- path.expand(cd_path)
     write.table(pool, file = pool_path, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
     write.table(column_description, file = cd_path, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 }
@@ -1574,6 +1579,7 @@ catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'Inte
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-load_model.html}
 catboost.load_model <- function(model_path, file_format = "cbm") {
+    model_path <- path.expand(model_path)
     handle <- .Call("CatBoostReadModel_R", model_path, file_format)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- list(handle = handle, raw = raw)
@@ -1630,6 +1636,7 @@ catboost.save_model <- function(model, model_path,
 
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    model_path <- path.expand(model_path)
     status <- .Call("CatBoostOutputModel_R", model$handle, model_path, file_format, params_string, pool)
     return(status)
 }
