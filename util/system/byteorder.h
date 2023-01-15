@@ -30,70 +30,28 @@
         #define SwapBytes32 OSSwapInt32
         #define SwapBytes64 OSSwapInt64
     #endif
-#else
-    #if defined(_x86_) && defined(__GNUC__)
-        #undef asm
-        #define asm __asm__
+#endif
 
-inline ui16 SwapBytes16(ui16 x) noexcept {
-    ui16 val;
-
-    asm(
-        "rorw $8, %w0"
-        : "=r"(val)
-        : "0"(x)
-        : "cc");
-
-    return val;
-}
-
-inline ui32 SwapBytes32(ui32 x) noexcept {
-    ui32 val;
-
-    asm(
-        "bswap %0"
-        : "=r"(val)
-        : "0"(x));
-
-    return val;
-}
-
-        #if defined(_x86_64_)
-            #define HAVE_SWAP_BYTES_64
-
-inline ui64 SwapBytes64(ui64 x) noexcept {
-    ui64 val;
-
-    asm(
-        "bswapq %0"
-        : "=r"(val)
-        : "0"(x));
-
-    return val;
-}
-        #endif
-
-        #undef asm
-    #else
-        #define byte_n(__val, __n) ((((unsigned char*)(&__val))[__n]))
-
+#ifndef SwapBytes16
 inline ui16 SwapBytes16(ui16 val) noexcept {
+    #define byte_n(__val, __n) ((((unsigned char*)(&__val))[__n]))
     DoSwap(byte_n(val, 0), byte_n(val, 1));
-
     return val;
+    #undef byte_n
 }
+#endif
 
+#ifndef SwapBytes32
 inline ui32 SwapBytes32(ui32 val) noexcept {
+    #define byte_n(__val, __n) ((((unsigned char*)(&__val))[__n]))
     DoSwap(byte_n(val, 0), byte_n(val, 3));
     DoSwap(byte_n(val, 1), byte_n(val, 2));
-
     return val;
+    #undef byte_n
 }
+#endif
 
-        #undef byte_n
-    #endif
-
-    #if !defined(HAVE_SWAP_BYTES_64)
+#ifndef SwapBytes64
 inline ui64 SwapBytes64(ui64 val) noexcept {
     union {
         ui64 val;
@@ -106,9 +64,6 @@ inline ui64 SwapBytes64(ui64 val) noexcept {
 
     return ret.val;
 }
-    #endif
-
-    #undef HAVE_SWAP_BYTES_64
 #endif
 
 //for convenience
