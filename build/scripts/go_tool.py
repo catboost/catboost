@@ -451,7 +451,7 @@ def do_link_exe(args):
         is_group = args.targ_os == 'linux'
         if is_group:
             cgo_peers.append('-Wl,--start-group')
-        cgo_peers.extend(os.path.join(args.build_root, x) for x in args.cgo_peers)
+        cgo_peers.extend(args.cgo_peers)
         if is_group:
             cgo_peers.append('-Wl,--end-group')
     try:
