@@ -1385,6 +1385,18 @@
         "1777945714": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1777945714", 
         "1777946022": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1777946022", 
         "1777946412": "https://storage.mds.yandex.net/get-devtools-opensource/479623/1777946412", 
+        "1784890388": "https://storage.mds.yandex.net/get-devtools-opensource/373962/1784890388", 
+        "1784890857": "https://storage.mds.yandex.net/get-devtools-opensource/479623/1784890857", 
+        "1784891022": "https://storage.mds.yandex.net/get-devtools-opensource/471749/1784891022", 
+        "1784891430": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1784891430", 
+        "1784943948": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1784943948", 
+        "1784944065": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1784944065", 
+        "1784944218": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1784944218", 
+        "1784944356": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1784944356", 
+        "1784979536": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1784979536", 
+        "1784979787": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1784979787", 
+        "1784980036": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1784980036", 
+        "1784980206": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1784980206", 
         "233217651": "https://storage.mds.yandex.net/get-devtools-opensource/250854/233217651", 
         "243907179": "https://storage.mds.yandex.net/get-devtools-opensource/250854/243907179", 
         "244387436": "https://storage.mds.yandex.net/get-devtools-opensource/233854/244387436", 
@@ -3081,6 +3093,12 @@
             "linux-ppc64le": "1777925474", 
             "linux_musl": "1777926083", 
             "win32": "1777924900"
+        }, 
+        "800585307": {
+            "darwin": "1784980036", 
+            "linux-ppc64le": "1784979787", 
+            "linux_musl": "1784980206", 
+            "win32": "1784979536"
         }
     }
 }
