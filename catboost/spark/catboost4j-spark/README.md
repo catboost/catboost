@@ -1,6 +1,27 @@
 CatBoost for Apache Spark Package
 ======================
 
+Table of contents:
+
+* [Setup](#setup)
+  * [Requirements](#requirements)
+  * [Java or Scala](#java-or-scala)
+  * [Python (PySpark)](#python-pyspark)
+* [Examples](#examples)
+  * [Scala](#scala)
+    * [Classification](#classification)
+      * [Binary classification](#binary-classification)
+      * [Multiclassification](#multiclassification)
+    * [Regression](#regression)
+  * [PySpark](#pyspark)
+    * [Classification](#classification-1)
+      * [Binary classification](#binary-classification-1)
+      * [Multiclassification](#multiclassification-1)
+    * [Regression](#regression-1)
+* [Documentation](#documentation)
+* [Known limitations](#known-limitations)
+* [Build from source](#build-from-source)
+
 Setup 
 ------------
 
