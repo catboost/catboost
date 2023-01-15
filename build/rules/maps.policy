@@ -148,6 +148,12 @@ ALLOW sandbox/projects/masstransit -> maps/
 ALLOW sprav/altay/panorama -> maps/streetview/libs
 ALLOW yql/udfs/maps -> maps/
 
+# maps_adv will be split into maps and smb
+ALLOW maps_adv/ -> maps/
+ALLOW maps_adv/ -> maps_adv/
+ALLOW smb/ -> maps_adv/
+DENY .* -> maps_adv/
+
 ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/common
 ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/revision
 
