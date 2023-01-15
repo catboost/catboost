@@ -15,7 +15,7 @@
 #include <library/cpp/getopt/small/last_getopt.h>
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/cpp/json/json_reader.h>
-#include <library/logger/log.h>
+#include <library/cpp/logger/log.h>
 #include <library/cpp/text_processing/dictionary/options.h>
 
 #include <util/generic/algorithm.h>

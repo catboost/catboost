@@ -33,7 +33,7 @@ ALLOW contrib/tools/jdk/test -> devtools/ya/yalibrary/tools
 ALLOW contrib/libs/inja -> library/scheme
 ALLOW contrib/libs/geos/capi/ctypes -> library/python/ctypes
 ALLOW contrib/libs/leveldb -> library/cpp/deprecated/mapped_file
-ALLOW contrib/libs/leveldb -> library/logger
+ALLOW contrib/libs/leveldb -> library/cpp/logger
 ALLOW contrib/libs/leveldb -> library/cpp/digest/crc32c
 ALLOW contrib/libs/lua -> library/cpp/archive
 ALLOW contrib/libs/phonedetect/src -> library/cpp/digest/md5

@@ -25,7 +25,7 @@ PEERDIR(
     library/cpp/grid_creator
     library/cpp/threading/local_executor
     library/cpp/json
-    library/logger
+    library/cpp/logger
 )
 
 IF(HAVE_CUDA)
