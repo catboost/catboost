@@ -258,17 +258,21 @@ namespace NCB {
             };
         }
 
+        // returns hashed cat value
         Y_FORCE_INLINE auto GetCatAccessor() const {
-             return [] (TFeaturePosition , size_t ) -> ui32 {
-                 Y_FAIL();
-                 return 0;
+            return [this](TFeaturePosition position, size_t index) -> ui32 {
+                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < CatValues.size());
+                Y_ASSERT(SafeIntegerCast<size_t>(index) < CatValues[position.FlatIndex].size());
+                return CatFeatureBinToHashedValueRemap[position.FlatIndex][CatValues[position.FlatIndex][index]];
             };
         };
     private:
         TConstArrayRef<TConstArrayRef<ui8>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
         TConstArrayRef<TConstArrayRef<ui8>> FloatBinsRemap; // [repackedFlatIndex][binInData]
-    };
 
+        TConstArrayRef<TConstArrayRef<ui32>> CatValues; // [repackedFlatIndex][inBlockObjectIdx]
+        TConstArrayRef<TConstArrayRef<ui32>> CatFeatureBinToHashedValueRemap; // [repackedFlatIndex][binInData]
+    };
 
     class TQuantizedFeaturesBlockIterator
         : public NDetail::TFeaturesBlockIteratorBase<
@@ -295,8 +299,25 @@ namespace NCB {
             const THashMap<ui32, ui32>& columnReorderMap,
             ui32 objectOffset)
             : TBase(model, objectsData, columnReorderMap, objectOffset)
-            , FloatBinsRemap(GetFloatFeaturesBordersRemap(model, *objectsData.GetQuantizedFeaturesInfo()))
+            , FloatBinsRemap(
+                GetFloatFeaturesBordersRemap(
+                    model,
+                    columnReorderMap,
+                    *objectsData.GetQuantizedFeaturesInfo()
+                )
+              )
             , FloatBinsRemapRef(FloatBinsRemap.begin(), FloatBinsRemap.end())
+            , CatFeatureBinToHashedValueRemap(
+                GetCatFeaturesBinToHashedValueRemap(
+                    model,
+                    columnReorderMap,
+                    *objectsData.GetQuantizedFeaturesInfo()
+                )
+              )
+            , CatFeatureBinToHashedValueRemapRef(
+                CatFeatureBinToHashedValueRemap.begin(),
+                CatFeatureBinToHashedValueRemap.end()
+              )
         {}
 
         void Accept(IFeaturesBlockIteratorVisitor* visitor) const override {
@@ -311,9 +332,16 @@ namespace NCB {
             return FloatBinsRemapRef;
         }
 
+        TConstArrayRef<TConstArrayRef<ui32>> GetCatFeatureBinToHashedValueRemap() const {
+            return CatFeatureBinToHashedValueRemapRef;
+        }
+
     private:
         TVector<TVector<ui8>> FloatBinsRemap;
         TVector<TConstArrayRef<ui8>> FloatBinsRemapRef;
+
+        TVector<TVector<ui32>> CatFeatureBinToHashedValueRemap;
+        TVector<TConstArrayRef<ui32>> CatFeatureBinToHashedValueRemapRef;
     };
 
 
@@ -321,6 +349,8 @@ namespace NCB {
         const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator)
         : FloatValues(quantizedFeaturesBlockIterator.GetFloatValues())
         , FloatBinsRemap(quantizedFeaturesBlockIterator.GetFloatBinsRemap())
+        , CatValues(quantizedFeaturesBlockIterator.GetCatValues())
+        , CatFeatureBinToHashedValueRemap(quantizedFeaturesBlockIterator.GetCatFeatureBinToHashedValueRemap())
     {}
 
 

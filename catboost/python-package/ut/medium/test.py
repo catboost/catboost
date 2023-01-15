@@ -7302,9 +7302,11 @@ def test_quantized_pool_with_all_features_ignored():
 
 
 @pytest.fixture(params=[
+    ('adult', TRAIN_FILE, TEST_FILE, CD_FILE, 'Logloss'),
     ('higgs', HIGGS_TRAIN_FILE, HIGGS_TEST_FILE, HIGGS_CD_FILE, 'Logloss'),
     ('querywise', QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'RMSE'),
 ], ids=[
+    'adult',
     'higgs',
     'querywise'
 ])
@@ -7330,6 +7332,7 @@ def train_on_raw_and_quantized_data_params_fixture(request):
     assert(test_quantized_pool.is_quantized())
 
     return {
+        'pool_name': pool_name,
         'train_pool': train_pool,
         'test_pool': test_pool,
         'train_quantized_pool': train_quantized_pool,
@@ -7355,6 +7358,7 @@ def models_trained_on_raw_and_quantized_data_fixture(train_on_raw_and_quantized_
     model_fitted_with_quantized_pool.fit(train_quantized_pool)
 
     return {
+        'pool_name': train_on_raw_and_quantized_data_params_fixture['pool_name'],
         'train_pool': train_pool,
         'test_pool': test_pool,
         'train_quantized_pool': train_quantized_pool,
@@ -7417,9 +7421,17 @@ def test_quantized_pool_calc_feature_statistics(models_trained_on_raw_and_quanti
     def serialize_feature_statistics(stats):
         return json.dumps(stats, cls=NumpyEncoder, sort_keys=True)
 
-    stats = model.calc_feature_statistics(pool, plot=False)
-    stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(quantized_pool, plot=False)
-    assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+    if models_trained_on_raw_and_quantized_data_fixture['pool_name'] == 'adult':
+        # TODO(akhropov): calc_feature_statistics does not support CTR features
+        with pytest.raises(CatBoostError):
+            model.calc_feature_statistics(pool, plot=False)
+    else:
+        stats = model.calc_feature_statistics(pool, plot=False)
+        stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(
+            quantized_pool,
+            plot=False
+        )
+        assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
 
 
 @pytest.mark.parametrize('pool_type', ['train', 'test'])
