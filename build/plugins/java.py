@@ -267,3 +267,35 @@ def on_check_java_srcdir(unit, *args):
         abs_srcdir = unit.resolve(srcdir)
         if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
             ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(srcdir[3:]))
+
+
+def on_fill_jar_copy_resources_cmd(unit, *args):
+    if len(args) == 4:
+        varname, srcdir, base_classes_dir, reslist = tuple(args)
+        package = ''
+    else:
+        varname, srcdir, base_classes_dir, package, reslist = tuple(args)
+    dest_dir = os.path.join(base_classes_dir, *package.split('.'))
+    var = unit.get(varname)
+    var += ' && ${{cwd:CURDIR}} $FS_TOOLS copy_files {} {} {}'.format(srcdir, dest_dir, reslist)
+    unit.set([varname, var])
+
+def on_fill_jar_gen_srcs(unit, *args):
+    varname, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:7])
+    resolved_srcdir = unit.resolve_arc_path(srcdir)
+    if resolved_srcdir.startswith('$S'):
+        return
+
+    exclude_pos = args.index('EXCLUDE')
+    globs = args[7:exclude_pos]
+    excludes = args[exclude_pos + 1:]
+    var = unit.get(varname)
+    # TODO: devtools/ya/jbuild/resolve_java_srcs.py really bad script location
+    var += ' && $YMAKE_PYTHON ${{input:"build/scripts/resolve_java_srcs.py"}} --append -d {} -s {} -k {} -g {} -r {} --include-patterns {}'.format(srcdir, java_list, kt_list, groovy_list, res_list, ' '.join(globs))
+    if len(excludes) > 0:
+        var += ' --exclude-patterns {}'.format(' '.join(excludes))
+    if unit.get('WITH_KOTLIN_VALUE') == 'yes':
+        var += ' --resolve-kotlin'
+    if unit.get('WITH_GROOVY_VALUE') == 'yes':
+        var += ' --resolve-groovy'
+    unit.set([varname, var])
