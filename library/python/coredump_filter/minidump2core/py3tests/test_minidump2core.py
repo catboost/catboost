@@ -8,7 +8,7 @@ import os
 def test_minidump2core(tests_dir=None):
     if tests_dir is None:
         import yatest.common
-        tests_dir = yatest.common.source_path('library/python/coredump_filter/tests')
+        tests_dir = yatest.common.source_path('library/python/coredump_filter/tests/data')
     minidump_path = os.path.join(tests_dir, 'md3.txt')
     core_text = minidump2core.minidump_file_to_core(
         file_name=minidump_path,

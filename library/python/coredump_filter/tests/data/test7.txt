@@ -1,0 +1,64 @@
+(lldb) target create --core "/home/teamcity/sdc/coredumps/test_performance_0/65785.frontnet_node.core.dmp"
+Core file '/home/teamcity/sdc/coredumps/test_performance_0/65785.frontnet_node.core.dmp' (x86_64) was loaded.
+(lldb) bt all
+* thread #1, name = 'frontnet_node', stop reason = signal SIGABRT
+  * frame #0: 0x00007f8552b2cfb7 libc.so.6`gsignal + 199
+    frame #1: 0x00007f8552b2e921 libc.so.6`abort + 321
+    frame #2: 0x00007f85aeaef352 libassert.so`yandex::sdc::assert_details_::PanicV(char const*, long, char const*, char const*, bool, char const*, __va_list_tag*) + 834
+    frame #3: 0x00007f85aeaef591 libassert.so`yandex::sdc::assert_details_::Panic(char const*, long, char const*, char const*, bool, char const*, ...) + 193
+    frame #4: 0x00007f85aedb9dd2 libros_Sperception_Sdetection_U3d_Ssrc_Sutils_Slibutils.so`yandex::sdc::detection_3d::GetCNNModelPath(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool) [inlined] std::conditional<std::is_lvalue_reference<decltype(fp)>::value, decltype(fp), std::decay<decltype(fp)>::type>::type yandex::sdc::detection_3d::GetCNNModelPath(this=<unavailable>, function=<unavailable>)::$_0::operator()<bool&>(bool&, char const*) const at node_utils.cpp:34:5
+    frame #5: 0x00007f85aedb9da4 libros_Sperception_Sdetection_U3d_Ssrc_Sutils_Slibutils.so`yandex::sdc::detection_3d::GetCNNModelPath(base_model_path="/home/teamcity/yandexsdc/cached_resources_symlinks/frontnet/SDC-52855-Hungry-Haunter", cpu_allowed=<unavailable>) at node_utils.cpp:34
+    frame #6: 0x000055c28691982c frontnet_node`yandex::sdc::frontnet::ParseFrontnetParams(nh=0x00007ffff43b3868, frontnet_params=0x00007ffff43b2ff0) at main.cpp:25:34
+    frame #7: 0x000055c28691a1da frontnet_node`yandex::sdc::frontnet::FrontnetNodeMain(argc=1, argv=<unavailable>) at main.cpp:54:3
+    frame #8: 0x000055c28691cc29 frontnet_node`main(argc=<unavailable>, argv=<unavailable>) at main.cpp:107:10
+    frame #9: 0x00007f8552b0fbf7 libc.so.6`__libc_start_main + 231
+    frame #10: 0x000055c28691962a frontnet_node`_start + 42
+  thread #2, stop reason = signal 0
+    frame #0: 0x00007f8552c0fa47 libc.so.6`epoll_wait + 87
+    frame #1: 0x00007f8556cf8e18 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::PollSetImpl::update(int) at poll_set.cpp:216:22
+    frame #2: 0x00007f8556cf8df8 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::PollSetImpl::update(this=0x000055c287cbb110, poll_timeout=100) at poll_set.cpp:216
+    frame #3: 0x00007f8556cf7f96 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> > >::_M_run() [inlined] ros::PollManager::threadFunc(this=0x00007f8556dcab40) at poll_manager.cpp:75:16
+    frame #4: 0x00007f8556cf7f5a libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> > >::_M_run() [inlined] ros::PollManager::PollManager(this=<unavailable>)::$_1::operator()() const at poll_manager.cpp:61
+    frame #5: 0x00007f8556cf7f5a libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> > >::_M_run() [inlined] void std::__invoke_impl<void, ros::PollManager::PollManager()::$_1>(__f=<unavailable>)::$_1&&) at invoke.h:60
+    frame #6: 0x00007f8556cf7f5a libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> > >::_M_run() [inlined] std::__invoke_result<ros::PollManager::PollManager()::$_1>::type std::__invoke<ros::PollManager::PollManager(__fn=<unavailable>)::$_1>(ros::PollManager::PollManager()::$_1&&) at invoke.h:95
+    frame #7: 0x00007f8556cf7f5a libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> > >::_M_run() [inlined] decltype(this=<unavailable>))) std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> >::_M_invoke<0ul>(std::_Index_tuple<0ul>) at thread:234
+    frame #8: 0x00007f8556cf7f5a libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> > >::_M_run() [inlined] std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> >::operator(this=<unavailable>)() at thread:243
+    frame #9: 0x00007f8556cf7f5a libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::PollManager::PollManager()::$_1> > >::_M_run(this=<unavailable>) at thread:186
+    frame #10: 0x00007f85ae4826df libstdc++.so.6`___lldb_unnamed_symbol440$$libstdc++.so.6 + 15
+    frame #11: 0x00007f8553aed6db libpthread.so.0`start_thread + 219
+    frame #12: 0x00007f8552c0f71f libc.so.6`clone + 63
+  thread #3, stop reason = signal 0
+    frame #0: 0x00007f8553af4065 libpthread.so.0`__pthread_cond_timedwait + 821
+    frame #1: 0x00007f8556d48db1 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::TimerManager<ros::Time, ros::Duration, ros::TimerEvent>::threadFunc() [inlined] __gthread_cond_timedwait(__cond=<unavailable>, __mutex=<unavailable>, __abs_timeout=<unavailable>) at gthr-default.h:871:10
+    frame #2: 0x00007f8556d48da5 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::TimerManager<ros::Time, ros::Duration, ros::TimerEvent>::threadFunc() [inlined] std::cv_status std::condition_variable::__wait_until_impl<std::chrono::duration<long, std::ratio<1l, 1000000000l> > >(this=<unavailable>, __lock=<unavailable>, __atime=<unavailable>) at condition_variable:178
+    frame #3: 0x00007f8556d48d6e libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::TimerManager<ros::Time, ros::Duration, ros::TimerEvent>::threadFunc() [inlined] std::cv_status std::condition_variable::wait_until<std::chrono::duration<long, std::ratio<1l, 1000000000l> > >(this=<unavailable>, __lock=<unavailable>, __atime=<unavailable>) at condition_variable:106
+    frame #4: 0x00007f8556d48d6e libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::TimerManager<ros::Time, ros::Duration, ros::TimerEvent>::threadFunc() [inlined] std::cv_status std::condition_variable::wait_for<long, std::ratio<1l, 1000l> >(this=<unavailable>, __lock=<unavailable>, __rtime=<unavailable>) at condition_variable:143
+    frame #5: 0x00007f8556d48d56 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::TimerManager<ros::Time, ros::Duration, ros::TimerEvent>::threadFunc(this=<unavailable>) at timer_manager.h:412
+    frame #6: 0x00007f85ae4826df libstdc++.so.6`___lldb_unnamed_symbol440$$libstdc++.so.6 + 15
+    frame #7: 0x00007f8553aed6db libpthread.so.0`start_thread + 219
+    frame #8: 0x00007f8552c0f71f libc.so.6`clone + 63
+  thread #4, stop reason = signal 0
+    frame #0: 0x00007f8553af4065 libpthread.so.0`__pthread_cond_timedwait + 821
+    frame #1: 0x00007f8556ca4da6 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`boost::condition_variable::do_wait_until(this=0x00007f8556dca668, m=0x00007f83e17d8f28, timeout=0x00007f83e17d8e68) at condition_variable.hpp:115:22
+    frame #2: 0x00007f8556c9feb3 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`bool boost::condition_variable::timed_wait<boost::date_time::subsecond_duration<boost::posix_time::time_duration, 1000000l> >(boost::unique_lock<boost::mutex>&, boost::date_time::subsecond_duration<boost::posix_time::time_duration, 1000000l> const&) [inlined] boost::condition_variable::timed_wait(this=<unavailable>, m=<unavailable>, abs_time=<unavailable>) at condition_variable_fwd.hpp:142:20
+    frame #3: 0x00007f8556c9fe58 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`bool boost::condition_variable::timed_wait<boost::date_time::subsecond_duration<boost::posix_time::time_duration, 1000000l> >(this=0x00007f8556dca668, m=0x00007f83e17d8f28, wait_duration=<unavailable>) at condition_variable_fwd.hpp:166
+    frame #4: 0x00007f8556ca04a5 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::CallbackQueue::callAvailable(this=0x00007f8556dca5e0, timeout=<unavailable>) at callback_queue.cpp:295:20
+    frame #5: 0x00007f8556cc9646 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::(anonymous namespace)::internalCallbackQueueThreadFunc() at init.cpp:176:32
+    frame #6: 0x00007f85ae4826df libstdc++.so.6`___lldb_unnamed_symbol440$$libstdc++.so.6 + 15
+    frame #7: 0x00007f8553aed6db libpthread.so.0`start_thread + 219
+    frame #8: 0x00007f8552c0f71f libc.so.6`clone + 63
+  thread #5, stop reason = signal 0
+    frame #0: 0x00007f8552c02cb9 libc.so.6`__poll + 73
+    frame #1: 0x00007f8556907afd libthird_Uparty_Sros_Sros_Ucomm_Sutilities_Sxmlrpcpp_Sliblibxmlrpcpp.so`XmlRpc::XmlRpcDispatch::work(double) [inlined] XmlRpc::XmlRpcDispatch::work(this=<unavailable>, _sdc_syscall_function=<unavailable>)::$_2::operator()(char const*) const at XmlRpcDispatch.cpp:134:5
+    frame #2: 0x00007f8556907ae9 libthird_Uparty_Sros_Sros_Ucomm_Sutilities_Sxmlrpcpp_Sliblibxmlrpcpp.so`XmlRpc::XmlRpcDispatch::work(this=0x00007f8556dcb830, timeout=<unavailable>) at XmlRpcDispatch.cpp:134
+    frame #3: 0x00007f8556d606ba libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`ros::XMLRPCManager::serverThreadFunc(this=0x00007f8556dcb7f0) at xmlrpc_manager.cpp:193:13
+    frame #4: 0x00007f8556d60c6d libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> > >::_M_run() [inlined] ros::XMLRPCManager::startHandlingRequests(this=<unavailable>)::$_11::operator()() const at xmlrpc_manager.cpp:154:60
+    frame #5: 0x00007f8556d60c68 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> > >::_M_run() [inlined] void std::__invoke_impl<void, ros::XMLRPCManager::startHandlingRequests()::$_11>(__f=<unavailable>)::$_11&&) at invoke.h:60
+    frame #6: 0x00007f8556d60c68 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> > >::_M_run() [inlined] std::__invoke_result<ros::XMLRPCManager::startHandlingRequests()::$_11>::type std::__invoke<ros::XMLRPCManager::startHandlingRequests(__fn=<unavailable>)::$_11>(ros::XMLRPCManager::startHandlingRequests()::$_11&&) at invoke.h:95
+    frame #7: 0x00007f8556d60c68 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> > >::_M_run() [inlined] decltype(this=<unavailable>))) std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> >::_M_invoke<0ul>(std::_Index_tuple<0ul>) at thread:234
+    frame #8: 0x00007f8556d60c68 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> > >::_M_run() [inlined] std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> >::operator(this=<unavailable>)() at thread:243
+    frame #9: 0x00007f8556d60c68 libthird_Uparty_Sros_Sros_Ucomm_Sclients_Sroscpp_Sliblibroscpp.so`std::thread::_State_impl<std::thread::_Invoker<std::tuple<ros::XMLRPCManager::startHandlingRequests()::$_11> > >::_M_run(this=<unavailable>) at thread:186
+    frame #10: 0x00007f85ae4826df libstdc++.so.6`___lldb_unnamed_symbol440$$libstdc++.so.6 + 15
+    frame #11: 0x00007f8553aed6db libpthread.so.0`start_thread + 219
+    frame #12: 0x00007f8552c0f71f libc.so.6`clone + 63
+(lldb) script import sys
