@@ -1,8 +1,6 @@
 PY_LIBRARY() # Backport from Python 3.
 
-LICENSE(
-    MIT
-)
+LICENSE(MIT)
 
 VERSION(1.0.0)
 

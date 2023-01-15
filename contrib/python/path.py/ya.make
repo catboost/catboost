@@ -1,8 +1,6 @@
 PY23_LIBRARY()
 
-LICENSE(
-    PD
-)
+LICENSE(PD)
 
 
 
