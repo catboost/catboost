@@ -1302,6 +1302,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3contrib-python-numpy.vcxproj">
       <Project>{FA301ACA-9DC7-C37A-FCD9-C0464CED7425}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\py3\pypython-pandas-py3.vcxproj">
+      <Project>{4E179DE3-F1A3-B598-12B4-F08CBB65C765}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\py3contrib-python-pandas.vcxproj">
       <Project>{19857ED0-7E0A-9EB9-3613-E37F9152CC67}</Project>
     </ProjectReference>
