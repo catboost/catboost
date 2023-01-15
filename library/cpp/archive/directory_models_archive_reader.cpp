@@ -29,12 +29,21 @@ TString TDirectoryModelsArchiveReader::KeyByIndex(size_t n) const {
 }
 
 bool TDirectoryModelsArchiveReader::Has(const TStringBuf key) const {
-    return BlobByKey_.contains(key);
+    return BlobByKey_.contains(key) || PathByKey_.contains(key);
+}
+
+namespace {
+    struct TBlobOwningStream : public TMemoryInput {
+        TBlob Blob;
+        TBlobOwningStream(TBlob blob)
+        : TMemoryInput(blob.Data(), blob.Length())
+        , Blob(blob)
+        {}
+    };
 }
 
 TAutoPtr<IInputStream> TDirectoryModelsArchiveReader::ObjectByKey(const TStringBuf key) const {
-    TBlob blob = BlobByKey(key);
-    return new TMemoryInput(blob.Data(), blob.Length());
+    return new TBlobOwningStream(BlobByKey(key));
 }
 
 TBlob TDirectoryModelsArchiveReader::ObjectBlobByKey(const TStringBuf key) const {
@@ -42,8 +51,15 @@ TBlob TDirectoryModelsArchiveReader::ObjectBlobByKey(const TStringBuf key) const
 }
 
 TBlob TDirectoryModelsArchiveReader::BlobByKey(const TStringBuf key) const {
-    Y_ENSURE(BlobByKey_.contains(key), "key " << key << " not found");
-    return BlobByKey_.at(key);
+    Y_ENSURE(Has(key), "key " << key << " not found");
+    if (auto ptr = BlobByKey_.FindPtr(key); ptr) {
+        return *ptr;
+    }
+    if (auto ptr = PathByKey_.FindPtr(key); ptr) {
+        Y_ENSURE(ptr);
+        return TBlob::FromFile(*ptr);
+    }
+    Y_UNREACHABLE();
 }
 
 bool TDirectoryModelsArchiveReader::Compressed() const {
@@ -65,11 +81,12 @@ void TDirectoryModelsArchiveReader::LoadFilesAndSubdirs(const TString& subPath, 
     const char* file;
     while ((file = fileList.Next()) != nullptr) {
         TString key = JoinFsPaths(subPath, TString(file));
+        TString fullPath = JoinFsPaths(Path_, key);
         TBlob fileBlob;
         if (lockMemory) {
-            fileBlob = TBlob::LockedFromFile(JoinFsPaths(Path_, key));
+            fileBlob = TBlob::LockedFromFile(fullPath);
         } else {
-            fileBlob = TBlob::FromFile(JoinFsPaths(Path_, key));
+            fileBlob = TBlob::FromFile(fullPath);
         }
         if (key.EndsWith(".archive")) {
             TArchiveReader reader(fileBlob);
@@ -81,7 +98,11 @@ void TDirectoryModelsArchiveReader::LoadFilesAndSubdirs(const TString& subPath, 
             }
         } else {
             const TString normalizedPath = NormalizePath(key);
-            BlobByKey_.emplace(normalizedPath, fileBlob);
+            if (lockMemory) {
+                BlobByKey_.emplace(normalizedPath, fileBlob);
+            } else {
+                PathByKey_.emplace(normalizedPath, RealPath(fullPath));
+            }
             Recs_.push_back(normalizedPath);
         }
     }

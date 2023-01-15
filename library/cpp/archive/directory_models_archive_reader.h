@@ -32,6 +32,7 @@ private:
 
 private:
     TString Path_;
+    THashMap<TString, TString> PathByKey_;
     THashMap<TString, TBlob> BlobByKey_;
     TVector<TString> Recs_;
 };
