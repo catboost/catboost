@@ -862,7 +862,7 @@ void FileGenerator::GenerateBuildDescriptors(io::Printer* printer) {
                    "GOOGLE_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {\n");
     printer->Indent();
 
-    if (file_data.size() > 66535) {
+    if (file_data.size() > 65535) {
       // Workaround for MSVC: "Error C1091: compiler limit: string exceeds 65535
       // bytes in length". Declare a static array of characters rather than use
       // a string literal. Only write 25 bytes per line.
