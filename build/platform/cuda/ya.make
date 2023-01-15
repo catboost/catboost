@@ -31,6 +31,18 @@ IF (USE_ARCADIA_CUDA)
             ENABLE(CUDA_NOT_FOUND)
         ENDIF()
 
+    ELSEIF (HOST_OS_LINUX AND HOST_ARCH_PPC64LE)
+        IF (OS_LINUX AND ARCH_PPC64LE)
+            IF (CUDA_VERSION STREQUAL "10.1")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1574497103) # CUDA Toolkit 10.1.168 for Linux ppc64le
+            ELSE()
+                ENABLE(CUDA_NOT_FOUND)
+            ENDIF()
+
+        ELSE()
+            ENABLE(CUDA_NOT_FOUND)
+        ENDIF()
+
     ELSEIF (HOST_OS_DARWIN AND HOST_ARCH_X86_64)
         IF (OS_DARWIN AND ARCH_X86_64)
             IF (CUDA_VERSION STREQUAL "10.1")
