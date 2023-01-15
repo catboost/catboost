@@ -258,7 +258,7 @@ private:
 
     void WaitForIO();
 
-    void ProcessEvents();
+    void Poll(TInstant deadline);
 
 private:
     NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
@@ -273,6 +273,7 @@ private:
     NCoro::TEventWaitQueue WaitQueue_;
     NCoro::TContPoller Poller_;
     NCoro::TContPoller::TEvents Events_;
+    TInstant LastPoll_;
 
     size_t Allocated_ = 0;
     TCont* Current_ = nullptr;
