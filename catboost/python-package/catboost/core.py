@@ -4149,7 +4149,7 @@ class CatBoostClassifier(CatBoost):
     subsample : float, [default=None]
         Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
 
-    mvs-reg : float, [default is set automatically at each iteration based on gradient distribution]
+    mvs_reg : float, [default is set automatically at each iteration based on gradient distribution]
         Regularization parameter for MVS sampling algorithm
 
     monotone_constraints : list or numpy.ndarray or string or dict, [default=None]
