@@ -30,6 +30,7 @@ def add_common_arguments(parser):
     parser.add_argument('--rename', action='append', default=[], metavar='FILE', help='rename FILE to the corresponding output')
     parser.add_argument('--executable', action='store_true', help='make outputs executable')
     parser.add_argument('--log-path')
+    parser.add_argument('-v', '--verbose', action='store_true', default=os.environ.get('YA_VERBOSE_FETCHER'), help='increase stderr verbosity')
     parser.add_argument('outputs', nargs='*', default=[])
 
 
@@ -106,6 +107,8 @@ def setup_logging(args, base_name):
     args.abs_log_path = os.path.abspath(log_file_name)
     makedirs(os.path.dirname(args.abs_log_path))
     logging.basicConfig(filename=args.abs_log_path, level=logging.DEBUG)
+    if args.verbose:
+        logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
 
 
 def is_temporary(e):
