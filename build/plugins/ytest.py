@@ -461,6 +461,9 @@ def java_srcdirs_to_data(unit, var):
 
 
 def onadd_check(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
                                                      "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
     check_type = flat_args[0]
@@ -543,6 +546,9 @@ def on_register_no_check_imports(unit):
 
 
 def onadd_check_py_imports(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE').strip() == "":
         return
     unit.onpeerdir(['library/python/testing/import_test'])
@@ -584,9 +590,13 @@ def onadd_check_py_imports(unit, *args):
 
 
 def onadd_pytest_script(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
     unit.set(["PYTEST_BIN", "no"])
     custom_deps = get_values_list(unit, 'TEST_DEPENDS_VALUE')
     timeout = filter(None, [unit.get(["TEST_TIMEOUT"])])
+
     if timeout:
         timeout = timeout[0]
     else:
@@ -609,6 +619,9 @@ def onadd_pytest_script(unit, *args):
 
 
 def onadd_pytest_bin(unit, *args):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
     flat, kws = _common.sort_by_keywords({'RUNNER_BIN': 1}, args)
     if flat:
         ymake.report_configure_error(
@@ -623,6 +636,9 @@ def onadd_pytest_bin(unit, *args):
 
 
 def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
     custom_deps = get_values_list(unit, 'TEST_DEPENDS_VALUE')
     timeout = filter(None, [unit.get(["TEST_TIMEOUT"])])
     if timeout:
