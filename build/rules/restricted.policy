@@ -45,7 +45,8 @@ ALLOW yandex_io -> contrib/restricted/gst-libav
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 
 # OpenAL Soft is LGPL
-ALLOW yandex_io -> contrib/restricted/openal
+ALLOW yandex_io -> contrib/restricted/openal-soft
+ALLOW speechkit -> contrib/restricted/openal-soft
 
 # Allowed subset of abseil is exported via library/
 ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
@@ -92,6 +93,8 @@ ALLOW quasar/backend -> contrib/restricted/boost
 ALLOW regulargeo/research -> contrib/restricted/boost
 ALLOW rem/python/geobase30 -> contrib/restricted/boost
 ALLOW rtline/services/drive/contrib/libs/telemetry -> contrib/restricted/boost
+ALLOW smart_devices -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/boost
 ALLOW statbox/libstatbox -> contrib/restricted/boost
 ALLOW tools/idl -> contrib/restricted/boost
 ALLOW voicetech/tools -> contrib/restricted/boost
@@ -99,8 +102,6 @@ ALLOW weather/grid_api/lib -> contrib/restricted/boost
 ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
-ALLOW speechkit -> contrib/restricted/boost
-ALLOW speechkit -> contrib/restricted/openal-soft
 
 # Allow boost in all contrib projects
 ALLOW contrib/deprecated -> contrib/restricted/boost
