@@ -565,11 +565,6 @@ migrations:
     - passport/python/core/types/login
     - passport/python/core/validators
     - passport/python/library/yt_hdb/loader
-    - passport/python/social/common
-    - passport/python/social/common/providers
-    - passport/python/social/common/test
-    - passport/python/social/proxylib
-    - passport/python/social/proxylib/tests
     - passport/python/tasks/antifraud
     - passport/python/tasks/antifraud/process_logs
     - portal/tools/morda-release/server
@@ -778,8 +773,6 @@ migrations:
     - sandbox/projects/media_crm/tasks
     - sandbox/projects/media_crm/tasks/media_crm_deploy
     - sandbox/projects/metrika/mobile/sdk/helpers
-    - sandbox/projects/mobile_apps/teamcity_sandbox_runner/runner
-    - sandbox/projects/mobile_apps/teamcity_sandbox_runner/utils/html_log_reporter
     - sandbox/projects/mssngr/rtc
     - sandbox/projects/mssngr/runtime/MssngrRouterLoadTest
     - sandbox/projects/music
@@ -927,7 +920,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-3820
     - yabs/server/test/ft/BSSERVER-3895
     - yabs/server/test/ft/BSSERVER-40
-    - yabs/server/test/ft/BSSERVER-4084
     - yabs/server/test/ft/BSSERVER-4338
     - yabs/server/test/ft/BSSERVER-4652
     - yabs/server/test/ft/BSSERVER-4812
@@ -1151,8 +1143,6 @@ migrations:
     - dj/tools/viewer/custom/entity
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/services/checking_system/marker_checker/lib
-    - education/services/checking_system/marker_checker/lib/operations/arithmetic_operations/ut
     - education/lib/common
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
     - entity/ontodb/tasks/vloggers
@@ -1369,7 +1359,6 @@ migrations:
     - testenv/core/tools
     - testenv/core/web_server
     - travel/avia/shared_flights/tasks/schedules_dumper
-    - travel/avia/ticket_daemon
     - travel/hotels/suggest/builder
     - travel/hotels/suggest/metrics_builder
     - travel/rasp/content/rzdParser
@@ -1498,7 +1487,6 @@ migrations:
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/avia/v1/schemas
     - travel/avia/avia_api/tests
-    - travel/avia/ticket_daemon
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
     - voicetech/asr/cloud_engine/cli/nirvana/build_lm
@@ -1592,8 +1580,6 @@ migrations:
     - dict/ontodb/proto/tools
     - direct/infra/dt-dump-b2yt-data
     - drive/analytics/binary/thiefs
-    - education/services/checking_system/marker_checker/it
-    - education/services/checking_system/marker_checker/lib
     - education/lib/contrib/glove_python
     - education/schoolbook/services/recommender/app
     - education/schoolbook/services/recommender/it
@@ -1992,7 +1978,6 @@ migrations:
     - travel/avia/avia_api
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/tests
-    - travel/avia/ticket_daemon
     - vcs/svn/flat
     - vcs/svn/hooks/test
     - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
@@ -4113,7 +4098,6 @@ migrations:
     - yabs/server/libs/internal_ver/lmcounters/test
     - yabs/server/libs/internal_ver/lmng/test
     - yabs/server/libs/internal_ver/order/test
-    - yabs/server/libs/internal_ver/tsar/test
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
     - yabs/server/test/ft/BSSERVER-2185
