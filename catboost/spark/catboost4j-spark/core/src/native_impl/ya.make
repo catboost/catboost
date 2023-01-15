@@ -49,6 +49,9 @@ ELSE()
     ALLOCATOR(LF)
 ENDIF()
 
+STRIP()
+
+
 IF (USE_SYSTEM_JDK)
     CFLAGS(-I${JAVA_HOME}/include)
     IF(OS_DARWIN)
