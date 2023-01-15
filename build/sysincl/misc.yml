@@ -528,3 +528,7 @@
     - cmqxc.h
     - cmqcfc.h
     - cmqbc.h
+
+- source_filter: "^contrib/libs/h3"
+  includes:
+    - alloc.h: contrib/libs/h3/h3lib/include/alloc.h
