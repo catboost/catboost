@@ -143,6 +143,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
+      <Project>{6D119854-6D47-C914-7B2B-E6ECF111A695}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
     </ProjectReference>
@@ -151,9 +154,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\main\cpp-unittest-main.vcxproj">
       <Project>{FCE80D39-1C22-515D-5496-00EC1DCE2551}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
