@@ -132,6 +132,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>{A51525C5-634E-FC35-5327-3CD4A8F2B67F}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\cuda\libs-model-cuda.vcxproj">
+      <Project>{3B03C733-2186-8088-C630-809F047C70CD}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
       <Project>{2A1F054B-AB2A-66AA-1838-2784A8B46C5D}</Project>
     </ProjectReference>
