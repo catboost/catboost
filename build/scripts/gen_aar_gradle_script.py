@@ -128,6 +128,13 @@ android {{
             classifier = 'sources'
             from android.sourceSets.main.java.srcDirs
             include '**/*.java'
+            eachFile {{ fcd ->
+                def segments = fcd.relativePath.segments
+                if (segments[0] == 'impl') {{
+                    fcd.relativePath = new RelativePath(true, segments.drop(1))
+                }}
+            }}
+            includeEmptyDirs = false
         }}
 
         def manifestFile = android.sourceSets.main.manifest.srcFile
