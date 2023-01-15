@@ -1037,7 +1037,6 @@ migrations:
     - sandbox/projects/qafw/ansible
     - sandbox/projects/reconf
     - sandbox/projects/release_machine/components/configs
-    - sandbox/projects/release_machine/components/custom
     - sandbox/projects/release_machine/tests
     - sandbox/projects/sandbox_ci/managers
     - sandbox/projects/sandbox_ci/sandbox_ci_compare_load_test
@@ -1897,7 +1896,6 @@ migrations:
     - sandbox/projects/partner
     - sandbox/projects/partner/tasks/build_all
     - sandbox/projects/release_machine/components/configs
-    - sandbox/projects/release_machine/components/custom
     - sandbox/projects/release_machine/helpers/deploy
     - sandbox/projects/runtime_models
     - sandbox/projects/runtime_models/BuildYabsRtModelsPackage
