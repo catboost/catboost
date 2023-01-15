@@ -52,7 +52,6 @@ migrations:
       - a.yandex-team.ru/mail/imap-fuzzer/fuzz/operations
       - a.yandex-team.ru/mail/imap-fuzzer/fuzz/types
       - a.yandex-team.ru/mail/imap-fuzzer/imap
-      - a.yandex-team.ru/mail/so/spamstop/tools/smtp2http
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server_test
       - a.yandex-team.ru/mds/valve/pkg/storage
