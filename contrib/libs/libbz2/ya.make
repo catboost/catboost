@@ -2,7 +2,7 @@
 
 LIBRARY()
 
-LICENSE(BSD-3-Clause)
+LICENSE(BSD-3-Clause Zlib)
 
 
 
