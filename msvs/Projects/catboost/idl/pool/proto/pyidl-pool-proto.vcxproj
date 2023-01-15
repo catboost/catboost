@@ -343,6 +343,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protobuf\pypython-google_lib-protos_from_protobuf.vcxproj">
+      <Project>{9898E38E-95E7-49FB-BC40-817F803D60C9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc\pypython-google_lib-protos_from_protoc.vcxproj">
+      <Project>{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_pyext\pypython-google_lib-protos_from_pyext.vcxproj">
+      <Project>{CF3E5EE8-A734-7D87-9491-0D302B89B839}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.vcxproj">
       <Project>{1529DFE3-5177-2C02-3975-17E5F54C498D}</Project>
     </ProjectReference>

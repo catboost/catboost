@@ -461,6 +461,24 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "contrib-libs-protobuf", "Pr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "google_lib", "Projects\contrib\libs\protobuf\python\google_lib", "{1DA7388F-F1DC-A702-6B5A-C4D2446C9C14}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protos_from_protobuf", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_protobuf", "{EDF2A1F6-D9E6-0EF6-D227-7E3E78DD5A16}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "py3python-google_lib-protos_from_protobuf", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_protobuf\py3python-google_lib-protos_from_protobuf.vcxproj", "{ECA292DB-5909-8363-690B-1C5B9F9E7E47}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pypython-google_lib-protos_from_protobuf", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_protobuf\pypython-google_lib-protos_from_protobuf.vcxproj", "{9898E38E-95E7-49FB-BC40-817F803D60C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protos_from_protoc", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc", "{9B7CD931-50B4-90FB-B08A-86814C149572}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "py3python-google_lib-protos_from_protoc", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc\py3python-google_lib-protos_from_protoc.vcxproj", "{A5325DB8-A8D1-8408-3150-52FC8CDF779F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pypython-google_lib-protos_from_protoc", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc\pypython-google_lib-protos_from_protoc.vcxproj", "{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protos_from_pyext", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_pyext", "{FA449997-EEF7-F1CB-1839-1AB1BB484D7F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "py3python-google_lib-protos_from_pyext", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_pyext\py3python-google_lib-protos_from_pyext.vcxproj", "{D3F38919-BA4D-5015-114A-5755BE681411}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pypython-google_lib-protos_from_pyext", "Projects\contrib\libs\protobuf\python\google_lib\protos_from_pyext\pypython-google_lib-protos_from_pyext.vcxproj", "{CF3E5EE8-A734-7D87-9491-0D302B89B839}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "py3protobuf-python-google_lib", "Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.vcxproj", "{EBFCFEB6-7F53-5434-3E5A-016929A7E62D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyprotobuf-python-google_lib", "Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.vcxproj", "{1529DFE3-5177-2C02-3975-17E5F54C498D}"
@@ -1995,6 +2013,30 @@ Global
 		{18399176-5408-8102-7C5F-8DA029B8F78E}.Debug|x64.Build.0 = Debug|x64
 		{18399176-5408-8102-7C5F-8DA029B8F78E}.Release|x64.ActiveCfg = Release|x64
 		{18399176-5408-8102-7C5F-8DA029B8F78E}.Release|x64.Build.0 = Release|x64
+		{ECA292DB-5909-8363-690B-1C5B9F9E7E47}.Debug|x64.ActiveCfg = Debug|x64
+		{ECA292DB-5909-8363-690B-1C5B9F9E7E47}.Debug|x64.Build.0 = Debug|x64
+		{ECA292DB-5909-8363-690B-1C5B9F9E7E47}.Release|x64.ActiveCfg = Release|x64
+		{ECA292DB-5909-8363-690B-1C5B9F9E7E47}.Release|x64.Build.0 = Release|x64
+		{9898E38E-95E7-49FB-BC40-817F803D60C9}.Debug|x64.ActiveCfg = Debug|x64
+		{9898E38E-95E7-49FB-BC40-817F803D60C9}.Debug|x64.Build.0 = Debug|x64
+		{9898E38E-95E7-49FB-BC40-817F803D60C9}.Release|x64.ActiveCfg = Release|x64
+		{9898E38E-95E7-49FB-BC40-817F803D60C9}.Release|x64.Build.0 = Release|x64
+		{A5325DB8-A8D1-8408-3150-52FC8CDF779F}.Debug|x64.ActiveCfg = Debug|x64
+		{A5325DB8-A8D1-8408-3150-52FC8CDF779F}.Debug|x64.Build.0 = Debug|x64
+		{A5325DB8-A8D1-8408-3150-52FC8CDF779F}.Release|x64.ActiveCfg = Release|x64
+		{A5325DB8-A8D1-8408-3150-52FC8CDF779F}.Release|x64.Build.0 = Release|x64
+		{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}.Debug|x64.ActiveCfg = Debug|x64
+		{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}.Debug|x64.Build.0 = Debug|x64
+		{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}.Release|x64.ActiveCfg = Release|x64
+		{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}.Release|x64.Build.0 = Release|x64
+		{D3F38919-BA4D-5015-114A-5755BE681411}.Debug|x64.ActiveCfg = Debug|x64
+		{D3F38919-BA4D-5015-114A-5755BE681411}.Debug|x64.Build.0 = Debug|x64
+		{D3F38919-BA4D-5015-114A-5755BE681411}.Release|x64.ActiveCfg = Release|x64
+		{D3F38919-BA4D-5015-114A-5755BE681411}.Release|x64.Build.0 = Release|x64
+		{CF3E5EE8-A734-7D87-9491-0D302B89B839}.Debug|x64.ActiveCfg = Debug|x64
+		{CF3E5EE8-A734-7D87-9491-0D302B89B839}.Debug|x64.Build.0 = Debug|x64
+		{CF3E5EE8-A734-7D87-9491-0D302B89B839}.Release|x64.ActiveCfg = Release|x64
+		{CF3E5EE8-A734-7D87-9491-0D302B89B839}.Release|x64.Build.0 = Release|x64
 		{EBFCFEB6-7F53-5434-3E5A-016929A7E62D}.Debug|x64.ActiveCfg = Debug|x64
 		{EBFCFEB6-7F53-5434-3E5A-016929A7E62D}.Debug|x64.Build.0 = Debug|x64
 		{EBFCFEB6-7F53-5434-3E5A-016929A7E62D}.Release|x64.ActiveCfg = Release|x64
@@ -3559,6 +3601,15 @@ Global
 		{1915C38D-CB56-26F9-C6F1-F42E0BC4C076} = {5A6BA3D4-700F-320B-BC81-8F7B463F1DBE}
 		{18399176-5408-8102-7C5F-8DA029B8F78E} = {1915C38D-CB56-26F9-C6F1-F42E0BC4C076}
 		{1DA7388F-F1DC-A702-6B5A-C4D2446C9C14} = {1915C38D-CB56-26F9-C6F1-F42E0BC4C076}
+		{EDF2A1F6-D9E6-0EF6-D227-7E3E78DD5A16} = {1DA7388F-F1DC-A702-6B5A-C4D2446C9C14}
+		{ECA292DB-5909-8363-690B-1C5B9F9E7E47} = {EDF2A1F6-D9E6-0EF6-D227-7E3E78DD5A16}
+		{9898E38E-95E7-49FB-BC40-817F803D60C9} = {EDF2A1F6-D9E6-0EF6-D227-7E3E78DD5A16}
+		{9B7CD931-50B4-90FB-B08A-86814C149572} = {1DA7388F-F1DC-A702-6B5A-C4D2446C9C14}
+		{A5325DB8-A8D1-8408-3150-52FC8CDF779F} = {9B7CD931-50B4-90FB-B08A-86814C149572}
+		{2C4FBC77-A470-6FA9-FF50-0E8E3379D839} = {9B7CD931-50B4-90FB-B08A-86814C149572}
+		{FA449997-EEF7-F1CB-1839-1AB1BB484D7F} = {1DA7388F-F1DC-A702-6B5A-C4D2446C9C14}
+		{D3F38919-BA4D-5015-114A-5755BE681411} = {FA449997-EEF7-F1CB-1839-1AB1BB484D7F}
+		{CF3E5EE8-A734-7D87-9491-0D302B89B839} = {FA449997-EEF7-F1CB-1839-1AB1BB484D7F}
 		{EBFCFEB6-7F53-5434-3E5A-016929A7E62D} = {1DA7388F-F1DC-A702-6B5A-C4D2446C9C14}
 		{1529DFE3-5177-2C02-3975-17E5F54C498D} = {1DA7388F-F1DC-A702-6B5A-C4D2446C9C14}
 		{BB73A48B-0928-DD07-1DE1-A5B5AD5335E3} = {5A6BA3D4-700F-320B-BC81-8F7B463F1DBE}
