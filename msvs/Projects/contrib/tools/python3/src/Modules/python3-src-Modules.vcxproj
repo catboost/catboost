@@ -406,6 +406,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\SnP-Relaned.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\align.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data_111.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data_300.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\addrinfo.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\cjkcodecs\alg_jisx0201.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\cjkcodecs\cjkcodecs.h"/>
