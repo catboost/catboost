@@ -1036,7 +1036,6 @@ migrations:
     - statbox/qb2/qb2_extensions/api/v1/extractors
     - statbox/qb2/qb2_extensions/api/v1/extractors/pool
     - statbox/statkey/jam/jobs/cubes/desktop_installs/v2
-    - statbox/statkey/jam/jobs/tech_report/yt_resources_report/v3
     - strm/generate/lib/generate
     - sup/ml/click_predictor/lib/features
     - sup/stat/find_pushes
