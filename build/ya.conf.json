@@ -7877,7 +7877,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 826866672,
+                "sandbox_id": 827381593,
                 "match": "zcli"
             },
             "executable": {
@@ -8256,7 +8256,9 @@
                 "match": "infra/rsm/coroner/cmd/coronerctl/coronerctl"
             },
             "executable": {
-                "coronerctl": ["coronerctl"]
+                "coronerctl": [
+                    "coronerctl"
+                ]
             }
         },
         "lz4": {
