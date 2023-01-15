@@ -1,5 +1,5 @@
 import {get, RequestOptions} from 'https';
-import {createReadStream, createWriteStream, existsSync, mkdirSync, readFileSync} from 'fs';
+import {createReadStream, createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
 import {createHash} from 'crypto';
 import {dirname, join, resolve, sep} from 'path';
 
@@ -7,7 +7,6 @@ import {BinaryFileData} from './config';
 
 export async function downloadFile(url: string, targetPath: string): Promise<void> {
     checkMkdir(dirname(targetPath), '.');
-    const localFile = createWriteStream(targetPath);
     return new Promise((resolve, reject) => {
         
         try {
@@ -19,7 +18,14 @@ export async function downloadFile(url: string, targetPath: string): Promise<voi
                 if (rsp.statusCode && rsp.statusCode >= 400) {
                     return reject(new Error(`Status code: ${rsp.statusCode}`));
                 }
-                rsp.pipe(localFile).on('close', () => resolve());
+                const chunks: Buffer[] = [];
+                rsp.on('data', (data) => {
+                    chunks.push(data as Buffer);
+                })
+                rsp.on('end', () => {
+                    writeFileSync(targetPath, Buffer.concat(chunks));
+                    resolve();
+                });
             });
         } catch (err) {
             reject(err);

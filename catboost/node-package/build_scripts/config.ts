@@ -36,7 +36,6 @@ function parseBinaryFileData(mapEntry: {[name: string]: string|undefined}): Bina
 
 function readConfigFile(path: string) {
     const data = JSON.parse(readFileSync(path).toString());
-    console.log(typeof(data));
     const entries: {
         [platform: string]: BinaryFileData[],
     } = {};
