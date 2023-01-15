@@ -3,21 +3,27 @@
 #include <util/system/env.h>
 
 TString ArcadiaSourceRoot() {
-    const TString fromEnv = GetEnv("ARCADIA_SOURCE_ROOT");
+    TString sourceRoot = NPrivate::GetTestEnv().SourceRoot;
+    if(sourceRoot) {
+        return sourceRoot;
+    }
 
-    if (!fromEnv) {
+    if (!sourceRoot) {
         return R"__weirdrawstr(@ARCADIA_ROOT@)__weirdrawstr";
     }
 
-    return fromEnv;
+    return sourceRoot;
 }
 
 TString BuildRoot() {
-    const TString fromEnv = GetEnv("ARCADIA_BUILD_ROOT");
+    TString buildRoot = NPrivate::GetTestEnv().BuildRoot;
+    if(buildRoot) {
+        return buildRoot;
+    }
 
-    if (!fromEnv) {
+    if (!buildRoot) {
         return R"__weirdrawstr(@ARCADIA_ROOT@)__weirdrawstr";
     }
 
-    return fromEnv;
+    return buildRoot;
 }
