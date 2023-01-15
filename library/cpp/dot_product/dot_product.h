@@ -3,6 +3,8 @@
 #include <util/system/types.h>
 #include <util/system/compiler.h>
 
+#include <numeric>
+
 /**
  * Dot product (Inner product or scalar product) implementation using SSE when possible.
  */
@@ -64,13 +66,25 @@ static inline TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const 
  * Dot product implementation without SSE optimizations.
  */
 Y_PURE_FUNCTION
-ui32 DotProductSlow(const ui8* lhs, const ui8* rhs, ui32 length) noexcept;
+inline ui32 DotProductSlow(const ui8* lhs, const ui8* rhs, ui32 length) noexcept {
+    return std::inner_product(lhs, lhs + length, rhs, static_cast<ui32>(0u),
+                              [](ui32 x1, ui16 x2) {return x1 + x2;},
+                              [](ui16 x1, ui8 x2) {return x1 * x2;});
+}
 
 Y_PURE_FUNCTION
-i32 DotProductSlow(const i8* lhs, const i8* rhs, ui32 length) noexcept;
+inline i32 DotProductSlow(const i8* lhs, const i8* rhs, ui32 length) noexcept {
+    return std::inner_product(lhs, lhs + length, rhs, static_cast<i32>(0),
+                              [](i32 x1, i16 x2) {return x1 + x2;},
+                              [](i16 x1, i8 x2) {return x1 * x2;});
+}
 
 Y_PURE_FUNCTION
-i64 DotProductSlow(const i32* lhs, const i32* rhs, ui32 length) noexcept;
+inline i64 DotProductSlow(const i32* lhs, const i32* rhs, ui32 length) noexcept {
+    return std::inner_product(lhs, lhs + length, rhs, static_cast<i64>(0),
+                              [](i64 x1, i64 x2) {return x1 + x2;},
+                              [](i64 x1, i32 x2) {return x1 * x2;});
+}
 
 Y_PURE_FUNCTION
 float DotProductSlow(const float* lhs, const float* rhs, ui32 length) noexcept;
