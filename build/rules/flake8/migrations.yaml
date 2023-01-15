@@ -954,7 +954,6 @@ migrations:
     - yabs/server/test/ft/QABS-1165
     - yabs/server/test/ft/ads_adfox/proxy_request
     - yabs/server/test/ft/checks
-    - yabs/server/test/ft/lua/yabs_dsp
     - yabs/server/test/pylibs/qxl
     - yabs/server/test/pylibs/simulator
     - yabs/server/test/qabs_bsserver_pytest
@@ -1076,7 +1075,6 @@ migrations:
     - ads/autobudget/metrics/example_monitoring
     - ads/emily/mvp/backend_agnostik/backends/nirvana
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
-    - ads/logos/tasks/mediation_fast_lm_features
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
     - ads/quality/adv_machine/scripts/cluster_master
@@ -1472,8 +1470,6 @@ migrations:
     - ads/watchman/contrib/flask-restplus-patched
     - ads/watchman/contrib/flask-restplus-patched/flask_restplus_patched
     - alice/analytics/utils/marty/run_nirvana_instance
-    - alice/uniproxy/library/notificator
-    - alice/uniproxy/library/notificator_api
     - arc/tables_creation/tests
     - browser/infra/ci/backend
     - browser/infra/ci/backend/ci/settings
@@ -1575,7 +1571,6 @@ migrations:
     - alice/uniproxy/bin/send-digest
     - alice/uniproxy/library/activation_storage
     - alice/uniproxy/library/common_handlers
-    - alice/uniproxy/library/notificator
     - alice/uniproxy/library/subway/pull_client
     - alice/uniproxy/library/subway/push_client
     - alice/uniproxy/tools/perf_results_parser
@@ -1831,7 +1826,6 @@ migrations:
     - search/scraper_over_yt/scripts/zombie_monitors
     - smart_devices/packages/tests/ya_package
     - sprav/altay/tools/auto_close/ml_predictor
-    - sprav/mining/bs/scripts/postprocess
     - sprav/mining/bs/tools/extract_social_data
     - sprav/snezhana_v3/app
     - sprav/snezhana_v3/task
@@ -1970,8 +1964,6 @@ migrations:
     - ads/nirvana/xfactor-yt
     - ads/tools/mx_feature_remapper
     - alice/analytics/utils/marty/run_nirvana_instance
-    - alice/uniproxy/library/notificator
-    - alice/uniproxy/library/notificator_api
     - arc/tables_creation/tests
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - devtools/signer/signer
@@ -2283,7 +2275,6 @@ migrations:
     - dict/mt/make/tools/filter_mono
     - dict/mt/make/tools/filter_pt
     - dict/mt/make/tools/filter_toksent
-    - dict/mt/make/tools/fluency_cls
     - dict/mt/make/tools/generate_tfnn_lm
     - dict/mt/make/tools/jamo_tool/lib/jamo
     - dict/mt/make/tools/make_lm
@@ -2716,8 +2707,6 @@ migrations:
     - mlp/mail/smartsubject/tools/upload_metrics
     - mlp/mail/tools/clean_mail_text
     - mlp/mail/tools/recrypt
-    - modadvert/bigmod/scripts/lib
-    - modadvert/bigmod/tools/instance_manager
     - modadvert/oneshot/MODADVERT-589
     - modadvert/oneshot/MODADVINCIDENTS-77.2
     - modadvert/oneshot/MODDEV-2565
@@ -3049,7 +3038,6 @@ migrations:
     - sandbox/projects/autobudget/ml
     - sandbox/projects/balancer/BalancerYtLogs
     - sandbox/projects/balancer/UpdateYastaticWikiPanels
-    - sandbox/projects/bigmod
     - sandbox/projects/billing
     - sandbox/projects/blender/commit_blender_model
     - sandbox/projects/blender/update_blender_online_models
@@ -3605,7 +3593,6 @@ migrations:
     - yweb/antispam/phishing/models/limixis_log_regression
     - yweb/antispam/phishing/screenshots_cbir/dnsdb_filter
     - yweb/antispam/scout
-    - yweb/antispam/tmu/deploy_rules
     - yweb/antispam/util/scraper
     - yweb/antispam/whois/scripts
     - yweb/blender/newsletter/top_negative_intents
