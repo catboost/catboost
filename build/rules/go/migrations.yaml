@@ -68,7 +68,6 @@ migrations:
       - a.yandex-team.ru/infra/orly/proto
       - a.yandex-team.ru/infra/rtc/rebootctl/proto
       - a.yandex-team.ru/infra/ya_salt/proto
-      - a.yandex-team.ru/market/idx/golibrary/pbsn/proto
       - a.yandex-team.ru/mds/valve/proto
       - a.yandex-team.ru/rtmapreduce/tools/sli/proto
       - a.yandex-team.ru/transfer_manager/go/cmd/yql_server/proto
