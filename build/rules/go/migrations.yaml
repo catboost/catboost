@@ -131,7 +131,6 @@ migrations:
       - a.yandex-team.ru/quasar/gackend_test
       - a.yandex-team.ru/quasar/gackend/model
       - a.yandex-team.ru/quasar/go/middleware
-      - a.yandex-team.ru/quasar/go/render
       - a.yandex-team.ru/quasar/go/retryablehttp
       - a.yandex-team.ru/quasar/go/zaplogger
       - a.yandex-team.ru/quasar/tsup/db
