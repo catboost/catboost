@@ -2037,6 +2037,9 @@ class CatBoost(_CatBoostBase):
             ntree_end = self.tree_count_
 
         predictions = self._base_virtual_ensembles_predict(data, prediction_type, ntree_end, virtual_ensembles_count, thread_count, verbose)
+        if prediction_type == 'VirtEnsembles':
+            shape = predictions.shape
+            predictions = predictions.reshape(shape[0], virtual_ensembles_count, int(shape[1] / virtual_ensembles_count))
         return predictions[0] if data_is_single_object else predictions
 
     def virtual_ensembles_predict(self, data, prediction_type='VirtEnsembles', ntree_end=0, virtual_ensembles_count=10, thread_count=-1, verbose=None):
