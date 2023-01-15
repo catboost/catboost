@@ -778,6 +778,11 @@ public:                       \
     };
 
     struct TBaseTestCase {
+        // NOTE: since EACH test case is instantiated for listing tests, its
+        // ctor/dtor are not the best place to do heavy preparations in test fixtures.
+        //
+        // Consider using SetUp()/TearDown() methods instead
+
         inline TBaseTestCase()
             : TBaseTestCase(nullptr, nullptr, false)
         {
@@ -791,6 +796,21 @@ public:                       \
         }
 
         virtual ~TBaseTestCase() = default;
+        
+        // Each test case is executed in 3 steps:
+        //
+        // 1. SetUp() (from fixture)
+        // 2. Execute_() (test body from Y_UNIT_TEST macro)
+        // 3. TearDown() (from fixture)
+        //
+        // Both SetUp() and TearDown() may use UNIT_* check macros and are only
+        // called when the test is executed.
+
+        virtual void SetUp(TTestContext& /* context */) {
+        }
+
+        virtual void TearDown(TTestContext& /* context */) {
+        }
 
         virtual void Execute_(TTestContext& context) {
             Body_(context);
@@ -919,7 +939,12 @@ public:                       \
                         this->BeforeTest(i->Name_);                                                                     \
                         {                                                                                               \
                             TCleanUp cleaner(this);                                                                     \
-                            this->T::Run([&i, &context]() { i->Execute_(context); }, StaticName(), i->Name_, i->ForceFork_);\
+                            auto testCase = [&i, &context] {                                                            \
+                                i->SetUp(context);                                                                      \
+                                i->Execute_(context);                                                                   \
+                                i->TearDown(context);                                                                   \
+                            };                                                                                          \
+                            this->T::Run(testCase, StaticName(), i->Name_, i->ForceFork_);                              \
                         }                                                                                               \
                     } catch (const ::NUnitTest::TAssertException&) {                                                    \
                     } catch (const yexception& e) {                                                                     \
