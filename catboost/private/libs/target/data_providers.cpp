@@ -31,7 +31,7 @@ namespace NCB {
 
 
     // can be empty if target data is unavailable
-    static TVector<TSharedVector<float>> ConvertTarget(
+    TVector<TSharedVector<float>> ConvertTarget(
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
         ERawTargetType targetType,
         bool isRealTarget,

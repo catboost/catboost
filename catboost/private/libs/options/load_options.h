@@ -77,6 +77,11 @@ namespace NCatboostOptions {
 
     void ValidatePoolParams(
         const NCB::TPathWithScheme& poolPath,
+        const NCB::TDsvFormatOptions& dsvFormat
+    );
+
+    void ValidatePoolParams(
+        const NCB::TPathWithScheme& poolPath,
         const TColumnarPoolFormatParams& poolFormatParams
     );
 }

@@ -83,10 +83,17 @@ void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
 
 void NCatboostOptions::ValidatePoolParams(
     const NCB::TPathWithScheme& poolPath,
-    const TColumnarPoolFormatParams& poolFormatParams
+    const NCB::TDsvFormatOptions& dsvFormat
 ) {
     CB_ENSURE(
-        poolPath.Scheme == "dsv" || !poolFormatParams.DsvFormat.HasHeader,
+        poolPath.Scheme == "dsv" || !dsvFormat.HasHeader,
         "HasHeader parameter supported for \"dsv\" pools only."
     );
+}
+
+void NCatboostOptions::ValidatePoolParams(
+    const NCB::TPathWithScheme& poolPath,
+    const TColumnarPoolFormatParams& poolFormatParams
+) {
+    NCatboostOptions::ValidatePoolParams(poolPath, poolFormatParams.DsvFormat);
 }
