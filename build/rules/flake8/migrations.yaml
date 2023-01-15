@@ -2703,13 +2703,6 @@ migrations:
     - yweb/yasap/pdb/tools/saas_snippets
     - zootopia/analytics/drive/source/drive/operations/support/registrations/reg_quality
     - zootopia/analytics/ml/features/geo_features/faster_surge_features
-  F541:
-    ignore:
-    - F541
-    prefixes:
-    - search/metrics/ccc/ccc_lib
-    - search/metrics/ccc/ccc_lib/criteria
-    - search/mon/rviewer/modules/nanny
   F405:
     ignore:
     - F405
