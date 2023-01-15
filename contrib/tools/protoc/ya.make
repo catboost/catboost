@@ -7,9 +7,7 @@ ENDIF()
 IF (NOT PREBUILT)
     PROGRAM()
 
-    LICENSE(
-        BSD3
-    )
+    LICENSE(BSD3)
 
     NO_COMPILER_WARNINGS()
 
