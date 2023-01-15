@@ -96,7 +96,7 @@ def locale_encoding():
             codecs.lookup(loc)
         return loc
     except LookupError as e:
-        logger.warn('Cannot get system locale: %s', e)
+        logger.debug('Cannot get system locale: %s', e)
         return None
     except ValueError as e:
         logger.warn('Cannot get system locale: %s', e)
