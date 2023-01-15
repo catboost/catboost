@@ -1229,9 +1229,9 @@ class GnuCompiler(Compiler):
             '-DFAKEID=$CPP_FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
             '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
             '-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS',
-            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__'
+            '$CL_MACRO_INFO', '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__'
         ]
-        self.c_flags = ['$CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__']
+        self.c_flags = ['$CL_DEBUG_INFO', '$CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__']
 
         if not self.target.is_android:
             # There is no usable _FILE_OFFSET_BITS=64 support in Androids until API 21. And it's incomplete until at least API 24.
@@ -1456,7 +1456,16 @@ class GnuCompiler(Compiler):
             "--replace=$(TOOL_ROOT)=/-T"
         ]
         emit_big('''
-            when ($CONSISTENT_DEBUG == "yes") {{
+            when ($FORCE_CONSISTENT_DEBUG == "yes") {{
+                when ($CLANG == "yes") {{
+                    CL_DEBUG_INFO={c_debug_cl}
+                }}
+                otherwise {{
+                    CL_DEBUG_INFO={c_debug}
+                }}
+                YASM_DEBUG_INFO={yasm_debug}
+            }}
+            elsewhen ($CONSISTENT_DEBUG == "yes") {{
                 when ($CLANG == "yes") {{
                     CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_cl}
                 }}
@@ -1475,7 +1484,10 @@ class GnuCompiler(Compiler):
                 YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug_light}
             }}
 
-            when ($CONSISTENT_BUILD == "yes") {{
+            when ($FORCE_CONSISTENT_BUILD == "yes") {{
+                CL_MACRO_INFO={macro}
+            }}
+            elsewhen ($CONSISTENT_BUILD == "yes") {{
                 CL_MACRO_INFO_DISABLE_CACHE__NO_UID__={macro}
             }}
         '''.format(c_debug=' '.join(c_debug_map),
@@ -2848,7 +2860,7 @@ class Yasm(object):
         output = '${{output;noext;suf={}:SRC}}'.format('${OBJ_SUF}.o' if self.fmt != 'win' else '${OBJ_SUF}.obj')
         print '''\
 macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
-    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{pre=-I :INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
+    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{pre=-I :INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
 
 }}
 '''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)
