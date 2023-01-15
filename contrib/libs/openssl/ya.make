@@ -26,7 +26,6 @@ ADDINCL(
     contrib/libs/openssl/crypto/include
     contrib/libs/openssl/crypto/modes
     contrib/libs/openssl/include
-    contrib/libs/zlib
     GLOBAL contrib/libs/openssl/include
 )
 
