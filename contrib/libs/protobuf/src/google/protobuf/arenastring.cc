@@ -62,6 +62,14 @@ const TProtoStringType& LazyString::Init() const {
 }
 
 
+TProtoStringType* ArenaStringPtr::SetAndReturnNewString() {
+  TProtoStringType* new_string = new TProtoStringType();
+  tagged_ptr_.Set(new_string);
+  return new_string;
+}
+
+void ArenaStringPtr::DestroyNoArenaSlowPath() { delete UnsafeMutablePointer(); }
+
 void ArenaStringPtr::Set(const TProtoStringType* default_value,
                          ConstStringParam value, ::google::protobuf::Arena* arena) {
   if (IsDefault(default_value)) {
@@ -248,6 +256,24 @@ void ArenaStringPtr::ClearToDefault(const LazyString& default_value,
   }
 }
 
+const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
+                                                ArenaStringPtr* s,
+                                                Arena* arena) {
+  GOOGLE_DCHECK(arena != nullptr);
+
+  int size = ReadSize(&ptr);
+  if (!ptr) return nullptr;
+
+  auto str = Arena::Create<TProtoStringType>(arena);
+  ptr = ReadString(ptr, size, str);
+  GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+
+  TaggedPtr<TProtoStringType> res;
+  res.Set(str);
+  s->UnsafeSetTaggedPointer(res);
+
+  return ptr;
+}
 
 }  // namespace internal
 }  // namespace protobuf

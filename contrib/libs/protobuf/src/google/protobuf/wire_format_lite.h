@@ -62,12 +62,11 @@
 // #pragma pop_macro("TYPE_BOOL")
 #undef TYPE_BOOL
 
+#include <google/protobuf/port_def.inc>
 
 namespace google {
 namespace protobuf {
 namespace internal {
-
-#include <google/protobuf/port_def.inc>
 
 // This class is for internal use by the protocol buffer library and by
 // protocol-compiler-generated message classes.  It must not be called
@@ -1688,7 +1687,7 @@ inline uint8* WireFormatLite::InternalWriteMessage(
     int field_number, const MessageType& value, uint8* target,
     io::EpsCopyOutputStream* stream) {
   target = WriteTagToArray(field_number, WIRETYPE_LENGTH_DELIMITED, target);
-  target = io::CodedOutputStream::WriteVarint32ToArray(
+  target = io::CodedOutputStream::WriteVarint32ToArrayOutOfLine(
       static_cast<uint32>(value.GetCachedSize()), target);
   return value._InternalSerialize(target, stream);
 }

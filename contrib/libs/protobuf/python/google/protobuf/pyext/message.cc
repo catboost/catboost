@@ -35,6 +35,7 @@
 
 #include <structmember.h>  // A Python header file.
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -101,6 +102,15 @@
 namespace google {
 namespace protobuf {
 namespace python {
+
+class MessageReflectionFriend {
+ public:
+  static void UnsafeShallowSwapFields(
+      Message* lhs, Message* rhs,
+      const std::vector<const FieldDescriptor*>& fields) {
+    lhs->GetReflection()->UnsafeShallowSwapFields(lhs, rhs, fields);
+  }
+};
 
 static PyObject* kDESCRIPTOR;
 PyObject* EnumTypeWrapper_class;
@@ -192,15 +202,14 @@ static int AddDescriptors(PyObject* cls, const Descriptor* descriptor) {
 }
 
 static PyObject* New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
-  static const char *kwlist[] = {"name", "bases", "dict", 0};
+  static const char* kwlist[] = {"name", "bases", "dict", 0};
   PyObject *bases, *dict;
   const char* name;
 
   // Check arguments: (name, bases, dict)
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sO!O!:type", const_cast<char**>(kwlist),
-                                   &name,
-                                   &PyTuple_Type, &bases,
-                                   &PyDict_Type, &dict)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwargs, "sO!O!:type", const_cast<char**>(kwlist), &name,
+          &PyTuple_Type, &bases, &PyDict_Type, &dict)) {
     return NULL;
   }
 
@@ -1280,7 +1289,7 @@ static CMessage* NewCMessage(CMessageClass* type) {
   if (self == nullptr) {
     return nullptr;
   }
-  self->message = prototype->New();
+  self->message = prototype->New(nullptr);  // Ensures no arena is used.
   self->parent = nullptr;  // This message owns its data.
   return self;
 }
@@ -1525,7 +1534,7 @@ static int InternalReparentFields(
   if (new_message == nullptr) {
     return -1;
   }
-  new_message->message = self->message->New();
+  new_message->message = self->message->New(nullptr);
   ScopedPyObjectPtr holder(reinterpret_cast<PyObject*>(new_message));
   new_message->child_submessages = new CMessage::SubMessagesMap();
   new_message->composite_fields = new CMessage::CompositeFieldsMap();
@@ -1555,10 +1564,17 @@ static int InternalReparentFields(
                                            to_release);
   }
 
-  self->message->GetReflection()->SwapFields(
-      self->message, new_message->message,
-      std::vector<const FieldDescriptor*>(fields_to_swap.begin(),
-                                          fields_to_swap.end()));
+  if (self->message->GetArena() == new_message->message->GetArena()) {
+    MessageReflectionFriend::UnsafeShallowSwapFields(
+        self->message, new_message->message,
+        std::vector<const FieldDescriptor*>(fields_to_swap.begin(),
+                                            fields_to_swap.end()));
+  } else {
+    self->message->GetReflection()->SwapFields(
+        self->message, new_message->message,
+        std::vector<const FieldDescriptor*>(fields_to_swap.begin(),
+                                            fields_to_swap.end()));
+  }
 
   // This might delete the Python message completely if all children were moved.
   Py_DECREF(self);
@@ -1679,10 +1695,10 @@ static PyObject* InternalSerializeToString(
     CMessage* self, PyObject* args, PyObject* kwargs,
     bool require_initialized) {
   // Parse the "deterministic" kwarg; defaults to False.
-  static const char* kwlist[] = { "deterministic", 0 };
+  static const char* kwlist[] = {"deterministic", 0};
   PyObject* deterministic_obj = Py_None;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", const_cast<char**>(kwlist),
-                                   &deterministic_obj)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwargs, "|O", const_cast<char**>(kwlist), &deterministic_obj)) {
     return NULL;
   }
   // Preemptively convert to a bool first, so we don't need to back out of
@@ -1927,9 +1943,8 @@ PyObject* SetAllowOversizeProtos(PyObject* m, PyObject* arg) {
 }
 
 static PyObject* MergeFromString(CMessage* self, PyObject* arg) {
-  const void* data;
-  Py_ssize_t data_length;
-  if (PyObject_AsReadBuffer(arg, &data, &data_length) < 0) {
+  Py_buffer data;
+  if (PyObject_GetBuffer(arg, &data, PyBUF_SIMPLE) < 0) {
     return NULL;
   }
 
@@ -1942,7 +1957,8 @@ static PyObject* MergeFromString(CMessage* self, PyObject* arg) {
   const char* ptr;
   internal::ParseContext ctx(
       depth, false, &ptr,
-      StringPiece(static_cast<const char*>(data), data_length));
+      StringPiece(static_cast<const char*>(data.buf), data.len));
+  PyBuffer_Release(&data);
   ctx.data().pool = factory->pool->pool;
   ctx.data().factory = factory->message_factory;
 
@@ -1960,7 +1976,7 @@ static PyObject* MergeFromString(CMessage* self, PyObject* arg) {
   if (ptr == nullptr || ctx.BytesUntilLimit(ptr) < 0) {
     // Parse error or the parser overshoot the limit.
     PyErr_Format(DecodeError_class, "Error parsing message");
-    return nullptr;
+    return NULL;
   }
   // ctx has an explicit limit set (length of string_view), so we have to
   // check we ended at that limit.
@@ -1968,7 +1984,7 @@ static PyObject* MergeFromString(CMessage* self, PyObject* arg) {
     PyErr_Format(DecodeError_class, "Unexpected end-group tag: Not all data was converted");
     return nullptr;
   }
-  return PyInt_FromLong(data_length);
+  return PyInt_FromLong(data.len);
 }
 
 static PyObject* ParseFromString(CMessage* self, PyObject* arg) {
@@ -2189,22 +2205,22 @@ PyObject* InternalGetScalar(const Message* message,
   PyObject* result = NULL;
   switch (field_descriptor->cpp_type()) {
     case FieldDescriptor::CPPTYPE_INT32: {
-      int32 value = reflection->GetInt32(*message, field_descriptor);
+      int32_t value = reflection->GetInt32(*message, field_descriptor);
       result = PyInt_FromLong(value);
       break;
     }
     case FieldDescriptor::CPPTYPE_INT64: {
-      int64 value = reflection->GetInt64(*message, field_descriptor);
+      int64_t value = reflection->GetInt64(*message, field_descriptor);
       result = PyLong_FromLongLong(value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT32: {
-      uint32 value = reflection->GetUInt32(*message, field_descriptor);
+      uint32_t value = reflection->GetUInt32(*message, field_descriptor);
       result = PyInt_FromSize_t(value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT64: {
-      uint64 value = reflection->GetUInt64(*message, field_descriptor);
+      uint64_t value = reflection->GetUInt64(*message, field_descriptor);
       result = PyLong_FromUnsignedLongLong(value);
       break;
     }
@@ -2687,7 +2703,7 @@ int SetFieldValue(CMessage* self, const FieldDescriptor* field_descriptor,
 PyObject* ContainerBase::DeepCopy() {
   CMessage* new_parent =
       cmessage::NewEmptyMessage(this->parent->GetMessageClass());
-  new_parent->message = this->parent->message->New();
+  new_parent->message = this->parent->message->New(nullptr);
 
   // Copy the map field into the new message.
   this->parent->message->GetReflection()->SwapFields(

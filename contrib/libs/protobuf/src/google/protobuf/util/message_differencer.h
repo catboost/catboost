@@ -431,7 +431,7 @@ class PROTOBUF_EXPORT MessageDifferencer {
   // + n^3) in which n^3 is the time complexity of the maximum matching
   // algorithm.
   //
-  // REQUIRES:  field->is_repeated() and field not registered with TreatAsList
+  // REQUIRES: field->is_repeated() and field not registered with TreatAsMap*
   void TreatAsSet(const FieldDescriptor* field);
   void TreatAsSmartSet(const FieldDescriptor* field);
 
@@ -439,7 +439,7 @@ class PROTOBUF_EXPORT MessageDifferencer {
   // diffing purposes, so different orderings of the same elements will NOT be
   // considered equal.
   //
-  // REQUIRED: field->is_repeated() and field not registered with TreatAsSet
+  // REQUIRES: field->is_repeated() and field not registered with TreatAsMap*
   void TreatAsList(const FieldDescriptor* field);
   // Note that the complexity is similar to treating as SET.
   void TreatAsSmartList(const FieldDescriptor* field);
@@ -533,6 +533,9 @@ class PROTOBUF_EXPORT MessageDifferencer {
   // Note that this method must be called before Compare for the comparator to
   // be used.
   void set_field_comparator(FieldComparator* comparator);
+#ifdef PROTOBUF_FUTURE_BREAKING_CHANGES
+  void set_field_comparator(DefaultFieldComparator* comparator);
+#endif  // PROTOBUF_FUTURE_BREAKING_CHANGES
 
   // DEPRECATED. Pass a DefaultFieldComparator instance instead.
   // Sets the fraction and margin for the float comparison of a given field.
@@ -708,7 +711,7 @@ class PROTOBUF_EXPORT MessageDifferencer {
   };
 
  private:
-  friend class DefaultFieldComparator;
+  friend class SimpleFieldComparator;
 
   // A MapKeyComparator to be used in TreatAsMapUsingKeyComparator.
   // Implementation of this class needs to do field value comparison which
@@ -779,7 +782,20 @@ class PROTOBUF_EXPORT MessageDifferencer {
                             const FieldDescriptor* field,
                             std::vector<SpecificField>* parent_fields);
 
-  // Compare the map fields using map reflection instead of sync to repeated.
+  // Compares map fields, and report the error.
+  bool CompareMapField(const Message& message1, const Message& message2,
+                       const FieldDescriptor* field,
+                       std::vector<SpecificField>* parent_fields);
+
+  // Helper for CompareRepeatedField and CompareMapField: compares and reports
+  // differences element-wise. This is the implementation for non-map fields,
+  // and can also compare map fields by using the underlying representation.
+  bool CompareRepeatedRep(const Message& message1, const Message& message2,
+                          const FieldDescriptor* field,
+                          std::vector<SpecificField>* parent_fields);
+
+  // Helper for CompareMapField: compare the map fields using map reflection
+  // instead of sync to repeated.
   bool CompareMapFieldByMapReflection(const Message& message1,
                                       const Message& message2,
                                       const FieldDescriptor* field,
@@ -891,7 +907,6 @@ class PROTOBUF_EXPORT MessageDifferencer {
 
   Reporter* reporter_;
   DefaultFieldComparator default_field_comparator_;
-  FieldComparator* field_comparator_;
   MessageFieldComparison message_field_comparison_;
   Scope scope_;
   RepeatedFieldComparison repeated_field_comparison_;
@@ -911,6 +926,12 @@ class PROTOBUF_EXPORT MessageDifferencer {
   std::vector<const FieldDescriptor*> tmp_message_fields_;
 
   FieldSet ignored_fields_;
+
+  union {
+    DefaultFieldComparator* default_impl;
+    FieldComparator* base;
+  } field_comparator_ = {&default_field_comparator_};
+  enum { kFCDefault, kFCBase } field_comparator_kind_ = kFCDefault;
 
   bool report_matches_;
   bool report_moves_;

@@ -202,8 +202,8 @@ class PROTOBUF_EXPORT MultiFileErrorCollector {
   virtual void AddError(const TProtoStringType& filename, int line, int column,
                         const TProtoStringType& message) = 0;
 
-  virtual void AddWarning(const TProtoStringType& /* filename */, int /* line */, int /* column */,
-                          const TProtoStringType& /* message */) {}
+  virtual void AddWarning(const TProtoStringType& /* filename */, int /* line */,
+                          int /* column */, const TProtoStringType& /* message */) {}
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MultiFileErrorCollector);

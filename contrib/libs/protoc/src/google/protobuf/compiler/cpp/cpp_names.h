@@ -40,6 +40,7 @@ namespace protobuf {
 
 class Descriptor;
 class EnumDescriptor;
+class EnumValueDescriptor;
 class FieldDescriptor;
 
 namespace compiler {
@@ -71,6 +72,10 @@ TProtoStringType QualifiedExtensionName(const FieldDescriptor* d);
 // should be using lowercase-with-underscores style for proto field names
 // anyway, so normally this just returns field->name().
 TProtoStringType FieldName(const FieldDescriptor* field);
+
+// Get the (unqualified) name that should be used for this enum value in C++
+// code.
+TProtoStringType EnumValueName(const EnumValueDescriptor* enum_value);
 
 // Strips ".proto" or ".protodevel" from the end of a filename.
 PROTOC_EXPORT TProtoStringType StripProto(const TProtoStringType& filename);
