@@ -106,580 +106,571 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
     }
 
 
-    Y_UNIT_TEST(ReadDataset) {
-        TVector<TTestCase> testCases;
-
-        {
-            TTestCase simpleTestCase;
-            NCB::TSrcData srcData;
-
-            srcData.DocumentCount = 5;
-            srcData.LocalIndexToColumnIndex = {0, 1, 2};
-            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1};
-            srcData.PoolQuantizationSchema.Borders = {{0.1f, 0.2f, 0.3f}, {0.25f, 0.5f, 0.75f}};
-            srcData.PoolQuantizationSchema.NanModes = {ENanMode::Forbidden, ENanMode::Min};
-            srcData.FloatFeatures = {
-                TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}}},
-                TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {0, 3, 1}}}
-            };
-
-            srcData.Target = TSrcColumn<float>{EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}}};
-
-            simpleTestCase.SrcData = std::move(srcData);
-
-
-            TExpectedQuantizedData expectedData;
-
-            TDataColumnsMetaInfo dataColumnsMetaInfo;
-            dataColumnsMetaInfo.Columns = {
-                {EColumn::Num, ""},
-                {EColumn::Num, ""},
-                {EColumn::Label, ""}
-            };
-
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
-            expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 3, 0, 1, 2},
-                TVector<ui8>{2, 3, 0, 3, 1}
-            };
-            expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TConstArrayRef<ui32>(),
-                NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 3)
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(0), {0.1f, 0.2f, 0.3f});
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(1), {0.25f, 0.5f, 0.75f});
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
-            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TExclusiveFeaturesBundle>()
-            );
-            expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                *expectedData.Objects.QuantizedFeaturesInfo,
-                expectedData.Objects.ExclusiveFeatureBundlesData
-            );
-            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TFeaturesGroup>()
-            );
-
-            expectedData.ObjectsGrouping = TObjectsGrouping(5);
-
-            expectedData.Target.TargetType = ERawTargetType::Float;
-
-            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22"}};
-            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
-            expectedData.Target.SetTrivialWeights(5);
-
-            simpleTestCase.ExpectedData = std::move(expectedData);
-
-            testCases.push_back(std::move(simpleTestCase));
-        }
-
-        {
-            TTestCase groupDataTestCase;
-            NCB::TSrcData srcData;
-
-            srcData.DocumentCount = 6;
-            srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0, 6, 7};
-            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
-            srcData.PoolQuantizationSchema.Borders = {
-                {0.1f, 0.2f, 0.3f, 0.4f},
-                {0.25f, 0.5f, 0.75f, 0.95f},
-                {0.2f, 0.5f, 0.55f, 0.82f},
-            };
-            srcData.PoolQuantizationSchema.NanModes = {
-                ENanMode::Forbidden,
-                ENanMode::Min,
-                ENanMode::Forbidden
-            };
-
-            srcData.ColumnNames = {
-                "GroupId",
-                "SubgroupId",
-                "f0",
-                "f1",
-                "f2",
-                "Target",
-                "Weight",
-                "GroupWeight"
-            };
-
-            srcData.GroupIds = TSrcColumn<TGroupId>{EColumn::GroupId, {{2, 2}, {0, 11, 11}, {11}}};
-            srcData.SubgroupIds = TSrcColumn<TSubgroupId>{EColumn::SubgroupId, {{1}, {22, 9, 12}, {22, 45}}};
-
-            srcData.FloatFeatures = {
-                TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
-                TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}},
-                TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}}
-            };
-
-            srcData.Target = TSrcColumn<float>{
-                EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
-            };
-
-            srcData.Weights = TSrcColumn<float>{
-                EColumn::Weight,
-                {{0.12f, 0.18f}, {1.0f, 0.45f, 1.0f}, {0.9f}}
-            };
-            srcData.GroupWeights = TSrcColumn<float>{
-                EColumn::GroupWeight,
-                {{1.0f, 1.0f}, {0.0f, 0.5f, 0.5f}, {0.5f}}
-            };
-            srcData.ObjectsOrder = EObjectsOrder::Ordered;
-
-            groupDataTestCase.SrcData = std::move(srcData);
-
-
-            TExpectedQuantizedData expectedData;
-
-            TDataColumnsMetaInfo dataColumnsMetaInfo;
-            dataColumnsMetaInfo.Columns = {
-                {EColumn::Label, "Target"},
-                {EColumn::GroupId, "GroupId"},
-                {EColumn::SubgroupId, "SubgroupId"},
-                {EColumn::Num, "f0"},
-                {EColumn::Num, "f1"},
-                {EColumn::Num, "f2"},
-                {EColumn::Weight, "Weight"},
-                {EColumn::GroupWeight, "GroupWeight"}
-            };
-
-            TVector<TString> featureId = {"f0", "f1", "f2"};
-
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
-            expectedData.Objects.Order = EObjectsOrder::Ordered;
-            expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
-            expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
-
-            expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 3, 0, 1, 2, 4},
-                TVector<ui8>{2, 3, 4, 3, 1, 0},
-                TVector<ui8>{0, 2, 3, 1, 4, 2}
-            };
-            expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TConstArrayRef<ui32>(),
-                NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(0),
-                {0.1f, 0.2f, 0.3f, 0.4f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(1),
-                {0.25f, 0.5f, 0.75f, 0.95f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(2),
-                {0.2f, 0.5f, 0.55f, 0.82f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
-            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TExclusiveFeaturesBundle>()
-            );
-            expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                *expectedData.Objects.QuantizedFeaturesInfo,
-                expectedData.Objects.ExclusiveFeatureBundlesData
-            );
-            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TFeaturesGroup>()
-            );
-
-            expectedData.ObjectsGrouping = TObjectsGrouping(
-                TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
-            );
-
-            expectedData.Target.TargetType = ERawTargetType::Float;
-
-            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
-            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
-            expectedData.Target.Weights = TWeights<float>(
-                TVector<float>{0.12f, 0.18f, 1.0f, 0.45f, 1.0f, 0.9f}
-            );
-            expectedData.Target.GroupWeights = TWeights<float>(
-                TVector<float>{1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f}
-            );
-
-            groupDataTestCase.ExpectedData = std::move(expectedData);
-
-            testCases.push_back(std::move(groupDataTestCase));
-        }
-
-        {
-            TTestCase pairsOnlyTestCase;
-            NCB::TSrcData srcData;
-
-            srcData.DocumentCount = 6;
-            srcData.LocalIndexToColumnIndex = {0, 1, 2, 3, 4};
-            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
-            srcData.PoolQuantizationSchema.Borders = {
-                {0.1f, 0.2f, 0.3f, 0.4f},
-                {0.25f, 0.5f, 0.75f, 0.95f},
-                {0.2f, 0.5f, 0.55f, 0.82f},
-            };
-            srcData.PoolQuantizationSchema.NanModes = {
-                ENanMode::Forbidden,
-                ENanMode::Min,
-                ENanMode::Forbidden
-            };
-
-            srcData.ColumnNames = {
-                "GroupId",
-                "SubgroupId",
-                "f0",
-                "f1",
-                "f2"
-            };
-
-            srcData.GroupIds = TSrcColumn<TGroupId>{EColumn::GroupId, {{2, 2}, {0, 11, 11}, {11}}};
-            srcData.SubgroupIds = TSrcColumn<TSubgroupId>{EColumn::SubgroupId, {{1}, {22, 9, 12}, {22, 45}}};
-
-            srcData.FloatFeatures = {
-                TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
-                TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}},
-                TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}}
-            };
-            srcData.PairsFileData = AsStringBuf(
-                "0\t1\t0.1\n"
-                "4\t3\t1.0\n"
-                "3\t5\t0.2"
-            );
-
-            pairsOnlyTestCase.SrcData = std::move(srcData);
-
-
-            TExpectedQuantizedData expectedData;
-
-            TDataColumnsMetaInfo dataColumnsMetaInfo;
-            dataColumnsMetaInfo.Columns = {
-                {EColumn::GroupId, "GroupId"},
-                {EColumn::SubgroupId, "SubgroupId"},
-                {EColumn::Num, "f0"},
-                {EColumn::Num, "f1"},
-                {EColumn::Num, "f2"}
-            };
-
-            TVector<TString> featureId = {"f0", "f1", "f2"};
-
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
-            expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
-            expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
-
-            expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 3, 0, 1, 2, 4},
-                TVector<ui8>{2, 3, 4, 3, 1, 0},
-                TVector<ui8>{0, 2, 3, 1, 4, 2}
-            };
-            expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TConstArrayRef<ui32>(),
-                NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(0),
-                {0.1f, 0.2f, 0.3f, 0.4f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(1),
-                {0.25f, 0.5f, 0.75f, 0.95f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(2),
-                {0.2f, 0.5f, 0.55f, 0.82f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
-            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TExclusiveFeaturesBundle>()
-            );
-            expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                *expectedData.Objects.QuantizedFeaturesInfo,
-                expectedData.Objects.ExclusiveFeatureBundlesData
-            );
-            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TFeaturesGroup>()
-            );
-
-            expectedData.ObjectsGrouping = TObjectsGrouping(
-                TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
-            );
-
-            expectedData.Target.Weights = TWeights<float>(6);
-            expectedData.Target.GroupWeights = TWeights<float>(6);
-            expectedData.Target.Pairs = {TPair(0, 1, 0.1f), TPair(4, 3, 1.0f), TPair(3, 5, 0.2f)};
-
-            pairsOnlyTestCase.ExpectedData = std::move(expectedData);
-
-            testCases.push_back(std::move(pairsOnlyTestCase));
-        }
-
-
-        {
-            TTestCase separateGroupWeightsTestCase;
-            NCB::TSrcData srcData;
-
-            srcData.DocumentCount = 6;
-            srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 0};
-            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
-            srcData.PoolQuantizationSchema.Borders = {
-                {0.1f, 0.2f, 0.3f, 0.4f},
-                {0.25f, 0.5f, 0.75f, 0.95f},
-                {0.2f, 0.5f, 0.55f, 0.82f},
-            };
-            srcData.PoolQuantizationSchema.NanModes = {
-                ENanMode::Forbidden,
-                ENanMode::Min,
-                ENanMode::Forbidden
-            };
-
-            srcData.ColumnNames = {
-                "GroupId",
-                "f0",
-                "f1",
-                "f2",
-                "Target"
-            };
-
-            srcData.GroupIds = TSrcColumn<TGroupId>{
-                EColumn::GroupId,
-                {
-                    {CalcGroupIdFor("query0"), CalcGroupIdFor("query0")},
-                    {CalcGroupIdFor("query1"), CalcGroupIdFor("Query 2"), CalcGroupIdFor("Query 2")},
-                    {CalcGroupIdFor("Query 2")}
-                }
-            };
-
-            srcData.FloatFeatures = {
-                TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
-                TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}},
-                TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}}
-            };
-
-            srcData.Target = TSrcColumn<float>{
-                EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
-            };
-            srcData.GroupWeightsFileData = AsStringBuf(
-                "query0\t1.0\n"
-                "query1\t0.0\n"
-                "Query 2\t0.5"
-            );
-
-            separateGroupWeightsTestCase.SrcData = std::move(srcData);
-
-
-            TExpectedQuantizedData expectedData;
-
-            TDataColumnsMetaInfo dataColumnsMetaInfo;
-            dataColumnsMetaInfo.Columns = {
-                {EColumn::Label, "Target"},
-                {EColumn::GroupId, "GroupId"},
-                {EColumn::Num, "f0"},
-                {EColumn::Num, "f1"},
-                {EColumn::Num, "f2"}
-            };
-
-            TVector<TString> featureId = {"f0", "f1", "f2"};
-
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, true, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
-            expectedData.Objects.GroupIds = {
-                CalcGroupIdFor("query0"),
-                CalcGroupIdFor("query0"),
-                CalcGroupIdFor("query1"),
-                CalcGroupIdFor("Query 2"),
-                CalcGroupIdFor("Query 2"),
-                CalcGroupIdFor("Query 2")
-            };
-
-
-            expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 3, 0, 1, 2, 4},
-                TVector<ui8>{2, 3, 4, 3, 1, 0},
-                TVector<ui8>{0, 2, 3, 1, 4, 2}
-            };
-            expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TConstArrayRef<ui32>(),
-                NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(0), {0.1f, 0.2f, 0.3f, 0.4f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(1),
-                {0.25f, 0.5f, 0.75f, 0.95f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(2),
-                {0.2f, 0.5f, 0.55f, 0.82f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
-            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TExclusiveFeaturesBundle>()
-            );
-            expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                *expectedData.Objects.QuantizedFeaturesInfo,
-                expectedData.Objects.ExclusiveFeatureBundlesData
-            );
-            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TFeaturesGroup>()
-            );
-
-            expectedData.ObjectsGrouping = TObjectsGrouping(
-                TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
-            );
-
-
-            expectedData.Target.TargetType = ERawTargetType::Float;
-
-            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
-            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
-            expectedData.Target.Weights = TWeights<float>(6);
-            expectedData.Target.GroupWeights = TWeights<float>(
-                TVector<float>{1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f}
-            );
-
-            separateGroupWeightsTestCase.ExpectedData = std::move(expectedData);
-
-            testCases.push_back(std::move(separateGroupWeightsTestCase));
-        }
-
-        {
-            TTestCase ignoredFeaturesTestCase;
-            NCB::TSrcData srcData;
-
-            srcData.DocumentCount = 6;
-            srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0};
-            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 2};
-            srcData.PoolQuantizationSchema.Borders = {
-                {0.1f, 0.2f, 0.3f, 0.4f},
-                {0.2f, 0.5f, 0.55f, 0.82f}
-            };
-            srcData.PoolQuantizationSchema.NanModes = {
-                ENanMode::Forbidden,
-                ENanMode::Forbidden
-            };
-
-            srcData.ColumnNames = {
-                "GroupId",
-                "f0",
-                "f1",
-                "f2",
-                "f3",
-                "Target"
-            };
-
-            srcData.GroupIds = TSrcColumn<TGroupId>{EColumn::GroupId, {{2, 2}, {0, 11, 11}, {11}}};
-
-            srcData.FloatFeatures = {
-                TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
-                Nothing(),
-                TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}},
-                Nothing()
-            };
-
-            srcData.Target = TSrcColumn<float>{
-                EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
-            };
-
-            srcData.IgnoredColumnIndices = {3, 5};
-
-            ignoredFeaturesTestCase.SrcData = std::move(srcData);
-
-
-            TExpectedQuantizedData expectedData;
-
-            TDataColumnsMetaInfo dataColumnsMetaInfo;
-            dataColumnsMetaInfo.Columns = {
-                {EColumn::Label, "Target"},
-                {EColumn::GroupId, "GroupId"},
-                {EColumn::Num, "f0"},
-                {EColumn::Num, "f1"},
-                {EColumn::Num, "f2"},
-                {EColumn::Num, "f3"}
-            };
-
-            TVector<TString> featureId = {"f0", "f1", "f2", "f3"};
-
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
-            auto& featuresLayout = *expectedData.MetaInfo.FeaturesLayout;
-            featuresLayout.IgnoreExternalFeature(1);
-            featuresLayout.IgnoreExternalFeature(3);
-
-            expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
-
-            expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 3, 0, 1, 2, 4},
-                Nothing(),
-                TVector<ui8>{0, 2, 3, 1, 4, 2},
-                Nothing()
-            };
-            expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TConstArrayRef<ui32>(),
-                NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(0),
-                {0.1f, 0.2f, 0.3f, 0.4f}
-            );
-            expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
-                TFloatFeatureIdx(2),
-                {0.2f, 0.5f, 0.55f, 0.82f}
-            );
-
-
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
-            expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
-            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TExclusiveFeaturesBundle>()
-            );
-            expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                *expectedData.Objects.QuantizedFeaturesInfo,
-                expectedData.Objects.ExclusiveFeatureBundlesData
-            );
-            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
-                *expectedData.MetaInfo.FeaturesLayout,
-                TVector<TFeaturesGroup>()
-            );
-
-            expectedData.ObjectsGrouping = TObjectsGrouping(
-                TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
-            );
-
-            expectedData.Target.TargetType = ERawTargetType::Float;
-
-            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
-            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
-            expectedData.Target.Weights = TWeights<float>(6);
-            expectedData.Target.GroupWeights = TWeights<float>(6);
-
-            ignoredFeaturesTestCase.ExpectedData = std::move(expectedData);
-
-            testCases.push_back(std::move(ignoredFeaturesTestCase));
-        }
-
-        for (const auto& testCase : testCases) {
-            Test(testCase);
-        }
+    Y_UNIT_TEST(ReadDatasetSimple) {
+        TTestCase testCase;
+        NCB::TSrcData srcData;
+
+        srcData.DocumentCount = 5;
+        srcData.LocalIndexToColumnIndex = {0, 1, 2};
+        srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1};
+        srcData.PoolQuantizationSchema.Borders = {{0.1f, 0.2f, 0.3f}, {0.25f, 0.5f, 0.75f}};
+        srcData.PoolQuantizationSchema.NanModes = {ENanMode::Forbidden, ENanMode::Min};
+        srcData.FloatFeatures = {
+            TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}}},
+            TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {0, 3, 1}}}
+        };
+
+        srcData.Target = TSrcColumn<float>{EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}}};
+
+        testCase.SrcData = std::move(srcData);
+
+
+        TExpectedQuantizedData expectedData;
+
+        TDataColumnsMetaInfo dataColumnsMetaInfo;
+        dataColumnsMetaInfo.Columns = {
+            {EColumn::Num, ""},
+            {EColumn::Num, ""},
+            {EColumn::Label, ""}
+        };
+
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), Nothing());
+        expectedData.Objects.FloatFeatures = {
+            TVector<ui8>{1, 3, 0, 1, 2},
+            TVector<ui8>{2, 3, 0, 3, 1}
+        };
+        expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TConstArrayRef<ui32>(),
+            NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 3)
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(0), {0.1f, 0.2f, 0.3f});
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(1), {0.25f, 0.5f, 0.75f});
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
+        expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TExclusiveFeaturesBundle>()
+        );
+        expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            expectedData.Objects.ExclusiveFeatureBundlesData
+        );
+        expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TFeaturesGroup>()
+        );
+
+        expectedData.ObjectsGrouping = TObjectsGrouping(5);
+
+        expectedData.Target.TargetType = ERawTargetType::Float;
+
+        TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22"}};
+        expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+        expectedData.Target.SetTrivialWeights(5);
+
+        testCase.ExpectedData = std::move(expectedData);
+
+        Test(testCase);
+    }
+
+    Y_UNIT_TEST(ReadDatasetGroupData) {
+        TTestCase testCase;
+        NCB::TSrcData srcData;
+
+        srcData.DocumentCount = 6;
+        srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0, 6, 7};
+        srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
+        srcData.PoolQuantizationSchema.Borders = {
+            {0.1f, 0.2f, 0.3f, 0.4f},
+            {0.25f, 0.5f, 0.75f, 0.95f},
+            {0.2f, 0.5f, 0.55f, 0.82f},
+        };
+        srcData.PoolQuantizationSchema.NanModes = {
+            ENanMode::Forbidden,
+            ENanMode::Min,
+            ENanMode::Forbidden
+        };
+
+        srcData.ColumnNames = {
+            "GroupId",
+            "SubgroupId",
+            "f0",
+            "f1",
+            "f2",
+            "Target",
+            "Weight",
+            "GroupWeight"
+        };
+
+        srcData.GroupIds = TSrcColumn<TGroupId>{EColumn::GroupId, {{2, 2}, {0, 11, 11}, {11}}};
+        srcData.SubgroupIds = TSrcColumn<TSubgroupId>{EColumn::SubgroupId, {{1}, {22, 9, 12}, {22, 45}}};
+
+        srcData.FloatFeatures = {
+            TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
+            TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}},
+            TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}}
+        };
+
+        srcData.Target = TSrcColumn<float>{
+            EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
+        };
+
+        srcData.Weights = TSrcColumn<float>{
+            EColumn::Weight,
+            {{0.12f, 0.18f}, {1.0f, 0.45f, 1.0f}, {0.9f}}
+        };
+        srcData.GroupWeights = TSrcColumn<float>{
+            EColumn::GroupWeight,
+            {{1.0f, 1.0f}, {0.0f, 0.5f, 0.5f}, {0.5f}}
+        };
+        srcData.ObjectsOrder = EObjectsOrder::Ordered;
+
+        testCase.SrcData = std::move(srcData);
+
+
+        TExpectedQuantizedData expectedData;
+
+        TDataColumnsMetaInfo dataColumnsMetaInfo;
+        dataColumnsMetaInfo.Columns = {
+            {EColumn::Label, "Target"},
+            {EColumn::GroupId, "GroupId"},
+            {EColumn::SubgroupId, "SubgroupId"},
+            {EColumn::Num, "f0"},
+            {EColumn::Num, "f1"},
+            {EColumn::Num, "f2"},
+            {EColumn::Weight, "Weight"},
+            {EColumn::GroupWeight, "GroupWeight"}
+        };
+
+        TVector<TString> featureId = {"f0", "f1", "f2"};
+
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.Objects.Order = EObjectsOrder::Ordered;
+        expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
+        expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
+
+        expectedData.Objects.FloatFeatures = {
+            TVector<ui8>{1, 3, 0, 1, 2, 4},
+            TVector<ui8>{2, 3, 4, 3, 1, 0},
+            TVector<ui8>{0, 2, 3, 1, 4, 2}
+        };
+        expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TConstArrayRef<ui32>(),
+            NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(0),
+            {0.1f, 0.2f, 0.3f, 0.4f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(1),
+            {0.25f, 0.5f, 0.75f, 0.95f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(2),
+            {0.2f, 0.5f, 0.55f, 0.82f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+        expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TExclusiveFeaturesBundle>()
+        );
+        expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            expectedData.Objects.ExclusiveFeatureBundlesData
+        );
+        expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TFeaturesGroup>()
+        );
+
+        expectedData.ObjectsGrouping = TObjectsGrouping(
+            TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
+        );
+
+        expectedData.Target.TargetType = ERawTargetType::Float;
+
+        TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+        expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+        expectedData.Target.Weights = TWeights<float>(
+            TVector<float>{0.12f, 0.18f, 1.0f, 0.45f, 1.0f, 0.9f}
+        );
+        expectedData.Target.GroupWeights = TWeights<float>(
+            TVector<float>{1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f}
+        );
+
+        testCase.ExpectedData = std::move(expectedData);
+
+        Test(testCase);
+    }
+
+    Y_UNIT_TEST(ReadDatasetPairsOnly) {
+        TTestCase testCase;
+        NCB::TSrcData srcData;
+
+        srcData.DocumentCount = 6;
+        srcData.LocalIndexToColumnIndex = {0, 1, 2, 3, 4};
+        srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
+        srcData.PoolQuantizationSchema.Borders = {
+            {0.1f, 0.2f, 0.3f, 0.4f},
+            {0.25f, 0.5f, 0.75f, 0.95f},
+            {0.2f, 0.5f, 0.55f, 0.82f},
+        };
+        srcData.PoolQuantizationSchema.NanModes = {
+            ENanMode::Forbidden,
+            ENanMode::Min,
+            ENanMode::Forbidden
+        };
+
+        srcData.ColumnNames = {
+            "GroupId",
+            "SubgroupId",
+            "f0",
+            "f1",
+            "f2"
+        };
+
+        srcData.GroupIds = TSrcColumn<TGroupId>{EColumn::GroupId, {{2, 2}, {0, 11, 11}, {11}}};
+        srcData.SubgroupIds = TSrcColumn<TSubgroupId>{EColumn::SubgroupId, {{1}, {22, 9, 12}, {22, 45}}};
+
+        srcData.FloatFeatures = {
+            TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
+            TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}},
+            TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}}
+        };
+        srcData.PairsFileData = AsStringBuf(
+            "0\t1\t0.1\n"
+            "4\t3\t1.0\n"
+            "3\t5\t0.2"
+        );
+
+        testCase.SrcData = std::move(srcData);
+
+
+        TExpectedQuantizedData expectedData;
+
+        TDataColumnsMetaInfo dataColumnsMetaInfo;
+        dataColumnsMetaInfo.Columns = {
+            {EColumn::GroupId, "GroupId"},
+            {EColumn::SubgroupId, "SubgroupId"},
+            {EColumn::Num, "f0"},
+            {EColumn::Num, "f1"},
+            {EColumn::Num, "f2"}
+        };
+
+        TVector<TString> featureId = {"f0", "f1", "f2"};
+
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
+        expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
+
+        expectedData.Objects.FloatFeatures = {
+            TVector<ui8>{1, 3, 0, 1, 2, 4},
+            TVector<ui8>{2, 3, 4, 3, 1, 0},
+            TVector<ui8>{0, 2, 3, 1, 4, 2}
+        };
+        expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TConstArrayRef<ui32>(),
+            NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(0),
+            {0.1f, 0.2f, 0.3f, 0.4f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(1),
+            {0.25f, 0.5f, 0.75f, 0.95f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(2),
+            {0.2f, 0.5f, 0.55f, 0.82f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+        expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TExclusiveFeaturesBundle>()
+        );
+        expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            expectedData.Objects.ExclusiveFeatureBundlesData
+        );
+        expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TFeaturesGroup>()
+        );
+
+        expectedData.ObjectsGrouping = TObjectsGrouping(
+            TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
+        );
+
+        expectedData.Target.Weights = TWeights<float>(6);
+        expectedData.Target.GroupWeights = TWeights<float>(6);
+        expectedData.Target.Pairs = {TPair(0, 1, 0.1f), TPair(4, 3, 1.0f), TPair(3, 5, 0.2f)};
+
+        testCase.ExpectedData = std::move(expectedData);
+
+        Test(testCase);
+    }
+
+    Y_UNIT_TEST(ReadDatasetSeparateGroupWeights) {
+        TTestCase testCase;
+        NCB::TSrcData srcData;
+
+        srcData.DocumentCount = 6;
+        srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 0};
+        srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
+        srcData.PoolQuantizationSchema.Borders = {
+            {0.1f, 0.2f, 0.3f, 0.4f},
+            {0.25f, 0.5f, 0.75f, 0.95f},
+            {0.2f, 0.5f, 0.55f, 0.82f},
+        };
+        srcData.PoolQuantizationSchema.NanModes = {
+            ENanMode::Forbidden,
+            ENanMode::Min,
+            ENanMode::Forbidden
+        };
+
+        srcData.ColumnNames = {
+            "GroupId",
+            "f0",
+            "f1",
+            "f2",
+            "Target"
+        };
+
+        srcData.GroupIds = TSrcColumn<TGroupId>{
+            EColumn::GroupId,
+            {
+                {CalcGroupIdFor("query0"), CalcGroupIdFor("query0")},
+                {CalcGroupIdFor("query1"), CalcGroupIdFor("Query 2"), CalcGroupIdFor("Query 2")},
+                {CalcGroupIdFor("Query 2")}
+            }
+        };
+
+        srcData.FloatFeatures = {
+            TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
+            TSrcColumn<ui8>{EColumn::Num, {{2, 3}, {4, 3, 1}, {0}}},
+            TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}}
+        };
+
+        srcData.Target = TSrcColumn<float>{
+            EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
+        };
+        srcData.GroupWeightsFileData = AsStringBuf(
+            "query0\t1.0\n"
+            "query1\t0.0\n"
+            "Query 2\t0.5"
+        );
+
+        testCase.SrcData = std::move(srcData);
+
+
+        TExpectedQuantizedData expectedData;
+
+        TDataColumnsMetaInfo dataColumnsMetaInfo;
+        dataColumnsMetaInfo.Columns = {
+            {EColumn::Label, "Target"},
+            {EColumn::GroupId, "GroupId"},
+            {EColumn::Num, "f0"},
+            {EColumn::Num, "f1"},
+            {EColumn::Num, "f2"}
+        };
+
+        TVector<TString> featureId = {"f0", "f1", "f2"};
+
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, true, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.Objects.GroupIds = {
+            CalcGroupIdFor("query0"),
+            CalcGroupIdFor("query0"),
+            CalcGroupIdFor("query1"),
+            CalcGroupIdFor("Query 2"),
+            CalcGroupIdFor("Query 2"),
+            CalcGroupIdFor("Query 2")
+        };
+
+
+        expectedData.Objects.FloatFeatures = {
+            TVector<ui8>{1, 3, 0, 1, 2, 4},
+            TVector<ui8>{2, 3, 4, 3, 1, 0},
+            TVector<ui8>{0, 2, 3, 1, 4, 2}
+        };
+        expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TConstArrayRef<ui32>(),
+            NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(0), {0.1f, 0.2f, 0.3f, 0.4f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(1),
+            {0.25f, 0.5f, 0.75f, 0.95f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(2),
+            {0.2f, 0.5f, 0.55f, 0.82f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+        expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TExclusiveFeaturesBundle>()
+        );
+        expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            expectedData.Objects.ExclusiveFeatureBundlesData
+        );
+        expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TFeaturesGroup>()
+        );
+
+        expectedData.ObjectsGrouping = TObjectsGrouping(
+            TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
+        );
+
+
+        expectedData.Target.TargetType = ERawTargetType::Float;
+
+        TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+        expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+        expectedData.Target.Weights = TWeights<float>(6);
+        expectedData.Target.GroupWeights = TWeights<float>(
+            TVector<float>{1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f}
+        );
+
+        testCase.ExpectedData = std::move(expectedData);
+
+        Test(testCase);
+    }
+
+    Y_UNIT_TEST(ReadDatasetIgnoredFeatures) {
+        TTestCase testCase;
+        NCB::TSrcData srcData;
+
+        srcData.DocumentCount = 6;
+        srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0};
+        srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 2};
+        srcData.PoolQuantizationSchema.Borders = {
+            {0.1f, 0.2f, 0.3f, 0.4f},
+            {0.2f, 0.5f, 0.55f, 0.82f}
+        };
+        srcData.PoolQuantizationSchema.NanModes = {
+            ENanMode::Forbidden,
+            ENanMode::Forbidden
+        };
+
+        srcData.ColumnNames = {
+            "GroupId",
+            "f0",
+            "f1",
+            "f2",
+            "f3",
+            "Target"
+        };
+
+        srcData.GroupIds = TSrcColumn<TGroupId>{EColumn::GroupId, {{2, 2}, {0, 11, 11}, {11}}};
+
+        srcData.FloatFeatures = {
+            TSrcColumn<ui8>{EColumn::Num, {{1, 3}, {0, 1, 2}, {4}}},
+            Nothing(),
+            TSrcColumn<ui8>{EColumn::Num, {{0, 2, 3, 1}, {4}, {2}}},
+            Nothing()
+        };
+
+        srcData.Target = TSrcColumn<float>{
+            EColumn::Label, {{0.12f, 0.0f}, {0.45f, 0.1f, 0.22f}, {0.42f}}
+        };
+
+        srcData.IgnoredColumnIndices = {3, 5};
+
+        testCase.SrcData = std::move(srcData);
+
+
+        TExpectedQuantizedData expectedData;
+
+        TDataColumnsMetaInfo dataColumnsMetaInfo;
+        dataColumnsMetaInfo.Columns = {
+            {EColumn::Label, "Target"},
+            {EColumn::GroupId, "GroupId"},
+            {EColumn::Num, "f0"},
+            {EColumn::Num, "f1"},
+            {EColumn::Num, "f2"},
+            {EColumn::Num, "f3"}
+        };
+
+        TVector<TString> featureId = {"f0", "f1", "f2", "f3"};
+
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::Float, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        auto& featuresLayout = *expectedData.MetaInfo.FeaturesLayout;
+        featuresLayout.IgnoreExternalFeature(1);
+        featuresLayout.IgnoreExternalFeature(3);
+
+        expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
+
+        expectedData.Objects.FloatFeatures = {
+            TVector<ui8>{1, 3, 0, 1, 2, 4},
+            Nothing(),
+            TVector<ui8>{0, 2, 3, 1, 4, 2},
+            Nothing()
+        };
+        expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TConstArrayRef<ui32>(),
+            NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(0),
+            {0.1f, 0.2f, 0.3f, 0.4f}
+        );
+        expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
+            TFloatFeatureIdx(2),
+            {0.2f, 0.5f, 0.55f, 0.82f}
+        );
+
+
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
+        expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+        expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TExclusiveFeaturesBundle>()
+        );
+        expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            expectedData.Objects.ExclusiveFeatureBundlesData
+        );
+        expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TFeaturesGroup>()
+        );
+
+        expectedData.ObjectsGrouping = TObjectsGrouping(
+            TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
+        );
+
+        expectedData.Target.TargetType = ERawTargetType::Float;
+
+        TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+        expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+        expectedData.Target.Weights = TWeights<float>(6);
+        expectedData.Target.GroupWeights = TWeights<float>(6);
+
+        testCase.ExpectedData = std::move(expectedData);
+
+        Test(testCase);
     }
 
 
