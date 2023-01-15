@@ -2862,7 +2862,6 @@ migrations:
     - intranet/dogma/mon
     - intranet/trip/tests
     - intranet/trip/tests/api
-    - kikimr/ci/tests/sqs
     - mail/mops/tests
     - mail/sharpei/tests/integration
     - mail/sharpei/tests/integration/steps
