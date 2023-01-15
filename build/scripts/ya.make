@@ -21,6 +21,7 @@ TEST_SRCS(
     configure_file.py
     copy_to_dir.py
     coverage-info.py
+    cpp_flatc_wrapper.py
     create_jcoverage_report.py
     extract_asrc.py
     extract_jacoco_report.py
