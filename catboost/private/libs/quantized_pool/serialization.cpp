@@ -941,8 +941,6 @@ namespace NCB {
 
         srcData.PoolQuantizationSchema.ClassLabels = dataProvider->MetaInfo.ClassLabels;
 
-        TVector<size_t>& featureIndices = srcData.PoolQuantizationSchema.FeatureIndices;
-
         for (auto externalFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
             const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(externalFeatureIdx);
 
@@ -959,7 +957,7 @@ namespace NCB {
                     : ENanMode::Forbidden;
                 srcData.PoolQuantizationSchema.Borders.push_back(std::move(featureBorders));
                 srcData.PoolQuantizationSchema.NanModes.push_back(featureNanMode);
-                featureIndices.push_back(featureIndices.size());
+                srcData.PoolQuantizationSchema.FloatFeatureIndices.push_back(externalFeatureIdx);
 
                 //for floatFeatures
                 TMaybeData<const IQuantizedFloatValuesHolder*> feature =

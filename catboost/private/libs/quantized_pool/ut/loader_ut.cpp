@@ -115,7 +115,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             srcData.DocumentCount = 5;
             srcData.LocalIndexToColumnIndex = {0, 1, 2};
-            srcData.PoolQuantizationSchema.FeatureIndices = {0, 1};
+            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1};
             srcData.PoolQuantizationSchema.Borders = {{0.1f, 0.2f, 0.3f}, {0.25f, 0.5f, 0.75f}};
             srcData.PoolQuantizationSchema.NanModes = {ENanMode::Forbidden, ENanMode::Min};
             srcData.FloatFeatures = {
@@ -184,7 +184,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0, 6, 7};
-            srcData.PoolQuantizationSchema.FeatureIndices = {0, 1, 2};
+            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
             srcData.PoolQuantizationSchema.Borders = {
                 {0.1f, 0.2f, 0.3f, 0.4f},
                 {0.25f, 0.5f, 0.75f, 0.95f},
@@ -319,7 +319,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {0, 1, 2, 3, 4};
-            srcData.PoolQuantizationSchema.FeatureIndices = {0, 1, 2};
+            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
             srcData.PoolQuantizationSchema.Borders = {
                 {0.1f, 0.2f, 0.3f, 0.4f},
                 {0.25f, 0.5f, 0.75f, 0.95f},
@@ -432,7 +432,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 0};
-            srcData.PoolQuantizationSchema.FeatureIndices = {0, 1, 2};
+            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 1, 2};
             srcData.PoolQuantizationSchema.Borders = {
                 {0.1f, 0.2f, 0.3f, 0.4f},
                 {0.25f, 0.5f, 0.75f, 0.95f},
@@ -566,7 +566,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0};
-            srcData.PoolQuantizationSchema.FeatureIndices = {0, 2};
+            srcData.PoolQuantizationSchema.FloatFeatureIndices = {0, 2};
             srcData.PoolQuantizationSchema.Borders = {
                 {0.1f, 0.2f, 0.3f, 0.4f},
                 {0.2f, 0.5f, 0.55f, 0.82f}
@@ -709,7 +709,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         srcData.LocalIndexToColumnIndex = {1};
         for (auto featureIdx : xrange(featureCount)) {
             srcData.LocalIndexToColumnIndex.push_back(featureIdx + 2);
-            srcData.PoolQuantizationSchema.FeatureIndices.push_back(featureIdx);
+            srcData.PoolQuantizationSchema.FloatFeatureIndices.push_back(featureIdx);
         }
         srcData.LocalIndexToColumnIndex.push_back(0);
 

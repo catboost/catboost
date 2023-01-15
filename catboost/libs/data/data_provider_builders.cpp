@@ -1399,7 +1399,7 @@ namespace NCB {
         ) override {
             CB_ENSURE(!InProcess, "Attempt to start new processing without finishing the last");
 
-            CB_ENSURE(!poolQuantizationSchema.FeatureIndices.empty(), "No features in quantized pool!");
+            CB_ENSURE(poolQuantizationSchema.HasAvailableFeatures(), "No features in quantized pool!");
 
             TConstArrayRef<NJson::TJsonValue> schemaClassLabels = poolQuantizationSchema.ClassLabels;
 
@@ -1828,8 +1828,8 @@ namespace NCB {
         ) {
             const auto& featuresLayout = *info->GetFeaturesLayout();
             const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
-            for (size_t i = 0, iEnd = schema.FeatureIndices.size(); i < iEnd; ++i) {
-                const auto flatFeatureIdx = schema.FeatureIndices[i];
+            for (size_t i = 0, iEnd = schema.FloatFeatureIndices.size(); i < iEnd; ++i) {
+                const auto flatFeatureIdx = schema.FloatFeatureIndices[i];
                 const auto nanMode = schema.NanModes[i];
                 const auto& metaInfo = metaInfos[flatFeatureIdx];
                 CB_ENSURE(
