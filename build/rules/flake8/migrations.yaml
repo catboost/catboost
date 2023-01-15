@@ -138,7 +138,6 @@ migrations:
       - datalens/backend/bi-materializer
       - datalens/backend/bi-uploads
       - datalens/backend/dls
-      - devtools
       - dict/mt/analytics/make/tools/toloka/simple_toloka
       - dict/mt/make/libs/types
       - dict/mt/make/modules/bleu/tests
