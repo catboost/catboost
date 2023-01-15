@@ -111,6 +111,8 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\order.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\order.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\pairs.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\pairs_data_loaders.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\proceed_pool_in_blocks.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.cpp"/>
@@ -284,6 +286,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\objects.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\pairs.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\pairs_data_loaders.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\proceed_pool_in_blocks.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.h"/>

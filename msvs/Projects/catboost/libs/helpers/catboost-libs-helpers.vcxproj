@@ -90,6 +90,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\double_array_iterator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dynamic_iterator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\element_range.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\equal.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\exception.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\guid.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\hash.cpp"/>
@@ -98,7 +99,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\maybe_data.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\maybe.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\maybe_owning_array_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\parallel_tasks.cpp"/>
@@ -187,6 +188,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\double_array_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dynamic_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\element_range.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\equal.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\exception.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\guid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\hash.h"/>
@@ -195,7 +197,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\maybe_data.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\maybe.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\maybe_owning_array_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\parallel_tasks.h"/>
