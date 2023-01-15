@@ -32,25 +32,6 @@ trait CatBoostPredictorTrait[
 {
   this: params.TrainingParamsTrait =>
 
-  private def saveDatasetsForMaster(
-    quantizedTrainPool: Pool,
-    quantizedEvalPools: Array[Pool],
-    threadCount: Int
-  ) : (Path, Array[Path]) = {
-    val trainPoolAsFile = DataHelpers.downloadQuantizedPoolToTempFile(
-      quantizedTrainPool,
-      includeFeatures=false,
-      threadCount
-    )
-    val evalPoolsAsFiles = quantizedEvalPools.map {
-      evalPool => DataHelpers.downloadQuantizedPoolToTempFile(
-        evalPool,
-        includeFeatures=true,
-        threadCount
-      )
-    }.toArray
-    (trainPoolAsFile, evalPoolsAsFiles)
-  }
 
   // override in descendants if necessary
   protected def preprocessBeforeTraining(
