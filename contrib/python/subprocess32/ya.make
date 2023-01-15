@@ -1,4 +1,4 @@
-PY_LIBRARY() # Backport from Python 3.
+PY2_LIBRARY() # Backport from Python 3.
 
 LICENSE(PSF-2.0)
 

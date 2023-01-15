@@ -1,4 +1,4 @@
-PY_LIBRARY()
+PY2_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
