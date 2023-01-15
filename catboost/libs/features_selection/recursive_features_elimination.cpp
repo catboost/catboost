@@ -311,13 +311,16 @@ namespace NCB {
 
     TFeaturesSelectionSummary DoRecursiveFeaturesElimination(
         const TCatBoostOptions& catBoostOptions,
-        const TOutputFilesOptions& outputFileOptions,
+        const TOutputFilesOptions& initialOutputFileOptions,
         const TFeaturesSelectOptions& featuresSelectOptions,
         const NCB::TDataProviders& pools,
         const TLabelConverter& labelConverter,
         TTrainingDataProviders trainingData,
         NPar::ILocalExecutor* executor
     ) {
+        auto outputFileOptions = initialOutputFileOptions;
+        outputFileOptions.ResultModelPath.Reset();
+
         TVector<ui32> numFeaturesToEliminateBySteps = CalcNumFeaturesToEliminateBySteps(featuresSelectOptions);
 
         THashSet<ui32> featuresForSelectSet(
@@ -460,7 +463,7 @@ namespace NCB {
             CATBOOST_INFO_LOG << "Save final model" << Endl;
             ExportFullModel(
                 finalModel,
-                "model.bin",
+                initialOutputFileOptions.GetResultModelFilename(),
                 dynamic_cast<const TObjectsDataProvider*>(trainingData.Learn->ObjectsData.Get()),
                 outputFileOptions.GetModelFormats()
             );
