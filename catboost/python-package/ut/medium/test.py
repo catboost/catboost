@@ -7344,6 +7344,10 @@ def test_save_quantized_pool():
         'iterations': 5,
         'depth': 4,
     }
+    columns_metadata = read_cd(QUERYWISE_CD_FILE, data_file=QUERYWISE_TRAIN_FILE, canonize_column_types=True)
+    feature_names = get_only_features_names(columns_metadata)
+
+    train_quantized_pool.set_feature_names(feature_names)
     train_quantized_pool.quantize()
 
     assert(train_quantized_pool.is_quantized())
@@ -7361,6 +7365,8 @@ def test_save_quantized_pool():
     model_fitted_with_load_quantized_pool.fit(train_quantized_load_pool)
     predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
 
+    loaded_feature_names = train_quantized_load_pool.get_feature_names()
+    assert feature_names == loaded_feature_names
     assert all(predictions1 == predictions2)
 
 
