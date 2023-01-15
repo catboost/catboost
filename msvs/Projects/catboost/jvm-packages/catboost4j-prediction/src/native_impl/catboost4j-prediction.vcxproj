@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{E4F2A889-133D-9E4F-6DAD-8897A1E9F474}</ProjectGUID>
+    <ProjectGUID>{1ED2DCD1-3769-9401-E4FF-0C54F35EC1A6}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>catboost4j-prediction</ProjectName>
@@ -35,8 +35,8 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <TargetName>catboost4j-prediction</TargetName>
     <TargetExtention>.dll</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\catboost\jvm-packages\catboost4j-prediction\src\native\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E4F2A889-133D-9E4F-6DAD-8897A1E9F474\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\catboost\jvm-packages\catboost4j-prediction\src\native_impl\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\1ED2DCD1-3769-9401-E4FF-0C54F35EC1A6\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNIImpl.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNIImpl.h"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native_impl\ai_catboost_CatBoostJNIImpl.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native_impl\ai_catboost_CatBoostJNIImpl.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
