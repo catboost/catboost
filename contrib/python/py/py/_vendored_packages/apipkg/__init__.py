@@ -1,7 +1,7 @@
 """
-apipkg: control the exported namespace of a python package.
+apipkg: control the exported namespace of a Python package.
 
-see http://pypi.python.org/pypi/apipkg
+see https://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
@@ -9,8 +9,7 @@ import os
 import sys
 from types import ModuleType
 
-
-__version__ = '1.4'
+from .version import version as __version__
 
 
 def _py_abspath(path):
@@ -37,8 +36,9 @@ def distribution_version(name):
         return dist.version
 
 
-def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
+def initpkg(pkgname, exportdefs, attr=None, eager=False):
     """ initialize given package from the export definitions. """
+    attr = attr or {}
     oldmod = sys.modules.get(pkgname)
     d = {}
     f = getattr(oldmod, '__file__', None)
@@ -51,6 +51,8 @@ def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
         d['__path__'] = [_py_abspath(p) for p in oldmod.__path__]
+    if hasattr(oldmod, '__package__'):
+        d['__package__'] = oldmod.__package__
     if '__doc__' not in exportdefs and getattr(oldmod, '__doc__', None):
         d['__doc__'] = oldmod.__doc__
     d.update(attr)
@@ -60,12 +62,13 @@ def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
     sys.modules[pkgname] = mod
     # eagerload in bypthon to avoid their monkeypatching breaking packages
     if 'bpython' in sys.modules or eager:
-        for module in sys.modules.values():
+        for module in list(sys.modules.values()):
             if isinstance(module, ApiModule):
                 module.__dict__
 
 
 def importobj(modpath, attrname):
+    """imports a module, then resolves the attrname on it"""
     module = __import__(modpath, None, None, ['__doc__'])
     if not attrname:
         return module
@@ -78,6 +81,7 @@ def importobj(modpath, attrname):
 
 
 class ApiModule(ModuleType):
+    """the magical lazy-loading module standing"""
     def __docget(self):
         try:
             return self.__doc
@@ -121,13 +125,13 @@ class ApiModule(ModuleType):
                     self.__map__[name] = (modpath, attrname)
 
     def __repr__(self):
-        l = []
+        repr_list = []
         if hasattr(self, '__version__'):
-            l.append("version=" + repr(self.__version__))
+            repr_list.append("version=" + repr(self.__version__))
         if hasattr(self, '__file__'):
-            l.append('from ' + repr(self.__file__))
-        if l:
-            return '<ApiModule %r %s>' % (self.__name__, " ".join(l))
+            repr_list.append('from ' + repr(self.__file__))
+        if repr_list:
+            return '<ApiModule %r %s>' % (self.__name__, " ".join(repr_list))
         return '<ApiModule %r>' % (self.__name__,)
 
     def __makeattr(self, name):
