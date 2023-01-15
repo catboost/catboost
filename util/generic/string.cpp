@@ -106,7 +106,7 @@ TBasicString<wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TStringBuf& s) {
     size_t pos = UTF8ToWideImpl(s.data(), s.size(), begin() + oldSize, written);
     if (pos != s.size())
         ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.data(), s.size());
-    remove(oldSize + written);
+    resize(oldSize + written);
 
     return *this;
 }
@@ -149,7 +149,7 @@ TBasicString<char, TCharTraits<char>>::AppendUtf16(const ::TWtringBuf& s) {
     size_t written = 0;
     WideToUTF8(s.data(), s.size(), begin() + oldSize, written);
 
-    remove(oldSize + written);
+    resize(oldSize + written);
 
     return *this;
 }
@@ -163,7 +163,7 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TStringBuf& s) {
     size_t pos = UTF8ToWideImpl(s.data(), s.size(), begin() + oldSize, written);
     if (pos != s.size())
         ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.data(), s.size());
-    remove(oldSize + written);
+    resize(oldSize + written);
 
     return *this;
 }
@@ -179,7 +179,7 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TWtringBuf& s) 
     NDetail::UTF16ToUTF32ImplScalar(s.data(), s.data() + s.size(), end);
     size_t written = end - oldEnd;
 
-    remove(oldSize + written);
+    resize(oldSize + written);
 
     return *this;
 }
