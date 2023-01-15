@@ -133,7 +133,7 @@ ALLOW .* -> vendor/github.com/docker/go-connections
 ALLOW .* -> vendor/github.com/fsnotify/fsnotify
 
 # lightweight, idiomatic and composable router
-ALLOW .* -> vendor/github.com/go-chi/chi
+ALLOW .* -> vendor/github.com/go-chi/chi/v5
 
 # a pure Go MySQL driver
 ALLOW .* -> vendor/github.com/go-sql-driver/mysql
@@ -778,6 +778,10 @@ ALLOW yabs/telephony/platform/common/lifecycle -> vendor/github.com/jackc/pgx
 ALLOW yabs/telephony/platform/registrar-agent -> vendor/github.com/jackc/pgx
 ALLOW yabs/vh/cms-pgaas/dhdd/db -> vendor/github.com/jackc/pgx
 ALLOW yabs/vh/cms-pgaas/transcoded -> vendor/github.com/jackc/pgx
+
+
+# IGNIETFERRO-1848
+ALLOW strm -> vendor/github.com/go-chi/chi
 
 #
 # Permanent exceptions.
