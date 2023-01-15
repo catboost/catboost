@@ -224,6 +224,9 @@ ALLOW .* -> vendor/github.com/go-zookeeper/zk
 # Consistent hashring implementation (using the same algorithm as libketama)
 ALLOW .* -> vendor/github.com/serialx/hashring
 
+# Slack API in Go
+ALLOW .* -> vendor/github.com/slack-go/slack
+
 # Text diffing.
 ALLOW .* -> vendor/github.com/pmezard/go-difflib
 
