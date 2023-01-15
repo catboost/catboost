@@ -1413,9 +1413,26 @@ class GnuCompiler(Compiler):
             }''')
 
         c_builtins = [
-            "-Wno-builtin-macro-redefined", '-D__DATE__=\\""Sep 31 2019\\""', '-D__TIME__=\\"00:00:00\\"',
-            '-D__FILE__=\\""${qe;rootrel:SRC}\\""',
+            "-Wno-builtin-macro-redefined",
+            '-D__DATE__=\\""Sep 31 2019\\""',
+            '-D__TIME__=\\"00:00:00\\"',
         ]
+        compiler_supports_macro_prefix_map = (
+            self.tc.is_clang and self.tc.version_at_least(10) or
+            self.tc.is_gcc and self.tc.version_at_least(8)
+        )
+        if compiler_supports_macro_prefix_map:
+            c_builtins += [
+                # XXX does not support non-normalized paths
+                "-fmacro-prefix-map=${ARCADIA_BUILD_ROOT}/=",
+                "-fmacro-prefix-map=${ARCADIA_ROOT}/=",
+                "-fmacro-prefix-map=$(TOOL_ROOT)/=",
+            ]
+        else:
+            c_builtins += [
+                # XXX this macro substitution breaks __FILE__ in included sources
+                '-D__FILE__=\\""${qe;rootrel:SRC}\\""',
+            ]
         c_debug_map = [
             # XXX does not support non-normalized paths
             "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
