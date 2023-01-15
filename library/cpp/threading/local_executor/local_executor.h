@@ -179,7 +179,7 @@ namespace NPar {
 
         template <typename TBody>
         inline void ExecRange(TBody&& body, TExecRangeParams params, int flags) {
-            if (params.LastId == params.FirstId) {
+            if (TryExecRangeSequentially(body, params.FirstId, params.LastId, flags)) {
                 return;
             }
             if (params.GetBlockEqualToThreads()) {
@@ -219,6 +219,18 @@ namespace NPar {
     private:
         class TImpl;
         THolder<TImpl> Impl_;
+
+        template <typename TBody>
+        static inline bool TryExecRangeSequentially(TBody&& body, int firstId, int lastId, int flags) {
+            if (lastId == firstId) {
+                return true;
+            }
+            if ((flags & WAIT_COMPLETE) && lastId - firstId == 1) {
+                body(firstId);
+                return true;
+            }
+            return false;
+        }
     };
 
     static inline TLocalExecutor& LocalExecutor() {

@@ -6,6 +6,15 @@ namespace NMemInfo {
     struct TMemInfo;
 }
 
+class ILoggerFormatter {
+public:
+    virtual ~ILoggerFormatter() = default;
+
+    virtual void Format(const TLogRecordContext&, TLogElement&) const = 0;
+};
+
+ILoggerFormatter* CreateRtyLoggerFormatter();
+
 namespace NLoggingImpl {
     class TLocalTimeS {
     public:
@@ -33,7 +42,16 @@ namespace NLoggingImpl {
 
     TString GetSystemResources();
     TString PrintSystemResources(const NMemInfo::TMemInfo& info);
+
+    struct TLoggerFormatterTraits {
+        static ILoggerFormatter* CreateDefault() {
+            return CreateRtyLoggerFormatter();
+        }
+    };
 }
+
+class TLoggerFormatterOperator : public NLoggingImpl::TOperatorBase<ILoggerFormatter, NLoggingImpl::TLoggerFormatterTraits> {
+};
 
 struct TRTYMessageFormater {
     static bool CheckLoggingContext(TLog& logger, const TLogRecordContext& context);

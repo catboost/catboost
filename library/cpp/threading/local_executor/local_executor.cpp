@@ -84,8 +84,8 @@ namespace {
 
     class TLocalRangeExecutor: public NPar::ILocallyExecutable {
         TIntrusivePtr<NPar::ILocallyExecutable> Exec;
-        TAtomic Counter;
-        TAtomic WorkerCount;
+        alignas(64) TAtomic Counter;
+        alignas(64) TAtomic WorkerCount;
         int LastId;
 
         void LocalExec(int) override {
@@ -106,7 +106,7 @@ namespace {
         {
         }
         bool DoSingleOp() {
-            TAtomic id = AtomicAdd(Counter, 1) - 1;
+            const int id = AtomicAdd(Counter, 1) - 1;
             if (id >= LastId)
                 return false;
             Exec->LocalExec(id);
@@ -130,10 +130,10 @@ public:
     TLockFreeQueue<TSingleJob> JobQueue;
     TLockFreeQueue<TSingleJob> MedJobQueue;
     TLockFreeQueue<TSingleJob> LowJobQueue;
-    TSystemEvent HasJob;
+    alignas(64) TSystemEvent HasJob;
 
     TAtomic ThreadCount{0};
-    TAtomic QueueSize{0};
+    alignas(64) TAtomic QueueSize{0};
     TAtomic MPQueueSize{0};
     TAtomic LPQueueSize{0};
     TAtomic ThreadId{0};
@@ -231,9 +231,7 @@ void NPar::TLocalExecutor::TImpl::LaunchRange(TIntrusivePtr<TLocalRangeExecutor>
         return;
     }
     AtomicAdd(*queueSize, count);
-    for (int i = 0; i < count; ++i) {
-        jobQueue->Enqueue(TSingleJob(rangeExec, 0));
-    }
+    jobQueue->EnqueueAll(TVector<TSingleJob>{size_t(count), TSingleJob(rangeExec, 0)});
     HasJob.Signal();
 }
 
@@ -277,11 +275,7 @@ void NPar::TLocalExecutor::Exec(TLocallyExecutableFunction exec, int id, int fla
 
 void NPar::TLocalExecutor::ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId, int flags) {
     Y_ASSERT(lastId >= firstId);
-    if (firstId >= lastId) {
-        return;
-    }
-    if ((flags & WAIT_COMPLETE) && (lastId - firstId) == 1) {
-        exec->LocalExec(firstId);
+    if (TryExecRangeSequentially([=] (int id) { exec->LocalExec(id); }, firstId, lastId, flags)) {
         return;
     }
     auto rangeExec = MakeIntrusive<TLocalRangeExecutor>(std::move(exec), firstId, lastId);
@@ -312,11 +306,17 @@ void NPar::TLocalExecutor::ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int
 }
 
 void NPar::TLocalExecutor::ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
+    if (TryExecRangeSequentially(exec, firstId, lastId, flags)) {
+        return;
+    }
     ExecRange(new TFunctionWrapper(exec), firstId, lastId, flags);
 }
 
 void NPar::TLocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
     Y_VERIFY((flags & WAIT_COMPLETE) != 0, "ExecRangeWithThrow() requires WAIT_COMPLETE to wait if exceptions arise.");
+    if (TryExecRangeSequentially(exec, firstId, lastId, flags)) {
+        return;
+    }
     TVector<NThreading::TFuture<void>> currentRun = ExecRangeWithFutures(exec, firstId, lastId, flags);
     for (auto& result : currentRun) {
         result.GetValueSync(); // Exception will be rethrown if exists. If several exception - only the one with minimal id is rethrown.
