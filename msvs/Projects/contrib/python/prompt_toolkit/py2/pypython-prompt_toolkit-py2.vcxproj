@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_93328f5a5dc47d5e33c7fdb3b7.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_3144c43c73172d01662e5f85aa.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,9 +101,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_93328f5a5dc47d5e33c7fdb3b7.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_93328f5a5dc47d5e33c7fdb3b7.py2.obj;</Outputs>
+      <Message>$B/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_3144c43c73172d01662e5f85aa.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_3144c43c73172d01662e5f85aa.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\prompt_toolkit\contrib\regular_languages\compiler.py.fkk7.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -271,7 +271,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.yasm" "-" "prompt_toolkit.clipboard.pyperclip prompt_toolkit.eventloop.asyncio_posix prompt_toolkit.eventloop.asyncio_win32 prompt_toolkit.eventloop.win32 prompt_toolkit.terminal.conemu_output prompt_toolkit.win32_types prompt_toolkit.terminal.win32_input prompt_toolkit.terminal.win32_output prompt_toolkit.input.win32 prompt_toolkit.input.win32_pipe prompt_toolkit.output.conemu prompt_toolkit.output.win32 prompt_toolkit.output.windows10" "_9afee2127d4244a9d3f7952cc3.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.yasm" "-" "prompt_toolkit.clipboard.pyperclip prompt_toolkit.eventloop.asyncio_posix prompt_toolkit.eventloop.asyncio_win32 prompt_toolkit.eventloop.posix prompt_toolkit.eventloop.win32 prompt_toolkit.terminal.conemu_output prompt_toolkit.win32_types prompt_toolkit.terminal.vt100_input prompt_toolkit.terminal.vt100_output prompt_toolkit.terminal.win32_input prompt_toolkit.terminal.win32_output prompt_toolkit.input.win32 prompt_toolkit.input.win32_pipe prompt_toolkit.output.conemu prompt_toolkit.output.win32 prompt_toolkit.output.windows10 prompt_toolkit.contrib.telnet.*" "_b5b61fd1d1cffd9b05d403ca93.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -282,7 +282,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.yasm" "-" "prompt_toolkit.clipboard.pyperclip prompt_toolkit.eventloop.asyncio_posix prompt_toolkit.eventloop.asyncio_win32 prompt_toolkit.eventloop.win32 prompt_toolkit.terminal.conemu_output prompt_toolkit.win32_types prompt_toolkit.terminal.win32_input prompt_toolkit.terminal.win32_output prompt_toolkit.input.win32 prompt_toolkit.input.win32_pipe prompt_toolkit.output.conemu prompt_toolkit.output.win32 prompt_toolkit.output.windows10" "_9afee2127d4244a9d3f7952cc3.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.yasm" "-" "prompt_toolkit.clipboard.pyperclip prompt_toolkit.eventloop.asyncio_posix prompt_toolkit.eventloop.asyncio_win32 prompt_toolkit.eventloop.posix prompt_toolkit.eventloop.win32 prompt_toolkit.terminal.conemu_output prompt_toolkit.win32_types prompt_toolkit.terminal.vt100_input prompt_toolkit.terminal.vt100_output prompt_toolkit.terminal.win32_input prompt_toolkit.terminal.win32_output prompt_toolkit.input.win32 prompt_toolkit.input.win32_pipe prompt_toolkit.output.conemu prompt_toolkit.output.win32 prompt_toolkit.output.windows10 prompt_toolkit.contrib.telnet.*" "_b5b61fd1d1cffd9b05d403ca93.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -290,9 +290,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/prompt_toolkit/py2/_93328f5a5dc47d5e33c7fdb3b7.yasm	</Message>
+      <Message>$B/contrib/python/prompt_toolkit/py2/_3144c43c73172d01662e5f85aa.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_93328f5a5dc47d5e33c7fdb3b7.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt_toolkit\py2\_3144c43c73172d01662e5f85aa.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
