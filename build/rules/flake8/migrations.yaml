@@ -83,9 +83,6 @@ migrations:
     - ads/watchman/contrib/apispec-patched/apispec
     - ads/watchman/experiments/lib
     - ads/watchman/funnel/lib
-    - ads/yacontext/apps/hits_coverage
-    - ads/yacontext/apps/hits_coverage/daemons
-    - ads/yacontext/lib/zoracl/gen_http_status_codes
     - advq/offline_phits/monitoring
     - alice/acceptance/modules/request_generator/lib
     - alice/bass/tests
@@ -174,7 +171,6 @@ migrations:
     - crypta/dmp/common/upload_to_audience
     - crypta/graph/fuzzy/lib
     - crypta/graph/fuzzy/lib/tasks/sources/emails
-    - crypta/graph/toloka/lib
     - crypta/graph/v1/python
     - crypta/graph/v1/python/data_imports/import_logs
     - crypta/graph/v1/python/utils
@@ -780,13 +776,8 @@ migrations:
     - quality/ab_testing/cofe/tests/bin/lib/projects
     - quality/ab_testing/scripts/kati
     - quality/ab_testing/scripts/kati/lib
-    - quality/antifraud/py_libs/solomon
-    - quality/antifraud/scripts/prod/clean_sessions_metrics
     - quality/antifraud/scripts/prod/suggest_metrics
     - quality/antifraud/scripts/prod/traffic_chains
-    - quality/antifraud/xurma/tools/make_table_sample
-    - quality/antifraud/xurma/tools/send_metrics/lib
-    - quality/antifraud/xurma/tools/xurma_viewer/backend/lib
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/settings
     - quality/functionality/chats/floyd/src/floyd/core
@@ -1161,7 +1152,6 @@ migrations:
     - travel/avia/travelers/application
     - travel/avia/travelers/application/validations/bonus_card_types
     - travel/avia/travelers/application/validations/document_types
-    - travel/hotels/devops/slack_forwarder
     - travel/rasp/api_public
     - travel/rasp/api_public/api_public/old_versions/core
     - travel/rasp/api_public/api_public/v3/core
@@ -1442,8 +1432,6 @@ migrations:
     - ads/sandbox_scripts/cpa_autobudget/lib
     - ads/sandbox_scripts/ggmonitor
     - ads/tools/mr_select/lib
-    - ads/yacontext/lib/dssm/inference/lib/model_test/python
-    - ads/yacontext/tasks/CONTEXT-0663/yt_shuffle
     - alice/analytics/wer/g2p
     - alice/hollywood/library/python/hollywood_recipe
     - alice/hollywood/tests/perf_test
@@ -1826,8 +1814,6 @@ migrations:
     - quality/ab_testing/scripts/ems/modules/metric/backends
     - quality/ab_testing/scripts/ems/modules/metric/controllers
     - quality/ab_testing/scripts/ems/modules/metrics/base/controllers
-    - quality/antifraud/py_libs/yt_helpers/tests
-    - quality/antifraud/xurma/test/functional/test_relations
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
@@ -1861,7 +1847,6 @@ migrations:
     - quality/trailer/suggest/toloka_processor/report_yt
     - quality/webfresh/metrics/serpsets/raw_serpset_patcher/tests
     - quasar/manufacturing/jangles
-    - quasar/quasmodrom/quasmodrom
     - rnd_toolbox/deckard
     - rnd_toolbox/nyamm
     - robot/library/yuppie
@@ -1968,8 +1953,6 @@ migrations:
     - statbox/statkey/jam/jobs/cubes/superapp/feeds/v1
     - strm/generate/lib/generate
     - strm/pinger/lib
-    - strm/pinger/lib/common
-    - strm/pinger/lib/hex/data
     - strm/pult/backend/lib
     - strm/pult/backend/lib/cache
     - taxi/graph/packages/mds-downloader
@@ -2431,7 +2414,6 @@ migrations:
     - infra/kernel/test/misc
     - infra/kernel/test/recipe/cgleak_check/example
     - infra/portoshell/tests
-    - infra/rtc_sla_tentacles/backend/lib/config/tests
     - infra/yasm/zoom/python/tests
     - infra/yp_dns_api/tests
     - infra/yp_eviction_alerter/bin
@@ -2772,8 +2754,6 @@ migrations:
     - travel/avia/shared_flights/lib/python/tests/date_utils
     - travel/avia/shared_flights/tasks/sirena_parser
     - travel/cpa/collectors/avia/nabortu
-    - travel/hotels/devops/slack_forwarder
-    - travel/hotels/tools/city_pages_builder/renderer/renderer
     - travel/library/python/sender
     - travel/rasp/morda_backend/tests
     - vcs/svn/migrations
@@ -3145,18 +3125,7 @@ migrations:
     - search/mon/workplace/src/libs
     - search/mon/workplace/src/libs/report
     - search/scraper/parser_platform/parsers
-    - strm/pinger/lib
-    - strm/pinger/lib/settings
-    - travel/devops/solomon
-    - travel/hotels/content_manager/lib
-    - travel/hotels/content_manager/stages/yang_rooms
-    - travel/hotels/content_manager/tools/update_storage
-    - travel/hotels/devops/sandbox_planner
-    - travel/hotels/devops/slack_forwarder
     - travel/hotels/tools/city_pages_builder/renderer/renderer
-    - travel/hotels/tools/portal_permaroom_logs_builder
-    - travel/hotels/tools/portal_polling_logs_builder
-    - travel/hotels/tools/room_photos_uploader
     - voicetech/asr/experiments/VOICE-6097-mt-g2p/get_transcription_from_align
     - voicetech/asr/markup/append_alignment_info
     - voicetech/asr/server/stress/bin/asr-stress-generator
@@ -3462,7 +3431,6 @@ migrations:
     - mssngr/tools/tests
     - music/tools/haproxy_configurator
     - music/tools/haproxy_configurator/lib/Haproxy
-    - noc/checkist/bin/chkctl
     - ofd/api/tests/functional/test_check_receipt
     - quality/ab_testing/cofe/projects/alice
     - quality/ab_testing/cofe/projects/eda_ab
