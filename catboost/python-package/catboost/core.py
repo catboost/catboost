@@ -1518,7 +1518,10 @@ class _CatBoostBase(object):
         return self._object._get_scale_and_bias()
 
     def set_scale_and_bias(self, scale, bias):
-        self._object._set_scale_and_bias(scale, bias)
+        if isinstance(bias, FLOAT_TYPES):
+            self._object._set_scale_and_bias(scale, [bias])
+        else:
+            self._object._set_scale_and_bias(scale, bias)
 
 
 def _cast_value_to_list_of_strings(params, key):

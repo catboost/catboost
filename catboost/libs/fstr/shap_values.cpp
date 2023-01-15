@@ -1028,7 +1028,8 @@ void CalcShapValuesForDocumentMulti(
             }
         }
     }
-    const double bias = model.GetScaleAndBias().Bias;
+    const double bias = model.GetScaleAndBias().GetOneDimensionalBiasOrZero(
+        "Non single-dimension approxes are not supported");
     if (isIndependent) {
         Y_ASSERT(independentTreeShapParams);
         PostProcessingIndependent(

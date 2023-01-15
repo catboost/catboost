@@ -33,7 +33,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
 
     Y_UNIT_TEST(TestSerializeDeserializeFullModelWithScaleAndBias) {
         TFullModel trainedModel = TrainFloatCatboostModel();
-        trainedModel.SetScaleAndBias({0.5, 0.125});
+        trainedModel.SetScaleAndBias({0.5, {0.125}});
         DoSerializeDeserialize(trainedModel);
         trainedModel.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         DoSerializeDeserialize(trainedModel);

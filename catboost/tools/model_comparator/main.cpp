@@ -203,10 +203,13 @@ public:
             TVector<double> result(trees.GetModelTreeData()->GetLeafValues().begin(), trees.GetModelTreeData()->GetLeafValues().end());
             int firstTreeLeafCount = trees.GetTreeCount() > 0 ? trees.GetTreeLeafCounts()[0] : 0;
             const auto norm = trees.GetScaleAndBias();
+
+            double bias = norm.GetOneDimensionalBias(
+                "Non single-dimension approxes are not supported");
             for (int i = 0; i < result.ysize(); ++i) {
                 result[i] *= norm.Scale;
                 if (i < firstTreeLeafCount) {
-                    result[i] += norm.Bias;
+                    result[i] += bias;
                 }
             }
             return result;
@@ -311,7 +314,14 @@ public:
 
 template <>
 void Out<TScaleAndBias>(IOutputStream& out, TTypeTraits<TScaleAndBias>::TFuncParam norm) {
-    out << "{" << norm.Scale << "," << norm.Bias << "}";
+    out << "{" << norm.Scale << "," << "[";
+    bool firstItem = true;
+    auto bias = norm.GetBiasRef();
+    for (auto b : bias) {
+        out << (firstItem ? "" : ",") << b;
+        firstItem = false;
+    }
+    out << "]}";
 }
 
 template <>

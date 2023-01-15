@@ -88,7 +88,7 @@ namespace NCB {
         Out << "    double LeafValues[" << model.ModelTrees->GetModelTreeData()->GetLeafValues().size() << "] = {" << OutputLeafValues(model, TIndent(1));
         Out << "    };" << '\n';
         Out << "    double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
-        Out << "    double Bias = " << model.GetScaleAndBias().Bias << ";" << '\n';
+        Out << "    double Bias = " << model.GetScaleAndBias().GetOneDimensionalBias() << ";" << '\n';
         Out << "} CatboostModelStatic;" << '\n';
         Out << '\n';
     }
@@ -305,7 +305,7 @@ namespace NCB {
         Out << indent << "double LeafValues[" << model.ModelTrees->GetModelTreeData()->GetLeafValues().size() << "] = {" << OutputLeafValues(model, indent);
         Out << indent << "};" << '\n';
         Out << indent << "double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
-        Out << indent << "double Bias = " << model.GetScaleAndBias().Bias << ";" << '\n';
+        Out << indent << "double Bias = " << model.GetScaleAndBias().GetOneDimensionalBias() << ";" << '\n';
 
         WriteModelCTRs(Out, model, indent);
 

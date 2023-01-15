@@ -572,7 +572,7 @@ static void CalcExactLeafDeltas(
     Y_ASSERT(leafCount == leafDeltas->size());
     for (size_t i = 0; i < leafCount; i++) {
         double& leafDelta = (*leafDeltas)[i];
-        leafDelta = *NCB::CalcOptimumConstApprox(lossDescription, leafSamples[i], leafWeights[i]);
+        leafDelta = *NCB::CalcOneDimensionalOptimumConstApprox(lossDescription, leafSamples[i], leafWeights[i]);
     }
 }
 

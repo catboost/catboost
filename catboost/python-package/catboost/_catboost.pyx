@@ -1040,8 +1040,13 @@ cdef extern from "catboost/libs/model/ctr_provider.h":
 
 cdef extern from "catboost/libs/model/scale_and_bias.h":
     cdef cppclass TScaleAndBias:
+        TScaleAndBias()
+        TScaleAndBias(double scale, TVector[double]& bias)
+
         double Scale
-        double Bias
+        TVector[double] Bias
+
+        TVector[double]& GetBiasRef()  except +ProcessException
 
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFeaturePosition:
@@ -5044,12 +5049,15 @@ cdef class _CatBoost:
 
     cpdef _get_scale_and_bias(self):
         cdef TScaleAndBias scale_and_bias = dereference(self.__model).GetScaleAndBias()
-        return scale_and_bias.Scale, scale_and_bias.Bias
+        bias = scale_and_bias.GetBiasRef()
+        if len(bias) == 0:
+            bias = 0
+        elif len(bias) == 1:
+            bias = bias[0]
+        return scale_and_bias.Scale, bias
 
-    cpdef _set_scale_and_bias(self, scale, bias):
-        cdef TScaleAndBias scale_and_bias
-        scale_and_bias.Scale = scale
-        scale_and_bias.Bias = bias
+    cpdef _set_scale_and_bias(self, scale, list bias):
+        cdef TScaleAndBias scale_and_bias = TScaleAndBias(scale, bias)
         dereference(self.__model).SetScaleAndBias(scale_and_bias)
 
     cpdef _is_oblivious(self):

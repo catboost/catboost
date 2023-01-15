@@ -236,3 +236,9 @@ void InitApproxFromBaseline(
     }
 }
 
+void InitApproxes(
+    int size,
+    const TMaybe<TVector<double>>& startingApprox,
+    double approxDimension,
+    bool storeExpApproxes,
+    TVector<TVector<double>>* approx);

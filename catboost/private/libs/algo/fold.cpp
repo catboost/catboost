@@ -5,6 +5,7 @@
 #include "helpers.h"
 
 #include <catboost/private/libs/data_types/groupid.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -103,7 +104,7 @@ TFold TFold::BuildDynamicFold(
     double multiplier,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
-    TMaybe<double> startingApprox,
+    const TMaybe<TVector<double>>& startingApprox,
     const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
     TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
     TRestorableFastRng64* rand,
@@ -170,13 +171,8 @@ TFold TFold::BuildDynamicFold(
             : Accumulate(ff.GetLearnWeights().begin(), ff.GetLearnWeights().begin() + bodyFinish, (double)0.0);
 
         TFold::TBodyTail bt(bodyQueryFinish, tailQueryFinish, bodyFinish, tailFinish, bodySumWeight);
-        bt.Approx.resize(
-            approxDimension,
-            TVector<double>(
-                bt.TailFinish,
-                startingApprox ? ExpApproxIf(storeExpApproxes, *startingApprox) : GetNeutralApprox(storeExpApproxes)
-            )
-        );
+        InitApproxes(bt.TailFinish, startingApprox, approxDimension, storeExpApproxes,  &(bt.Approx));
+
         if (baseline) {
             InitApproxFromBaseline(
                 bt.TailFinish,
@@ -228,7 +224,7 @@ TFold TFold::BuildPlainFold(
     int approxDimension,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
-    TMaybe<double> startingApprox,
+    const TMaybe<TVector<double>>& startingApprox,
     const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
     TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
     TRestorableFastRng64* rand,
@@ -271,10 +267,7 @@ TFold TFold::BuildPlainFold(
         ff.GetSumWeight()
     );
 
-    bt.Approx.resize(approxDimension,
-        TVector<double>(
-            learnSampleCount,
-            startingApprox ? ExpApproxIf(storeExpApproxes, *startingApprox) : GetNeutralApprox(storeExpApproxes)));
+    InitApproxes(learnSampleCount, startingApprox, approxDimension, storeExpApproxes, &(bt.Approx));
     AllocateRank2(approxDimension, learnSampleCount, bt.WeightedDerivatives);
     AllocateRank2(approxDimension, learnSampleCount, bt.SampleWeightedDerivatives);
     if (hasPairwiseWeights) {

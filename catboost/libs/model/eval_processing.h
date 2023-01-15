@@ -150,8 +150,8 @@ namespace NCB::NModelEvaluation {
             if (ScaleAndBias.IsIdentity()) {
                 return;
             }
-            Y_ASSERT(ApproxDimension == 1);
-            ::ApplyScaleAndBias(ScaleAndBias, GetResultBlockView(blockId, 1), startTree);
+            Y_ASSERT(ApproxDimension == ScaleAndBias.GetBiasRef().size());
+            ::ApplyScaleAndBias(ScaleAndBias, GetResultBlockView(blockId, ApproxDimension), startTree);
         }
 
         inline void PostprocessBlock(ui32 blockId, ui32 startTree) {

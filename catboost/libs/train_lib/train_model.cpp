@@ -629,7 +629,7 @@ static void SaveModel(
         }
 
         *modelPtr->ModelTrees.GetMutable() = std::move(modelTrees);
-        modelPtr->SetScaleAndBias({1, ctx.LearnProgress->StartingApprox.GetOrElse(0)});
+        modelPtr->SetScaleAndBias({1, ctx.LearnProgress->StartingApprox.GetOrElse({})});
         modelPtr->UpdateDynamicData();
 
         EFinalFeatureCalcersComputationMode featureCalcerComputationMode
@@ -771,7 +771,7 @@ namespace {
                 }
             }
 
-            TMaybe<double> startingApprox;
+            TMaybe<TVector<double>> startingApprox;
             if (catboostOptions.BoostingOptions->BoostFromAverage.Get()) {
                 // TODO(fedorlebed): add boost from average support for multiregression
                 CB_ENSURE(trainingData.Learn->TargetData->GetTargetDimension() != 0, "Target is required for boosting from average");

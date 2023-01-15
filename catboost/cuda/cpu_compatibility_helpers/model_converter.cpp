@@ -128,7 +128,11 @@ TFullModel TModelConverter::Convert(
     }
 
     obliviousTreeBuilder.Build(coreModel.ModelTrees.GetMutable());
-    coreModel.SetScaleAndBias({1.0, src.Bias});
+    TVector<double> bias;
+    if (cpuApproxDim == 1) {
+        bias = {src.Bias};
+    }
+    coreModel.SetScaleAndBias({1.0, bias});
     coreModel.UpdateDynamicData();
     return coreModel;
 }
@@ -201,7 +205,11 @@ TFullModel TModelConverter::Convert(
         }
 
         treeBuilder.Build(coreModel.ModelTrees.GetMutable());
-        coreModel.SetScaleAndBias({1.0, src.Bias});
+        TVector<double> bias;
+        if (cpuApproxDim == 1) {
+            bias = {src.Bias};
+        }
+        coreModel.SetScaleAndBias({1.0, bias});
         coreModel.UpdateDynamicData();
         return coreModel;
     }

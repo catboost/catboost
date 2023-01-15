@@ -531,7 +531,7 @@ public:
 
     TVector<ui32> GetTreeLeafCounts() const;
 
-    TScaleAndBias GetScaleAndBias() const {
+    const TScaleAndBias& GetScaleAndBias() const {
         return ScaleAndBias;
     }
 
@@ -539,6 +539,9 @@ public:
 
 private:
     void DeserializeFeatures(const NCatBoostFbs::TModelTrees* fbObj);
+
+    void SetScaleAndBias(const NCatBoostFbs::TModelTrees* fbObj);
+
 
 private:
     //! Number of classes in model, in most cases equals to 1.
@@ -697,7 +700,7 @@ public:
             CtrProvider->DropUnusedTables(ModelTrees->GetUsedModelCtrBases());
         }
         if (begin > 0) {
-            SetScaleAndBias({GetScaleAndBias().Scale, 0});
+            SetScaleAndBias({GetScaleAndBias().Scale, {}});
         }
         UpdateDynamicData();
     }
@@ -783,7 +786,7 @@ public:
     }
 
     //! Get normalization parameters used to compute final formula from sum of trees
-    TScaleAndBias GetScaleAndBias() const {
+    const TScaleAndBias& GetScaleAndBias() const {
         return ModelTrees->GetScaleAndBias();
     }
 

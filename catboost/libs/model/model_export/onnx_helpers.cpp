@@ -558,19 +558,22 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         );
         treesNode->add_output("predictions");
     }
+    auto scaleAndBias = model.GetScaleAndBias();
+    TTreesAttributes treesAttributes(isClassifierModel, !scaleAndBias.IsZeroBias(), treesNode->mutable_attribute());
 
-    const float bias = float(model.GetScaleAndBias().Bias);
-
-    TTreesAttributes treesAttributes(isClassifierModel, bias != 0, treesNode->mutable_attribute());
-
-    if (bias != 0) {
+    if (!scaleAndBias.IsZeroBias()) {
         if (isClassifierModel && (trees.GetDimensionsCount() == 1)) {
+            const float bias = float(scaleAndBias.GetOneDimensionalBias());
             treesAttributes.base_values->add_floats(-bias);
             treesAttributes.base_values->add_floats(bias);
         } else {
-            for (auto i : xrange(trees.GetDimensionsCount())) {
-                Y_UNUSED(i);
-                treesAttributes.base_values->add_floats(bias);
+            auto bias = scaleAndBias.GetBiasRef();
+            size_t biasSize = bias.size();
+            CB_ENSURE_INTERNAL(
+                biasSize == trees.GetDimensionsCount(),
+            "Inappropraite dimension of bias, should be " << trees.GetDimensionsCount() << " or 0, found " << biasSize);
+            for (auto b : bias) {
+                treesAttributes.base_values->add_floats(b);
             }
         }
     }
@@ -749,10 +752,12 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     treeBuilder.Build(fullModel->ModelTrees.GetMutable());
-    if (approxDimension == 1 && treesAttributes.base_values != nullptr && treesAttributes.base_values->floats_size() == 1) {
-        TScaleAndBias scaleAndBias;
-        scaleAndBias.Bias = treesAttributes.base_values->floats(0);
-        fullModel->SetScaleAndBias(scaleAndBias);
+    if (treesAttributes.base_values != nullptr) {
+        TVector<double> bias;
+        for (size_t idx: xrange(treesAttributes.base_values->floats_size())) {
+            bias.push_back(treesAttributes.base_values->floats(idx));
+        }
+        fullModel->SetScaleAndBias({1., bias});
     }
 
     fullModel->UpdateDynamicData();

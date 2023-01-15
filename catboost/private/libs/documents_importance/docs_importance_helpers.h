@@ -61,7 +61,7 @@ public:
         LearningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
         TMaybe<double> startingApprox = Nothing();
         if (paramsJson["boost_from_average"].GetBoolean()) {
-            startingApprox = NCB::CalcOptimumConstApprox(
+             startingApprox = NCB::CalcOneDimensionalOptimumConstApprox(
                 NCatboostOptions::ParseLossDescription(ToString(LossFunction)),
                 processedData.TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
                 GetWeights(*processedData.TargetData)

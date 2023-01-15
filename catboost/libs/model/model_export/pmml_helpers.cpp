@@ -117,7 +117,7 @@ static void OutputTargetsFields(
     TXmlElementOutputContext targets(xmlOut, "Targets");
     {
         TXmlElementOutputContext target(xmlOut, "Target");
-        xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().Bias)
+        xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().GetOneDimensionalBias())
             .AddAttr("rescaleFactor", model.GetScaleAndBias().Scale)
             .AddAttr("field", "prediction");
     }
