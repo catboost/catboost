@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\2b4abc78e6ab1ee2f75363efd0.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\8288ea8d5b234d40a3ee2fa911.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\86a6442bd8065b818a37d8df31.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
@@ -91,6 +92,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/8288ea8d5b234d40a3ee2fa911.cpp" "_e6ed8f4243bdf34a6416ec0cc4=resfs/src/resfs/file/library/python/runtime_py3/__res.pyx" "_ba550a4ed8f9ec79f98fdea445=resfs/file/library/python/runtime_py3/__res.pyx" "_5af3304e339710b8642b056532=resfs/src/resfs/file/library/python/runtime_py3/importer.pxi" "_1c59d469b2d3c84c707b953ee6=resfs/file/library/python/runtime_py3/importer.pxi" "_123a41ad36f1d04db23f66ee1d=resfs/src/resfs/file/library/python/runtime_py3/sitecustomize.pyx" "_f9e7f0dec83112b1ad8f6bdc7a=resfs/file/library/python/runtime_py3/sitecustomize.pyx"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/86a6442bd8065b818a37d8df31.cpp" "_e4e016eb347930c35bf5e5e138=py/namespace/bd17cfe3d9af11d01ff7b15ebc3786a7/library/python/runtime_py3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,15 +112,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/8288ea8d5b234d40a3ee2fa911.cpp" "_e6ed8f4243bdf34a6416ec0cc4=resfs/src/resfs/file/library/python/runtime_py3/__res.pyx" "_ba550a4ed8f9ec79f98fdea445=resfs/file/library/python/runtime_py3/__res.pyx" "_5af3304e339710b8642b056532=resfs/src/resfs/file/library/python/runtime_py3/importer.pxi" "_1c59d469b2d3c84c707b953ee6=resfs/file/library/python/runtime_py3/importer.pxi" "_123a41ad36f1d04db23f66ee1d=resfs/src/resfs/file/library/python/runtime_py3/sitecustomize.pyx" "_f9e7f0dec83112b1ad8f6bdc7a=resfs/file/library/python/runtime_py3/sitecustomize.pyx"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/86a6442bd8065b818a37d8df31.cpp" "_e4e016eb347930c35bf5e5e138=py/namespace/bd17cfe3d9af11d01ff7b15ebc3786a7/library/python/runtime_py3"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime_py3/2b4abc78e6ab1ee2f75363efd0.cpp	$B/library/python/runtime_py3/8288ea8d5b234d40a3ee2fa911.cpp	</Message>
+      <Message>$B/library/python/runtime_py3/2b4abc78e6ab1ee2f75363efd0.cpp	$B/library/python/runtime_py3/8288ea8d5b234d40a3ee2fa911.cpp	$B/library/python/runtime_py3/86a6442bd8065b818a37d8df31.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\2b4abc78e6ab1ee2f75363efd0.cpp;$(SolutionDir)$(Configuration)\library\python\runtime_py3\8288ea8d5b234d40a3ee2fa911.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\2b4abc78e6ab1ee2f75363efd0.cpp;$(SolutionDir)$(Configuration)\library\python\runtime_py3\8288ea8d5b234d40a3ee2fa911.cpp;$(SolutionDir)$(Configuration)\library\python\runtime_py3\86a6442bd8065b818a37d8df31.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

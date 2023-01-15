@@ -78,10 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\626ea129be1f52bb77a7f5fac5.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\96f0d278ce9d1af3ba46f346ef.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\scipy.sparse.linalg.eigen.arpack._arpack.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/626ea129be1f52bb77a7f5fac5.cpp" "_965b79741b7e3dac73348d8630=py/namespace/3cbe9d202e0cc38856e81ec2f7bd6fa5/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/96f0d278ce9d1af3ba46f346ef.cpp" "_db7787ad13c826ea1bbfea3747=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py" "_63f55e36351ea44c8601f64d6e=resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py" "_cf9cc0ea4ac02ea0e4b05f2418=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py.yapyc3" "_9a390f3b902985b35d820c96d9=resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py.yapyc3" "_b9a30b03b2166b91334d3261e6=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py" "_00a16e433157c2f8f199481c78=resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py" "_fc891430ecb2b506be4defc45b=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py.yapyc3" "_ead0fceb05e8438ea7d00b6678=resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py.yapyc3"
@@ -95,6 +100,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/626ea129be1f52bb77a7f5fac5.cpp" "_965b79741b7e3dac73348d8630=py/namespace/3cbe9d202e0cc38856e81ec2f7bd6fa5/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/96f0d278ce9d1af3ba46f346ef.cpp" "_db7787ad13c826ea1bbfea3747=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py" "_63f55e36351ea44c8601f64d6e=resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py" "_cf9cc0ea4ac02ea0e4b05f2418=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py.yapyc3" "_9a390f3b902985b35d820c96d9=resfs/file/py/scipy/sparse/linalg/eigen/arpack/__init__.py.yapyc3" "_b9a30b03b2166b91334d3261e6=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py" "_00a16e433157c2f8f199481c78=resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py" "_fc891430ecb2b506be4defc45b=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py.yapyc3" "_ead0fceb05e8438ea7d00b6678=resfs/file/py/scipy/sparse/linalg/eigen/arpack/arpack.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -103,9 +112,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/96f0d278ce9d1af3ba46f346ef.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/626ea129be1f52bb77a7f5fac5.cpp	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/96f0d278ce9d1af3ba46f346ef.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\96f0d278ce9d1af3ba46f346ef.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\626ea129be1f52bb77a7f5fac5.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\96f0d278ce9d1af3ba46f346ef.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

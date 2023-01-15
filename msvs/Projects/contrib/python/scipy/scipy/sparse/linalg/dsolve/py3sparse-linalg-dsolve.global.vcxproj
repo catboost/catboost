@@ -79,12 +79,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve\3cd802defac6d4a045de66460c.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve\ca2208f62fe00924b16544a3b5.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve\scipy.sparse.linalg.dsolve._superlu.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/3cd802defac6d4a045de66460c.cpp" "_9bde09115a537a2d208d70c420=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py" "_022815bc8d64147c4b5a8c0a94=resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py" "_f63e0081532e202def0e82a515=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py.yapyc3" "_fa1f551e84a75d73bc629fd955=resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py.yapyc3" "_6742a4124a07857a8f0f329b8c=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py" "_9ce43f1a916efabf77b82c675b=resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py" "_ca3ca4bcb65dbf5ab63be428ed=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3" "_824321c5639f4493910d3d1839=resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3" "_f67ef778f16fa738c7620dd04c=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py" "_b9e221efe33cab30f1bd55fb96=resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py" "_c36cfcc9be2be0e0f09234ab67=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3" "_d38d89a4d51912e7795f831070=resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/ca2208f62fe00924b16544a3b5.cpp" "_6aa0ce3325c3409a67ea5c8185=py/namespace/4e9c9bd0927acd19b389a5b6bcf5a975/contrib/python/scipy/scipy/sparse/linalg/dsolve"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,15 +102,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\ds
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/3cd802defac6d4a045de66460c.cpp" "_9bde09115a537a2d208d70c420=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py" "_022815bc8d64147c4b5a8c0a94=resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py" "_f63e0081532e202def0e82a515=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py.yapyc3" "_fa1f551e84a75d73bc629fd955=resfs/file/py/scipy/sparse/linalg/dsolve/__init__.py.yapyc3" "_6742a4124a07857a8f0f329b8c=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py" "_9ce43f1a916efabf77b82c675b=resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py" "_ca3ca4bcb65dbf5ab63be428ed=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3" "_824321c5639f4493910d3d1839=resfs/file/py/scipy/sparse/linalg/dsolve/linsolve.py.yapyc3" "_f67ef778f16fa738c7620dd04c=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py" "_b9e221efe33cab30f1bd55fb96=resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py" "_c36cfcc9be2be0e0f09234ab67=resfs/src/resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3" "_d38d89a4d51912e7795f831070=resfs/file/py/scipy/sparse/linalg/dsolve/_add_newdocs.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/dsolve/ca2208f62fe00924b16544a3b5.cpp" "_6aa0ce3325c3409a67ea5c8185=py/namespace/4e9c9bd0927acd19b389a5b6bcf5a975/contrib/python/scipy/scipy/sparse/linalg/dsolve"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/dsolve/3cd802defac6d4a045de66460c.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/dsolve/3cd802defac6d4a045de66460c.cpp	$B/contrib/python/scipy/scipy/sparse/linalg/dsolve/ca2208f62fe00924b16544a3b5.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve\3cd802defac6d4a045de66460c.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve\3cd802defac6d4a045de66460c.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve\ca2208f62fe00924b16544a3b5.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

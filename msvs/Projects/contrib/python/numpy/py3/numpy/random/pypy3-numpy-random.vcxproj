@@ -138,6 +138,33 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\mtrand.pyx.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_994a2dac8c06064a0ad07fca77.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_994a2dac8c06064a0ad07fca77.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_994a2dac8c06064a0ad07fca77.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_9e809bb56fbdcede5be0ea37f0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
@@ -164,6 +191,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/numpy/py3/numpy/random/_9e809bb56fbdcede5be0ea37f0.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_9e809bb56fbdcede5be0ea37f0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_9e809bb56fbdcede5be0ea37f0.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.yasm" "-" "numpy.random." "_acfeae3f8027a1e6739038535a.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.yasm" "-" "numpy.random." "_acfeae3f8027a1e6739038535a.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy/py3/numpy/random/_994a2dac8c06064a0ad07fca77.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_994a2dac8c06064a0ad07fca77.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\random\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -79,7 +79,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\206d3c7dee385707ebbf1db557.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\342638cb58372e30a9b515d440.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\6774d1245bd6bb95e238996a80.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\f0781650d03506cbd6e8d53625.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\join_5dc8540b5d0064afbf069184d4.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\converters.py.oqg6.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -147,11 +149,19 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/342638cb58372e30a9b515d440.cpp" "_7c798334f51123b065ef66cd30=py/namespace/1d8f0d74e133d25595adea805038065c/contrib/python/attrs"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/6774d1245bd6bb95e238996a80.cpp" "_1f6c46a0b819e0d6c102125761=resfs/src/resfs/file/contrib/python/attrs/.dist-info/METADATA" "_60e14f2b2b3d233ffee657b5ec=resfs/file/contrib/python/attrs/.dist-info/METADATA" "_bd7752ec4523bff59762492648=resfs/src/resfs/file/contrib/python/attrs/.dist-info/top_level.txt" "_979e70450dc885ec3438188c82=resfs/file/contrib/python/attrs/.dist-info/top_level.txt" "_d81a8b205dffce84e03af366da=resfs/src/resfs/file/contrib/python/attrs/attr/py.typed" "_5578190f2cc239f4b920d46364=resfs/file/contrib/python/attrs/attr/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/e1580a9b05af911b0d50cae144.cpp" "_60e11e29f7988df780f31df8fa=resfs/src/resfs/file/py/attr/__init__.py" "_fe7eb6b764677101d739e36597=resfs/file/py/attr/__init__.py" "_3f106e1781e1d0bb3e6b54bcf3=resfs/src/resfs/file/py/attr/__init__.py.yapyc3" "_045dd733358769918baac81586=resfs/file/py/attr/__init__.py.yapyc3" "_7662390395ed481c7d9be7edc5=resfs/src/resfs/file/py/attr/_cmp.py" "_cee8e4de5e122744dc52a16318=resfs/file/py/attr/_cmp.py" "_1add0f3183d4a7789e91a56780=resfs/src/resfs/file/py/attr/_cmp.py.yapyc3" "_5d54ee6481349707f9b1275963=resfs/file/py/attr/_cmp.py.yapyc3" "_aa910e0f71a553248b1c992a59=resfs/src/resfs/file/py/attr/_compat.py" "_24d228962a80236d74e2969d54=resfs/file/py/attr/_compat.py" "_1a5eaa3b873dd291d6c4dcd0ba=resfs/src/resfs/file/py/attr/_compat.py.yapyc3" "_a8a303d203108bb3db39fac09c=resfs/file/py/attr/_compat.py.yapyc3" "_616bfdbf886ccce1a87e338d84=resfs/src/resfs/file/py/attr/_config.py" "_c0e53c6c378acbd3fbab89bd49=resfs/file/py/attr/_config.py" "_afffdf2a321a62770b10d97e6c=resfs/src/resfs/file/py/attr/_config.py.yapyc3" "_fc1eab913f1b70da51893f3abf=resfs/file/py/attr/_config.py.yapyc3" "_7a0b4a6e03f7c8d9d5c7c70772=resfs/src/resfs/file/py/attr/_funcs.py" "_1d1927c7cb09f72bb755d8569d=resfs/file/py/attr/_funcs.py" "_1255a5a6a599f69c58e8464727=resfs/src/resfs/file/py/attr/_funcs.py.yapyc3" "_974be89024a226e68858d15ea5=resfs/file/py/attr/_funcs.py.yapyc3" "_a24b87b188f66b4736acf8fb99=resfs/src/resfs/file/py/attr/_make.py" "_a6cb13777bdd6635058a6901cc=resfs/file/py/attr/_make.py" "_fddccbceba22bae7b92f18cbaf=resfs/src/resfs/file/py/attr/_make.py.yapyc3" "_660ff04671251b67dde9781c01=resfs/file/py/attr/_make.py.yapyc3" "_8f595775891627c65152df72dc=resfs/src/resfs/file/py/attr/_version_info.py" "_1b6f8882c7c8e173f52715e94b=resfs/file/py/attr/_version_info.py" "_aa0790f6972c4dd33f9c82e3ab=resfs/src/resfs/file/py/attr/_version_info.py.yapyc3" "_5f6bb2db61efbd9d93e7176a6f=resfs/file/py/attr/_version_info.py.yapyc3" "_f4cc45b5a9eb004efb1862d0ea=resfs/src/resfs/file/py/attr/converters.py" "_7eb9b1da07bc9e65d4efc73628=resfs/file/py/attr/converters.py"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/f0781650d03506cbd6e8d53625.cpp" "_4c3094e8ff8e05c865f265bef8=py/namespace/578142b3feec340c2b951395d0487136/contrib/python/attrs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -170,11 +180,19 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/342638cb58372e30a9b515d440.cpp" "_7c798334f51123b065ef66cd30=py/namespace/1d8f0d74e133d25595adea805038065c/contrib/python/attrs"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/6774d1245bd6bb95e238996a80.cpp" "_1f6c46a0b819e0d6c102125761=resfs/src/resfs/file/contrib/python/attrs/.dist-info/METADATA" "_60e14f2b2b3d233ffee657b5ec=resfs/file/contrib/python/attrs/.dist-info/METADATA" "_bd7752ec4523bff59762492648=resfs/src/resfs/file/contrib/python/attrs/.dist-info/top_level.txt" "_979e70450dc885ec3438188c82=resfs/file/contrib/python/attrs/.dist-info/top_level.txt" "_d81a8b205dffce84e03af366da=resfs/src/resfs/file/contrib/python/attrs/attr/py.typed" "_5578190f2cc239f4b920d46364=resfs/file/contrib/python/attrs/attr/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/e1580a9b05af911b0d50cae144.cpp" "_60e11e29f7988df780f31df8fa=resfs/src/resfs/file/py/attr/__init__.py" "_fe7eb6b764677101d739e36597=resfs/file/py/attr/__init__.py" "_3f106e1781e1d0bb3e6b54bcf3=resfs/src/resfs/file/py/attr/__init__.py.yapyc3" "_045dd733358769918baac81586=resfs/file/py/attr/__init__.py.yapyc3" "_7662390395ed481c7d9be7edc5=resfs/src/resfs/file/py/attr/_cmp.py" "_cee8e4de5e122744dc52a16318=resfs/file/py/attr/_cmp.py" "_1add0f3183d4a7789e91a56780=resfs/src/resfs/file/py/attr/_cmp.py.yapyc3" "_5d54ee6481349707f9b1275963=resfs/file/py/attr/_cmp.py.yapyc3" "_aa910e0f71a553248b1c992a59=resfs/src/resfs/file/py/attr/_compat.py" "_24d228962a80236d74e2969d54=resfs/file/py/attr/_compat.py" "_1a5eaa3b873dd291d6c4dcd0ba=resfs/src/resfs/file/py/attr/_compat.py.yapyc3" "_a8a303d203108bb3db39fac09c=resfs/file/py/attr/_compat.py.yapyc3" "_616bfdbf886ccce1a87e338d84=resfs/src/resfs/file/py/attr/_config.py" "_c0e53c6c378acbd3fbab89bd49=resfs/file/py/attr/_config.py" "_afffdf2a321a62770b10d97e6c=resfs/src/resfs/file/py/attr/_config.py.yapyc3" "_fc1eab913f1b70da51893f3abf=resfs/file/py/attr/_config.py.yapyc3" "_7a0b4a6e03f7c8d9d5c7c70772=resfs/src/resfs/file/py/attr/_funcs.py" "_1d1927c7cb09f72bb755d8569d=resfs/file/py/attr/_funcs.py" "_1255a5a6a599f69c58e8464727=resfs/src/resfs/file/py/attr/_funcs.py.yapyc3" "_974be89024a226e68858d15ea5=resfs/file/py/attr/_funcs.py.yapyc3" "_a24b87b188f66b4736acf8fb99=resfs/src/resfs/file/py/attr/_make.py" "_a6cb13777bdd6635058a6901cc=resfs/file/py/attr/_make.py" "_fddccbceba22bae7b92f18cbaf=resfs/src/resfs/file/py/attr/_make.py.yapyc3" "_660ff04671251b67dde9781c01=resfs/file/py/attr/_make.py.yapyc3" "_8f595775891627c65152df72dc=resfs/src/resfs/file/py/attr/_version_info.py" "_1b6f8882c7c8e173f52715e94b=resfs/file/py/attr/_version_info.py" "_aa0790f6972c4dd33f9c82e3ab=resfs/src/resfs/file/py/attr/_version_info.py.yapyc3" "_5f6bb2db61efbd9d93e7176a6f=resfs/file/py/attr/_version_info.py.yapyc3" "_f4cc45b5a9eb004efb1862d0ea=resfs/src/resfs/file/py/attr/converters.py" "_7eb9b1da07bc9e65d4efc73628=resfs/file/py/attr/converters.py"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/f0781650d03506cbd6e8d53625.cpp" "_4c3094e8ff8e05c865f265bef8=py/namespace/578142b3feec340c2b951395d0487136/contrib/python/attrs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,9 +200,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/05bb68c71246f0e5fa2cf81d08.cpp	$B/contrib/python/attrs/206d3c7dee385707ebbf1db557.cpp	$B/contrib/python/attrs/6774d1245bd6bb95e238996a80.cpp	$B/contrib/python/attrs/e1580a9b05af911b0d50cae144.cpp	</Message>
+      <Message>$B/contrib/python/attrs/05bb68c71246f0e5fa2cf81d08.cpp	$B/contrib/python/attrs/206d3c7dee385707ebbf1db557.cpp	$B/contrib/python/attrs/342638cb58372e30a9b515d440.cpp	$B/contrib/python/attrs/6774d1245bd6bb95e238996a80.cpp	$B/contrib/python/attrs/e1580a9b05af911b0d50cae144.cpp	$B/contrib/python/attrs/f0781650d03506cbd6e8d53625.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\05bb68c71246f0e5fa2cf81d08.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\206d3c7dee385707ebbf1db557.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\6774d1245bd6bb95e238996a80.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\e1580a9b05af911b0d50cae144.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\05bb68c71246f0e5fa2cf81d08.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\206d3c7dee385707ebbf1db557.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\342638cb58372e30a9b515d440.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\6774d1245bd6bb95e238996a80.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\e1580a9b05af911b0d50cae144.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\f0781650d03506cbd6e8d53625.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -79,12 +79,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\222c2c81f94ef0ff45efaec000.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\32d626ac2d5600934483b73c35.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\path.py\c6f9c4f6d3227727980b7c6289.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/222c2c81f94ef0ff45efaec000.cpp" "_5044d484bcb4218a583d8b561c=resfs/src/resfs/file/py/path.py" "_f15111bd88df4d9c24d2daac86=resfs/file/py/path.py" "_09a9ffff22a2c28bd37ced2c87=resfs/src/resfs/file/py/path.py.yapyc3" "_65e30c7d1b22c289dce518e295=resfs/file/py/path.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/32d626ac2d5600934483b73c35.cpp" "_88733aa3330b87b5f72333d8d6=py/namespace/d6fe1d0be6347b8ef2427fa629c04485/contrib/python/path.py"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
 if %errorlevel% neq 0 goto :cmEnd
@@ -103,6 +108,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/32d626ac2d5600934483b73c35.cpp" "_88733aa3330b87b5f72333d8d6=py/namespace/d6fe1d0be6347b8ef2427fa629c04485/contrib/python/path.py"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\path.py
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/path.py/c6f9c4f6d3227727980b7c6289.cpp" "_5e81ebc8fdcf1523aefde8121a=resfs/src/resfs/file/contrib/python/path.py/.dist-info/METADATA" "_71973475a96daa6f69a3283bd4=resfs/file/contrib/python/path.py/.dist-info/METADATA" "_cd8e3abb5097d3b666d33e3f5b=resfs/src/resfs/file/contrib/python/path.py/.dist-info/top_level.txt" "_892cdfe377fbef58baff66c4af=resfs/file/contrib/python/path.py/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -111,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/path.py/222c2c81f94ef0ff45efaec000.cpp	$B/contrib/python/path.py/c6f9c4f6d3227727980b7c6289.cpp	</Message>
+      <Message>$B/contrib/python/path.py/222c2c81f94ef0ff45efaec000.cpp	$B/contrib/python/path.py/32d626ac2d5600934483b73c35.cpp	$B/contrib/python/path.py/c6f9c4f6d3227727980b7c6289.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\222c2c81f94ef0ff45efaec000.cpp;$(SolutionDir)$(Configuration)\contrib\python\path.py\c6f9c4f6d3227727980b7c6289.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\path.py\222c2c81f94ef0ff45efaec000.cpp;$(SolutionDir)$(Configuration)\contrib\python\path.py\32d626ac2d5600934483b73c35.cpp;$(SolutionDir)$(Configuration)\contrib\python\path.py\c6f9c4f6d3227727980b7c6289.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

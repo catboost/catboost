@@ -120,6 +120,60 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_23e7e8ef9844203f4eebaf790d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_23e7e8ef9844203f4eebaf790d.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_a7eb31a80235c90bb8b0c1c8de.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_a7eb31a80235c90bb8b0c1c8de.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_a7eb31a80235c90bb8b0c1c8de.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.yasm" "-" "scipy.integrate." "_ea909b21157f116bc6d9824d78.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.yasm" "-" "scipy.integrate." "_ea909b21157f116bc6d9824d78.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/integrate/_a7eb31a80235c90bb8b0c1c8de.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_a7eb31a80235c90bb8b0c1c8de.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate

@@ -78,6 +78,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\filter\_1b59c9b02c8afae6b4f88f2f74.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.py3.obj" "$(SolutionDir)$(Configuration)/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.py3.obj" "$(SolutionDir)$(Configuration)/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\filter\_1b59c9b02c8afae6b4f88f2f74.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\filter\_1b59c9b02c8afae6b4f88f2f74.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\filter\_64baef5f8b7d4db6ee730ad1c7.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
@@ -104,6 +131,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/testing/filter/_64baef5f8b7d4db6ee730ad1c7.py3.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\filter\_64baef5f8b7d4db6ee730ad1c7.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\filter\_64baef5f8b7d4db6ee730ad1c7.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.yasm" "-" "library.python.testing.filter." "_de6b26659ccd928a03c7ed7052.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.yasm" "-" "library.python.testing.filter." "_de6b26659ccd928a03c7ed7052.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/testing/filter/_1b59c9b02c8afae6b4f88f2f74.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\filter\_1b59c9b02c8afae6b4f88f2f74.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\testing\filter\filter.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

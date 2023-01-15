@@ -78,10 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\0d3523be8450bd2b2866d58315.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\97a45d2201c8c73d1a01735e13.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\library.python.symbols.module.syms.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/0d3523be8450bd2b2866d58315.cpp" "_6d31d0c1e4835dded990ea98ca=py/namespace/fe680e9ad9bf330ffcdf61616377919b/library/python/symbols/module"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/97a45d2201c8c73d1a01735e13.cpp" "_7bc4f28c47432a1d85f97a5229=resfs/src/resfs/file/py/library/python/symbols/module/__init__.py" "_0bae680f68fe4839834b5116cc=resfs/file/py/library/python/symbols/module/__init__.py" "_aafedd81120059c5967f3d6f7e=resfs/src/resfs/file/py/library/python/symbols/module/__init__.py.yapyc3" "_9ebd5d905a0c16df40cf0df112=resfs/file/py/library/python/symbols/module/__init__.py.yapyc3"
@@ -95,6 +100,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/0d3523be8450bd2b2866d58315.cpp" "_6d31d0c1e4835dded990ea98ca=py/namespace/fe680e9ad9bf330ffcdf61616377919b/library/python/symbols/module"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/97a45d2201c8c73d1a01735e13.cpp" "_7bc4f28c47432a1d85f97a5229=resfs/src/resfs/file/py/library/python/symbols/module/__init__.py" "_0bae680f68fe4839834b5116cc=resfs/file/py/library/python/symbols/module/__init__.py" "_aafedd81120059c5967f3d6f7e=resfs/src/resfs/file/py/library/python/symbols/module/__init__.py.yapyc3" "_9ebd5d905a0c16df40cf0df112=resfs/file/py/library/python/symbols/module/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -103,9 +112,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/module/97a45d2201c8c73d1a01735e13.cpp	</Message>
+      <Message>$B/library/python/symbols/module/0d3523be8450bd2b2866d58315.cpp	$B/library/python/symbols/module/97a45d2201c8c73d1a01735e13.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\97a45d2201c8c73d1a01735e13.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\0d3523be8450bd2b2866d58315.cpp;$(SolutionDir)$(Configuration)\library\python\symbols\module\97a45d2201c8c73d1a01735e13.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

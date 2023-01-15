@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\70a0b3e53a30c79f9a06e39504.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\join_6504e12ff5dc6cd3768fe2249f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\join_82cfedbc0fd491ff82671cf270.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -110,6 +111,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/_lib/70a0b3e53a30c79f9a06e39504.cpp" "_1df35f4a261a60f044aee7bd7a=py/namespace/936ad68a35ff104bb2e148d3271f4429/contrib/python/scipy/scipy/_lib"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/_lib/970487db6e51317f1574d3ce40.cpp" "_2853baec22bdc9653d50fa300c=resfs/file/py/scipy/_lib/decorator.py" "_8f447bd134c558fc315ac2e1b2=resfs/src/resfs/file/py/scipy/_lib/decorator.py.yapyc3" "_a557753aa9b3892dcd5e50d02e=resfs/file/py/scipy/_lib/decorator.py.yapyc3" "_9bdfbfe3b97dae4f23094135a6=resfs/src/resfs/file/py/scipy/_lib/six.py" "_22e706892b332a7bf460897d8a=resfs/file/py/scipy/_lib/six.py" "_e231648f509ea46fb60d85cea4=resfs/src/resfs/file/py/scipy/_lib/six.py.yapyc3" "_250245a8fd13759e69ca026f4a=resfs/file/py/scipy/_lib/six.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib
@@ -125,6 +130,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/_lib/70a0b3e53a30c79f9a06e39504.cpp" "_1df35f4a261a60f044aee7bd7a=py/namespace/936ad68a35ff104bb2e148d3271f4429/contrib/python/scipy/scipy/_lib"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/_lib/970487db6e51317f1574d3ce40.cpp" "_2853baec22bdc9653d50fa300c=resfs/file/py/scipy/_lib/decorator.py" "_8f447bd134c558fc315ac2e1b2=resfs/src/resfs/file/py/scipy/_lib/decorator.py.yapyc3" "_a557753aa9b3892dcd5e50d02e=resfs/file/py/scipy/_lib/decorator.py.yapyc3" "_9bdfbfe3b97dae4f23094135a6=resfs/src/resfs/file/py/scipy/_lib/six.py" "_22e706892b332a7bf460897d8a=resfs/file/py/scipy/_lib/six.py" "_e231648f509ea46fb60d85cea4=resfs/src/resfs/file/py/scipy/_lib/six.py.yapyc3" "_250245a8fd13759e69ca026f4a=resfs/file/py/scipy/_lib/six.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib
@@ -137,9 +146,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/_lib/970487db6e51317f1574d3ce40.cpp	$B/contrib/python/scipy/scipy/_lib/c362603cc0056928cc555690e2.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/_lib/70a0b3e53a30c79f9a06e39504.cpp	$B/contrib/python/scipy/scipy/_lib/970487db6e51317f1574d3ce40.cpp	$B/contrib/python/scipy/scipy/_lib/c362603cc0056928cc555690e2.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\970487db6e51317f1574d3ce40.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\c362603cc0056928cc555690e2.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\70a0b3e53a30c79f9a06e39504.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\970487db6e51317f1574d3ce40.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\c362603cc0056928cc555690e2.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -79,12 +79,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\strings\15c131a2c97be394780af1d2e6.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\strings\fd88667d685904820665b788bf.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\strings\library.python.strings.strings.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/strings/15c131a2c97be394780af1d2e6.cpp" "_ae8b05e09ff07672e8ec17ba86=resfs/src/resfs/file/py/library/python/strings/__init__.py" "_1b2e637fa87426b9c6f548b419=resfs/file/py/library/python/strings/__init__.py" "_7589c5b2d4efc4ea8000024778=resfs/src/resfs/file/py/library/python/strings/__init__.py.yapyc3" "_864f4e6164f911ef53b8b8fdb2=resfs/file/py/library/python/strings/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\strings
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/strings/fd88667d685904820665b788bf.cpp" "_c176f8b9e292253b7ce6637d4f=py/namespace/f8cbe923e0123f42028f05f724d31f2c/library/python/strings"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,15 +102,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/strings/15c131a2c97be394780af1d2e6.cpp" "_ae8b05e09ff07672e8ec17ba86=resfs/src/resfs/file/py/library/python/strings/__init__.py" "_1b2e637fa87426b9c6f548b419=resfs/file/py/library/python/strings/__init__.py" "_7589c5b2d4efc4ea8000024778=resfs/src/resfs/file/py/library/python/strings/__init__.py.yapyc3" "_864f4e6164f911ef53b8b8fdb2=resfs/file/py/library/python/strings/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\strings
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/strings/fd88667d685904820665b788bf.cpp" "_c176f8b9e292253b7ce6637d4f=py/namespace/f8cbe923e0123f42028f05f724d31f2c/library/python/strings"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/strings/15c131a2c97be394780af1d2e6.cpp	</Message>
+      <Message>$B/library/python/strings/15c131a2c97be394780af1d2e6.cpp	$B/library/python/strings/fd88667d685904820665b788bf.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\strings\15c131a2c97be394780af1d2e6.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\strings\15c131a2c97be394780af1d2e6.cpp;$(SolutionDir)$(Configuration)\library\python\strings\fd88667d685904820665b788bf.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

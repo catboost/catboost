@@ -79,11 +79,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\cores\6de95575378b5aaa8f0e93d3d9.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\cores\f556a1f8087ae48fc5fa26de46.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\cores
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/cores/6de95575378b5aaa8f0e93d3d9.cpp" "_3ba95786fa58503011ad858f79=resfs/src/resfs/file/py/library/python/cores/__init__.py" "_7783970fd4d63a7eda9b15ac2d=resfs/file/py/library/python/cores/__init__.py" "_ae642350819d4900e931a86117=resfs/src/resfs/file/py/library/python/cores/__init__.py.yapyc3" "_16aae8304f61a220cdeb4b362a=resfs/file/py/library/python/cores/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\cores
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/cores/f556a1f8087ae48fc5fa26de46.cpp" "_22e966fa5c5ab9d6b6865f9b7b=py/namespace/96d5d40950f306bd463a7e7ca12a2059/library/python/cores"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,15 +101,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\cores
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/cores/6de95575378b5aaa8f0e93d3d9.cpp" "_3ba95786fa58503011ad858f79=resfs/src/resfs/file/py/library/python/cores/__init__.py" "_7783970fd4d63a7eda9b15ac2d=resfs/file/py/library/python/cores/__init__.py" "_ae642350819d4900e931a86117=resfs/src/resfs/file/py/library/python/cores/__init__.py.yapyc3" "_16aae8304f61a220cdeb4b362a=resfs/file/py/library/python/cores/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\cores
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/cores/f556a1f8087ae48fc5fa26de46.cpp" "_22e966fa5c5ab9d6b6865f9b7b=py/namespace/96d5d40950f306bd463a7e7ca12a2059/library/python/cores"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/cores/6de95575378b5aaa8f0e93d3d9.cpp	</Message>
+      <Message>$B/library/python/cores/6de95575378b5aaa8f0e93d3d9.cpp	$B/library/python/cores/f556a1f8087ae48fc5fa26de46.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\cores\6de95575378b5aaa8f0e93d3d9.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\cores\6de95575378b5aaa8f0e93d3d9.cpp;$(SolutionDir)$(Configuration)\library\python\cores\f556a1f8087ae48fc5fa26de46.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

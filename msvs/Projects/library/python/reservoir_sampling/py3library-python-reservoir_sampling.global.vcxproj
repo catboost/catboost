@@ -78,9 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\14f26a5e8a08558730bb809d3c.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\e18a1d737066bd0753a9f16dcf.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/14f26a5e8a08558730bb809d3c.cpp" "_5b63c7254fff8b0a768a06c942=py/namespace/ac3e89492786401698ceaae535220976/library/python/reservoir_sampling"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/e18a1d737066bd0753a9f16dcf.cpp" "_978516b311e68a7bddb915d258=resfs/src/resfs/file/py/library/python/reservoir_sampling/__init__.py" "_5a08e6edd38c431d22812124d8=resfs/file/py/library/python/reservoir_sampling/__init__.py" "_38f95afea87407b5bb6dd71ec6=resfs/src/resfs/file/py/library/python/reservoir_sampling/__init__.py.yapyc3" "_3bdb1213232a643a4679aea724=resfs/file/py/library/python/reservoir_sampling/__init__.py.yapyc3"
@@ -94,6 +99,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/14f26a5e8a08558730bb809d3c.cpp" "_5b63c7254fff8b0a768a06c942=py/namespace/ac3e89492786401698ceaae535220976/library/python/reservoir_sampling"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/e18a1d737066bd0753a9f16dcf.cpp" "_978516b311e68a7bddb915d258=resfs/src/resfs/file/py/library/python/reservoir_sampling/__init__.py" "_5a08e6edd38c431d22812124d8=resfs/file/py/library/python/reservoir_sampling/__init__.py" "_38f95afea87407b5bb6dd71ec6=resfs/src/resfs/file/py/library/python/reservoir_sampling/__init__.py.yapyc3" "_3bdb1213232a643a4679aea724=resfs/file/py/library/python/reservoir_sampling/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -102,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/reservoir_sampling/e18a1d737066bd0753a9f16dcf.cpp	</Message>
+      <Message>$B/library/python/reservoir_sampling/14f26a5e8a08558730bb809d3c.cpp	$B/library/python/reservoir_sampling/e18a1d737066bd0753a9f16dcf.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\e18a1d737066bd0753a9f16dcf.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\14f26a5e8a08558730bb809d3c.cpp;$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\e18a1d737066bd0753a9f16dcf.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

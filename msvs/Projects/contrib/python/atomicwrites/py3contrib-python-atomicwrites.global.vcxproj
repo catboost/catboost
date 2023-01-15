@@ -79,12 +79,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\69fb452c92a5ea4c54305a905a.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\7a28af01162b8d714312e4c5a5.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\edaffac4ea5f65752cb052bd8e.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/69fb452c92a5ea4c54305a905a.cpp" "_5d538bef37d153cf214ec61efd=resfs/src/resfs/file/py/atomicwrites/__init__.py" "_d59a03ded5a55dbe0419100282=resfs/file/py/atomicwrites/__init__.py" "_5941cdb93178025d2eb02b2ce4=resfs/src/resfs/file/py/atomicwrites/__init__.py.yapyc3" "_5382ddc29f8bd350bdab31e9a8=resfs/file/py/atomicwrites/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/7a28af01162b8d714312e4c5a5.cpp" "_6cacf89c666764f27941cdc850=py/namespace/0702b71bb561e3f34e5c5e2de6d697be/contrib/python/atomicwrites"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
 if %errorlevel% neq 0 goto :cmEnd
@@ -103,6 +108,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/7a28af01162b8d714312e4c5a5.cpp" "_6cacf89c666764f27941cdc850=py/namespace/0702b71bb561e3f34e5c5e2de6d697be/contrib/python/atomicwrites"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/edaffac4ea5f65752cb052bd8e.cpp" "_7324ef2f59db193a3abd16d315=resfs/src/resfs/file/contrib/python/atomicwrites/.dist-info/METADATA" "_58c9226dfb3977b4307d27f4b7=resfs/file/contrib/python/atomicwrites/.dist-info/METADATA" "_5e72e6c5781ec8558accd39d9b=resfs/src/resfs/file/contrib/python/atomicwrites/.dist-info/top_level.txt" "_fa45e572a11e55788173e47a21=resfs/file/contrib/python/atomicwrites/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -111,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/atomicwrites/69fb452c92a5ea4c54305a905a.cpp	$B/contrib/python/atomicwrites/edaffac4ea5f65752cb052bd8e.cpp	</Message>
+      <Message>$B/contrib/python/atomicwrites/69fb452c92a5ea4c54305a905a.cpp	$B/contrib/python/atomicwrites/7a28af01162b8d714312e4c5a5.cpp	$B/contrib/python/atomicwrites/edaffac4ea5f65752cb052bd8e.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\69fb452c92a5ea4c54305a905a.cpp;$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\edaffac4ea5f65752cb052bd8e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\69fb452c92a5ea4c54305a905a.cpp;$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\7a28af01162b8d714312e4c5a5.cpp;$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\edaffac4ea5f65752cb052bd8e.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

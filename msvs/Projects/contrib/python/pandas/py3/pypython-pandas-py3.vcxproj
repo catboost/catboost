@@ -283,6 +283,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_be323734e690dc756f5a56d399.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_be323734e690dc756f5a56d399.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_f705037ac415cf2159ee0dbc97.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.obj" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_f705037ac415cf2159ee0dbc97.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_f705037ac415cf2159ee0dbc97.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\pandas\_testing\asserters.py.5jpd.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
@@ -829,6 +856,10 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_65ae633d399bb1d9a4886c9627.yasm" "-" "pandas.core.arrays._arrow_utils pandas.io.* pandas.plotting.* pandas.tseries.* pandas.util.*" "_2dbf78ad10274e23db9bcbec51.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.yasm" "-" "." "_4afba25e0ad1d84c912d72d843.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -840,15 +871,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_65ae633d399bb1d9a4886c9627.yasm" "-" "pandas.core.arrays._arrow_utils pandas.io.* pandas.plotting.* pandas.tseries.* pandas.util.*" "_2dbf78ad10274e23db9bcbec51.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.yasm" "-" "." "_4afba25e0ad1d84c912d72d843.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pandas/py3/_65ae633d399bb1d9a4886c9627.yasm	</Message>
+      <Message>$B/contrib/python/pandas/py3/_65ae633d399bb1d9a4886c9627.yasm	$B/contrib/python/pandas/py3/_f705037ac415cf2159ee0dbc97.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_65ae633d399bb1d9a4886c9627.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_65ae633d399bb1d9a4886c9627.yasm;$(SolutionDir)$(Configuration)\contrib\python\pandas\py3\_f705037ac415cf2159ee0dbc97.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\pandas\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

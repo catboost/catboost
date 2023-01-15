@@ -79,11 +79,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\57bcd279f870725bcb18d76085.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\f655c4526e35ad6743f5b4d31f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/57bcd279f870725bcb18d76085.cpp" "_869ae905329d2f27219f125251=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/__init__.py" "_966971b6a405aca5e3d5b2fa87=resfs/file/py/scipy/sparse/linalg/eigen/__init__.py" "_60ab13f84d456aaaa72f40b4d5=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/__init__.py.yapyc3" "_5eef11c64624ae30002e149b95=resfs/file/py/scipy/sparse/linalg/eigen/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/f655c4526e35ad6743f5b4d31f.cpp" "_c3a3132132f49e942e8d638ac6=py/namespace/3473f359989b5a7cc4265c316cfe16ac/contrib/python/scipy/scipy/sparse/linalg/eigen"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,15 +101,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\ei
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/57bcd279f870725bcb18d76085.cpp" "_869ae905329d2f27219f125251=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/__init__.py" "_966971b6a405aca5e3d5b2fa87=resfs/file/py/scipy/sparse/linalg/eigen/__init__.py" "_60ab13f84d456aaaa72f40b4d5=resfs/src/resfs/file/py/scipy/sparse/linalg/eigen/__init__.py.yapyc3" "_5eef11c64624ae30002e149b95=resfs/file/py/scipy/sparse/linalg/eigen/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/f655c4526e35ad6743f5b4d31f.cpp" "_c3a3132132f49e942e8d638ac6=py/namespace/3473f359989b5a7cc4265c316cfe16ac/contrib/python/scipy/scipy/sparse/linalg/eigen"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/eigen/57bcd279f870725bcb18d76085.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/eigen/57bcd279f870725bcb18d76085.cpp	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/f655c4526e35ad6743f5b4d31f.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\57bcd279f870725bcb18d76085.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\57bcd279f870725bcb18d76085.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\f655c4526e35ad6743f5b4d31f.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

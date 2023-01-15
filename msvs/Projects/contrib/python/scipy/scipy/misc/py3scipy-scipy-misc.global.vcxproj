@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\a2f93b6486b0d2a29b1ba343f3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\c06378c3697e16a7ee42acc363.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\f761c9bfac285b5cb26054405d.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
@@ -89,6 +90,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/c06378c3697e16a7ee42acc363.cpp" "_4483c8770d73a1beda94c65ebb=py/no_check_imports/wioucumagzhjnse3axmuf6cefm"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/f761c9bfac285b5cb26054405d.cpp" "_29235f7aa346b7f027176c5dc5=py/namespace/8ac4644e23801db7c20c5871994b4127/contrib/python/scipy/scipy/misc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -105,15 +110,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/c06378c3697e16a7ee42acc363.cpp" "_4483c8770d73a1beda94c65ebb=py/no_check_imports/wioucumagzhjnse3axmuf6cefm"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/f761c9bfac285b5cb26054405d.cpp" "_29235f7aa346b7f027176c5dc5=py/namespace/8ac4644e23801db7c20c5871994b4127/contrib/python/scipy/scipy/misc"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/misc/a2f93b6486b0d2a29b1ba343f3.cpp	$B/contrib/python/scipy/scipy/misc/c06378c3697e16a7ee42acc363.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/misc/a2f93b6486b0d2a29b1ba343f3.cpp	$B/contrib/python/scipy/scipy/misc/c06378c3697e16a7ee42acc363.cpp	$B/contrib/python/scipy/scipy/misc/f761c9bfac285b5cb26054405d.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\a2f93b6486b0d2a29b1ba343f3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\c06378c3697e16a7ee42acc363.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\a2f93b6486b0d2a29b1ba343f3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\c06378c3697e16a7ee42acc363.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\f761c9bfac285b5cb26054405d.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

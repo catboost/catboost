@@ -105,6 +105,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_2e263390fbeb6db4b79deeb313.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_2e263390fbeb6db4b79deeb313.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_607b047ab8fbd9a9f9286bf7a3.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.obj" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.obj" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_607b047ab8fbd9a9f9286bf7a3.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_607b047ab8fbd9a9f9286bf7a3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_dbc5866e23f0bdffee05e6258a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3
@@ -381,6 +408,10 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_2e263390fbeb6db4b79deeb313.yasm" "-" "prompt_toolkit.clipboard.pyperclip prompt_toolkit.contrib.ssh.* prompt_toolkit.eventloop.win32 prompt_toolkit.terminal.conemu_output prompt_toolkit.win32_types prompt_toolkit.input.posix_pipe prompt_toolkit.input.vt100 prompt_toolkit.input.win32 prompt_toolkit.input.win32_pipe prompt_toolkit.output.conemu prompt_toolkit.output.win32 prompt_toolkit.output.windows10 prompt_toolkit.contrib.telnet.*" "_e14fa911248b3351481900c0f9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.yasm" "-" "." "_35b49ef999c1678788ccae38b7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -392,15 +423,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_2e263390fbeb6db4b79deeb313.yasm" "-" "prompt_toolkit.clipboard.pyperclip prompt_toolkit.contrib.ssh.* prompt_toolkit.eventloop.win32 prompt_toolkit.terminal.conemu_output prompt_toolkit.win32_types prompt_toolkit.input.posix_pipe prompt_toolkit.input.vt100 prompt_toolkit.input.win32 prompt_toolkit.input.win32_pipe prompt_toolkit.output.conemu prompt_toolkit.output.win32 prompt_toolkit.output.windows10 prompt_toolkit.contrib.telnet.*" "_e14fa911248b3351481900c0f9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.yasm" "-" "." "_35b49ef999c1678788ccae38b7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/prompt-toolkit/py3/_2e263390fbeb6db4b79deeb313.yasm	</Message>
+      <Message>$B/contrib/python/prompt-toolkit/py3/_2e263390fbeb6db4b79deeb313.yasm	$B/contrib/python/prompt-toolkit/py3/_607b047ab8fbd9a9f9286bf7a3.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_2e263390fbeb6db4b79deeb313.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_2e263390fbeb6db4b79deeb313.yasm;$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\_607b047ab8fbd9a9f9286bf7a3.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\prompt-toolkit\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

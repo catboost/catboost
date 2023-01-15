@@ -79,11 +79,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\import_test\58a7a2ebe352df63c43751e94b.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\import_test\6667c8d132047fb4718ebcb95c.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/58a7a2ebe352df63c43751e94b.cpp" "_4465b17dd668bb6baefc99079a=resfs/src/resfs/file/py/library/python/testing/import_test/import_test.py" "_9348a557c5324289cf8381c071=resfs/file/py/library/python/testing/import_test/import_test.py" "_dec3489d45ddfb14736031a843=resfs/src/resfs/file/py/library/python/testing/import_test/import_test.py.yapyc3" "_770db5905bc3e1b43906050a56=resfs/file/py/library/python/testing/import_test/import_test.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/6667c8d132047fb4718ebcb95c.cpp" "_1e1f82e6add57276925d6727b4=py/namespace/ed85e09f1420515a5b336e213f6df8a3/library/python/testing/import_test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,15 +101,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/58a7a2ebe352df63c43751e94b.cpp" "_4465b17dd668bb6baefc99079a=resfs/src/resfs/file/py/library/python/testing/import_test/import_test.py" "_9348a557c5324289cf8381c071=resfs/file/py/library/python/testing/import_test/import_test.py" "_dec3489d45ddfb14736031a843=resfs/src/resfs/file/py/library/python/testing/import_test/import_test.py.yapyc3" "_770db5905bc3e1b43906050a56=resfs/file/py/library/python/testing/import_test/import_test.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/6667c8d132047fb4718ebcb95c.cpp" "_1e1f82e6add57276925d6727b4=py/namespace/ed85e09f1420515a5b336e213f6df8a3/library/python/testing/import_test"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/import_test/58a7a2ebe352df63c43751e94b.cpp	</Message>
+      <Message>$B/library/python/testing/import_test/58a7a2ebe352df63c43751e94b.cpp	$B/library/python/testing/import_test/6667c8d132047fb4718ebcb95c.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\58a7a2ebe352df63c43751e94b.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\58a7a2ebe352df63c43751e94b.cpp;$(SolutionDir)$(Configuration)\library\python\testing\import_test\6667c8d132047fb4718ebcb95c.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

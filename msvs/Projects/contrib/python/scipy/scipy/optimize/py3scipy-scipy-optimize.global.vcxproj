@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\4805e4ead272da34e51f486b21.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\join_ed8bc65c59ed2649c06b8d531f.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._group_columns.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\scipy.optimize._minpack.reg3.cpp"/>
@@ -121,6 +122,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/4805e4ead272da34e51f486b21.cpp" "_080ce2b19fc89e5b2c93f32c1c=py/namespace/8822f7019220e2a87377698fbc4e39a7/contrib/python/scipy/scipy/optimize"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp" "_1b610b4e0d8277d050bd14121f=resfs/file/py/scipy/optimize/_tstutils.py" "_b3145f536b21b27b6d6a10d607=resfs/src/resfs/file/py/scipy/optimize/_tstutils.py.yapyc3" "_8e5ce2390e7fb4fd21249558fe=resfs/file/py/scipy/optimize/_tstutils.py.yapyc3" "_2d4a3d9e62f4b6d2f459eb55fc=resfs/src/resfs/file/py/scipy/optimize/zeros.py" "_356734954baf333f58124fd8b3=resfs/file/py/scipy/optimize/zeros.py" "_a71a259772c83c184f56001301=resfs/src/resfs/file/py/scipy/optimize/zeros.py.yapyc3" "_7cf04ddc2ecd163037cc2fee35=resfs/file/py/scipy/optimize/zeros.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
@@ -144,6 +149,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/4805e4ead272da34e51f486b21.cpp" "_080ce2b19fc89e5b2c93f32c1c=py/namespace/8822f7019220e2a87377698fbc4e39a7/contrib/python/scipy/scipy/optimize"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp" "_1b610b4e0d8277d050bd14121f=resfs/file/py/scipy/optimize/_tstutils.py" "_b3145f536b21b27b6d6a10d607=resfs/src/resfs/file/py/scipy/optimize/_tstutils.py.yapyc3" "_8e5ce2390e7fb4fd21249558fe=resfs/file/py/scipy/optimize/_tstutils.py.yapyc3" "_2d4a3d9e62f4b6d2f459eb55fc=resfs/src/resfs/file/py/scipy/optimize/zeros.py" "_356734954baf333f58124fd8b3=resfs/file/py/scipy/optimize/zeros.py" "_a71a259772c83c184f56001301=resfs/src/resfs/file/py/scipy/optimize/zeros.py.yapyc3" "_7cf04ddc2ecd163037cc2fee35=resfs/file/py/scipy/optimize/zeros.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
@@ -156,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/optimize/1f2b4571d4a99576c42ae46a73.cpp	$B/contrib/python/scipy/scipy/optimize/2c170f6a8ca6050f542d1c758d.cpp	$B/contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp	$B/contrib/python/scipy/scipy/optimize/75044899130414d0f66cb87834.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/optimize/1f2b4571d4a99576c42ae46a73.cpp	$B/contrib/python/scipy/scipy/optimize/2c170f6a8ca6050f542d1c758d.cpp	$B/contrib/python/scipy/scipy/optimize/4805e4ead272da34e51f486b21.cpp	$B/contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp	$B/contrib/python/scipy/scipy/optimize/75044899130414d0f66cb87834.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\1f2b4571d4a99576c42ae46a73.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\2c170f6a8ca6050f542d1c758d.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\671a55745e50bd00e7af2e3b35.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\75044899130414d0f66cb87834.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\1f2b4571d4a99576c42ae46a73.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\2c170f6a8ca6050f542d1c758d.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\4805e4ead272da34e51f486b21.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\671a55745e50bd00e7af2e3b35.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize\75044899130414d0f66cb87834.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

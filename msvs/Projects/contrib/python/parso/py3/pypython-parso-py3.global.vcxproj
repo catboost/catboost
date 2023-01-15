@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\parso\py3\6e64feb00cf5d752993aabb152.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\parso\py3\a20eefd48f7a57b08842e4245f.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\parso\py3\join_5edc6d485b3e81bbb2b7c2a86d.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\parso\py3\join_cfd139150e97effe39bfc99f80.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -123,6 +124,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/a20eefd48f7a57b08842e4245f.cpp" "_8fa611bcdb82efa281c80c015e=py/namespace/4107b0255021d05686afcc8149b10f3f/contrib/python/parso/py3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp" "_fc11b6fa567ff03ffc21c5f5eb=resfs/file/py/parso/pgen2/__init__.py" "_9f96ec7e97cf416c80282701d4=resfs/src/resfs/file/py/parso/pgen2/__init__.py.yapyc3" "_7d2d2c21c5ad80763d4d6d54ca=resfs/file/py/parso/pgen2/__init__.py.yapyc3" "_d3ff0a806d88ba486b4438ae2b=resfs/src/resfs/file/py/parso/pgen2/generator.py" "_d1084f54ce9a856ffb1745fd9d=resfs/file/py/parso/pgen2/generator.py" "_ff190ff2cf9e9d936fbb39efa0=resfs/src/resfs/file/py/parso/pgen2/generator.py.yapyc3" "_28b77fdcb8a1b7bafd28ac3819=resfs/file/py/parso/pgen2/generator.py.yapyc3" "_17a3a251108d0e5cfb4e7ba96d=resfs/src/resfs/file/py/parso/pgen2/grammar_parser.py" "_a313fb4e6662c019987720f2f2=resfs/file/py/parso/pgen2/grammar_parser.py" "_8a2adaac662a0b8960071eb5cc=resfs/src/resfs/file/py/parso/pgen2/grammar_parser.py.yapyc3" "_dafef9c3ea41407308cf7a584b=resfs/file/py/parso/pgen2/grammar_parser.py.yapyc3" "_1a1f8c2d2a40cd7b39a01d7ee5=resfs/src/resfs/file/py/parso/python/__init__.py" "_ce6225dd61c7a6b7fc2e3bb7a6=resfs/file/py/parso/python/__init__.py" "_a538b48dbb6d78b395b4d2b134=resfs/src/resfs/file/py/parso/python/__init__.py.yapyc3" "_09986f9ccecf6db833191cf673=resfs/file/py/parso/python/__init__.py.yapyc3" "_d20d2fb0b8e047930c56b2e028=resfs/src/resfs/file/py/parso/python/diff.py" "_999d9bc89c82669b388d5438e9=resfs/file/py/parso/python/diff.py" "_31ebec95b2f93a66509db7a633=resfs/src/resfs/file/py/parso/python/diff.py.yapyc3" "_384cac513950cdc0feab7f6b93=resfs/file/py/parso/python/diff.py.yapyc3" "_8745224e76e3cd0f2a51316590=resfs/src/resfs/file/py/parso/python/errors.py" "_9436f48b361c11b06e4ad967e6=resfs/file/py/parso/python/errors.py" "_3104eeb77126bb5d6d60cfaf48=resfs/src/resfs/file/py/parso/python/errors.py.yapyc3" "_80dc92f3efc092b799be60a69b=resfs/file/py/parso/python/errors.py.yapyc3" "_155792b0c5526a3ef4825b6e89=resfs/src/resfs/file/py/parso/python/parser.py" "_b6fab3d64420cc1d0517315f4b=resfs/file/py/parso/python/parser.py" "_3ebf826116b0e5f4a696765b00=resfs/src/resfs/file/py/parso/python/parser.py.yapyc3" "_b8f46ce510d0378d43b2dc912d=resfs/file/py/parso/python/parser.py.yapyc3" "_dc2990acaca81283c560704981=resfs/src/resfs/file/py/parso/python/pep8.py"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -146,6 +151,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/a20eefd48f7a57b08842e4245f.cpp" "_8fa611bcdb82efa281c80c015e=py/namespace/4107b0255021d05686afcc8149b10f3f/contrib/python/parso/py3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp" "_fc11b6fa567ff03ffc21c5f5eb=resfs/file/py/parso/pgen2/__init__.py" "_9f96ec7e97cf416c80282701d4=resfs/src/resfs/file/py/parso/pgen2/__init__.py.yapyc3" "_7d2d2c21c5ad80763d4d6d54ca=resfs/file/py/parso/pgen2/__init__.py.yapyc3" "_d3ff0a806d88ba486b4438ae2b=resfs/src/resfs/file/py/parso/pgen2/generator.py" "_d1084f54ce9a856ffb1745fd9d=resfs/file/py/parso/pgen2/generator.py" "_ff190ff2cf9e9d936fbb39efa0=resfs/src/resfs/file/py/parso/pgen2/generator.py.yapyc3" "_28b77fdcb8a1b7bafd28ac3819=resfs/file/py/parso/pgen2/generator.py.yapyc3" "_17a3a251108d0e5cfb4e7ba96d=resfs/src/resfs/file/py/parso/pgen2/grammar_parser.py" "_a313fb4e6662c019987720f2f2=resfs/file/py/parso/pgen2/grammar_parser.py" "_8a2adaac662a0b8960071eb5cc=resfs/src/resfs/file/py/parso/pgen2/grammar_parser.py.yapyc3" "_dafef9c3ea41407308cf7a584b=resfs/file/py/parso/pgen2/grammar_parser.py.yapyc3" "_1a1f8c2d2a40cd7b39a01d7ee5=resfs/src/resfs/file/py/parso/python/__init__.py" "_ce6225dd61c7a6b7fc2e3bb7a6=resfs/file/py/parso/python/__init__.py" "_a538b48dbb6d78b395b4d2b134=resfs/src/resfs/file/py/parso/python/__init__.py.yapyc3" "_09986f9ccecf6db833191cf673=resfs/file/py/parso/python/__init__.py.yapyc3" "_d20d2fb0b8e047930c56b2e028=resfs/src/resfs/file/py/parso/python/diff.py" "_999d9bc89c82669b388d5438e9=resfs/file/py/parso/python/diff.py" "_31ebec95b2f93a66509db7a633=resfs/src/resfs/file/py/parso/python/diff.py.yapyc3" "_384cac513950cdc0feab7f6b93=resfs/file/py/parso/python/diff.py.yapyc3" "_8745224e76e3cd0f2a51316590=resfs/src/resfs/file/py/parso/python/errors.py" "_9436f48b361c11b06e4ad967e6=resfs/file/py/parso/python/errors.py" "_3104eeb77126bb5d6d60cfaf48=resfs/src/resfs/file/py/parso/python/errors.py.yapyc3" "_80dc92f3efc092b799be60a69b=resfs/file/py/parso/python/errors.py.yapyc3" "_155792b0c5526a3ef4825b6e89=resfs/src/resfs/file/py/parso/python/parser.py" "_b6fab3d64420cc1d0517315f4b=resfs/file/py/parso/python/parser.py" "_3ebf826116b0e5f4a696765b00=resfs/src/resfs/file/py/parso/python/parser.py.yapyc3" "_b8f46ce510d0378d43b2dc912d=resfs/file/py/parso/python/parser.py.yapyc3" "_dc2990acaca81283c560704981=resfs/src/resfs/file/py/parso/python/pep8.py"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -154,9 +163,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/parso/py3/5bc3bce02890cd9d8f9c810889.cpp	$B/contrib/python/parso/py3/6e64feb00cf5d752993aabb152.cpp	$B/contrib/python/parso/py3/9893373746e78c69695b36b138.cpp	$B/contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp	</Message>
+      <Message>$B/contrib/python/parso/py3/5bc3bce02890cd9d8f9c810889.cpp	$B/contrib/python/parso/py3/6e64feb00cf5d752993aabb152.cpp	$B/contrib/python/parso/py3/9893373746e78c69695b36b138.cpp	$B/contrib/python/parso/py3/a20eefd48f7a57b08842e4245f.cpp	$B/contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\parso\py3\5bc3bce02890cd9d8f9c810889.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\6e64feb00cf5d752993aabb152.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\9893373746e78c69695b36b138.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\b19ddbd8182a05ebf0d3342d7d.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\parso\py3\5bc3bce02890cd9d8f9c810889.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\6e64feb00cf5d752993aabb152.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\9893373746e78c69695b36b138.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\a20eefd48f7a57b08842e4245f.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\b19ddbd8182a05ebf0d3342d7d.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

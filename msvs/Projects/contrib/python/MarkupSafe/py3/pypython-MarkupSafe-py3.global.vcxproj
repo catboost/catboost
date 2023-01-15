@@ -78,11 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\4d17ae2a576285167ce5e317e1.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\4f2a6c1d8d384c59d15e0872ad.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\f5af7289a1f26fa883fc38a4c5.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\markupsafe._speedups.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/4d17ae2a576285167ce5e317e1.cpp" "_b4e099ca29d02f42b6bb4673da=py/namespace/f63782215f5c4a2e4b79713c724f16f8/contrib/python/MarkupSafe/py3"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/4f2a6c1d8d384c59d15e0872ad.cpp" "_e0a36d8d70451542a51b569607=resfs/src/resfs/file/py/markupsafe/__init__.py" "_76283129db55bb62ddef0a1436=resfs/file/py/markupsafe/__init__.py" "_4e27831aa913b282a7d67cf5a0=resfs/src/resfs/file/py/markupsafe/__init__.py.yapyc3" "_f4cccfacb79cee5dc7022a5b5a=resfs/file/py/markupsafe/__init__.py.yapyc3" "_9f0dcff202119cc8a569f25bf1=resfs/src/resfs/file/py/markupsafe/_native.py" "_34e11c0344bef041e0318542c8=resfs/file/py/markupsafe/_native.py" "_ff769d6d0a39b08cc7223a0640=resfs/src/resfs/file/py/markupsafe/_native.py.yapyc3" "_aa069ccca770a3700c18aca2d7=resfs/file/py/markupsafe/_native.py.yapyc3"
@@ -100,6 +105,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/4d17ae2a576285167ce5e317e1.cpp" "_b4e099ca29d02f42b6bb4673da=py/namespace/f63782215f5c4a2e4b79713c724f16f8/contrib/python/MarkupSafe/py3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/4f2a6c1d8d384c59d15e0872ad.cpp" "_e0a36d8d70451542a51b569607=resfs/src/resfs/file/py/markupsafe/__init__.py" "_76283129db55bb62ddef0a1436=resfs/file/py/markupsafe/__init__.py" "_4e27831aa913b282a7d67cf5a0=resfs/src/resfs/file/py/markupsafe/__init__.py.yapyc3" "_f4cccfacb79cee5dc7022a5b5a=resfs/file/py/markupsafe/__init__.py.yapyc3" "_9f0dcff202119cc8a569f25bf1=resfs/src/resfs/file/py/markupsafe/_native.py" "_34e11c0344bef041e0318542c8=resfs/file/py/markupsafe/_native.py" "_ff769d6d0a39b08cc7223a0640=resfs/src/resfs/file/py/markupsafe/_native.py.yapyc3" "_aa069ccca770a3700c18aca2d7=resfs/file/py/markupsafe/_native.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
@@ -112,9 +121,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/MarkupSafe/py3/4f2a6c1d8d384c59d15e0872ad.cpp	$B/contrib/python/MarkupSafe/py3/f5af7289a1f26fa883fc38a4c5.cpp	</Message>
+      <Message>$B/contrib/python/MarkupSafe/py3/4d17ae2a576285167ce5e317e1.cpp	$B/contrib/python/MarkupSafe/py3/4f2a6c1d8d384c59d15e0872ad.cpp	$B/contrib/python/MarkupSafe/py3/f5af7289a1f26fa883fc38a4c5.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\4f2a6c1d8d384c59d15e0872ad.cpp;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\f5af7289a1f26fa883fc38a4c5.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\4d17ae2a576285167ce5e317e1.cpp;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\4f2a6c1d8d384c59d15e0872ad.cpp;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\f5af7289a1f26fa883fc38a4c5.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

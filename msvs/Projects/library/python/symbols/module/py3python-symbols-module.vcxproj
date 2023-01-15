@@ -79,6 +79,33 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\python\symbols\module\module.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\_0d3523be8450bd2b2866d58315.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0d3523be8450bd2b2866d58315.py3.obj" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0d3523be8450bd2b2866d58315.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0d3523be8450bd2b2866d58315.py3.obj" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0d3523be8450bd2b2866d58315.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/symbols/module/_0d3523be8450bd2b2866d58315.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_0d3523be8450bd2b2866d58315.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_0d3523be8450bd2b2866d58315.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\_97a45d2201c8c73d1a01735e13.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
@@ -105,6 +132,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/symbols/module/_97a45d2201c8c73d1a01735e13.py3.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_97a45d2201c8c73d1a01735e13.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_97a45d2201c8c73d1a01735e13.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0d3523be8450bd2b2866d58315.yasm" "-" "library.python.symbols.module." "_6d31d0c1e4835dded990ea98ca.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0d3523be8450bd2b2866d58315.yasm" "-" "library.python.symbols.module." "_6d31d0c1e4835dded990ea98ca.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/symbols/module/_0d3523be8450bd2b2866d58315.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_0d3523be8450bd2b2866d58315.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\symbols\module\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

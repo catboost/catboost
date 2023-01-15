@@ -510,6 +510,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_199e0e322332f374d716e90e2f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_199e0e322332f374d716e90e2f.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_d9d8ea32c246ba95ab4e0f054c.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.obj" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.obj" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_d9d8ea32c246ba95ab4e0f054c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_d9d8ea32c246ba95ab4e0f054c.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_f9cbbddd0bb0eadbf8eccf2626.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py3
@@ -541,6 +568,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.yasm" "-" "." "_439d3ce941a9400c4e1584193e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_f9cbbddd0bb0eadbf8eccf2626.yasm" "-" "IPython.*" "_644b1b89decb217ad0c49a76d4.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -552,6 +583,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.yasm" "-" "." "_439d3ce941a9400c4e1584193e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py3/_f9cbbddd0bb0eadbf8eccf2626.yasm" "-" "IPython.*" "_644b1b89decb217ad0c49a76d4.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -560,9 +595,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/ipython/py3/_f9cbbddd0bb0eadbf8eccf2626.yasm	</Message>
+      <Message>$B/contrib/python/ipython/py3/_d9d8ea32c246ba95ab4e0f054c.yasm	$B/contrib/python/ipython/py3/_f9cbbddd0bb0eadbf8eccf2626.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_f9cbbddd0bb0eadbf8eccf2626.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_d9d8ea32c246ba95ab4e0f054c.yasm;$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\_f9cbbddd0bb0eadbf8eccf2626.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\ipython\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

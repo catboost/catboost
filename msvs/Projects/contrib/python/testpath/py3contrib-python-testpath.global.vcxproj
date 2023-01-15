@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\4e21f5d43285c4441c4cc25640.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\80fbc8dde5d4082baacbf470df.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\bd7d483107df5e081acd455a86.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
@@ -89,6 +90,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/80fbc8dde5d4082baacbf470df.cpp" "_ef6386c9a8df56a1a43d780558=resfs/src/resfs/file/py/testpath/__init__.py" "_91218ae473da40deb6853cf735=resfs/file/py/testpath/__init__.py" "_49b16cb69b0805b9a7a1f30d98=resfs/src/resfs/file/py/testpath/__init__.py.yapyc3" "_979c184b759a1da8d5ed966877=resfs/file/py/testpath/__init__.py.yapyc3" "_e257265d199f78d27dd4586e68=resfs/src/resfs/file/py/testpath/asserts.py" "_fdf101d73d826f327a9f870f39=resfs/file/py/testpath/asserts.py" "_6f5745f8b4bef715d38340b67e=resfs/src/resfs/file/py/testpath/asserts.py.yapyc3" "_b5f3ea8f09fd0b8c3479e7f9ca=resfs/file/py/testpath/asserts.py.yapyc3" "_64ae809830df6145a784ee0a0d=resfs/src/resfs/file/py/testpath/commands.py" "_00830f032982273f7c93f9b8c7=resfs/file/py/testpath/commands.py" "_f4b8ad640ba7b1881403140047=resfs/src/resfs/file/py/testpath/commands.py.yapyc3" "_0cf7259d51227b966992192ef3=resfs/file/py/testpath/commands.py.yapyc3" "_2d8d9639e03120a3bfbd1d16aa=resfs/src/resfs/file/py/testpath/env.py" "_e25fa74a634c279a1227628d05=resfs/file/py/testpath/env.py" "_b62a6a54d8851e451fb8b0ef39=resfs/src/resfs/file/py/testpath/env.py.yapyc3" "_a99570163b6c77ac9fec72cf18=resfs/file/py/testpath/env.py.yapyc3" "_72971376a4de269ffa368963f4=resfs/src/resfs/file/py/testpath/tempdir.py" "_1d935096a211505f5e755e6d51=resfs/file/py/testpath/tempdir.py" "_d4acbb12f9dcfabfb3dd406b7f=resfs/src/resfs/file/py/testpath/tempdir.py.yapyc3" "_2bcb983d9d2b1c8754ee18aa5e=resfs/file/py/testpath/tempdir.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/bd7d483107df5e081acd455a86.cpp" "_89d9434beee5903905f5defa3b=py/namespace/fbb2034db86e9084e298faba6de33b79/contrib/python/testpath"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -105,15 +110,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/80fbc8dde5d4082baacbf470df.cpp" "_ef6386c9a8df56a1a43d780558=resfs/src/resfs/file/py/testpath/__init__.py" "_91218ae473da40deb6853cf735=resfs/file/py/testpath/__init__.py" "_49b16cb69b0805b9a7a1f30d98=resfs/src/resfs/file/py/testpath/__init__.py.yapyc3" "_979c184b759a1da8d5ed966877=resfs/file/py/testpath/__init__.py.yapyc3" "_e257265d199f78d27dd4586e68=resfs/src/resfs/file/py/testpath/asserts.py" "_fdf101d73d826f327a9f870f39=resfs/file/py/testpath/asserts.py" "_6f5745f8b4bef715d38340b67e=resfs/src/resfs/file/py/testpath/asserts.py.yapyc3" "_b5f3ea8f09fd0b8c3479e7f9ca=resfs/file/py/testpath/asserts.py.yapyc3" "_64ae809830df6145a784ee0a0d=resfs/src/resfs/file/py/testpath/commands.py" "_00830f032982273f7c93f9b8c7=resfs/file/py/testpath/commands.py" "_f4b8ad640ba7b1881403140047=resfs/src/resfs/file/py/testpath/commands.py.yapyc3" "_0cf7259d51227b966992192ef3=resfs/file/py/testpath/commands.py.yapyc3" "_2d8d9639e03120a3bfbd1d16aa=resfs/src/resfs/file/py/testpath/env.py" "_e25fa74a634c279a1227628d05=resfs/file/py/testpath/env.py" "_b62a6a54d8851e451fb8b0ef39=resfs/src/resfs/file/py/testpath/env.py.yapyc3" "_a99570163b6c77ac9fec72cf18=resfs/file/py/testpath/env.py.yapyc3" "_72971376a4de269ffa368963f4=resfs/src/resfs/file/py/testpath/tempdir.py" "_1d935096a211505f5e755e6d51=resfs/file/py/testpath/tempdir.py" "_d4acbb12f9dcfabfb3dd406b7f=resfs/src/resfs/file/py/testpath/tempdir.py.yapyc3" "_2bcb983d9d2b1c8754ee18aa5e=resfs/file/py/testpath/tempdir.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/bd7d483107df5e081acd455a86.cpp" "_89d9434beee5903905f5defa3b=py/namespace/fbb2034db86e9084e298faba6de33b79/contrib/python/testpath"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp	$B/contrib/python/testpath/80fbc8dde5d4082baacbf470df.cpp	</Message>
+      <Message>$B/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp	$B/contrib/python/testpath/80fbc8dde5d4082baacbf470df.cpp	$B/contrib/python/testpath/bd7d483107df5e081acd455a86.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\4e21f5d43285c4441c4cc25640.cpp;$(SolutionDir)$(Configuration)\contrib\python\testpath\80fbc8dde5d4082baacbf470df.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\4e21f5d43285c4441c4cc25640.cpp;$(SolutionDir)$(Configuration)\contrib\python\testpath\80fbc8dde5d4082baacbf470df.cpp;$(SolutionDir)$(Configuration)\contrib\python\testpath\bd7d483107df5e081acd455a86.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

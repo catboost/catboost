@@ -79,12 +79,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\23219f30abd63b829a4d13a61f.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\4031a1027b2c7a9f415e84d5b2.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\b57275d124cd9c0f85245973df.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/23219f30abd63b829a4d13a61f.cpp" "_489d89f11a28f518802354256a=resfs/src/resfs/file/contrib/python/backcall/.dist-info/METADATA" "_04721e360304967071553cef1e=resfs/file/contrib/python/backcall/.dist-info/METADATA" "_92330c47e328ae4afc7a8cc642=resfs/src/resfs/file/contrib/python/backcall/.dist-info/top_level.txt" "_918165f0408c44365da543065c=resfs/file/contrib/python/backcall/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/4031a1027b2c7a9f415e84d5b2.cpp" "_3b42f26870542493cb12304868=py/namespace/8f102f4d6ff4a221969252c9c77f9396/contrib/python/backcall"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
@@ -103,6 +108,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/4031a1027b2c7a9f415e84d5b2.cpp" "_3b42f26870542493cb12304868=py/namespace/8f102f4d6ff4a221969252c9c77f9396/contrib/python/backcall"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/b57275d124cd9c0f85245973df.cpp" "_0b781406f2c50502c849c11bdf=resfs/src/resfs/file/py/backcall/__init__.py" "_b0d122a5d1325e3b06ba9fca83=resfs/file/py/backcall/__init__.py" "_f000ed4adb8f61a7c9fd63c664=resfs/src/resfs/file/py/backcall/__init__.py.yapyc3" "_4b5ade5b7db7a7f8122053c38b=resfs/file/py/backcall/__init__.py.yapyc3" "_822e3bfabc891b78088eb33c3d=resfs/src/resfs/file/py/backcall/_signatures.py" "_5666bd8dbccbd56b81850743a4=resfs/file/py/backcall/_signatures.py" "_3999ce206a2317c23a5e6e25b5=resfs/src/resfs/file/py/backcall/_signatures.py.yapyc3" "_f99a4178746c0702ff7812e5bd=resfs/file/py/backcall/_signatures.py.yapyc3" "_5759948372ddac80c221540280=resfs/src/resfs/file/py/backcall/backcall.py" "_48648e0960a2c6ef3699bbc819=resfs/file/py/backcall/backcall.py" "_2146d700eadd2987ffb5de4ce4=resfs/src/resfs/file/py/backcall/backcall.py.yapyc3" "_df15a5881363119e4ae40cfb34=resfs/file/py/backcall/backcall.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -111,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backcall/23219f30abd63b829a4d13a61f.cpp	$B/contrib/python/backcall/b57275d124cd9c0f85245973df.cpp	</Message>
+      <Message>$B/contrib/python/backcall/23219f30abd63b829a4d13a61f.cpp	$B/contrib/python/backcall/4031a1027b2c7a9f415e84d5b2.cpp	$B/contrib/python/backcall/b57275d124cd9c0f85245973df.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\23219f30abd63b829a4d13a61f.cpp;$(SolutionDir)$(Configuration)\contrib\python\backcall\b57275d124cd9c0f85245973df.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\23219f30abd63b829a4d13a61f.cpp;$(SolutionDir)$(Configuration)\contrib\python\backcall\4031a1027b2c7a9f415e84d5b2.cpp;$(SolutionDir)$(Configuration)\contrib\python\backcall\b57275d124cd9c0f85245973df.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

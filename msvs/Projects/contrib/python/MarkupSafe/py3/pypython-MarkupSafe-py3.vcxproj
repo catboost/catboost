@@ -81,6 +81,33 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\MarkupSafe\py3\markupsafe\_speedups.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\_4d17ae2a576285167ce5e317e1.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.obj" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.obj" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\_4d17ae2a576285167ce5e317e1.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\_4d17ae2a576285167ce5e317e1.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\_4f2a6c1d8d384c59d15e0872ad.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
@@ -134,6 +161,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/MarkupSafe/py3/_f5af7289a1f26fa883fc38a4c5.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\_f5af7289a1f26fa883fc38a4c5.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\_f5af7289a1f26fa883fc38a4c5.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.yasm" "-" "." "_b4e099ca29d02f42b6bb4673da.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.yasm" "-" "." "_b4e099ca29d02f42b6bb4673da.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/MarkupSafe/py3/_4d17ae2a576285167ce5e317e1.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py3\_4d17ae2a576285167ce5e317e1.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\MarkupSafe\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

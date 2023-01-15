@@ -79,11 +79,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\resource\0ed35c221a2d8158bfb0f333d0.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\resource\3409eee6e529d91e98aa0e82ab.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\resource
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/resource/0ed35c221a2d8158bfb0f333d0.cpp" "_fa9e2099e6599e3b07383a3244=resfs/src/resfs/file/py/library/python/resource/__init__.py" "_28ba26a4544cbe265d432023ff=resfs/file/py/library/python/resource/__init__.py" "_fe2123200081793c09807e5158=resfs/src/resfs/file/py/library/python/resource/__init__.py.yapyc3" "_4f554df54e0745c4901dc7f317=resfs/file/py/library/python/resource/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\resource
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/resource/3409eee6e529d91e98aa0e82ab.cpp" "_a0a6cc4c9e224b09422651fbe7=py/namespace/afba2a51946e72a9f7e7421f6dfa6616/library/python/resource"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,15 +101,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\resource
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/resource/0ed35c221a2d8158bfb0f333d0.cpp" "_fa9e2099e6599e3b07383a3244=resfs/src/resfs/file/py/library/python/resource/__init__.py" "_28ba26a4544cbe265d432023ff=resfs/file/py/library/python/resource/__init__.py" "_fe2123200081793c09807e5158=resfs/src/resfs/file/py/library/python/resource/__init__.py.yapyc3" "_4f554df54e0745c4901dc7f317=resfs/file/py/library/python/resource/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\resource
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/resource/3409eee6e529d91e98aa0e82ab.cpp" "_a0a6cc4c9e224b09422651fbe7=py/namespace/afba2a51946e72a9f7e7421f6dfa6616/library/python/resource"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/resource/0ed35c221a2d8158bfb0f333d0.cpp	</Message>
+      <Message>$B/library/python/resource/0ed35c221a2d8158bfb0f333d0.cpp	$B/library/python/resource/3409eee6e529d91e98aa0e82ab.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\resource\0ed35c221a2d8158bfb0f333d0.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\resource\0ed35c221a2d8158bfb0f333d0.cpp;$(SolutionDir)$(Configuration)\library\python\resource\3409eee6e529d91e98aa0e82ab.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

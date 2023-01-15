@@ -105,6 +105,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_206d3c7dee385707ebbf1db557.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_206d3c7dee385707ebbf1db557.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\_342638cb58372e30a9b515d440.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_342638cb58372e30a9b515d440.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_342638cb58372e30a9b515d440.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_342638cb58372e30a9b515d440.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_342638cb58372e30a9b515d440.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/_342638cb58372e30a9b515d440.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_342638cb58372e30a9b515d440.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_342638cb58372e30a9b515d440.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\_6774d1245bd6bb95e238996a80.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
@@ -132,6 +159,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_6774d1245bd6bb95e238996a80.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_6774d1245bd6bb95e238996a80.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\_f0781650d03506cbd6e8d53625.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f0781650d03506cbd6e8d53625.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f0781650d03506cbd6e8d53625.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f0781650d03506cbd6e8d53625.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f0781650d03506cbd6e8d53625.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/_f0781650d03506cbd6e8d53625.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_f0781650d03506cbd6e8d53625.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_f0781650d03506cbd6e8d53625.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\converters.py.oqg6.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
@@ -158,6 +212,41 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/attrs/_05bb68c71246f0e5fa2cf81d08.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\converters.py.oqg6.yapyc3;$(SolutionDir)..\contrib\python\attrs\attr\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\exceptions.py.bnme.yapyc3;$(SolutionDir)..\contrib\python\attrs\attr\filters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\filters.py.4jwx.yapyc3;$(SolutionDir)..\contrib\python\attrs\attr\setters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\setters.py.utwm.yapyc3;$(SolutionDir)..\contrib\python\attrs\attr\validators.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\validators.py.xi5i.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_05bb68c71246f0e5fa2cf81d08.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\_f0f43593bfdeeb60f16ff5ef51.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_41b4d30a45fc79145690d92a1a.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_4e72daf8c34a784d2e2378dbe0.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_3403974e90433f9b76bdc74606.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_b8fc865fe0c93ad4ec224dd267.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_032bdceeb092a8b347260aa7da.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_646713e927cb04e734170ca59e.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_0535bd0e33d8cb93da9c97aa23.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_48c120882199efe2f6d6ff7705.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_342638cb58372e30a9b515d440.yasm" "-" "." "_7c798334f51123b065ef66cd30.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f0781650d03506cbd6e8d53625.yasm" "-" "." "_4c3094e8ff8e05c865f265bef8.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_342638cb58372e30a9b515d440.yasm" "-" "." "_7c798334f51123b065ef66cd30.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f0781650d03506cbd6e8d53625.yasm" "-" "." "_4c3094e8ff8e05c865f265bef8.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/_342638cb58372e30a9b515d440.yasm	$B/contrib/python/attrs/_f0781650d03506cbd6e8d53625.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_342638cb58372e30a9b515d440.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\_f0781650d03506cbd6e8d53625.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

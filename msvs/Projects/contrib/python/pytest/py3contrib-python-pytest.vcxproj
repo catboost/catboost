@@ -132,6 +132,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_32e2f871fc24b89a43da0490f4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_32e2f871fc24b89a43da0490f4.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_3ad49f0ea38950d2a5bbd49eb3.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_3ad49f0ea38950d2a5bbd49eb3.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_3ad49f0ea38950d2a5bbd49eb3.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\pastebin.py.qo5d.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
@@ -192,6 +219,10 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_32e2f871fc24b89a43da0490f4.yasm" "-" "__tests__.* _pytest.*" "_c5c075b7be3e0dccef30020885.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.yasm" "-" "." "_02ed2fffc3a1ace6c01a48de6b.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -203,15 +234,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_32e2f871fc24b89a43da0490f4.yasm" "-" "__tests__.* _pytest.*" "_c5c075b7be3e0dccef30020885.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.yasm" "-" "." "_02ed2fffc3a1ace6c01a48de6b.rodata"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pytest/_32e2f871fc24b89a43da0490f4.yasm	</Message>
+      <Message>$B/contrib/python/pytest/_32e2f871fc24b89a43da0490f4.yasm	$B/contrib/python/pytest/_3ad49f0ea38950d2a5bbd49eb3.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_32e2f871fc24b89a43da0490f4.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_32e2f871fc24b89a43da0490f4.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3ad49f0ea38950d2a5bbd49eb3.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\pytest\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

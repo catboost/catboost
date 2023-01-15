@@ -78,9 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\filter\1b59c9b02c8afae6b4f88f2f74.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\filter\64baef5f8b7d4db6ee730ad1c7.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/filter/1b59c9b02c8afae6b4f88f2f74.cpp" "_de6b26659ccd928a03c7ed7052=py/namespace/b4183c2ca171be1d882e270634675ad8/library/python/testing/filter"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/filter/64baef5f8b7d4db6ee730ad1c7.cpp" "_b0efde4fddb55f71f608c1f1f7=resfs/src/resfs/file/py/library/python/testing/filter/filter.py" "_3ba6f4e03fd45508b2639c0a3e=resfs/file/py/library/python/testing/filter/filter.py" "_8329c477a481e5ef49cc2cc767=resfs/src/resfs/file/py/library/python/testing/filter/filter.py.yapyc3" "_4ddaae46622ca6156207f51970=resfs/file/py/library/python/testing/filter/filter.py.yapyc3"
@@ -94,6 +99,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/filter/1b59c9b02c8afae6b4f88f2f74.cpp" "_de6b26659ccd928a03c7ed7052=py/namespace/b4183c2ca171be1d882e270634675ad8/library/python/testing/filter"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\filter
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/filter/64baef5f8b7d4db6ee730ad1c7.cpp" "_b0efde4fddb55f71f608c1f1f7=resfs/src/resfs/file/py/library/python/testing/filter/filter.py" "_3ba6f4e03fd45508b2639c0a3e=resfs/file/py/library/python/testing/filter/filter.py" "_8329c477a481e5ef49cc2cc767=resfs/src/resfs/file/py/library/python/testing/filter/filter.py.yapyc3" "_4ddaae46622ca6156207f51970=resfs/file/py/library/python/testing/filter/filter.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -102,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/filter/64baef5f8b7d4db6ee730ad1c7.cpp	</Message>
+      <Message>$B/library/python/testing/filter/1b59c9b02c8afae6b4f88f2f74.cpp	$B/library/python/testing/filter/64baef5f8b7d4db6ee730ad1c7.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\filter\64baef5f8b7d4db6ee730ad1c7.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\filter\1b59c9b02c8afae6b4f88f2f74.cpp;$(SolutionDir)$(Configuration)\library\python\testing\filter\64baef5f8b7d4db6ee730ad1c7.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

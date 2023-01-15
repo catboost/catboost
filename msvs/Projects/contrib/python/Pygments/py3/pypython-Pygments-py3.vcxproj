@@ -105,6 +105,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_572db77f198a907786b16cf045.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_572db77f198a907786b16cf045.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_93505ec513fc24d056de834286.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_93505ec513fc24d056de834286.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_93505ec513fc24d056de834286.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_d46e5cf5ea01cf07a5c633f8ef.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py3
@@ -676,6 +703,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.yasm" "-" "." "_ed97a0ce8a95717dd4b896d9f6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_d46e5cf5ea01cf07a5c633f8ef.yasm" "-" "pygments.sphinxext" "_ea4e34810724d134c5d9a41964.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -687,6 +718,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.yasm" "-" "." "_ed97a0ce8a95717dd4b896d9f6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py3/_d46e5cf5ea01cf07a5c633f8ef.yasm" "-" "pygments.sphinxext" "_ea4e34810724d134c5d9a41964.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -695,9 +730,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Pygments/py3/_d46e5cf5ea01cf07a5c633f8ef.yasm	</Message>
+      <Message>$B/contrib/python/Pygments/py3/_93505ec513fc24d056de834286.yasm	$B/contrib/python/Pygments/py3/_d46e5cf5ea01cf07a5c633f8ef.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_d46e5cf5ea01cf07a5c633f8ef.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_93505ec513fc24d056de834286.yasm;$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\_d46e5cf5ea01cf07a5c633f8ef.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\Pygments\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

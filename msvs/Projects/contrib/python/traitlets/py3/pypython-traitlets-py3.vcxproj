@@ -105,6 +105,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_82a98248d64898347faa6a9523.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_82a98248d64898347faa6a9523.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_a78b5377b2fa2357322123144b.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.obj" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.obj" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_a78b5377b2fa2357322123144b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_a78b5377b2fa2357322123144b.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\config\manager.py.hoju.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
@@ -158,6 +185,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/traitlets/py3/_b9566ee6639a0fd32041e04570.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\utils\__init__.py.7qnw.yapyc3;$(SolutionDir)..\contrib\python\traitlets\py3\traitlets\utils\bunch.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\utils\bunch.py.xgky.yapyc3;$(SolutionDir)..\contrib\python\traitlets\py3\traitlets\utils\decorators.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\utils\decorators.py.rzlv.yapyc3;$(SolutionDir)..\contrib\python\traitlets\py3\traitlets\utils\descriptions.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\utils\descriptions.py.urx5.yapyc3;$(SolutionDir)..\contrib\python\traitlets\py3\traitlets\utils\getargspec.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\utils\getargspec.py.54yb.yapyc3;$(SolutionDir)..\contrib\python\traitlets\py3\traitlets\utils\importstring.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\utils\importstring.py.jbnt.yapyc3;$(SolutionDir)..\contrib\python\traitlets\py3\traitlets\utils\sentinel.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\traitlets\utils\sentinel.py.bgkx.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_b9566ee6639a0fd32041e04570.yasm;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_12ce1fb12204346902fdc5d7f1.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_06bb48e7b356a02e3dccd13d6c.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_d66f55dfc2c7cc76882c1b8a54.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_082bc63045152b0ef51322e74e.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_d8e2975b0da928f885a8a500b5.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_6e87367b992d9d8cb5f72ee534.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_d44f4674fa76b21694b0b3b39b.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_f8301b8a7e409daab80587116d.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_1a4febb3305607e0ac3469de9a.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_d74c9ba210729879ab9c35faac.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_428e0cce80c757330b6e87fc50.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_56abdee48c326015c1a5c45a0a.rodata;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_9ba39682d0665440241a19b649.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.yasm" "-" "." "_046a5b7cbfc4fcb14fd9ea2204.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.yasm" "-" "." "_046a5b7cbfc4fcb14fd9ea2204.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/traitlets/py3/_a78b5377b2fa2357322123144b.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\_a78b5377b2fa2357322123144b.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\traitlets\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
