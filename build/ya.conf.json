@@ -6845,7 +6845,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 684637229,
+                "sandbox_id": 685519451,
                 "match": "horadric"
             },
             "executable": {
@@ -7092,7 +7092,9 @@
                 "match": "infra/kernel/tools/foremost/build/foremost-static.tar.gz"
             },
             "executable": {
-                "foremost": ["foremost"]
+                "foremost": [
+                    "foremost"
+                ]
             }
         },
         "atop": {
