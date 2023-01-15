@@ -32,7 +32,7 @@
 
 #include <google/protobuf/stubs/type_traits.h>
 
-#include "io/zero_copy_stream_impl_lite.h"
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include "metadata_lite.h"
 #include "repeated_field.h"
 #include "wire_format_lite.h"

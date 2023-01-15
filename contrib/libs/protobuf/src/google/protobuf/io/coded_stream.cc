@@ -38,11 +38,11 @@
 // will not cross the end of the buffer, since we can avoid a lot
 // of branching in this case.
 
-#include "io/coded_stream_inl.h"
+#include <google/protobuf/io/coded_stream_inl.h>
 #include <algorithm>
 #include <utility>
 #include <limits.h>
-#include "io/zero_copy_stream.h"
+#include <google/protobuf/io/zero_copy_stream.h>
 #include "arena.h"
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>

@@ -2,12 +2,12 @@
 #define GOOGLE_PROTOBUF_MESSAGEXT_H__
 
 #include "message.h"
-#include "io/coded_stream.h"
+#include <google/protobuf/io/coded_stream.h>
 #include "text_format.h"
 #include <util/stream/output.h>
 #include <util/generic/buffer.h>
 
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 /// this file is Yandex extensions to protobuf
 

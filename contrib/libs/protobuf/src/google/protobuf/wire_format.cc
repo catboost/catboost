@@ -45,9 +45,9 @@
 #include "map_field.h"
 #include "wire_format_lite_inl.h"
 #include <google/protobuf/descriptor.pb.h>
-#include "io/coded_stream.h"
-#include "io/zero_copy_stream.h"
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "unknown_field_set.h"
 
 

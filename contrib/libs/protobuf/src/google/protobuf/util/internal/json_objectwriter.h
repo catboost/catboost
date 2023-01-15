@@ -36,7 +36,7 @@
 #include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
-#include "io/coded_stream.h"
+#include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/util/internal/structured_objectwriter.h>
 #include <google/protobuf/stubs/bytestream.h>
 

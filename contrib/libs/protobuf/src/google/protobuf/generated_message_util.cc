@@ -37,8 +37,8 @@
 #include <limits>
 #include <vector>
 
-#include "io/coded_stream_inl.h"
-#include "io/coded_stream.h"
+#include <google/protobuf/io/coded_stream_inl.h>
+#include <google/protobuf/io/coded_stream.h>
 #include "arenastring.h"
 #include "extension_set.h"
 #include "message_lite.h"

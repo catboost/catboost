@@ -49,10 +49,10 @@
 #include <google/protobuf/stubs/once.h>
 #include <google/protobuf/stubs/stringprintf.h>
 #include <google/protobuf/stubs/strutil.h>
-#include "io/strtod.h"
-#include "io/coded_stream.h"
-#include "io/tokenizer.h"
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/strtod.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/tokenizer.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include "descriptor_database.h"

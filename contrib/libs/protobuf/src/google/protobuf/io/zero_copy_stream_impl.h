@@ -41,8 +41,8 @@
 #define GOOGLE_PROTOBUF_IO_ZERO_COPY_STREAM_IMPL_H__
 
 #include <iosfwd>
-#include "io/zero_copy_stream.h"
-#include "io/zero_copy_stream_impl_lite.h"
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/stubs/common.h>
 
 

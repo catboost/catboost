@@ -37,8 +37,8 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/stringprintf.h>
 #include <google/protobuf/stubs/time.h>
-#include "io/coded_stream.h"
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "descriptor.h"
 #include "wire_format.h"
 #include "wire_format_lite.h"

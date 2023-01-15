@@ -36,9 +36,9 @@
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
-#include "io/coded_stream.h"
-#include "io/zero_copy_stream.h"
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "metadata.h"
 #include "wire_format.h"
 #include <google/protobuf/stubs/stl_util.h>

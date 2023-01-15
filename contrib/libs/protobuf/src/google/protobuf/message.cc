@@ -44,8 +44,8 @@
 #include <google/protobuf/stubs/mutex.h>
 #include <google/protobuf/stubs/once.h>
 #include "reflection_internal.h"
-#include "io/coded_stream.h"
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include "generated_message_util.h"

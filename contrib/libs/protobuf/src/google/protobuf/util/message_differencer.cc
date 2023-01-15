@@ -50,9 +50,9 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/stringprintf.h>
 #include "any.h"
-#include "io/printer.h"
-#include "io/zero_copy_stream.h"
-#include "io/zero_copy_stream_impl.h"
+#include <google/protobuf/io/printer.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/descriptor.pb.h>
 #include "dynamic_message.h"
 #include "text_format.h"
