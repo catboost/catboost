@@ -10,8 +10,6 @@ import com.google.common.base.Predicates.alwaysTrue
 
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import org.json4s.jackson.Serialization
-import org.json4s.jackson.Serialization.write
 import org.json4s.JsonDSL._
 
 import org.apache.spark.ml.param._;
@@ -197,8 +195,6 @@ private[spark] object Helpers {
   }
 
   def processClassWeightsParams(params: mutable.HashMap[String, Any]) : JObject = {
-    implicit val formats = Serialization.formats(NoTypeHints)
-
     if (params.contains("classWeightsMap")) {
       val classWeightsMap = params("classWeightsMap").asInstanceOf[java.util.LinkedHashMap[String, Float]]
       val classWeightsList = new Array[Double](classWeightsMap.size)
@@ -222,12 +218,12 @@ private[spark] object Helpers {
           classWeightsList(i) = classWeight.toDouble
           i = i + 1
         }
-        result = result ~ ("class_names" -> write(classNames))
+        result = result ~ ("class_names" -> classNames.toSeq)
       }
-      result = result ~ ("class_weights" -> write(classWeightsList))
+      result = result ~ ("class_weights" -> classWeightsList.toSeq)
       result
     } else if (params.contains("classWeightsList")) {
-      JObject() ~ ("class_weights" -> write(params("classWeightsList").asInstanceOf[Array[Double]]))
+      JObject() ~ ("class_weights" -> params("classWeightsList").asInstanceOf[Array[Double]].toSeq)
     } else {
       JObject()
     }
