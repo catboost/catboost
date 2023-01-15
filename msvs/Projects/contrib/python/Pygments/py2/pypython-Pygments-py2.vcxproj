@@ -85,7 +85,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +96,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,15 +104,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.py2.obj	</Message>
+      <Message>$B/contrib/python/Pygments/py2/_cbac34268cff8b190ce76ae228.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\_cbac34268cff8b190ce76ae228.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\_cbac34268cff8b190ce76ae228.py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\_cbac34268cff8b190ce76ae228.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\_d46e5cf5ea01cf07a5c633f8ef.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -123,7 +123,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -131,15 +131,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.py2.obj	</Message>
+      <Message>$B/contrib/python/Pygments/py2/_d46e5cf5ea01cf07a5c633f8ef.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\_d46e5cf5ea01cf07a5c633f8ef.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\_d46e5cf5ea01cf07a5c633f8ef.py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\_d46e5cf5ea01cf07a5c633f8ef.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\join_44773de4dce21f2f324ee2d2ab.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -150,7 +150,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Pygments\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.obj" "$(SolutionDir)$(Configuration)/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -158,9 +158,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.py2.obj	</Message>
+      <Message>$B/contrib/python/Pygments/py2/join_44773de4dce21f2f324ee2d2ab.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\join_44773de4dce21f2f324ee2d2ab.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\join_44773de4dce21f2f324ee2d2ab.py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\join_44773de4dce21f2f324ee2d2ab.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Pygments\py2\pygments\formatters\bbcode.py.c6mn.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
