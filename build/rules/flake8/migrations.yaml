@@ -303,7 +303,6 @@ migrations:
     - metrika/admin/python/cms/agent/lib
     - metrika/admin/python/cms/frontend/cms
     - metrika/admin/python/cms/frontend/tests
-    - metrika/admin/python/cms/judge/lib
     - metrika/admin/python/scripts/juggler_checks/metrica_infra
     - metrika/admin/python/strogg/frontend/strogg
     - metrika/core/monitoring/clickhouse-table-structure-check
@@ -499,7 +498,6 @@ migrations:
     - sandbox/projects/security/FetchNvdFeed
     - sandbox/projects/smarttv
     - sandbox/projects/taxi/BuildDispatcherPackage
-    - sandbox/projects/testenv
     - sandbox/projects/voicetech/common
     - sandbox/projects/websearch/begemot/tasks/BegemotYT/paths
     - sandbox/projects/wmc
