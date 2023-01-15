@@ -53,11 +53,11 @@ TConstArrayRef<ui8> TPrecomputedOnlineCtr::GetData(const TCtr& ctr, ui32 dataset
     const TQuantizedForCPUObjectsDataProvider& dataProvider
         = (datasetIdx == 0) ? *(Data.DataProviders.Learn) : *(Data.DataProviders.Test[datasetIdx - 1]);
 
-    const IQuantizedCatValuesHolder& column
-        = **(dataProvider.GetNonPackedCatFeature(Data.OnlineCtrIdxToFeatureIdx.at(onlineCtrIdx)));
+    const IQuantizedFloatValuesHolder& column
+        = **(dataProvider.GetNonPackedFloatFeature(Data.OnlineCtrIdxToFeatureIdx.at(onlineCtrIdx)));
 
-    const TQuantizedCatValuesHolder& columnImpl
-        = dynamic_cast<const NCB::TQuantizedCatValuesHolder&>(column);
+    const TQuantizedFloatValuesHolder& columnImpl
+        = dynamic_cast<const NCB::TQuantizedFloatValuesHolder&>(column);
 
     Y_ASSERT(columnImpl.GetBitsPerKey() == 8);
     TConstPtrArraySubset<ui8> arraySubset = columnImpl.GetArrayData<ui8>();
