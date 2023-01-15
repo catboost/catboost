@@ -9,7 +9,7 @@
 #include <cstdio>
 
 TString FormatExc(const std::exception &exception) {
-    return TString::Join(TStringBuf("("), TypeName(&exception), TStringBuf(") "), exception.what());
+    return TString::Join(TStringBuf("("), BetterTypeName(exception), TStringBuf(") "), exception.what());
 }
 
 TString CurrentExceptionMessage() {
