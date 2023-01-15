@@ -129,6 +129,11 @@ def onjava_module(unit, *args):
         if unit.get('KOTLINC_FLAGS_VALUE'):
             data['KOTLINC_FLAGS'] = extract_macro_calls(unit, 'KOTLINC_FLAGS_VALUE', args_delim)
 
+    if unit.get('WITH_GROOVY_VALUE') == 'yes':
+        if not common.strip_roots(unit.path()).startswith(('devtools/dummy_arcadia', 'junk')):
+            ymake.report_configure_error('Groovy is not allowed here')
+        data['WITH_GROOVY'] = extract_macro_calls(unit, 'WITH_GROOVY_VALUE', args_delim)
+
     if unit.get('DIRECT_DEPS_ONLY_VALUE') == 'yes':
         data['DIRECT_DEPS_ONLY'] = extract_macro_calls(unit, 'DIRECT_DEPS_ONLY_VALUE', args_delim)
 
