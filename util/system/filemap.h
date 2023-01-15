@@ -64,7 +64,7 @@ struct TMemoryMapCommon {
      * Name that will be printed in exceptions if not specified.
      * Overridden by name obtained from `TFile` if it's not empty.
      */
-    static const TString UnknownFileName;
+    static TString UnknownFileName();
 };
 Y_DECLARE_OPERATORS_FOR_FLAGS(TMemoryMapCommon::EOpenMode)
 
@@ -73,10 +73,10 @@ public:
     explicit TMemoryMap(const TString& name);
     explicit TMemoryMap(const TString& name, EOpenMode om);
     TMemoryMap(const TString& name, i64 length, EOpenMode om);
-    TMemoryMap(FILE* f, TString dbgName = UnknownFileName);
-    TMemoryMap(FILE* f, EOpenMode om, TString dbgName = UnknownFileName);
-    TMemoryMap(const TFile& file, TString dbgName = UnknownFileName);
-    TMemoryMap(const TFile& file, EOpenMode om, TString dbgName = UnknownFileName);
+    TMemoryMap(FILE* f, TString dbgName = UnknownFileName());
+    TMemoryMap(FILE* f, EOpenMode om, TString dbgName = UnknownFileName());
+    TMemoryMap(const TFile& file, TString dbgName = UnknownFileName());
+    TMemoryMap(const TFile& file, EOpenMode om, TString dbgName = UnknownFileName());
 
     ~TMemoryMap();
 
@@ -112,8 +112,8 @@ public:
     TFileMap(const TString& name);
     TFileMap(const TString& name, EOpenMode om);
     TFileMap(const TString& name, i64 length, EOpenMode om);
-    TFileMap(FILE* f, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName);
-    TFileMap(const TFile& file, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName);
+    TFileMap(FILE* f, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName());
+    TFileMap(const TFile& file, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName());
     TFileMap(const TFileMap& fm) noexcept;
 
     ~TFileMap();

@@ -71,7 +71,9 @@ namespace {
 #define GRANULARITY (TSysInfo::Instance().GRANULARITY_)
 #define PAGE_SIZE (TSysInfo::Instance().PAGE_SIZE_)
 
-const TString TMemoryMapCommon::UnknownFileName("Unknown_file_name");
+TString TMemoryMapCommon::UnknownFileName() {
+    return "Unknown_file_name";
+}
 
 static inline i64 DownToGranularity(i64 offset) noexcept {
     return offset & ~((i64)(GRANULARITY - 1));
