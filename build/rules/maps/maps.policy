@@ -157,5 +157,8 @@ DENY .* -> maps_adv/
 ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/common
 ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/revision
 
+# Ydo libs can use pbstream
+ALLOW ydo/libs/dispatch -> maps/libs/pbstream
+
 # Do not allow PEERDIRs into maps unless such PEERDIRs have be explicitly allowed above
 DENY .* -> maps/
