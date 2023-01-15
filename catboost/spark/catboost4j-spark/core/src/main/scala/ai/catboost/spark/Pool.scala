@@ -761,7 +761,7 @@ class Pool (
   }
 
   /**
-   * Repartion data to the specified number of partitions.
+   * Repartition data to the specified number of partitions.
    * Useful to repartition data to create one partition per executor for training
    * (where each executor gets its' own CatBoost worker with a part of the training data).
    */
