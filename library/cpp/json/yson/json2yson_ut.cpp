@@ -1,7 +1,7 @@
 #include "library/cpp/json/yson/json2yson.h"
 
 #include <library/blockcodecs/codecs.h>
-#include <library/histogram/simple/histogram.h>
+#include <library/cpp/histogram/simple/histogram.h>
 #include <library/unittest/registar.h>
 #include <library/unittest/tests_data.h>
 

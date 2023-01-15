@@ -8,7 +8,7 @@ DATA(sbr://363537653)
 
 PEERDIR(
     library/blockcodecs
-    library/histogram/simple
+    library/cpp/histogram/simple
     library/unittest
 )
 
