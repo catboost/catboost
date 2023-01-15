@@ -174,6 +174,7 @@ static TOpaqueModelTree* CastToOpaqueTree(const TModelTrees& trees) {
 
 TModelTrees::TModelTrees() {
     ModelTreeData = MakeHolder<TSolidModelTree>();
+    UpdateRuntimeData();
 }
 
 void TModelTrees::ProcessSplitsSet(
@@ -428,62 +429,52 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
 
 static_assert(sizeof(TRepackedBin) == sizeof(NCatBoostFbs::TRepackedBin));
 
-void TModelTrees::ClearRuntimeData() const {
-    TGuard<TAdaptiveLock> guardApply(MutableDataLock);
-    RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>{};
-    RuntimeData.Drop();
-    ApplyData.Drop();
+void TModelTrees::UpdateRuntimeData() {
+    CalcForApplyData();
+    CalcBinFeatures();
 }
 
-void TModelTrees::UpdateRuntimeData() const {
-    ClearRuntimeData();
-}
-
-void TModelTrees::ProcessFloatFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
+void TModelTrees::ProcessFloatFeatures() {
     for (const auto& feature : FloatFeatures) {
         if (feature.UsedInModel()) {
-            ++ref->UsedFloatFeaturesCount;
-            ref->MinimalSufficientFloatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+            ++ApplyData->UsedFloatFeaturesCount;
+            ApplyData->MinimalSufficientFloatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
         }
     }
 }
 
-void TModelTrees::ProcessCatFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
+void TModelTrees::ProcessCatFeatures() {
     for (const auto& feature : CatFeatures) {
         if (feature.UsedInModel()) {
-            ++ref->UsedCatFeaturesCount;
-            ref->MinimalSufficientCatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+            ++ApplyData->UsedCatFeaturesCount;
+            ApplyData->MinimalSufficientCatFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
         }
     }
 }
 
-void TModelTrees::ProcessTextFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
+void TModelTrees::ProcessTextFeatures() {
     for (const auto& feature : TextFeatures) {
         if (feature.UsedInModel()) {
-            ++ref->UsedTextFeaturesCount;
-            ref->MinimalSufficientTextFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+            ++ApplyData->UsedTextFeaturesCount;
+            ApplyData->MinimalSufficientTextFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
         }
     }
 }
 
-void TModelTrees::ProcessEmbeddingFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
+void TModelTrees::ProcessEmbeddingFeatures() {
     for (const auto& feature : TextFeatures) {
         if (feature.UsedInModel()) {
-            ++ref->UsedEmbeddingFeaturesCount;
-            ref->MinimalSufficientEmbeddingFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
+            ++ApplyData->UsedEmbeddingFeaturesCount;
+            ApplyData->MinimalSufficientEmbeddingFeaturesVectorSize = static_cast<size_t>(feature.Position.Index) + 1;
         }
     }
 }
 
-void TModelTrees::ProcessEstimatedFeatures(TAtomicSharedPtr<TForApplyData> applyData) const {
-    applyData->UsedEstimatedFeaturesCount = EstimatedFeatures.size();
+void TModelTrees::ProcessEstimatedFeatures() {
+    ApplyData->UsedEstimatedFeaturesCount = EstimatedFeatures.size();
 }
 
-void TModelTrees::CalcBinFeatures() const {
-    TGuard<TAdaptiveLock> guard(MutableDataLock);
-    if (RuntimeData) {
-        return;
-    }
+void TModelTrees::CalcBinFeatures() {
 
     auto runtimeData = MakeAtomicShared<TRuntimeData>();
 
@@ -555,6 +546,7 @@ void TModelTrees::CalcBinFeatures() const {
         ref.EffectiveBinFeaturesBucketCount
             += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
+    RuntimeData = runtimeData;
 
     TVector<TRepackedBin> repackedBins;
 
@@ -577,21 +569,20 @@ void TModelTrees::CalcBinFeatures() const {
         repackedBins.push_back(rb);
     }
     RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>::CreateOwning(std::move(repackedBins));
-    RuntimeData = runtimeData;
 }
 
-void TModelTrees::CalcUsedModelCtrs(TAtomicSharedPtr<TForApplyData> applyData) const {
-    auto& ref = applyData->UsedModelCtrs;
+void TModelTrees::CalcUsedModelCtrs() {
+    auto& ref = ApplyData->UsedModelCtrs;
     for (const auto& ctrFeature : CtrFeatures) {
         ref.push_back(ctrFeature.Ctr);
     }
 }
 
-void TModelTrees::CalcFirstLeafOffsets(TAtomicSharedPtr<TForApplyData> applyData) const {
+void TModelTrees::CalcFirstLeafOffsets() {
     auto treeSizes = GetModelTreeData()->GetTreeSizes();
     auto treeStartOffsets = GetModelTreeData()->GetTreeStartOffsets();
 
-    auto& ref = applyData->TreeFirstLeafOffsets;
+    auto& ref = ApplyData->TreeFirstLeafOffsets;
     ref.resize(treeSizes.size());
     if (IsOblivious()) {
         size_t currentOffset = 0;
@@ -1249,7 +1240,7 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
 }
 
 void TFullModel::UpdateDynamicData() {
-    ModelTrees->UpdateRuntimeData();
+    ModelTrees.GetMutable()->UpdateRuntimeData();
     if (CtrProvider) {
         CtrProvider->SetupBinFeatureIndexes(
             ModelTrees->GetFloatFeatures(),
@@ -1416,7 +1407,7 @@ void TFullModel::UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& new
     );
 
     ModelTrees.GetMutable()->SetEstimatedFeatures(std::move(newEstimatedFeatures));
-    ModelTrees->UpdateRuntimeData();
+    ModelTrees.GetMutable()->UpdateRuntimeData();
 }
 
 bool TFullModel::IsPosteriorSamplingModel() const {
