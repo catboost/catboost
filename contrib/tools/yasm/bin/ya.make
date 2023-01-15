@@ -23,8 +23,6 @@ CFLAGS(
     -DYASM_LIB_SOURCE
 )
 
-ENABLE(NO_WINDOWS_STRICT)
-
 SRCDIR(contrib/tools/yasm)
 
 SRCS(
