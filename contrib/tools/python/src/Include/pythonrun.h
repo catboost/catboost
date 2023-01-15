@@ -151,7 +151,6 @@ PyAPI_FUNC(char *) PyOS_Readline(FILE *, FILE *, char *);
 PyAPI_DATA(int) (*PyOS_InputHook)(void);
 PyAPI_DATA(char) *(*PyOS_ReadlineFunctionPointer)(FILE *, FILE *, char *);
 PyAPI_DATA(PyThreadState*) _PyOS_ReadlineTState;
-PyAPI_DATA(PyThreadState *) _Py_Finalizing;
 
 /* Stack size, in "pointers" (so we get extra safety margins
    on 64-bit platforms).  On a 32-bit platform, this translates

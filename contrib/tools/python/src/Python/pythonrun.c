@@ -88,8 +88,6 @@ int Py_HashRandomizationFlag = 0; /* for -R and PYTHONHASHSEED */
 int (*_PyOS_mystrnicmp_hack)(const char *, const char *, Py_ssize_t) = \
     PyOS_mystrnicmp; /* Python/pystrcmp.o */
 
-PyThreadState *_Py_Finalizing = NULL;
-
 /* PyModule_GetWarningsModule is no longer necessary as of 2.6
 since _warnings is builtin.  This API should not be used. */
 PyObject *
@@ -226,7 +224,6 @@ Py_InitializeEx(int install_sigs)
     if (initialized)
         return;
     initialized = 1;
-    _Py_Finalizing = NULL;
 
     if ((p = Py_GETENV("PYTHONDEBUG")) && *p != '\0')
         Py_DebugFlag = add_flag(Py_DebugFlag, p);
@@ -473,14 +470,11 @@ Py_Finalize(void)
      * the threads created via Threading.
      */
     call_sys_exitfunc();
+    initialized = 0;
+
     /* Get current thread state and interpreter pointer */
     tstate = PyThreadState_GET();
     interp = tstate->interp;
-
-    /* Remaining threads (e.g. daemon threads) will automatically exit
-       after taking the GIL (in PyEval_RestoreThread()). */
-    _Py_Finalizing = tstate;
-    initialized = 0;
 
     /* Disable signal handling */
     PyOS_FiniInterrupts();
