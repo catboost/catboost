@@ -8264,7 +8264,7 @@
         "bpftrace": {
             "formula": {
                 "sandbox_id": [
-                    734898487
+                    866596155
                 ],
                 "match": "infra/kernel/tools/bpftrace/build/bpftrace-static.tar.gz"
             },
