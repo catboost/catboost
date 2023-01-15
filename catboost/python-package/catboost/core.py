@@ -42,7 +42,7 @@ _typeof = type
 
 from .plot_helpers import save_plot_file, try_plot_offline
 from . import _catboost
-
+from .metrics import BuiltinMetric
 
 _PoolBase = _catboost._PoolBase
 _CatBoost = _catboost._CatBoost
@@ -116,7 +116,6 @@ def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
     _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
     yield
     _reset_logger()
-
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
@@ -1290,6 +1289,29 @@ def _process_synonyms(params):
     if 'used_ram_limit' in params:
         params['used_ram_limit'] = str(params['used_ram_limit'])
 
+def stringify_builtin_metrics(params):
+    """Replace all occurrences of BuiltinMetric with their string representations."""
+    for f in [
+            "loss_function",
+            "objective",
+            "eval_metric",
+            "custom_metric",
+            "custom_loss"
+        ]:
+        if f not in params:
+            continue
+        val = params[f]
+        if isinstance(val, BuiltinMetric):
+            params[f] = str(val)
+        elif isinstance(val, STRING_TYPES):
+            continue
+        elif isinstance(val, Sequence):
+            params[f] = stringify_builtin_metrics_list(val)
+    return params
+
+
+def stringify_builtin_metrics_list(metrics):
+    return list(map(str, metrics))
 
 def _get_loss_function_for_train(params, estimator_type, train_pool):
     """
@@ -1323,7 +1345,9 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
 
 class _CatBoostBase(object):
     def __init__(self, params):
-        self._init_params = params.copy() if params is not None else {}
+        init_params = params.copy() if params is not None else {}
+        stringify_builtin_metrics(init_params)
+        self._init_params = init_params
         if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
             self._init_params.pop('thread_count')
         self._object = _CatBoost()
@@ -2428,13 +2452,16 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(type(data)))
         if data.is_empty_:
             raise CatBoostError("Data is empty.")
-        if not isinstance(metrics, ARRAY_TYPES) and not isinstance(metrics, STRING_TYPES):
-            raise CatBoostError("Invalid metrics type={}, must be list() or str().".format(type(metrics)))
-        if not all(map(lambda metric: isinstance(metric, string_types), metrics)):
-            raise CatBoostError("Invalid metric type: must be string().")
+        if not isinstance(metrics, ARRAY_TYPES) and not isinstance(metrics, STRING_TYPES) and not isinstance(metrics, BuiltinMetric):
+            raise CatBoostError("Invalid metrics type={}, must be list(), str() or one of builtin catboost.metrics.* class instances.".format(type(metrics)))
+        if not all(map(lambda metric: isinstance(metric, string_types) or isinstance(metric, BuiltinMetric), metrics)):
+            raise CatBoostError("Invalid metric type: must be string() or one of builtin catboost.metrics.* class instances.")
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
 
+        if isinstance(metrics, STRING_TYPES) or isinstance(metrics, BuiltinMetric):
+            metrics = [metrics]
+        metrics = stringify_builtin_metrics_list(metrics)
         with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [res_dir]):
             metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir)
 
@@ -2449,7 +2476,7 @@ class CatBoost(_CatBoostBase):
         data : catboost.Pool
             Data to evaluate metrics on.
 
-        metrics : list of strings
+        metrics : list of strings or catboost.metrics.BuiltinMetric
             List of evaluated metrics.
 
         ntree_start: int, optional (default=0)
@@ -2496,7 +2523,7 @@ class CatBoost(_CatBoostBase):
         data : catboost.Pool
             Data to evaluate metrics on.
 
-        metrics : list of strings
+        metrics : list of strings or catboost.metrics.BuiltinMetric
             List of evaluated metrics.
 
         ntree_start: int, optional (default=0)
@@ -2566,8 +2593,8 @@ class CatBoost(_CatBoostBase):
         # Large dataset is partitioned into parts [part1, part2]
         model.fit(params)
         batch_calcer = model.create_metric_calcer(['Logloss'])
-        batch_calcer.add_pool(part1)
-        batch_calcer.add_pool(part2)
+        batch_calcer.add(part1)
+        batch_calcer.add(part2)
         metrics = batch_calcer.eval_metrics()
         """
         if not self.is_fitted():
@@ -5960,6 +5987,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     params = deepcopy(params)
     _process_synonyms(params)
+    stringify_builtin_metrics(params)
 
     metric_period, verbose, logging_level = _process_verbose(
         metric_period, verbose, logging_level, verbose_eval)
@@ -6078,8 +6106,9 @@ class BatchMetricCalcer(_MetricCalcerBase):
         else:
             delete_temp_dir_flag = False
 
-        if isinstance(metrics, str):
+        if isinstance(metrics, STRING_TYPES) or isinstance(metrics, BuiltinMetric):
             metrics = [metrics]
+        metrics = stringify_builtin_metrics_list(metrics)
         self._create_calcer(metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, delete_temp_dir_flag)
 
 

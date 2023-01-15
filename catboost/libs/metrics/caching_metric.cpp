@@ -172,6 +172,7 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+        static TVector<TParamSet> ValidParamSets();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -242,6 +243,10 @@ void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const
     *valueType = EMetricBestValue::Max;
 }
 
+TVector<TParamSet> TMCCCachingMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* Zero one loss caching metric */
 
 namespace {
@@ -272,6 +277,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TVector<TParamSet> ValidParamSets();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -320,6 +327,10 @@ void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float 
     *valueType = EMetricBestValue::Min;
 }
 
+TVector<TParamSet> TZeroOneLossCachingMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* Accuracy caching metric */
 
 namespace {
@@ -351,6 +362,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TVector<TParamSet> ValidParamSets();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -395,6 +408,10 @@ void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) c
     *valueType = EMetricBestValue::Max;
 }
 
+TVector<TParamSet> TAccuracyCachingMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* Recall caching metric */
 
 namespace {
@@ -433,6 +450,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TVector<TParamSet> ValidParamSets();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -500,6 +519,10 @@ void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) con
     *valueType = EMetricBestValue::Max;
 }
 
+TVector<TParamSet> TRecallCachingMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* Precision caching metric */
 
 namespace {
@@ -538,6 +561,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TVector<TParamSet> ValidParamSets();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -606,6 +631,10 @@ void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) 
     *valueType = EMetricBestValue::Max;
 }
 
+TVector<TParamSet> TPrecisionCachingMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* F1 caching metric */
 
 namespace {
@@ -645,6 +674,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TVector<TParamSet> ValidParamSets();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -719,6 +750,10 @@ void TF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+TVector<TParamSet> TF1CachingMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* TotalF1 caching metric */
 
 namespace {
@@ -758,6 +793,8 @@ namespace {
         bool IsAdditiveMetric() const override {
             return true;
         }
+
+        static TVector<TParamSet> ValidParamSets();
 
     private:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
@@ -855,6 +892,18 @@ void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) co
     *valueType = EMetricBestValue::Max;
 }
 
+TVector<TParamSet> TTotalF1CachingMetric::ValidParamSets() {
+    return {
+        TParamSet{
+            {
+                TParamInfo{"use_weights", false, true},
+                TParamInfo{"average", false, ToString(EF1AverageType::Weighted)}
+            },
+            ""
+        }
+    };
+};
+
 /* Kappa */
 
 namespace {
@@ -868,6 +917,7 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
 
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -938,6 +988,10 @@ double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
     return CalcKappa(error, ClassCount, EKappaMetricType::Cohen);
 }
 
+TVector<TParamSet> TKappaMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* WKappa */
 
 namespace {
@@ -951,6 +1005,8 @@ namespace {
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        static TVector<TParamSet> ValidParamSets();
 
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -1021,6 +1077,10 @@ void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
     return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
 }
+
+TVector<TParamSet> TWKappaMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
 
 TVector<TMetricHolder> EvalErrorsWithCaching(
     const TVector<TVector<double>>& approx,
@@ -1199,4 +1259,29 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
     }
 
     return result;
+}
+
+TVector<TParamSet> CachingMetricValidParamSets(ELossFunction metric) {
+    switch (metric) {
+        case ELossFunction::F1:
+            return TF1CachingMetric::ValidParamSets();
+        case ELossFunction::TotalF1:
+            return TTotalF1CachingMetric::ValidParamSets();
+        case ELossFunction::MCC:
+            return TMCCCachingMetric::ValidParamSets();
+        case ELossFunction::ZeroOneLoss:
+            return TZeroOneLossCachingMetric::ValidParamSets();
+        case ELossFunction::Accuracy:
+            return TAccuracyCachingMetric::ValidParamSets();
+        case ELossFunction::Precision:
+            return TPrecisionCachingMetric::ValidParamSets();
+        case ELossFunction::Recall:
+            return TRecallCachingMetric::ValidParamSets();
+        case ELossFunction::Kappa:
+            return TKappaMetric::ValidParamSets();
+        case ELossFunction::WKappa:
+            return TWKappaMetric::ValidParamSets();
+        default:
+            CB_ENSURE(false, "Unsupported metric: " << metric);
+    }
 }
