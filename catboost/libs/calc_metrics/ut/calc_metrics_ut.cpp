@@ -19,7 +19,7 @@ void BuildApproxAsPoolFileAndGetMetric(
     NPar::TLocalExecutor* executor,
     THashMap<TString, double>* metricsResultPtr,
     TPathWithScheme* dstPathRes,
-    THashMap<int, EColumn>* nonApproxColumnsDescriptionPtr) {
+    THashMap<int, EColumn>* nonAuxiliaryColumnsDescriptionPtr) {
     NJson::TJsonValue params;
     params.InsertValue("loss_function", "Logloss");
     params.InsertValue("custom_metric", NJson::TJsonArray({"Accuracy", "AUC"}));
@@ -69,17 +69,18 @@ void BuildApproxAsPoolFileAndGetMetric(
         NCB::TDsvFormatOptions(),
         /*writeHeader*/ false);
 
-    nonApproxColumnsDescriptionPtr->insert({0, EColumn::Label});
+    nonAuxiliaryColumnsDescriptionPtr->insert({0, EColumn::Label});
+    nonAuxiliaryColumnsDescriptionPtr->insert({1, EColumn::Num});
 
 }
 
 TDataProviderPtr BuildApproxAsPoolAndGetMetric(NPar::TLocalExecutor* executor, THashMap<TString, double>* metricsResultPtr) {
     TPathWithScheme dstPath;
-    THashMap<int, EColumn> nonApproxColumnsDescription;
-    BuildApproxAsPoolFileAndGetMetric(executor, metricsResultPtr, &dstPath, &nonApproxColumnsDescription);
+    THashMap<int, EColumn> nonAuxiliaryColumnsDescription;
+    BuildApproxAsPoolFileAndGetMetric(executor, metricsResultPtr, &dstPath, &nonAuxiliaryColumnsDescription);
 
     TStringBuilder cdOutputData;
-    for (const auto& [key, value] : nonApproxColumnsDescription) {
+    for (const auto& [key, value] : nonAuxiliaryColumnsDescription) {
         cdOutputData << key << "\t" << value << Endl;
     }
     auto cdTmpFileName = MakeTempName();
@@ -165,8 +166,8 @@ Y_UNIT_TEST_SUITE(TCalcMetrics) {
 
         THashMap<TString, double> trainMetricsResult;
         TPathWithScheme inputPath;
-        THashMap<int, EColumn> nonApproxColumnsDescription;
-        BuildApproxAsPoolFileAndGetMetric(&executor, &trainMetricsResult, &inputPath, &nonApproxColumnsDescription);
+        THashMap<int, EColumn> nonAuxiliaryColumnsDescription;
+        BuildApproxAsPoolFileAndGetMetric(&executor, &trainMetricsResult, &inputPath, &nonAuxiliaryColumnsDescription);
 
         TVector<TString> metricName = {"Logloss", "Accuracy", "AUC"};
         TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription(metricName, 1);
@@ -175,7 +176,7 @@ Y_UNIT_TEST_SUITE(TCalcMetrics) {
             inputPath,
             metricName,
             NCB::TDsvFormatOptions(),
-            nonApproxColumnsDescription,
+            nonAuxiliaryColumnsDescription,
             /* threadCount */ NSystemInfo::CachedNumberOfCpus() - 1);
 
         Y_ASSERT(metricName.size() == metrics.size());

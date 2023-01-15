@@ -299,7 +299,7 @@ namespace NCB {
         const TPathWithScheme& inputPath,
         const TVector<TString>& metricNamesList,
         const NCB::TDsvFormatOptions& dsvFormat,
-        const THashMap<int, EColumn>& nonApproxColumnsDescription,
+        const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription,
         ui32 threadCount
     ) const {
         NCatboostOptions::TDatasetReadingParams datasetReadingParams;
@@ -310,8 +310,8 @@ namespace NCB {
         ui32 columnCount = GetDsvColumnCount(inputPath, dsvFormat);
 
         TVector<TColumn> columnsDescription;
-        columnsDescription.resize(columnCount, {EColumn::Num, TString()});
-        for (auto [ind, column] : nonApproxColumnsDescription) {
+        columnsDescription.resize(columnCount, {EColumn::Auxiliary, TString()});
+        for (auto [ind, column] : nonAuxiliaryColumnsDescription) {
             columnsDescription[ind] = TColumn{column, ""};
         }
 
