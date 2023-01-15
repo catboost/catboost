@@ -65,7 +65,7 @@ def just_do_it(argv):
         raise Exception("Can't determine java version")
     if int(ver) >= 10:
         for f in javac_cmd:
-            if f.startswith('-Xep:'):
+            if f.startswith('-Xep'):
                 ERROR_PRONE_FLAGS.append(f)
         for f in ERROR_PRONE_FLAGS:
             if f in javac_cmd:
