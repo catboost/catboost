@@ -85,6 +85,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\partial_dependence.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\shap_exact.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\shap_interaction_values.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\shap_prepared_trees.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\shap_values.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\util.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\calc_fstr.h"/>
@@ -94,6 +95,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\partial_dependence.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\shap_exact.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\shap_interaction_values.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\shap_prepared_trees.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\shap_values.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\util.h"/>
   </ItemGroup>
