@@ -4,7 +4,7 @@ LICENSE(BSD-3-Clause)
 
 
 
-VERSION(0.4.3)
+VERSION(0.4.4)
 
 NO_LINT()
 
