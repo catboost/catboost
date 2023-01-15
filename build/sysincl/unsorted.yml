@@ -1,4 +1,4 @@
-- source_filter: "^contrib"
+- source_filter: "^contrib(?!/restricted/gstreamer/gst/parse)"
   includes:
     - port.h
     - types.h
