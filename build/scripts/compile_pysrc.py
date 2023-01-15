@@ -32,8 +32,8 @@ def call(cmd, cwd=None, env=None):
 
 def iterate_py2_resource_params(py_files):
     for py in py_files:
-        mod = py[:-3]
-        key = 'py_module/{}'.format(mod)
+        mod = py[:-3].replace('/', '.')
+        key = '/py_modules/{}'.format(mod)
         yield py, key
         yield '-', 'resfs/src/{}={}'.format(key, py)
         yield '{}.yapyc'.format(py), '/py_code/{}'.format(mod)
