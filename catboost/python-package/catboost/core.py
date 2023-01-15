@@ -5347,11 +5347,25 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     return model
 
 
+def _convert_to_catboost(models):
+    """
+    Convert _Catboost instances to Catboost ones 
+    """
+    output_models = []
+    for model in models:
+        cb_model = CatBoost()
+        cb_model._object = model
+        cb_model._set_trained_model_attributes()
+        output_models.append(cb_model)
+    return output_models
+
+
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
-       save_snapshot=None, snapshot_file=None, snapshot_interval=None, metric_update_interval=0.5, folds=None, type='Classical'):
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None, metric_update_interval=0.5, 
+       folds=None, type='Classical', return_models=False):
     """
     Cross-validate the CatBoost model.
 
@@ -5456,10 +5470,14 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         and have ``split`` method.
         if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None
 
+    return_models: bool, optional (default=False)
+        if True, return a list of models fitted for each CV fold
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
         columns are: test-error-mean  test-error-std  train-error-mean  train-error-std
+    cv models : list of trained models, if return_models=True
     """
     if params is None:
         raise CatBoostError("params should be set.")
@@ -5563,8 +5581,14 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         raise CatBoostError("Cv with embedding features is not implemented.")
 
     with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
-        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                   metric_update_interval, as_pandas, folds, type)
+        if not return_models:
+            return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
+                    metric_update_interval, as_pandas, folds, type, return_models)
+        else:
+            results, cv_models = _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
+                                     metric_update_interval, as_pandas, folds, type, return_models)
+            output_cv_models = _convert_to_catboost(cv_models)
+            return results, output_cv_models
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

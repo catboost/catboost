@@ -303,7 +303,7 @@ void TrainBatch(
     );
 
     TTrainModelInternalOptions internalOptions;
-    internalOptions.CalcMetricsOnly = true;
+    internalOptions.CalcMetricsOnly = !foldContext->FullModel.Defined();
     internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
     internalOptions.OffsetMetricPeriodByInitModelSize = true;
 
@@ -320,6 +320,13 @@ void TrainBatch(
         upToIteration,
         foldContext);
 
+    auto foldOutputOptions = foldContext->OutputOptions;
+    auto trainDir = foldOutputOptions.GetTrainDir();
+    if (foldContext->FullModel.Defined()) {
+        // TrainModel saves model either to memory pointed by dstModel, or to ResultModelPath
+        foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
+    }
+
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -335,12 +342,17 @@ void TrainBatch(
         /*initModelApplyCompatiblePools*/ TDataProviders(),
         localExecutor,
         /*rand*/ Nothing(),
-        /*model*/ nullptr,
+        foldContext->FullModel.Defined() ? foldContext->FullModel.Get() : nullptr,
         TVector<TEvalResult*>{&foldContext->LastUpdateEvalResult},
         /*metricsAndTimeHistory*/nullptr,
         (foldContext->TaskType == ETaskType::CPU) ? &dstLearnProgress : nullptr
     );
     foldContext->LearnProgress = std::move(dstLearnProgress);
+
+    if (foldContext->FullModel.Defined()) {
+        TFileOutput modelFile(JoinFsPaths(trainDir, foldContext->OutputOptions.ResultModelPath.Get()));
+        foldContext->FullModel->Save(&modelFile);
+    }
 }
 
 
@@ -621,7 +633,8 @@ void CrossValidate(
             taskType,
             outputFileOptions,
             std::move(foldsData[foldIdx]),
-            catBoostOptions.RandomSeed);
+            catBoostOptions.RandomSeed,
+            cvParams.ReturnModels);
     }
 
 
@@ -823,6 +836,12 @@ void CrossValidate(
                 (*results)[metricIdx].LastTrainEvalMetric.push_back(foldContext.MetricValuesOnTrain[lastIteration][metricIdx]);
                 (*results)[metricIdx].LastTestEvalMetric.push_back(foldContext.MetricValuesOnTest[lastIteration][metricIdx]);;
             }
+        }
+    }
+
+    if (cvParams.ReturnModels) {
+        for (const auto& foldContext : foldContexts) {
+            results->front().CVFullModels.push_back(*foldContext.FullModel.Get());
         }
     }
 
