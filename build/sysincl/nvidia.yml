@@ -1,0 +1,27 @@
+# build/platform/cuda
+- includes:
+  - cooperative_groups.h
+  - cuComplex.h
+  - cublas.h
+  - cublasLt.h
+  - cublas_v2.h
+  - cuda.h
+  - cuda_fp16.h
+  - cuda_gl_interop.h
+  - cuda_runtime.h
+  - cuda_runtime_api.h
+  - cufft.h
+  - curand.h
+  - curand_kernel.h
+  - curand_mtgp32_host.h
+  - curand_mtgp32dc_p_11213.h
+  - cusolverDn.h
+  - cusparse.h
+  - driver_types.h
+  - host_defines.h
+  - library_types.h
+  - math_constants.h
+  - npp.h
+  - nppi.h
+  - nvToolsExt.h
+  - vector_types.h
