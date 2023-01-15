@@ -1,5 +1,3 @@
 #pragma once
+#include <library/cpp/testing/unittest/utmain.h>
 
-namespace NUnitTest {
-    int RunMain(int argc, char** argv);
-}
