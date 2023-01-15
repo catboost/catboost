@@ -263,10 +263,10 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, should_build_widget
 
 def build_widget(arc_root):
     js_dir = os.path.join(arc_root, 'catboost', 'python-package', 'catboost', 'widget', 'js')
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-U', '--user', 'jupyterlab'], shell=True, cwd=js_dir)
-    subprocess.check_call(['yarn', 'clean'], shell=True, cwd=js_dir)
-    subprocess.check_call(['yarn', 'install'], shell=True, cwd=js_dir)
-    subprocess.check_call(['yarn', 'build'], shell=True, cwd=js_dir)
+    subprocess.check_call('"{}" -m pip install -U --user jupyterlab'.format(sys.executable), shell=True, cwd=js_dir)
+    subprocess.check_call('yarn clean', shell=True, cwd=js_dir)
+    subprocess.check_call('yarn install', shell=True, cwd=js_dir)
+    subprocess.check_call('yarn build', shell=True, cwd=js_dir)
 
 
 def build(arc_root, out_root, tail_args, should_build_widget):
