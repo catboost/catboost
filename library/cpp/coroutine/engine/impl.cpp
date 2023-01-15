@@ -1,5 +1,8 @@
 #include "impl.h"
 
+#include "stack/stack_allocator.h"
+#include "stack/stack_guards.h"
+
 #include <util/generic/scope.h>
 #include <util/thread/singleton.h>
 #include <util/stream/format.h>
@@ -15,12 +18,17 @@ void TCont::TJoinWait::Wake() noexcept {
     Cont_.ReSchedule();
 }
 
-TCont::TCont(ui32 stackSize, NCoro::TStack::EGuard stackGuard, TContExecutor& executor, TContFunc func, void* arg, const char* name) noexcept
+TCont::TCont(NCoro::NStack::IAllocator& allocator,
+             uint32_t stackSize,
+             TContExecutor& executor,
+             TContFunc func,
+             void* arg,
+             const char* name) noexcept
     : Executor_(executor)
     , Name_(name)
     , Trampoline_(
+        allocator,
         stackSize,
-        stackGuard,
         func,
         this,
         arg
@@ -113,16 +121,21 @@ void TCont::ReSchedule() noexcept {
 
 
 TContExecutor::TContExecutor(
-    ui32 defaultStackSize,
+    uint32_t defaultStackSize,
     THolder<IPollerFace> poller,
     NCoro::IScheduleCallback* callback,
-    NCoro::TStack::EGuard defaultGuard
+    NCoro::NStack::EGuard defaultGuard,
+    TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings
 )
     : CallbackPtr_(callback)
     , DefaultStackSize_(defaultStackSize)
-    , StackGuard_(defaultGuard)
     , Poller_(std::move(poller))
-{}
+{
+    if (poolSettings) {
+        poolSettings->Executor = this;
+    }
+    StackAllocator_ = NCoro::NStack::GetAllocator(poolSettings, defaultGuard);
+}
 
 TContExecutor::~TContExecutor() {
     Y_VERIFY(Allocated_ == 0, "leaked %u coroutines", (ui32)Allocated_);
@@ -214,7 +227,7 @@ TCont* TContExecutor::Create(
     if (!customStackSize) {
         customStackSize = DefaultStackSize_;
     }
-    auto* cont = new TCont(*customStackSize, StackGuard_, *this, func, arg, name);
+    auto* cont = new TCont(*StackAllocator_, *customStackSize, *this, func, arg, name);
     ScheduleExecution(cont);
     return cont;
 }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "stack/stack_common.h"
+#include "stack/stack.h"
+
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/system/context.h>
@@ -14,42 +17,16 @@ class TCont;
 typedef void (*TContFunc)(TCont*, void*);
 
 namespace NCoro {
-    namespace NPrivate {
-        // including alignment and 2x guard overheads
-        ui32 RawStackSize(ui32 sz, ui32 guardSize);
 
-        TArrayRef<char> AlignedRange(char* data, ui32 sz, ui32 guardSize);
+    namespace NStack {
+        class IAllocator;
     }
-
-    class TStack : TNonCopyable {
-    public:
-        enum class EGuard {
-            Canary /* "canary" */,
-            Page /* "page" */,
-        };
-
-        explicit TStack(ui32 sz, EGuard) noexcept;
-        ~TStack();
-
-        TArrayRef<char> Get() noexcept;
-
-        bool LowerCanaryOk() const noexcept;
-
-        bool UpperCanaryOk() const noexcept;
-
-    private:
-        const EGuard Guard_;
-        const ui32 RawSize_;
-        char* const RawPtr_;
-        size_t StackId_ = 0;
-    };
-
 
     class TTrampoline : public ITrampoLine, TNonCopyable {
     public:
         TTrampoline(
-            ui32 stackSize,
-            TStack::EGuard guard,
+            NCoro::NStack::IAllocator& allocator,
+            uint32_t stackSize,
             TContFunc f,
             TCont* cont,
             void* arg
@@ -82,17 +59,11 @@ namespace NCoro {
     private:
         const char* ContName() const noexcept;
     private:
-        TStack Stack_;
+        NStack::TStackHolder Stack_;
         const TContClosure Clo_;
         TExceptionSafeContext Ctx_;
         TContFunc const Func_ = nullptr;
         TCont* const Cont_;
         void* const Arg_;
     };
-
-
-    // accounts for the stack space overhead in sanitizers and debug builds
-    ui32 RealCoroStackSize(ui32 coroStackSize);
-
-    TMaybe<ui32> RealCoroStackSize(TMaybe<ui32> coroStackSize);
 }

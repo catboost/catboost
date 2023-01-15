@@ -4,6 +4,7 @@
 #include "iostatus.h"
 #include "poller.h"
 #include "schedule_callback.h"
+#include "stack/stack_common.h"
 #include "trampoline.h"
 
 #include <library/cpp/containers/intrusive_rb_tree/rb_tree.h>
@@ -22,6 +23,9 @@ struct TContRep;
 class TContExecutor;
 class TContPollEvent;
 
+namespace NCoro::NStack {
+    class IAllocator;
+}
 
 class TCont : private TIntrusiveListItem<TCont> {
     struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
@@ -40,8 +44,8 @@ class TCont : private TIntrusiveListItem<TCont> {
 
 private:
     TCont(
-        ui32 stackSize,
-        NCoro::TStack::EGuard stackGuard,
+        NCoro::NStack::IAllocator& allocator,
+        uint32_t stackSize,
         TContExecutor& executor,
         TContFunc func,
         void* arg,
@@ -146,10 +150,11 @@ class TContExecutor {
 
 public:
     TContExecutor(
-        ui32 defaultStackSize,
+        uint32_t defaultStackSize,
         THolder<IPollerFace> poller = IPollerFace::Default(),
         NCoro::IScheduleCallback* = nullptr,
-        NCoro::TStack::EGuard stackGuard = NCoro::TStack::EGuard::Canary
+        NCoro::NStack::EGuard stackGuard = NCoro::NStack::EGuard::Canary,
+        TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings = Nothing()
     );
 
     ~TContExecutor();
@@ -270,8 +275,8 @@ private:
 
 private:
     NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
-    const ui32 DefaultStackSize_;
-    const NCoro::TStack::EGuard StackGuard_;
+    const uint32_t DefaultStackSize_;
+    THolder<NCoro::NStack::IAllocator> StackAllocator_;
 
     TExceptionSafeContext SchedContext_;
 
