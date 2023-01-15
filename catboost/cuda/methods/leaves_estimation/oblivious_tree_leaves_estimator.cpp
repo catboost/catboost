@@ -162,6 +162,13 @@ namespace NCatboostCuda {
         }
     }
 
+    void TObliviousTreeLeavesEstimator::AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                                                      NPar::ILocalExecutor* localExecutor) {
+        if (LeavesEstimationConfig.Langevin) {
+            AddLangevinNoise(LeavesEstimationConfig, derivatives, localExecutor, Random.NextUniformL());
+        }
+    }
+
     void TObliviousTreeLeavesEstimator::Estimate(NPar::ILocalExecutor* localExecutor) {
         CreatePartStats();
         ComputePartWeights();

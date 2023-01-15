@@ -8,6 +8,7 @@
 #include <catboost/cuda/gpu_data/bootstrap.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/private/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/boosting_options.h>
 
 namespace NCatboostCuda {
     class TDocParallelObliviousTreeSearcher {
@@ -18,13 +19,17 @@ namespace NCatboostCuda {
         using TWeakTarget = TL2Target<NCudaLib::TStripeMapping>;
 
         TDocParallelObliviousTreeSearcher(const TBinarizedFeaturesManager& featuresManager,
+                                          const NCatboostOptions::TBoostingOptions& boostingOptions,
                                           const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions,
                                           TBootstrap<NCudaLib::TStripeMapping>& bootstrap,
-                                          double randomStrengthMult)
+                                          double randomStrengthMult,
+                                          TGpuAwareRandom& random)
             : FeaturesManager(featuresManager)
+            , BoostingOptions(boostingOptions)
             , TreeConfig(learnerOptions)
             , Bootstrap(bootstrap)
             , ModelLengthMultiplier(randomStrengthMult)
+            , Random(random)
         {
         }
 
@@ -51,8 +56,10 @@ namespace NCatboostCuda {
 
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
+        const NCatboostOptions::TBoostingOptions& BoostingOptions;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
         TBootstrap<NCudaLib::TStripeMapping>& Bootstrap;
         double ModelLengthMultiplier = 0.0;
+        TGpuAwareRandom& Random;
     };
 }

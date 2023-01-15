@@ -11,12 +11,39 @@
 #include <util/random/fast.h>
 #include <util/random/normal.h>
 
-#include <cmath>
-
 using namespace NCB;
 
-static double CalcLangevinNoiseRate(float diffusionTemperature, float learningRate) {
+double CalcLangevinNoiseRate(float diffusionTemperature, float learningRate) {
     return sqrt(2.0 / learningRate / diffusionTemperature);
+}
+
+void AddLangevinNoiseToDerivatives(
+    float diffusionTemperature,
+    float learningRate,
+    ui64 randomSeed,
+    TVector<double>* derivatives,
+    NPar::ILocalExecutor* localExecutor
+) {
+    if (diffusionTemperature == 0.0f) {
+        return;
+    }
+    const double coef = CalcLangevinNoiseRate(diffusionTemperature, learningRate);
+    CB_ENSURE_INTERNAL(!derivatives->empty(), "Unexpected empty derivatives");
+    const size_t objectCount = derivatives->size();
+    TSimpleIndexRangesGenerator<size_t> rangesGenerator(TIndexRange(objectCount), CB_THREAD_LIMIT);
+
+    localExecutor->ExecRange(
+        [&](int blockIdx) {
+            TFastRng64 blockRng(randomSeed + blockIdx);
+            auto dersData = derivatives->data();
+            for (auto idx : rangesGenerator.GetRange(blockIdx).Iter()) {
+                dersData[idx] += coef * StdNormalDistribution<double>(blockRng);
+            }
+        },
+        0,
+        SafeIntegerCast<int>(rangesGenerator.RangesCount()),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }
 
 void AddLangevinNoiseToDerivatives(

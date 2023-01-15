@@ -475,7 +475,7 @@ namespace NCatboostCuda {
                 models.size() == permutationCount,
                 "Progress permutation count differs from current learning task: " << models.size() << " / " << permutationCount
             );
-            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, CatBoostOptions);
+            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, Config, CatBoostOptions, Random);
             if (models[0].Size() > 0) {
                 auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Restore from progress");
                 AppendEnsembles(
@@ -553,7 +553,7 @@ namespace NCatboostCuda {
                 return baseModelSize - offset + offset / experimentCount * experimentIdx;
             };
 
-            auto baseWeak = MakeWeakLearner<TWeakLearner>(baseFeatureManager, CatBoostOptions);
+            auto baseWeak = MakeWeakLearner<TWeakLearner>(baseFeatureManager, Config, CatBoostOptions, Random);
             AppendEnsembles(
                 baseInputData->DataSets,
                 baseModels,
@@ -597,7 +597,7 @@ namespace NCatboostCuda {
                     continue;
                 }
                 auto inputData = CreateInputData(permutationCount, &featureManager);
-                auto weak = MakeWeakLearner<TWeakLearner>(featureManager, CatBoostOptions);
+                auto weak = MakeWeakLearner<TWeakLearner>(featureManager, Config, CatBoostOptions, Random);
 
                 baseCursors->CopyFrom(*startingBaseCursors);
                 for (experimentIdx = 0; experimentIdx < ModelBasedEvalConfig.ExperimentCount; ++experimentIdx) {

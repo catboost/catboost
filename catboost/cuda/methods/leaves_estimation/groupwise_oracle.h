@@ -77,11 +77,19 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "Exact leaves estimation method on GPU is not supported for groupwise oracle");
         }
 
+        void AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                           NPar::ILocalExecutor* localExecutor) {
+            Y_UNUSED(derivatives);
+            Y_UNUSED(localExecutor);
+            CB_ENSURE(false, "Langevin on GPU is not supported for groupwise oracle");
+        }
+
         static THolder<ILeavesEstimationOracle> Create(const TGroupwiseTarget& target,
                                                        TStripeBuffer<const float>&& baseline,
                                                        TStripeBuffer<const ui32>&& bins,
                                                        ui32 binCount,
-                                                       const TLeavesEstimationConfig& estimationConfig) {
+                                                       const TLeavesEstimationConfig& estimationConfig,
+                                                       TGpuAwareRandom& random) {
             //order and metadata used in Approximate
             auto docOrder = target.GetApproximateDocOrder();
             auto qids = target.GetApproximateQids();
@@ -133,7 +141,8 @@ namespace NCatboostCuda {
                                std::move(pairs),
                                std::move(pairLeafOffsets),
                                std::move(pointLeafOffsets),
-                               std::move(pointLeafIndices)));
+                               std::move(pointLeafIndices),
+                               random));
         }
 
     private:
@@ -148,12 +157,14 @@ namespace NCatboostCuda {
                 TStripeBuffer<uint2>&& pairs,
                 TStripeBuffer<ui32>&& pairLeafOffset,
                 TStripeBuffer<ui32>&& pointLeafOffsets,
-                TStripeBuffer<ui32>&& pointLeafIndices)
+                TStripeBuffer<ui32>&& pointLeafIndices,
+                TGpuAwareRandom& random)
             : TParent(std::move(baseline),
                       std::move(bins),
                       leafWeights,
                       pairLeafWeights,
-                      estimationConfig)
+                      estimationConfig,
+                      random)
             , Target(&target)
             , SupportPairs(std::move(pairs))
             , PairBinOffsets(std::move(pairLeafOffset))

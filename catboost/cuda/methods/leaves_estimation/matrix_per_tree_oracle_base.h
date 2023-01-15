@@ -28,12 +28,14 @@ namespace NCatboostCuda {
                              TStripeBuffer<const ui32>&& bins,
                              const TVector<double>& leafWeights,
                              const TVector<double>& pairLeafWeights,
-                             const TLeavesEstimationConfig& estimationConfig)
+                             const TLeavesEstimationConfig& estimationConfig,
+                             TGpuAwareRandom& random)
             : LeavesEstimationConfig(estimationConfig)
             , Baseline(std::move(baseline))
             , Bins(std::move(bins))
             , BinWeightsSum(leafWeights)
             , PairBinWeightsSum(pairLeafWeights)
+            , Random(random)
         {
             Cursor = TStripeBuffer<float>::CopyMapping(Baseline);
 
@@ -240,6 +242,8 @@ namespace NCatboostCuda {
         TVector<double> PointDer2;
         TVector<double> PairDer2;
         TVector<double> PairBinWeightsSum;
+
+        TGpuAwareRandom& Random;
     };
 
 }

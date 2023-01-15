@@ -18,8 +18,8 @@ NCatboostOptions::TBoostingOptions::TBoostingOptions(ETaskType taskType)
     , ApproxOnFullHistory("approx_on_full_history", false, taskType)
     , ModelShrinkRate("model_shrink_rate", 0.0f, taskType)
     , ModelShrinkMode("model_shrink_mode", EModelShrinkMode::Constant, taskType)
-    , Langevin("langevin", false, taskType)
-    , DiffusionTemperature("diffusion_temperature", 0.0f, taskType)
+    , Langevin("langevin", false)
+    , DiffusionTemperature("diffusion_temperature", 0.0f)
     , PosteriorSampling("posterior_sampling", false, taskType)
     , MinFoldSize("min_fold_size", 100, taskType)
     , DataPartitionType("data_partition", EDataPartitionType::FeatureParallel, taskType)
@@ -40,7 +40,7 @@ void NCatboostOptions::TBoostingOptions::Save(NJson::TJsonValue* options) const 
             LearningRate, FoldLenMultiplier, PermutationBlockSize, IterationCount, OverfittingDetector,
             BoostingType, BoostFromAverage, PermutationCount, MinFoldSize, ApproxOnFullHistory,
             DataPartitionType, ModelShrinkRate, ModelShrinkMode, PosteriorSampling);
-    if (Langevin.GetUnchecked()) {
+    if (Langevin) {
         SaveFields(options, Langevin, DiffusionTemperature);
     }
 }
@@ -100,7 +100,7 @@ void NCatboostOptions::TBoostingOptions::Validate() const {
     }
 
     CB_ENSURE(
-        DiffusionTemperature.GetUnchecked() >= 0.0,
+        DiffusionTemperature >= 0.0,
         "Diffusion temperature should be non-negative"
     );
 }

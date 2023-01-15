@@ -16,8 +16,8 @@ namespace NCatboostCuda {
      */
     class TDocParallelLeavesEstimator {
     public:
-        TDocParallelLeavesEstimator(const TLeavesEstimationConfig& leavesEstimationConfig)
-            : LeavesEstimationConfig(leavesEstimationConfig)
+        TDocParallelLeavesEstimator(const TLeavesEstimationConfig& leavesEstimationConfig, TGpuAwareRandom& random)
+            : LeavesEstimationConfig(leavesEstimationConfig), Random(random)
         {
         }
 
@@ -57,5 +57,6 @@ namespace NCatboostCuda {
     private:
         TLeavesEstimationConfig LeavesEstimationConfig;
         TVector<TTask> Tasks;
+        TGpuAwareRandom& Random;
     };
 }

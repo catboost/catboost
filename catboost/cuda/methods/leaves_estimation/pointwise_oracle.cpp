@@ -192,6 +192,13 @@ namespace NCatboostCuda {
         }
     }
 
+    void TBinOptimizedOracle::AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
+                                                            NPar::ILocalExecutor* localExecutor) {
+        if (LeavesEstimationConfig.Langevin) {
+            AddLangevinNoise(LeavesEstimationConfig, derivatives, localExecutor, Random.NextUniformL());
+        }
+    }
+
     TVector<float> TBinOptimizedOracle::EstimateExact() {
         auto values = TStripeBuffer<float>::CopyMapping(Bins);
         auto weights = TStripeBuffer<float>::CopyMapping(Bins);
@@ -209,13 +216,15 @@ namespace NCatboostCuda {
                                              TStripeBuffer<ui32>&& bins,
                                              TStripeBuffer<ui32>&& partOffsets,
                                              TStripeBuffer<float>&& cursor,
-                                             ui32 binCount)
+                                             ui32 binCount,
+                                             TGpuAwareRandom& random)
         : LeavesEstimationConfig(leavesEstimationConfig)
         , DerCalcer(std::move(derCalcer))
         , Bins(std::move(bins))
         , Offsets(std::move(partOffsets))
         , Cursor(std::move(cursor))
         , BinCount(binCount)
+        , Random(random)
     {
         ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         for (ui32 dev = 0; dev < devCount; ++dev) {
