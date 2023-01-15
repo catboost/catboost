@@ -16,6 +16,7 @@
   - capi.h
   - cet.h
   - cfg.h
+  - comdef.h
   - commctrl.h
   - commdlg.h
   - common.ver
