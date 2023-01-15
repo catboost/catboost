@@ -1,0 +1,2 @@
+[console_scripts]
+foo_cli = foo_bar:cli
