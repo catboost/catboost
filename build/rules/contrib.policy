@@ -400,14 +400,14 @@ ALLOW datalens/backend/dls -> contrib/python/Quart
 DENY .* -> contrib/python/Quart
 
 # https://st.yandex-team.ru/CONTRIB-2012
-ALLOW maps/geomarketing/.* -> contrib/python/facebook-business
+ALLOW maps/geomarketing -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/facebook-business
 DENY .* -> contrib/python/facebook-business
 
 # https://st.yandex-team.ru/CONTRIB-1954
-ALLOW contrib/python/glom -> contrib/python/face
-DENY .* -> contrib/python/face
+ALLOW contrib/python/glom -> contrib/python/face$
+DENY .* -> contrib/python/face$
 
 # https://st.yandex-team.ru/CONTRIB-1918
 ALLOW contrib/python/webstruct -> contrib/python/webstruct
