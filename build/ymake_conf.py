@@ -2254,6 +2254,15 @@ class MSVCCompiler(MSVC, Compiler):
             if self.tc.version_at_least(2019):
                 cxx_warnings += [
                     '-Wno-deprecated-volatile',
+                    '-Wno-deprecated-anon-enum-enum-conversion',
+                    '-Wno-defaulted-function-deleted',
+                    '-Wno-deprecated-enum-enum-conversion',
+                    '-Wno-ambiguous-reversed-operator',
+                    '-Wno-deprecated-enum-float-conversion',
+                    '-Wno-reorder-init-list',
+                    '-Wno-implicit-const-int-float-conversion',
+                    '-Wno-final-dtor-non-final-class',
+                    '-Wno-pointer-to-int-cast',  # didn't fail on linux
                 ]
             if self.tc.ide_msvs:
                 cxx_warnings += [
