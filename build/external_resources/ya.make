@@ -29,19 +29,6 @@ ENDIF()
 
 IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     RECURSE(
-    arcadia_cpp_styleguide
-    arcadia_grpc_cpp
-    arcadia_grpc_java
-    arcadia_grpc_python
-    arcadia_protoc
-    arcadia_protoc_std
-    arcadia_protoc-gen-go
-    arcadia_python3_pycc
-    arcadia_ragel6
-    arcadia_rescompiler
-    arcadia_rescompressor
-    arcadia_rorescompiler
-    arcadia_yasm
     flake8_py2
     flake8_py3
     flakes_py2
