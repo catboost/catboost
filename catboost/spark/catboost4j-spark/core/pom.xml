@@ -152,6 +152,23 @@
                 <artifactId>maven-site-plugin</artifactId>
                 <version>3.7.1</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <trimStackTrace>false</trimStackTrace>
+                    <forkCount>1C</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                    <systemPropertyVariables>
+                        <catboost.test.data.path>${project.basedir}/../../../pytest/data</catboost.test.data.path>
+                        <canonical.data.path>${project.basedir}/src/test/resources/canondata</canonical.data.path>
+                    </systemPropertyVariables>
+                    <workingDirectory>FORK_DIRECTORY_${surefire.forkNumber}</workingDirectory>
+                </configuration>
+            </plugin>
         </plugins>
 
         <testResources>
