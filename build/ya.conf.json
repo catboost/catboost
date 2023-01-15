@@ -6913,6 +6913,13 @@
                         "os": "DARWIN"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -9501,7 +9508,7 @@
         "black": {
             "formula": {
                 "sandbox_id": [
-                    997287731
+                    1020735112
                 ],
                 "match": "black"
             },
