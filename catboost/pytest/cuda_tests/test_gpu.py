@@ -25,6 +25,7 @@ BOOSTING_TYPE = ['Ordered', 'Plain']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 NONSYMMETRIC = ['Lossguide', 'Depthwise']
 GROW_POLICIES = ['SymmetricTree'] + NONSYMMETRIC
+LEAF_ESTIMATION_METHODS = ['Newton', 'Gradient']
 SCORE_FUNCTIONS = [
     'L2', 'Cosine',
     'NewtonL2', 'NewtonCosine',
@@ -180,6 +181,28 @@ def test_rsm_with_default_value(boosting_type):
         '--boosting-type': boosting_type,
         '-i': '10',
         '-w': '0.03',
+        '-T': '4',
+        '--rsm': 1,
+        '-m': output_model_path,
+    }
+    fit_catboost_gpu(params)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHODS)
+def test_tweedie_with_fixed_variance_power(boosting_type, leaf_estimation_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Tweedie:variance_power=1.9',
+        '-f': data_file('adult', 'train_small'),
+        '-t': data_file('adult', 'test_small'),
+        '--column-description': data_file('adult', 'train.cd'),
+        '--boosting-type': boosting_type,
+        '--leaf-estimation-method': leaf_estimation_method,
+        '-i': '10',
+        '-w': '0.001',
         '-T': '4',
         '--rsm': 1,
         '-m': output_model_path,
