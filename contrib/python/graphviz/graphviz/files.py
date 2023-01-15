@@ -2,39 +2,34 @@
 
 """Save DOT code objects, render with Graphviz dot, and open in viewer."""
 
-import os
-import io
 import codecs
+import io
 import locale
+import logging
+import os
 
 from ._compat import text_type
 
-from . import backend, tools
+from . import backend
+from . import tools
 
 __all__ = ['File', 'Source']
 
 
+log = logging.getLogger(__name__)
+
+
 class Base(object):
 
-    _format = 'pdf'
     _engine = 'dot'
-    _encoding = 'utf-8'
 
-    @property
-    def format(self):
-        """The output format used for rendering ('pdf', 'png', ...)."""
-        return self._format
+    _format = 'pdf'
 
-    @format.setter
-    def format(self, format):
-        format = format.lower()
-        if format not in backend.FORMATS:
-            raise ValueError('unknown format: %r' % format)
-        self._format = format
+    _encoding = backend.ENCODING
 
     @property
     def engine(self):
-        """The layout commmand used for rendering ('dot', 'neato', ...)."""
+        """The layout commmand used for rendering (``'dot'``, ``'neato'``, ...)."""
         return self._engine
 
     @engine.setter
@@ -43,6 +38,18 @@ class Base(object):
         if engine not in backend.ENGINES:
             raise ValueError('unknown engine: %r' % engine)
         self._engine = engine
+
+    @property
+    def format(self):
+        """The output format used for rendering (``'pdf'``, ``'png'``, ...)."""
+        return self._format
+
+    @format.setter
+    def format(self, format):
+        format = format.lower()
+        if format not in backend.FORMATS:
+            raise ValueError('unknown format: %r' % format)
+        self._format = format
 
     @property
     def encoding(self):
@@ -67,8 +74,8 @@ class Base(object):
 
     def _kwargs(self):
         ns = self.__dict__
-        attrs = ('_format', '_engine', '_encoding')
-        return {a[1:]: ns[a] for a in attrs if a in ns}
+        return {a[1:]: ns[a] for a in ('_format', '_engine', '_encoding')
+                if a in ns}
 
 
 class File(Base):
@@ -78,7 +85,7 @@ class File(Base):
     _default_extension = 'gv'
 
     def __init__(self, filename=None, directory=None,
-                 format=None, engine=None, encoding=Base._encoding):
+                 format=None, engine=None, encoding=backend.ENCODING):
         if filename is None:
             name = getattr(self, 'name', None) or self.__class__.__name__
             filename = '%s.%s' % (name, self._default_extension)
@@ -102,18 +109,55 @@ class File(Base):
             result['directory'] = self.directory
         return result
 
+    def __str__(self):
+        """The DOT source code as string."""
+        return self.source
+
+    def unflatten(self, stagger=None, fanout=False, chain=None):
+        """Return a new :class:`.Source` instance with the source piped through the Graphviz *unflatten* preprocessor.
+
+        Args:
+            stagger (int): Stagger the minimum length of leaf edges between 1 and this small integer.
+            fanout (bool): Fanout nodes with indegree = outdegree = 1 when staggering (requires ``stagger``).
+            chain (int): Form disconnected nodes into chains of up to this many nodes.
+
+        Returns:
+            Source: Prepocessed DOT source code (improved layout aspect ratio).
+
+        Raises:
+            graphviz.RequiredArgumentError: If ``fanout`` is given but ``stagger`` is None.
+            graphviz.ExecutableNotFound: If the Graphviz unflatten executable is not found.
+            subprocess.CalledProcessError: If the exit status is non-zero.
+
+        See also:
+            https://www.graphviz.org/pdf/unflatten.1.pdf
+        """
+        out = backend.unflatten(self.source,
+                                stagger=stagger, fanout=fanout, chain=chain,
+                                encoding=self._encoding)
+        return Source(out,
+                      filename=self.filename, directory=self.directory,
+                      format=self._format, engine=self._engine,
+                      encoding=self._encoding)
+
     def _repr_svg_(self):
         return self.pipe(format='svg').decode(self._encoding)
 
-    def pipe(self, format=None):
+    def pipe(self, format=None, renderer=None, formatter=None, quiet=False):
         """Return the source piped through the Graphviz layout command.
 
         Args:
-            format: The output format used for rendering ('pdf', 'png', etc.).
+            format: The output format used for rendering (``'pdf'``, ``'png'``, etc.).
+            renderer: The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
+            formatter: The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
+            quiet (bool): Suppress ``stderr`` output from the layout subprocess.
+
         Returns:
             Binary (encoded) stdout of the layout command.
+
         Raises:
-            ValueError: If `format` is not known.
+            ValueError: If ``format``, ``renderer``, or ``formatter`` are not known.
+            graphviz.RequiredArgumentError: If ``formatter`` is given but ``renderer`` is None.
             graphviz.ExecutableNotFound: If the Graphviz executable is not found.
             subprocess.CalledProcessError: If the exit status is non-zero.
         """
@@ -122,9 +166,11 @@ class File(Base):
 
         data = text_type(self.source).encode(self._encoding)
 
-        outs = backend.pipe(self._engine, format, data)
+        out = backend.pipe(self._engine, format, data,
+                           renderer=renderer, formatter=formatter,
+                           quiet=quiet)
 
-        return outs
+        return out
 
     @property
     def filepath(self):
@@ -134,8 +180,9 @@ class File(Base):
         """Save the DOT source to file. Ensure the file ends with a newline.
 
         Args:
-            filename: Filename for saving the source (defaults to `name` + '.gv')
+            filename: Filename for saving the source (defaults to ``name`` + ``'.gv'``)
             directory: (Sub)directory for source saving and rendering.
+
         Returns:
             The (possibly relative) path of the saved source file.
         """
@@ -149,6 +196,7 @@ class File(Base):
 
         data = text_type(self.source)
 
+        log.debug('write %d bytes to %r', len(data), filepath)
         with io.open(filepath, 'w', encoding=self.encoding) as fd:
             fd.write(data)
             if not data.endswith(u'\n'):
@@ -156,53 +204,86 @@ class File(Base):
 
         return filepath
 
-    def render(self, filename=None, directory=None, view=False, cleanup=False):
+    def render(self, filename=None, directory=None, view=False, cleanup=False,
+               format=None, renderer=None, formatter=None,
+               quiet=False, quiet_view=False):
         """Save the source to file and render with the Graphviz engine.
 
         Args:
-            filename: Filename for saving the source (defaults to `name` + '.gv')
+            filename: Filename for saving the source (defaults to ``name`` + ``'.gv'``)
             directory: (Sub)directory for source saving and rendering.
-            view(bool): Open the rendered result with the default application.
-            cleanup(bool): Delete the source file after rendering.
+            view (bool): Open the rendered result with the default application.
+            cleanup (bool): Delete the source file after rendering.
+            format: The output format used for rendering (``'pdf'``, ``'png'``, etc.).
+            renderer: The output renderer used for rendering (``'cairo'``, ``'gd'``, ...).
+            formatter: The output formatter used for rendering (``'cairo'``, ``'gd'``, ...).
+            quiet (bool): Suppress ``stderr`` output from the layout subprocess.
+            quiet_view (bool): Suppress ``stderr`` output from the viewer process
+                               (implies ``view=True``, ineffective on Windows).
+
         Returns:
             The (possibly relative) path of the rendered file.
+
         Raises:
+            ValueError: If ``format``, ``renderer``, or ``formatter`` are not known.
+            graphviz.RequiredArgumentError: If ``formatter`` is given but ``renderer`` is None.
             graphviz.ExecutableNotFound: If the Graphviz executable is not found.
             subprocess.CalledProcessError: If the exit status is non-zero.
             RuntimeError: If viewer opening is requested but not supported.
+
+        The layout command is started from the directory of ``filepath``, so that
+        references to external files (e.g. ``[image=...]``) can be given as paths
+        relative to the DOT source file.
         """
         filepath = self.save(filename, directory)
 
-        rendered = backend.render(self._engine, self._format, filepath)
+        if format is None:
+            format = self._format
+
+        rendered = backend.render(self._engine, format, filepath,
+                                  renderer=renderer, formatter=formatter,
+                                  quiet=quiet)
 
         if cleanup:
+            log.debug('delete %r', filepath)
             os.remove(filepath)
 
-        if view:
-            self._view(rendered, self._format)
+        if quiet_view or view:
+            self._view(rendered, self._format, quiet_view)
 
         return rendered
 
-    def view(self, filename=None, directory=None, cleanup=False):
+    def view(self, filename=None, directory=None, cleanup=False,
+             quiet=False, quiet_view=False):
         """Save the source to file, open the rendered result in a viewer.
 
         Args:
-            filename: Filename for saving the source (defaults to name + '.gv')
+            filename: Filename for saving the source (defaults to ``name`` + ``'.gv'``)
             directory: (Sub)directory for source saving and rendering.
-            cleanup(bool): Delete the source file after rendering.
+            cleanup (bool): Delete the source file after rendering.
+            quiet (bool): Suppress ``stderr`` output from the layout subprocess.
+            quiet_view (bool): Suppress ``stderr`` output from the viewer process
+                               (ineffective on Windows).
+
         Returns:
             The (possibly relative) path of the rendered file.
+
         Raises:
             graphviz.ExecutableNotFound: If the Graphviz executable is not found.
             subprocess.CalledProcessError: If the exit status is non-zero.
             RuntimeError: If opening the viewer is not supported.
 
         Short-cut method for calling :meth:`.render` with ``view=True``.
-        """
-        return self.render(filename=filename, directory=directory, view=True,
-                           cleanup=cleanup)
 
-    def _view(self, filepath, format):
+        Note:
+            There is no option to wait for the application to close, and no way
+            to retrieve the application's exit status.
+        """
+        return self.render(filename=filename, directory=directory,
+                           view=True, cleanup=cleanup,
+                           quiet=quiet, quiet_view=quiet_view)
+
+    def _view(self, filepath, format, quiet):
         """Start the right viewer based on file format and platform."""
         methodnames = [
             '_view_%s_%s' % (format, backend.PLATFORM),
@@ -213,9 +294,10 @@ class File(Base):
             if view_method is not None:
                 break
         else:
-            raise RuntimeError('%r has no built-in viewer support for %r '
-                'on %r platform' % (self.__class__, format, backend.PLATFORM))
-        view_method(filepath)
+            raise RuntimeError('%r has no built-in viewer support for %r'
+                               ' on %r platform' % (self.__class__, format,
+                                                    backend.PLATFORM))
+        view_method(filepath, quiet)
 
     _view_darwin = staticmethod(backend.view.darwin)
     _view_freebsd = staticmethod(backend.view.freebsd)
@@ -228,39 +310,41 @@ class Source(File):
 
     Args:
         source: The verbatim DOT source code string.
-        filename: Filename for saving the source (defaults to 'Source.gv').
+        filename: Filename for saving the source (defaults to ``'Source.gv'``).
         directory: (Sub)directory for source saving and rendering.
-        format: Rendering output format ('pdf', 'png', ...).
-        engine: Layout command used ('dot', 'neato', ...).
+        format: Rendering output format (``'pdf'``, ``'png'``, ...).
+        engine: Layout command used (``'dot'``, ``'neato'``, ...).
         encoding: Encoding for saving the source.
 
-    .. note::
-        All parameters except `source` are optional. All of them can be changed
+    Note:
+        All parameters except ``source`` are optional. All of them can be changed
         under their corresponding attribute name after instance creation.
     """
 
     @classmethod
     def from_file(cls, filename, directory=None,
-                  format=None, engine=None, encoding=File._encoding):
+                  format=None, engine=None, encoding=backend.ENCODING):
         """Return an instance with the source string read from the given file.
 
         Args:
             filename: Filename for loading/saving the source.
             directory: (Sub)directory for source loading/saving and rendering.
-            format: Rendering output format ('pdf', 'png', ...).
-            engine: Layout command used ('dot', 'neato', ...).
+            format: Rendering output format (``'pdf'``, ``'png'``, ...).
+            engine: Layout command used (``'dot'``, ``'neato'``, ...).
             encoding: Encoding for loading/saving the source.
         """
         filepath = os.path.join(directory or '', filename)
         if encoding is None:
             encoding = locale.getpreferredencoding()
+        log.debug('read %r with encoding %r', filepath, encoding)
         with io.open(filepath, encoding=encoding) as fd:
             source = fd.read()
         return cls(source, filename, directory, format, engine, encoding)
 
     def __init__(self, source, filename=None, directory=None,
-                 format=None, engine=None, encoding=File._encoding):
-        super(Source, self).__init__(filename, directory, format, engine, encoding)
+                 format=None, engine=None, encoding=backend.ENCODING):
+        super(Source, self).__init__(filename, directory,
+                                     format, engine, encoding)
         self.source = source  #: The verbatim DOT source code string.
 
     def _kwargs(self):

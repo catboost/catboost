@@ -26,28 +26,36 @@ digraph {
 
 from .dot import Graph, Digraph
 from .files import Source
-from .lang import nohtml
-from .backend import render, pipe, version, view, ENGINES, FORMATS, ExecutableNotFound
+from .lang import escape, nohtml
+from .backend import (render, pipe, unflatten, version, view,
+                      ENGINES, FORMATS, RENDERERS, FORMATTERS,
+                      ExecutableNotFound, RequiredArgumentError)
 
-__all__ = [
-    'Graph', 'Digraph',
-    'Source',
-    'nohtml',
-    'render', 'pipe', 'version', 'view',
-    'ENGINES', 'FORMATS',
-    'ExecutableNotFound',
-]
+__all__ = ['Graph', 'Digraph',
+           'Source',
+           'escape', 'nohtml',
+           'render', 'pipe', 'unflatten', 'version', 'view',
+           'ENGINES', 'FORMATS', 'RENDERERS', 'FORMATTERS',
+           'ExecutableNotFound', 'RequiredArgumentError']
 
 __title__ = 'graphviz'
-__version__ = '0.8.2'
+__version__ = '0.16'
 __author__ = 'Sebastian Bank <sebastian.bank@uni-leipzig.de>'
-__license__ = 'MIT, see LICENSE'
-__copyright__ = 'Copyright (c) 2013-2017 Sebastian Bank'
+__license__ = 'MIT, see LICENSE.txt'
+__copyright__ = 'Copyright (c) 2013-2020 Sebastian Bank'
 
-#: Set of known layout commands used for rendering ('dot', 'neato', ...)
+#: Set of known layout commands used for rendering (``'dot'``, ``'neato'``, ...)
 ENGINES = ENGINES
 
-#: Set of known output formats for rendering ('pdf', 'png', ...)
+#: Set of known output formats for rendering (``'pdf'``, ``'png'``, ...)
 FORMATS = FORMATS
 
+#: Set of known output formatters for rendering (``'cairo'``, ``'gd'``, ...)
+FORMATTERS = FORMATTERS
+
+#: Set of known output renderers for rendering (``'cairo'``, ``'gd'``, ...)
+RENDERERS = RENDERERS
+
 ExecutableNotFound = ExecutableNotFound
+
+RequiredArgumentError = RequiredArgumentError
