@@ -129,7 +129,7 @@ namespace NCB {
                 CB_ENSURE(columnNumber < pool.MetaInfo.ColumnsInfo->Columns.size(),
                           "column number " << columnNumber << " is out of range");
             } else {
-                CB_ENSURE(featureIds.contains(name), "bad output column name " << name);
+                CB_ENSURE(featureIds.contains(name), "Pool doesn't has column with name `" << name << "`.");
                 CB_ENSURE(
                     dynamic_cast<TRawObjectsDataProvider*>(pool.ObjectsData.Get()),
                     "Raw feature values are not available for quantized pools"
