@@ -44,7 +44,6 @@ ALLOW contrib/libs/phonedetect/src -> library/cpp/digest/md5
 ALLOW contrib/python/certifi -> library/python/certifi
 ALLOW contrib/python/horovod/horovod/common/syms -> library/python/symbols/registry
 ALLOW contrib/python/opensfm -> library/cpp/vl_feat
-ALLOW contrib/python/pytest-mongodb -> devtools/swag/lib
 ALLOW contrib/python/Wand/ImageMagick -> library/python/symbols/registry
 ALLOW contrib/nginx/modules/nginx-rtmp-module -> library/cpp/json
 ALLOW contrib/python/gino -> library/python/pyscopg2
@@ -64,4 +63,7 @@ ALLOW contrib/tests/subvertpy -> vcs/svn/wc/client
 
 ALLOW contrib/tools/unbound -> infra/libs
 ALLOW contrib/tools/unbound -> library/cpp/proto_config
+
+ALLOW contrib/python/marshmallow-mongoengine/py[23]/tests -> library/python/pytest-mongodb
+
 DENY contrib -> .*
