@@ -282,7 +282,6 @@ migrations:
       - a.yandex-team.ru/infra/nanny2/pkg/hq/service
       - a.yandex-team.ru/infra/rsm/diskmanager/internal/diskmanager
       - a.yandex-team.ru/infra/rsm/diskmanager/internal/diskmanager_test
-      - a.yandex-team.ru/infra/rsm/nvgpumanager/internal/device
       - a.yandex-team.ru/infra/rsm/nvgpumanager/internal/device_test
       - a.yandex-team.ru/infra/rsm/nvgpumanager/internal/server
       - a.yandex-team.ru/infra/yp_service_discovery/golang/resolver/grpcresolver
