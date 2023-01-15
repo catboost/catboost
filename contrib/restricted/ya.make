@@ -9,3 +9,9 @@ IF(OS_LINUX OR OS_DARWIN)
     
 )
 ENDIF()
+
+IF(OS_ANDROID)
+    RECURSE(
+    
+)
+ENDIF()
