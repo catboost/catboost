@@ -486,6 +486,9 @@ ALLOW .* -> vendor/github.com/awalterschulze/gographviz
 # CONTRIB-1923 memcache client
 ALLOW .* -> vendor/github.com/bradfitz/gomemcache
 
+# Yandex' hasql
+ALLOW .* -> vendor/golang.yandex/hasql
+
 # CONTRIB-1974 Optimized Sha256
 ALLOW .* -> vendor/github.com/minio/sha256-simd
 
