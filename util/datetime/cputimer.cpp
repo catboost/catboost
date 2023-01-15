@@ -33,10 +33,11 @@ TTimer::~TTimer() {
 static ui64 ManuallySetCyclesPerSecond = 0;
 
 static ui64 GetCyclesPerSecond() {
-    if (ManuallySetCyclesPerSecond != 0)
+    if (ManuallySetCyclesPerSecond != 0) {
         return ManuallySetCyclesPerSecond;
-    else
+    } else {
         return NHPTimer::GetCyclesPerSecond();
+    }
 }
 
 void SetCyclesPerSecond(ui64 cycles) {

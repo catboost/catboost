@@ -35,14 +35,16 @@ void strfcpy(char* dst, const char* src, size_t dsize)
     /* Copy as many bytes as will fit. */
     if (nleft != 0) {
         while (--nleft != 0) {
-            if ((*dst++ = *src++) == '\0')
+            if ((*dst++ = *src++) == '\0') {
                 break;
+            }
         }
     }
 
     /* Not enough room in dst, add NUL */
     if (nleft == 0) {
-        if (dsize != 0)
+        if (dsize != 0) {
             *dst = '\0'; /* NUL-terminate dst */
+        }
     }
 }

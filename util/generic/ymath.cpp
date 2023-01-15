@@ -36,8 +36,9 @@ double LogGammaImpl(double x) {
     static constexpr double coeff3 = -1.0 / 360.0;
     static constexpr double coeff1 = 1.0 / 12.0;
 
-    if ((x == 1.0) || (x == 2.0))
+    if ((x == 1.0) || (x == 2.0)) {
         return 0.0; // 0! = 1
+    }
     double bonus = 0.0;
     while (x < 3.0) {
         bonus -= log(x);

@@ -111,8 +111,9 @@ TBasicString<wchar16, std::char_traits<wchar16>>::AppendUtf8(const ::TStringBuf&
     ReserveAndResize(size() + s.size() * 4);
     size_t written = 0;
     size_t pos = UTF8ToWideImpl(s.data(), s.size(), begin() + oldSize, written);
-    if (pos != s.size())
+    if (pos != s.size()) {
         ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.data(), s.size());
+    }
     resize(oldSize + written);
 
     return *this;
@@ -168,8 +169,9 @@ TBasicString<wchar32, std::char_traits<wchar32>>::AppendUtf8(const ::TStringBuf&
     ReserveAndResize(size() + s.size() * 4);
     size_t written = 0;
     size_t pos = UTF8ToWideImpl(s.data(), s.size(), begin() + oldSize, written);
-    if (pos != s.size())
+    if (pos != s.size()) {
         ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.data(), s.size());
+    }
     resize(oldSize + written);
 
     return *this;

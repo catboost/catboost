@@ -593,13 +593,15 @@ private:
 
 template <>
 void Out<const struct addrinfo*>(IOutputStream& os, const struct addrinfo* ai) {
-    if (ai->ai_flags & AI_CANONNAME)
+    if (ai->ai_flags & AI_CANONNAME) {
         os << "`" << ai->ai_canonname << "' ";
+    }
 
     os << '[';
     for (int i = 0; ai; ++i, ai = ai->ai_next) {
-        if (i > 0)
+        if (i > 0) {
             os << ", ";
+        }
 
         os << (const IRemoteAddr&)TAddrInfo(ai);
     }
@@ -661,8 +663,9 @@ static inline SOCKET DoConnectImpl(const struct addrinfo* res, const TInstant& d
 
                 CheckedGetSockOpt(s, SOL_SOCKET, SO_ERROR, err, "socket error");
 
-                if (!err)
+                if (!err) {
                     return s.Release();
+                }
             }
 
             res = Iterate(res, addr0, err);
@@ -764,13 +767,15 @@ public:
     ssize_t SendV(SOCKET fd, const TPart* parts, size_t count) override {
         ssize_t ret = SendVImpl(fd, parts, count);
 
-        if (ret < 0)
+        if (ret < 0) {
             return ret;
+        }
 
         size_t len = TContIOVector::Bytes(parts, count);
 
-        if ((size_t)ret == len)
+        if ((size_t)ret == len) {
             return ret;
+        }
 
         return SendVPartial(fd, parts, count, ret);
     }
@@ -796,8 +801,9 @@ ssize_t TCommonSockOps::SendVPartial(SOCKET fd, const TPart* constParts, size_t 
     while (!vec.Complete()) {
         ssize_t ret = SendVImpl(fd, vec.Parts(), vec.Count());
 
-        if (ret < 0)
+        if (ret < 0) {
             return ret;
+        }
 
         written += ret;
 

@@ -400,14 +400,16 @@ public:
 #else
                 TerminateProcess(Pid, 1 /* exit code */);
 #endif
-            if (!ok)
+            if (!ok) {
                 ythrow TSystemError() << "cannot terminate " << Pid;
+            }
         }
     }
 
     inline void Wait() {
-        if (WatchThread)
+        if (WatchThread) {
             WatchThread->Join();
+        }
     }
 
     inline void CloseInput() {
@@ -424,10 +426,12 @@ public:
         pi->OutputFd.Close();
 
         if (pi->Parent->CloseStreams) {
-            if (pi->Parent->ErrorStream)
+            if (pi->Parent->ErrorStream) {
                 pi->Parent->ErrorStream->Finish();
-            if (pi->Parent->OutputStream)
+            }
+            if (pi->Parent->OutputStream) {
                 pi->Parent->OutputStream->Finish();
+            }
         }
 
         delete pi;
@@ -451,13 +455,15 @@ public:
 
             while (true) {
                 bytes = pump->Pipe->Read(buffer.Data(), buffer.Capacity());
-                if (bytes > 0)
+                if (bytes > 0) {
                     pump->OutputStream->Write(buffer.Data(), bytes);
-                else
+                } else {
                     break;
+                }
             }
-            if (pump->Pipe->IsOpen())
+            if (pump->Pipe->IsOpen()) {
                 pump->Pipe->Close();
+            }
         } catch (...) {
             pump->InternalError = CurrentExceptionMessage();
         }
@@ -476,8 +482,9 @@ public:
                 if (!bytesToWrite) {
                     bytesToWrite = pump->InputStream->Read(buffer.Data(), buffer.Capacity());
                     if (bytesToWrite == 0) {
-                        if (AtomicGet(pump->ShouldClosePipe))
+                        if (AtomicGet(pump->ShouldClosePipe)) {
                             break;
+                        }
                         continue;
                     }
                     bufPos = buffer.Data();
@@ -491,8 +498,9 @@ public:
                     break;
                 }
             }
-            if (pump->Pipe->IsOpen())
+            if (pump->Pipe->IsOpen()) {
                 pump->Pipe->Close();
+            }
         } catch (...) {
             pump->InternalError = CurrentExceptionMessage();
         }
@@ -635,8 +643,9 @@ void ShellQuoteArgSp(TString& dst, TStringBuf argument) {
 }
 
 bool ArgNeedsQuotes(TStringBuf arg) noexcept {
-    if (arg.empty())
+    if (arg.empty()) {
         return true;
+    }
     return arg.find_first_of(" \"\'\t&()*<>\\`^|") != TString::npos;
 }
 
@@ -656,8 +665,9 @@ TString TShellCommand::TImpl::GetQuotedCommand() const {
 #if defined(_unix_)
 void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* argv, char* const* envp) const {
     try {
-        if (DetachSession)
+        if (DetachSession) {
             setsid();
+        }
 
         // reset signal handlers from parent
         struct sigaction sa;
@@ -704,8 +714,9 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
             sErrNew.Release();
         }
 
-        if (WorkDir.size())
+        if (WorkDir.size()) {
             NFs::SetCurrentWorkingDirectory(WorkDir);
+        }
 
         if (CloseAllFdsOnExec) {
             for (int fd = NSystemInfo::MaxOpenFiles(); fd > STDERR_FILENO; --fd) {
@@ -824,8 +835,9 @@ void TShellCommand::TImpl::Run() {
 #endif
     pipes.PrepareParents();
 
-    if (AtomicGet(ExecutionStatus) != SHELL_RUNNING)
+    if (AtomicGet(ExecutionStatus) != SHELL_RUNNING) {
         return;
+    }
 
     if (InputMode == TShellCommandOptions::HANDLE_PIPE) {
         TFileHandle inputHandle(pipes.InputPipeFd[1].Release());
@@ -858,13 +870,15 @@ void TShellCommand::TImpl::Run() {
 void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
     THolder<IOutputStream> outputHolder;
     IOutputStream* output = pi->Parent->OutputStream;
-    if (!output)
+    if (!output) {
         outputHolder.Reset(output = new TStringOutput(pi->Parent->CollectedOutput));
+    }
 
     THolder<IOutputStream> errorHolder;
     IOutputStream* error = pi->Parent->ErrorStream;
-    if (!error)
+    if (!error) {
         errorHolder.Reset(error = new TStringOutput(pi->Parent->CollectedError));
+    }
 
     IInputStream*& input = pi->Parent->InputStream;
 
@@ -924,8 +938,9 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
                 Y_UNUSED(status);
 #endif
                 // DBG(Cerr << "wait result: " << waitPidResult << Endl);
-                if (waitPidResult != WAIT_PROCEED)
+                if (waitPidResult != WAIT_PROCEED) {
                     break;
+                }
             }
 /// @todo factor out (poll + wfmo)
 #if defined(_unix_)
@@ -946,8 +961,9 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
                 pi->ErrorFd.Close();
             }
 
-            if (!input && !output && !error)
+            if (!input && !output && !error) {
                 continue;
+            }
 
             struct pollfd fds[] = {
                 {REALPIPEHANDLE(pi->InputFd), POLLOUT, 0},
@@ -955,12 +971,15 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
                 {REALPIPEHANDLE(pi->ErrorFd), POLLIN, 0}};
             int res;
 
-            if (!input)
+            if (!input) {
                 fds[0].events = 0;
-            if (!output)
+            }
+            if (!output) {
                 fds[1].events = 0;
-            if (!error)
+            }
+            if (!error) {
                 fds[2].events = 0;
+            }
 
             res = PollD(fds, 3, TInstant::Now() + TDuration::MilliSeconds(pi->Parent->PollDelayMs));
             // DBG(Cerr << "poll result: " << res << Endl);
@@ -968,37 +987,43 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
                 // DBG(Cerr << "poll again..." << Endl);
                 continue;
             }
-            if (res < 0)
+            if (res < 0) {
                 ythrow yexception() << "poll failed: " << LastSystemErrorText();
+            }
 
-            if ((fds[1].revents & POLLIN) == POLLIN)
+            if ((fds[1].revents & POLLIN) == POLLIN) {
                 haveOut = true;
-            else if (fds[1].revents & (POLLERR | POLLHUP))
+            } else if (fds[1].revents & (POLLERR | POLLHUP)) {
                 output = nullptr;
+            }
 
-            if ((fds[2].revents & POLLIN) == POLLIN)
+            if ((fds[2].revents & POLLIN) == POLLIN) {
                 haveErr = true;
-            else if (fds[2].revents & (POLLERR | POLLHUP))
+            } else if (fds[2].revents & (POLLERR | POLLHUP)) {
                 error = nullptr;
+            }
 
-            if (input && ((fds[0].revents & POLLOUT) == POLLOUT))
+            if (input && ((fds[0].revents & POLLOUT) == POLLOUT)) {
                 haveIn = true;
+            }
 
             if (haveOut) {
                 bytes = pi->OutputFd.Read(buffer.Data(), buffer.Capacity());
                 DBG(Cerr << "transferred " << bytes << " bytes of output" << Endl);
-                if (bytes > 0)
+                if (bytes > 0) {
                     output->Write(buffer.Data(), bytes);
-                else
+                } else {
                     output = nullptr;
+                }
             }
             if (haveErr) {
                 bytes = pi->ErrorFd.Read(buffer.Data(), buffer.Capacity());
                 DBG(Cerr << "transferred " << bytes << " bytes of error" << Endl);
-                if (bytes > 0)
+                if (bytes > 0) {
                     error->Write(buffer.Data(), bytes);
-                else
+                } else {
                     error = nullptr;
+                }
             }
 
             if (haveIn) {
@@ -1050,10 +1075,11 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         TMaybe<int> processExitCode;
 #if defined(_unix_)
         processExitCode = WEXITSTATUS(status);
-        if (WIFEXITED(status) && processExitCode == 0)
+        if (WIFEXITED(status) && processExitCode == 0) {
             cleanExit = true;
-        else if (WIFSIGNALED(status))
+        } else if (WIFSIGNALED(status)) {
             processExitCode = -WTERMSIG(status);
+        }
 #else
         if (waitPidResult == WAIT_OBJECT_0) {
             DWORD exitCode = STILL_ACTIVE;
@@ -1076,8 +1102,9 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         // Some error in watch occured, set result to error
         AtomicSet(pi->Parent->ExecutionStatus, SHELL_INTERNAL_ERROR);
         pi->Parent->InternalError = e.what();
-        if (input)
+        if (input) {
             pi->InputFd.Close();
+        }
         Cdbg << "shell command internal error: " << pi->Parent->InternalError << Endl;
     }
     // Now we can safely delete process info struct and other data

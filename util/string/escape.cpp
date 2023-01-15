@@ -44,10 +44,11 @@ namespace {
     template <typename TChar>
     static inline char HexDigit(TChar value) {
         Y_ASSERT(value < 16);
-        if (value < 10)
+        if (value < 10) {
             return '0' + value;
-        else
+        } else {
             return 'A' + value - 10;
+        }
     }
 
     template <typename TChar>
@@ -211,12 +212,14 @@ namespace {
     inline size_t CountOct(const TChar* p, const TChar* pe) {
         ui32 maxsz = Min<size_t>(sz, pe - p);
 
-        if (3 == sz && 3 == maxsz && !(*p >= '0' && *p <= '3'))
+        if (3 == sz && 3 == maxsz && !(*p >= '0' && *p <= '3')) {
             maxsz = 2;
+        }
 
         for (ui32 i = 0; i < maxsz; ++i, ++p) {
-            if (!IsOctDigit(*p))
+            if (!IsOctDigit(*p)) {
                 return i;
+            }
         }
 
         return maxsz;
@@ -231,8 +234,9 @@ static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {
         if ('\\' == *p) {
             ++p;
 
-            if (p == pe)
+            if (p == pe) {
                 return res;
+            }
 
             switch (*p) {
                 default:
@@ -361,12 +365,15 @@ template char* UnescapeC<char>(const char* str, size_t len, char* buf);
 
 template <class TChar>
 size_t UnescapeCCharLen(const TChar* begin, const TChar* end) {
-    if (begin >= end)
+    if (begin >= end) {
         return 0;
-    if (*begin != '\\')
+    }
+    if (*begin != '\\') {
         return 1;
-    if (++begin == end)
+    }
+    if (++begin == end) {
         return 1;
+    }
 
     switch (*begin) {
         default:

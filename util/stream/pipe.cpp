@@ -11,8 +11,9 @@ public:
         : Pipe_(nullptr)
     {
 #ifndef _freebsd_
-        if (strcmp(mode, "r+") == 0)
+        if (strcmp(mode, "r+") == 0) {
             ythrow TSystemError(EINVAL) << "pipe \"r+\" mode is implemented only on FreeBSD";
+        }
 #endif
         Pipe_ = ::popen(command.data(), mode);
         if (Pipe_ == nullptr) {
@@ -87,8 +88,9 @@ TPipedBase::TPipedBase(PIPEHANDLE fd)
 }
 
 TPipedBase::~TPipedBase() {
-    if (Handle_.IsOpen())
+    if (Handle_.IsOpen()) {
         Handle_.Close();
+    }
 }
 
 TPipedInput::TPipedInput(PIPEHANDLE fd)
@@ -99,8 +101,9 @@ TPipedInput::TPipedInput(PIPEHANDLE fd)
 TPipedInput::~TPipedInput() = default;
 
 size_t TPipedInput::DoRead(void* buf, size_t len) {
-    if (!Handle_.IsOpen())
+    if (!Handle_.IsOpen()) {
         return 0;
+    }
     return Handle_.Read(buf, len);
 }
 

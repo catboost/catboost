@@ -168,8 +168,9 @@ i64 GetFileLength(FHANDLE fd) {
     return pos.QuadPart;
 #elif defined(_unix_)
     struct stat statbuf;
-    if (::fstat(fd, &statbuf) != 0)
+    if (::fstat(fd, &statbuf) != 0) {
         return -1L;
+    }
     if (!(statbuf.st_mode & (S_IFREG | S_IFBLK | S_IFCHR))) {
         // st_size only makes sense for regular files or devices
         errno = EINVAL;
@@ -192,8 +193,9 @@ i64 GetFileLength(const char* name) {
 #elif defined(_unix_)
     struct stat buf;
     int r = ::stat(name, &buf);
-    if (r == -1)
+    if (r == -1) {
         return -1;
+    }
     if (!(buf.st_mode & (S_IFREG | S_IFBLK | S_IFCHR))) {
         // st_size only makes sense for regular files or devices
         errno = EINVAL;

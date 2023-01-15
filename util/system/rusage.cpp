@@ -59,8 +59,9 @@ size_t TRusage::GetCurrentRSS() {
     /* Linux ---------------------------------------------------- */
     long rss = 0L;
     FILE* fp = nullptr;
-    if ((fp = fopen("/proc/self/statm", "r")) == nullptr)
+    if ((fp = fopen("/proc/self/statm", "r")) == nullptr) {
         return (size_t)0L; /* Can't open? */
+    }
     if (fscanf(fp, "%*s%ld", &rss) != 1) {
         fclose(fp);
         return (size_t)0L; /* Can't read? */
