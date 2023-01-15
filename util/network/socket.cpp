@@ -1102,7 +1102,15 @@ TNetworkResolutionError::TNetworkResolutionError(int error) {
 #else
     errMsg = gai_strerror(error);
 #endif
-    (*this) << errMsg;
+    (*this) << errMsg << "(" << error;
+
+#if defined(_unix_)
+    if (error == EAI_SYSTEM) {
+        (*this) << "; errno=" << LastSystemError();
+    }
+#endif
+
+    (*this) << "): ";
 }
 
 #if defined(_unix_)
