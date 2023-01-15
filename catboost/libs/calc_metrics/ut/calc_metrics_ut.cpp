@@ -22,7 +22,7 @@ void BuildApproxAsPoolFileAndGetMetric(
     THashMap<int, EColumn>* nonApproxColumnsDescriptionPtr) {
     NJson::TJsonValue params;
     params.InsertValue("loss_function", "Logloss");
-    params.InsertValue("custom_metric", "Accuracy");
+    params.InsertValue("custom_metric", NJson::TJsonArray({"Accuracy", "AUC"}));
     params.InsertValue("learning_rate", 0.3);
     params.InsertValue("iterations", 7);
     TFullModel model;
@@ -118,13 +118,37 @@ Y_UNIT_TEST_SUITE(TCalcMetrics) {
 
         THashMap<TString, double> trainMetricsResult;
         auto approxPool = BuildApproxAsPoolAndGetMetric(&executor, &trainMetricsResult);
-        TVector<TString> metricName = {"Accuracy"};
+        TVector<TString> metricName = {"Accuracy", "AUC"};
         TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription(metricName, 1);
 
+        TNonAdditiveMetricData nonAdditiveMetricData;
+        TVector<const IMetric*> additiveMetrics;
+        TVector<const IMetric*> nonAdditiveMetrics;
+
+        for (const auto& metric : metrics) {
+            if (metric->IsAdditiveMetric()) {
+                additiveMetrics.push_back(metric.Get());
+            } else {
+                nonAdditiveMetrics.push_back(metric.Get());
+            }
+        }
+
         TVector<TMetricHolder> stats = ConsumeCalcMetricsData(
-            metrics,
+            additiveMetrics,
             approxPool,
             &executor);
+        nonAdditiveMetricData.SaveProcessedData(approxPool, &executor);
+
+        auto nonAdditiveStats = CalculateNonAdditiveMetrics(
+            nonAdditiveMetricData,
+            nonAdditiveMetrics,
+            &executor
+        );
+        stats.insert(
+            stats.end(),
+            nonAdditiveStats.begin(),
+            nonAdditiveStats.end()
+        );
 
         TVector<double> metricResults = GetMetricResultsFromMetricHolder(stats, metrics);
 
@@ -143,7 +167,7 @@ Y_UNIT_TEST_SUITE(TCalcMetrics) {
         THashMap<int, EColumn> nonApproxColumnsDescription;
         BuildApproxAsPoolFileAndGetMetric(&executor, &trainMetricsResult, &inputPath, &nonApproxColumnsDescription);
 
-        TVector<TString> metricName = {"Logloss", "Accuracy"};
+        TVector<TString> metricName = {"Logloss", "Accuracy", "AUC"};
         TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription(metricName, 1);
 
         auto metricResults = TOpenSourceCalcMetricsImplementation().CalcMetrics(

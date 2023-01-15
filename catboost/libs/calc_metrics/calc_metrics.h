@@ -28,9 +28,26 @@ namespace NCB {
         const TVector<TString>& metricNamesList
     );
 
+    struct TNonAdditiveMetricData {
+        TVector<TVector<double>> Approxes;
+        TVector<TVector<float>> Target;
+        TVector<float> Weights;
+
+        void SaveProcessedData(
+            const TDataProviderPtr datasetPart,
+            NPar::TLocalExecutor* localExecutor
+        );
+    };
+
     TVector<TMetricHolder> ConsumeCalcMetricsData(
-        const TVector<THolder<IMetric>>& metrics,
+        const TVector<const IMetric*>& metrics,
         const TDataProviderPtr datasetPart,
+        NPar::TLocalExecutor *localExecutor
+    );
+
+    TVector<TMetricHolder> CalculateNonAdditiveMetrics(
+        const TNonAdditiveMetricData& nonAdditiveMetricData,
+        const TVector<const IMetric*>& nonAdditiveMetrics,
         NPar::TLocalExecutor *localExecutor
     );
 

@@ -18,6 +18,8 @@ namespace NCB {
         const TWeights<float>& GetWeights() const;
         TMaybe<TSharedVector<TQueryInfo>> GetQueriesInfo() const;
 
+        void ExtractApproxesToBackOfVector(TVector<TVector<double>>* approxesPtr, NPar::TLocalExecutor* localExecutor) const;
+
     private:
         const TDataProviderPtr DataProvider;
     };
@@ -44,21 +46,37 @@ namespace NCB {
         );
     }
 
-    TVector<TVector<double>> TCalcMetricDataProvider::GetApproxes(
+    void TCalcMetricDataProvider::ExtractApproxesToBackOfVector(
+        TVector<TVector<double>>* approxesPtr,
         NPar::TLocalExecutor* localExecutor
     ) const {
         const TRawObjectsDataProvider& rawObjectsData = dynamic_cast<TRawObjectsDataProvider& >(
             *(DataProvider->ObjectsData)
         );
         size_t approxDimension = DataProvider.Get()->ObjectsData->GetFeaturesLayout()->GetFloatFeatureCount();
-        TVector<TVector<double>> approx(approxDimension);
-        for (auto i : xrange(approx.size())) {
+        if (approxesPtr->empty()) {
+            approxesPtr->resize(approxDimension);
+        } else {
+            Y_ASSERT(approxDimension == approxesPtr->size());
+        }
+        for (auto i : xrange(approxesPtr->size())) {
             auto maybeFactorData = rawObjectsData.GetFloatFeature(i);
             Y_ASSERT(maybeFactorData);
             auto factorData = maybeFactorData.GetRef()->ExtractValues(localExecutor);
-            approx[i].resize(DataProvider->GetObjectCount());
-            std::copy(factorData.begin(), factorData.begin() + approx[i].ysize(), approx[i].begin());
+            auto objectCount = DataProvider->GetObjectCount();
+            (*approxesPtr)[i].insert(
+                (*approxesPtr)[i].end(),
+                factorData.begin(),
+                factorData.begin() + objectCount
+            );
         }
+    }
+
+    TVector<TVector<double>> TCalcMetricDataProvider::GetApproxes(
+        NPar::TLocalExecutor* localExecutor
+    ) const {
+        TVector<TVector<double>> approx;
+        ExtractApproxesToBackOfVector(&approx, localExecutor);
         return approx;
     }
 
@@ -117,7 +135,7 @@ namespace NCB {
     }
 
     TVector<TMetricHolder> ConsumeCalcMetricsData(
-        const TVector<THolder<IMetric>>& metrics,
+        const TVector<const IMetric*>& metrics,
         const TDataProviderPtr dataProviderPtr,
         NPar::TLocalExecutor* localExecutor
     ) {
@@ -143,12 +161,6 @@ namespace NCB {
             labelRef[targetIdx] = *labels[targetIdx].Get();
         }
 
-        TVector<const IMetric*> metricPtrs;
-        metricPtrs.reserve(metrics.size());
-        for (const auto& metric : metrics) {
-            metricPtrs.push_back(metric.Get());
-        }
-
         return EvalErrorsWithCaching(
             approx,
             /*approxDelts*/{},
@@ -156,9 +168,62 @@ namespace NCB {
             labelRef,
             weights.IsTrivial() ? TConstArrayRef<float>() : weights.GetNonTrivialData(),
             queriesInfoRef,
-            metricPtrs,
+            metrics,
             localExecutor
         );
+    }
+
+    void TNonAdditiveMetricData::SaveProcessedData(
+        const TDataProviderPtr dataProviderPtr,
+        NPar::TLocalExecutor *localExecutor
+    ) {
+        TCalcMetricDataProvider dataProvider(dataProviderPtr);
+        dataProvider.ExtractApproxesToBackOfVector(&Approxes, localExecutor);
+
+        TVector<TSharedVector<float>> labels = dataProvider.GetLabels(localExecutor);
+        auto& weights = dataProvider.GetWeights();
+        if (!weights.IsTrivial()) {
+            Weights.insert(
+                Weights.end(),
+                weights.GetNonTrivialData().begin(),
+                weights.GetNonTrivialData().end()
+            );
+        }
+
+        if (Target.empty()) {
+            Target.resize(labels.size());
+        } else {
+            Y_ASSERT(Target.size() == labels.size());
+        }
+        for (auto targetIdx : xrange(labels.size())) {
+            Target[targetIdx].insert(
+                Target[targetIdx].end(),
+                labels[targetIdx]->begin(),
+                labels[targetIdx]->end());
+        }
+    }
+
+    TVector<TMetricHolder> CalculateNonAdditiveMetrics(
+        const TNonAdditiveMetricData& nonAdditiveMetricData,
+        const TVector<const IMetric*>& nonAdditiveMetrics,
+        NPar::TLocalExecutor *localExecutor
+    ) {
+        for (const auto& metric : nonAdditiveMetrics) {
+            Y_ASSERT(!metric->IsAdditiveMetric());
+        }
+        if (!nonAdditiveMetrics.empty()) {
+            return EvalErrorsWithCaching(
+                nonAdditiveMetricData.Approxes,
+                /*approxDelts*/{},
+                /*isExpApprox*/false,
+                To2DConstArrayRef<float>(nonAdditiveMetricData.Target),
+                nonAdditiveMetricData.Weights,
+                {},
+                nonAdditiveMetrics,
+                localExecutor
+            );
+        }
+        return {};
     }
 
     TVector<double> CalcMetricsSingleHost(
@@ -177,15 +242,31 @@ namespace NCB {
         const int blockSize = 10000;
         TVector<TMetricHolder> stats;
 
+        TNonAdditiveMetricData nonAdditiveMetricData;
+
+        TVector<const IMetric*> additiveMetrics;
+        TVector<const IMetric*> nonAdditiveMetrics;
+
+        for (const auto& metric : metrics) {
+            if (metric->IsAdditiveMetric()) {
+                additiveMetrics.push_back(metric.Get());
+            } else {
+                nonAdditiveMetrics.push_back(metric.Get());
+            }
+        }
+
         ReadAndProceedPoolInBlocks(
             datasetReadingParams,
             blockSize,
             [&](const NCB::TDataProviderPtr datasetPart) {
                 TSetLoggingVerbose inThisScope;
                 auto subStats = ConsumeCalcMetricsData(
-                    metrics,
+                    additiveMetrics,
                     datasetPart,
                     &executor);
+                if (!nonAdditiveMetrics.empty()) {
+                    nonAdditiveMetricData.SaveProcessedData(datasetPart, &executor);
+                }
                 if (stats.empty()) {
                     stats = std::move(subStats);
                 } else {
@@ -199,7 +280,17 @@ namespace NCB {
             MakeCdProviderFromArray(columnsDescription)
         );
 
+        auto nonAdditiveStats = CalculateNonAdditiveMetrics(
+            nonAdditiveMetricData,
+            nonAdditiveMetrics,
+            &executor
+        );
 
+        stats.insert(
+            stats.end(),
+            nonAdditiveStats.begin(),
+            nonAdditiveStats.end()
+        );
 
         auto metricResults = GetMetricResultsFromMetricHolder(stats, metrics);
         return metricResults;
