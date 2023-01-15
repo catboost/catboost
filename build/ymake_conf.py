@@ -1330,6 +1330,13 @@ class GnuCompiler(Compiler):
                 # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#modified-compiler-flags
                 # Disable useful -f that should be restored ASAP:
                 self.c_foptions.append('-fcommon')
+                self.cxx_warnings.extend((
+                    '-Wno-deprecated-anon-enum-enum-conversion',
+                    '-Wno-deprecated-enum-enum-conversion',
+                    '-Wno-deprecated-enum-float-conversion',
+                    '-Wno-ambiguous-reversed-operator',
+                    '-Wno-deprecated-volatile',
+                ))
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
