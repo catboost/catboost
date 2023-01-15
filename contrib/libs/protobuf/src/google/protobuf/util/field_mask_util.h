@@ -35,7 +35,7 @@
 
 
 #include "descriptor.h"
-#include "field_mask.pb.h"
+#include <google/protobuf/field_mask.pb.h>
 #include <contrib/libs/protobuf/stubs/stringpiece.h>
 
 namespace google {

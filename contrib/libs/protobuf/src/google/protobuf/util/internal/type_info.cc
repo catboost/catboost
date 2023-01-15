@@ -34,7 +34,7 @@
 #include <set>
 
 #include "stubs/common.h"
-#include "type.pb.h"
+#include <google/protobuf/type.pb.h>
 #include <google/protobuf/util/internal/utility.h>
 #include <contrib/libs/protobuf/stubs/stringpiece.h>
 #include "stubs/map_util.h"

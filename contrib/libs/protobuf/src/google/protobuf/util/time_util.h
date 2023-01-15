@@ -41,8 +41,8 @@
 #include <sys/time.h>
 #endif
 
-#include "duration.pb.h"
-#include "timestamp.pb.h"
+#include <google/protobuf/duration.pb.h>
+#include <google/protobuf/timestamp.pb.h>
 
 namespace google {
 namespace protobuf {

@@ -33,7 +33,7 @@
 
 #include <Python.h>
 
-#include "../../descriptor_database.h"
+#include <google/protobuf/descriptor_database.h>
 
 namespace google {
 namespace protobuf {

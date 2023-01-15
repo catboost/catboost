@@ -34,8 +34,8 @@
 #include "stubs/int128.h"
 #include "stubs/strutil.h"
 #include "stubs/stringprintf.h"
-#include "duration.pb.h"
-#include "timestamp.pb.h"
+#include <google/protobuf/duration.pb.h>
+#include <google/protobuf/timestamp.pb.h>
 
 namespace google {
 namespace protobuf {

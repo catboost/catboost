@@ -40,7 +40,7 @@
 #include "compiler/java/java_helpers.h"
 #include "compiler/java/java_name_resolver.h"
 #include "io/printer.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "stubs/strutil.h"
 
 namespace google {

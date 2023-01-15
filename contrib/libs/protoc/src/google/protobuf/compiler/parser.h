@@ -40,7 +40,7 @@
 #include <map>
 #include <utility>
 #include "descriptor.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "repeated_field.h"
 #include "io/tokenizer.h"
 

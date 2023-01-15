@@ -54,7 +54,7 @@
 #include "compiler/java/java_name_resolver.h"
 #include "io/coded_stream.h"
 #include "io/printer.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "wire_format.h"
 #include "stubs/substitute.h"
 #include "stubs/strutil.h"

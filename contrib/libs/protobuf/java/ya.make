@@ -9,8 +9,7 @@ PEERDIR(
     contrib/java/com/google/guava/guava/21.0
 )
 
-SRCDIR(contrib/libs/protobuf)
-ADDINCL(contrib/libs/protobuf)
+SRCDIR(contrib/libs/protobuf/src)
 
 SRCS(
     core/AbstractMessage.java

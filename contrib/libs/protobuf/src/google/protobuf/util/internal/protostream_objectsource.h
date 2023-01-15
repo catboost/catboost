@@ -35,7 +35,7 @@
 #include "stubs/hash.h"
 
 #include "stubs/common.h"
-#include "type.pb.h"
+#include <google/protobuf/type.pb.h>
 #include <google/protobuf/util/internal/object_source.h>
 #include <google/protobuf/util/internal/object_writer.h>
 #include <google/protobuf/util/internal/type_info.h>

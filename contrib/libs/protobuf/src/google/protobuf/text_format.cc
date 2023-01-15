@@ -49,7 +49,7 @@
 #include "io/tokenizer.h"
 #include "io/zero_copy_stream.h"
 #include "io/zero_copy_stream_impl.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include "dynamic_message.h"
 #include "repeated_field.h"

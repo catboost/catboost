@@ -37,7 +37,7 @@
 
 #include <map>
 #include "compiler/cpp/cpp_options.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 
 namespace google {

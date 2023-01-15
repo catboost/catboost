@@ -30,9 +30,9 @@
 
 #include "util/type_resolver_util.h"
 
-#include "type.pb.h"
-#include "wrappers.pb.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/type.pb.h>
+#include <google/protobuf/wrappers.pb.h>
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include <google/protobuf/util/internal/utility.h>
 #include "util/type_resolver.h"

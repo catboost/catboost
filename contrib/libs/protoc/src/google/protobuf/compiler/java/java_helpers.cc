@@ -39,7 +39,7 @@
 
 #include "compiler/java/java_helpers.h"
 #include "compiler/java/java_name_resolver.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "wire_format.h"
 #include "stubs/strutil.h"
 #include "stubs/substitute.h"

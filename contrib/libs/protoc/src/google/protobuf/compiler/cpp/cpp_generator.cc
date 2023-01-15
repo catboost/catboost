@@ -45,7 +45,7 @@
 #include "compiler/cpp/cpp_helpers.h"
 #include "io/printer.h"
 #include "io/zero_copy_stream.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 
 namespace google {
 namespace protobuf {

@@ -47,7 +47,7 @@
 #ifndef Py_TYPE
 #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
 #endif
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "stubs/common.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "io/coded_stream.h"

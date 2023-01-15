@@ -48,7 +48,7 @@
 #include "compiler/js/well_known_types_embed.h"
 #include "io/printer.h"
 #include "io/zero_copy_stream.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include "stubs/strutil.h"
 

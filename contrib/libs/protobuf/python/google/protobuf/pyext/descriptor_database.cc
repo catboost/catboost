@@ -35,7 +35,7 @@
 
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "stubs/common.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "pyext/message.h"
 #include "pyext/scoped_pyobject_ptr.h"
 

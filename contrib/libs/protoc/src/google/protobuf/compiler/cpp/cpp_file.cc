@@ -48,7 +48,7 @@
 #include "compiler/cpp/cpp_message.h"
 #include "compiler/cpp/cpp_field.h"
 #include "io/printer.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "stubs/strutil.h"
 
 namespace google {

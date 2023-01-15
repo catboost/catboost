@@ -39,7 +39,7 @@
 
 #include "stubs/common.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
-#include "type.pb.h"
+#include <google/protobuf/type.pb.h>
 #include "repeated_field.h"
 #include <contrib/libs/protobuf/stubs/stringpiece.h>
 #include "stubs/strutil.h"

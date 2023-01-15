@@ -44,7 +44,7 @@
 #include "compiler/cpp/cpp_enum_field.h"
 #include "compiler/cpp/cpp_map_field.h"
 #include "compiler/cpp/cpp_message_field.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "wire_format.h"
 #include "io/printer.h"
 #include <contrib/libs/protobuf/stubs/logging.h>

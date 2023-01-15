@@ -73,7 +73,7 @@
 
 #include "dynamic_message.h"
 #include "descriptor.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "generated_message_util.h"
 #include "generated_message_reflection.h"
 #include "arenastring.h"
