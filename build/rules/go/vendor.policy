@@ -636,4 +636,22 @@ ALLOW infra/rtc/instance_resolver/pkg/clients/iss3 -> vendor/git.apache.org/thri
 # CONTRIB-1959 Добавить casbin
 ALLOW .* -> vendor/github.com/casbin/casbin/v2
 
+# CONTRIB-1931 coredns
+ALLOW .* -> vendor/github.com/coredns/coredns/request
+ALLOW .* -> vendor/github.com/coredns/coredns/core/dnsserver
+ALLOW .* -> vendor/github.com/coredns/coredns/coremain
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/bind
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/cache
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/chaos
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/forward
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/file
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/health
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/log
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/metrics
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/pkg
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/reload
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/rewrite
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/ready
+ALLOW .* -> vendor/github.com/coredns/coredns/plugin/rewrite
+
 DENY .* -> vendor/
