@@ -5,6 +5,7 @@ import pytest
 import os
 import filecmp
 import numpy as np
+import pandas as pd
 import timeit
 import json
 
@@ -4520,6 +4521,44 @@ def test_baseline_from_file_output():
     execute_catboost_fit('CPU', cmd)
 
     compare_evals(eval_0_path, eval_1_path)
+
+
+def test_group_weight_output():
+    model_path = yatest.common.test_output_path('model.bin')
+    fit_eval_path = yatest.common.test_output_path('test_0.eval')
+    calc_eval_path = yatest.common.test_output_path('test_1.eval')
+
+    fit_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '--learn-set', data_file('querywise', 'train'),
+        '--test-set', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd.group_weight'),
+        '-i', '10',
+        '-m', model_path,
+        '--eval-file', fit_eval_path,
+        '--output-columns', 'SampleId,RawFormulaVal,GroupWeight'
+    )
+    yatest.common.execute(fit_cmd)
+    fit_eval = pd.read_csv(fit_eval_path, sep='\t')
+    test_group_weight = pd.read_csv(data_file('querywise', 'test'), sep='\t', header=None)[0]
+    assert 'GroupWeight' in fit_eval.columns
+    assert np.allclose(fit_eval['GroupWeight'], test_group_weight)
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '-m', model_path,
+        '--input-path', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd.group_weight'),
+        '--output-path', calc_eval_path,
+        '--output-columns', 'SampleId,RawFormulaVal,GroupWeight'
+    )
+    yatest.common.execute(calc_cmd)
+    calc_eval = pd.read_csv(calc_eval_path, sep='\t')
+    assert 'GroupWeight' in calc_eval.columns
+    assert np.allclose(calc_eval['GroupWeight'], test_group_weight)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

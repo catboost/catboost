@@ -242,6 +242,12 @@ namespace NCB {
                     );
                     continue;
                 }
+                if (outputType == EColumn::GroupWeight) {
+                    columnPrinter.push_back(
+                        MakeHolder<TWeightsPrinter>(pool.RawTargetData.GetGroupWeights(), outputColumn)
+                    );
+                    continue;
+                }
                 if (outputType == EColumn::Baseline) {
                     auto baseline = *pool.RawTargetData.GetBaseline();
                     for (size_t idx = 0; idx < baseline.size(); ++idx) {
