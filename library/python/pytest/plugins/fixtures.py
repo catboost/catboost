@@ -43,7 +43,7 @@ def metrics(request):
             time_keys = {"real_time", "cpu_time"}
             ignore_keys = {"name", "run_name", "time_unit", "run_type", "repetition_index"}
             for benchmark in benchmark_values["benchmarks"]:
-                name = benchmark["name"]
+                name = benchmark["name"].replace('/', '_')  # ci does not work properly with '/' in metric name
                 time_unit_mult = time_unit_multipliers[benchmark.get("time_unit", "ns")]
                 for k, v in six.iteritems(benchmark):
                     if k in time_keys:
