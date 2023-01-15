@@ -18,6 +18,8 @@ export class Model {
 	 */
 	predict(floatFeatures: CatBoostFloatFeatures,
 		catFeatures: CatBoostCategoryFeatures): number[];
+	/** Enable evaluation on GPU device. */
+	enableGPUEvaluation(deviceId: number): void;
 	/** The number of numeric features. */
 	getFloatFeaturesCount(): number;
 	/** The number of categorial features. */
