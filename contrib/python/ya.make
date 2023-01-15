@@ -20,6 +20,7 @@ RECURSE(
     ipython_genutils
     jedi
     Jinja2
+    joblib
     MarkupSafe
     matplotlib-inline
     more-itertools
@@ -39,6 +40,7 @@ RECURSE(
     pytest
     pytz
     scandir
+    scikit-learn
     scipy
     setuptools
     simplegeneric

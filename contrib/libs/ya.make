@@ -33,6 +33,7 @@ RECURSE(
     pugixml
     python
     python/ut
+    qhull
     r-lang
     re2
     snappy
