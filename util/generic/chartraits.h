@@ -414,6 +414,3 @@ template <typename TCharType>
 class TCharTraits: public TCharTraitsImpl<TCharType> {
 };
 
-template <class T>
-class TCharTraits<const T>: public TCharTraits<T> {
-};
