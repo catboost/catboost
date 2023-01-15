@@ -77,7 +77,7 @@
 #define PACKAGE_NAME "expat"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "expat 2.2.7"
+#define PACKAGE_STRING "expat 2.2.10"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "expat"
@@ -86,13 +86,13 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.2.7"
+#define PACKAGE_VERSION "2.2.10"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "2.2.7"
+#define VERSION "2.2.10"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -105,6 +105,10 @@
 /* #  undef WORDS_BIGENDIAN */
 # endif
 #endif
+
+/* Define to allow retrieving the byte offsets for attribute names and values.
+   */
+/* #undef XML_ATTR_INFO */
 
 /* Define to specify how much context to retain around the current parse
    point. */
