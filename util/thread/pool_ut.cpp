@@ -212,7 +212,7 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
         THashSet<TString> names;
         for (size_t i = 0; i < expectedNames.size(); ++i) {
             pool.SafeAddFunc([&]() {
-                with_lock(lock) {
+                with_lock (lock) {
                     if (++readyCount == expectedNames.size()) {
                         allReady.BroadCast();
                     } else {
