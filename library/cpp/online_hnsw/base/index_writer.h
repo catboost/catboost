@@ -7,6 +7,8 @@
 
 
 namespace NOnlineHnsw {
+    size_t ExpectedSize(const TOnlineHnswIndexData& index);
+
     void WriteIndex(const TOnlineHnswIndexData& index, IOutputStream& out);
 
     void WriteIndex(const TOnlineHnswIndexData& index, const TString& fileName);

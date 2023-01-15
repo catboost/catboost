@@ -4,6 +4,13 @@
 
 
 namespace NOnlineHnsw {
+    size_t ExpectedSize(const TOnlineHnswIndexData& index) {
+        return sizeof(index.MaxNeighbors)
+            + sizeof(ui32)
+            + sizeof(decltype(index.LevelSizes)::value_type) * index.LevelSizes.size()
+            + sizeof(decltype(index.FlatLevels)::value_type) * index.FlatLevels.size();
+    }
+
     void WriteIndex(const TOnlineHnswIndexData& index, IOutputStream& out) {
         out.Write(&index.MaxNeighbors, sizeof(index.MaxNeighbors));
         ui32 numLevels = index.LevelSizes.size();
