@@ -536,6 +536,7 @@ static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::
     const auto lossFunction = lossDescription.GetLossFunction();
     CB_ENSURE(
         lossFunction != ELossFunction::StochasticFilter &&
+        lossFunction != ELossFunction::StochasticRank &&
         lossFunction != ELossFunction::Quantile &&
         lossFunction != ELossFunction::MAE &&
         lossFunction != ELossFunction::LogLinQuantile &&
