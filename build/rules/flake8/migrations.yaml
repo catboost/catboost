@@ -40,8 +40,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - nirvana/vh3/src
-    - nirvana/vh3/src/vh3/util/six/backports
     - passport/python/api/tests/views/bundle/change_avatar
     - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/neural_net/bert/bert/utils/distributed
@@ -1084,7 +1082,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-73064
     - yabs/server/test/ft/BSSERVER-10514
     - yabs/server/test/ft/BSSERVER-11503
-    - yabs/server/test/ft/BSSERVER-12018
     - yabs/server/test/ft/BSSERVER-12167
     - yabs/server/test/ft/BSSERVER-1332
     - yabs/server/test/ft/BSSERVER-13621
@@ -1404,7 +1401,6 @@ migrations:
     - kikimr/yf/tests/embedded
     - kikimr/yf/tests/lib
     - kikimr/yf/tests/ydb
-    - lbs/base_building/library/python/gsm_cluster_builder
     - lbs/metrics/lbs_binbase_diff
     - lbs/viewer
     - library/python/bstr
@@ -1617,11 +1613,8 @@ migrations:
     - taxi/graph/packages/taxigraphd
     - testenv/core/tools
     - testenv/core/web_server
-    - tools/mstand/mstand_structs
-    - tools/mstand/session_squeezer
     - travel/avia/revise
     - travel/avia/revise/partners
-    - travel/avia/shared_flights/data_importer/tests
     - travel/avia/shared_flights/tasks/schedules_dumper
     - travel/avia/ticket_daemon
     - travel/avia/ticket_daemon/ticket_daemon
@@ -1895,7 +1888,6 @@ migrations:
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
-    - market/replenishment/data_preparation
     - market/report/runtime_cloud/juggler_bundle/ut
     - market/report/runtime_cloud/zeus/zeus_prepare
     - market/seo/tools/postgres_local/recipe
@@ -2094,7 +2086,6 @@ migrations:
     - travel/avia/library/python/iata_correction
     - travel/avia/shared_flights/admin/app/view
     - travel/avia/shared_flights/data_importer
-    - travel/avia/shared_flights/diff_builder
     - travel/avia/shared_flights/lib/python/db_models
     - travel/avia/shared_flights/lib/python/tests/date_utils
     - travel/avia/shared_flights/tasks/sirena_parser
@@ -2256,8 +2247,6 @@ migrations:
     - modadvert/programs/cv_app/tools/create_yt_env/it
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
-    - nirvana/vh3/src
-    - nirvana/vh3/src/vh3/util/six/backports
     - passport/python/api/tests/views/bundle/change_avatar
     - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/functionality/chats/feedback/src/feedback/core
