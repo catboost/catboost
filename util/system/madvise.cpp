@@ -7,6 +7,7 @@
 #if defined(_win_)
 #include <util/system/winint.h>
 #else
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #endif
@@ -34,7 +35,12 @@ namespace {
                                 << " returned error: " << err;
         }
 #else
-        if (-1 == madvise(begin, size, flag)) {
+        int code = 0;
+        do {
+            code = madvise(begin, size, flag);
+        } while (-1 == code && LastSystemError() == EAGAIN);
+
+        if (-1 == code) {
             TString err(LastSystemErrorText());
             ythrow yexception() << "madvise(" << begin << ", " << size << ", " << flag << ")"
                                 << " returned error: " << err;
