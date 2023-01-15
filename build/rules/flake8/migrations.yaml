@@ -2168,9 +2168,6 @@ migrations:
     - cloud/ai/speechkit/stt/lib/utils/arcadia
     - cloud/ai/speechkit/stt/lib/utils/s3
     - cloud/bitbucket/python-common
-    - cloud/blockstore/sandbox/tasks/NbsBuildOverQemuNbdTest
-    - cloud/blockstore/sandbox/tasks/NbsReassignTest
-    - cloud/blockstore/sandbox/tasks/NbsVhostTest
     - cloud/gauthling/auth_token_python/lib
     - cloud/gauthling/gauthling_daemon/lib
     - cloud/gauthling/gauthling_daemon_mock/lib
@@ -2620,7 +2617,6 @@ migrations:
     - mds/mastermind/state_builder
     - mds/nscfg/lib
     - mds/nscfg_old/lib
-    - metrika/admin/python/bishop/config_api/base
     - metrika/admin/python/bishop/frontend/base
     - metrika/admin/python/clickhouse_backups/frontend/base
     - metrika/admin/python/cms/frontend/base
@@ -3130,7 +3126,6 @@ migrations:
     - sandbox/projects/rasp
     - sandbox/projects/report
     - sandbox/projects/rthub
-    - sandbox/projects/rtmr
     - sandbox/projects/saas
     - sandbox/projects/samovar
     - sandbox/projects/sandbox
@@ -3793,7 +3788,6 @@ migrations:
     - infra/walle/server/contrib/sepelib/tests
     - infra/walle/server/tests/clients
     - infra/walle/server/tests/db_sync
-    - infra/walle/server/tests/failure_reports
     - infra/walle/server/tests/fsm_stages
     - infra/walle/server/tests/tasks
     - infra/yp_dns/tests
