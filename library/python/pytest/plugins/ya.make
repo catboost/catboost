@@ -18,6 +18,10 @@ IF (PYTHON2)
     PY_SRCS(
         fakeid_py2.py
     )
+
+    PEERDIR(
+        contrib/python/faulthandler
+    )
 ELSE()
     PY_SRCS(
         fakeid_py3.py

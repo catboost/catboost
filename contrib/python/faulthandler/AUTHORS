@@ -1,0 +1,14 @@
+Authors
+=======
+
+Victor Stinner <victor.stinner@gmail.com>
+
+Contributors
+============
+
+Dan Sully <daniel@electricrain.com> - minor fixes
+Guido van Rossum <guido@dropbox.com> - enhance traceback output
+Martin (gzlist) <gzlist@googlemail.com> - improved Windows support
+Ionel Cristian Mărieș <contact@ionelmc.ro> - guilty for the .pth/environment variable activation
+Wei Wu - added support for file descriptors
+Giuseppe Corbelli - added support for thread name printout on Linux
