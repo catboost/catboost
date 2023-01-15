@@ -401,6 +401,10 @@ public:
     iterator insert(const value_type& obj) {
         return rep.insert_equal(obj);
     }
+    template <typename... Args>
+    iterator emplace(Args&&... args) {
+        return rep.emplace_equal(std::forward<Args>(args)...);
+    }
     template <class InputIterator>
     void insert(InputIterator f, InputIterator l) {
         rep.insert_equal(f, l);
