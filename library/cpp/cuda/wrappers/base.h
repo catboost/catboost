@@ -2,7 +2,7 @@
 
 #include "kernel.cuh"
 
-#include "exception.h"
+#include <library/cpp/cuda/exception/exception.h>
 
 #include <util/datetime/base.h>
 #include <util/generic/array_ref.h>
