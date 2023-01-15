@@ -33,7 +33,7 @@ PEERDIR(
     catboost/private/libs/target
     library/cpp/grid_creator
     library/cpp/json
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/threading/local_executor
 )
 

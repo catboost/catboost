@@ -20,7 +20,7 @@ PEERDIR(
     catboost/libs/model
     catboost/private/libs/options
     library/cpp/getopt/small
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/threading/local_executor
 )
 

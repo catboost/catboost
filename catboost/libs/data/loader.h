@@ -12,7 +12,7 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/libs/column_description/cd_parser.h>
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>

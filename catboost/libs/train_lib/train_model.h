@@ -12,7 +12,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 
 #include <library/cpp/json/json_value.h>
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>

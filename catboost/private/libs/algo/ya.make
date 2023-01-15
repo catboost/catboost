@@ -81,7 +81,7 @@ PEERDIR(
     library/cpp/grid_creator
     library/cpp/json
     library/cpp/malloc/api
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/sse
     library/cpp/svnversion
     library/cpp/threading/local_executor

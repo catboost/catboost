@@ -46,7 +46,7 @@ PEERDIR(
     library/cpp/pop_count
     library/cpp/dbg_output
     library/cpp/json
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/string_utils/csv
     library/cpp/threading/future
     library/cpp/threading/local_executor

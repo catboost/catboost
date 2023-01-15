@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>

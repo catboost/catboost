@@ -1,4 +1,4 @@
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 #include <library/cpp/unittest/registar.h>
 
 #include <util/generic/noncopyable.h>

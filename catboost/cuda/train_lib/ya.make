@@ -43,7 +43,7 @@ PEERDIR(
     catboost/private/libs/quantization
     catboost/libs/train_lib
     library/cpp/json
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/threading/local_executor
 )
 

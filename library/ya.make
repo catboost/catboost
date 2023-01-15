@@ -11,8 +11,6 @@ RECURSE(
     neh/asio/ut
     neh/ut
     netliba
-    object_factory
-    object_factory/ut
     overloaded
     overloaded/ut
     python

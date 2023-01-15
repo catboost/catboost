@@ -6,7 +6,7 @@
 #include <catboost/libs/data/loader.h>
 #include <catboost/private/libs/index_range/index_range.h>
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/ylimits.h>
 
