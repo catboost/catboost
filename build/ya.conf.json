@@ -320,6 +320,12 @@
         "fio": {
             "description": "flexible I/O tester"
         },
+        "amduprof-cli": {
+            "description": "AMDuProfCLI is a command-line tool for AMD uProf Profiler"
+        },
+        "amduprof-pcm": {
+            "description": "AMDuProfPcm is a command-line tool to monitor CPU performance metrics of AMD processors"
+        },
         "foremost": {
             "description": "Foremost is a Linux program to recover files based on their headers"
         },
@@ -5186,6 +5192,26 @@
                 }
             ]
         },
+        "amduprof": {
+            "tools": {
+                "amduprof-cli": {
+                    "bottle": "amduprof",
+                    "executable": "amduprof-cli"
+                },
+                "amduprof-pcm": {
+                    "bottle": "amduprof",
+                    "executable": "amduprof-pcm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "foremost": {
             "tools": {
                 "foremost": {
@@ -7275,6 +7301,18 @@
                     "bin",
                     "fio"
                 ]
+            }
+        },
+        "amduprof": {
+            "formula": {
+                "sandbox_id": [
+                    747426974
+                ],
+                "match": "AMDuProf_Linux_x64_3.2.228.tar.gz"
+            },
+            "executable": {
+		"amduprof-cli": ["AMDuProf_Linux_x64_3.2.228", "bin", "AMDuProfCLI"],
+                "amduprof-pcm": ["AMDuProf_Linux_x64_3.2.228", "bin", "AMDuProfPcm"]
             }
         },
         "foremost": {
