@@ -1,3 +1,7 @@
+# IMPORTANT
+# This file cannot be moved or split into multiple files without explicit OK from go-com@yandex-team.ru
+# Doing otherwise will break vendoring tooling.
+
 ALLOW vendor/ -> .*
 
 # CONTRIB-1872 pure ipp proto implementation
