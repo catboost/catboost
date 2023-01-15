@@ -366,7 +366,6 @@ ALLOW contrib/python/graphene_sqlalchemy/graphene_sqlalchemy/tests -> contrib/py
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/marshmallow-sqlalchemy/py2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/SQLAlchemy-Continuum -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqltap -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW crypta/adhoc/smarts/backend -> contrib/python/sqlalchemy/sqlalchemy-1.2
