@@ -87,6 +87,6 @@ extern void init_subprocess(void);
 extern void init_winreg(void);
 #endif
 
-#if !defined(_ARM_) && !defined(_CYGWIN_)
+#if !defined(_CYGWIN_)
 extern void init_ctypes(void);
 #endif
