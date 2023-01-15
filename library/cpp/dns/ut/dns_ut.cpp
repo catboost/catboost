@@ -1,5 +1,5 @@
 #include <library/cpp/unittest/registar.h>
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 #include <util/network/address.h>
 
 Y_UNIT_TEST_SUITE(TestDNS) {

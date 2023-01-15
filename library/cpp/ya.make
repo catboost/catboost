@@ -23,6 +23,8 @@ RECURSE(
     diff
     diff/ut
     digest
+    dns
+    dns/ut
     dot_product
     dot_product/bench
     dot_product/ut
@@ -46,6 +48,10 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
+    logger
+    logger/global
+    logger/global/ut
+    logger/ut
     malloc
     lfalloc
     lfalloc/dbg

@@ -8,7 +8,7 @@
 #include "lfqueue.h"
 #include "utils.h"
 
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/hash_set.h>

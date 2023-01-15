@@ -6,7 +6,7 @@
 #include <library/neh/lfqueue.h>
 #include <library/neh/pipequeue.h>
 
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 
 #include <util/generic/hash_set.h>
 #include <util/network/iovec.h>

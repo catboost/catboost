@@ -13,7 +13,7 @@
 #include <util/stream/output.h>
 #include <functional>
 
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 
 //#define DEBUG_ASIO
 

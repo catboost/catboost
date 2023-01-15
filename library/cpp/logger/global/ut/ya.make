@@ -3,10 +3,10 @@ UNITTEST()
 
 
 PEERDIR(
-    library/logger/global
+    library/cpp/logger/global
 )
 
-SRCDIR(library/logger/global)
+SRCDIR(library/cpp/logger/global)
 
 SRCS(
     rty_formater_ut.cpp

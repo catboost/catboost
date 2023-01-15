@@ -4,7 +4,7 @@
 #include "http_common.h"
 
 #include <util/datetime/base.h>
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 #include <utility>
 
 namespace NNeh {

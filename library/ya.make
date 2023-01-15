@@ -12,8 +12,6 @@ RECURSE(
     chromium_trace/examples
     chromium_trace/ut
     cpp
-    dns
-    dns/ut
     enumbitset
     enumbitset/ut
     fast_exp
@@ -33,8 +31,6 @@ RECURSE(
     linear_regression/ut
     logger
     logger/global
-    logger/global/ut
-    logger/ut
     neh
     neh/asio/ut
     neh/ut

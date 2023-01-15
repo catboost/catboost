@@ -7,7 +7,7 @@ PEERDIR(
     library/cpp/containers/intrusive_rb_tree
     library/cpp/coroutine/engine
     library/cpp/coroutine/listener
-    library/dns
+    library/cpp/dns
     library/cpp/http/io
     library/cpp/http/misc
     library/cpp/http/push_parser
