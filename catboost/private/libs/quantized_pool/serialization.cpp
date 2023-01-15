@@ -939,9 +939,9 @@ namespace NCB {
         const auto& quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
         const auto& featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
 
-        TVector<TVector<float>> borders;
-        TVector<ENanMode> nanModes;
-        TVector<size_t> featureIndices;
+        srcData.PoolQuantizationSchema.ClassLabels = dataProvider->MetaInfo.ClassLabels;
+
+        TVector<size_t>& featureIndices = srcData.PoolQuantizationSchema.FeatureIndices;
 
         for (auto externalFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
             const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(externalFeatureIdx);
@@ -957,8 +957,8 @@ namespace NCB {
                 const auto featureNanMode = quantizedFeaturesInfo->HasNanMode(floatFeatureIdx)
                     ? quantizedFeaturesInfo->GetNanMode(floatFeatureIdx)
                     : ENanMode::Forbidden;
-                borders.push_back(featureBorders);
-                nanModes.push_back(featureNanMode);
+                srcData.PoolQuantizationSchema.Borders.push_back(std::move(featureBorders));
+                srcData.PoolQuantizationSchema.NanModes.push_back(featureNanMode);
                 featureIndices.push_back(featureIndices.size());
 
                 //for floatFeatures
@@ -1083,22 +1083,11 @@ namespace NCB {
             columnNames.push_back("GroupWeight");
         }
 
-        //constuct quantizationSchema
-        TPoolQuantizationSchema quantizationSchema{
-            std::move(featureIndices),
-            std::move(borders),
-            std::move(nanModes),
-            dataProvider->MetaInfo.ClassLabels,
-            TVector<size_t>(),//TODO
-            TVector<TMap<ui32, TValueWithCount>>()//TODO
-        };
-
         //localIndexToColumnIndex
         TVector<size_t> localIndexToColumnIndex(columnNames.size());
         std::iota(localIndexToColumnIndex.begin(), localIndexToColumnIndex.end(), 0);
 
         //fill other attributes
-        srcData.PoolQuantizationSchema = quantizationSchema;
         srcData.ColumnNames = columnNames;
         srcData.LocalIndexToColumnIndex = localIndexToColumnIndex;
 
