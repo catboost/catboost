@@ -12,6 +12,8 @@ IF (CLANG10BC AND CLANG10 AND HOST_OS_LINUX)
         sbr:1805752492 FOR LINUX
     )
 ELSE()
+    # Remove -std=c++17 flag from LLVM_COMPILE_CXX and CLANG_EMIT_AST_CXX macro when update clang to 11
+    # DEVTOOLS-7845
     DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
         CLANG # Clang 7
         sbr:707372498 FOR LINUX # In 942524429 and 958916803 llvm-link does not run.
