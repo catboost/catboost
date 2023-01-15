@@ -1,13 +1,19 @@
-PROGRAM()
 
 
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/fix_elf/ya.make.prebuilt)
+ENDIF()
 
-SRCS(
-    patch.cpp
-)
+IF (NOT PREBUILT)
+    PROGRAM()
 
-PEERDIR(
-    library/cpp/getopt/small
-)
+    SRCS(
+        patch.cpp
+    )
 
-END()
+    PEERDIR(
+        library/cpp/getopt/small
+    )
+
+    END()
+ENDIF()
