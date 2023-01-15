@@ -1323,8 +1323,8 @@ static void BindSystemParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
 
     parser
             .AddLongOption("pinned-memory-size")
-            .RequiredArgument("int")
-            .Help("GPU only. Minimum CPU pinned memory to use")
+            .RequiredArgument("String")
+            .Help("GPU only. Minimum CPU pinned memory to use, e.g. 8gb, 100000, etc. Valid suffixes are tb, gb, mb, kb, b")
             .Handler1T<TString>([plainJsonPtr](const TString& param) {
                 (*plainJsonPtr)["pinned_memory_size"] = param;
             });
