@@ -6,6 +6,7 @@
 
 #include <library/cpp/malloc/api/malloc.h>
 
+#include <util/system/compat.h>
 #include <util/system/compiler.h>
 #include <util/system/types.h>
 

@@ -21,11 +21,6 @@
 #define __CONCAT(x, y) __CONCAT1(x, y)
 #endif
 
-#if !defined(__FreeBSD__)
-#define __STRING(x) #x           /* stringify without expanding x */
-#define __XSTRING(x) __STRING(x) /* expand x, then stringify */
-#endif
-
 extern "C" {
 #if defined(_win_)
 using pid_t = int;
