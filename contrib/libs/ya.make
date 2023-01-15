@@ -37,6 +37,7 @@ RECURSE(
     pugixml
     python
     python/ut
+    r-lang
     re2
     snappy
     sqlite3
