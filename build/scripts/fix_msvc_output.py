@@ -41,7 +41,7 @@ def process_whole_archive(args):
             cf_args = pcf.read_from_command_file(cmd_file_path)
             with open(cmd_file_path, 'w') as afile:
                 for cf_arg in cf_args:
-                    afile.write(prefix + cf_arg)
+                    afile.write(prefix + cf_arg + "\n")
             cmd.append(arg)
         else:
             cmd.append(arg)

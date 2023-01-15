@@ -358,10 +358,10 @@ def make_full_path_arg(arg, bld_root, short_root):
         return os.path.join(short_root, arg)
     return arg
 
-def process_whole_archive(args):
-    cmd = []
+def split_whole_archive(args):
+    wholearchive_args = []
+    other_args = []
 
-    prefix = '/WHOLEARCHIVE:'
     start_wa = '--start-wa'
     end_wa = '--end-wa'
     is_inside_wa = False
@@ -371,11 +371,15 @@ def process_whole_archive(args):
         elif arg == end_wa:
             is_inside_wa = False
         elif is_inside_wa:
-            cmd.append(prefix + arg)
+            wholearchive_args.append(arg)
         else:
-            cmd.append(arg)
+            other_args.append(arg)
 
-    return cmd
+    return wholearchive_args, other_args
+
+def add_whole_archive_prefix(arg):
+    prefix = '/WHOLEARCHIVE:'
+    return prefix + arg
 
 def run_main():
     topdirs = ['/%s/' % d for d in os.listdir('/')]
@@ -419,7 +423,9 @@ def run_main():
     version = args.version
     incl_paths = args.incl_paths
     # By now just unpack. Ideally we should fix path and pack arguments back into command file
-    free_args = process_whole_archive(pcf.get_args(args.free_args))
+    free_args = pcf.get_args(args.free_args)
+    wholearchive_args, other_free_args = split_whole_archive(free_args)
+
     bld_root = args.arcadia_build_root
 
     wine_dir = os.path.dirname(os.path.dirname(wine))
@@ -428,7 +434,7 @@ def run_main():
     if not incl_paths:
         incl_paths = [tc_dir + '/VC/include', tc_dir + '/include']
 
-    cmd_out = find_cmd_out(free_args)
+    cmd_out = find_cmd_out(other_free_args)
 
     env = os.environ.copy()
 
@@ -453,7 +459,9 @@ def run_main():
 
     process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
 
-    cmd = [binary] + [fix_path(process_link(downsize_path(x, short_names))) for x in free_args]
+    wholearchive_args = [add_whole_archive_prefix(fix_path(process_link(downsize_path(x, short_names)))) for x in wholearchive_args]
+    other_free_args = [fix_path(process_link(downsize_path(x, short_names))) for x in other_free_args]
+    cmd = [binary] + wholearchive_args + other_free_args
 
     for x in ('/NOLOGO', '/nologo', '/FD'):
         try:
