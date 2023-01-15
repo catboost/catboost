@@ -2,12 +2,8 @@ LIBRARY()
 
 
 
-SRCS(
-    GLOBAL main.cpp
-)
-
 PEERDIR(
-    library/testing/benchmark
+    library/cpp/testing/benchmark/main
 )
 
 END()

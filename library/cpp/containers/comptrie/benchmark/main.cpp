@@ -1,9 +1,9 @@
 #include <library/testing/benchmark/bench.h>
 
-#include <library/comptrie/comptrie_trie.h>
-#include <library/comptrie/comptrie_builder.h>
-#include <library/comptrie/search_iterator.h>
-#include <library/comptrie/pattern_searcher.h>
+#include <library/cpp/containers/comptrie/comptrie_trie.h>
+#include <library/cpp/containers/comptrie/comptrie_builder.h>
+#include <library/cpp/containers/comptrie/search_iterator.h>
+#include <library/cpp/containers/comptrie/pattern_searcher.h>
 
 #include <library/cpp/on_disk/aho_corasick/writer.h>
 #include <library/cpp/on_disk/aho_corasick/reader.h>
