@@ -89,6 +89,9 @@ namespace NNeh {
         //enable limit requests per keep alive connection
         static i32 LimitRequestsPerConnection;
 
+        //enable TCP_QUICKACK
+        static bool QuickAck;
+
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
     };
