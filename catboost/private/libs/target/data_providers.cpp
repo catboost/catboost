@@ -810,7 +810,8 @@ namespace NCB {
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::ILocalExecutor* localExecutor) {
+        NPar::ILocalExecutor* localExecutor,
+        bool metricsThatRequireTargetCanBeSkipped) {
 
         TVector<NCatboostOptions::TLossDescription> updatedMetricsDescriptions(
             metricDescriptions.begin(),
@@ -944,7 +945,7 @@ namespace NCB {
             srcData.ObjectsData->GetSubgroupIds(),
             /*isForGpu*/ false,
             modelLossDescription.Get(),
-            /*metricsThatRequireTargetCanBeSkipped*/ false,
+            metricsThatRequireTargetCanBeSkipped,
             (ui32)model.GetDimensionsCount(),
             targetCreationOptions,
             inputClassificationInfo,
@@ -958,7 +959,7 @@ namespace NCB {
             updatedMetricsDescriptions,
             modelLossDescription.Get(),
             /*needTargetDataForCtrs*/ false,
-            /*metricsThatRequireTargetCanBeSkipped*/ false,
+            metricsThatRequireTargetCanBeSkipped,
             /*datasetName*/ TStringBuf(),
             /*isNonEmptyAndNonConst*/false,
             /*allowConstLabel*/ true

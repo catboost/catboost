@@ -17,7 +17,7 @@ bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescr
 
 bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription* lossDescription);
 
-void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model);
+bool HasNonZeroApproxForZeroWeightLeaf(const TFullModel& model);
 
 TVector<int> GetBinFeatureCombinationClassByDepth(
     const TModelTrees& forest,

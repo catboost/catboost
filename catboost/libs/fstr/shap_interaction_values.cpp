@@ -468,7 +468,6 @@ static void CalcShapInteraction(
     TInteractionValuesFull* shapInteractionValues,
     ECalcTypeShapValues calcType
 ) {
-    CheckNonZeroApproxForZeroWeightLeaf(model);
     TVector<TIntrusivePtr<NModelEvaluation::IQuantizedData>> binarizedFeatures;
     TVector<TVector<NModelEvaluation::TCalcerIndexType>> indexes;
     CalcLeafIndices(

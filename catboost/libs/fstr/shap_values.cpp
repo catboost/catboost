@@ -1085,8 +1085,6 @@ static void CalcShapValuesForDocumentBlockMulti(
     TVector<TVector<TVector<double>>>* shapValuesForAllDocuments,
     ECalcTypeShapValues calcType
 ) {
-    CheckNonZeroApproxForZeroWeightLeaf(model);
-
     const size_t documentCount = end - start;
 
     auto binarizedFeaturesForBlock = MakeQuantizedFeaturesForEvaluator(model, featuresBlockIterator, start, end);

@@ -34,7 +34,9 @@ TVector<double> CollectLeavesStatistics(
                 model,
                 GetMonopolisticFreeCpuRam(),
                 &rand,
-                localExecutor).TargetData;
+                localExecutor,
+                /*metricsThatRequireTargetCanBeSkipped*/true
+            ).TargetData;
 
             weights = GetWeights(*targetData);
         }
@@ -103,7 +105,7 @@ bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescr
     return TryGetLossDescription(model, lossDescription);
 }
 
-void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
+bool HasNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
     for (size_t leafIdx = 0; leafIdx < model.ModelTrees->GetModelTreeData()->GetLeafWeights().size(); ++leafIdx) {
         size_t approxDimension = model.GetDimensionsCount();
         if (model.ModelTrees->GetModelTreeData()->GetLeafWeights()[leafIdx] == 0) {
@@ -111,9 +113,12 @@ void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
             for (size_t approxIdx = 0; approxIdx < approxDimension; ++approxIdx) {
                 leafSumApprox += abs(model.ModelTrees->GetModelTreeData()->GetLeafValues()[leafIdx * approxDimension + approxIdx]);
             }
-            CB_ENSURE(leafSumApprox < 1e-9, "Cannot calc shap values, model contains non zero approx for zero-weight leaf");
+            if (leafSumApprox >= 1e-9) {
+                return true;
+            }
         }
     }
+    return false;
 }
 
 TVector<int> GetBinFeatureCombinationClassByDepth(

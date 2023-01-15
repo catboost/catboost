@@ -96,7 +96,8 @@ namespace NCB {
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::ILocalExecutor* localExecutor);
+        NPar::ILocalExecutor* localExecutor,
+        bool metricsThatRequireTargetCanBeSkipped=false);
 
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,
