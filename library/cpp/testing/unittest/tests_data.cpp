@@ -3,6 +3,7 @@
 
 #include <library/cpp/testing/common/network.h>
 
+#include <util/stream/output.h>
 #include <util/system/env.h>
 #include <util/system/mutex.h>
 
@@ -73,29 +74,46 @@ private:
 TPortManager::TPortManager(bool reservePortsForCurrentTest)
     : Impl_(new TPortManagerImpl(reservePortsForCurrentTest))
 {
+    Clog << "TPortManager constructed (" << reservePortsForCurrentTest << ")\n";
 }
 
 TPortManager::~TPortManager() {
+    Clog << "TPortManager destructed\n";
 }
 
 ui16 TPortManager::GetPort(ui16 port) {
-    return Impl_->GetTcpPort(port);
+    Clog << "TPortManager GetPort(" << port << "). ";
+    auto ans = Impl_->GetTcpPort(port);
+    Clog << "Returned port: " << ans << "\n";
+    return ans;
 }
 
 ui16 TPortManager::GetTcpPort(ui16 port) {
-    return Impl_->GetTcpPort(port);
+    Clog << "TPortManager GetTcpPort(" << port << "). ";
+    auto ans = Impl_->GetTcpPort(port);
+    Clog << "Returned port: " << ans << "\n";
+    return ans;
 }
 
 ui16 TPortManager::GetUdpPort(ui16 port) {
-    return Impl_->GetUdpPort(port);
+    Clog << "TPortManager GetUdpPort(" << port << "). ";
+    auto ans = Impl_->GetUdpPort(port);
+    Clog << "Returned port: " << ans << "\n";
+    return ans;
 }
 
 ui16 TPortManager::GetTcpAndUdpPort(ui16 port) {
-    return Impl_->GetTcpAndUdpPort(port);
+    Clog << "TPortManager GetTcpAndUdpPort(" << port << "). ";
+    auto ans = Impl_->GetTcpAndUdpPort(port);
+    Clog << "Returned port: " << ans << "\n";
+    return ans;
 }
 
 ui16 TPortManager::GetPortsRange(const ui16 startPort, const ui16 range) {
-    return Impl_->GetPortsRange(startPort, range);
+    Clog << "TPortManager GetPortsRange(" << startPort << ", " << range << "). ";
+    auto ans = Impl_->GetPortsRange(startPort, range);
+    Clog << "Returned port: " << ans << "\n";
+    return ans;
 }
 
 ui16 GetRandomPort() {
