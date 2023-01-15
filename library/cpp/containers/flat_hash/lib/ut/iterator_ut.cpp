@@ -1,7 +1,7 @@
 #include <library/cpp/containers/flat_hash/lib/iterator.h>
 #include <library/cpp/containers/flat_hash/lib/containers.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/random/random.h>
 #include <util/generic/algorithm.h>

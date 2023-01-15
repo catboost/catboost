@@ -1,7 +1,7 @@
 #include "utility.h"
 #include "ymath.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 // DO_NOT_STYLE
 

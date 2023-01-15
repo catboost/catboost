@@ -13,8 +13,8 @@
 
 #include <library/cpp/http/io/headers.h>
 
-#include <library/cpp/unittest/registar.h>
-#include <library/cpp/unittest/env.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/testing/unittest/env.h>
 
 #include <util/stream/str.h>
 #include <util/string/builder.h>

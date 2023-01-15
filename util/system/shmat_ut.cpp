@@ -1,6 +1,6 @@
 #include "shmat.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TTestSharedMemory) {
     Y_UNIT_TEST(TestInProc) {

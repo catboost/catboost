@@ -1,6 +1,6 @@
 #include "split_iterator.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 class TSplitIteratorTest: public TTestBase {
     UNIT_TEST_SUITE(TSplitIteratorTest);

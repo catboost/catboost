@@ -4,7 +4,7 @@
 
 #include <util/datetime/base.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #ifdef _win_
     #include <windows.h>

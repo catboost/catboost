@@ -1,7 +1,7 @@
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/stream/str.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include "maybe.h"
 

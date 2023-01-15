@@ -1,6 +1,6 @@
 #include <library/cpp/json/json_prettifier.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(JsonPrettifier) {
     Y_UNIT_TEST(PrettifyJsonShort) {

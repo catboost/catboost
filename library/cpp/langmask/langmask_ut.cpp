@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <util/string/hex.h>
 #include <library/cpp/langmask/langmask.h>
 #include <library/cpp/langmask/serialization/langmask.h>

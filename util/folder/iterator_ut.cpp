@@ -1,7 +1,7 @@
 #include "dirut.h"
 #include "iterator.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/system/fs.h>
 #include <util/system/file.h>

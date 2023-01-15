@@ -1,6 +1,6 @@
 #include "legacy_future.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 namespace NThreading {
     Y_UNIT_TEST_SUITE(TLegacyFutureTest) {

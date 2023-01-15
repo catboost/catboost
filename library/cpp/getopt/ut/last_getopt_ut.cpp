@@ -1,7 +1,7 @@
 #include <library/cpp/getopt/last_getopt.h>
 
 #include <library/cpp/colorizer/colors.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/array_size.h>
 #include <util/string/subst.h>

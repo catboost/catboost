@@ -1,6 +1,6 @@
 #include "delim_string_iter.h"
 #include <util/generic/vector.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 /// Test that TDelimStringIter build on top of given string and delimeter will produce expected sequence
 static void AssertStringSplit(const TString& str, const TString& delim, const TVector<TString>& expected) {

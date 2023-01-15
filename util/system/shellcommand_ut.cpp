@@ -6,8 +6,8 @@
 #include "sigset.h"
 #include "spinlock.h"
 
-#include <library/cpp/unittest/env.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/env.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/folder/dirut.h>
 #include <util/random/random.h>

@@ -1,6 +1,6 @@
 #include "crc32c.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestCrc32c) {
     Y_UNIT_TEST(TestCalc) {

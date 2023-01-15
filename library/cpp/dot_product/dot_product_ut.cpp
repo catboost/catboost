@@ -1,6 +1,6 @@
 #include "dot_product.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <library/cpp/sse/sse.h>
 #include <util/generic/vector.h>

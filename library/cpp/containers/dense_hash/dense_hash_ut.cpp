@@ -1,6 +1,6 @@
 #include "dense_hash.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TDenseHashTest) {
     Y_UNIT_TEST(TestDenseHash) {

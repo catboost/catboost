@@ -1,7 +1,7 @@
 #include "factory.h"
 #include "pool.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 class TThrPoolTest: public TTestBase {
     UNIT_TEST_SUITE(TThrPoolTest);

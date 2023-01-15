@@ -1,6 +1,6 @@
 #include "rty_formater.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 namespace {
     const TStringBuf SampleISO8601("2017-07-25T19:26:09.894000+03:00");

@@ -4,7 +4,7 @@
 #include <library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/memory/blob.h>
 

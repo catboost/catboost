@@ -8,7 +8,7 @@ static inline void Throw2DontMove() {
     ythrow yexception() << 1 << " qw " << 12.1; // don't move this line
 }
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/algorithm.h>
 #include <util/memory/tempbuf.h>

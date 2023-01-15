@@ -3,7 +3,7 @@
 #include "guard.h"
 #include "tempfile.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TFileLockTest) {
     Y_UNIT_TEST(TestFlock) {

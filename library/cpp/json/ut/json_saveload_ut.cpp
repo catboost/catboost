@@ -1,6 +1,6 @@
 #include <library/cpp/json/json_value.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <util/stream/buffer.h>
 #include <util/generic/buffer.h>
 #include <util/ysaveload.h>

@@ -1,6 +1,6 @@
 #include "directory_models_archive_reader.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/folder/tempdir.h>
 #include <util/string/cast.h>

@@ -2,8 +2,8 @@
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 
-#include <library/cpp/unittest/registar.h>
-#include <library/cpp/unittest/env.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/testing/unittest/env.h>
 
 #if defined(_unix_)
 #include <sys/types.h>

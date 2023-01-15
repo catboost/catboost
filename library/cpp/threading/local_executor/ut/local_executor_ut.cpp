@@ -1,7 +1,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 #include <library/cpp/threading/future/future.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <util/system/mutex.h>
 #include <util/system/rwlock.h>
 #include <util/generic/algorithm.h>

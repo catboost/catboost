@@ -1,6 +1,6 @@
 #include "stack_vec.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 namespace {
     struct TNotCopyAssignable {

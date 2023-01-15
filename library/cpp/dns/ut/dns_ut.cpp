@@ -1,4 +1,4 @@
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/dns/cache.h>
 #include <util/network/address.h>
 

@@ -1,7 +1,7 @@
 #include <library/cpp/statistics/statistics.h>
 
 #include <library/cpp/accurate_accumulate/accurate_accumulate.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>

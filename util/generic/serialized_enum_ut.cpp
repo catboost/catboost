@@ -1,6 +1,6 @@
 #include "serialized_enum.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/deque.h>
 #include <util/generic/map.h>

@@ -1,8 +1,8 @@
 #include "stream.h"
 #include "compression.h"
 
-#include <library/cpp/unittest/registar.h>
-#include <library/cpp/unittest/tests_data.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/testing/unittest/tests_data.h>
 
 #include <util/stream/zlib.h>
 #include <util/generic/hash_set.h>

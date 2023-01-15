@@ -1,6 +1,6 @@
 #include "lz.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/resource/resource.h>
 
 #include <util/stream/file.h>

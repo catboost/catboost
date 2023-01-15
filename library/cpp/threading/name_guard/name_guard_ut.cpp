@@ -1,5 +1,5 @@
 #include <library/cpp/threading/name_guard/name_guard.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/system/thread.h>
 #include <util/thread/factory.h>
