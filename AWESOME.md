@@ -13,3 +13,4 @@ We will be happy to add your success story using CatBoost to this list. Send us 
 
 ## Tools using CatBoost
 * [auto_ml](https://github.com/ClimbsRocks/auto_ml) - Automated machine learning for production and analytics. Lets you focus on the fun parts of ML, while outputting production-ready code, and detailed analytics of your dataset and results. Includes support for CatBoost and other ml libraries.
+* [mljar-supervised](https://github.com/mljar/mljar-supervised) - An Automated Machine Leaning (AutoML) open-source python package for binary and mutliclass classification and regression ML tasks. It is using CatBoost algorithm among many others. It provides explanations for CatBoost models: feature importance computed by permutation method and SHAP explanations: feature importance, dependency plots and decision plots (computed with CatBoost internals).
