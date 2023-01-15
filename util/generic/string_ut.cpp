@@ -723,7 +723,7 @@ public:
     }
 
     void TestStdStreamApi() {
-        const TString data = "Avada kedavra";
+        const TString data = "abracadabra";
         std::stringstream ss;
         ss << data;
 
