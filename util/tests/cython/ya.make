@@ -10,6 +10,7 @@ NO_WSHADOW()
 PY_SRCS(
     NAMESPACE
     util
+    folder/path_ut.pyx
     generic/array_ref_ut.pyx
     generic/maybe_ut.pyx
     generic/ptr_ut.pyx
@@ -25,10 +26,11 @@ PY_SRCS(
 )
 
 TEST_SRCS(
+    test_digest.py
+    test_folder.py
     test_generic.py
     test_memory.py
     test_system.py
-    test_digest.py
 )
 
 END()
