@@ -18,9 +18,8 @@
 using namespace NCB;
 
 
-void RunWorker(
+void CreateTrainingDataForWorker(
     i32 hostId,
-    i32 nodePort,
     i32 numThreads,
     const TString& plainJsonParamsAsString,
     NCB::TDataProviderPtr trainDataProvider,
@@ -70,6 +69,10 @@ void RunWorker(
         localExecutor,
         localData.Rand.Get()
     );
+}
 
+
+void RunWorkerWrapper(i32 numThreads, i32 nodePort) throw (yexception) {
     RunWorker(SafeIntegerCast<ui32>(numThreads), SafeIntegerCast<ui32>(nodePort));
 }
+

@@ -3,6 +3,7 @@ package ai.catboost.spark.impl
 import collection.mutable.HashMap
 
 import java.net._
+import java.util.concurrent.{ExecutorCompletionService,Executors}
 
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -28,6 +29,9 @@ private[spark] object Worker {
     threadCount: Int,
     rows: Iterator[Row]
   ) = {
+    // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
+    val partitionId = TaskContext.getPartitionId
+
     var quantizedDataProvider : TDataProviderPtr = null
 
     if (rows.hasNext) {
@@ -43,20 +47,54 @@ private[spark] object Worker {
 
     val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
 
-    val workerPort = TrainingDriver.getWorkerPortAndSendWorkerInfo(
-      trainingDriverListeningAddress,
-      TaskContext.getPartitionId,
-      partitionSize
-    )
-
     if (partitionSize != 0) {
-      native_impl.RunWorker(
-        TaskContext.getPartitionId,
-        workerPort,
+      native_impl.CreateTrainingDataForWorker(
+        partitionId,
         threadCount,
         catBoostJsonParamsString,
         quantizedDataProvider,
         quantizedFeaturesInfo
+      )
+    }
+    
+    val workerPort = TrainingDriver.getWorkerPort()
+    
+    val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
+
+    val sendWorkerInfoFuture = ecs.submit(
+      new Runnable() {
+        def run() = {
+          TrainingDriver.waitForListeningPortAndSendWorkerInfo(
+            trainingDriverListeningAddress,
+            partitionId,
+            partitionSize,
+            workerPort
+          )
+        }
+      },
+      ()
+    )
+
+    val workerFuture = ecs.submit(
+      new Runnable() {
+        def run() = {
+          if (partitionSize != 0) {
+            native_impl.RunWorkerWrapper(threadCount, workerPort)
+          }
+        }
+      },
+      ()
+    )
+
+    val firstCompletedFuture = ecs.take()
+
+    if (firstCompletedFuture == workerFuture) {
+      impl.Helpers.checkOneFutureAndWaitForOther(workerFuture, sendWorkerInfoFuture, "native_impl.RunWorkerWrapper")
+    } else { // firstCompletedFuture == sendWorkerInfoFuture
+      impl.Helpers.checkOneFutureAndWaitForOther(
+        sendWorkerInfoFuture,
+        workerFuture,
+        "TrainingDriver.waitForListeningPortAndSendWorkerInfo"
       )
     }
   }

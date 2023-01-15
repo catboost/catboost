@@ -219,24 +219,53 @@ private[spark] object TrainingDriver {
    * @returns CatBoost worker port. There's a possibility that this port will be reuse before binding
    *  in CatBoost code, in this case worker will fail and will be restarted
    */
-  def getWorkerPortAndSendWorkerInfo(
+  def getWorkerPort() : Int = {
+    val serverSocket = new ServerSocket(0)
+    try {
+      serverSocket.getLocalPort
+    } finally {
+      serverSocket.close
+    }
+  }
+
+  private def isWorkerListening(port: Int) : Boolean = {
+    var socket : Socket = null
+    try {
+      socket = new Socket("localhost", port)
+      true
+    } catch {
+      case _ : Throwable => false
+    } finally {
+      if (socket != null) {
+        socket.close
+      }
+    }
+  }
+
+
+  def waitForListeningPortAndSendWorkerInfo(
     trainingDriverListeningAddress: InetSocketAddress,
     partitionId: Int,
-    partitionSize: Int
-  ) : Int = {
+    partitionSize: Int,
+    workerPort: Int
+  ) = {
+    if (partitionSize > 0) {
+      // wait for CatBoost worker to start listening
+      do {
+        Thread.sleep(10)
+      } while (!isWorkerListening(workerPort))
+    }
+
     val socket = new Socket(
       trainingDriverListeningAddress.getAddress,
       trainingDriverListeningAddress.getPort
     )
 
-    // used in socket now, will reuse to listen in CatBoost worker code
-    val localPort = socket.getLocalPort
-
     val workerInfo = new WorkerInfo(
       partitionId,
       partitionSize,
       socket.getLocalAddress.getHostAddress,
-      localPort
+      workerPort
     )
     try {
       val outputStream = socket.getOutputStream
@@ -253,7 +282,5 @@ private[spark] object TrainingDriver {
     } finally {
       socket.close
     }
-
-    localPort
   }
 }
