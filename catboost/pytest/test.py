@@ -7132,7 +7132,7 @@ def test_mode_roc():
     return local_canonical_file(output_roc_path)
 
 
-@pytest.mark.parametrize('pool', ['adult', 'higgs'])
+@pytest.mark.parametrize('pool', ['adult', 'higgs', 'adult_nan'])
 def test_convert_model_to_json(pool):
     output_model_path = yatest.common.test_output_path('model')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -7145,6 +7145,7 @@ def test_convert_model_to_json(pool):
         '-T', '4',
         '--eval-file', output_eval_path,
         '-m', output_model_path,
+        '--nan-mode', 'Max' if pool == 'adult_nan' else 'Forbidden',
         '--model-format', 'CatboostBinary,Json'
     )
     execute_catboost_fit('CPU', cmd)
