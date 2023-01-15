@@ -87,15 +87,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\_quadpackmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\bb9955e74f3f9c966f139f649b.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\lsodamodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._dop.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._odepack.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._quadpack.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.lsoda.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.vode.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\integrate\vodemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -125,92 +119,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/integrate/_bb9955e74f3f9c966f139f649b.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_bb9955e74f3f9c966f139f649b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\_bb9955e74f3f9c966f139f649b.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/bb9955e74f3f9c966f139f649b.cpp" "_1e167750cafe8c72b01ab91029=/py_modules/scipy.integrate.__init__" "_a77fb621561a5e757d08857b92=resfs/src//py_modules/scipy.integrate.__init__" "_49430f1f2045a63ba1e3233b4b=/py_code/scipy.integrate.__init__" "_34075061e3905fc5cfe8b265b9=/py_modules/scipy.integrate.quadpack" "_34f3b0acbd3285669473e7e521=resfs/src//py_modules/scipy.integrate.quadpack" "_7178bc76e46db252ba2258fda3=/py_code/scipy.integrate.quadpack" "_a148d5b4f9c0fb86c8ea51a2ce=/py_modules/scipy.integrate.quadrature" "_5bff4784c5e15fcbfe00ba02b4=resfs/src//py_modules/scipy.integrate.quadrature" "_0877f53adee80e93727b36da3c=/py_code/scipy.integrate.quadrature" "_b6a891a8b26663ae94c4b30843=/py_modules/scipy.integrate._ode" "_3312a66a5d4356f858dd8b91ac=resfs/src//py_modules/scipy.integrate._ode" "_7653b5eac7b422393267655c41=/py_code/scipy.integrate._ode" "_7f2f27d67694ab9d4264a7b50a=/py_modules/scipy.integrate.odepack" "_b2551c9f85d1f7b9fe63fdf21a=resfs/src//py_modules/scipy.integrate.odepack" "_d2096448eb18ea60d55bfaaa65=/py_code/scipy.integrate.odepack" "_71370f50ec341077bf48283dc5=/py_modules/scipy.integrate._bvp" "_b2561f2c1fdf4da7fe05317e0c=resfs/src//py_modules/scipy.integrate._bvp" "_18db924dbc8f5bd3e0e7dc01fb=/py_code/scipy.integrate._bvp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/bb9955e74f3f9c966f139f649b.cpp" "_1e167750cafe8c72b01ab91029=/py_modules/scipy.integrate.__init__" "_a77fb621561a5e757d08857b92=resfs/src//py_modules/scipy.integrate.__init__" "_49430f1f2045a63ba1e3233b4b=/py_code/scipy.integrate.__init__" "_34075061e3905fc5cfe8b265b9=/py_modules/scipy.integrate.quadpack" "_34f3b0acbd3285669473e7e521=resfs/src//py_modules/scipy.integrate.quadpack" "_7178bc76e46db252ba2258fda3=/py_code/scipy.integrate.quadpack" "_a148d5b4f9c0fb86c8ea51a2ce=/py_modules/scipy.integrate.quadrature" "_5bff4784c5e15fcbfe00ba02b4=resfs/src//py_modules/scipy.integrate.quadrature" "_0877f53adee80e93727b36da3c=/py_code/scipy.integrate.quadrature" "_b6a891a8b26663ae94c4b30843=/py_modules/scipy.integrate._ode" "_3312a66a5d4356f858dd8b91ac=resfs/src//py_modules/scipy.integrate._ode" "_7653b5eac7b422393267655c41=/py_code/scipy.integrate._ode" "_7f2f27d67694ab9d4264a7b50a=/py_modules/scipy.integrate.odepack" "_b2551c9f85d1f7b9fe63fdf21a=resfs/src//py_modules/scipy.integrate.odepack" "_d2096448eb18ea60d55bfaaa65=/py_code/scipy.integrate.odepack" "_71370f50ec341077bf48283dc5=/py_modules/scipy.integrate._bvp" "_b2561f2c1fdf4da7fe05317e0c=resfs/src//py_modules/scipy.integrate._bvp" "_18db924dbc8f5bd3e0e7dc01fb=/py_code/scipy.integrate._bvp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/integrate/bb9955e74f3f9c966f139f649b.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\bb9955e74f3f9c966f139f649b.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._dop.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._odepack.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._quadpack.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.lsoda.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.vode.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._dop.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._odepack.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate._quadpack.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.lsoda.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/integrate/scipy.integrate.vode.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/integrate/scipy.integrate._dop.reg.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate._odepack.reg.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate._quadpack.reg.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate.lsoda.reg.cpp	$B/contrib/python/scipy/scipy/integrate/scipy.integrate.vode.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._dop.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._odepack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate._quadpack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.lsoda.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\integrate\scipy.integrate.vode.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

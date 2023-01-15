@@ -78,12 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\2b4abc78e6ab1ee2f75363efd0.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\8288ea8d5b234d40a3ee2fa911.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\_2b4abc78e6ab1ee2f75363efd0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
@@ -137,76 +133,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/runtime_py3/_8288ea8d5b234d40a3ee2fa911.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\_8288ea8d5b234d40a3ee2fa911.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\_8288ea8d5b234d40a3ee2fa911.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/2b4abc78e6ab1ee2f75363efd0.cpp" "_a6656cf90e7ee101697770d845=resfs/src/resfs/file/py/library/python/runtime_py3/entry_points.py" "_a9e385b36ab59ca484e07f1385=resfs/file/py/library/python/runtime_py3/entry_points.py"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/8288ea8d5b234d40a3ee2fa911.cpp" "_e6ed8f4243bdf34a6416ec0cc4=resfs/src/resfs/file/library/python/runtime_py3/__res.pyx" "_ba550a4ed8f9ec79f98fdea445=resfs/file/library/python/runtime_py3/__res.pyx" "_5af3304e339710b8642b056532=resfs/src/resfs/file/library/python/runtime_py3/importer.pxi" "_1c59d469b2d3c84c707b953ee6=resfs/file/library/python/runtime_py3/importer.pxi" "_123a41ad36f1d04db23f66ee1d=resfs/src/resfs/file/library/python/runtime_py3/sitecustomize.pyx" "_f9e7f0dec83112b1ad8f6bdc7a=resfs/file/library/python/runtime_py3/sitecustomize.pyx"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/2b4abc78e6ab1ee2f75363efd0.cpp" "_a6656cf90e7ee101697770d845=resfs/src/resfs/file/py/library/python/runtime_py3/entry_points.py" "_a9e385b36ab59ca484e07f1385=resfs/file/py/library/python/runtime_py3/entry_points.py"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/8288ea8d5b234d40a3ee2fa911.cpp" "_e6ed8f4243bdf34a6416ec0cc4=resfs/src/resfs/file/library/python/runtime_py3/__res.pyx" "_ba550a4ed8f9ec79f98fdea445=resfs/file/library/python/runtime_py3/__res.pyx" "_5af3304e339710b8642b056532=resfs/src/resfs/file/library/python/runtime_py3/importer.pxi" "_1c59d469b2d3c84c707b953ee6=resfs/file/library/python/runtime_py3/importer.pxi" "_123a41ad36f1d04db23f66ee1d=resfs/src/resfs/file/library/python/runtime_py3/sitecustomize.pyx" "_f9e7f0dec83112b1ad8f6bdc7a=resfs/file/library/python/runtime_py3/sitecustomize.pyx"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime_py3/2b4abc78e6ab1ee2f75363efd0.cpp	$B/library/python/runtime_py3/8288ea8d5b234d40a3ee2fa911.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\2b4abc78e6ab1ee2f75363efd0.cpp;$(SolutionDir)$(Configuration)\library\python\runtime_py3\8288ea8d5b234d40a3ee2fa911.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/sitecustomize.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/sitecustomize.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime_py3/__res.reg3.cpp	$B/library/python/runtime_py3/sitecustomize.reg3.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.reg3.cpp;$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.reg3.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

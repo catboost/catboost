@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\9e809bb56fbdcede5be0ea37f0.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\random\src\distributions\distributions.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -139,15 +138,6 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\mtrand.pyx.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._bounded_integers.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._common.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._generator.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._mt19937.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._pcg64.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._philox.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._sfc64.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random.bit_generator.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random.mtrand.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_9e809bb56fbdcede5be0ea37f0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
@@ -174,124 +164,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/numpy/py3/numpy/random/_9e809bb56fbdcede5be0ea37f0.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_9e809bb56fbdcede5be0ea37f0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\_9e809bb56fbdcede5be0ea37f0.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/9e809bb56fbdcede5be0ea37f0.cpp" "_680210d38f8d5e8298dc4ff56c=resfs/src/resfs/file/py/numpy/random/__init__.py" "_6efb7e8e0145ebe74eb6238822=resfs/file/py/numpy/random/__init__.py" "_9b648ba4f66950d1534dd42595=resfs/src/resfs/file/py/numpy/random/__init__.py.yapyc3" "_8772b3e3ebd502bb6fb551454b=resfs/file/py/numpy/random/__init__.py.yapyc3" "_3504c15ee6c1ea4b296100cf9a=resfs/src/resfs/file/py/numpy/random/_pickle.py" "_de4eaec36769ab98459d8401b2=resfs/file/py/numpy/random/_pickle.py" "_a6f5dea9b0acc35bd84bdbaa16=resfs/src/resfs/file/py/numpy/random/_pickle.py.yapyc3" "_23e8fba020caea7799fa096a3d=resfs/file/py/numpy/random/_pickle.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/9e809bb56fbdcede5be0ea37f0.cpp" "_680210d38f8d5e8298dc4ff56c=resfs/src/resfs/file/py/numpy/random/__init__.py" "_6efb7e8e0145ebe74eb6238822=resfs/file/py/numpy/random/__init__.py" "_9b648ba4f66950d1534dd42595=resfs/src/resfs/file/py/numpy/random/__init__.py.yapyc3" "_8772b3e3ebd502bb6fb551454b=resfs/file/py/numpy/random/__init__.py.yapyc3" "_3504c15ee6c1ea4b296100cf9a=resfs/src/resfs/file/py/numpy/random/_pickle.py" "_de4eaec36769ab98459d8401b2=resfs/file/py/numpy/random/_pickle.py" "_a6f5dea9b0acc35bd84bdbaa16=resfs/src/resfs/file/py/numpy/random/_pickle.py.yapyc3" "_23e8fba020caea7799fa096a3d=resfs/file/py/numpy/random/_pickle.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/py3/numpy/random/9e809bb56fbdcede5be0ea37f0.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\9e809bb56fbdcede5be0ea37f0.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._bounded_integers" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._bounded_integers.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._common" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._common.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._generator.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._mt19937" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._mt19937.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._pcg64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._pcg64.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._philox" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._philox.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._sfc64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._sfc64.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random.bit_generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.bit_generator.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.mtrand.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._bounded_integers" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._bounded_integers.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._common" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._common.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._generator.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._mt19937" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._mt19937.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._pcg64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._pcg64.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._philox" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._philox.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random._sfc64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._sfc64.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random.bit_generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.bit_generator.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.mtrand.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/py3/numpy/random/numpy.random._bounded_integers.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random._common.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random._generator.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random._mt19937.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random._pcg64.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random._philox.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random._sfc64.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random.bit_generator.reg3.cpp	$B/contrib/python/numpy/py3/numpy/random/numpy.random.mtrand.reg3.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._bounded_integers.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._common.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._generator.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._mt19937.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._pcg64.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._philox.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random._sfc64.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random.bit_generator.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random\numpy.random.mtrand.reg3.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\random\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

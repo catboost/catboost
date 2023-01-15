@@ -78,8 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\343db93b2ffe1eb3a4d37092b0.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\library.python.symbols.module.syms.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\python\symbols\module\module.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\_343db93b2ffe1eb3a4d37092b0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -107,60 +105,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_343db93b2ffe1eb3a4d37092b0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_343db93b2ffe1eb3a4d37092b0.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/343db93b2ffe1eb3a4d37092b0.cpp" "_4e487c48d101e2ceeacd1c55da=/py_modules/library.python.symbols.module.__init__" "_088117910a9d512785a9d9a6a8=resfs/src//py_modules/library.python.symbols.module.__init__" "_4d2d7fb9bdd781de7c66de4f9b=/py_code/library.python.symbols.module.__init__"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/343db93b2ffe1eb3a4d37092b0.cpp" "_4e487c48d101e2ceeacd1c55da=/py_modules/library.python.symbols.module.__init__" "_088117910a9d512785a9d9a6a8=resfs/src//py_modules/library.python.symbols.module.__init__" "_4d2d7fb9bdd781de7c66de4f9b=/py_code/library.python.symbols.module.__init__"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/module/343db93b2ffe1eb3a4d37092b0.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\343db93b2ffe1eb3a4d37092b0.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.symbols.module.syms" "$(SolutionDir)$(Configuration)/library/python/symbols/module/library.python.symbols.module.syms.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.symbols.module.syms" "$(SolutionDir)$(Configuration)/library/python/symbols/module/library.python.symbols.module.syms.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/module/library.python.symbols.module.syms.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\library.python.symbols.module.syms.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

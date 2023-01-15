@@ -78,12 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\8ff3db7fc4e360453de5c22369.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\monoforest_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_catboost.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\catboost._catboost.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_5a3d7cc376fa9c2729d1c9ce6f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8ff3db7fc4e360453de5c22369.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
@@ -138,33 +135,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\execution_case.py.lt56.yapyc;$(SolutionDir)..\catboost\python-package\catboost\eval\factor_utils.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\factor_utils.py.6v2p.yapyc;$(SolutionDir)..\catboost\python-package\catboost\eval\log_config.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\log_config.py.7bwa.yapyc;$(SolutionDir)..\catboost\python-package\catboost\eval\utils.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\utils.py.2uhy.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_b85b97bf6add270fee9e543007.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_246d0efea9b7707a983f8e0e65.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_768697cf5ba059dcc60e7cea05.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_b7aa3ca0b0fa39bc86310dcda7.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_84e919b54aa7ebe1115951fdae.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_3c41404690272a56fa8cf10546.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_90f740077e9036c890ecaa7f46.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_663505c0f3e156739f1dad5a84.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_4e57b55705bc08f76f231a64ec.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.py2.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.py2.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_4e57b55705bc08f76f231a64ec.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_4e57b55705bc08f76f231a64ec.py2.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\__init__.py.aurn.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
@@ -218,138 +188,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/python-package/lib/_8ff3db7fc4e360453de5c22369.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8ff3db7fc4e360453de5c22369.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/8ff3db7fc4e360453de5c22369.cpp" "_43ed156934cd4e0f2eafa2c27e=py/no_check_imports/pjsv3h7inkiraclly6uv42vnzq"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "_246d0efea9b7707a983f8e0e65=/py_code/catboost.eval.execution_case" "_768697cf5ba059dcc60e7cea05=/py_modules/catboost.eval.factor_utils" "_7b34407ffe5d5b96e0e913ff9c=resfs/src//py_modules/catboost.eval.factor_utils" "_b7aa3ca0b0fa39bc86310dcda7=/py_code/catboost.eval.factor_utils" "_84e919b54aa7ebe1115951fdae=/py_modules/catboost.eval.log_config" "_7aa1e3341e541bcaa0daff9cd0=resfs/src//py_modules/catboost.eval.log_config" "_3c41404690272a56fa8cf10546=/py_code/catboost.eval.log_config" "_90f740077e9036c890ecaa7f46=/py_modules/catboost.eval.utils" "_7195798182dbe204f220f30669=resfs/src//py_modules/catboost.eval.utils" "_663505c0f3e156739f1dad5a84=/py_code/catboost.eval.utils"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "_da6cdc4ca56e7c772105c65d58=resfs/src//py_modules/catboost.widget.__init__" "_f0abc97fc17fc2746b07a9cfdb=/py_code/catboost.widget.__init__" "_19cac8663e836bec6e3fe78d38=/py_modules/catboost.widget.ipythonwidget" "_d8cb056d42cdc0cf2ec5a906f3=resfs/src//py_modules/catboost.widget.ipythonwidget" "_79ff2916931b4250e3bc0e8af5=/py_code/catboost.widget.ipythonwidget" "_134c656408b3bf339a83223c16=/py_modules/catboost.eval._fold_model" "_de167a635b6129a74836672412=resfs/src//py_modules/catboost.eval._fold_model" "_a293538fb65b8ae2c55469686e=/py_code/catboost.eval._fold_model" "_30c9bb2bb8077b8c7ded673721=/py_modules/catboost.eval._fold_models_handler" "_4dea08d48a74d260aef3e167b4=resfs/src//py_modules/catboost.eval._fold_models_handler" "_ef5bdf46d44054f981fa61e51e=/py_code/catboost.eval._fold_models_handler" "_d2c719d1490ace9ad1d9883384=/py_modules/catboost.eval._fold_storage" "_1e7276fc0d80118100b5e59511=resfs/src//py_modules/catboost.eval._fold_storage" "_4d62abb05e4e3b1a9563cfe354=/py_code/catboost.eval._fold_storage" "_97a53570813c119ec4a44e98a6=/py_modules/catboost.eval._readers" "_dd977b0947ce1cf6cca06393d1=resfs/src//py_modules/catboost.eval._readers" "_4a558e601b81c08d9726bc4a91=/py_code/catboost.eval._readers" "_ff216e16b7ad9df387a010be5f=/py_modules/catboost.eval._splitter" "_69cdc465850fb6013160520aff=resfs/src//py_modules/catboost.eval._splitter" "_053eaebab2f9336b0370bcd6f6=/py_code/catboost.eval._splitter" "_a3fae25fb4fc736778d92efb36=/py_modules/catboost.eval.catboost_evaluation" "_db0076c43b68c94ad5bffcf8a7=resfs/src//py_modules/catboost.eval.catboost_evaluation" "_9836ba38244e60a0e4f19e80f8=/py_code/catboost.eval.catboost_evaluation" "_acb6fe89f927da95f514e8005b=/py_modules/catboost.eval.evaluation_result" "_f4f41c4247de66e93b349525d9=resfs/src//py_modules/catboost.eval.evaluation_result" "_5d4335b1ef765abd5f969dbc03=/py_code/catboost.eval.evaluation_result" "_6cc1920acc67bbeaba7323b801=/py_modules/catboost.eval.execution_case" "_da433a35f3f1a3b7872de4a87c=resfs/src//py_modules/catboost.eval.execution_case"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "_51e836d14942abfaec4adc0cb8=/py_modules/catboost.__init__" "_d2230951aeffe19f4cc0f92058=resfs/src//py_modules/catboost.__init__" "_e6215fb74d41a58ef192c4fb90=/py_code/catboost.__init__" "_f98f01f3c03a9991f19d194b4b=/py_modules/catboost.version" "_22d6298bde72f07978f84c5146=resfs/src//py_modules/catboost.version" "_3518fe606fccc0186c01cfbc30=/py_code/catboost.version" "_322727123ad9e5ed091c4c5cb2=/py_modules/catboost.core" "_2d2300419f84fbe61bde06ec10=resfs/src//py_modules/catboost.core" "_8650ba404b5dfcf3f57e16ee0e=/py_code/catboost.core" "_7a51b04609f967bc033a2d4860=/py_modules/catboost.datasets" "_a89d7cfdad5c020b5c376b1c1d=resfs/src//py_modules/catboost.datasets" "_7f0531570d1ec760cbf2e54078=/py_code/catboost.datasets" "_cdbd3991d9136ba12833e82b81=/py_modules/catboost.plot_helpers" "_c2e0401d016a8e92e59030aa10=resfs/src//py_modules/catboost.plot_helpers" "_198b8152d9a513846cb1083d60=/py_code/catboost.plot_helpers" "_e8efb2276874904781847bde42=/py_modules/catboost.metrics" "_a762ac6cda89e066746ac2b5dc=resfs/src//py_modules/catboost.metrics" "_3bd85e94b982a0259984ffd976=/py_code/catboost.metrics" "_268e6e50d95f3b7597e77d82b0=/py_modules/catboost.monoforest" "_f5b4de45dd169c7d9fbd5998f1=resfs/src//py_modules/catboost.monoforest" "_bd2202898d9a7e25c96beb758b=/py_code/catboost.monoforest" "_6ec53ae710b636152393ea381a=/py_modules/catboost.text_processing" "_cd352d6fa852e3eeb4f1323be1=resfs/src//py_modules/catboost.text_processing" "_a6a7b3f49dc6a2cb7040ff4ee5=/py_code/catboost.text_processing" "_ce9ddc76f8e4ce4b05d4c69827=/py_modules/catboost.utils" "_f12bd3efafe8c9ab42168b15b0=resfs/src//py_modules/catboost.utils" "_d96215d00e4538aab789dde4ed=/py_code/catboost.utils" "_739bd9d16e0e96f63c0fcd87d2=/py_modules/catboost.dev_utils" "_905a3c0645d4f996b1a8ee8d2d=resfs/src//py_modules/catboost.dev_utils" "_44de7ee18bdb8118014b2a951a=/py_code/catboost.dev_utils" "_38aaf2bdc14427a90fd6d11604=/py_modules/catboost.widget.__init__"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/8ff3db7fc4e360453de5c22369.cpp" "_43ed156934cd4e0f2eafa2c27e=py/no_check_imports/pjsv3h7inkiraclly6uv42vnzq"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "_246d0efea9b7707a983f8e0e65=/py_code/catboost.eval.execution_case" "_768697cf5ba059dcc60e7cea05=/py_modules/catboost.eval.factor_utils" "_7b34407ffe5d5b96e0e913ff9c=resfs/src//py_modules/catboost.eval.factor_utils" "_b7aa3ca0b0fa39bc86310dcda7=/py_code/catboost.eval.factor_utils" "_84e919b54aa7ebe1115951fdae=/py_modules/catboost.eval.log_config" "_7aa1e3341e541bcaa0daff9cd0=resfs/src//py_modules/catboost.eval.log_config" "_3c41404690272a56fa8cf10546=/py_code/catboost.eval.log_config" "_90f740077e9036c890ecaa7f46=/py_modules/catboost.eval.utils" "_7195798182dbe204f220f30669=resfs/src//py_modules/catboost.eval.utils" "_663505c0f3e156739f1dad5a84=/py_code/catboost.eval.utils"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "_da6cdc4ca56e7c772105c65d58=resfs/src//py_modules/catboost.widget.__init__" "_f0abc97fc17fc2746b07a9cfdb=/py_code/catboost.widget.__init__" "_19cac8663e836bec6e3fe78d38=/py_modules/catboost.widget.ipythonwidget" "_d8cb056d42cdc0cf2ec5a906f3=resfs/src//py_modules/catboost.widget.ipythonwidget" "_79ff2916931b4250e3bc0e8af5=/py_code/catboost.widget.ipythonwidget" "_134c656408b3bf339a83223c16=/py_modules/catboost.eval._fold_model" "_de167a635b6129a74836672412=resfs/src//py_modules/catboost.eval._fold_model" "_a293538fb65b8ae2c55469686e=/py_code/catboost.eval._fold_model" "_30c9bb2bb8077b8c7ded673721=/py_modules/catboost.eval._fold_models_handler" "_4dea08d48a74d260aef3e167b4=resfs/src//py_modules/catboost.eval._fold_models_handler" "_ef5bdf46d44054f981fa61e51e=/py_code/catboost.eval._fold_models_handler" "_d2c719d1490ace9ad1d9883384=/py_modules/catboost.eval._fold_storage" "_1e7276fc0d80118100b5e59511=resfs/src//py_modules/catboost.eval._fold_storage" "_4d62abb05e4e3b1a9563cfe354=/py_code/catboost.eval._fold_storage" "_97a53570813c119ec4a44e98a6=/py_modules/catboost.eval._readers" "_dd977b0947ce1cf6cca06393d1=resfs/src//py_modules/catboost.eval._readers" "_4a558e601b81c08d9726bc4a91=/py_code/catboost.eval._readers" "_ff216e16b7ad9df387a010be5f=/py_modules/catboost.eval._splitter" "_69cdc465850fb6013160520aff=resfs/src//py_modules/catboost.eval._splitter" "_053eaebab2f9336b0370bcd6f6=/py_code/catboost.eval._splitter" "_a3fae25fb4fc736778d92efb36=/py_modules/catboost.eval.catboost_evaluation" "_db0076c43b68c94ad5bffcf8a7=resfs/src//py_modules/catboost.eval.catboost_evaluation" "_9836ba38244e60a0e4f19e80f8=/py_code/catboost.eval.catboost_evaluation" "_acb6fe89f927da95f514e8005b=/py_modules/catboost.eval.evaluation_result" "_f4f41c4247de66e93b349525d9=resfs/src//py_modules/catboost.eval.evaluation_result" "_5d4335b1ef765abd5f969dbc03=/py_code/catboost.eval.evaluation_result" "_6cc1920acc67bbeaba7323b801=/py_modules/catboost.eval.execution_case" "_da433a35f3f1a3b7872de4a87c=resfs/src//py_modules/catboost.eval.execution_case"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "_51e836d14942abfaec4adc0cb8=/py_modules/catboost.__init__" "_d2230951aeffe19f4cc0f92058=resfs/src//py_modules/catboost.__init__" "_e6215fb74d41a58ef192c4fb90=/py_code/catboost.__init__" "_f98f01f3c03a9991f19d194b4b=/py_modules/catboost.version" "_22d6298bde72f07978f84c5146=resfs/src//py_modules/catboost.version" "_3518fe606fccc0186c01cfbc30=/py_code/catboost.version" "_322727123ad9e5ed091c4c5cb2=/py_modules/catboost.core" "_2d2300419f84fbe61bde06ec10=resfs/src//py_modules/catboost.core" "_8650ba404b5dfcf3f57e16ee0e=/py_code/catboost.core" "_7a51b04609f967bc033a2d4860=/py_modules/catboost.datasets" "_a89d7cfdad5c020b5c376b1c1d=resfs/src//py_modules/catboost.datasets" "_7f0531570d1ec760cbf2e54078=/py_code/catboost.datasets" "_cdbd3991d9136ba12833e82b81=/py_modules/catboost.plot_helpers" "_c2e0401d016a8e92e59030aa10=resfs/src//py_modules/catboost.plot_helpers" "_198b8152d9a513846cb1083d60=/py_code/catboost.plot_helpers" "_e8efb2276874904781847bde42=/py_modules/catboost.metrics" "_a762ac6cda89e066746ac2b5dc=resfs/src//py_modules/catboost.metrics" "_3bd85e94b982a0259984ffd976=/py_code/catboost.metrics" "_268e6e50d95f3b7597e77d82b0=/py_modules/catboost.monoforest" "_f5b4de45dd169c7d9fbd5998f1=resfs/src//py_modules/catboost.monoforest" "_bd2202898d9a7e25c96beb758b=/py_code/catboost.monoforest" "_6ec53ae710b636152393ea381a=/py_modules/catboost.text_processing" "_cd352d6fa852e3eeb4f1323be1=resfs/src//py_modules/catboost.text_processing" "_a6a7b3f49dc6a2cb7040ff4ee5=/py_code/catboost.text_processing" "_ce9ddc76f8e4ce4b05d4c69827=/py_modules/catboost.utils" "_f12bd3efafe8c9ab42168b15b0=resfs/src//py_modules/catboost.utils" "_d96215d00e4538aab789dde4ed=/py_code/catboost.utils" "_739bd9d16e0e96f63c0fcd87d2=/py_modules/catboost.dev_utils" "_905a3c0645d4f996b1a8ee8d2d=resfs/src//py_modules/catboost.dev_utils" "_44de7ee18bdb8118014b2a951a=/py_code/catboost.dev_utils" "_38aaf2bdc14427a90fd6d11604=/py_modules/catboost.widget.__init__"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/8ff3db7fc4e360453de5c22369.cpp	$B/catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp	$B/catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp	$B/catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\8ff3db7fc4e360453de5c22369.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\b85b97bf6add270fee9e543007.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\c0315479e95e92d4aea2f854bf.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\f75853afbf4ae2582b3716dd09.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f75853afbf4ae2582b3716dd09.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_c0315479e95e92d4aea2f854bf.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_b85b97bf6add270fee9e543007.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f75853afbf4ae2582b3716dd09.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_c0315479e95e92d4aea2f854bf.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_b85b97bf6add270fee9e543007.yasm" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/join_4e57b55705bc08f76f231a64ec.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f75853afbf4ae2582b3716dd09.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_c0315479e95e92d4aea2f854bf.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_b85b97bf6add270fee9e543007.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_4e57b55705bc08f76f231a64ec.yasm;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\f75853afbf4ae2582b3716dd09.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\c0315479e95e92d4aea2f854bf.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\b85b97bf6add270fee9e543007.cpp;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_5a3d7cc376fa9c2729d1c9ce6f.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/catboost._catboost.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\catboost._catboost.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

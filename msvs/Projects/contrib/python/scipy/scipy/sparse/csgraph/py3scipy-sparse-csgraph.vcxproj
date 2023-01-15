@@ -83,12 +83,6 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_shortest_path.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_tools.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_traversal.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\de35e5bc804cc624db73ba8283.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._min_spanning_tree.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._reordering.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._shortest_path.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._tools.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._traversal.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_de35e5bc804cc624db73ba8283.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
@@ -115,92 +109,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scipy/scipy/sparse/csgraph/_de35e5bc804cc624db73ba8283.py3.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_de35e5bc804cc624db73ba8283.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\_de35e5bc804cc624db73ba8283.py3.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/de35e5bc804cc624db73ba8283.cpp" "_215c96bc19f49bd0de4247cc80=resfs/src/resfs/file/py/scipy/sparse/csgraph/__init__.py" "_ad992e685037870c67b876ed86=resfs/file/py/scipy/sparse/csgraph/__init__.py" "_2c8e8ecafad6110201c96cbef0=resfs/src/resfs/file/py/scipy/sparse/csgraph/__init__.py.yapyc3" "_99c4e8e784b1ab6ce105322c94=resfs/file/py/scipy/sparse/csgraph/__init__.py.yapyc3" "_0df08420fc477356e44afbfb5f=resfs/src/resfs/file/py/scipy/sparse/csgraph/_laplacian.py" "_af42507852f5331ff48acabba6=resfs/file/py/scipy/sparse/csgraph/_laplacian.py" "_66568c3c2958ecadff3efd0a7f=resfs/src/resfs/file/py/scipy/sparse/csgraph/_laplacian.py.yapyc3" "_3a1b042dbd68d72ac7ebe5c98d=resfs/file/py/scipy/sparse/csgraph/_laplacian.py.yapyc3" "_45496d9205902ed4a9fe7dec9a=resfs/src/resfs/file/py/scipy/sparse/csgraph/_components.py" "_5b7814b86403ea485c118515fc=resfs/file/py/scipy/sparse/csgraph/_components.py" "_bf3d012199d889b991b5c68247=resfs/src/resfs/file/py/scipy/sparse/csgraph/_components.py.yapyc3" "_58c50b3d8cc22fdc08dfd7cf66=resfs/file/py/scipy/sparse/csgraph/_components.py.yapyc3" "_5a809cfcf363e9cdf043d402e6=resfs/src/resfs/file/py/scipy/sparse/csgraph/_validation.py" "_64c74a87adacbca227db9dd9eb=resfs/file/py/scipy/sparse/csgraph/_validation.py" "_a40cbd78671b6eea9f8818176d=resfs/src/resfs/file/py/scipy/sparse/csgraph/_validation.py.yapyc3" "_829816387ac5b661be2171a51b=resfs/file/py/scipy/sparse/csgraph/_validation.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/de35e5bc804cc624db73ba8283.cpp" "_215c96bc19f49bd0de4247cc80=resfs/src/resfs/file/py/scipy/sparse/csgraph/__init__.py" "_ad992e685037870c67b876ed86=resfs/file/py/scipy/sparse/csgraph/__init__.py" "_2c8e8ecafad6110201c96cbef0=resfs/src/resfs/file/py/scipy/sparse/csgraph/__init__.py.yapyc3" "_99c4e8e784b1ab6ce105322c94=resfs/file/py/scipy/sparse/csgraph/__init__.py.yapyc3" "_0df08420fc477356e44afbfb5f=resfs/src/resfs/file/py/scipy/sparse/csgraph/_laplacian.py" "_af42507852f5331ff48acabba6=resfs/file/py/scipy/sparse/csgraph/_laplacian.py" "_66568c3c2958ecadff3efd0a7f=resfs/src/resfs/file/py/scipy/sparse/csgraph/_laplacian.py.yapyc3" "_3a1b042dbd68d72ac7ebe5c98d=resfs/file/py/scipy/sparse/csgraph/_laplacian.py.yapyc3" "_45496d9205902ed4a9fe7dec9a=resfs/src/resfs/file/py/scipy/sparse/csgraph/_components.py" "_5b7814b86403ea485c118515fc=resfs/file/py/scipy/sparse/csgraph/_components.py" "_bf3d012199d889b991b5c68247=resfs/src/resfs/file/py/scipy/sparse/csgraph/_components.py.yapyc3" "_58c50b3d8cc22fdc08dfd7cf66=resfs/file/py/scipy/sparse/csgraph/_components.py.yapyc3" "_5a809cfcf363e9cdf043d402e6=resfs/src/resfs/file/py/scipy/sparse/csgraph/_validation.py" "_64c74a87adacbca227db9dd9eb=resfs/file/py/scipy/sparse/csgraph/_validation.py" "_a40cbd78671b6eea9f8818176d=resfs/src/resfs/file/py/scipy/sparse/csgraph/_validation.py.yapyc3" "_829816387ac5b661be2171a51b=resfs/file/py/scipy/sparse/csgraph/_validation.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/csgraph/de35e5bc804cc624db73ba8283.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\de35e5bc804cc624db73ba8283.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._min_spanning_tree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._min_spanning_tree.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._reordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._reordering.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._shortest_path" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._shortest_path.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._tools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._tools.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._traversal" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._traversal.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._min_spanning_tree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._min_spanning_tree.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._reordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._reordering.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._shortest_path" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._shortest_path.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._tools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._tools.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._traversal" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._traversal.reg3.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._min_spanning_tree.reg3.cpp	$B/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._reordering.reg3.cpp	$B/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._shortest_path.reg3.cpp	$B/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._tools.reg3.cpp	$B/contrib/python/scipy/scipy/sparse/csgraph/scipy.sparse.csgraph._traversal.reg3.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._min_spanning_tree.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._reordering.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._shortest_path.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._tools.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\csgraph\scipy.sparse.csgraph._traversal.reg3.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\csgraph\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

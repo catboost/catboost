@@ -78,11 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\faulthandler\b4df0efb20907b53f67241c501.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\faulthandler\faulthandler.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\faulthandler\faulthandler.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\faulthandler\traceback.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -112,60 +110,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_b4df0efb20907b53f67241c501.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_b4df0efb20907b53f67241c501.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/b4df0efb20907b53f67241c501.cpp" "_f2fd0ded18aa0592354701872e=resfs/src/resfs/file/contrib/python/faulthandler/.dist-info/METADATA" "_47480699002286ccb3028c6471=resfs/file/contrib/python/faulthandler/.dist-info/METADATA" "_d3bb352be95c7069244c9d3103=resfs/src/resfs/file/contrib/python/faulthandler/.dist-info/top_level.txt" "_e9374d6099fb0e56b654483d11=resfs/file/contrib/python/faulthandler/.dist-info/top_level.txt"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/b4df0efb20907b53f67241c501.cpp" "_f2fd0ded18aa0592354701872e=resfs/src/resfs/file/contrib/python/faulthandler/.dist-info/METADATA" "_47480699002286ccb3028c6471=resfs/file/contrib/python/faulthandler/.dist-info/METADATA" "_d3bb352be95c7069244c9d3103=resfs/src/resfs/file/contrib/python/faulthandler/.dist-info/top_level.txt" "_e9374d6099fb0e56b654483d11=resfs/file/contrib/python/faulthandler/.dist-info/top_level.txt"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/faulthandler/b4df0efb20907b53f67241c501.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\b4df0efb20907b53f67241c501.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "faulthandler" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/faulthandler.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "faulthandler" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/faulthandler.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/faulthandler/faulthandler.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\faulthandler.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\faulthandler\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

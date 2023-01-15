@@ -78,12 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\158eb953a3033832ec5ca506cb.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\68121dd6f9de08b413930e21af.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\__res.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\__res.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\sitecustomize.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\sitecustomize.reg.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\runtime\_158eb953a3033832ec5ca506cb.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
@@ -137,76 +133,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/runtime/_68121dd6f9de08b413930e21af.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\runtime\_68121dd6f9de08b413930e21af.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\_68121dd6f9de08b413930e21af.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/158eb953a3033832ec5ca506cb.cpp" "_69b2008b75739a2dbae1097d86=resfs/src/resfs/file/library/python/runtime/__res.pyx" "_71c1b5bd09d183dc73618e3df2=resfs/file/library/python/runtime/__res.pyx" "_589e893ff3e46ac686e09b3288=resfs/src/resfs/file/library/python/runtime/importer.pxi" "_c99cc30fd345a0c2e0a3303040=resfs/file/library/python/runtime/importer.pxi" "_19a99b21f65a3ac52ec928696a=resfs/src/resfs/file/library/python/runtime/sitecustomize.pyx" "_dc5479895dfa8f6d94b7708a02=resfs/file/library/python/runtime/sitecustomize.pyx"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/68121dd6f9de08b413930e21af.cpp" "_31e84497db52dc15513e0b8b45=/py_modules/library.python.runtime.entry_points" "_509a739e05ecb2fbc490a3ba0a=resfs/src//py_modules/library.python.runtime.entry_points" "_c14ecccb07d7bd081030af3e4f=/py_code/library.python.runtime.entry_points"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/158eb953a3033832ec5ca506cb.cpp" "_69b2008b75739a2dbae1097d86=resfs/src/resfs/file/library/python/runtime/__res.pyx" "_71c1b5bd09d183dc73618e3df2=resfs/file/library/python/runtime/__res.pyx" "_589e893ff3e46ac686e09b3288=resfs/src/resfs/file/library/python/runtime/importer.pxi" "_c99cc30fd345a0c2e0a3303040=resfs/file/library/python/runtime/importer.pxi" "_19a99b21f65a3ac52ec928696a=resfs/src/resfs/file/library/python/runtime/sitecustomize.pyx" "_dc5479895dfa8f6d94b7708a02=resfs/file/library/python/runtime/sitecustomize.pyx"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/68121dd6f9de08b413930e21af.cpp" "_31e84497db52dc15513e0b8b45=/py_modules/library.python.runtime.entry_points" "_509a739e05ecb2fbc490a3ba0a=resfs/src//py_modules/library.python.runtime.entry_points" "_c14ecccb07d7bd081030af3e4f=/py_code/library.python.runtime.entry_points"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime/158eb953a3033832ec5ca506cb.cpp	$B/library/python/runtime/68121dd6f9de08b413930e21af.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\158eb953a3033832ec5ca506cb.cpp;$(SolutionDir)$(Configuration)\library\python\runtime\68121dd6f9de08b413930e21af.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\library\python\runtime
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime/__res.reg.cpp	$B/library/python/runtime/sitecustomize.reg.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\__res.reg.cpp;$(SolutionDir)$(Configuration)\library\python\runtime\sitecustomize.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
