@@ -517,7 +517,11 @@ namespace NCatboostCuda {
                 break;
             }
             case ELossFunction::TotalF1: {
-                result.emplace_back(new TGpuPointwiseMetric(MakeTotalF1Metric(params, numClasses), 0, numClasses, isMulticlass, metricDescription));
+                EF1AverageType averageType = EF1AverageType::Weighted;
+                if (params.GetParamsMap().contains("average")) {
+                    averageType = FromString<EF1AverageType>(params.GetParamsMap().at("average"));
+                }
+                result.emplace_back(new TGpuPointwiseMetric(MakeTotalF1Metric(params, numClasses, averageType), 0, numClasses, isMulticlass, metricDescription));
                 break;
             }
             case ELossFunction::MCC: {
