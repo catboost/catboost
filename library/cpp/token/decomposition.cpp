@@ -148,7 +148,7 @@ bool NormalizeUnicode(const TWtringBuf& wbuf, bool advancedGermanUmlauts, bool e
     bool ok = NormalizeUnicodeInt(wbuf.data(), wbuf.size(), p, buflen, advancedGermanUmlauts, extTable);
     if (!ok) {
 #ifndef NDEBUG
-        fprintf(stderr, "Out of buffer %zu %u\n", wbuf.size(), (unsigned int)mult);
+        fprintf(stderr, "[WARNING]\tOut of buffer %zu %u\n", wbuf.size(), (unsigned int)mult);
 #endif
         return false;
     }
