@@ -229,10 +229,11 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
 
         visitor->Start(metaInfo, dataRows, EObjectsOrder::Undefined, {});
 
+        double *ptr_targetParam = REAL(targetParam);
         for (auto targetIdx : xrange(targetColumns)) {
             TVector<float> target(targetRows);
             for (auto docIdx : xrange(targetRows)) {
-                target[docIdx] = static_cast<float>(REAL(targetParam)[docIdx + targetRows * targetIdx]);
+                target[docIdx] = static_cast<float>(ptr_targetParam[docIdx + targetRows * targetIdx]);
             }
             visitor->AddTarget(
                 targetIdx,
@@ -242,19 +243,23 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
         TVector<float> weights(metaInfo.HasWeights ? dataRows : 0);
         TVector<float> groupWeights(metaInfo.HasGroupWeight ? dataRows : 0);
 
+        int *ptr_groupIdParam = INTEGER(groupIdParam);
+        int *ptr_subgroupIdParam = INTEGER(subgroupIdParam);
+        double *ptr_weightParam = REAL(weightParam);
+        double *ptr_groupWeightParam = REAL(groupWeightParam);
         for (ui32 i = 0; i < dataRows; ++i) {
             if (metaInfo.HasGroupId) {
-                visitor->AddGroupId(i, static_cast<uint32_t>(INTEGER(groupIdParam)[i]));
+                visitor->AddGroupId(i, static_cast<uint32_t>(ptr_groupIdParam[i]));
             }
             if (metaInfo.HasSubgroupIds) {
-                visitor->AddSubgroupId(i, static_cast<uint32_t>(INTEGER(subgroupIdParam)[i]));
+                visitor->AddSubgroupId(i, static_cast<uint32_t>(ptr_subgroupIdParam[i]));
             }
 
             if (weightParam != R_NilValue) {
-                weights[i] = static_cast<float>(REAL(weightParam)[i]);
+                weights[i] = static_cast<float>(ptr_weightParam[i]);
             }
             if (groupWeightParam != R_NilValue) {
-                groupWeights[i] = static_cast<float>(REAL(groupWeightParam)[i]);
+                groupWeights[i] = static_cast<float>(ptr_groupWeightParam[i]);
             }
         }
         if (metaInfo.HasWeights) {
@@ -265,28 +270,30 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
         }
         if (metaInfo.BaselineCount) {
             TVector<float> baseline(dataRows);
+            double *ptr_baselineParam = REAL(baselineParam);
             for (size_t j = 0; j < baselineColumns; ++j) {
                 for (ui32 i = 0; i < dataRows; ++i) {
-                    baseline[i] = static_cast<float>(REAL(baselineParam)[i + baselineRows * j]);
+                    baseline[i] = static_cast<float>(ptr_baselineParam[i + baselineRows * j]);
                 }
                 visitor->AddBaseline(j, baseline);
             }
         }
 
+        double *ptr_matrixParam = REAL(matrixParam);
         for (size_t j = 0; j < dataColumns; ++j) {
             if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Categorical) {
                 TVector<ui32> catValues;
                 catValues.yresize(dataRows);
                 for (ui32 i = 0; i < dataRows; ++i) {
                     catValues[i] =
-                        ConvertFloatCatFeatureToIntHash(static_cast<float>(REAL(matrixParam)[i + dataRows * j]));
+                        ConvertFloatCatFeatureToIntHash(static_cast<float>(ptr_matrixParam[i + dataRows * j]));
                 }
                 visitor->AddCatFeature(j, TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(catValues)));
             } else {
                 TVector<float> floatValues;
                 floatValues.yresize(dataRows);
                 for (ui32 i = 0; i < dataRows; ++i) {
-                    floatValues[i] = static_cast<float>(REAL(matrixParam)[i + dataRows * j]);
+                    floatValues[i] = static_cast<float>(ptr_matrixParam[i + dataRows * j]);
                 }
                 visitor->AddFloatFeature(j, MakeTypeCastArrayHolderFromVector<float, float>(floatValues));
             }
@@ -295,14 +302,16 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
         if (pairsParam != R_NilValue) {
             TVector<TPair> pairs;
             size_t pairsCount = static_cast<size_t>(INTEGER(getAttrib(pairsParam, R_DimSymbol))[0]);
+            double *ptr_pairsWeightParam = REAL(pairsWeightParam);
+            int *ptr_pairsParam = INTEGER(pairsParam);
             for (size_t i = 0; i < pairsCount; ++i) {
                 float weight = 1;
                 if (pairsWeightParam != R_NilValue) {
-                    weight = static_cast<float>(REAL(pairsWeightParam)[i]);
+                    weight = static_cast<float>(ptr_pairsWeightParam[i]);
                 }
                 pairs.emplace_back(
-                    static_cast<int>(INTEGER(pairsParam)[i + pairsCount * 0]),
-                    static_cast<int>(INTEGER(pairsParam)[i + pairsCount * 1]),
+                    static_cast<int>(ptr_pairsParam[i + pairsCount * 0]),
+                    static_cast<int>(ptr_pairsParam[i + pairsCount * 1]),
                     weight
                 );
             }
@@ -323,8 +332,9 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
 
 EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam) {
    SEXP result = PROTECT(allocVector(REALSXP, length(stringsParam)));
+   double *ptr_result = REAL(result);
    for (int i = 0; i < length(stringsParam); ++i) {
-       REAL(result)[i] = static_cast<double>(ConvertCatFeatureHashToFloat(CalcCatFeatureHash(TString(CHAR(STRING_ELT(stringsParam, i))))));
+       ptr_result[i] = static_cast<double>(ConvertCatFeatureHashToFloat(CalcCatFeatureHash(TString(CHAR(STRING_ELT(stringsParam, i))))));
    }
    UNPROTECT(1);
    return result;
@@ -756,9 +766,10 @@ EXPORT_FUNCTION CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP los
     SEXP dataDim = getAttrib(approxParam, R_DimSymbol);
     size_t dataRows = static_cast<size_t>(INTEGER(dataDim)[0]) / asInteger(columnCountParam);
     TVector<TVector<double>> prediction(asInteger(columnCountParam), TVector<double>(dataRows));
+    double *ptr_approxParam = REAL(approxParam);
     for (size_t i = 0, k = 0; i < dataRows; ++i) {
         for (size_t j = 0; j < prediction.size(); ++j) {
-            prediction[j][i] = static_cast<double>(REAL(approxParam)[k++]);
+            prediction[j][i] = static_cast<double>(ptr_approxParam[k++]);
         }
     }
 
@@ -771,9 +782,10 @@ EXPORT_FUNCTION CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP los
 
     size_t predictionSize = prediction.size() * dataRows;
     result = PROTECT(allocVector(REALSXP, predictionSize));
+    double *ptr_result = REAL(result);
     for (size_t i = 0, k = 0; i < dataRows; ++i) {
         for (size_t j = 0; j < prediction.size(); ++j) {
-            REAL(result)[k++] = prediction[j][i];
+            ptr_result[k++] = prediction[j][i];
         }
     }
     R_API_END();
@@ -846,11 +858,12 @@ EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolPar
         size_t numValues = numClasses > 0 ? fstr[0][0].size() : 0;
         size_t resultSize = numDocs * numClasses * numValues;
         result = PROTECT(allocVector(REALSXP, resultSize));
+        double *ptr_result = REAL(result);
         size_t r = 0;
         for (size_t k = 0; k < numValues; ++k) {
             for (size_t j = 0; j < numClasses; ++j) {
                for (size_t i = 0; i < numDocs; ++i) {
-                    REAL(result)[r++] = fstr[i][j][k];
+                    ptr_result[r++] = fstr[i][j][k];
                 }
             }
         }
@@ -871,10 +884,11 @@ EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolPar
         size_t numCols = numRows > 0 ? fstr[0].size() : 0;
         size_t resultSize = numRows * numCols;
         result = PROTECT(allocVector(REALSXP, resultSize));
+        double *ptr_result = REAL(result);
         size_t r = 0;
         for (size_t j = 0; j < numCols; ++j) {
             for (size_t i = 0; i < numRows; ++i) {
-                REAL(result)[r++] = fstr[i][j];
+                ptr_result[r++] = fstr[i][j];
             }
         }
         PROTECT(resultDim = allocVector(INTSXP, 2));
@@ -923,15 +937,16 @@ EXPORT_FUNCTION CatBoostEvaluateObjectImportances_R(
         resultSize += dstrResult.Scores.size() * dstrResult.Scores[0].size();
     }
     result = PROTECT(allocVector(REALSXP, resultSize));
+    double *ptr_result = REAL(result);
     size_t k = 0;
     for (size_t i = 0; i < dstrResult.Indices.size(); ++i) {
         for (size_t j = 0; j < dstrResult.Indices[0].size(); ++j) {
-            REAL(result)[k++] = dstrResult.Indices[i][j];
+            ptr_result[k++] = dstrResult.Indices[i][j];
         }
     }
     for (size_t i = 0; i < dstrResult.Scores.size(); ++i) {
         for (size_t j = 0; j < dstrResult.Scores[0].size(); ++j) {
-            REAL(result)[k++] = dstrResult.Scores[i][j];
+            ptr_result[k++] = dstrResult.Scores[i][j];
         }
     }
     R_API_END();
