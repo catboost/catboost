@@ -1791,7 +1791,6 @@ migrations:
     - sandbox/projects/video/priemka/VideoRobotPriemkaSimple
     - sandbox/projects/vqe/measure_performance
     - sandbox/projects/yabs/audit/runtime/monitoring
-    - sandbox/projects/yabs/qa/tasks/YabsServerB2BFuncShoot2
     - sandbox/projects/yt
     - sandbox/projects/yt/ci_tasks/packages/YtBuildCronPackage
     - sandbox/projects/yt/layers_tasks/YtBuildSpravLayerTask
@@ -2837,7 +2836,6 @@ migrations:
     - mail/sharpei/tests/integration/steps
     - mail/shiva/tests/lib
     - mail/shiva/tests/lib/steps
-    - mapreduce/yt/library/blob/tools/file-yt/tests
     - maps/infra/apiteka/client/fixture
     - maps/infra/ecstatic/integration_tests
     - maps/infra/quotateka/client/fixture
@@ -2858,8 +2856,6 @@ migrations:
     - market/pylibrary/async_publishing/tests
     - mds/mastermind/mastermind-cache/tests/http_tests/drooz_like_server
     - mds/walle_cms/cms/lib/tests
-    - metrika/admin/python/bishop/frontend/bishop
-    - metrika/core/programs/mobile-giga-events-writer/tests/functional
     - ml/nirvana/nope/tests/lib
     - modadvert/configurator/libs/it
     - modadvert/configurator/test_utils
