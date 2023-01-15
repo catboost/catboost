@@ -13,6 +13,7 @@ from pandas.util._decorators import doc
 
 from pandas.core.dtypes.common import (
     is_array_like,
+    is_bool_dtype,
     is_hashable,
     is_integer,
     is_iterator,
@@ -659,9 +660,9 @@ class _LocationIndexer(NDFrameIndexerBase):
         if self.ndim != 2:
             return
 
-        if isinstance(key, tuple) and not isinstance(self.obj.index, ABCMultiIndex):
+        if isinstance(key, tuple) and len(key) > 1:
             # key may be a tuple if we are .loc
-            # if index is not a MultiIndex, set key to column part
+            # if length of key is > 1 set key to column part
             key = key[column_axis]
             axis = column_axis
 
@@ -1925,12 +1926,14 @@ class _iLocIndexer(_LocationIndexer):
         """
         Ensure that our column indexer is something that can be iterated over.
         """
-        # Ensure we have something we can iterate over
         if is_integer(column_indexer):
             ilocs = [column_indexer]
         elif isinstance(column_indexer, slice):
-            ri = Index(range(len(self.obj.columns)))
-            ilocs = ri[column_indexer]
+            ilocs = np.arange(len(self.obj.columns))[column_indexer]
+        elif isinstance(column_indexer, np.ndarray) and is_bool_dtype(
+            column_indexer.dtype
+        ):
+            ilocs = np.arange(len(column_indexer))[column_indexer]
         else:
             ilocs = column_indexer
         return ilocs
