@@ -102,6 +102,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\libc_compat\strsep.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libc_compat\include\random\sys\random.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\libc_compat\include\windows\sys\uio.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\libc_compat\string.h"/>
   </ItemGroup>
