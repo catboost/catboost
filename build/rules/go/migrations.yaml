@@ -179,7 +179,6 @@ migrations:
       - a.yandex-team.ru/infra/maxwell/go/proto
       - a.yandex-team.ru/infra/nanny2/proto
       - a.yandex-team.ru/infra/orly/proto
-      - a.yandex-team.ru/infra/porto/proto
       - a.yandex-team.ru/infra/rtc/rebootctl/proto
       - a.yandex-team.ru/infra/ya_salt/proto
       - a.yandex-team.ru/library/cpp/eventlog/proto
