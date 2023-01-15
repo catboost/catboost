@@ -485,7 +485,6 @@ migrations:
     - sandbox/projects/dj/DjCompareBasesearchResponses
     - sandbox/projects/gencfg/GencfgChartsUploadGroupsInfoToYt
     - sandbox/projects/impulse
-    - sandbox/projects/irt/multik/common
     - sandbox/projects/mail/Load/FuritaAmmoGen
     - sandbox/projects/mail/Load/FuritaShooting
     - sandbox/projects/mail/Load/LizaShooting
