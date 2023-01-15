@@ -582,4 +582,14 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
             }
         }
     }
+
+    Y_UNIT_TEST(TestResetLargeRangeDyn) {
+        TDynBitMap bm;
+        bm.Set(0);
+        bm.Reset(1, 2048);
+        bm.Set(2048);
+        for (size_t k = 0; k <= 2048; ++k) {
+            UNIT_ASSERT_VALUES_EQUAL(bm.Get(k), k >= 1 && k < 2048 ? 0 : 1);
+        }
+    }
 }
