@@ -55,3 +55,16 @@ Certain exceptions apply. The following trivial changes do not need to be review
 * renaming of an internal variable to match the styleguide.
 
 Whenever a breaking change happens to accidentally land into trunk, reverting it does not need to be reviewed.
+
+## Stale/abandoned review request policy
+
+Sometimes review requests are neither merged nor discarded, and stay in review request queue forever.
+To limit the incoming review request queue size, util reviewers follow these rules:
+
+- A review request is considered stale if it is not updated by its author for at least 3 months, or if its author has left Yandex.
+- A stale review request may be marked as discarded by util reviewers.
+
+Review requests discarded as stale may be reopened or resubmitted by any committer willing to push them to completion.
+
+**Note:** It's an author's duty to push the review request to completion. 
+If util reviewers stop responding to updates, they should be politely pinged via appropriate means of communication.
