@@ -2387,47 +2387,47 @@
                 }
             }
         },
-        "clang6-android-x86": {
-            "name": "clang6",
+        "clang9-android-x86": {
+            "name": "clang9",
             "tools": {
                 "cc": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "llvm-cov"
                 },
                 "strip": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "strip"
                 },
                 "nm": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "nm"
                 },
                 "clang-format": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "clang-format"
                 },
                 "clang-tidy": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "clang-tidy"
                 },
                 "llvm-cov": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "llvm-cov"
                 },
                 "llvm-profdata": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "llvm-profdata"
                 },
                 "llvm-symbolizer": {
-                    "bottle": "clang6-android-x86",
+                    "bottle": "clang9-android-x86",
                     "executable": "llvm-symbolizer"
                 }
             },
@@ -2459,53 +2459,53 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0",
+                "gcc_version": "9.0",
                 "target_opt": [
-                    "-DANDROID_FAKEID=6667994"
+                    "-DANDROID_FAKEID=dmfedin_3"
                 ]
             }
         },
-        "clang6-android-x86_64": {
-            "name": "clang6",
+        "clang9-android-x86_64": {
+            "name": "clang9",
             "tools": {
                 "cc": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "llvm-cov"
                 },
                 "strip": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "strip"
                 },
                 "nm": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "nm"
                 },
                 "clang-format": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "clang-format"
                 },
                 "clang-tidy": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "clang-tidy"
                 },
                 "llvm-cov": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "llvm-cov"
                 },
                 "llvm-profdata": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "llvm-profdata"
                 },
                 "llvm-symbolizer": {
-                    "bottle": "clang6-android-x86_64",
+                    "bottle": "clang9-android-x86_64",
                     "executable": "llvm-symbolizer"
                 }
             },
@@ -2537,57 +2537,57 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0",
+                "gcc_version": "9.0",
                 "target_opt": [
-                    "-DANDROID_FAKEID=6667994"
+                    "-DANDROID_FAKEID=dmfedin_3"
                 ]
             }
         },
-        "clang6-android-armv7a": {
-            "name": "clang6",
+        "clang9-android-armv7a": {
+            "name": "clang9",
             "tools": {
                 "cc": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-cov"
                 },
                 "llvm-cov": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-cov"
                 },
                 "strip": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "strip"
                 },
                 "nm": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "nm"
                 },
                 "objcopy": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "objcopy"
                 },
                 "clang-format": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "clang-format"
                 },
                 "clang-tidy": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "clang-tidy"
                 },
                 "llvm-profdata": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-profdata"
                 },
                 "llvm-symbolizer": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-symbolizer"
                 }
             },
@@ -2619,57 +2619,57 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0",
+                "gcc_version": "9.0",
                 "target_opt": [
-                    "-DANDROID_FAKEID=6667994"
+                    "-DANDROID_FAKEID=dmfedin_3"
                 ]
             }
         },
-        "clang6-android-armv7a_neon": {
-            "name": "clang6",
+        "clang9-android-armv7a_neon": {
+            "name": "clang9",
             "tools": {
                 "cc": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-cov"
                 },
                 "llvm-cov": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-cov"
                 },
                 "strip": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "strip"
                 },
                 "nm": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "nm"
                 },
                 "objcopy": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "objcopy"
                 },
                 "clang-format": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "clang-format"
                 },
                 "clang-tidy": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "clang-tidy"
                 },
                 "llvm-profdata": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-profdata"
                 },
                 "llvm-symbolizer": {
-                    "bottle": "clang6-android-armv7",
+                    "bottle": "clang9-android-armv7",
                     "executable": "llvm-symbolizer"
                 }
             },
@@ -2701,57 +2701,57 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0",
+                "gcc_version": "9.0",
                 "target_opt": [
-                    "-DANDROID_FAKEID=6667994"
+                    "-DANDROID_FAKEID=dmfedin_3"
                 ]
             }
         },
-        "clang6-android-armv8a": {
-            "name": "clang6",
+        "clang9-android-armv8a": {
+            "name": "clang9",
             "tools": {
                 "cc": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "llvm-cov"
                 },
                 "llvm-cov": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "llvm-cov"
                 },
                 "strip": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "strip"
                 },
                 "nm": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "nm"
                 },
                 "objcopy": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "objcopy"
                 },
                 "clang-format": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "clang-format"
                 },
                 "clang-tidy": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "clang-tidy"
                 },
                 "llvm-profdata": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "llvm-profdata"
                 },
                 "llvm-symbolizer": {
-                    "bottle": "clang6-android-armv8",
+                    "bottle": "clang9-android-armv8",
                     "executable": "llvm-symbolizer"
                 }
             },
@@ -2783,9 +2783,9 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0",
+                "gcc_version": "9.0",
                 "target_opt": [
-                    "-DANDROID_FAKEID=6667994"
+                    "-DANDROID_FAKEID=dmfedin_3"
                 ]
             }
         },
@@ -6044,11 +6044,11 @@
                 ]
             }
         },
-        "clang6-android-x86": {
+        "clang9-android-x86": {
             "formula": {
                 "sandbox_id": [
-                    433940193,
-                    434453505
+                    659081930,
+                    659067325
                 ],
                 "match": "NDK"
             },
@@ -6095,11 +6095,11 @@
                 ]
             }
         },
-        "clang6-android-x86_64": {
+        "clang9-android-x86_64": {
             "formula": {
                 "sandbox_id": [
-                    433941670,
-                    434454714
+                    659083132,
+                    659072151
                 ],
                 "match": "NDK"
             },
@@ -6146,11 +6146,11 @@
                 ]
             }
         },
-        "clang6-android-armv7": {
+        "clang9-android-armv7": {
             "formula": {
                 "sandbox_id": [
-                    433939456,
-                    434452850
+                    659084266,
+                    659064678
                 ],
                 "match": "NDK"
             },
@@ -6201,11 +6201,11 @@
                 ]
             }
         },
-        "clang6-android-armv8": {
+        "clang9-android-armv8": {
             "formula": {
                 "sandbox_id": [
-                    433940899,
-                    434454082
+                    659085447,
+                    659065798
                 ],
                 "match": "NDK"
             },

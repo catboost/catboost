@@ -6,12 +6,24 @@ NO_PLATFORM()
 
 ADDINCL(GLOBAL contrib/libs/cxxsupp/system_stl/include)
 
-IF (NOT OS_IOS AND NOT OS_DARWIN)
-    IF (NOT OS_ANDROID)
+IF (OS_IOS OR OS_DARWIN)
+    LDFLAGS(
+        -lc++
+    )
+ELSEIF (OS_ANDROID)
+    IF (STATIC_STL)
         LDFLAGS(
-            -lgcc_s
+            -l:libc++.a
+        )
+    ELSE()
+        LDFLAGS(
+            -lc++
         )
     ENDIF()
+ELSE()
+    LDFLAGS(
+        -lgcc_s
+    )
     IF (STATIC_STL)
         LDFLAGS(
             -l:libstdc++.a
@@ -21,10 +33,6 @@ IF (NOT OS_IOS AND NOT OS_DARWIN)
             -lstdc++
         )
     ENDIF()
-ELSE()
-    LDFLAGS(
-        -lc++
-    )
 ENDIF()
 
 END()
