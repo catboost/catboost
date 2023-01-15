@@ -528,7 +528,6 @@ migrations:
     - logbroker/tools/manual/alter_sqs_tables
     - logbroker/tools/manual/create_logbroker_account/lib
     - logbroker/tools/manual/load_test/load
-    - logfeller/configs/tests/logs
     - logfeller/python/logfeller/infra/release/yt/yt_tests
     - mail/collie/unistat
     - mail/contrib/ccs-caldavtester
@@ -797,7 +796,6 @@ migrations:
     - robot/jupiter/viewers/galileo
     - robot/kwyt/scripts/sampling_data
     - robot/lemur/scripts/common
-    - robot/lemur/tools/limits_exporter
     - robot/mercury/test/config_check
     - robot/metrics/forums_sbr/bin/get_forum_urls
     - robot/metrics/forums_sbr/bin/get_urls_sample
@@ -2635,23 +2633,4 @@ migrations:
     ignore:
     - F811
     prefixes:
-    - modadvert/nirvana/angel_to_SM/it
-    - modadvert/nirvana/m1_add_verdicts/ut
-    - modadvert/nirvana/minus_regions/it
-    - modadvert/nirvana/normalize_text/it
-    - modadvert/nirvana/quality_metrics/aggregate_results/ut
-    - modadvert/nirvana/sm_api/find_related/it
-    - modadvert/nirvana/sm_api/get_custom/it
-    - modadvert/nirvana/text_ml/predict_labels/it
-    - modadvert/nirvana/text_ml/tf_idf/it
-    - modadvert/nirvana/text_ml/word_2_vec/it
-    - modadvert/nirvana/upload_documents/it
-    - modadvert/programs/backups/it
-    - modadvert/programs/brands/api/it
-    - modadvert/programs/brands/create_high_demand_brands_view/it
-    - modadvert/programs/cv_indexer/it
-    - modadvert/programs/direct_proxy/it
-    - modadvert/programs/direct_proxy/ut/handlers
-    - modadvert/programs/dyn_disclaimers/ut
-    - modadvert/programs/filter_domains_blacklist/it
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/lib
