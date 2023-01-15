@@ -1882,6 +1882,25 @@ def test_inconsistent_labels_and_class_names():
         classifier.fit(train_pool)
 
 
+def test_inconsistent_class_labels_count():
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='Logloss',
+        class_names=[0, 1, 2],
+    )
+    with pytest.raises(CatBoostError):
+        classifier.fit([[0], [1], [2]], [0, 1, 2])
+
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        class_names=[0, 1],
+        classes_count=3
+    )
+    with pytest.raises(CatBoostError):
+        classifier.fit([[0], [1], [2]], [0, 1, 2])
+
+
 @pytest.mark.parametrize(
     'features_dtype',
     ['str', 'np.float32'],

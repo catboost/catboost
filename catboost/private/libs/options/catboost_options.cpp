@@ -568,6 +568,12 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
                 CB_ENSURE(classesCount == 0 || classesCount == classWeights.size(), "class weights should be specified for each class in range 0, ... , classes_count - 1");
             }
         }
+        const auto& classLabels = DataProcessingOptions->ClassLabels.Get();
+        if (!classLabels.empty()) {
+            CB_ENSURE(lossFunction != ELossFunction::Logloss || (classLabels.size() == 2),
+                          "if loss-function is Logloss, then class labels should be given for 0 and 1 classes");
+            CB_ENSURE(classesCount == 0 || classesCount == classLabels.size(), "class labels should be specified for each class in range 0, ... , classes_count - 1");
+        }
     }
 
     ESamplingUnit samplingUnit = ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
