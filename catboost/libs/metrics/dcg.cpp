@@ -106,5 +106,5 @@ double CalcIDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<do
 double CalcNdcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, ui32 topSize, ENdcgDenominatorType denominator) {
     double dcg = CalcDcg(samples, type, Nothing(), topSize, denominator);
     double idcg = CalcIDcg(samples, type, Nothing(), topSize, denominator);
-    return idcg > 0 ? dcg / idcg : 0;
+    return idcg > 0 ? dcg / idcg : 1;
 }
