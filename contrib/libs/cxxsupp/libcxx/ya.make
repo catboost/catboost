@@ -142,6 +142,8 @@ NO_COMPILER_WARNINGS()
 SRCS(
     src/algorithm.cpp
     src/any.cpp
+    src/atomic.cpp
+    src/barrier.cpp
     src/bind.cpp
     src/charconv.cpp
     src/chrono.cpp
