@@ -5,15 +5,9 @@ IF (USE_PREBUILT_TOOLS)
 ENDIF()
 
 IF (NOT PREBUILT)
-    PROGRAM()
-
-    SRCS(
-        patch.cpp
-    )
-
-    PEERDIR(
-        library/cpp/getopt/small
-    )
-
-    END()
+    INCLUDE(${ARCADIA_ROOT}/tools/fix_elf/bin/ya.make)
 ENDIF()
+
+RECURSE(
+    bin
+)

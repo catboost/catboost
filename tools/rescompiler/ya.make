@@ -5,17 +5,9 @@ IF (USE_PREBUILT_TOOLS)
 ENDIF()
 
 IF (NOT PREBUILT)
-    PROGRAM()
-
-    PEERDIR(
-        library/cpp/resource
-    )
-
-    SRCS(
-        main.cpp
-    )
-
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/tools/rescompiler/ya.make.induced_deps)
-
-    END()
+    INCLUDE(${ARCADIA_ROOT}/tools/rescompiler/bin/ya.make)
 ENDIF()
+
+RECURSE(
+    bin
+)
