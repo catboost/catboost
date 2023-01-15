@@ -2237,7 +2237,6 @@ migrations:
     - crm/supskills/direct_skill/src
     - crowdsourcing/thirium-mitm-proxy
     - crypta/contrib/nx_community
-    - crypta/profile
     - cv/cbir_search/onto_validation/grep_onto_state
     - cv/imageproc/faces/video_face_recognition/face_recognition_stream_viewer
     - cv/imgclassifiers/danet/scripts
