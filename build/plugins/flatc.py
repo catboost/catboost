@@ -9,6 +9,7 @@ class FlatcBase(iw.CustomCommand):
     def __init__(self, path, unit):
         self._path = path
         self._incl_dirs = ['$S', '$B']
+        self._reflect_names = unit.get('FLATBUF_REFLECTION') == 'yes'
 
     def input(self):
         return common.make_tuples([self._path, '$S/build/scripts/stdout2stderr.py'])
@@ -53,7 +54,7 @@ class Flatc(FlatcBase):
         return ".bfbs"
 
     def extra_arguments(self):
-        return ['--yandex-maps-iter']
+        return ['--yandex-maps-iter'] + (['--reflect-names'] if self._reflect_names else [])
 
 
 class Flatc64(FlatcBase):
