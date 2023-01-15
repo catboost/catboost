@@ -4,6 +4,8 @@
 
 #include <catboost/private/libs/algo/plot.h>
 #include <catboost/private/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/pair.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/visitor.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -15,6 +17,8 @@
 
 #include <library/cpp/json/json_value.h>
 
+#include <util/generic/array_ref.h>
+#include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
 
 #include <type_traits>
@@ -234,3 +238,6 @@ void SetDataFromScipyCsrSparse(
         }
     );
 }
+
+size_t GetNumPairs(const NCB::TDataProvider& dataProvider);
+TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider);

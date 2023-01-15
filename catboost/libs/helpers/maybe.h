@@ -24,4 +24,20 @@ namespace NCB {
     TMaybeData<T *> MakeMaybeData(T *ptr) {
         return ptr ? TMaybeData<T *>(ptr) : Nothing();
     }
+
+
+    template <class T, class Policy, class TDataEqualFunction>
+    bool Equal(
+        const TMaybe<T, Policy>& lhs,
+        const TMaybe<T, Policy>& rhs,
+        TDataEqualFunction&& dataEqualFunction
+    ) {
+        if (lhs.Defined()) {
+            if (rhs.Defined()) {
+                return dataEqualFunction(*lhs, *rhs);
+            }
+            return false;
+        }
+        return !rhs.Defined();
+    }
 }

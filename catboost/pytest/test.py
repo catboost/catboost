@@ -1126,6 +1126,43 @@ def test_pairwise_reproducibility(loss_function):
     assert filecmp.cmp(eval_1, eval_4)
 
 
+def test_pairs_vs_grouped_pairs():
+    output_model_path = yatest.common.test_output_path('model.bin')
+
+    def run_catboost(learn_pairs_path_with_scheme, test_pairs_path_with_scheme, eval_path):
+        cmd = [
+            '--loss-function', 'PairLogit',
+            '--eval-metric', 'PairAccuracy',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--learn-pairs', learn_pairs_path_with_scheme,
+            '--test-pairs', test_pairs_path_with_scheme,
+            '-i', '20',
+            '-T', '4',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+            '--use-best-model', 'false',
+        ]
+        execute_catboost_fit('CPU', cmd)
+
+    eval_path_ungrouped = yatest.common.test_output_path('test_eval_ungrouped')
+    run_catboost(
+        data_file('querywise', 'train.pairs'),
+        data_file('querywise', 'test.pairs'),
+        eval_path_ungrouped
+    )
+
+    eval_path_grouped = yatest.common.test_output_path('test_eval_grouped')
+    run_catboost(
+        'dsv-grouped://' + data_file('querywise', 'train.grouped_pairs'),
+        'dsv-grouped://' + data_file('querywise', 'test.grouped_pairs'),
+        eval_path_grouped
+    )
+
+    assert filecmp.cmp(eval_path_ungrouped, eval_path_grouped)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',

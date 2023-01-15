@@ -62,6 +62,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
     ) {
         SaveQuantizedPool(srcData, &(readDatasetMainParams->PoolPath), srcDataFiles);
         SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
+        readDatasetMainParams->PairsFilePath.Scheme = srcData.PairsFilePathScheme;
         SaveDataToTempFile(
             srcData.GroupWeightsFileData,
             &(readDatasetMainParams->GroupWeightsFilePath),
@@ -712,7 +713,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         expectedData.Target.Weights = TWeights<float>(6);
         expectedData.Target.GroupWeights = TWeights<float>(6);
-        expectedData.Target.Pairs = {TPair(0, 1, 0.1f), TPair(4, 3, 1.0f), TPair(3, 5, 0.2f)};
+        expectedData.Target.Pairs = TFlatPairsInfo{TPair(0, 1, 0.1f), TPair(4, 3, 1.0f), TPair(3, 5, 0.2f)};
 
         testCase.ExpectedData = std::move(expectedData);
 

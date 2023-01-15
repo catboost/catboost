@@ -347,7 +347,7 @@ namespace NCB {
             Data.TargetData.Baseline = std::move(baseline);
         }
 
-        void SetPairs(TVector<TPair>&& pairs) override {
+        void SetPairs(TRawPairsData&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
@@ -1237,7 +1237,7 @@ namespace NCB {
             Data.TargetData.Baseline = std::move(baseline);
         }
 
-        void SetPairs(TVector<TPair>&& pairs) override {
+        void SetPairs(TRawPairsData&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
@@ -1684,7 +1684,7 @@ namespace NCB {
             Data.TargetData.Baseline = std::move(baseline);
         }
 
-        void SetPairs(TVector<TPair>&& pairs) override {
+        void SetPairs(TRawPairsData&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
 

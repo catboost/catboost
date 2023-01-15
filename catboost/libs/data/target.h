@@ -2,6 +2,7 @@
 
 #include "meta_info.h"
 #include "objects_grouping.h"
+#include "pairs.h"
 #include "util.h"
 #include "weights.h"
 
@@ -74,7 +75,7 @@ namespace NCB {
         // weights in each group must be equal, it's checked
         TWeights<float> GroupWeights; // [objectIdx]
 
-        TVector<TPair> Pairs; // can be empty
+        TMaybeData<TRawPairsData> Pairs;
     public:
         bool operator==(const TRawTargetData& rhs) const;
 
@@ -167,7 +168,7 @@ namespace NCB {
             return Data.GroupWeights;
         }
 
-        TConstArrayRef<TPair> GetPairs() const { // can return empty array
+        const TMaybeData<TRawPairsData>& GetPairs() const {
             return Data.Pairs;
         }
 
@@ -191,7 +192,7 @@ namespace NCB {
 
         void SetPairs(TConstArrayRef<TPair> pairs) {
             CheckPairs(pairs, *ObjectsGrouping);
-            Assign(pairs, &Data.Pairs);
+            Data.Pairs = TFlatPairsInfo(pairs.begin(), pairs.end());
         }
 
         TRawTargetDataProvider GetSubset(

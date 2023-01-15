@@ -139,7 +139,7 @@ TVector<double> EvalMetricsForUtils(
             objectGrouping,
             subgroupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TSubgroupId>>(subgroupId),
             groupWeight.empty() ? NCB::TWeights(groupId.size()) : NCB::TWeights(TVector<float>(groupWeight)),
-            pairs
+            TConstArrayRef<TPair>(pairs)
         ).Get();
     }
     TVector<double> metricResults;
@@ -190,4 +190,26 @@ NJson::TJsonValue GetTrainingOptions(
     NJson::TJsonValue catboostOptionsJson;
     catboostOptions.Save(&catboostOptionsJson);
     return catboostOptionsJson;
+}
+
+size_t GetNumPairs(const NCB::TDataProvider& dataProvider) {
+    size_t result = 0;
+    const NCB::TMaybeData<NCB::TRawPairsData>& maybePairsData = dataProvider.RawTargetData.GetPairs();
+    if (maybePairsData) {
+        Visit([&](const auto& pairs) { result = pairs.size(); }, *maybePairsData);
+    }
+    return result;
+}
+
+TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider) {
+    TConstArrayRef<TPair> result;
+    const NCB::TMaybeData<NCB::TRawPairsData>& maybePairsData = dataProvider.RawTargetData.GetPairs();
+    if (maybePairsData) {
+        CB_ENSURE(
+            HoldsAlternative<TFlatPairsInfo>(*maybePairsData),
+            "Cannot get ungrouped pairs: pairs data is grouped"
+        );
+        result = Get<TFlatPairsInfo>(*maybePairsData);
+    }
+    return result;
 }

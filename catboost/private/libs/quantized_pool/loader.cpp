@@ -404,7 +404,7 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
 
     QuantizedPool = TQuantizedPool(); // release memory
     SetGroupWeights(GroupWeightsPath, ObjectCount, DatasetSubset, visitor);
-    SetPairs(PairsPath, ObjectCount, DatasetSubset, visitor);
+    SetPairs(PairsPath, DatasetSubset, visitor->GetGroupIds(), visitor);
     SetBaseline(BaselinePath, ObjectCount, DatasetSubset, NCB::ClassLabelsToStrings(DataMetaInfo.ClassLabels), visitor);
     SetTimestamps(TimestampsPath, ObjectCount, DatasetSubset, visitor);
     visitor->Finish();

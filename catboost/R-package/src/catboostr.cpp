@@ -145,7 +145,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     TDataProviderPtr poolPtr = ReadDataset(/*taskType*/Nothing(),
                                            TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
                                            !pairsPathWithScheme.empty() ?
-                                               TPathWithScheme(pairsPathWithScheme, "dsv") : TPathWithScheme(),
+                                               TPathWithScheme(pairsPathWithScheme, "dsv-flat") : TPathWithScheme(),
                                            /*groupWeightsFilePath=*/TPathWithScheme(),
                                            /*timestampsFilePath=*/TPathWithScheme(),
                                            /*baselineFilePath=*/TPathWithScheme(),
@@ -301,7 +301,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
                     weight
                 );
             }
-            visitor->SetPairs(std::move(pairs));
+            visitor->SetPairs(TRawPairsData(std::move(pairs)));
         }
         visitor->Finish();
     };

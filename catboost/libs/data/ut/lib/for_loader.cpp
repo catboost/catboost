@@ -42,6 +42,7 @@ namespace NCB {
         readDatasetMainParams->ColumnarPoolFormatParams.DsvFormat.NumVectorDelimiter
             = srcData.NumVectorDelimiter;
         SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
+        readDatasetMainParams->PairsFilePath.Scheme = srcData.PairsScheme;
         SaveDataToTempFile(
             srcData.GroupWeightsFileData,
             &(readDatasetMainParams->GroupWeightsFilePath),

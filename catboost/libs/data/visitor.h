@@ -3,6 +3,7 @@
 #include "feature_index.h"
 #include "meta_info.h"
 #include "objects.h"
+#include "pairs.h"
 #include "unaligned_mem.h"
 #include "util.h"
 
@@ -44,7 +45,7 @@ namespace NCB {
         // separate method because they can be loaded from a separate data source
         virtual void SetBaseline(TVector<TVector<float>>&& baseline) = 0;
 
-        virtual void SetPairs(TVector<TPair>&& pairs) = 0;
+        virtual void SetPairs(TRawPairsData&& pairs) = 0;
 
         virtual void SetTimestamps(TVector<ui64>&& timestamps) = 0;
 
@@ -52,7 +53,7 @@ namespace NCB {
         void SetPairs(TConstArrayRef<TPair> pairs) {
             TVector<TPair> pairsCopy;
             Assign(pairs, &pairsCopy);
-            SetPairs(std::move(pairsCopy));
+            SetPairs(TRawPairsData(std::move(pairsCopy)));
         }
 
         /* needed for checking groupWeights consistency while loading from separate file
