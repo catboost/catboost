@@ -8,13 +8,6 @@
 #include <util/system/type_name.h>
 #include <typeindex>
 
-template <>
-struct THash<std::type_index> {
-    inline size_t operator()(const std::type_index& index) const {
-        return index.hash_code();
-    }
-};
-
 namespace NCudaLib {
     using TTaskFactory = NObjectFactory::TParametrizedObjectFactory<ICommand, ui64>;
 
