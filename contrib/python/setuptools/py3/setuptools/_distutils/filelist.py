@@ -4,12 +4,15 @@ Provides the FileList class, used for poking about the filesystem
 and building lists of files.
 """
 
-import os, re
+import os
+import re
 import fnmatch
 import functools
+
 from distutils.util import convert_path
 from distutils.errors import DistutilsTemplateError, DistutilsInternalError
 from distutils import log
+
 
 class FileList:
     """A list of files built by on exploring the filesystem and filtered by
@@ -46,7 +49,7 @@ class FileList:
         if DEBUG:
             print(msg)
 
-    # -- List-like methods ---------------------------------------------
+    # Collection methods
 
     def append(self, item):
         self.files.append(item)
@@ -61,8 +64,7 @@ class FileList:
         for sort_tuple in sortable_files:
             self.files.append(os.path.join(*sort_tuple))
 
-
-    # -- Other miscellaneous utility methods ---------------------------
+    # Other miscellaneous utility methods
 
     def remove_duplicates(self):
         # Assumes list has been sorted!
@@ -70,8 +72,7 @@ class FileList:
             if self.files[i] == self.files[i - 1]:
                 del self.files[i]
 
-
-    # -- "File template" methods ---------------------------------------
+    # "File template" methods
 
     def _parse_template_line(self, line):
         words = line.split()
@@ -146,9 +147,11 @@ class FileList:
                              (dir, ' '.join(patterns)))
             for pattern in patterns:
                 if not self.include_pattern(pattern, prefix=dir):
-                    log.warn(("warning: no files found matching '%s' "
-                                "under directory '%s'"),
-                             pattern, dir)
+                    msg = (
+                        "warning: no files found matching '%s' "
+                        "under directory '%s'"
+                    )
+                    log.warn(msg, pattern, dir)
 
         elif action == 'recursive-exclude':
             self.debug_print("recursive-exclude %s %s" %
@@ -174,8 +177,7 @@ class FileList:
             raise DistutilsInternalError(
                   "this cannot happen: invalid action '%s'" % action)
 
-
-    # -- Filtering/selection methods -----------------------------------
+    # Filtering/selection methods
 
     def include_pattern(self, pattern, anchor=1, prefix=None, is_regex=0):
         """Select strings (presumably filenames) from 'self.files' that
@@ -219,9 +221,8 @@ class FileList:
                 files_found = True
         return files_found
 
-
-    def exclude_pattern (self, pattern,
-                         anchor=1, prefix=None, is_regex=0):
+    def exclude_pattern(
+            self, pattern, anchor=1, prefix=None, is_regex=0):
         """Remove strings (presumably filenames) from 'files' that match
         'pattern'.  Other parameters are the same as for
         'include_pattern()', above.
@@ -240,19 +241,45 @@ class FileList:
         return files_found
 
 
-# ----------------------------------------------------------------------
 # Utility functions
 
 def _find_all_simple(path):
     """
     Find all files under 'path'
     """
+    all_unique = _UniqueDirs.filter(os.walk(path, followlinks=True))
     results = (
         os.path.join(base, file)
-        for base, dirs, files in os.walk(path, followlinks=True)
+        for base, dirs, files in all_unique
         for file in files
     )
     return filter(os.path.isfile, results)
+
+
+class _UniqueDirs(set):
+    """
+    Exclude previously-seen dirs from walk results,
+    avoiding infinite recursion.
+    Ref https://bugs.python.org/issue44497.
+    """
+    def __call__(self, walk_item):
+        """
+        Given an item from an os.walk result, determine
+        if the item represents a unique dir for this instance
+        and if not, prevent further traversal.
+        """
+        base, dirs, files = walk_item
+        stat = os.stat(base)
+        candidate = stat.st_dev, stat.st_ino
+        found = candidate in self
+        if found:
+            del dirs[:]
+        self.add(candidate)
+        return not found
+
+    @classmethod
+    def filter(cls, items):
+        return filter(cls(), items)
 
 
 def findall(dir=os.curdir):
@@ -319,7 +346,8 @@ def translate_pattern(pattern, anchor=1, prefix=None, is_regex=0):
         if os.sep == '\\':
             sep = r'\\'
         pattern_re = pattern_re[len(start): len(pattern_re) - len(end)]
-        pattern_re = r'%s\A%s%s.*%s%s' % (start, prefix_re, sep, pattern_re, end)
+        pattern_re = r'%s\A%s%s.*%s%s' % (
+            start, prefix_re, sep, pattern_re, end)
     else:                               # no prefix -- respect anchor flag
         if anchor:
             pattern_re = r'%s\A%s' % (start, pattern_re[len(start):])

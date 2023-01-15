@@ -44,6 +44,8 @@ cygwin in no-cygwin mode).
 #   (ld supports -shared)
 # * mingw gcc 3.2/ld 2.13 works
 #   (ld supports -shared)
+# * llvm-mingw with Clang 11 works
+#   (lld supports -shared)
 
 import os
 import sys
@@ -109,41 +111,46 @@ class CygwinCCompiler(UnixCCompiler):
                 "Compiling may fail because of undefined preprocessor macros."
                 % details)
 
-        self.gcc_version, self.ld_version, self.dllwrap_version = \
-            get_versions()
-        self.debug_print(self.compiler_type + ": gcc %s, ld %s, dllwrap %s\n" %
-                         (self.gcc_version,
-                          self.ld_version,
-                          self.dllwrap_version) )
+        self.cc = os.environ.get('CC', 'gcc')
+        self.cxx = os.environ.get('CXX', 'g++')
 
-        # ld_version >= "2.10.90" and < "2.13" should also be able to use
-        # gcc -mdll instead of dllwrap
-        # Older dllwraps had own version numbers, newer ones use the
-        # same as the rest of binutils ( also ld )
-        # dllwrap 2.10.90 is buggy
-        if self.ld_version >= "2.10.90":
-            self.linker_dll = "gcc"
-        else:
-            self.linker_dll = "dllwrap"
+        if ('gcc' in self.cc): # Start gcc workaround
+            self.gcc_version, self.ld_version, self.dllwrap_version = \
+                get_versions()
+            self.debug_print(self.compiler_type + ": gcc %s, ld %s, dllwrap %s\n" %
+                             (self.gcc_version,
+                              self.ld_version,
+                              self.dllwrap_version) )
 
-        # ld_version >= "2.13" support -shared so use it instead of
-        # -mdll -static
-        if self.ld_version >= "2.13":
+            # ld_version >= "2.10.90" and < "2.13" should also be able to use
+            # gcc -mdll instead of dllwrap
+            # Older dllwraps had own version numbers, newer ones use the
+            # same as the rest of binutils ( also ld )
+            # dllwrap 2.10.90 is buggy
+            if self.ld_version >= "2.10.90":
+                self.linker_dll = self.cc
+            else:
+                self.linker_dll = "dllwrap"
+
+            # ld_version >= "2.13" support -shared so use it instead of
+            # -mdll -static
+            if self.ld_version >= "2.13":
+                shared_option = "-shared"
+            else:
+                shared_option = "-mdll -static"
+        else: # Assume linker is up to date
+            self.linker_dll = self.cc
             shared_option = "-shared"
-        else:
-            shared_option = "-mdll -static"
 
-        # Hard-code GCC because that's what this is all about.
-        # XXX optimization, warnings etc. should be customizable.
-        self.set_executables(compiler='gcc -mcygwin -O -Wall',
-                             compiler_so='gcc -mcygwin -mdll -O -Wall',
-                             compiler_cxx='g++ -mcygwin -O -Wall',
-                             linker_exe='gcc -mcygwin',
+        self.set_executables(compiler='%s -mcygwin -O -Wall' % self.cc,
+                             compiler_so='%s -mcygwin -mdll -O -Wall' % self.cc,
+                             compiler_cxx='%s -mcygwin -O -Wall' % self.cxx,
+                             linker_exe='%s -mcygwin' % self.cc,
                              linker_so=('%s -mcygwin %s' %
                                         (self.linker_dll, shared_option)))
 
         # cygwin and mingw32 need different sets of libraries
-        if self.gcc_version == "2.91.57":
+        if ('gcc' in self.cc and self.gcc_version == "2.91.57"):
             # cygwin shouldn't need msvcrt, but without the dlls will crash
             # (gcc version 2.91.57) -- perhaps something about initialization
             self.dll_libraries=["msvcrt"]
@@ -281,26 +288,26 @@ class Mingw32CCompiler(CygwinCCompiler):
 
         # ld_version >= "2.13" support -shared so use it instead of
         # -mdll -static
-        if self.ld_version >= "2.13":
-            shared_option = "-shared"
-        else:
+        if ('gcc' in self.cc and self.ld_version < "2.13"):
             shared_option = "-mdll -static"
+        else:
+            shared_option = "-shared"
 
         # A real mingw32 doesn't need to specify a different entry point,
         # but cygwin 2.91.57 in no-cygwin-mode needs it.
-        if self.gcc_version <= "2.91.57":
+        if ('gcc' in self.cc and self.gcc_version <= "2.91.57"):
             entry_point = '--entry _DllMain@12'
         else:
             entry_point = ''
 
-        if is_cygwingcc():
+        if is_cygwincc(self.cc):
             raise CCompilerError(
                 'Cygwin gcc cannot be used with --compiler=mingw32')
 
-        self.set_executables(compiler='gcc -O -Wall',
-                             compiler_so='gcc -mdll -O -Wall',
-                             compiler_cxx='g++ -O -Wall',
-                             linker_exe='gcc',
+        self.set_executables(compiler='%s -O -Wall' % self.cc,
+                             compiler_so='%s -mdll -O -Wall' % self.cc,
+                             compiler_cxx='%s -O -Wall' % self.cxx,
+                             linker_exe='%s' % self.cc,
                              linker_so='%s %s %s'
                                         % (self.linker_dll, shared_option,
                                            entry_point))
@@ -351,6 +358,10 @@ def check_config_h():
     if "GCC" in sys.version:
         return CONFIG_H_OK, "sys.version mentions 'GCC'"
 
+    # Clang would also work
+    if "Clang" in sys.version:
+        return CONFIG_H_OK, "sys.version mentions 'Clang'"
+
     # let's see if __GNUC__ is mentioned in python.h
     fn = sysconfig.get_config_h_filename()
     try:
@@ -397,7 +408,7 @@ def get_versions():
     commands = ['gcc -dumpversion', 'ld -v', 'dllwrap --version']
     return tuple([_find_exe_version(cmd) for cmd in commands])
 
-def is_cygwingcc():
-    '''Try to determine if the gcc that would be used is from cygwin.'''
-    out_string = check_output(['gcc', '-dumpmachine'])
+def is_cygwincc(cc):
+    '''Try to determine if the compiler that would be used is from cygwin.'''
+    out_string = check_output([cc, '-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')

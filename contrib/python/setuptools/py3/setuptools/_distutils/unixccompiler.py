@@ -233,8 +233,12 @@ class UnixCCompiler(CCompiler):
         # we use this hack.
         compiler = os.path.basename(sysconfig.get_config_var("CC"))
         if sys.platform[:6] == "darwin":
-            # MacOSX's linker doesn't understand the -R flag at all
-            return "-L" + dir
+            from distutils.util import get_macosx_target_ver, split_version
+            macosx_target_ver = get_macosx_target_ver()
+            if macosx_target_ver and split_version(macosx_target_ver) >= [10, 5]:
+                return "-Wl,-rpath," + dir
+            else: # no support for -rpath on earlier macOS versions
+                return "-L" + dir
         elif sys.platform[:7] == "freebsd":
             return "-Wl,-rpath=" + dir
         elif sys.platform[:5] == "hp-ux":

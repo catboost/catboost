@@ -4,7 +4,7 @@ LICENSE(MIT)
 
 
 
-VERSION(57.0.0)
+VERSION(57.2.0)
 
 PEERDIR(
     library/python/resource
@@ -153,7 +153,6 @@ PY_SRCS(
     setuptools/package_index.py
     setuptools/py34compat.py
     setuptools/sandbox.py
-    setuptools/ssl_support.py
     setuptools/unicode_utils.py
     setuptools/version.py
     setuptools/wheel.py

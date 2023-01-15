@@ -102,7 +102,7 @@ class build(Command):
         # particular module distribution -- if user didn't supply it, pick
         # one of 'build_purelib' or 'build_platlib'.
         if self.build_lib is None:
-            if self.distribution.ext_modules:
+            if self.distribution.has_ext_modules():
                 self.build_lib = self.build_platlib
             else:
                 self.build_lib = self.build_purelib

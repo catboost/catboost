@@ -600,10 +600,16 @@ class Distribution(_Distribution):
 
     @staticmethod
     def _expand_patterns(patterns):
+        """
+        >>> list(Distribution._expand_patterns(['LICENSE']))
+        ['LICENSE']
+        >>> list(Distribution._expand_patterns(['setup.cfg', 'LIC*']))
+        ['setup.cfg', 'LICENSE']
+        """
         return (
             path
             for pattern in patterns
-            for path in iglob(pattern)
+            for path in sorted(iglob(pattern))
             if not path.endswith('~')
             and os.path.isfile(path)
         )
