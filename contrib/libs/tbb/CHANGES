@@ -2,6 +2,84 @@
 The list of most significant changes made over time in
 Intel(R) Threading Building Blocks (Intel(R) TBB).
 
+Intel TBB 2020 Update 3
+TBB_INTERFACE_VERSION == 11103
+
+Changes (w.r.t. Intel TBB 2020 Update 2):
+
+Changes affecting backward compatibility:
+
+- Changed body type concept of the flow::input_node.
+    Set TBB_DEPRECATED_INPUT_NODE_BODY to 1 to compile with the previous
+    concept of the body type.
+
+Bugs fixed:
+
+- Fixed compilation errors in C++20 mode due to ambiguity of comparison
+    operators. Inspired by Barry Revzin
+    (https://github.com/oneapi-src/oneTBB/pull/251).
+
+Open-source contributions integrated:
+
+- Fixed an issue in TBBBuild.cmake that causes the build with no arguments
+    to fail (https://github.com/oneapi-src/oneTBB/pull/233) by tttapa.
+- Added cmake/{TBBConfig,TBBConfigVersion}.cmake to Git ignore list
+    (https://github.com/oneapi-src/oneTBB/pull/239) by Eisuke Kawashima.
+
+------------------------------------------------------------------------
+Intel TBB 2020 Update 2
+TBB_INTERFACE_VERSION == 11102
+
+Changes (w.r.t. Intel TBB 2020 Update 1):
+
+- Cross-allocator copying constructor and copy assignment operator for
+    concurrent_vector are deprecated.
+- Added input_node to the flow graph API. It acts like a source_node 
+    except for being inactive by default; source_node is deprecated.
+- Allocator template parameter for flow graph nodes is deprecated. Set
+    TBB_DEPRECATED_FLOW_NODE_ALLOCATOR to 1 to avoid compilation errors.
+- Flow graph preview hetero-features are deprecated.
+
+Bugs fixed:
+
+- Fixed the task affinity mechanism to prevent unlimited memory
+    consumption in case the number of threads is explicitly decreased.
+- Fixed memory leak related NUMA support functionality in task_arena.
+
+------------------------------------------------------------------------
+Intel TBB 2020 Update 1
+TBB_INTERFACE_VERSION == 11101
+
+Changes (w.r.t. Intel TBB 2020):
+
+Preview features:
+
+- The NUMA support library (tbbbind) no more depends on the main
+    TBB library.
+
+Bugs fixed:
+
+- Fixed the issue of task_arena constraints not propagated on
+    copy construction.
+- Fixed TBBGet.cmake script broken by TBB package name changes
+    (https://github.com/intel/tbb/issues/209).
+
+------------------------------------------------------------------------
+Intel TBB 2020
+TBB_INTERFACE_VERSION == 11100
+
+Changes (w.r.t. Intel TBB 2019 Update 9):
+
+- Extended task_arena interface to simplify development of NUMA-aware
+    applications.
+- Added warning notifications when the deprecated functionality is used.
+
+Open-source contributions integrated:
+
+- Fixed various build warnings
+    (https://github.com/intel/tbb/pull/179) by Raf Schietekat.
+
+------------------------------------------------------------------------
 Intel TBB 2019 Update 9
 TBB_INTERFACE_VERSION == 11009
 
@@ -13,7 +91,7 @@ Changes (w.r.t. Intel TBB 2019 Update 8):
 
 Preview Features:
 
-- Added isolated_task_group class that allows multiple threads to add 
+- Added isolated_task_group class that allows multiple threads to add
     and execute tasks sharing the same isolation.
 - Extended the flow graph API to simplify connecting nodes.
 - Added erase() by heterogeneous keys for concurrent ordered containers.
@@ -27,6 +105,9 @@ Bugs fixed:
 - Fixed a bug in the merge() method of concurrent unordered
     containers.
 - Fixed behavior of a continue_node that follows buffering nodes.
+- Fixed compilation error caused by missed stdlib.h when CMake
+    integration is used (https://github.com/intel/tbb/issues/195).
+    Inspired by Andrew Penkrat.
 
 Open-source contributions integrated:
 

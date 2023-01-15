@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -338,7 +338,12 @@ fail:
                 }
             }
 #endif /* __TBB_TASK_PRIORITY */
+#if __APPLE__
+            // threshold value tuned separately for macOS due to high cost of sched_yield there
+            const int yield_threshold = 10;
+#else
             const int yield_threshold = 100;
+#endif
             if( yield_count++ >= yield_threshold ) {
                 // When a worker thread has nothing to do, return it to RML.
                 // For purposes of affinity support, the thread is considered idle while in RML.
@@ -390,7 +395,7 @@ bool custom_scheduler<SchedulerTraits>::process_bypass_loop(
         __TBB_ASSERT(!is_proxy(*t),"unexpected proxy");
         __TBB_ASSERT( t->prefix().owner, NULL );
 #if __TBB_TASK_ISOLATION
-        __TBB_ASSERT( isolation == no_isolation || isolation == t->prefix().isolation,
+        __TBB_ASSERT_EX( isolation == no_isolation || isolation == t->prefix().isolation,
             "A task from another isolated region is going to be executed" );
 #endif /* __TBB_TASK_ISOLATION */
         assert_task_valid(t);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -304,7 +304,8 @@ void task_scheduler_observer_v3::observe( bool enable ) {
                 intptr_t tag = my_proxy->get_v6_observer()->my_context_tag;
                 if( tag != interface6::task_scheduler_observer::implicit_tag ) { // explicit arena
                     task_arena *a = reinterpret_cast<task_arena*>(tag);
-                    a->initialize();
+                    if ( a->my_arena==NULL ) // Avoid recursion during arena initialization
+                        a->initialize();
                     my_proxy->my_list = &a->my_arena->my_observers;
                 } else {
                     if( !(s && s->my_arena) )

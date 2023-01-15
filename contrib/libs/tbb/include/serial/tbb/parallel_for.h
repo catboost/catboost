@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -105,35 +105,35 @@ void start_for< Range, Body, Partitioner >::execute() {
 //! Parallel iteration over range with default partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
-__TBB_DEPRECATED_VERBOSE void parallel_for( const Range& range, const Body& body ) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for( const Range& range, const Body& body ) {
     serial::interface9::start_for<Range,Body,const __TBB_DEFAULT_PARTITIONER>::run(range,body,__TBB_DEFAULT_PARTITIONER());
 }
 
 //! Parallel iteration over range with simple partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
-__TBB_DEPRECATED_VERBOSE void parallel_for( const Range& range, const Body& body, const simple_partitioner& partitioner ) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for( const Range& range, const Body& body, const simple_partitioner& partitioner ) {
     serial::interface9::start_for<Range,Body,const simple_partitioner>::run(range,body,partitioner);
 }
 
 //! Parallel iteration over range with auto_partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
-__TBB_DEPRECATED_VERBOSE void parallel_for( const Range& range, const Body& body, const auto_partitioner& partitioner ) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for( const Range& range, const Body& body, const auto_partitioner& partitioner ) {
     serial::interface9::start_for<Range,Body,const auto_partitioner>::run(range,body,partitioner);
 }
 
 //! Parallel iteration over range with static_partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
-__TBB_DEPRECATED_VERBOSE void parallel_for( const Range& range, const Body& body, const static_partitioner& partitioner ) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for( const Range& range, const Body& body, const static_partitioner& partitioner ) {
     serial::interface9::start_for<Range,Body,const static_partitioner>::run(range,body,partitioner);
 }
 
 //! Parallel iteration over range with affinity_partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
-__TBB_DEPRECATED_VERBOSE void parallel_for( const Range& range, const Body& body, affinity_partitioner& partitioner ) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for( const Range& range, const Body& body, affinity_partitioner& partitioner ) {
     serial::interface9::start_for<Range,Body,affinity_partitioner>::run(range,body,partitioner);
 }
 
@@ -161,53 +161,53 @@ void parallel_for_impl(Index first, Index last, Index step, const Function& f, P
 
 //! Parallel iteration over a range of integers with explicit step and default partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, Index step, const Function& f) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, Index step, const Function& f) {
     parallel_for_impl<Index,Function,const auto_partitioner>(first, last, step, f, auto_partitioner());
 }
 //! Parallel iteration over a range of integers with explicit step and simple partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, Index step, const Function& f, const simple_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, Index step, const Function& f, const simple_partitioner& p) {
     parallel_for_impl<Index,Function,const simple_partitioner>(first, last, step, f, p);
 }
 //! Parallel iteration over a range of integers with explicit step and auto partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, Index step, const Function& f, const auto_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, Index step, const Function& f, const auto_partitioner& p) {
     parallel_for_impl<Index,Function,const auto_partitioner>(first, last, step, f, p);
 }
 //! Parallel iteration over a range of integers with explicit step and static partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, Index step, const Function& f, const static_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, Index step, const Function& f, const static_partitioner& p) {
     parallel_for_impl<Index,Function,const static_partitioner>(first, last, step, f, p);
 }
 //! Parallel iteration over a range of integers with explicit step and affinity partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, Index step, const Function& f, affinity_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, Index step, const Function& f, affinity_partitioner& p) {
     parallel_for_impl(first, last, step, f, p);
 }
 
 //! Parallel iteration over a range of integers with default step and default partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, const Function& f) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, const Function& f) {
     parallel_for_impl<Index,Function,const auto_partitioner>(first, last, static_cast<Index>(1), f, auto_partitioner());
 }
 //! Parallel iteration over a range of integers with default step and simple partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, const Function& f, const simple_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, const Function& f, const simple_partitioner& p) {
     parallel_for_impl<Index,Function,const simple_partitioner>(first, last, static_cast<Index>(1), f, p);
 }
 //! Parallel iteration over a range of integers with default step and auto partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, const Function& f, const auto_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, const Function& f, const auto_partitioner& p) {
     parallel_for_impl<Index,Function,const auto_partitioner>(first, last, static_cast<Index>(1), f, p);
 }
 //! Parallel iteration over a range of integers with default step and static partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, const Function& f, const static_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, const Function& f, const static_partitioner& p) {
     parallel_for_impl<Index,Function,const static_partitioner>(first, last, static_cast<Index>(1), f, p);
 }
 //! Parallel iteration over a range of integers with default step and affinity_partitioner
 template <typename Index, typename Function>
-__TBB_DEPRECATED_VERBOSE void parallel_for(Index first, Index last, const Function& f, affinity_partitioner& p) {
+__TBB_DEPRECATED_IN_VERBOSE_MODE void parallel_for(Index first, Index last, const Function& f, affinity_partitioner& p) {
     parallel_for_impl(first, last, static_cast<Index>(1), f, p);
 }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,6 +13,17 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
+#include "internal/_deprecated_header_message_guard.h"
+
+#if !defined(__TBB_show_deprecation_message_task_H) && defined(__TBB_show_deprecated_header_message)
+#define  __TBB_show_deprecation_message_task_H
+#pragma message("TBB Warning: tbb/task.h is deprecated. For details, please see Deprecated Features appendix in the TBB reference manual.")
+#endif
+
+#if defined(__TBB_show_deprecated_header_message)
+#undef __TBB_show_deprecated_header_message
+#endif
 
 #ifndef __TBB_task_H
 #define __TBB_task_H
@@ -499,7 +510,7 @@ public:
         init();
     }
 
-    // Custom constructor for instrumentation of tbb algorithm
+    // Custom constructor for instrumentation of TBB algorithm
     task_group_context ( internal::string_index name )
         : my_kind(bound)
         , my_version_and_traits(3 | default_traits)
@@ -557,10 +568,10 @@ public:
 
 #if __TBB_TASK_PRIORITY
     //! Changes priority of the task group
-    __TBB_DEPRECATED void set_priority ( priority_t );
+    __TBB_DEPRECATED_IN_VERBOSE_MODE void set_priority ( priority_t );
 
     //! Retrieves current priority of the current task group
-    __TBB_DEPRECATED priority_t priority () const;
+    __TBB_DEPRECATED_IN_VERBOSE_MODE priority_t priority () const;
 #endif /* __TBB_TASK_PRIORITY */
 
     //! Returns the context's trait
@@ -601,7 +612,7 @@ private:
 
 //! Base class for user-defined tasks.
 /** @ingroup task_scheduling */
-class task: __TBB_TASK_BASE_ACCESS interface5::internal::task_base {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE task: __TBB_TASK_BASE_ACCESS interface5::internal::task_base {
 
     //! Set reference count
     void __TBB_EXPORTED_METHOD internal_set_ref_count( int count );
@@ -828,7 +839,7 @@ public:
 
 #if __TBB_TASK_PRIORITY
     //! Enqueue task for starvation-resistant execution on the specified priority level.
-    __TBB_DEPRECATED static void enqueue( task& t, priority_t p ) {
+    static void enqueue( task& t, priority_t p ) {
 #if __TBB_PREVIEW_CRITICAL_TASKS
         __TBB_ASSERT(p == priority_low || p == priority_normal || p == priority_high
                      || p == internal::priority_critical, "Invalid priority level value");
@@ -842,7 +853,7 @@ public:
     //! Enqueue task in task_arena
     //! The implementation is in task_arena.h
 #if __TBB_TASK_PRIORITY
-    __TBB_DEPRECATED inline static void enqueue( task& t, task_arena& arena, priority_t p = priority_t(0) );
+    inline static void enqueue( task& t, task_arena& arena, priority_t p = priority_t(0) );
 #else
     inline static void enqueue( task& t, task_arena& arena);
 #endif
@@ -1028,7 +1039,7 @@ inline void task::resume(suspend_point tag) {
 
 //! task that does nothing.  Useful for synchronization.
 /** @ingroup task_scheduling */
-class empty_task: public task {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE empty_task: public task {
     task* execute() __TBB_override {
         return NULL;
     }
@@ -1060,7 +1071,7 @@ namespace internal {
 //! A list of children.
 /** Used for method task::spawn_children
     @ingroup task_scheduling */
-class task_list: internal::no_copy {
+class __TBB_DEPRECATED_IN_VERBOSE_MODE task_list: internal::no_copy {
 private:
     task* first;
     task** next_ptr;

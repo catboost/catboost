@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -677,7 +677,7 @@ public:
 
     //! Copying constructor for vector with different allocator type
     template<class M>
-    concurrent_vector( const concurrent_vector<T, M>& vector, const allocator_type& a = allocator_type() )
+    __TBB_DEPRECATED concurrent_vector( const concurrent_vector<T, M>& vector, const allocator_type& a = allocator_type() )
         : internal::allocator_base<T, A>(a), internal::concurrent_vector_base()
     {
         vector_allocator_ptr = &internal_allocator;
@@ -759,7 +759,7 @@ public:
 
     //! Assignment for vector with different allocator type
     template<class M>
-    concurrent_vector& operator=( const concurrent_vector<T, M>& vector ) {
+    __TBB_DEPRECATED concurrent_vector& operator=( const concurrent_vector<T, M>& vector ) {
         if( static_cast<void*>( this ) != static_cast<const void*>( &vector ) )
             internal_assign(vector.internal_vector_base(),
                 sizeof(T), &destroy_array, &assign_array, &copy_array);

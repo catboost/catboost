@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -31,6 +31,50 @@
 
 namespace tbb {
 namespace internal {
+
+#if __TBB_NUMA_SUPPORT
+class numa_binding_observer : public tbb::task_scheduler_observer {
+    int my_numa_node_id;
+    binding_handler* binding_handler_ptr;
+public:
+    numa_binding_observer( task_arena* ta, int numa_id, int num_slots )
+        : task_scheduler_observer(*ta)
+        , my_numa_node_id(numa_id)
+        , binding_handler_ptr(tbb::internal::construct_binding_handler(num_slots))
+    {}
+
+    void on_scheduler_entry( bool ) __TBB_override {
+        tbb::internal::bind_thread_to_node(
+            binding_handler_ptr, this_task_arena::current_thread_index(), my_numa_node_id);
+    }
+
+    void on_scheduler_exit( bool ) __TBB_override {
+        tbb::internal::restore_affinity_mask(binding_handler_ptr, this_task_arena::current_thread_index());
+    }
+
+    ~numa_binding_observer(){
+        tbb::internal::destroy_binding_handler(binding_handler_ptr);
+    }
+};
+
+numa_binding_observer* construct_binding_observer( tbb::interface7::task_arena* ta,
+                                                   int numa_id, int num_slots ) {
+    numa_binding_observer* binding_observer = NULL;
+    // numa_topology initialization will be lazily performed inside nodes_count() call
+    if (numa_id >= 0 && numa_topology::nodes_count() > 1) {
+        binding_observer = new numa_binding_observer(ta, numa_id, num_slots);
+        __TBB_ASSERT(binding_observer, "Failure during NUMA binding observer allocation and construction");
+        binding_observer->observe(true);
+    }
+    return binding_observer;
+}
+
+void destroy_binding_observer( numa_binding_observer* binding_observer ) {
+    __TBB_ASSERT(binding_observer, "Trying to deallocate NULL pointer");
+    binding_observer->observe(false);
+    delete binding_observer;
+}
+#endif
 
 // put it here in order to enable compiler to inline it into arena::process and nested_arena_entry
 void generic_scheduler::attach_arena( arena* a, size_t index, bool is_master ) {
@@ -570,7 +614,14 @@ void arena::enqueue_task( task& t, intptr_t prio, FastRandom &random )
     __TBB_ASSERT(t.prefix().affinity==affinity_id(0), "affinity is ignored for enqueued tasks");
 #endif /* TBB_USE_ASSERT */
 #if __TBB_PREVIEW_CRITICAL_TASKS
-    if( prio == internal::priority_critical || internal::is_critical( t ) ) {
+
+#if __TBB_TASK_PRIORITY
+    bool is_critical =  internal::is_critical( t ) || prio == internal::priority_critical;
+#else /*!__TBB_TASK_PRIORITY*/
+    bool is_critical =  internal::is_critical( t );
+#endif /*!__TBB_TASK_PRIORITY*/
+
+    if( is_critical ) {
         // TODO: consider using of 'scheduler::handled_as_critical'
         internal::make_critical( t );
         generic_scheduler* s = governor::local_scheduler_if_initialized();
@@ -812,7 +863,11 @@ namespace internal {
 void task_arena_base::internal_initialize( ) {
     governor::one_time_init();
     if( my_max_concurrency < 1 )
+#if __TBB_NUMA_SUPPORT
+        my_max_concurrency = tbb::internal::numa_topology::default_concurrency(numa_id());
+#else /*__TBB_NUMA_SUPPORT*/
         my_max_concurrency = (int)governor::default_num_threads();
+#endif /*__TBB_NUMA_SUPPORT*/
     __TBB_ASSERT( my_master_slots <= (unsigned)my_max_concurrency, "Number of slots reserved for master should not exceed arena concurrency");
     arena* new_arena = market::create_arena( my_max_concurrency, my_master_slots, 0 );
     // add an internal market reference; a public reference was added in create_arena
@@ -833,17 +888,32 @@ void task_arena_base::internal_initialize( ) {
         new_arena->on_thread_leaving<arena::ref_external>(); // destroy unneeded arena
 #if __TBB_TASK_GROUP_CONTEXT
         spin_wait_while_eq(my_context, (task_group_context*)NULL);
+#endif /*__TBB_TASK_GROUP_CONTEXT*/
+#if __TBB_TASK_GROUP_CONTEXT || __TBB_NUMA_SUPPORT
     } else {
+#if __TBB_NUMA_SUPPORT
+        my_arena->my_numa_binding_observer = tbb::internal::construct_binding_observer(
+            static_cast<task_arena*>(this), numa_id(), my_arena->my_num_slots);
+#endif /*__TBB_NUMA_SUPPORT*/
+#if __TBB_TASK_GROUP_CONTEXT
         new_arena->my_default_ctx->my_version_and_traits |= my_version_and_traits & exact_exception_flag;
         as_atomic(my_context) = new_arena->my_default_ctx;
-#endif
+#endif /*__TBB_TASK_GROUP_CONTEXT*/
     }
+#endif /*__TBB_TASK_GROUP_CONTEXT || __TBB_NUMA_SUPPORT*/
+
     // TODO: should it trigger automatic initialization of this thread?
     governor::local_scheduler_weak();
 }
 
 void task_arena_base::internal_terminate( ) {
     if( my_arena ) {// task_arena was initialized
+#if __TBB_NUMA_SUPPORT
+        if( my_arena->my_numa_binding_observer != NULL ) {
+            tbb::internal::destroy_binding_observer(my_arena->my_numa_binding_observer);
+            my_arena->my_numa_binding_observer = NULL;
+        }
+#endif /*__TBB_NUMA_SUPPORT*/
         my_arena->my_market->release( /*is_public=*/true, /*blocking_terminate=*/false );
         my_arena->on_thread_leaving<arena::ref_external>();
         my_arena = 0;

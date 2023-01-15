@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -676,7 +676,9 @@ protected:
         return create_node(allocator, std::piecewise_construct,
                            std::forward_as_tuple(key), std::forward_as_tuple());
 #else
-        T obj; // Use of temporary object in impossible, because create_node takes non-const reference
+        // Use of a temporary object is impossible, because create_node takes a non-const reference.
+        // copy-initialization is possible because T is already required to be CopyConstructible.
+        T obj = T();
         return create_node(allocator, key, tbb::internal::move(obj));
 #endif
     }
@@ -1218,7 +1220,7 @@ protected:
         }
         n = search_bucket( key, b );
         if( n )
-            return &n->item;
+            return n->storage();
         else if( check_mask_race( h, m ) )
             goto restart;
         return 0;

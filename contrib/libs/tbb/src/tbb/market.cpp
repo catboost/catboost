@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -227,7 +227,7 @@ int market::update_workers_request() {
     my_priority_levels[my_global_top_priority].workers_available = my_num_workers_requested;
     update_allotment(my_global_top_priority);
 #else
-    update_allotment();
+    update_allotment(my_num_workers_requested);
 #endif
     return my_num_workers_requested - old_request;
 }
@@ -260,6 +260,7 @@ void market::set_active_num_workers ( unsigned soft_limit ) {
 #else
 #define FOR_EACH_PRIORITY_LEVEL_BEGIN { {                                                       \
             const int p = 0;                                                                    \
+            tbb::internal::suppress_unused_warning(p);                                          \
             arena_list_type& arenas = m->my_arenas;
 #endif
 #define FOR_EACH_PRIORITY_LEVEL_END } }
@@ -572,8 +573,13 @@ void market::adjust_demand ( arena& a, int delta ) {
         delta = a.my_num_workers_requested;
     }
     my_total_demand += delta;
+    unsigned effective_soft_limit = my_num_workers_soft_limit;
+    if (my_mandatory_num_requested > 0) {
+        __TBB_ASSERT(effective_soft_limit == 0, NULL);
+        effective_soft_limit = 1;
+    }
 #if !__TBB_TASK_PRIORITY
-    update_allotment();
+    update_allotment(effective_soft_limit);
 #else /* !__TBB_TASK_PRIORITY */
     intptr_t p = a.my_top_priority;
     priority_level_info &pl = my_priority_levels[p];
@@ -585,12 +591,6 @@ void market::adjust_demand ( arena& a, int delta ) {
             update_arena_top_priority( a, normalized_normal_priority );
         }
         a.my_bottom_priority = normalized_normal_priority;
-    }
-    unsigned effective_soft_limit = my_num_workers_soft_limit;
-    if (my_mandatory_num_requested > 0) {
-        __TBB_ASSERT(effective_soft_limit == 0, NULL);
-        effective_soft_limit = 1;
-
     }
     if ( p == my_global_top_priority ) {
         if ( !pl.workers_requested ) {

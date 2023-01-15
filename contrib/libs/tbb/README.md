@@ -1,5 +1,5 @@
-# Threading Building Blocks 2019 Update 9
-[![Stable release](https://img.shields.io/badge/version-2019_U9-green.svg)](https://github.com/intel/tbb/releases/tag/2019_U9)
+# Threading Building Blocks 2020
+[![Stable release](https://img.shields.io/badge/version-2020.3-green.svg)](https://github.com/intel/tbb/releases/tag/v2020.3)
 [![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
 
 Threading Building Blocks (TBB) lets you easily write parallel C++ programs that take
@@ -12,8 +12,7 @@ Since [2018 U5](https://github.com/intel/tbb/releases/tag/2018_U5) TBB binary pa
 
 ## Documentation
 * TBB [tutorial](https://software.intel.com/en-us/tbb-tutorial)
-* TBB general documentation: [stable](https://software.intel.com/en-us/tbb-documentation)
-and [latest](https://www.threadingbuildingblocks.org/docs/help/index.htm)
+* TBB general documentation: [stable](https://software.intel.com/en-us/tbb-documentation). For latest documentation please refer to the [latest](https://github.com/intel/tbb/releases/latest) release assets.
 
 ## Support
 Please report issues and suggestions via

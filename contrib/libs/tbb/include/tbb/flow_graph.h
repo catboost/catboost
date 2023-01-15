@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -29,8 +29,10 @@
 #include "task.h"
 #include "cache_aligned_allocator.h"
 #include "tbb_exception.h"
+#include "pipeline.h"
 #include "internal/_template_helpers.h"
 #include "internal/_aggregator_impl.h"
+#include "tbb/internal/_allocator_traits.h"
 #include "tbb_profiling.h"
 #include "task_arena.h"
 
@@ -61,6 +63,12 @@
 #define FLOW_SPAWN(a) tbb::task::enqueue((a))
 #else
 #define FLOW_SPAWN(a) tbb::task::spawn((a))
+#endif
+
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+#define __TBB_DEFAULT_NODE_ALLOCATOR(T) cache_aligned_allocator<T>
+#else
+#define __TBB_DEFAULT_NODE_ALLOCATOR(T) null_type
 #endif
 
 // use the VC10 or gcc version of tuple if it is available.
@@ -205,7 +213,7 @@ static inline tbb::task *combine_tasks(graph& g, tbb::task * left, tbb::task * r
 
 #if __TBB_PREVIEW_ASYNC_MSG
 
-template < typename T > class async_msg;
+template < typename T > class __TBB_DEPRECATED async_msg;
 
 namespace internal {
 
@@ -779,6 +787,8 @@ inline graph::graph(task_group_context& use_this_context) :
     my_context(&use_this_context), my_nodes(NULL), my_nodes_last(NULL), my_task_arena(NULL) {
     prepare_task_arena();
     own_context = false;
+    cancelled = false;
+    caught_exception = false;
     my_root_task = (new (task::allocate_root(*my_context)) empty_task);
     my_root_task->set_ref_count(1);
     tbb::internal::fgt_graph(this);
@@ -891,7 +901,292 @@ using internal::node_set;
 
 //! An executable node that acts as a source, i.e. it has no predecessors
 template < typename Output >
-class source_node : public graph_node, public sender< Output > {
+class input_node : public graph_node, public sender< Output > {
+public:
+    //! The type of the output message, which is complete
+    typedef Output output_type;
+
+    //! The type of successors of this node
+    typedef typename sender<output_type>::successor_type successor_type;
+
+    //Source node has no input type
+    typedef null_type input_type;
+
+#if TBB_DEPRECATED_FLOW_NODE_EXTRACTION
+    typedef typename sender<output_type>::built_successors_type built_successors_type;
+    typedef typename sender<output_type>::successor_list_type successor_list_type;
+#endif
+
+    //! Constructor for a node with a successor
+    template< typename Body >
+     __TBB_NOINLINE_SYM input_node( graph &g, Body body )
+        : graph_node(g), my_active(false),
+        my_body( new internal::input_body_leaf< output_type, Body>(body) ),
+        my_init_body( new internal::input_body_leaf< output_type, Body>(body) ),
+        my_reserved(false), my_has_cached_item(false)
+    {
+        my_successors.set_owner(this);
+        tbb::internal::fgt_node_with_body( CODEPTR(), tbb::internal::FLOW_SOURCE_NODE, &this->my_graph,
+                                           static_cast<sender<output_type> *>(this), this->my_body );
+    }
+
+#if __TBB_PREVIEW_FLOW_GRAPH_NODE_SET
+    template <typename Body, typename... Successors>
+    input_node( const node_set<internal::order::preceding, Successors...>& successors, Body body )
+        : input_node(successors.graph_reference(), body) {
+        make_edges(*this, successors);
+    }
+#endif
+
+    //! Copy constructor
+    __TBB_NOINLINE_SYM input_node( const input_node& src ) :
+        graph_node(src.my_graph), sender<Output>(),
+        my_active(false),
+        my_body( src.my_init_body->clone() ), my_init_body(src.my_init_body->clone() ),
+        my_reserved(false), my_has_cached_item(false)
+    {
+        my_successors.set_owner(this);
+        tbb::internal::fgt_node_with_body(CODEPTR(), tbb::internal::FLOW_SOURCE_NODE, &this->my_graph,
+                                           static_cast<sender<output_type> *>(this), this->my_body );
+    }
+
+    //! The destructor
+    ~input_node() { delete my_body; delete my_init_body; }
+
+#if TBB_PREVIEW_FLOW_GRAPH_TRACE
+    void set_name( const char *name ) __TBB_override {
+        tbb::internal::fgt_node_desc( this, name );
+    }
+#endif
+
+    //! Add a new successor to this node
+    bool register_successor( successor_type &r ) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        my_successors.register_successor(r);
+        if ( my_active )
+            spawn_put();
+        return true;
+    }
+
+    //! Removes a successor from this node
+    bool remove_successor( successor_type &r ) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        my_successors.remove_successor(r);
+        return true;
+    }
+
+#if TBB_DEPRECATED_FLOW_NODE_EXTRACTION
+
+    built_successors_type &built_successors() __TBB_override { return my_successors.built_successors(); }
+
+    void internal_add_built_successor( successor_type &r) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        my_successors.internal_add_built_successor(r);
+    }
+
+    void internal_delete_built_successor( successor_type &r) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        my_successors.internal_delete_built_successor(r);
+    }
+
+    size_t successor_count() __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        return my_successors.successor_count();
+    }
+
+    void copy_successors(successor_list_type &v) __TBB_override {
+        spin_mutex::scoped_lock l(my_mutex);
+        my_successors.copy_successors(v);
+    }
+#endif  /* TBB_DEPRECATED_FLOW_NODE_EXTRACTION */
+
+    //! Request an item from the node
+    bool try_get( output_type &v ) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        if ( my_reserved )
+            return false;
+
+        if ( my_has_cached_item ) {
+            v = my_cached_item;
+            my_has_cached_item = false;
+            return true;
+        }
+        // we've been asked to provide an item, but we have none.  enqueue a task to
+        // provide one.
+        if ( my_active )
+            spawn_put();
+        return false;
+    }
+
+    //! Reserves an item.
+    bool try_reserve( output_type &v ) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        if ( my_reserved ) {
+            return false;
+        }
+
+        if ( my_has_cached_item ) {
+            v = my_cached_item;
+            my_reserved = true;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //! Release a reserved item.
+    /** true = item has been released and so remains in sender, dest must request or reserve future items */
+    bool try_release( ) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        __TBB_ASSERT( my_reserved && my_has_cached_item, "releasing non-existent reservation" );
+        my_reserved = false;
+        if(!my_successors.empty())
+            spawn_put();
+        return true;
+    }
+
+    //! Consumes a reserved item
+    bool try_consume( ) __TBB_override {
+        spin_mutex::scoped_lock lock(my_mutex);
+        __TBB_ASSERT( my_reserved && my_has_cached_item, "consuming non-existent reservation" );
+        my_reserved = false;
+        my_has_cached_item = false;
+        if ( !my_successors.empty() ) {
+            spawn_put();
+        }
+        return true;
+    }
+
+    //! Activates a node that was created in the inactive state
+    void activate() {
+        spin_mutex::scoped_lock lock(my_mutex);
+        my_active = true;
+        if (!my_successors.empty())
+            spawn_put();
+    }
+
+    template<typename Body>
+    Body copy_function_object() {
+        internal::input_body<output_type> &body_ref = *this->my_body;
+        return dynamic_cast< internal::input_body_leaf<output_type, Body> & >(body_ref).get_body();
+    }
+
+#if TBB_DEPRECATED_FLOW_NODE_EXTRACTION
+    void extract( ) __TBB_override {
+        my_successors.built_successors().sender_extract(*this);   // removes "my_owner" == this from each successor
+        my_active = false;
+        my_reserved = false;
+        if(my_has_cached_item) my_has_cached_item = false;
+    }
+#endif
+
+protected:
+
+    //! resets the input_node to its initial state
+    void reset_node( reset_flags f) __TBB_override {
+        my_active = false;
+        my_reserved = false;
+        my_has_cached_item = false;
+
+        if(f & rf_clear_edges) my_successors.clear();
+        if(f & rf_reset_bodies) {
+            internal::input_body<output_type> *tmp = my_init_body->clone();
+            delete my_body;
+            my_body = tmp;
+        }
+    }
+
+private:
+    spin_mutex my_mutex;
+    bool my_active;
+    internal::input_body<output_type> *my_body;
+    internal::input_body<output_type> *my_init_body;
+    internal::broadcast_cache< output_type > my_successors;
+    bool my_reserved;
+    bool my_has_cached_item;
+    output_type my_cached_item;
+
+    // used by apply_body_bypass, can invoke body of node.
+    bool try_reserve_apply_body(output_type &v) {
+        spin_mutex::scoped_lock lock(my_mutex);
+        if ( my_reserved ) {
+            return false;
+        }
+        if ( !my_has_cached_item ) {
+            tbb::internal::fgt_begin_body( my_body );
+
+#if TBB_DEPRECATED_INPUT_NODE_BODY
+            bool r = (*my_body)(my_cached_item);
+            if (r) {
+                my_has_cached_item = true;
+            }
+#else
+            flow_control control;
+            my_cached_item = (*my_body)(control);
+            my_has_cached_item = !control.is_pipeline_stopped;
+#endif
+            tbb::internal::fgt_end_body( my_body );
+        }
+        if ( my_has_cached_item ) {
+            v = my_cached_item;
+            my_reserved = true;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    task* create_put_task() {
+        return ( new ( task::allocate_additional_child_of( *(this->my_graph.root_task()) ) )
+                        internal:: source_task_bypass < input_node< output_type > >( *this ) );
+    }
+
+    //! Spawns a task that applies the body
+    void spawn_put( ) {
+        if(internal::is_graph_active(this->my_graph)) {
+            internal::spawn_in_graph_arena(this->my_graph, *create_put_task());
+        }
+    }
+
+    friend class internal::source_task_bypass< input_node< output_type > >;
+    //! Applies the body.  Returning SUCCESSFULLY_ENQUEUED okay; forward_task_bypass will handle it.
+    task * apply_body_bypass( ) {
+        output_type v;
+        if ( !try_reserve_apply_body(v) )
+            return NULL;
+
+        task *last_task = my_successors.try_put_task(v);
+        if ( last_task )
+            try_consume();
+        else
+            try_release();
+        return last_task;
+    }
+};  // class input_node
+
+#if TBB_USE_SOURCE_NODE_AS_ALIAS
+template < typename Output >
+class source_node : public input_node <Output> {
+public:
+    //! Constructor for a node with a successor
+    template< typename Body >
+     __TBB_NOINLINE_SYM source_node( graph &g, Body body )
+         : input_node<Output>(g, body)
+    {
+    }
+
+#if __TBB_PREVIEW_FLOW_GRAPH_NODE_SET
+    template <typename Body, typename... Successors>
+    source_node( const node_set<internal::order::preceding, Successors...>& successors, Body body )
+        : input_node<Output>(successors, body) {
+     }
+#endif
+};
+#else // TBB_USE_SOURCE_NODE_AS_ALIAS
+//! An executable node that acts as a source, i.e. it has no predecessors
+template < typename Output > class
+__TBB_DEPRECATED_MSG("TBB Warning: tbb::flow::source_node is deprecated, use tbb::flow::input_node." )
+source_node : public graph_node, public sender< Output > {
 public:
     //! The type of the output message, which is complete
     typedef Output output_type;
@@ -1153,15 +1448,37 @@ private:
         return last_task;
     }
 };  // class source_node
+#endif // TBB_USE_SOURCE_NODE_AS_ALIAS
 
 //! Implements a function node that supports Input -> Output
-template < typename Input, typename Output = continue_msg, typename Policy = queueing, typename Allocator=cache_aligned_allocator<Input> >
-class function_node : public graph_node, public internal::function_input<Input,Output,Policy,Allocator>, public internal::function_output<Output> {
+template<typename Input, typename Output = continue_msg, typename Policy = queueing,
+         typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(Input)>
+class function_node
+    : public graph_node
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    , public internal::function_input< Input, Output, Policy, Allocator >
+#else
+    , public internal::function_input< Input, Output, Policy, cache_aligned_allocator<Input> >
+#endif
+    , public internal::function_output<Output> {
+
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    typedef Allocator internals_allocator;
+#else
+    typedef cache_aligned_allocator<Input> internals_allocator;
+
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will be removed. "
+        "Specify TBB_DEPRECATED_FLOW_NODE_ALLOCATOR to temporary enable the deprecated interface."
+    );
+#endif
+
 public:
     typedef Input input_type;
     typedef Output output_type;
-    typedef internal::function_input<input_type,output_type,Policy,Allocator> input_impl_type;
-    typedef internal::function_input_queue<input_type, Allocator> input_queue_type;
+    typedef internal::function_input<input_type,output_type,Policy,internals_allocator> input_impl_type;
+    typedef internal::function_input_queue<input_type, internals_allocator> input_queue_type;
     typedef internal::function_output<output_type> fOutput_type;
     typedef typename input_impl_type::predecessor_type predecessor_type;
     typedef typename fOutput_type::successor_type successor_type;
@@ -1254,7 +1571,8 @@ protected:
 
 //! implements a function node that supports Input -> (set of outputs)
 // Output is a tuple of output types.
-template < typename Input, typename Output, typename Policy = queueing, typename Allocator=cache_aligned_allocator<Input> >
+template<typename Input, typename Output, typename Policy = queueing,
+         typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(Input)>
 class multifunction_node :
     public graph_node,
     public internal::multifunction_input
@@ -1266,29 +1584,45 @@ class multifunction_node :
             Output // the tuple providing the types
         >::type,
         Policy,
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
         Allocator
+#else
+        cache_aligned_allocator<Input>
+#endif
     > {
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    typedef Allocator internals_allocator;
+#else
+    typedef cache_aligned_allocator<Input> internals_allocator;
+
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will be removed. "
+        "Specify TBB_DEPRECATED_FLOW_NODE_ALLOCATOR to temporary enable the deprecated interface."
+    );
+#endif
+
 protected:
     static const int N = tbb::flow::tuple_size<Output>::value;
 public:
     typedef Input input_type;
     typedef null_type output_type;
     typedef typename internal::wrap_tuple_elements<N,internal::multifunction_output, Output>::type output_ports_type;
-    typedef internal::multifunction_input<input_type, output_ports_type, Policy, Allocator> input_impl_type;
-    typedef internal::function_input_queue<input_type, Allocator> input_queue_type;
+    typedef internal::multifunction_input<
+        input_type, output_ports_type, Policy, internals_allocator> input_impl_type;
+    typedef internal::function_input_queue<input_type, internals_allocator> input_queue_type;
 private:
-    typedef typename internal::multifunction_input<input_type, output_ports_type, Policy, Allocator> base_type;
     using input_impl_type::my_predecessors;
 public:
     template<typename Body>
-    __TBB_NOINLINE_SYM multifunction_node( 
+    __TBB_NOINLINE_SYM multifunction_node(
         graph &g, size_t concurrency,
 #if __TBB_CPP11_PRESENT
         Body body, __TBB_FLOW_GRAPH_PRIORITY_ARG1( Policy = Policy(), node_priority_t priority = tbb::flow::internal::no_priority )
 #else
         __TBB_FLOW_GRAPH_PRIORITY_ARG1(Body body, node_priority_t priority = tbb::flow::internal::no_priority)
 #endif
-    ) : graph_node(g), base_type(g, concurrency, __TBB_FLOW_GRAPH_PRIORITY_ARG1(body, priority)) {
+    ) : graph_node(g), input_impl_type(g, concurrency, __TBB_FLOW_GRAPH_PRIORITY_ARG1(body, priority)) {
         tbb::internal::fgt_multioutput_node_with_body<N>(
             CODEPTR(), tbb::internal::FLOW_MULTIFUNCTION_NODE,
             &this->my_graph, static_cast<receiver<input_type> *>(this),
@@ -1318,7 +1652,7 @@ public:
 #endif // __TBB_PREVIEW_FLOW_GRAPH_NODE_SET
 
     __TBB_NOINLINE_SYM multifunction_node( const multifunction_node &other) :
-        graph_node(other.my_graph), base_type(other) {
+        graph_node(other.my_graph), input_impl_type(other) {
         tbb::internal::fgt_multioutput_node_with_body<N>( CODEPTR(), tbb::internal::FLOW_MULTIFUNCTION_NODE,
                 &this->my_graph, static_cast<receiver<input_type> *>(this),
                 this->output_ports(), this->my_body );
@@ -1333,23 +1667,31 @@ public:
 #if TBB_DEPRECATED_FLOW_NODE_EXTRACTION
     void extract( ) __TBB_override {
         my_predecessors.built_predecessors().receiver_extract(*this);
-        base_type::extract();
+        input_impl_type::extract();
     }
 #endif
     // all the guts are in multifunction_input...
 protected:
-    void reset_node(reset_flags f) __TBB_override { base_type::reset(f); }
+    void reset_node(reset_flags f) __TBB_override { input_impl_type::reset(f); }
 };  // multifunction_node
 
 //! split_node: accepts a tuple as input, forwards each element of the tuple to its
 //  successors.  The node has unlimited concurrency, so it does not reject inputs.
-template<typename TupleType, typename Allocator=cache_aligned_allocator<TupleType> >
+template<typename TupleType, typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(TupleType)>
 class split_node : public graph_node, public receiver<TupleType> {
     static const int N = tbb::flow::tuple_size<TupleType>::value;
     typedef receiver<TupleType> base_type;
 public:
     typedef TupleType input_type;
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
     typedef Allocator allocator_type;
+#else
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will be removed. "
+        "Specify TBB_DEPRECATED_FLOW_NODE_ALLOCATOR to temporary enable the deprecated interface."
+    );
+#endif
 #if TBB_DEPRECATED_FLOW_NODE_EXTRACTION
     typedef typename base_type::predecessor_type predecessor_type;
     typedef typename base_type::predecessor_list_type predecessor_list_type;
@@ -1698,18 +2040,38 @@ protected:
 };  // broadcast_node
 
 //! Forwards messages in arbitrary order
-template <typename T, typename A=cache_aligned_allocator<T> >
-class buffer_node : public graph_node, public internal::reservable_item_buffer<T, A>, public receiver<T>, public sender<T> {
+template <typename T, typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(T) >
+class buffer_node
+    : public graph_node
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    , public internal::reservable_item_buffer< T, Allocator >
+#else
+    , public internal::reservable_item_buffer< T, cache_aligned_allocator<T> >
+#endif
+    , public receiver<T>, public sender<T> {
+#if TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    typedef Allocator internals_allocator;
+#else
+    typedef cache_aligned_allocator<T> internals_allocator;
+#endif
 public:
     typedef T input_type;
     typedef T output_type;
     typedef typename receiver<input_type>::predecessor_type predecessor_type;
     typedef typename sender<output_type>::successor_type successor_type;
-    typedef buffer_node<T, A> class_type;
+    typedef buffer_node<T, Allocator> class_type;
 #if TBB_DEPRECATED_FLOW_NODE_EXTRACTION
     typedef typename receiver<input_type>::predecessor_list_type predecessor_list_type;
     typedef typename sender<output_type>::successor_list_type successor_list_type;
 #endif
+#if !TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will be removed. "
+        "Specify TBB_DEPRECATED_FLOW_NODE_ALLOCATOR to temporary enable the deprecated interface."
+    );
+#endif
+
 protected:
     typedef size_t size_type;
     internal::round_robin_cache< T, null_rw_mutex > my_successors;
@@ -1718,7 +2080,7 @@ protected:
     internal::edge_container<predecessor_type> my_built_predecessors;
 #endif
 
-    friend class internal::forward_task_bypass< buffer_node< T, A > >;
+    friend class internal::forward_task_bypass< class_type >;
 
     enum op_type {reg_succ, rem_succ, req_item, res_item, rel_res, con_res, put_item, try_fwd_task
 #if TBB_DEPRECATED_FLOW_NODE_EXTRACTION
@@ -1806,8 +2168,7 @@ protected:
             if(internal::is_graph_active(this->my_graph)) {
                 forwarder_busy = true;
                 task *new_task = new(task::allocate_additional_child_of(*(this->my_graph.root_task()))) internal::
-                        forward_task_bypass
-                        < buffer_node<input_type, A> >(*this);
+                    forward_task_bypass<class_type>(*this);
                 // tmp should point to the last item handled by the aggregator.  This is the operation
                 // the handling thread enqueued.  So modifying that record will be okay.
                 // workaround for icc bug
@@ -1995,8 +2356,10 @@ protected:
 
 public:
     //! Constructor
-    __TBB_NOINLINE_SYM explicit buffer_node( graph &g ) : graph_node(g), internal::reservable_item_buffer<T>(),
-        forwarder_busy(false) {
+    __TBB_NOINLINE_SYM explicit buffer_node( graph &g )
+        : graph_node(g), internal::reservable_item_buffer<T, internals_allocator>(), receiver<T>(),
+          sender<T>(), forwarder_busy(false)
+    {
         my_successors.set_owner(this);
         my_aggregator.initialize_handler(handler_type(this));
         tbb::internal::fgt_node( CODEPTR(), tbb::internal::FLOW_BUFFER_NODE, &this->my_graph,
@@ -2011,9 +2374,10 @@ public:
 #endif
 
     //! Copy constructor
-    __TBB_NOINLINE_SYM buffer_node( const buffer_node& src ) : graph_node(src.my_graph),
-        internal::reservable_item_buffer<T>(), receiver<T>(), sender<T>() {
-        forwarder_busy = false;
+    __TBB_NOINLINE_SYM buffer_node( const buffer_node& src )
+        : graph_node(src.my_graph), internal::reservable_item_buffer<T, internals_allocator>(),
+          receiver<T>(), sender<T>(), forwarder_busy(false)
+    {
         my_successors.set_owner(this);
         my_aggregator.initialize_handler(handler_type(this));
         tbb::internal::fgt_node( CODEPTR(), tbb::internal::FLOW_BUFFER_NODE, &this->my_graph,
@@ -2187,7 +2551,7 @@ public:
 
 protected:
     void reset_node( reset_flags f) __TBB_override {
-        internal::reservable_item_buffer<T, A>::reset();
+        internal::reservable_item_buffer<T, internals_allocator>::reset();
         // TODO: just clear structures
         if (f&rf_clear_edges) {
             my_successors.clear();
@@ -2200,10 +2564,17 @@ protected:
 };  // buffer_node
 
 //! Forwards messages in FIFO order
-template <typename T, typename A=cache_aligned_allocator<T> >
-class queue_node : public buffer_node<T, A> {
+template <typename T, typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(T) >
+class queue_node : public buffer_node<T, Allocator> {
+#if !TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will be removed. "
+        "Specify TBB_DEPRECATED_FLOW_NODE_ALLOCATOR to temporary enable the deprecated interface."
+    );
+#endif
 protected:
-    typedef buffer_node<T, A> base_type;
+    typedef buffer_node<T, Allocator> base_type;
     typedef typename base_type::size_type size_type;
     typedef typename base_type::buffer_operation queue_operation;
     typedef queue_node class_type;
@@ -2293,12 +2664,19 @@ protected:
 };  // queue_node
 
 //! Forwards messages in sequence order
-template< typename T, typename A=cache_aligned_allocator<T> >
-class sequencer_node : public queue_node<T, A> {
+template< typename T, typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(T) >
+class sequencer_node : public queue_node<T, Allocator> {
     internal::function_body< T, size_t > *my_sequencer;
     // my_sequencer should be a benign function and must be callable
     // from a parallel context.  Does this mean it needn't be reset?
 public:
+#if !TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will be removed. "
+        "Specify TBB_DEPRECATED_FLOW_NODE_ALLOCATOR to temporary enable the deprecated interface."
+    );
+#endif
     typedef T input_type;
     typedef T output_type;
     typedef typename receiver<input_type>::predecessor_type predecessor_type;
@@ -2306,7 +2684,7 @@ public:
 
     //! Constructor
     template< typename Sequencer >
-    __TBB_NOINLINE_SYM sequencer_node( graph &g, const Sequencer& s ) : queue_node<T, A>(g),
+    __TBB_NOINLINE_SYM sequencer_node( graph &g, const Sequencer& s ) : queue_node<T, Allocator>(g),
         my_sequencer(new internal::function_body_leaf< T, size_t, Sequencer>(s) ) {
         tbb::internal::fgt_node( CODEPTR(), tbb::internal::FLOW_SEQUENCER_NODE, &(this->my_graph),
                                  static_cast<receiver<input_type> *>(this),
@@ -2322,7 +2700,7 @@ public:
 #endif
 
     //! Copy constructor
-    __TBB_NOINLINE_SYM sequencer_node( const sequencer_node& src ) : queue_node<T, A>(src),
+    __TBB_NOINLINE_SYM sequencer_node( const sequencer_node& src ) : queue_node<T, Allocator>(src),
         my_sequencer( src.my_sequencer->clone() ) {
         tbb::internal::fgt_node( CODEPTR(), tbb::internal::FLOW_SEQUENCER_NODE, &(this->my_graph),
                                  static_cast<receiver<input_type> *>(this),
@@ -2339,8 +2717,8 @@ public:
 #endif
 
 protected:
-    typedef typename buffer_node<T, A>::size_type size_type;
-    typedef typename buffer_node<T, A>::buffer_operation sequencer_operation;
+    typedef typename buffer_node<T, Allocator>::size_type size_type;
+    typedef typename buffer_node<T, Allocator>::buffer_operation sequencer_operation;
 
 private:
     bool internal_push(sequencer_operation *op) __TBB_override {
@@ -2367,19 +2745,26 @@ private:
 };  // sequencer_node
 
 //! Forwards messages in priority order
-template< typename T, typename Compare = std::less<T>, typename A=cache_aligned_allocator<T> >
-class priority_queue_node : public buffer_node<T, A> {
+template<typename T, typename Compare = std::less<T>, typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(T)>
+class priority_queue_node : public buffer_node<T, Allocator> {
 public:
+#if !TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will removed in the future. "
+        "To temporary enable the deprecated interface specify TBB_ENABLE_DEPRECATED_NODE_ALLOCATOR."
+    );
+#endif
     typedef T input_type;
     typedef T output_type;
-    typedef buffer_node<T,A> base_type;
+    typedef buffer_node<T,Allocator> base_type;
     typedef priority_queue_node class_type;
     typedef typename receiver<input_type>::predecessor_type predecessor_type;
     typedef typename sender<output_type>::successor_type successor_type;
 
     //! Constructor
     __TBB_NOINLINE_SYM explicit priority_queue_node( graph &g, const Compare& comp = Compare() )
-        : buffer_node<T, A>(g), compare(comp), mark(0) {
+        : buffer_node<T, Allocator>(g), compare(comp), mark(0) {
         tbb::internal::fgt_node( CODEPTR(), tbb::internal::FLOW_PRIORITY_QUEUE_NODE, &(this->my_graph),
                                  static_cast<receiver<input_type> *>(this),
                                  static_cast<sender<output_type> *>(this) );
@@ -2394,7 +2779,9 @@ public:
 #endif
 
     //! Copy constructor
-    __TBB_NOINLINE_SYM priority_queue_node( const priority_queue_node &src ) : buffer_node<T, A>(src), mark(0) {
+    __TBB_NOINLINE_SYM priority_queue_node( const priority_queue_node &src )
+        : buffer_node<T, Allocator>(src), mark(0)
+    {
         tbb::internal::fgt_node( CODEPTR(), tbb::internal::FLOW_PRIORITY_QUEUE_NODE, &(this->my_graph),
                                  static_cast<receiver<input_type> *>(this),
                                  static_cast<sender<output_type> *>(this) );
@@ -2413,9 +2800,9 @@ protected:
         base_type::reset_node(f);
     }
 
-    typedef typename buffer_node<T, A>::size_type size_type;
-    typedef typename buffer_node<T, A>::item_type item_type;
-    typedef typename buffer_node<T, A>::buffer_operation prio_operation;
+    typedef typename buffer_node<T, Allocator>::size_type size_type;
+    typedef typename buffer_node<T, Allocator>::item_type item_type;
+    typedef typename buffer_node<T, Allocator>::buffer_operation prio_operation;
 
     //! Tries to forward valid items to successors
     void internal_forward_task(prio_operation *op) __TBB_override {
@@ -3820,8 +4207,17 @@ namespace interface11 {
 //! Implements async node
 template < typename Input, typename Output,
            typename Policy = queueing_lightweight,
-           typename Allocator=cache_aligned_allocator<Input> >
-class async_node : public multifunction_node< Input, tuple< Output >, Policy, Allocator >, public sender< Output > {
+           typename Allocator=__TBB_DEFAULT_NODE_ALLOCATOR(Input) >
+class async_node
+    : public multifunction_node< Input, tuple< Output >, Policy, Allocator >, public sender< Output >
+{
+#if !TBB_DEPRECATED_FLOW_NODE_ALLOCATOR
+    __TBB_STATIC_ASSERT(
+        (tbb::internal::is_same_type<Allocator, null_type>::value),
+        "Allocator template parameter for flow graph nodes is deprecated and will removed in the future. "
+        "To temporary enable the deprecated interface specify TBB_ENABLE_DEPRECATED_NODE_ALLOCATOR."
+    );
+#endif
     typedef multifunction_node< Input, tuple< Output >, Policy, Allocator > base_type;
     typedef typename internal::multifunction_input<Input, typename base_type::output_ports_type, Policy, Allocator> mfn_input_type;
 
@@ -4278,8 +4674,8 @@ protected:
     using interface11::graph;
     using interface11::graph_node;
     using interface11::continue_msg;
-
     using interface11::source_node;
+    using interface11::input_node;
     using interface11::function_node;
     using interface11::multifunction_node;
     using interface11::split_node;
@@ -4335,6 +4731,7 @@ protected:
 
 #undef __TBB_PFG_RESET_ARG
 #undef __TBB_COMMA
+#undef __TBB_DEFAULT_NODE_ALLOCATOR
 
 #include "internal/_warning_suppress_disable_notice.h"
 #undef __TBB_flow_graph_H_include_area

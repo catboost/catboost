@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -293,7 +293,9 @@ void generic_scheduler::destroy() {
 
 void generic_scheduler::cleanup_scheduler() {
     __TBB_ASSERT( !my_arena_slot, NULL );
+#if __TBB_TASK_PRIORITY
     __TBB_ASSERT( my_offloaded_tasks == NULL, NULL );
+#endif
 #if __TBB_PREVIEW_CRITICAL_TASKS
     __TBB_ASSERT( !my_properties.has_taken_critical_task, "Critical tasks miscount." );
 #endif
@@ -621,9 +623,11 @@ inline task* generic_scheduler::prepare_for_spawning( task* t ) {
 #endif /* __TBB_TASK_PRIORITY */
         __TBB_ISOLATION_EXPR( proxy.prefix().isolation = isolation );
         ITT_NOTIFY( sync_releasing, proxy.outbox );
-        // Mail the proxy - after this point t may be destroyed by another thread at any moment.
-        proxy.outbox->push(&proxy);
-        return &proxy;
+        // Mail the proxy, if success, it may be destroyed by another thread at any moment after this point.
+        if ( proxy.outbox->push(&proxy) )
+            return &proxy;
+        // The mailbox is overfilled, deallocate the proxy and return the initial task.
+        free_task<small_task>(proxy);
     }
     return t;
 }

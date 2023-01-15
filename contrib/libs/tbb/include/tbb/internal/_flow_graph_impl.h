@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2019 Intel Corporation
+    Copyright (c) 2005-2020 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -292,11 +292,11 @@ public:
     void set_name(const char *name);
 #endif
 
-    void increment_wait_count() {
+    __TBB_DEPRECATED void increment_wait_count() {
         reserve_wait();
     }
 
-    void decrement_wait_count() {
+    __TBB_DEPRECATED void decrement_wait_count() {
         release_wait();
     }
 
@@ -314,7 +314,7 @@ public:
     /** The task is spawned as a child of the graph. This is useful for running tasks
     that need to block a wait_for_all() on the graph.  For example a one-off source. */
     template< typename Receiver, typename Body >
-    void run(Receiver &r, Body body) {
+    __TBB_DEPRECATED void run(Receiver &r, Body body) {
         if (tbb::flow::interface11::internal::is_graph_active(*this)) {
             task* rtask = new (task::allocate_additional_child_of(*root_task()))
                 run_and_put_task< Receiver, Body >(r, body);
@@ -326,7 +326,7 @@ public:
     /** The task is spawned as a child of the graph. This is useful for running tasks
     that need to block a wait_for_all() on the graph. For example a one-off source. */
     template< typename Body >
-    void run(Body body) {
+    __TBB_DEPRECATED void run(Body body) {
         if (tbb::flow::interface11::internal::is_graph_active(*this)) {
             task* rtask = new (task::allocate_additional_child_of(*root_task())) run_task< Body >(body);
             my_task_arena->execute(spawn_functor(*rtask));
@@ -371,7 +371,7 @@ public:
     }
 
     //! Returns the root task of the graph
-    tbb::task * root_task() {
+    __TBB_DEPRECATED tbb::task * root_task() {
         return my_root_task;
     }
 
