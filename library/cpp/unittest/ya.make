@@ -6,7 +6,7 @@ PEERDIR(
     library/cpp/colorizer
     library/dbg_output
     library/cpp/diff
-    library/json/writer
+    library/cpp/json/writer
 )
 
 SRCS(
