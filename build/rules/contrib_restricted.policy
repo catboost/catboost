@@ -88,6 +88,7 @@ ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/restricted/http-parser
 
 # Prefer using skynet for data distribution
 ALLOW maps/infra/ecstatic -> contrib/restricted/libtorrent
+ALLOW contrib/restricted/libtorrent -> maps/libs/fastbone
 
 # Consider using util / library/cpp/digest versions instead of a raw murmurhash functions.
 #
