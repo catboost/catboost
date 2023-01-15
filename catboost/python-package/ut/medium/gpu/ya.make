@@ -29,10 +29,10 @@ SIZE(LARGE)
 IF (SANITIZER_TYPE)
     TAG(ya:fat ya:not_autocheck)
 ELSE()
-    TAG(ya:fat ya:yt ya:noretries)
+    TAG(ya:fat ya:yt ya:ytexec ya:noretries)
 ENDIF()
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
 
 DATA(
     arcadia/catboost/pytest/data
