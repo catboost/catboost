@@ -45,7 +45,6 @@ namespace NCB {
         TOnlineHnswCloud Cloud;
     };
 
-    template<typename D>
     struct TL2Distance {
     public:
         TL2Distance(size_t dim)
@@ -57,25 +56,37 @@ namespace NCB {
             return Dist(a, b, Dim);
         }
     private:
-        D Dist;
+        NHnsw::TL2SqrDistance<float> Dist;
         size_t Dim;
     };
 
     class TKNNCloud : public IKNNCloud {
     public:
-        TKNNCloud(TArrayHolder<ui8>&& indexData, size_t idxSize,
-                  TVector<float>&& vectorData, size_t size, size_t dim)
+        TKNNCloud(
+            TBlob&& indexData,
+            TVector<float>&& vectorData,
+            size_t size,
+            size_t dim
+        )
             : IndexData(std::move(indexData))
             , Dist(dim)
-            , Cloud(TBlob::NoCopy(IndexData.Get(), idxSize), NOnlineHnsw::TOnlineHnswIndexReader())
+            , Cloud(IndexData, NOnlineHnsw::TOnlineHnswIndexReader())
             , Points(std::move(vectorData), dim, size)
-        { }
+        {
+            CB_ENSURE(vectorData.size() == dim * size);
+        }
         TVector<ui32> GetNearestNeighbors(const float* embed, ui32 knum) const override;
 
+        const TBlob& GetIndexDataBlob() const {
+            return IndexData;
+        }
 
+        const TVector<float>& GetPointsVector() const {
+            return Points.GetVector();
+        }
     private:
-        TArrayHolder<ui8> IndexData;
-        TL2Distance<NHnsw::TL2SqrDistance<float>> Dist;
+        TBlob IndexData;
+        TL2Distance Dist;
         NHnsw::THnswIndexBase Cloud;
         NOnlineHnsw::TDenseVectorExtendableItemStorage<float> Points;
     };
