@@ -27,7 +27,7 @@ namespace NCatboostCuda {
         }
 
         virtual ui32 HessianBlockSize() const final {
-            if (!LeavesEstimationConfig.UseNewton) {
+            if (LeavesEstimationConfig.LeavesEstimationMethod != ELeavesEstimation::Newton) {
                 return 1;
             }
 
@@ -47,6 +47,8 @@ namespace NCatboostCuda {
         void WriteSecondDerivatives(TVector<double>* secondDer) final;
 
         void WriteWeights(TVector<double>* dst) final;
+
+        TVector<float> EstimateExact() final;
 
     private:
         ui32 SingleBinDim() const {

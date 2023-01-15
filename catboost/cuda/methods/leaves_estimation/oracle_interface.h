@@ -21,6 +21,7 @@ namespace NCatboostCuda {
         //TODO(noxoomo): make this interface fill only lower-triangle of second der
         virtual void WriteSecondDerivatives(TVector<double>* secondDer) = 0;
         virtual void WriteWeights(TVector<double>* dst) = 0;
+        virtual TVector<float> EstimateExact() = 0;
     };
 
     class ILeavesEstimationOracleFactory {

@@ -47,6 +47,7 @@ namespace NCatboostCuda {
                                bool makeZeroAverage = false)
             : FeaturesManager(featuresManager)
             , TreeConfig(config.ObliviousTreeOptions)
+            , LossDescription(config.LossFunctionDescription.Get())
             , StructureSearcherOptions(MakeStructureSearcherOptions(config.ObliviousTreeOptions))
             , MakeZeroAverage(makeZeroAverage)
             , ZeroLastBinInMulticlassHack(config.LossFunctionDescription->GetLossFunction() == ELossFunction::MultiClass)
@@ -68,7 +69,7 @@ namespace NCatboostCuda {
 
         TDocParallelLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
-            return TDocParallelLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig, MakeZeroAverage));
+            return TDocParallelLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig, MakeZeroAverage, LossDescription));
         }
 
         template <class TDataSet>
@@ -79,6 +80,7 @@ namespace NCatboostCuda {
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
+        const NCatboostOptions::TLossDescription& LossDescription;
         TTreeStructureSearcherOptions StructureSearcherOptions;
         bool MakeZeroAverage = false;
         bool ZeroLastBinInMulticlassHack = false;

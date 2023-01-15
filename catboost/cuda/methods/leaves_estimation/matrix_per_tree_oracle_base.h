@@ -46,7 +46,7 @@ namespace NCatboostCuda {
                 FillBuffer(PointStat, 0.0f);
             }
 
-            if (estimationConfig.UseNewton) {
+            if (estimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
                 auto pointMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(BinCount());
                 PointwiseSecondDerStats.Reset(pointMapping);
 
@@ -130,7 +130,7 @@ namespace NCatboostCuda {
             auto& sigma = *secondDer;
 
             if (TImpl::HasDiagonalPart()) {
-                if (LeavesEstimationConfig.UseNewton) {
+                if (LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
                     for (ui32 i = 0; i < pointDim; ++i) {
                         sigma[i * PointDim() + i] = PointDer2[i];
                     }
@@ -146,7 +146,7 @@ namespace NCatboostCuda {
                     if (idx1 == idx2) {
                         continue;
                     }
-                    const double w = LeavesEstimationConfig.UseNewton
+                    const double w = LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton
                                          ? PairDer2[idx1 * rowSize + idx2]
                                          : PairBinWeightsSum[idx1 * rowSize + idx2];
 
@@ -202,7 +202,7 @@ namespace NCatboostCuda {
         }
 
         void ComputeSecondOrderStats() {
-            if (!HasSecondOrderStatsAtPoint && LeavesEstimationConfig.UseNewton) {
+            if (!HasSecondOrderStatsAtPoint && LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
                 ComputeFirstOrderStats();
                 static_cast<TImpl*>(this)->FillDer2(&PointwiseSecondDerStats,
                                                     &PairwiseSecondDerOrWeightsStats);

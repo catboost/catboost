@@ -4,7 +4,7 @@
 
 namespace NCatboostCuda {
     struct TLeavesEstimationConfig {
-        bool UseNewton = true;
+        ELeavesEstimation LeavesEstimationMethod;
         double Lambda = 1.0; //l2 reg
         ui32 Iterations = 10;
         double MinLeafWeight = 1e-20;
@@ -14,8 +14,9 @@ namespace NCatboostCuda {
         ELeavesEstimationStepBacktracking BacktrackingType;
         double NonDiagLambda = 0;
         bool ZeroLastDimHack = false;
+        NCatboostOptions::TLossDescription LossDescription;
 
-        TLeavesEstimationConfig(bool useNewton,
+        TLeavesEstimationConfig(const ELeavesEstimation& leavesEstimationMethod,
                                 double lambda,
                                 ui32 iterations,
                                 double minLeafWeight,
@@ -23,8 +24,9 @@ namespace NCatboostCuda {
                                 bool addRidgeToTargetFunction,
                                 bool zeroAverage,
                                 ELeavesEstimationStepBacktracking backtracking,
-                                double bayesianLambda)
-            : UseNewton(useNewton)
+                                double bayesianLambda,
+                                const NCatboostOptions::TLossDescription& lossDescription)
+            : LeavesEstimationMethod(leavesEstimationMethod)
             , Lambda(lambda)
             , Iterations(iterations)
             , MinLeafWeight(minLeafWeight)
@@ -33,13 +35,15 @@ namespace NCatboostCuda {
             , MakeZeroAverage(zeroAverage)
             , BacktrackingType(backtracking)
             , NonDiagLambda(bayesianLambda)
+            , LossDescription(lossDescription)
         {
         }
     };
 
     inline TLeavesEstimationConfig CreateLeavesEstimationConfig(const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
-                                                                bool makeZeroAverage) {
-        return TLeavesEstimationConfig(treeConfig.LeavesEstimationMethod == ELeavesEstimation::Newton,
+                                                                bool makeZeroAverage,
+                                                                const NCatboostOptions::TLossDescription& lossDescription) {
+        return TLeavesEstimationConfig(treeConfig.LeavesEstimationMethod,
                                        treeConfig.L2Reg,
                                        treeConfig.LeavesEstimationIterations,
                                        1e-20,
@@ -47,7 +51,8 @@ namespace NCatboostCuda {
                                        treeConfig.AddRidgeToTargetFunctionFlag,
                                        makeZeroAverage,
                                        treeConfig.LeavesEstimationBacktrackingType,
-                                       treeConfig.PairwiseNonDiagReg);
+                                       treeConfig.PairwiseNonDiagReg,
+                                       lossDescription);
     }
 
 }
