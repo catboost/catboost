@@ -84,7 +84,6 @@ migrations:
     - alice/paskills/nirvana_inflector
     - alice/paskills/recipe_utils/lib
     - alice/tests/difftest/request_miner
-    - alice/tools/telegram/alice_battle_angel_bot
     - alice/vins/apps/navi
     - alice/vins/apps/navi/navi_app/lib
     - alice/vins/core
@@ -923,7 +922,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-9281
     - yabs/server/test/ft/NANPU-817
     - yabs/server/test/ft/QABS-1165
-    - yabs/server/test/ft/ads_adfox/proxy_request
     - yabs/server/test/ft/checks
     - yabs/server/test/pylibs/qxl
     - yabs/server/test/pylibs/simulator
@@ -1197,7 +1195,6 @@ migrations:
     - market/sre/services/cema/lib
     - market/sre/services/cema/lib/classes
     - market/sre/services/tablo-idm-licenser/lib
-    - market/sre/tools/hyperion-tools/yandex-market-hyp2bb/lib
     - market/yamarec/yamarec/yamarec1
     - market/yamarec/yamarec/yamarec1/tasks
     - mds/elliptics/bin/dnet_cache_balancer
@@ -1515,7 +1512,6 @@ migrations:
     - alice/hollywood/library/scenarios/tr_navi/handcrafted/it
     - alice/nlu/py_libs/tokenizer
     - alice/nlu/tools/lstm_classifier_trainer
-    - alice/tools/telegram/alice_battle_angel_bot
     - alice/uniproxy/bin/send-digest
     - alice/uniproxy/library/activation_storage
     - alice/uniproxy/library/common_handlers
@@ -1611,7 +1607,6 @@ migrations:
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
-    - market/report/runtime_cloud/zeus/zeus_prepare
     - market/seo/tools/postgres_local/recipe
     - market/sre/tools/kraken/src/kraken_monrun
     - market/tools/corewatcher-rtc/src
@@ -2370,7 +2365,6 @@ migrations:
     - infra/wall-e/agent
     - infra/wall-e/client
     - infra/wall-e/sdk
-    - infra/walle/server/tests/expert
     - infra/walle/server/tests/lib
     - infra/ya_salt/vendor/salt
     - infra/yp/monitoring/pods_with_bad_ip
@@ -2555,7 +2549,6 @@ migrations:
     - mds/mastermind/stat_reporter/lib
     - mds/mastermind/state_builder
     - mds/nscfg/lib
-    - mds/nscfg_old/lib
     - metrika/admin/python/clickhouse_backups/frontend/base
     - metrika/admin/python/cms/frontend/base
     - metrika/admin/python/duty/frontend/base
@@ -3746,7 +3739,6 @@ migrations:
     - market/dynamic_pricing/pricing/dynamic_pricing/tests
     - market/forecaster/lite-offline
     - market/idx/marketindexer/medium_tests/yatf/external
-    - market/report/runtime_cloud/lite
     - market/yamarec/edera/tests/unit
     - market/yamarec/yamarec/tests/functional
     - mds/cocaine/darkvoice/tests
@@ -3988,9 +3980,6 @@ migrations:
     - yabs/rmp/backend/tests/lib/zora
     - yabs/server/libs/internal_ver/advmachine_export_banners/test
     - yabs/server/libs/internal_ver/advmachine_export_phrase_info/test
-    - yabs/server/libs/internal_ver/lmcounters/test
-    - yabs/server/libs/internal_ver/lmng/test
-    - yabs/server/libs/internal_ver/order/test
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
     - yabs/server/test/ft/BSSERVER-2185
