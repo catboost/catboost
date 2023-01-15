@@ -440,11 +440,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\pycontrib-python-pluggy.global.vcxproj">
       <Project>{BB06FBED-AFC4-24E5-48A3-6DAF8960486C}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt_toolkit\py2\pypython-prompt_toolkit-py2.global.vcxproj">
-      <Project>{379A7847-825F-E680-169B-94B61CCE558D}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py2\pypython-prompt-toolkit-py2.global.vcxproj">
+      <Project>{252410CD-EA6C-943D-5157-8F560826201D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt_toolkit\py3\pypython-prompt_toolkit-py3.global.vcxproj">
-      <Project>{4A476CC9-4D50-D9B9-80E5-B2A161FBC950}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py3\pypython-prompt-toolkit-py3.global.vcxproj">
+      <Project>{5880C7EA-46DF-EAE8-B9B2-3F3ABA57BB49}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\py3contrib-python-py.global.vcxproj">
       <Project>{364FEC92-377E-1941-F20C-DD358F828BD7}</Project>
