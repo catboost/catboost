@@ -97,7 +97,7 @@ void UpdateUndefinedClassLabels(
     if (classLabels.empty()) {
         return;
     }
-    (*updatedJsonParams)["data_processing_options"] = {};
+    (*updatedJsonParams)["data_processing_options"]["class_names"] = {};
     for (const auto& classLabel : classLabels) {
         (*updatedJsonParams)["data_processing_options"]["class_names"].AppendValue(classLabel);
     }
