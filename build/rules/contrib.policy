@@ -239,6 +239,10 @@ ALLOW passport/python/adm_api -> contrib/python/MySQL-python
 ALLOW passport/python/api -> contrib/python/MySQL-python
 ALLOW passport/python/core/serializers/eav/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/db/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/db/read_api/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/dbmanager/tests -> contrib/python/MySQL-python
+ALLOW passport/python/core/frodo/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/mailer/faker/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/models/tests -> contrib/python/MySQL-python
 ALLOW passport/python/core/serializers/domain/tests -> contrib/python/MySQL-python
