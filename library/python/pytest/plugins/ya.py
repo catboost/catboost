@@ -341,7 +341,8 @@ def pytest_runtest_teardown(item, nextitem):
 
 
 def pytest_runtest_call(item):
-    yatest_logger.info("Test call")
+    class_name, test_name = tools.split_node_id(item.nodeid)
+    yatest_logger.info("Test call (class_name: %s, test_name: %s)", class_name, test_name)
 
 
 def pytest_deselected(items):
