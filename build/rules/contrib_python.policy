@@ -1,20 +1,3 @@
-ALLOW contrib/tools/lftp -> contrib/libs/lftp
-DENY .* -> contrib/libs/lftp
-
-ALLOW contrib/deprecated/libcds -> contrib/deprecated/libcds
-ALLOW mds/libs/blackhole -> contrib/deprecated/libcds
-DENY .* -> contrib/deprecated/libcds
-
-ALLOW contrib/deprecated/folly -> contrib/deprecated/folly
-ALLOW contrib/deprecated/wangle -> contrib/deprecated/folly
-ALLOW contrib/deprecated/wangle -> contrib/deprecated/wangle
-ALLOW mds -> contrib/deprecated/folly
-ALLOW mds -> contrib/deprecated/wangle
-ALLOW devtools/experimental/mds -> contrib/deprecated/folly
-ALLOW devtools/experimental/mds -> contrib/deprecated/wangle
-DENY .* -> contrib/deprecated/folly
-DENY .* -> contrib/deprecated/wangle
-
 # django-1.11 deprecation
 ALLOW contrib/python/.*/tests? -> contrib/python/django/django-1.11
 ALLOW contrib/deprecated/python/.*/tests? -> contrib/python/django/django-1.11
