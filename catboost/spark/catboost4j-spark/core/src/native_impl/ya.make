@@ -70,4 +70,13 @@ ELSE()
     ENDIF()
 ENDIF()
 
+
+# needed to ensure that compatible _Unwind_* functions are used
+IF (NOT OS_WINDOWS)
+    PEERDIR(contrib/libs/libunwind)
+    IF (OS_LINUX)
+        SET_APPEND(LDFLAGS "-Wl,--exclude-libs,ALL")
+    ENDIF()
+ENDIF()
+
 END()
