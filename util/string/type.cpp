@@ -71,24 +71,24 @@ namespace {
 
 bool IsTrue(const TStringBuf v) noexcept {
     static constexpr std::array<TStringBuf, 7> trueOptions{
-        AsStringBuf("true"),
-        AsStringBuf("t"),
-        AsStringBuf("yes"),
-        AsStringBuf("y"),
-        AsStringBuf("on"),
-        AsStringBuf("1"),
-        AsStringBuf("da")};
+        "true",
+        "t",
+        "yes",
+        "y",
+        "on",
+        "1",
+        "da"};
     return IsCaseInsensitiveAnyOf(v, trueOptions);
 }
 
 bool IsFalse(const TStringBuf v) noexcept {
     static constexpr std::array<TStringBuf, 7> falseOptions{
-        AsStringBuf("false"),
-        AsStringBuf("f"),
-        AsStringBuf("no"),
-		AsStringBuf("n"),
-        AsStringBuf("off"),
-        AsStringBuf("0"),
-        AsStringBuf("net")};
+        "false",
+        "f",
+        "no",
+        "n",
+        "off",
+        "0",
+        "net"};
     return IsCaseInsensitiveAnyOf(v, falseOptions);
 }

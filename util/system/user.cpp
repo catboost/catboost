@@ -40,7 +40,7 @@ TString GetUsername() {
             return TString(pwd->pw_name);
         }
 
-        ythrow TSystemError() << AsStringBuf(" getpwuid failed");
+        ythrow TSystemError() << TStringBuf(" getpwuid failed");
 #else
         passwd pwd;
         passwd* tmpPwd;

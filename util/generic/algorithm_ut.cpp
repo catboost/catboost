@@ -8,10 +8,10 @@ static auto isOne = [](char c) { return c == '1'; };
 
 Y_UNIT_TEST_SUITE(TAlgorithm) {
     Y_UNIT_TEST(AnyTest) {
-        UNIT_ASSERT(0 == AnyOf(AsStringBuf("00"), isOne));
-        UNIT_ASSERT(1 == AnyOf(AsStringBuf("01"), isOne));
-        UNIT_ASSERT(1 == AnyOf(AsStringBuf("10"), isOne));
-        UNIT_ASSERT(1 == AnyOf(AsStringBuf("11"), isOne));
+        UNIT_ASSERT(0 == AnyOf(TStringBuf("00"), isOne));
+        UNIT_ASSERT(1 == AnyOf(TStringBuf("01"), isOne));
+        UNIT_ASSERT(1 == AnyOf(TStringBuf("10"), isOne));
+        UNIT_ASSERT(1 == AnyOf(TStringBuf("11"), isOne));
         UNIT_ASSERT(0 == AnyOf(TStringBuf(), isOne));
 
         const char array00[]{'0', '0'};
@@ -21,10 +21,10 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     }
 
     Y_UNIT_TEST(AllOfTest) {
-        UNIT_ASSERT(0 == AllOf(AsStringBuf("00"), isOne));
-        UNIT_ASSERT(0 == AllOf(AsStringBuf("01"), isOne));
-        UNIT_ASSERT(0 == AllOf(AsStringBuf("10"), isOne));
-        UNIT_ASSERT(1 == AllOf(AsStringBuf("11"), isOne));
+        UNIT_ASSERT(0 == AllOf(TStringBuf("00"), isOne));
+        UNIT_ASSERT(0 == AllOf(TStringBuf("01"), isOne));
+        UNIT_ASSERT(0 == AllOf(TStringBuf("10"), isOne));
+        UNIT_ASSERT(1 == AllOf(TStringBuf("11"), isOne));
         UNIT_ASSERT(1 == AllOf(TStringBuf(), isOne));
 
         const char array01[]{'0', '1'};
@@ -34,11 +34,11 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     }
 
     Y_UNIT_TEST(CountIfTest) {
-        UNIT_ASSERT(3 == CountIf(AsStringBuf("____1________1____1_______"), isOne));
-        UNIT_ASSERT(5 == CountIf(AsStringBuf("1____1________1____1_______1"), isOne));
-        UNIT_ASSERT(0 == CountIf(AsStringBuf("___________"), isOne));
+        UNIT_ASSERT(3 == CountIf(TStringBuf("____1________1____1_______"), isOne));
+        UNIT_ASSERT(5 == CountIf(TStringBuf("1____1________1____1_______1"), isOne));
+        UNIT_ASSERT(0 == CountIf(TStringBuf("___________"), isOne));
         UNIT_ASSERT(0 == CountIf(TStringBuf(), isOne));
-        UNIT_ASSERT(1 == CountIf(AsStringBuf("1"), isOne));
+        UNIT_ASSERT(1 == CountIf(TStringBuf("1"), isOne));
 
         const char array[] = "____1________1____1_______";
         UNIT_ASSERT(3 == CountIf(array, isOne));
@@ -46,11 +46,11 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
     Y_UNIT_TEST(CountTest) {
         UNIT_ASSERT(3 == Count("____1________1____1_______", '1'));
-        UNIT_ASSERT(3 == Count(AsStringBuf("____1________1____1_______"), '1'));
-        UNIT_ASSERT(5 == Count(AsStringBuf("1____1________1____1_______1"), '1'));
-        UNIT_ASSERT(0 == Count(AsStringBuf("___________"), '1'));
+        UNIT_ASSERT(3 == Count(TStringBuf("____1________1____1_______"), '1'));
+        UNIT_ASSERT(5 == Count(TStringBuf("1____1________1____1_______1"), '1'));
+        UNIT_ASSERT(0 == Count(TStringBuf("___________"), '1'));
         UNIT_ASSERT(0 == Count(TStringBuf(), '1'));
-        UNIT_ASSERT(1 == Count(AsStringBuf("1"), '1'));
+        UNIT_ASSERT(1 == Count(TStringBuf("1"), '1'));
 
         const char array[] = "____1________1____1_______";
         UNIT_ASSERT(3 == Count(array, '1'));
@@ -85,18 +85,18 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), "123", "poi", "xyz"), 1);
 
         // TString and TStringBuf
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), AsStringBuf("123"), AsStringBuf("poi")), 0);
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), AsStringBuf("123"), AsStringBuf("poi"),
-                                         AsStringBuf("xyz")),
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), TStringBuf("123"), TStringBuf("poi")), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), TStringBuf("123"), TStringBuf("poi"),
+                                         TStringBuf("xyz")),
                                  1);
 
         // TStringBuf and const char *
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), "123", "poi"), 0);
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), "123", "poi", "xyz"), 1);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), "123", "poi"), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), "123", "poi", "xyz"), 1);
 
         // TStringBuf and TString
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), TString("123"), TString("poi")), 0);
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), TString("123"), TString("poi"),
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), TString("123"), TString("poi")), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), TString("123"), TString("poi"),
                                          TString("xyz")),
                                  1);
     }

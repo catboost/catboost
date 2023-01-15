@@ -639,7 +639,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
 
         TVector<TString> actual1 = { "another", "one,", "and", "another", "one" };
         num = 0;
-        for (TStringBuf elem : StringSplitter(AsStringBuf("another one, and \n\n     another    one")).SplitBySet(" \n").SkipEmpty()) {
+        for (TStringBuf elem : StringSplitter(TStringBuf("another one, and \n\n     another    one")).SplitBySet(" \n").SkipEmpty()) {
             UNIT_ASSERT_VALUES_EQUAL(elem, actual1[num++]);
         }
 

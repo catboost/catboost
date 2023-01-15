@@ -707,7 +707,7 @@ inline IOutputStream& operator<<(IOutputStream& out, const TMaybe<T, TPolicy>& m
     if (maybe.Defined()) {
         out << *maybe;
     } else {
-        out << AsStringBuf("(empty maybe)");
+        out << TStringBuf("(empty maybe)");
     }
     return out;
 }

@@ -116,7 +116,7 @@ public:
         : Map_(map)
         , Mode_(mode)
     {
-        Y_ENSURE(Map_.IsOpen(), AsStringBuf("memory map not open"));
+        Y_ENSURE(Map_.IsOpen(), TStringBuf("memory map not open"));
 
         Map_.Map(offset, len);
 

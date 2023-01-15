@@ -2,18 +2,14 @@
 #include "type_name.h"
 #include "yexception.h"
 
-#include <util/folder/dirut.h>
 #include <util/system/backtrace.h>
-
-#include <string>
 
 #include <stdexcept>
 
 #include <cstdio>
-#include <cstdarg>
 
 TString FormatExc(const std::exception &exception) {
-    return TString::Join(AsStringBuf("("), TypeName(&exception), AsStringBuf(") "), exception.what());
+    return TString::Join(TStringBuf("("), TypeName(&exception), TStringBuf(") "), exception.what());
 }
 
 TString CurrentExceptionMessage() {
@@ -25,7 +21,7 @@ TString CurrentExceptionMessage() {
             const TBackTrace* bt = e.BackTrace();
 
             if (bt) {
-                return TString::Join(bt->PrintToString(), AsStringBuf("\n"), FormatExc(e));
+                return TString::Join(bt->PrintToString(), TStringBuf("\n"), FormatExc(e));
             }
 
             return FormatExc(e);
@@ -47,9 +43,9 @@ bool UncaughtException() noexcept {
 void TSystemError::Init() {
     yexception& exc = *this;
 
-    exc << AsStringBuf("(");
+    exc << TStringBuf("(");
     exc << TStringBuf(LastSystemErrorText(Status_));
-    exc << AsStringBuf(") ");
+    exc << TStringBuf(") ");
 }
 
 NPrivateException::yexception::yexception() {

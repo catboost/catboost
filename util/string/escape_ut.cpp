@@ -5,6 +5,8 @@
 #include <util/generic/string.h>
 #include <util/charset/wide.h>
 
+using namespace std::string_view_literals;
+
 namespace {
     struct TExample {
         TString Expected;
@@ -19,29 +21,24 @@ namespace {
 
 static const TExample CommonTestData[] = {
     // Should be valid UTF-8.
-    {AsStringBuf("http://ya.ru/"), AsStringBuf("http://ya.ru/")},
-    {AsStringBuf("http://ya.ru/\\x17\\n"), AsStringBuf("http://ya.ru/\x17\n")},
+    {"http://ya.ru/", "http://ya.ru/"},
+    {"http://ya.ru/\\x17\\n", "http://ya.ru/\x17\n"},
 
-    {AsStringBuf("http://ya.ru/\\0"), AsStringBuf("http://ya.ru/\0")},
-    {AsStringBuf("http://ya.ru/\\0\\0"), AsStringBuf("http://ya.ru/\0\0")},
-    {AsStringBuf("http://ya.ru/\\0\\0000"), AsStringBuf("http://ya.ru/\0\0"
-                                                        "0")},
-    {AsStringBuf("http://ya.ru/\\0\\0001"), AsStringBuf("http://ya.ru/\0\x00"
-                                                        "1")},
+    {"http://ya.ru/\\0", "http://ya.ru/\0"sv},
+    {"http://ya.ru/\\0\\0", "http://ya.ru/\0\0"sv},
+    {"http://ya.ru/\\0\\0000", "http://ya.ru/\0\0" "0"sv},
+    {"http://ya.ru/\\0\\0001", "http://ya.ru/\0\x00" "1"sv},
 
-    {AsStringBuf("\\2\\4\\00678"), AsStringBuf("\2\4\6"
-                                               "78")}, // \6 -> \006 because next char '7' is "octal"
-    {AsStringBuf("\\2\\4\\689"),
-     AsStringBuf("\2\4\6"
-                 "89")}, // \6 -> \6 because next char '8' is not "octal"
+    {R"(\2\4\00678)", "\2\4\6" "78"sv}, // \6 -> \006 because next char '7' is "octal"
+    {R"(\2\4\689)", "\2\4\6" "89"sv}, // \6 -> \6 because next char '8' is not "octal"
 
-    {AsStringBuf("\\\"Hello\\\", Alice said."), AsStringBuf("\"Hello\", Alice said.")},
-    {AsStringBuf("Slash\\\\dash!"), AsStringBuf("Slash\\dash!")},
-    {AsStringBuf("There\\nare\\r\\nnewlines."), AsStringBuf("There\nare\r\nnewlines.")},
-    {AsStringBuf("There\\tare\\ttabs."), AsStringBuf("There\tare\ttabs.")},
+    {R"(\"Hello\", Alice said.)", "\"Hello\", Alice said."},
+    {"Slash\\\\dash!", "Slash\\dash!"},
+    {R"(There\nare\r\nnewlines.)", "There\nare\r\nnewlines."},
+    {"There\\tare\\ttabs.", "There\tare\ttabs."},
 
-    {AsStringBuf("There are questions \\x3F\\x3F?"), AsStringBuf("There are questions ???")},
-    {AsStringBuf("There are questions \\x3F?"), AsStringBuf("There are questions ??")},
+    {"There are questions \\x3F\\x3F?", "There are questions ???"},
+    {"There are questions \\x3F?", "There are questions ??"},
 };
 
 Y_UNIT_TEST_SUITE(TEscapeCTest) {

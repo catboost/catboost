@@ -64,7 +64,7 @@ Y_UNIT_TEST_SUITE(TAsciiTest) {
 
     Y_UNIT_TEST(CompareTest) {
         UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", "qQq"));
-        UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", AsStringBuf("qQq")));
+        UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", TStringBuf("qQq")));
         TString qq = "qq";
         TString qQ = "qQ";
         UNIT_ASSERT(AsciiEqualsIgnoreCase(qq, qQ));

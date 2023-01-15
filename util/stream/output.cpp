@@ -232,7 +232,7 @@ using TNullPtr = decltype(nullptr);
 
 template <>
 void Out<TNullPtr>(IOutputStream& o, TTypeTraits<TNullPtr>::TFuncParam) {
-    o << AsStringBuf("nullptr");
+    o << TStringBuf("nullptr");
 }
 
 #if defined(_android_)

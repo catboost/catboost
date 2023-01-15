@@ -1070,7 +1070,7 @@ void THashTest::TestAt() {
 
     char key[] = {11, 12, 0, 1, 2, 11, 0};
     TEST_AT_THROWN_EXCEPTION(TString, TString, char*, key, "\\x0B\\x0C");
-    TEST_AT_THROWN_EXCEPTION(TString, TString, TStringBuf, AsStringBuf(key), "\\x0B\\x0C\\0\\1\\2\\x0B");
+    TEST_AT_THROWN_EXCEPTION(TString, TString, TStringBuf, TStringBuf(key, sizeof(key) - 1), "\\x0B\\x0C\\0\\1\\2\\x0B");
 
 #undef TEST_AT_THROWN_EXCEPTION
 }
