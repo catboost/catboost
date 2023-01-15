@@ -31,6 +31,7 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     RECURSE(
     arcadia_cpp_styleguide
     arcadia_grpc_cpp
+    arcadia_grpc_java
     arcadia_protoc
     flake8_py2
     flake8_py3
