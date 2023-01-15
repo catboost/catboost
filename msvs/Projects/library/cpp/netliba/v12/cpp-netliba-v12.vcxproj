@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{89AB8FF8-D670-7C29-CED9-549FB45E0AAD}</ProjectGUID>
+    <ProjectGUID>{58A2BCF3-22F9-EA08-9675-05EC92FE264D}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-netliba-v12</ProjectName>
+    <ProjectName>cpp-netliba-v12</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-netliba-v12</TargetName>
+    <TargetName>cpp-netliba-v12</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\netliba\v12\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\89AB8FF8-D670-7C29-CED9-549FB45E0AAD\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\netliba\v12\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\58A2BCF3-22F9-EA08-9675-05EC92FE264D\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,58 +78,58 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\block_chain.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\cpu_affinity.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\ib_buffers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\ib_collective.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\ib_cs.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\ib_low.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\ib_mem.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\ib_memstream.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\ib_test.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\local_ip_params.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\net_acks.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\net_request.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\net_test.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\stdafx.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\udp_address.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\udp_debug.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\udp_host.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\udp_http.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\udp_socket.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\netliba\v12\udp_test.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\block_chain.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\circular_pod_buffer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\cpu_affinity.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\crc32c.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\cstdafx.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\ib_buffers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\ib_collective.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\ib_cs.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\ib_low.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\ib_mem.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\ib_memstream.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\ib_test.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\local_ip_params.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\net_acks.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\net_queue_stat.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\net_request.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\net_test.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\paged_pod_buffer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\posix_shared_memory.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\settings.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\socket.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\stdafx.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_address.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_debug.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_host.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_host_connection.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_host_protocol.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_host_recv_completed.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_http.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_recv_packet.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_socket.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\netliba\v12\udp_test.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\block_chain.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\cpu_affinity.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_buffers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_collective.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_cs.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_low.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_mem.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_memstream.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_test.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\local_ip_params.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\net_acks.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\net_request.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\net_test.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\stdafx.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_address.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_debug.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_host.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_http.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_socket.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_test.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\block_chain.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\circular_pod_buffer.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\cpu_affinity.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\crc32c.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\cstdafx.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_buffers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_collective.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_cs.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_low.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_mem.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_memstream.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\ib_test.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\local_ip_params.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\net_acks.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\net_queue_stat.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\net_request.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\net_test.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\paged_pod_buffer.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\posix_shared_memory.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\settings.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\socket.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\stdafx.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_address.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_debug.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_host.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_host_connection.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_host_protocol.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_host_recv_completed.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_http.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_recv_packet.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_socket.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\netliba\v12\udp_test.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -158,6 +158,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\socket\cpp-netliba-socket.vcxproj">
+      <Project>{E12F8BEB-69BE-C96E-532C-837B8BD764F3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
       <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
     </ProjectReference>
@@ -166,9 +169,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\mux_event\cpp-threading-mux_event.vcxproj">
       <Project>{97A0ECF3-8757-C7AE-73DF-EBD1B059B40F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
-      <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
