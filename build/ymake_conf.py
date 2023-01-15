@@ -1324,7 +1324,12 @@ class GnuCompiler(Compiler):
                 else:
                     self.optimize = '-Os'
 
+                # Split all functions and data into separate sections for DCE and ICF linker passes
                 self.c_foptions.extend(['-ffunction-sections', '-fdata-sections'])
+
+                # Generate sections with address significance tables for ICF linker pass
+                if self.tc.is_clang:
+                    self.c_foptions.extend(['-faddrsig'])
             else:
                 self.optimize = '-O3'
 
@@ -1648,6 +1653,14 @@ class LD(Linker):
         self.ld_flags = []
 
         if self.build.is_size_optimized:
+            # Enable ICF (identical code folding pass) in safe mode
+            # https://research.google/pubs/pub36912/
+            if self.type == Linker.LLD:
+                self.ld_flags.append('-Wl,-icf=safe')
+
+            # Enable section-level DCE (dead code elimination):
+            # remove whole unused code and data sections
+            # (needs `-ffunction-sections` and `-fdata-sections` to be useful)
             if target.is_macos:
                 self.ld_flags.append('-Wl,-dead_strip')
             elif target.is_linux or target.is_android:
