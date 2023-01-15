@@ -9,11 +9,11 @@ static void DoInitGlobalLog(THolder<TGlobalLog> logger, THolder<ILoggerFormatter
 }
 
 void DoInitGlobalLog(const TString& logType, const int logLevel, const bool rotation, const bool startAsDaemon, THolder<ILoggerFormatter> formatter) {
-    DoInitGlobalLog(NLoggingImpl::CreateLogger<TGlobalLog>(logType, logLevel, rotation, startAsDaemon), std::move(formatter));
+    DoInitGlobalLog(THolder(NLoggingImpl::CreateLogger<TGlobalLog>(logType, logLevel, rotation, startAsDaemon)), std::move(formatter));
 }
 
 void DoInitGlobalLog(THolder<TLogBackend> backend, THolder<ILoggerFormatter> formatter) {
-    DoInitGlobalLog(new TGlobalLog(std::move(backend)), std::move(formatter));
+    DoInitGlobalLog(THolder(new TGlobalLog(std::move(backend))), std::move(formatter));
 }
 
 bool GlobalLogInitialized() {
