@@ -193,7 +193,6 @@ migrations:
     - dict/mt/scripts/testsets/crowdsource/globalvoices/find_parallel_pages/extract_page_info
     - dict/mt/tools/log_converter/rem_tool
     - dict/mt/tools/tmx_to_plain_text
-    - dict/mt/tools/translate_wrapper/tests
     - dict/ontodb/cardsparser/lib
     - dict/ontodb/daily/merge_cache
     - dict/ontodb/daily/validator
@@ -558,7 +557,6 @@ migrations:
     - quality/ab_testing/cofe/projects/disk
     - quality/ab_testing/cofe/projects/disk/utils
     - quality/ab_testing/cofe/projects/geo/geoadv
-    - quality/ab_testing/cofe/tests/bin/lib/projects
     - quality/ab_testing/scripts/kati
     - quality/ab_testing/scripts/kati/lib
     - quality/antifraud/scripts/prod/suggest_metrics
@@ -1817,7 +1815,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14610
     - yabs/server/test/ft/BSSERVER-14790
     - yabs/server/test/ft/BSSERVER-14904
-    - yabs/server/test/ft/BSSERVER-14916
     - yabs/server/test/ft/BSSERVER-2495
     - yabs/server/test/ft/BSSERVER-8804
     - yabs/server/test/pylibs/simulator
