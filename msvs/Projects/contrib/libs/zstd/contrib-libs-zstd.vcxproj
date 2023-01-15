@@ -99,6 +99,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_common.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_trace.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\fse_compress.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -205,6 +208,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_deps.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_errors.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_trace.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\hist.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_literals.h"/>
@@ -215,6 +219,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_fast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_lazy.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_ldm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_ldm_geartab.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_opt.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstdmt_compress.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\decompress\zstd_ddict.h"/>
