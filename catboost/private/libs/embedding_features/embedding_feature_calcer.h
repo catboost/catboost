@@ -37,7 +37,7 @@ namespace NCB {
         class TEmbeddingCalcerFbs {
         public:
             using TCalcerFbsImpl = flatbuffers::Offset<void>;
-            using ECalcerFbsType = NCatBoostFbs::TAnyEmbeddingCalcer;
+            using ECalcerFbsType = NCatBoostFbs::NEmbeddings::TAnyEmbeddingCalcer;
 
             TEmbeddingCalcerFbs(
                 ECalcerFbsType calcerFbsType,
@@ -74,7 +74,7 @@ namespace NCB {
         virtual TEmbeddingCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const;
         virtual void SaveLargeParameters(IOutputStream*) const;
 
-        virtual void LoadParametersFromFB(const NCatBoostFbs::TEmbeddingCalcer*);
+        virtual void LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer*);
         virtual void LoadLargeParameters(IInputStream*);
 
         flatbuffers::Offset<flatbuffers::Vector<uint32_t>> ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const;

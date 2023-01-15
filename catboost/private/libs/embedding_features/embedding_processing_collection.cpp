@@ -50,7 +50,7 @@ namespace NCB {
         const TVector<TVector<ui32>>& bipartiteGraph
     ) {
         using namespace flatbuffers;
-        using namespace NCatBoostFbs;
+        using namespace NCatBoostFbs::NEmbeddings;
 
         TVector<Offset<AdjacencyList>> fbBipartiteGraph;
         fbBipartiteGraph.reserve(bipartiteGraph.size());
@@ -63,7 +63,7 @@ namespace NCB {
     }
 
     static void FBDeserializeAdjacencyList(
-        const flatbuffers::Vector<flatbuffers::Offset<NCatBoostFbs::AdjacencyList>>& fbBipartiteGraph,
+        const flatbuffers::Vector<flatbuffers::Offset<NCatBoostFbs::NEmbeddings::AdjacencyList>>& fbBipartiteGraph,
         TVector<TVector<ui32>>* bipartiteGraph
     ) {
         bipartiteGraph->clear();
@@ -196,17 +196,12 @@ namespace NCB {
 
     void TEmbeddingProcessingCollection::SaveHeader(IOutputStream* stream) const {
         using namespace flatbuffers;
-        FlatBufferBuilder builder;
+        FlatBufferBuilder builder(16);
 
         auto calcerId = FBSerializeGuidArray(builder, FeatureCalcerId);
         auto perEmbeddingFeatureCalcers = FBSerializeAdjacencyList(builder, PerEmbeddingFeatureCalcers);
-
-        NCatBoostFbs::TCollectionHeaderBuilder headerBuilder(builder);
-        headerBuilder.add_CalcerId(calcerId);
-        headerBuilder.add_PerEmbeddingFeatureCalcers(perEmbeddingFeatureCalcers);
-        auto header = headerBuilder.Finish();
+        auto header = NCatBoostFbs::NEmbeddings::CreateTCollectionHeader(builder, calcerId, perEmbeddingFeatureCalcers);
         builder.Finish(header);
-
         ::Save(stream, static_cast<ui64>(builder.GetSize()));
         stream->Write(builder.GetBufferPointer(), builder.GetSize());
     }
@@ -220,9 +215,14 @@ namespace NCB {
             loadedBytes == DataHeaderSize,
             "Failed to deserialize: Failed to load EmbeddingProcessingCollection header"
         );
-
-        auto headerTable = flatbuffers::GetRoot<NCatBoostFbs::TCollectionHeader>(arrayHolder.Get());
+        {
+            flatbuffers::Verifier verifier(arrayHolder.Get(), loadedBytes, 64 /* max depth */, 256000000 /* max tables */);
+            CB_ENSURE(NCatBoostFbs::NEmbeddings::VerifyTCollectionHeaderBuffer(verifier), "Flatbuffers model verification failed");
+        }
+        auto headerTable = flatbuffers::GetRoot<NCatBoostFbs::NEmbeddings::TCollectionHeader>(arrayHolder.Get());
+        CB_ENSURE(headerTable->CalcerId(), "There should be at least one calcer in TEmbeddingProcessingCollection");
         FBDeserializeGuidArray(*headerTable->CalcerId(), &FeatureCalcerId);
+        CB_ENSURE(headerTable->PerEmbeddingFeatureCalcers(), "No PerEmbeddingFeatureCalcers found in TEmbeddingProcessingCollection");
         FBDeserializeAdjacencyList(*headerTable->PerEmbeddingFeatureCalcers(), &PerEmbeddingFeatureCalcers);
     }
 
@@ -239,9 +239,9 @@ namespace NCB {
             flatbuffers::FlatBufferBuilder builder;
 
             const auto fbsPartGuid = CreateFbsGuid(FeatureCalcerId[calcerId]);
-            auto collectionPart = NCatBoostFbs::CreateTCollectionPart(
+            auto collectionPart = NCatBoostFbs::NEmbeddings::CreateTCollectionPart(
                 builder,
-                NCatBoostFbs::EPartType::EPartType_EmbeddingCalcer,
+                NCatBoostFbs::NEmbeddings::EPartType::EPartType_EmbeddingCalcer,
                 &fbsPartGuid);
             builder.Finish(collectionPart);
 
@@ -283,10 +283,10 @@ namespace NCB {
                 "Failed to deserialize: Failed to load collection part"
             );
 
-            auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::TCollectionPart>(buffer.Get());
+            auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::NEmbeddings::TCollectionPart>(buffer.Get());
             const auto partId = GuidFromFbs(collectionPart->Id());
 
-            if (collectionPart->PartType() == NCatBoostFbs::EPartType_EmbeddingCalcer) {
+            if (collectionPart->PartType() == NCatBoostFbs::NEmbeddings::EPartType_EmbeddingCalcer) {
                 TEmbeddingFeatureCalcerPtr calcer = TEmbeddingCalcerSerializer::Load(stream);
                 FeatureCalcers[guidId[partId]] = calcer;
                 CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
@@ -313,12 +313,12 @@ namespace NCB {
                     "Failed to deserialize: Failed to load collection part"
             );
 
-            auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::TCollectionPart>(in->Buf());
+            auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::NEmbeddings::TCollectionPart>(in->Buf());
             in->Skip(headerSize);
 
             const auto partId = GuidFromFbs(collectionPart->Id());
 
-            if (collectionPart->PartType() == NCatBoostFbs::EPartType_EmbeddingCalcer) {
+            if (collectionPart->PartType() == NCatBoostFbs::NEmbeddings::EPartType_EmbeddingCalcer) {
                 TEmbeddingFeatureCalcerPtr calcer = TEmbeddingCalcerSerializer::Load(in);
                 FeatureCalcers[guidId[partId]] = calcer;
                 CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");

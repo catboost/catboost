@@ -54,7 +54,7 @@ namespace NCB {
     }
 
     TEmbeddingFeatureCalcer::TEmbeddingCalcerFbs TKNNCalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
-        using namespace NCatBoostFbs;
+        using namespace NCatBoostFbs::NEmbeddings;
 
         const auto& fbLDA = CreateTKNN(
             builder,
@@ -66,7 +66,7 @@ namespace NCB {
         return TEmbeddingCalcerFbs(TAnyEmbeddingCalcer_TKNN, fbLDA.Union());
     }
 
-    void TKNNCalcer::LoadParametersFromFB(const NCatBoostFbs::TEmbeddingCalcer* calcer) {
+    void TKNNCalcer::LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer* calcer) {
         auto fbKNN = calcer->FeatureCalcerImpl_as_TKNN();
         TotalDimension = fbKNN->TotalDimension();
         NumClasses = fbKNN->NumClasses();

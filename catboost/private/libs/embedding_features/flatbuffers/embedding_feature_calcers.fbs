@@ -1,6 +1,6 @@
 include "catboost/libs/helpers/flatbuffers/guid.fbs";
 
-namespace NCatBoostFbs;
+namespace NCatBoostFbs.NEmbeddings;
 
 table TLDA {
     TotalDimension: int;
