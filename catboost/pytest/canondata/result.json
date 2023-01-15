@@ -6815,6 +6815,38 @@
             "uri": "file://test.test_recall_at_k/test_error.tsv"
         }
     ],
+    "test.test_reciprocal_rank_metrics[ERR:top=1]": [
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_ERR_top=1_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_ERR_top=1_/test_error.tsv"
+        }
+    ],
+    "test.test_reciprocal_rank_metrics[ERR]": [
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_ERR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_ERR_/test_error.tsv"
+        }
+    ],
+    "test.test_reciprocal_rank_metrics[MRR:top=1]": [
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_MRR_top=1_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_MRR_top=1_/test_error.tsv"
+        }
+    ],
+    "test.test_reciprocal_rank_metrics[MRR]": [
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_MRR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_reciprocal_rank_metrics_MRR_/test_error.tsv"
+        }
+    ],
     "test.test_reg_targets[calc_block=5000000-Ordered-Huber:delta=1.0]": [
         {
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Huber_delta=1.0_/test.eval"

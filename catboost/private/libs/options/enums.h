@@ -204,6 +204,8 @@ enum class ELossFunction {
     NDCG,
     DCG,
     FilteredDCG,
+    MRR,
+    ERR,
 
     /* multi-regression */
     MultiRMSE,
