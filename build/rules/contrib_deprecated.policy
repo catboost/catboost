@@ -16,7 +16,5 @@ ALLOW contrib/deprecated/wangle -> contrib/deprecated/folly
 ALLOW contrib/deprecated/wangle -> contrib/deprecated/wangle
 ALLOW mds -> contrib/deprecated/folly
 ALLOW mds -> contrib/deprecated/wangle
-ALLOW devtools/experimental/mds -> contrib/deprecated/folly
-ALLOW devtools/experimental/mds -> contrib/deprecated/wangle
 DENY .* -> contrib/deprecated/folly
 DENY .* -> contrib/deprecated/wangle
