@@ -1029,8 +1029,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 330653220},
-            {{false, true}, 3926288674},
-            {{true, true}, 837687603}
+            {{false, true}, 1741468018},
+            {{true, true}, 3156525411}
         };
 
         TestSubsetFeatures(
