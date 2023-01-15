@@ -972,6 +972,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\specfun\scipy-special-specfun.vcxproj">
       <Project>70BE4F90-CC0B-2070-A442-D64EE570E045</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
+      <Project>C1D10CB8-B94C-C430-F3B3-494136748EA6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3\pypython-setuptools-py3.vcxproj">
+      <Project>7B88BE8A-26E1-5596-FE7C-CF79CBCB2D3D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3contrib-python-setuptools.vcxproj">
       <Project>62979E22-6FCA-5446-4C8A-EE18209B5DE2</Project>
     </ProjectReference>

@@ -162,6 +162,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\py3contrib-python-pytz.vcxproj">
       <Project>{5257C446-B594-693C-C2C7-E97834CB951E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3\pypython-setuptools-py3.vcxproj">
+      <Project>{7B88BE8A-26E1-5596-FE7C-CF79CBCB2D3D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3contrib-python-setuptools.vcxproj">
       <Project>{62979E22-6FCA-5446-4C8A-EE18209B5DE2}</Project>
     </ProjectReference>
