@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\app\main.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_calc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\app\mode_dump_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_eval_feature.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_eval_metrics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_fit.cpp"/>
