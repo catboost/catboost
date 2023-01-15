@@ -1259,6 +1259,15 @@ class GnuCompiler(Compiler):
         self.tc = tc
 
         self.c_foptions = ['-fexceptions']
+
+        # Set up output colorization
+        if self.tc.is_clang:
+            self.c_foptions.append('-fcolor-diagnostics')
+        elif self.tc.is_gcc:
+            self.c_foptions.append('-fdiagnostics-color=always')
+        else:
+            pass
+
         self.c_warnings = ['-W', '-Wall', '-Wno-parentheses']
         self.cxx_warnings = [
             '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
@@ -1455,8 +1464,6 @@ class GnuCompiler(Compiler):
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')
         emit('NOGCCSTACKCHECK', 'yes')
-        emit('USE_GCCFILTER', preset('USE_GCCFILTER') or 'yes')
-        emit('USE_GCCFILTER_COLOR', preset('USE_GCCFILTER_COLOR') or 'yes')
         emit('SFDL_FLAG', self.sfdl_flags, '-o', '$SFDL_TMP_OUT')
         emit('WERROR_FLAG', '-Werror')
         # TODO(somov): Убрать чтение настройки из os.environ
@@ -1604,7 +1611,6 @@ class GnuCompiler(Compiler):
 
         style = ['${hide;kv:"p CC"} ${hide;kv:"pc green"}']
         cxx_args = [
-            '$GCCFILTER',
             '$YNDEXER_ARGS',
             '$CXX_COMPILER',
             '$C_FLAGS_PLATFORM',
@@ -1619,7 +1625,6 @@ class GnuCompiler(Compiler):
         ] + style
 
         c_args = [
-            '$GCCFILTER',
             '$YNDEXER_ARGS',
             '$C_COMPILER',
             '$C_FLAGS_PLATFORM',
@@ -1967,7 +1972,6 @@ class LD(Linker):
         emit('LINK_SCRIPT_EXE_FLAGS')
         emit('REAL_LINK_EXE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '--source-root $ARCADIA_ROOT', '$LINK_SCRIPT_EXE_FLAGS',
-             '$GCCFILTER',
              '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
              ld_env_style)
 
