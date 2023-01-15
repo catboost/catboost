@@ -395,7 +395,7 @@ static void AddTree(
         if (split.Type == ESplitType::FloatFeature) {
             const auto& floatFeature = trees.GetFloatFeatures()[split.FloatFeature.FloatFeature];
             splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
-            nodeMode = TModeNode::BRANCH_GTE;
+            nodeMode = TModeNode::BRANCH_GT;
             if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
                 missingValueTracksTrue = 1;
             }

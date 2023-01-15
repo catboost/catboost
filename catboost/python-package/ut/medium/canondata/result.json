@@ -814,23 +814,23 @@
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[problem_type=binclass-boost_from_average=False]": {
-        "checksum": "320053c53bc37156aedd89a35a50ef16",
+        "checksum": "761635a339444362c53eb23d35c566b0",
         "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=False_/model.onnx"
     },
     "test.test_onnx_export[problem_type=binclass-boost_from_average=True]": {
-        "checksum": "07b17ce1d67eeda9896f3ec9e9d15573",
+        "checksum": "7eb0ae6d50e933658a60593785428971",
         "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=True_/model.onnx"
     },
     "test.test_onnx_export[problem_type=multiclass-boost_from_average=False]": {
-        "checksum": "5d7aed7a559121f2f92b3d858f86e787",
+        "checksum": "635475ec793a5ca715ee3bbbb58cd99e",
         "uri": "file://test.test_onnx_export_problem_type=multiclass-boost_from_average=False_/model.onnx"
     },
     "test.test_onnx_export[problem_type=regression-boost_from_average=False]": {
-        "checksum": "5eafe1406f89f8b2e947373bf894c119",
+        "checksum": "1c82d2a750c81eb8ee4ebbd7e7d6eb1d",
         "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=False_/model.onnx"
     },
     "test.test_onnx_export[problem_type=regression-boost_from_average=True]": {
-        "checksum": "36abba8a029efbf9344f2d0432403023",
+        "checksum": "31eb115302f40aeb25d00ed43ebb8bb0",
         "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=True_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {
