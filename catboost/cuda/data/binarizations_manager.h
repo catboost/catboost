@@ -35,7 +35,8 @@ namespace NCatboostCuda {
                                   NCB::TFeatureEstimatorsPtr estimators,
                                   const NCB::TFeaturesLayout& featuresLayout,
                                   const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
-                                  NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
+                                  NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+                                  bool enableShuffling = true);
 
         TBinarizedFeaturesManager(const TBinarizedFeaturesManager& featureManager, const TVector<ui32>& ignoredFeatureIds);
 
@@ -320,6 +321,10 @@ namespace NCatboostCuda {
             return GetMaxCtrUniqueValues(InverseCtrs[idx]);
         }
 
+        bool UseShuffle() const {
+            return EnableShuffling;
+        }
+
     private:
         void RegisterDataProviderCatFeature(ui32 featureId) {
             CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.contains(featureId));
@@ -441,6 +446,7 @@ namespace NCatboostCuda {
         TVector<float> TargetBorders;
         const NCatboostOptions::TCatFeatureParams& CatFeatureOptions;
 
+        bool EnableShuffling = true;
 
         // for ctr features and float features
         THashMap<ui32, TVector<float>> Borders;

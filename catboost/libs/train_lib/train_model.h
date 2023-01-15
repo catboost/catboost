@@ -51,6 +51,12 @@ struct TTrainModelInternalOptions {
      * Used in Cross-Validation
      */
     bool OffsetMetricPeriodByInitModelSize = false;
+
+    /*
+     * True means that all of training dataset is loaded into RAM on host where training is started
+     * Maybe false only in multi-host training with quantized dataset
+     */
+    bool HaveLearnFeatureInMemory = true;
 };
 
 class ITrainingCallbacks {

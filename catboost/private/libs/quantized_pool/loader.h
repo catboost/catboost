@@ -8,6 +8,8 @@
 
 #include <library/cpp/object_factory/object_factory.h>
 
+#include <util/generic/ptr.h>
+#include <util/generic/singleton.h>
 #include <util/generic/ylimits.h>
 
 namespace NCB {
@@ -61,8 +63,26 @@ namespace NCB {
         virtual ~IQuantizedPoolLoader() = default;
         virtual TQuantizedPool LoadQuantizedPool(TLoadQuantizedPoolParameters params) = 0;
         virtual TVector<ui8> LoadQuantizedColumn(ui32 columnIdx) = 0;
+        virtual TVector<ui8> LoadQuantizedColumn(ui32 columnIdx, ui64 offset, ui64 count) = 0;
+        virtual TPathWithScheme GetPoolPathWithScheme() const = 0;
     };
 
     using TQuantizedPoolLoaderFactory =
         NObjectFactory::TParametrizedObjectFactory<IQuantizedPoolLoader, TString, const TPathWithScheme&>;
+
+    class TQuantizedPoolLoadersCache {
+    public:
+        static TAtomicSharedPtr<IQuantizedPoolLoader> GetLoader(const TPathWithScheme& pathWithScheme);
+        static bool HaveLoader(const TPathWithScheme& pathWithScheme);
+        static void DropAllLoaders();
+        static bool IsEmpty();
+
+    private:
+        THashMap<TPathWithScheme, TAtomicSharedPtr<IQuantizedPoolLoader>> Cache;
+        TAdaptiveLock Lock;
+        inline static TQuantizedPoolLoadersCache& GetRef() {
+            return *Singleton<TQuantizedPoolLoadersCache>();
+        }
+        Y_DECLARE_SINGLETON_FRIEND();
+    };
 }

@@ -5,9 +5,12 @@
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/object_factory/object_factory.h>
 
+#include <util/digest/multi.h>
+#include <util/generic/hash.h>
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+#include <util/ysaveload.h>
 
 
 namespace NCB {
@@ -36,12 +39,24 @@ namespace NCB {
         }
 
         SAVELOAD(Scheme, Path);
+        Y_SAVELOAD_DEFINE(Scheme, Path);
 
         bool Inited() const {
             return !Path.empty();
         }
-    };
 
+        bool operator==(const TPathWithScheme& rhs) const {
+            return std::tie(Scheme, Path) == std::tie(rhs.Scheme, rhs.Path);
+        }
+
+        bool operator!=(const TPathWithScheme& rhs) const {
+            return !(rhs == *this);
+        }
+
+        ui64 GetHash() const {
+            return MultiHash(Scheme, Path);
+        }
+    };
 
     template <class ISchemeDependentProcessor, class... TArgs>
     THolder<ISchemeDependentProcessor> GetProcessor(TPathWithScheme pathWithScheme, TArgs&&... args) {
@@ -55,4 +70,9 @@ namespace NCB {
 
 }
 
-
+template <>
+struct THash<NCB::TPathWithScheme> {
+    inline size_t operator()(const NCB::TPathWithScheme& value) const {
+        return value.GetHash();
+    }
+};
