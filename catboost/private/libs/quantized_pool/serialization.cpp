@@ -988,7 +988,7 @@ namespace NCB {
                     //CB_ENSURE_INTERNAL(!featureMetaInfo.IsAvailable, "If GetFloatFeature returns Nothing(), feature must be unavailable");
                 }
 
-                srcData.FloatFeatures.emplace_back(maybeFeatureColumn);
+                srcData.FloatFeatures.push_back(std::move(maybeFeatureColumn));
                 columnNames.push_back(featureMetaInfo.Name);
             } else {
                 CB_ENSURE(false, "Saving quantization results is supported only for numerical features");
