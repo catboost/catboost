@@ -395,13 +395,6 @@ class PROTOBUF_EXPORT CodedInputStream {
   // This is unrelated to PushLimit()/PopLimit().
   void SetTotalBytesLimit(int total_bytes_limit);
 
-  [[deprecated(
-      "Please use the single parameter version of SetTotalBytesLimit(). The "
-      "second parameter is ignored.")]]
-  void SetTotalBytesLimit(int total_bytes_limit, int) {
-    SetTotalBytesLimit(total_bytes_limit);
-  }
-
   // The Total Bytes Limit minus the Current Position, or -1 if the total bytes
   // limit is INT_MAX.
   int BytesUntilTotalBytesLimit() const;
