@@ -222,6 +222,15 @@ private:
         // try to extend interval
         if (p != Tree.end() && p->second == begin) {
             p->second = end;
+            //Try to merge 2 intervals - p and next one if possible
+            auto next = p;
+            // Next is not Tree.end() here.
+            ++next;
+            if (next != Tree.end() && next->first == end) {
+                p->second = next->second;
+                Tree.erase(next);
+            }
+        // Maybe new interval extends right interval
         } else if (l != Tree.end() && end == l->first) {
             T& leftBorder = const_cast<T&>(l->first);
             // Optimization hack.

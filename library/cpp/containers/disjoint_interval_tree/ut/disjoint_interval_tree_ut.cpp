@@ -55,6 +55,22 @@ Y_UNIT_TEST_SUITE(DisjointIntervalTreeTest) {
             UNIT_ASSERT_VALUES_EQUAL(begin->first, 2);
             UNIT_ASSERT_VALUES_EQUAL(begin->second, 7);
         }
+
+        // Merge all intervals.
+        {
+            TDisjointIntervalTree<ui64> tree;
+            tree.InsertInterval(0, 3);
+            tree.InsertInterval(6, 10);
+            tree.InsertInterval(3, 6);
+
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 1);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 10);
+
+            auto begin = tree.begin();
+            UNIT_ASSERT_VALUES_EQUAL(begin->first, 0);
+            UNIT_ASSERT_VALUES_EQUAL(begin->second, 10);
+        }
+
     }
 
     Y_UNIT_TEST(EraseIntervalTest) {

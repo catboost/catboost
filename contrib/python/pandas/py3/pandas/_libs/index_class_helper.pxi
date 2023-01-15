@@ -18,8 +18,6 @@ cdef class Float64Engine(IndexEngine):
 
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type Float64HashTable,
-        # so convert dtype of values
         self.mapping.map_locations(algos.ensure_float64(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
@@ -50,13 +48,11 @@ cdef class Float32Engine(IndexEngine):
     #  returns an ndarray with dtype float32_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
-        return _hash.Float64HashTable(n)
+        return _hash.Float32HashTable(n)
 
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type Float64HashTable,
-        # so convert dtype of values
-        self.mapping.map_locations(algos.ensure_float64(values))
+        self.mapping.map_locations(algos.ensure_float32(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
@@ -93,8 +89,6 @@ cdef class Int64Engine(IndexEngine):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type Int64HashTable,
-        # so convert dtype of values
         self.mapping.map_locations(algos.ensure_int64(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
@@ -125,16 +119,14 @@ cdef class Int32Engine(IndexEngine):
     #  returns an ndarray with dtype int32_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
-        return _hash.Int64HashTable(n)
+        return _hash.Int32HashTable(n)
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type Int64HashTable,
-        # so convert dtype of values
-        self.mapping.map_locations(algos.ensure_int64(values))
+        self.mapping.map_locations(algos.ensure_int32(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
@@ -164,16 +156,14 @@ cdef class Int16Engine(IndexEngine):
     #  returns an ndarray with dtype int16_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
-        return _hash.Int64HashTable(n)
+        return _hash.Int16HashTable(n)
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type Int64HashTable,
-        # so convert dtype of values
-        self.mapping.map_locations(algos.ensure_int64(values))
+        self.mapping.map_locations(algos.ensure_int16(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
@@ -203,16 +193,14 @@ cdef class Int8Engine(IndexEngine):
     #  returns an ndarray with dtype int8_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
-        return _hash.Int64HashTable(n)
+        return _hash.Int8HashTable(n)
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type Int64HashTable,
-        # so convert dtype of values
-        self.mapping.map_locations(algos.ensure_int64(values))
+        self.mapping.map_locations(algos.ensure_int8(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
@@ -249,8 +237,6 @@ cdef class UInt64Engine(IndexEngine):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type UInt64HashTable,
-        # so convert dtype of values
         self.mapping.map_locations(algos.ensure_uint64(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
@@ -281,16 +267,14 @@ cdef class UInt32Engine(IndexEngine):
     #  returns an ndarray with dtype uint32_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
-        return _hash.UInt64HashTable(n)
+        return _hash.UInt32HashTable(n)
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type UInt64HashTable,
-        # so convert dtype of values
-        self.mapping.map_locations(algos.ensure_uint64(values))
+        self.mapping.map_locations(algos.ensure_uint32(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
@@ -320,16 +304,14 @@ cdef class UInt16Engine(IndexEngine):
     #  returns an ndarray with dtype uint16_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
-        return _hash.UInt64HashTable(n)
+        return _hash.UInt16HashTable(n)
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type UInt64HashTable,
-        # so convert dtype of values
-        self.mapping.map_locations(algos.ensure_uint64(values))
+        self.mapping.map_locations(algos.ensure_uint16(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:
@@ -359,16 +341,14 @@ cdef class UInt8Engine(IndexEngine):
     #  returns an ndarray with dtype uint8_t
 
     cdef _make_hash_table(self, Py_ssize_t n):
-        return _hash.UInt64HashTable(n)
+        return _hash.UInt8HashTable(n)
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
             raise KeyError(val)
 
     cdef void _call_map_locations(self, values):
-        # self.mapping is of type UInt64HashTable,
-        # so convert dtype of values
-        self.mapping.map_locations(algos.ensure_uint64(values))
+        self.mapping.map_locations(algos.ensure_uint8(values))
 
     cdef _maybe_get_bool_indexer(self, object val):
         cdef:

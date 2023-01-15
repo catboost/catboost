@@ -2,27 +2,33 @@ from typing import List, cast
 
 import numpy as np
 
-from pandas._typing import FilePathOrBuffer, Scalar
+from pandas._typing import FilePathOrBuffer, Scalar, StorageOptions
 from pandas.compat._optional import import_optional_dependency
 
 import pandas as pd
 
-from pandas.io.excel._base import _BaseExcelReader
+from pandas.io.excel._base import BaseExcelReader
 
 
-class _ODFReader(_BaseExcelReader):
+class ODFReader(BaseExcelReader):
     """
     Read tables out of OpenDocument formatted files.
 
     Parameters
     ----------
-    filepath_or_buffer: string, path to be parsed or
+    filepath_or_buffer : string, path to be parsed or
         an open readable stream.
+    storage_options : dict, optional
+        passed to fsspec for appropriate URLs (see ``_get_filepath_or_buffer``)
     """
 
-    def __init__(self, filepath_or_buffer: FilePathOrBuffer):
+    def __init__(
+        self,
+        filepath_or_buffer: FilePathOrBuffer,
+        storage_options: StorageOptions = None,
+    ):
         import_optional_dependency("odf")
-        super().__init__(filepath_or_buffer)
+        super().__init__(filepath_or_buffer, storage_options=storage_options)
 
     @property
     def _workbook_class(self):
@@ -63,6 +69,7 @@ class _ODFReader(_BaseExcelReader):
             if table.getAttribute("name") == name:
                 return table
 
+        self.close()
         raise ValueError(f"sheet {name} not found")
 
     def get_sheet_data(self, sheet, convert_float: bool) -> List[List[Scalar]]:
@@ -184,6 +191,7 @@ class _ODFReader(_BaseExcelReader):
             result = cast(pd.Timestamp, result)
             return result.time()
         else:
+            self.close()
             raise ValueError(f"Unrecognized type {cell_type}")
 
     def _get_cell_string_value(self, cell) -> str:
