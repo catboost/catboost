@@ -482,12 +482,10 @@ def execute(
 
 def _get_command_output_file(cmd, ext):
     parts = [get_command_name(cmd)]
-    for template, val, pred in [
-        ('chunk{}', os.environ.get('YA_SPLIT_INDEX'), lambda x: bool(x)),
-        ('retry{}', os.environ.get('YA_RETRY_INDEX'), lambda x: x is not None),
-    ]:
-        if pred(val):
-            parts.append(template.format(val))
+    if 'YA_RETRY_INDEX' in os.environ:
+        parts.append('retry{}'.format(os.environ.get('YA_RETRY_INDEX')))
+    if int(os.environ.get('YA_SPLIT_COUNT', '0')):
+        parts.append('chunk{}'.format(os.environ.get('YA_SPLIT_INDEX', '0')))
 
     filename = '.'.join(parts + [ext])
     try:
