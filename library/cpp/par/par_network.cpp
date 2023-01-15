@@ -42,7 +42,7 @@ namespace NPar {
                     << " retries rest: " << RetriesRest;
                 return str;
             }
-            ~TSentNetQueryInfo() {
+            ~TSentNetQueryInfo() override {
             }
         };
 
@@ -232,7 +232,7 @@ namespace NPar {
             }
         }
 
-        ~TNehRequester() {
+        ~TNehRequester() override {
             Running = false;
             PingerThread->Join();
             MultiClient->Interrupt();

@@ -35,7 +35,7 @@ namespace {
         {
         }
 
-        virtual void Lemmatize(TUtf16String* token) const {
+        void Lemmatize(TUtf16String* token) const override {
             with_lock (Lock) {
                 auto it = LemmerCache.Find(*token);
                 if (it != LemmerCache.End()) {
