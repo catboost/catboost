@@ -42,6 +42,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestStackCanaries);
     UNIT_TEST(TestStackPages);
     UNIT_TEST(TestEventQueue)
+    UNIT_TEST(TestNestedExecutor)
     UNIT_TEST_SUITE_END();
 
 public:
@@ -71,6 +72,7 @@ public:
     void TestStackCanaries();
     void TestStackPages();
     void TestEventQueue();
+    void TestNestedExecutor();
 };
 
 void TCoroTest::TestException() {
@@ -914,6 +916,33 @@ void TCoroTest::TestEventQueue() {
         UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12345)), TInstant::Seconds(12345));
         UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12345)), TInstant::Max());
     }, &queue);
+}
+
+void TCoroTest::TestNestedExecutor() {
+#ifndef _win_
+    //nested executors actually don't work correctly, but anyway shouldn't break RunningCont() ptr
+    TContExecutor exec(32000);
+    UNIT_ASSERT(!RunningCont());
+
+    exec.Execute([](TCont* cont, void*) {
+        UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont);
+
+        TContExecutor exec2(32000);
+        exec2.Execute([](TCont* cont2, void*) {
+            UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont2);
+            TContExecutor exec3(32000);
+            exec3.Execute([](TCont* cont3, void*) {
+                UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont3);
+            });
+
+            UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont2);
+        });
+
+        UNIT_ASSERT_VALUES_EQUAL(RunningCont(), cont);
+    });
+
+    UNIT_ASSERT(!RunningCont());
+#endif
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);
