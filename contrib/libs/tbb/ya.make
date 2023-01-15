@@ -21,15 +21,6 @@ CFLAGS(
     -D__TBB_USE_ITT_NOTIFY
 )
 
-IF (CLANG)
-    IF (ARCH_I386 OR ARCH_I686 OR ARCH_X86_64)
-        CFLAGS(
-            -mrtm
-            -mwaitpkg
-        )
-    ENDIF()
-ENDIF()
-
 SRCS(
     src/tbb/allocator.cpp
     src/tbb/arena.cpp
@@ -58,6 +49,15 @@ SRCS(
     src/tbb/task_group_context.cpp
     src/tbb/version.cpp
 )
+
+IF (CLANG OR CLANG_CL)
+    IF (ARCH_I386 OR ARCH_I686 OR ARCH_X86_64)
+        CFLAGS(
+            -mrtm
+            -mwaitpkg
+        )
+    ENDIF()
+ENDIF()
 
 IF (OS_WINDOWS)
     CFLAGS(
