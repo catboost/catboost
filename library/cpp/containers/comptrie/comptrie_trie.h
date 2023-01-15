@@ -66,9 +66,9 @@ public:
 
     // Skipper should be initialized with &Packer, not with &other.Packer, so you have to redefine these.
     TCompactTrie(const TCompactTrie& other);
-    TCompactTrie(TCompactTrie&& other);
+    TCompactTrie(TCompactTrie&& other) noexcept;
     TCompactTrie& operator=(const TCompactTrie& other);
-    TCompactTrie& operator=(TCompactTrie&& other);
+    TCompactTrie& operator=(TCompactTrie&& other) noexcept;
 
     explicit operator bool() const {
         return !IsEmpty();
@@ -166,7 +166,7 @@ public:
         TKey GetKey() const;
         size_t GetKeySize() const;
         TData GetValue() const;
-        void GetValue(TData& to) const;
+        void GetValue(TData& data) const;
         const char* GetValuePtr() const;
 
     private:
@@ -259,7 +259,7 @@ TCompactTrie<T, D, S>::TCompactTrie(const TCompactTrie& other)
 }
 
 template <class T, class D, class S>
-TCompactTrie<T, D, S>::TCompactTrie(TCompactTrie&& other)
+TCompactTrie<T, D, S>::TCompactTrie(TCompactTrie&& other) noexcept
     : DataHolder(std::move(other.DataHolder))
     , EmptyValue(std::move(other.EmptyValue))
     , Packer(std::move(other.Packer))
@@ -277,7 +277,7 @@ TCompactTrie<T, D, S>& TCompactTrie<T, D, S>::operator=(const TCompactTrie& othe
 }
 
 template <class T, class D, class S>
-TCompactTrie<T, D, S>& TCompactTrie<T, D, S>::operator=(TCompactTrie&& other) {
+TCompactTrie<T, D, S>& TCompactTrie<T, D, S>::operator=(TCompactTrie&& other) noexcept {
     if (this != &other) {
         DataHolder = std::move(other.DataHolder);
         EmptyValue = std::move(other.EmptyValue);
@@ -494,13 +494,12 @@ bool TCompactTrie<T, D, S>::LookupLongestPrefix(const TSymbol* key, size_t keyle
         return found;
 
     const char* const dataend = datapos + len;
-    char flags = MT_NEXT;
 
     const T* keyend = key + keylen;
     while (key != keyend) {
         T label = *(key++);
         for (i64 i = (i64)ExtraBits<TSymbol>(); i >= 0; i -= 8) {
-            flags = LeapByte(datapos, dataend, (char)(label >> i));
+            const char flags = LeapByte(datapos, dataend, (char)(label >> i));
             if (!datapos) {
                 return found; // no such arc
             }
