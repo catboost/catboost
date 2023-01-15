@@ -183,7 +183,6 @@ migrations:
       - a.yandex-team.ru/rtmapreduce/tools/sli/proto
       - a.yandex-team.ru/transfer_manager/go/cmd/yql_server/proto
       - a.yandex-team.ru/transfer_manager/go/proto
-      - a.yandex-team.ru/travel/proto
       - a.yandex-team.ru/yabs/proto
       - a.yandex-team.ru/yql/api/go/worker/proto
       - a.yandex-team.ru/yweb/video/faas/proto
