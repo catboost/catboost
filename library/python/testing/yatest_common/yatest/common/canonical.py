@@ -37,6 +37,13 @@ def canonical_file(path, diff_tool=None, local=False, universal_lines=False, dif
     safe_path = os.path.join(tempdir, os.path.basename(abs_path))
     # if the created file is in output_path, we copy it, so that it will be available when the tests finishes
     _copy(path, safe_path, universal_lines=universal_lines)
+    if diff_tool:
+        if not isinstance(diff_tool, six.string_types):
+            try:  # check if iterable
+                if not isinstance(diff_tool[0], six.string_types):
+                    raise Exception("Invalid custom diff-tool: not cmd")
+            except:
+                raise Exception("Invalid custom diff-tool: not binary path")
     return runtime._get_ya_plugin_instance().file(safe_path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
 
 
