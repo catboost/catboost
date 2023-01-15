@@ -1,6 +1,6 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-void* aligned_alloc(size_t alignment, size_t size) {
+__attribute__((weak)) void* aligned_alloc(size_t alignment, size_t size) {
     return memalign(alignment, size);
 }
