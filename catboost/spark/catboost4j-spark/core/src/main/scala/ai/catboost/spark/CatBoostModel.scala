@@ -74,6 +74,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       val dstRowLength = resultSchema.length
       val threadCountForTask = SparkHelpers.getThreadCountForTask(dataset.sparkSession)
 
+      this.logInfo(s"$uid: schedule applying model.")
       dataFrame.mapPartitions(
         rowsIterator => {
           if (rowsIterator.hasNext) {

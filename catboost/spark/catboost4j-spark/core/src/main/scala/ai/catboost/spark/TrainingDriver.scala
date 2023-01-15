@@ -6,6 +6,8 @@ import java.util.Arrays
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CancellationException,Executors,FutureTask}
 
+import org.apache.spark.internal.Logging
+
 import ai.catboost.CatBoostError
 
 
@@ -149,7 +151,7 @@ private[spark] class TrainingDriver (
   val updatableWorkersInfo: UpdatableWorkersInfo,
   val workerInitializationTimeout: java.time.Duration,
   val startMasterCallback: Array[WorkerInfo] => Unit
-) extends Runnable {
+) extends Runnable with Logging {
 
   /**
    * @param listeningPort Port to listen for connections from workers. Pass 0 to autoassign (see ServerSocket constructor documentation)
@@ -173,6 +175,8 @@ private[spark] class TrainingDriver (
 
   def run = {
     try {
+      log.info("started")
+      log.debug(s"workerInitializationTimeout=${workerInitializationTimeout}")
       updatableWorkersInfo.initWorkers(workerInitializationTimeout)
 
       val workersUpdateFuture = Executors.newSingleThreadExecutor.submit(updatableWorkersInfo)
@@ -180,14 +184,16 @@ private[spark] class TrainingDriver (
       try {
         var success = false
         do {
+          log.info("wait for workers info")
           val workersInfo = updatableWorkersInfo.getWorkersInfo
           try {
             startMasterCallback(workersInfo)
+            log.info("CatBoost master has been started")
             success = true
           } catch {
             // try to relaunch if
             case e: CatBoostWorkersConnectionLostException => {
-              // wait for some relaunched workers
+              log.info(s"wait for missing workers to relaunch for ${workerInitializationTimeout}")
               Thread.sleep(workerInitializationTimeout.toMillis)
               if (!updatableWorkersInfo.workerRegistrationUpdatedSinceLastMasterStart.get()) {
                 throw new CatBoostError(
@@ -208,12 +214,13 @@ private[spark] class TrainingDriver (
       }
     } finally {
       updatableWorkersInfo.close
+      log.info("finished")
     }
   }
 }
 
 // use on workers
-private[spark] object TrainingDriver {
+private[spark] object TrainingDriver extends Logging {
 
   /**
    * @returns CatBoost worker port. There's a possibility that this port will be reuse before binding
@@ -222,7 +229,9 @@ private[spark] object TrainingDriver {
   def getWorkerPort() : Int = {
     val serverSocket = new ServerSocket(0)
     try {
-      serverSocket.getLocalPort
+      val localPort = serverSocket.getLocalPort
+      log.info(s"Reserved port ${localPort} for CatBoost worker")
+      localPort
     } finally {
       serverSocket.close
     }
@@ -250,12 +259,14 @@ private[spark] object TrainingDriver {
     workerPort: Int
   ) = {
     if (partitionSize > 0) {
-      // wait for CatBoost worker to start listening
+      log.info(s"wait for CatBoost worker to start listening at port ${workerPort}")
       do {
         Thread.sleep(10)
       } while (!isWorkerListening(workerPort))
+      log.info(s"CatBoost worker started listening at port ${workerPort}")
     }
 
+    log.info(s"send WorkerInfo to CatBoost training driver at ${trainingDriverListeningAddress}")
     val socket = new Socket(
       trainingDriverListeningAddress.getAddress,
       trainingDriverListeningAddress.getPort
@@ -282,5 +293,6 @@ private[spark] object TrainingDriver {
     } finally {
       socket.close
     }
+    log.info("WorkerInfo has been successfully sent to CatBoost training driver")
   }
 }
