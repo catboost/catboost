@@ -28,6 +28,7 @@
   - wctype.h
 
 - includes:
+  - __config
   - algorithm
   - any
   - array
