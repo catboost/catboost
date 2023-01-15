@@ -31,12 +31,12 @@ using double_conversion::StringToDoubleConverter;
  */
 
 namespace {
-    static const char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    constexpr char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     static_assert(Y_ARRAY_SIZE(IntToChar) == 16, "expect Y_ARRAY_SIZE(IntToChar) == 16");
 
     // clang-format off
-    static const int LetterToIntMap[] = {
+    constexpr int LetterToIntMap[] = {
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
@@ -52,17 +52,17 @@ namespace {
     // clang-format on
 
     template <class T>
-    static std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T value) noexcept {
+    std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T value) noexcept {
         return std::make_unsigned_t<T>(-(value + 1)) + std::make_unsigned_t<T>(1);
     }
 
     template <class T>
-    static std::enable_if_t<std::is_unsigned<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T) noexcept {
+    std::enable_if_t<std::is_unsigned<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T) noexcept {
         Y_UNREACHABLE();
     }
 
     template <class T>
-    static std::make_signed_t<T> NegatePositiveSigned(T value) noexcept {
+    std::make_signed_t<T> NegatePositiveSigned(T value) noexcept {
         return value > 0 ? (-std::make_signed_t<T>(value - 1) - 1) : 0;
     }
 
@@ -126,12 +126,12 @@ namespace {
     struct TFltModifiers;
 
     template <class T, int base, class TChar>
-    static Y_NO_INLINE size_t FormatInt(T value, TChar* buf, size_t len) {
+    Y_NO_INLINE size_t FormatInt(T value, TChar* buf, size_t len) {
         return TIntFormatter<T, base, TChar>::Format(value, buf, len);
     }
 
     template <class T>
-    static inline size_t FormatFlt(T t, char* buf, size_t len) {
+    inline size_t FormatFlt(T t, char* buf, size_t len) {
         const int ret = snprintf(buf, len, TFltModifiers<T>::ModifierWrite, t);
 
         Y_ENSURE(ret >= 0 && (size_t)ret <= len, TStringBuf("cannot format float"));
@@ -148,7 +148,7 @@ namespace {
         PS_OVERFLOW,
     };
 
-    static const ui8 SAFE_LENS[4][17] = {
+    constexpr ui8 SAFE_LENS[4][17] = {
         {0, 0, 7, 5, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1},
         {0, 0, 15, 10, 7, 6, 6, 5, 5, 5, 4, 4, 4, 4, 4, 4, 3},
         {0, 0, 31, 20, 15, 13, 12, 11, 10, 10, 9, 9, 8, 8, 8, 8, 7},
@@ -160,7 +160,7 @@ namespace {
     }
 
     template <unsigned BASE, class TChar, class T>
-    static inline std::enable_if_t<(BASE > 10), bool> CharToDigit(TChar c, T* digit) noexcept {
+    inline std::enable_if_t<(BASE > 10), bool> CharToDigit(TChar c, T* digit) noexcept {
         unsigned uc = c;
 
         if (uc >= Y_ARRAY_SIZE(LetterToIntMap)) {
@@ -173,7 +173,7 @@ namespace {
     }
 
     template <unsigned BASE, class TChar, class T>
-    static inline std::enable_if_t<(BASE <= 10), bool> CharToDigit(TChar c, T* digit) noexcept {
+    inline std::enable_if_t<(BASE <= 10), bool> CharToDigit(TChar c, T* digit) noexcept {
         return (c >= '0') && ((*digit = (c - '0')) < BASE);
     }
 
@@ -344,7 +344,7 @@ namespace {
     }
 
     template <typename T, typename TUnsigned, int base, typename TChar>
-    static Y_NO_INLINE T ParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds) {
+    Y_NO_INLINE T ParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds) {
         T result;
         const TChar* pos = data;
         EParseStatus status = TIntParser<T, base, TChar>::Parse(&pos, pos + len, bounds, &result);
@@ -357,12 +357,12 @@ namespace {
     }
 
     template <typename T, typename TUnsigned, int base, typename TChar>
-    static Y_NO_INLINE bool TryParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds, T* result) {
+    Y_NO_INLINE bool TryParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds, T* result) {
         return TIntParser<T, base, TChar>::Parse(&data, data + len, bounds, result) == PS_OK;
     }
 
     template <class T>
-    static inline T ParseFlt(const char* data, size_t len) {
+    inline T ParseFlt(const char* data, size_t len) {
         /*
          * TODO
          */
@@ -405,16 +405,16 @@ namespace {
      * sure they go into binary as actual values and there is no associated
      * initialization code.
      * */
-    static constexpr TBounds<ui64> bSBounds = {static_cast<ui64>(SCHAR_MAX), static_cast<ui64>(UCHAR_MAX - SCHAR_MAX)};
-    static constexpr TBounds<ui64> bUBounds = {static_cast<ui64>(UCHAR_MAX), 0};
-    static constexpr TBounds<ui64> sSBounds = {static_cast<ui64>(SHRT_MAX), static_cast<ui64>(USHRT_MAX - SHRT_MAX)};
-    static constexpr TBounds<ui64> sUBounds = {static_cast<ui64>(USHRT_MAX), 0};
-    static constexpr TBounds<ui64> iSBounds = {static_cast<ui64>(INT_MAX), static_cast<ui64>(UINT_MAX - INT_MAX)};
-    static constexpr TBounds<ui64> iUBounds = {static_cast<ui64>(UINT_MAX), 0};
-    static constexpr TBounds<ui64> lSBounds = {static_cast<ui64>(LONG_MAX), static_cast<ui64>(ULONG_MAX - LONG_MAX)};
-    static constexpr TBounds<ui64> lUBounds = {static_cast<ui64>(ULONG_MAX), 0};
-    static constexpr TBounds<ui64> llSBounds = {static_cast<ui64>(LLONG_MAX), static_cast<ui64>(ULLONG_MAX - LLONG_MAX)};
-    static constexpr TBounds<ui64> llUBounds = {static_cast<ui64>(ULLONG_MAX), 0};
+    constexpr TBounds<ui64> bSBounds = {static_cast<ui64>(SCHAR_MAX), static_cast<ui64>(UCHAR_MAX - SCHAR_MAX)};
+    constexpr TBounds<ui64> bUBounds = {static_cast<ui64>(UCHAR_MAX), 0};
+    constexpr TBounds<ui64> sSBounds = {static_cast<ui64>(SHRT_MAX), static_cast<ui64>(USHRT_MAX - SHRT_MAX)};
+    constexpr TBounds<ui64> sUBounds = {static_cast<ui64>(USHRT_MAX), 0};
+    constexpr TBounds<ui64> iSBounds = {static_cast<ui64>(INT_MAX), static_cast<ui64>(UINT_MAX - INT_MAX)};
+    constexpr TBounds<ui64> iUBounds = {static_cast<ui64>(UINT_MAX), 0};
+    constexpr TBounds<ui64> lSBounds = {static_cast<ui64>(LONG_MAX), static_cast<ui64>(ULONG_MAX - LONG_MAX)};
+    constexpr TBounds<ui64> lUBounds = {static_cast<ui64>(ULONG_MAX), 0};
+    constexpr TBounds<ui64> llSBounds = {static_cast<ui64>(LLONG_MAX), static_cast<ui64>(ULLONG_MAX - LLONG_MAX)};
+    constexpr TBounds<ui64> llUBounds = {static_cast<ui64>(ULLONG_MAX), 0};
 }
 
 #define DEF_INT_SPEC_II(TYPE, ITYPE, BASE)                              \
