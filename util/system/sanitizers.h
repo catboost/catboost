@@ -14,12 +14,6 @@ extern "C" { // sanitizers API
     void __msan_check_mem_is_initialized(const volatile void* x, size_t size);
 #endif
 
-#ifdef _tsan_enabled_
-void AnnotateBenignRaceSized(const char *file, int line,
-                             const volatile void *address,
-                             long size,
-                             const char *description);
-#endif
 }; // sanitizers API
 
 namespace NSan {
@@ -123,22 +117,6 @@ namespace NSan {
         __lsan_ignore_object(ptr);
 #else
         Y_UNUSED(ptr);
-#endif
-    }
-
-    inline static void AnnotateBenignRaceSized(const char *file, int line,
-                                               const volatile void *address,
-                                               long size,
-                                               const char *description) noexcept
-    {
-#ifdef _tsan_enabled_
-        ::AnnotateBenignRaceSized(file, line, address, size, description);
-#else
-        Y_UNUSED(file);
-        Y_UNUSED(line);
-        Y_UNUSED(address);
-        Y_UNUSED(size);
-        Y_UNUSED(description);
 #endif
     }
 }
