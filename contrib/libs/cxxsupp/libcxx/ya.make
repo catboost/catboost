@@ -43,12 +43,7 @@ ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
         DEFAULT(CXX_RT "libcxxrt")
     ENDIF()
     IF (MUSL)
-        ADDINCL(
-            GLOBAL contrib/libs/musl/arch/x86_64
-            GLOBAL contrib/libs/musl/arch/generic
-            GLOBAL contrib/libs/musl/include
-            GLOBAL contrib/libs/musl/extra
-        )
+        PEERDIR(contrib/libs/musl/include)
     ENDIF()
 ELSEIF (OS_WINDOWS)
     SRCS(
