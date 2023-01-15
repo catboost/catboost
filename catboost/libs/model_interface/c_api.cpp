@@ -365,7 +365,7 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* mo
     return true;
 }
 
-CATBOOST_API bool CalcModelPredictionWithHashedCatAndTextFeatures(ModelCalcerHandle* modelHandle, size_t docCount,
+CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(ModelCalcerHandle* modelHandle, size_t docCount,
                                                     const float** floatFeatures, size_t floatFeaturesSize,
                                                     const int** catFeatures, size_t catFeaturesSize,
                                                     const char*** textFeatures, size_t textFeaturesSize,
@@ -518,7 +518,7 @@ CATBOOST_API bool PredictSpecificClassWithHashedCatFeatures(
     return true;
 }
 
-CATBOOST_API bool PredictSpecificClassWithHashedCatAndTextFeatures(
+CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextFeatures(
         ModelCalcerHandle* modelHandle,
         size_t docCount,
         const float** floatFeatures, size_t floatFeaturesSize,
