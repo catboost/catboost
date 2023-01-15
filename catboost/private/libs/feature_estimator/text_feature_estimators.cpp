@@ -13,13 +13,13 @@
 using namespace NCB;
 
 namespace {
-    class TNaiveBayesEstimator final: public TBaseEstimator<TMultinomialNaiveBayes, TNaiveBayesVisitor> {
+    class TNaiveBayesEstimator final: public TTextBaseEstimator<TMultinomialNaiveBayes, TNaiveBayesVisitor> {
     public:
         TNaiveBayesEstimator(
             TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testText)
-            : TBaseEstimator(std::move(target), std::move(learnTexts), testText)
+            : TTextBaseEstimator(std::move(target), std::move(learnTexts), testText)
         {
         }
 
@@ -39,13 +39,13 @@ namespace {
         };
     };
 
-    class TBM25Estimator final: public TBaseEstimator<TBM25, TBM25Visitor> {
+    class TBM25Estimator final: public TTextBaseEstimator<TBM25, TBM25Visitor> {
     public:
         TBM25Estimator(
             TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testText)
-            : TBaseEstimator(std::move(target), std::move(learnTexts), testText)
+            : TTextBaseEstimator(std::move(target), std::move(learnTexts), testText)
         {
         }
 
@@ -66,7 +66,7 @@ namespace {
     };
 
     class TEmbeddingOnlineFeaturesEstimator final:
-        public TBaseEstimator<TEmbeddingOnlineFeatures, TEmbeddingFeaturesVisitor> {
+        public TTextBaseEstimator<TEmbeddingOnlineFeatures, TEmbeddingFeaturesVisitor> {
     public:
         TEmbeddingOnlineFeaturesEstimator(
             TEmbeddingPtr embedding,
@@ -74,7 +74,7 @@ namespace {
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testText,
             const TSet<EFeatureCalcerType>& enabledTypes)
-            : TBaseEstimator(std::move(target), std::move(learnTexts), std::move(testText))
+            : TTextBaseEstimator(std::move(target), std::move(learnTexts), std::move(testText))
             , Embedding(std::move(embedding))
             , ComputeCosDistance(enabledTypes.contains(EFeatureCalcerType::CosDistanceWithClassCenter))
             , ComputeGaussianHomoscedatic(enabledTypes.contains(EFeatureCalcerType::GaussianHomoscedasticModel))

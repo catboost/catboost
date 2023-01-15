@@ -6,9 +6,9 @@
 namespace NCB {
     //TODO(noxoomo): we could fuse estimation in one pass for naive bayes and bm25
     template <class TFeatureCalcer, class TCalcerVisitor>
-    class TBaseEstimator : public IOnlineFeatureEstimator {
+    class TTextBaseEstimator : public IOnlineFeatureEstimator {
     public:
-        TBaseEstimator(
+        TTextBaseEstimator(
             TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testTexts)
