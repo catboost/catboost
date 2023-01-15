@@ -285,11 +285,11 @@ struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
  * }
  */
 template <typename ... T>
-bool TDependentFalse = false;
+constexpr bool TDependentFalse = false;
 
 // FIXME: nvcc10 does not support using auto in this context
 template <size_t T>
-bool TValueDependentFalse = false;
+constexpr bool TValueDependentFalse = false;
 
 /*
  * shortcut for std::enable_if_t<...> which checks that T is std::tuple or std::pair
