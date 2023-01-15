@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{41EBD2AA-3257-780F-5463-5A2401A4CE00}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>contrib-libs-tbb</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>contrib-libs-tbb</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\tbb\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\41EBD2AA-3257-780F-5463-5A2401A4CE00\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -D__TBB_BUILD=1 -DUSE_WINTHREAD -DDO_ITT_NOTIFY -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -D__TBB_BUILD=1 -DUSE_WINTHREAD -DDO_ITT_NOTIFY -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/tbb;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/tbb/src;$(SolutionDir)../contrib/libs/tbb/src/rml/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\old\concurrent_queue_v2.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\old\concurrent_vector_v2.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\old\spin_rw_mutex_v2.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\old\task_v2.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\rml\client\rml_tbb.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\arena.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\cache_aligned_allocator.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\concurrent_hash_map.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\concurrent_monitor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\concurrent_queue.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\concurrent_vector.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\condition_variable.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\critical_section.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\dynamic_link.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\governor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\itt_notify.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\market.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\mutex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\observer_proxy.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\pipeline.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\private_server.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\queuing_mutex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\queuing_rw_mutex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\reader_writer_lock.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\recursive_mutex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\scheduler.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\semaphore.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\spin_mutex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\spin_rw_mutex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\task.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\task_group_context.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_main.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_misc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_misc_ex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_statistics.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_thread.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\x86_rtm_rw_mutex.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\aligned_space.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\atomic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\blocked_range.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\cache_aligned_allocator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\concurrent_hash_map.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\concurrent_priority_queue.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\concurrent_vector.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\critical_section.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\flow_graph_abstractions.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\global_control.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_aggregator_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_allocator_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_concurrent_queue_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_deprecated_header_message_guard.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_flow_graph_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_mutex_padding.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_tbb_hash_compare_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_tbb_strings.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_tbb_windef.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_template_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_warning_suppress_disable_notice.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_warning_suppress_enable_notice.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_x86_eliding_mutex_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\internal\_x86_rtm_rw_mutex_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\gcc_arm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\gcc_generic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\gcc_ia32_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\gcc_itsx.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\ibm_aix51.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\icc_generic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\linux_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\linux_ia32.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\linux_ia64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\linux_intel64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\mac_ppc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\macos_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\mic_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\msvc_armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\msvc_ia32_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\sunos_sparc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\windows_api.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\windows_ia32.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\machine\windows_intel64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\partitioner.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\pipeline.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\queuing_mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\queuing_rw_mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\reader_writer_lock.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\recursive_mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\spin_mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\spin_rw_mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\task.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\task_arena.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\task_scheduler_init.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\task_scheduler_observer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tbb_allocator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tbb_config.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tbb_exception.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tbb_machine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tbb_profiling.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tbb_stddef.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tbb_thread.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\tbb\tick_count.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\old\concurrent_queue_v2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\old\concurrent_vector_v2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\old\spin_rw_mutex_v2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\rml\client\rml_factory.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\rml\include\rml_base.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\rml\include\rml_tbb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\rml\server\thread_monitor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\arena.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\cilk-tbb-interop.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\co_context.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\concurrent_monitor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\custom_scheduler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\dynamic_link.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\governor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\intrusive_list.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\itt_notify.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\mailbox.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\market.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\observer_proxy.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\scheduler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\scheduler_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\scheduler_utility.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\semaphore.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\task_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_assert_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_environment.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_main.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_misc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_statistics.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tbb_version.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tls.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tools_api\disable_warnings.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tools_api\ittnotify.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tools_api\ittnotify_config.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tools_api\ittnotify_static.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tools_api\ittnotify_types.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\tools_api\legacy\ittnotify.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
