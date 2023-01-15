@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version="${1:-8.0.1}"
+version="${1:-11.0.0}"
 major="${version%%.*}"
 
 arcadia="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../../.. && pwd)"
@@ -23,9 +23,9 @@ cd "$dir"
 
 "$arcadia"/ya \
     make "$arcadia"/contrib/libs/llvm${major}/tools/{llvm-as,llvm-link,opt} \
-    -r --target-platform=windows --no-src-links -I bin
+    -DNO_DEBUGINFO -r --target-platform=windows --no-src-links -I bin
 
 tar czf "../$tar" *
 
-printf '%q ' ya upload "$tmp/$tar" -d "Clang $version for Windows" --ttl inf --owner YATOOL --type CLANG_TOOLKIT --attr platform=win32 --attr "version=$version"
+printf '%q ' ya upload "$tmp/$tar" -d "Clang $version for Windows" --ttl inf --owner BUILD_TOOLS --type CLANG_TOOLKIT --attr platform=win32 --attr "version=$version"
 echo
