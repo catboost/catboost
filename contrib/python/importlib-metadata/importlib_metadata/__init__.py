@@ -466,43 +466,67 @@ class FastPath:
             for child in names
             )
 
-    def is_egg(self, search):
-        base = self.base
-        return (
-            base == search.versionless_egg_name
-            or base.startswith(search.prefix)
-            and base.endswith('.egg'))
-
     def search(self, name):
-        for child in self.children():
-            n_low = child.lower()
-            if (n_low in name.exact_matches
-                    or n_low.startswith(name.prefix)
-                    and n_low.endswith(name.suffixes)
-                    # legacy case:
-                    or self.is_egg(name) and n_low == 'egg-info'):
-                yield self.joinpath(child)
+        return (
+            self.joinpath(child)
+            for child in self.children()
+            if name.matches(child, self.base)
+            )
 
 
 class Prepared:
     """
     A prepared search for metadata on a possibly-named package.
     """
-    normalized = ''
-    prefix = ''
+    normalized = None
     suffixes = '.dist-info', '.egg-info'
     exact_matches = [''][:0]
-    versionless_egg_name = ''
 
     def __init__(self, name):
         self.name = name
         if name is None:
             return
-        self.normalized = name.lower().replace('-', '_')
-        self.prefix = self.normalized + '-'
+        self.normalized = self.normalize(name)
         self.exact_matches = [
             self.normalized + suffix for suffix in self.suffixes]
-        self.versionless_egg_name = self.normalized + '.egg'
+
+    @staticmethod
+    def normalize(name):
+        """
+        PEP 503 normalization plus dashes as underscores.
+        """
+        return re.sub(r"[-_.]+", "-", name).lower().replace('-', '_')
+
+    @staticmethod
+    def legacy_normalize(name):
+        """
+        Normalize the package name as found in the convention in
+        older packaging tools versions and specs.
+        """
+        return name.lower().replace('-', '_')
+
+    def matches(self, cand, base):
+        low = cand.lower()
+        pre, ext = os.path.splitext(low)
+        name, sep, rest = pre.partition('-')
+        return (
+            low in self.exact_matches
+            or ext in self.suffixes and (
+                not self.normalized or
+                name.replace('.', '_') == self.normalized
+                )
+            # legacy case:
+            or self.is_egg(base) and low == 'egg-info'
+            )
+
+    def is_egg(self, base):
+        normalized = self.legacy_normalize(self.name or '')
+        prefix = normalized + '-' if normalized else ''
+        versionless_egg_name = normalized + '.egg' if self.name else ''
+        return (
+            base == versionless_egg_name
+            or base.startswith(prefix)
+            and base.endswith('.egg'))
 
 
 @install(ARCADIA == False)
