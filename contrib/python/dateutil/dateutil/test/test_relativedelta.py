@@ -119,11 +119,19 @@ class RelativeDeltaTest(unittest.TestCase):
         self.assertEqual(self.today+relativedelta(day=31, weekday=FR(-1)),
                          date(2003, 9, 26))
 
+    def testLastDayOfFebruary(self):
+        self.assertEqual(date(2021, 2, 1) + relativedelta(day=31),
+                         date(2021, 2, 28))
+
+    def testLastDayOfFebruaryLeapYear(self):
+        self.assertEqual(date(2020, 2, 1) + relativedelta(day=31),
+                         date(2020, 2, 29))
+
     def testNextWednesdayIsToday(self):
         self.assertEqual(self.today+relativedelta(weekday=WE),
                          date(2003, 9, 17))
 
-    def testNextWenesdayNotToday(self):
+    def testNextWednesdayNotToday(self):
         self.assertEqual(self.today+relativedelta(days=+1, weekday=WE),
                          date(2003, 9, 24))
 

@@ -1080,6 +1080,15 @@ class GettzTest(unittest.TestCase, TzFoldMixin):
 
 
 @pytest.mark.gettz
+def test_gettz_same_result_for_none_and_empty_string():
+    local_from_none = tz.gettz()
+    local_from_empty_string = tz.gettz("")
+    assert local_from_none is not None
+    assert local_from_empty_string is not None
+    assert local_from_none == local_from_empty_string
+
+
+@pytest.mark.gettz
 @pytest.mark.parametrize('badzone', [
     'Fake.Region/Abcdefghijklmnop',  # Violates several tz project name rules
 ])
