@@ -88,6 +88,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\columns.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\columns.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\composite_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ctrs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\exclusive_feature_bundling.cpp"/>
@@ -262,6 +263,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cb_dsv_loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\composite_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\ctrs.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\exclusive_feature_bundling.h"/>
