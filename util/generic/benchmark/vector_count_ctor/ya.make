@@ -1,6 +1,6 @@
 
 
-BENCHMARK()
+Y_BENCHMARK()
 
 ALLOCATOR(B)
 

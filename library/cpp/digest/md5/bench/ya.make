@@ -1,4 +1,4 @@
-BENCHMARK()
+Y_BENCHMARK()
 
 
 
