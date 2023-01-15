@@ -1464,7 +1464,6 @@ migrations:
     - alice/analytics/wer
     - alice/boltalka/generative/tfnn/infer
     - alice/boltalka/generative/training/data/nn/filtered_twitter
-    - alice/hollywood/library/scenarios/news/it
     - alice/hollywood/library/scenarios/tr_navi/handcrafted/it
     - alice/nlu/py_libs/tokenizer
     - alice/nlu/tools/lstm_classifier_trainer
@@ -2037,7 +2036,6 @@ migrations:
     - billing/snout/yb_snout_api
     - billing/snout/yb_snout_proxy
     - billing/statreports
-    - browser/infra/avd_tools/avd_tools
     - catboost/python-package/catboost
     - cloud/ai/dataforge/lib
     - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics
