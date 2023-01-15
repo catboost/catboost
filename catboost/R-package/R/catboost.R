@@ -2186,6 +2186,87 @@ catboost.get_plain_params <- function(model) {
     return(params)
 }
 
+
+#' @name catboost.eval_metrics
+#' @title Calculate metrics.
+#'
+#' @description Calculate the specified metrics for the specified dataset.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool The pool for which you want to evaluate the metrics.
+#'
+#' Default value: Required argument
+#' @param metrics The list of metrics to be calculated.
+#' (Supported metrics https://catboost.ai/docs/references/custom-metric__supported-metrics.html)
+#'
+#' Default value: Required argument
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
+#' @param eval_period Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#'
+#' Default value: 1
+#' @param thread_count The number of threads to use when applying the model.
+#' If -1, then the number of threads is set to the number of CPU cores.
+#'
+#' Allows you to optimize the speed of execution. This parameter doesn't affect results.
+#'
+#' Default value: -1
+#' @param tmp_dir  The name of the temporary directory for intermediate results.
+#' If NULL, then the name will be generated.
+#'
+#' Default value: NULL
+#' @return dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period].
+#' @export
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_eval-metrics.html}
+catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_end = 0L,
+                                  eval_period = 1, thread_count = -1, tmp_dir = NULL) {
+  catboost.restore_handle(model)
+  if (!inherits(pool, "catboost.Pool"))
+    stop("Expected catboost.Pool, got: ", class(pool))
+  if (is.null.handle(pool))
+    stop("Pool object is invalid.")
+  if (ntree_start < 0)
+    stop("ntree_start should be greater or equal zero.")
+  if (ntree_end == 0L) {
+    ntree_end <- model$tree_count
+  } else {
+    ntree_end <- min(c(ntree_end, model$tree_count))
+  }
+  if (ntree_start >= ntree_end)
+    stop("ntree_start should be less than ntree_end.")
+  if (eval_period <= 0)
+    stop("eval_period should be greater than zero.")
+  if (eval_period > (ntree_end - ntree_start))
+    eval_period <- ntree_end - ntree_start
+  if (!is.list(metrics) && !(is.character(metrics) && length(metrics) == 1))
+    stop("Unsupported metrics type, expecting list or string, got: ", typeof(metrics))
+  if (is.character(metrics) && length(metrics) == 1)
+    metrics <- list(metrics)
+  if (length(metrics) == 0)
+    stop("No metrics found.")
+  if (is.null(tmp_dir))
+    tmp_dir <- tempdir()
+  tmp_dir <- path.expand(tmp_dir)
+
+  params <- catboost.get_plain_params(model)
+  train_dir <- params[['train_dir']]
+  if (is.null(params[['train_dir']]))
+    train_dir <- 'catboost_info'
+
+  result <- .Call("CatBoostEvalMetrics_R", model$handle, pool, metrics,
+                  ntree_start, ntree_end, eval_period,
+                  thread_count, tmp_dir, train_dir)
+
+  return(result)
+}
+
+
 #' @name catboost.restore_handle
 #' @title Restore or complete model handle after de-serializing
 #'

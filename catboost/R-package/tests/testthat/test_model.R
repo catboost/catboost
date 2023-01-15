@@ -454,3 +454,61 @@ test_that("model: catboost.sum_models", {
     prediction_one_model <- catboost.predict(sum_mod, pool_test, prediction_type='RawFormulaVal')
     expect_equal(prediction_sum_models, prediction_one_model)
 })
+
+test_that("model: catboost.eval_metrics", {
+  target <- sample(c(1, -1), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  split <- sample(nrow(features), size = floor(0.75 * nrow(features)))
+
+  pool_train <- catboost.load_pool(features[split, ], target[split])
+  pool_test <- catboost.load_pool(features[-split, ], target[-split])
+
+  metric <- 'AUC'
+  params <- list(iterations = 10,
+                 loss_function = "Logloss",
+                 random_seed = 12345,
+                 eval_metric = metric,
+                 use_best_model = FALSE)
+
+  model <- catboost.train(pool_train, pool_test, params)
+  train_metrics <- read.table(file = 'catboost_info/test_error.tsv', sep = '\t', header = TRUE)
+  train_metric <- train_metrics[[metric]]
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, metric)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(train_metric, eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric))
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(train_metric, eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_end = 500)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(train_metric, eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 1, ntree_end = 5, eval_period = 2)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(3, length(eval_metric))
+  expect_equal(c(train_metric[2], train_metric[4], train_metric[5]), eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 1, ntree_end = 5, eval_period = 3)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(2, length(eval_metric))
+  expect_equal(c(train_metric[2], train_metric[5]), eval_metric, tolerance = 1e-9)
+
+  eval_metrics <- catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 1, ntree_end = 5, eval_period = 15)
+  eval_metric <- eval_metrics[[metric]]
+  expect_equal(2, length(eval_metric))
+  expect_equal(c(train_metric[2], train_metric[5]), eval_metric, tolerance = 1e-9)
+
+  expect_error( catboost.eval_metrics(model, pool_test, list()),
+               "No metrics found.", fixed = TRUE)
+  expect_error( catboost.eval_metrics(model, pool_test, list(metric), ntree_start = 500),
+                "ntree_start should be less than ntree_end.", fixed = TRUE)
+  expect_error( catboost.eval_metrics(model, pool_test, list(), ntree_start = -1),
+                "ntree_start should be greater or equal zero.", fixed = TRUE)
+  expect_error( catboost.eval_metrics(model, pool_test, list(), eval_period = -1),
+                "eval_period should be greater than zero.", fixed = TRUE)
+})
