@@ -3200,7 +3200,7 @@ migrations:
     - weather/workers/warnings
     - weather/yasm/workerstats
     - web/app_host/daemons/horizon/contrib
-    - web/app_host/tools/event_log_filter/tests/lib
+    - apphost/tools/event_log_filter/tests/lib
     - web/daemons/begemot/scripts/yt_priemka
     - wmconsole/backend/packaging-tools
     - yabs/amazon/cache_proxy
