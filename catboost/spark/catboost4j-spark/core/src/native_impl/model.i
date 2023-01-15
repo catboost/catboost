@@ -102,7 +102,11 @@ public:
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
             int size = in.readInt();
             byte[] data = new byte[size];
-            in.read(data);
+            int offset = 0;
+            while (offset < size) {
+                offset += in.read(data, offset, size - offset);
+            }
+
             try {
                 Deserialize(data);
             } catch (Exception e) {
