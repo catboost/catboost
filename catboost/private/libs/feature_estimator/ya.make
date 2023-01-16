@@ -6,6 +6,7 @@ LIBRARY()
 SRCS(
     base_embedding_feature_estimator.cpp
     base_text_feature_estimator.cpp
+    classification_target.cpp
     embedding_feature_estimators.cpp
     feature_estimator.cpp
     text_feature_estimators.cpp

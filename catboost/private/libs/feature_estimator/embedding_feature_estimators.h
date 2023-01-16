@@ -1,5 +1,6 @@
 #pragma once
 
+#include "classification_target.h"
 #include "feature_estimator.h"
 
 #include <catboost/private/libs/options/enums.h>
@@ -9,7 +10,7 @@
 namespace NCB {
     TVector<TOnlineFeatureEstimatorPtr> CreateEmbeddingEstimators(
         TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-        TEmbeddingClassificationTargetPtr target,
+        TClassificationTargetPtr target,
         TEmbeddingDataSetPtr learnEmbeddings,
         TArrayRef<TEmbeddingDataSetPtr> testEmbedding
     );

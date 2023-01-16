@@ -1,5 +1,6 @@
 #include <catboost/private/libs/algo/full_model_saver.h>
 
+#include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/private/libs/options/text_processing_options.h>
 #include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
@@ -19,7 +20,7 @@ static void CreateTextEstimators(
     TFeatureEstimatorsPtr* featureEstimators
 ) {
     const ui32 numClasses = 2;
-    auto textTarget = MakeIntrusive<TTextClassificationTarget>(std::move(target), numClasses);
+    auto textTarget = MakeIntrusive<TClassificationTarget>(std::move(target), numClasses);
     const ui32 numTokenizedFeatures = static_cast<ui32>(tokenizedFeatures.size());
 
     TFeatureEstimatorsBuilder estimatorsBuilder;
