@@ -79,7 +79,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\numeric\int128.cc"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\numeric\bits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\numeric\int128.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\numeric\internal\bits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\numeric\internal\representation.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

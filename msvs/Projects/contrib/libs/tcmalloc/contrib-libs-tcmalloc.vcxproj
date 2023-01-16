@@ -302,6 +302,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\hash\abseil-cpp-absl-hash.vcxproj">
       <Project>{B0CBA6EC-6361-E4BF-DB08-3A7C6493FAA4}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\hash\internal\absl-hash-internal.vcxproj">
+      <Project>{C449468E-D5C0-28D5-542A-BF1C13422B69}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\memory\abseil-cpp-absl-memory.vcxproj">
       <Project>{80038EC6-442D-194F-5B32-5457D5F8425C}</Project>
     </ProjectReference>
@@ -353,8 +356,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\abseil-cpp-absl-strings.vcxproj">
       <Project>{C94DBD31-AE85-DCD5-7C63-712955C59002}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\cord\absl-strings-cord.vcxproj">
-      <Project>{C90ADDFF-B541-65DF-B484-A2BB21EFD418}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\absl_cord\absl-strings-absl_cord.vcxproj">
+      <Project>{2C77AAA8-7230-F3E6-19CC-48053B79DE55}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl-strings-internal.vcxproj">
       <Project>{EC596CF4-D927-3A82-31A7-3C88B519515A}</Project>
