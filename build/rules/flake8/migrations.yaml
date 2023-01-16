@@ -322,7 +322,6 @@ migrations:
     - extsearch/images/money/scripts/robot
     - extsearch/images/money/scripts/robot/util
     - extsearch/images/money/tools/commercial_serps_downloader
-    - extsearch/images/ontosearch/robot/tools/serps_downloader
     - extsearch/images/robot/index/testlib/index_process_description
     - extsearch/images/robot/library/pycm
     - extsearch/images/robot/scripts/cm/semidup2
@@ -565,7 +564,6 @@ migrations:
     - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners/generate_filtered_links
     - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/deploy/deploy
-    - rt-research/multik/tasks/labeling/catalogia_candidates
     - saas/tools/devops/fban
     - saas/tools/devops/lib
     - saas/tools/devops/lib23/tests/py2
@@ -1029,7 +1027,6 @@ migrations:
     - metrika/admin/maas/lib/core/daemon
     - metrika/admin/maas/lib/core/service
     - metrika/admin/python/duty/bot/lib
-    - metrika/admin/python/duty/frontend/duty
     - metrika/admin/python/scripts/jrun
     - metrika/tasklets/conductor/impl
     - milab/lib/i2tclient/python
@@ -2148,7 +2145,6 @@ migrations:
     - mds/mastermind/scheduler
     - mds/nscfg/lib
     - metrika/admin/python/cms/frontend/base
-    - metrika/admin/python/duty/frontend/base
     - metrika/core/programs/mobile_startup_admin/base
     - metrika/pylib/auth
     - metrika/pylib/log
