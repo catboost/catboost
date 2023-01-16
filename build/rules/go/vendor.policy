@@ -789,6 +789,9 @@ ALLOW .* -> vendor/github.com/pion/sdp/v3
 # CONTRIB-2350
 ALLOW .* -> vendor/inet.af/netaddr
 
+# CONTRIB-2368: embedding resources in a Windows executable
+ALLOW .* -> vendor/github.com/tc-hib/winres
+
 #
 # Tools
 #
