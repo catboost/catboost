@@ -128,7 +128,7 @@ namespace NObjectFactory {
 
         template<class... Args>
         static THolder<TProduct> MakeHolder(Args&&... args) {
-            return Construct(std::forward<Args>(args)...);
+            return THolder<TProduct>(Construct(std::forward<Args>(args)...));
         }
 
         static bool Has(const TKey& key) {

@@ -7,7 +7,7 @@ TFilteredBackendCreator::TFilteredBackendCreator(THolder<ILogBackendCreator> sla
 {}
 
 THolder<TLogBackend> TFilteredBackendCreator::DoCreateLogBackend() const {
-    return MakeHolder<TFilteredLogBackend>(Slave->CreateLogBackend().Release(), Priority);
+    return MakeHolder<TFilteredLogBackend>(Slave->CreateLogBackend(), Priority);
 }
 
 bool TFilteredBackendCreator::Init(const IInitContext& ctx) {
