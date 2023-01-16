@@ -4368,6 +4368,38 @@ def test_custom_metric_for_multilabel():
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('cd', ['train.cd', 'train_1.cd'])
+@pytest.mark.parametrize('metrics', ['MultiLogloss', 'Accuracy,Precision'])
+def test_multilabel(cd, metrics):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        '--use-best-model', 'false',
+        '--loss-function', 'MultiLogloss',
+        '-f', data_file('scene', 'train'),
+        '-t', data_file('scene', 'test'),
+        '--column-description', data_file('scene', cd),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--output-columns', 'RawFormulaVal,Probability,Class',
+        '--eval-file', output_eval_path,
+        '--custom-metric', metrics,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(learn_error_path),
+        local_canonical_file(test_error_path)
+    ]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_class_weight_logloss(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')

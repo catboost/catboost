@@ -11,6 +11,7 @@ bool IsRegressionMetric(ELossFunction lossFunction);
 bool IsMultiRegressionMetric(ELossFunction loss);
 bool IsSurvivalRegressionMetric(ELossFunction loss);
 bool IsMultiLabelMetric(ELossFunction loss);
+bool IsMultiLabelOnlyMetric(ELossFunction loss);
 bool IsMultiTargetMetric(ELossFunction loss);
 bool IsMultiTargetOnlyMetric(ELossFunction loss);
 

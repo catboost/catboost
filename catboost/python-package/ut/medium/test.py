@@ -1856,6 +1856,23 @@ def test_multilabel(prediction_type):
     return local_canonical_file(preds_path)
 
 
+@pytest.mark.parametrize('target_count', [1, 2, 3])
+def test_compare_multilogloss_with_logloss(target_count):
+    object_count = 100
+    feature_count = 10
+    iterations = 100
+    np.random.seed(42)
+    X = np.random.random((object_count, feature_count))
+    y = np.random.randint(low=0, high=2, size=object_count)
+    Y = np.vstack([y for _ in range(target_count)]).T
+    logloss_clf = CatBoostClassifier(iterations=iterations, loss_function='Logloss')
+    logloss_clf.fit(X, y)
+    multilogloss_clf = CatBoostClassifier(iterations=iterations, loss_function='MultiLogloss')
+    multilogloss_clf.fit(X, Y)
+    diff = logloss_clf.best_score_['learn']['Logloss'] / multilogloss_clf.best_score_['learn']['MultiLogloss']
+    assert 0.9 < diff < 1.1
+
+
 def test_multilabel_class_names():
     pool = Pool(SCENE_TRAIN_FILE, column_description=SCENE_CD_FILE)
     classifier = CatBoostClassifier(

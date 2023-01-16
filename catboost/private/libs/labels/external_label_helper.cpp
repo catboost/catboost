@@ -20,7 +20,7 @@ TExternalLabelsHelper::TExternalLabelsHelper(const TFullModel& model)
     : Initialized(false)
     , ExternalApproxDimension(0)
 {
-    if (model.GetDimensionsCount() > 1) {  // is multiclass?
+    if (model.GetDimensionsCount() > 1 || model.GetModelClassLabels().size() == 1) {  // is multiclass or multilabel?
         // "class_params" is new, more generic option, used for binclass as well
         for (const auto& paramName : {"class_params", "multiclass_params"}) {
             if (model.ModelInfo.contains(paramName)) {
