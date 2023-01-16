@@ -170,9 +170,9 @@ PyAPI_FUNC(PyObject*) PyString_AsDecodedString(
    cause an exception).  */
 
 PyAPI_FUNC(int) PyString_AsStringAndSize(
-    register PyObject *obj,	/* string or Unicode object */
-    register char **s,		/* pointer to buffer variable */
-    register Py_ssize_t *len	/* pointer to length variable or NULL
+    PyObject *obj,	/* string or Unicode object */
+    char **s,		/* pointer to buffer variable */
+    Py_ssize_t *len	/* pointer to length variable or NULL
 				   (only possible for 0-terminated
 				   strings) */
     );
