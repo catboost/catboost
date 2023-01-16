@@ -729,6 +729,8 @@ items:
             name: Converting numerical CatBoost models to Matrixnet format
       - name: C/C++
         items:
+          - href: concepts/c-plus-plus-api.md
+            name: Overview
           - href: concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper.md
             name: Evaluation library
           - href: concepts/c-plus-plus-api_header-only-evaluator.md
