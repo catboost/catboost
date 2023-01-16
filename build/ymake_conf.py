@@ -1027,7 +1027,7 @@ class GnuToolchainOptions(ToolchainOptions):
 
         self.dwarf_tool = self.target.find_in_dict(self.params.get('dwarf_tool'))
         if self.is_local:
-            self.ar = subprocess.check_output(['xcrun', '--find', 'ar']).strip()
+            self.ar = subprocess.check_output(['xcrun', '--find', 'libtool']).strip()
             self.strip = subprocess.check_output(['xcrun', '--find', 'strip']).strip()
             self.dwarf_tool = subprocess.check_output(['xcrun', '--find', 'dsymutil']).strip() + ' -flat'
 
