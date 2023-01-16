@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,24 +78,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\bignum-dtoa.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\bignum.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\cached-powers.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\diy-fp.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\fast-dtoa.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\fixed-dtoa.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\strtod.cc"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\bignum-dtoa.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\bignum.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\cached-powers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\diy-fp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\fast-dtoa.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\fixed-dtoa.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\ieee.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\strtod.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\utils.h"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum-dtoa.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\cached-powers.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\diy-fp.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\double-conversion.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fast-dtoa.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fixed-dtoa.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\strtod.cc"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum-dtoa.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\cached-powers.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\diy-fp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\double-conversion.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fast-dtoa.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fixed-dtoa.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\ieee.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\strtod.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\utils.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
