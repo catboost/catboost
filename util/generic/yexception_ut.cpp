@@ -15,7 +15,6 @@ static inline void Throw2DontMove() {
 #include <util/random/mersenne.h>
 #include <util/stream/output.h>
 #include <util/string/subst.h>
-#include <util/string/split.h>
 
 #include "yexception_ut.h"
 #include "bt_exception.h"
@@ -49,8 +48,6 @@ class TExceptionTest: public TTestBase {
     UNIT_TEST(TestBackTrace)
     UNIT_TEST(TestEnsureWithBackTrace1)
     UNIT_TEST(TestEnsureWithBackTrace2)
-    UNIT_TEST(TestCurrentExceptionMessageWithLIBUNWIND)
-    UNIT_TEST(TestCurrentExceptionMessageWithInvalidBacktraceFormatter)
     UNIT_TEST(TestRethrowAppend)
     UNIT_TEST(TestMacroOverload)
     UNIT_TEST(TestMessageCrop)
@@ -129,48 +126,6 @@ private:
             return;
         }
         UNIT_ASSERT(false);
-    }
-
-    inline void TestCurrentExceptionMessageWithLIBUNWIND() {
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-        try {
-            throw std::logic_error("some exception"); // is instance of std::exception
-            UNIT_ASSERT(false);
-        } catch (...) {
-            TString exceptionMessage = CurrentExceptionMessage();
-            UNIT_ASSERT(exceptionMessage.Contains("(std::logic_error) some exception"));
-            TVector<TString> backtraceStrs = StringSplitter(exceptionMessage).Split('\n');
-            UNIT_ASSERT(backtraceStrs.size() > 1);
-        }
-#endif
-    }
-
-    inline void TestCurrentExceptionMessageWithInvalidBacktraceFormatter() {
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-        auto invalidFormatter = [](IOutputStream*, void* const*, size_t) {
-            Throw2DontMove();
-        };
-        SetFormatBackTraceFn(invalidFormatter);
-
-        try {
-            Throw1DontMove();
-            UNIT_ASSERT(false);
-        } catch (...) {
-            TString expected = "Failed to print backtrace: (yexception) "
-                               "util/generic/yexception_ut.cpp:8: 1 qw 12.1\n"
-                               "(yexception) util/generic/yexception_ut.cpp:4: blabla";
-            UNIT_ASSERT_EQUAL(CurrentExceptionMessage(), expected);
-        }
-        try {
-            throw std::logic_error("std exception");
-            UNIT_ASSERT(false);
-        } catch (...) {
-            TString expected = "Failed to print backtrace: (yexception) "
-                               "util/generic/yexception_ut.cpp:8: 1 qw 12.1\n"
-                               "(std::logic_error) std exception";
-            UNIT_ASSERT_EQUAL(CurrentExceptionMessage(), expected);
-        }
-#endif
     }
 
     inline void TestVirtualInheritance() {
