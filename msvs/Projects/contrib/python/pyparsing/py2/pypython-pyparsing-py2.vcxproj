@@ -11,16 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{FA513E53-9CE5-854C-5402-D210B2FFD326}</ProjectGUID>
+    <ProjectGUID>{636DFF33-4DD4-5B5D-AB87-CD994F706CBA}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-pytest</ProjectName>
+    <ProjectName>pypython-pyparsing-py2</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>EmptyStaticLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-pytest</TargetName>
+    <TargetName>pypython-pyparsing-py2</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pytest\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FA513E53-9CE5-854C-5402-D210B2FFD326\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\636DFF33-4DD4-5B5D-AB87-CD994F706CBA\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -77,7 +77,143 @@
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup/>
+  <ItemGroup>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/py2/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/py2/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/py2/pyparsing.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pyparsing\py2\pyparsing.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\pyparsing.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\py2\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm" "-" "contrib/python/pyparsing/py2/.dist-info/METADATA" "_c3057ac1a9ebda4c9df36adf25.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_09ec86be57da841914f34eb5cf.rodata" "-" "contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_b858f84bf52e64a55ab49684e3.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_3f2252de725aae2cd2660725f1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm" "-" "contrib/python/pyparsing/py2/.dist-info/METADATA" "_c3057ac1a9ebda4c9df36adf25.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_09ec86be57da841914f34eb5cf.rodata" "-" "contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_b858f84bf52e64a55ab49684e3.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_3f2252de725aae2cd2660725f1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\py2\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pyparsing\py2\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_09ec86be57da841914f34eb5cf.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_3f2252de725aae2cd2660725f1.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\py2\pyparsing.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_1406142c34a290a3af09b91c18.rodata" "-" "contrib/python/pyparsing/py2/pyparsing.py" "_5278b20ed75d0be9720cf039ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_252a531c12b2ee73fd359d861e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_1406142c34a290a3af09b91c18.rodata" "-" "contrib/python/pyparsing/py2/pyparsing.py" "_5278b20ed75d0be9720cf039ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_252a531c12b2ee73fd359d861e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\py2\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\pyparsing.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_1406142c34a290a3af09b91c18.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_252a531c12b2ee73fd359d861e.rodata;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
@@ -123,78 +259,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.vcxproj">
-      <Project>{2A505A08-73FD-9F97-DBC1-5BC70FFD9C70}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
-      <Project>{B19D597D-A363-F744-6165-C68C1835DD61}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.functools-lru-cache\pycontrib-python-backports.functools-lru-cache.vcxproj">
-      <Project>{72CAF43F-970B-5E9F-7DD3-7C13627D483E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.vcxproj">
-      <Project>{6DF26701-68E9-E05A-808F-1840FF373955}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\pycontrib-python-contextlib2.vcxproj">
-      <Project>{76AD5AB3-EDE1-7BAC-90B7-9BA08DC851AD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
-      <Project>{7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.vcxproj">
-      <Project>{7CA8D33B-5425-5BF9-E98C-202C0225D987}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\pycontrib-python-importlib-metadata.vcxproj">
-      <Project>{7F463C70-BAD7-7EF0-2E4C-848242C99C7E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py2\pypython-more-itertools-py2.vcxproj">
-      <Project>{8541E5F0-6A9F-6C7B-40DD-F084C7E89F89}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
-      <Project>{BC62290A-1F8B-7962-8C00-63BFE8DAE2A0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\py2\pypython-packaging-py2.vcxproj">
-      <Project>{A2F70579-7ECE-E837-AF99-B057F2FBD192}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\pycontrib-python-packaging.vcxproj">
-      <Project>{6C15063A-DDDE-66AF-5176-3D80158617E3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
-      <Project>{09B94D29-C8D9-195E-BE7A-2CF5517C1312}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py2\pypython-pluggy-py2.vcxproj">
-      <Project>{263E9EDB-3237-E79D-CC9D-E38EC633C24F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\pycontrib-python-pluggy.vcxproj">
-      <Project>{655F3AA8-7E17-5AF6-E453-0AD94235E99C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\pycontrib-python-py.vcxproj">
-      <Project>{965E6429-AE78-1C06-E2DA-1B781FCDB7AA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py2\pypython-pyparsing-py2.vcxproj">
-      <Project>{636DFF33-4DD4-5B5D-AB87-CD994F706CBA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\pycontrib-python-pyparsing.vcxproj">
-      <Project>{CAA5C16F-0EB7-06E7-A793-BEC259BA54A0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\py2\pypython-pytest-py2.vcxproj">
-      <Project>{80521B11-6292-CE9C-6667-FD47DFCBBABB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
-      <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
-      <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
-      <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
-      <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
-      <Project>{F338AB33-66DB-B461-4311-08AAD87EAE63}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -207,6 +271,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
       <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
     </ProjectReference>
@@ -215,9 +282,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
-      <Project>{37AC15B4-A170-D4C8-25DC-6474572B40BA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
@@ -233,6 +297,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

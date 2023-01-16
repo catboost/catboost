@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{742BE043-B63D-E260-BBA6-2C05C0FB8771}</ProjectGUID>
+    <ProjectGUID>{47D132ED-51A8-88F3-4146-FA1DB3C40B0B}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-pyparsing.global</ProjectName>
+    <ProjectName>pypython-pyparsing-py2.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-pyparsing.global</TargetName>
+    <TargetName>pypython-pyparsing-py2.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\742BE043-B63D-E260-BBA6-2C05C0FB8771\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\47D132ED-51A8-88F3-4146-FA1DB3C40B0B\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\61447c278906b80b48a7e0811d.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\d9af000f0fd280497e6e6570f1.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\2c3e9ea3df0f9dd5f60806c2e6.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\aab39f37b99676c4efe01cc692.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/61447c278906b80b48a7e0811d.cpp" "_2f5f3d773f46493463130035ee=resfs/src/resfs/file/contrib/python/pyparsing/.dist-info/METADATA" "_4acec60c8a372c85fdc0c213e1=resfs/file/contrib/python/pyparsing/.dist-info/METADATA" "_5111c829e4abe8fec7d2fd0ca2=resfs/src/resfs/file/contrib/python/pyparsing/.dist-info/top_level.txt" "_ffb4ac37d4968ea96572970af5=resfs/file/contrib/python/pyparsing/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/2c3e9ea3df0f9dd5f60806c2e6.cpp" "_c3057ac1a9ebda4c9df36adf25=resfs/src/resfs/file/contrib/python/pyparsing/py2/.dist-info/METADATA" "_09ec86be57da841914f34eb5cf=resfs/file/contrib/python/pyparsing/py2/.dist-info/METADATA" "_b858f84bf52e64a55ab49684e3=resfs/src/resfs/file/contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_3f2252de725aae2cd2660725f1=resfs/file/contrib/python/pyparsing/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/aab39f37b99676c4efe01cc692.cpp" "_1406142c34a290a3af09b91c18=/py_modules/pyparsing" "_5278b20ed75d0be9720cf039ee=resfs/src//py_modules/pyparsing" "_252a531c12b2ee73fd359d861e=/py_code/pyparsing"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/61447c278906b80b48a7e0811d.cpp" "_2f5f3d773f46493463130035ee=resfs/src/resfs/file/contrib/python/pyparsing/.dist-info/METADATA" "_4acec60c8a372c85fdc0c213e1=resfs/file/contrib/python/pyparsing/.dist-info/METADATA" "_5111c829e4abe8fec7d2fd0ca2=resfs/src/resfs/file/contrib/python/pyparsing/.dist-info/top_level.txt" "_ffb4ac37d4968ea96572970af5=resfs/file/contrib/python/pyparsing/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/2c3e9ea3df0f9dd5f60806c2e6.cpp" "_c3057ac1a9ebda4c9df36adf25=resfs/src/resfs/file/contrib/python/pyparsing/py2/.dist-info/METADATA" "_09ec86be57da841914f34eb5cf=resfs/file/contrib/python/pyparsing/py2/.dist-info/METADATA" "_b858f84bf52e64a55ab49684e3=resfs/src/resfs/file/contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_3f2252de725aae2cd2660725f1=resfs/file/contrib/python/pyparsing/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/aab39f37b99676c4efe01cc692.cpp" "_1406142c34a290a3af09b91c18=/py_modules/pyparsing" "_5278b20ed75d0be9720cf039ee=resfs/src//py_modules/pyparsing" "_252a531c12b2ee73fd359d861e=/py_code/pyparsing"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/61447c278906b80b48a7e0811d.cpp	$B/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp	</Message>
+      <Message>$B/contrib/python/pyparsing/py2/2c3e9ea3df0f9dd5f60806c2e6.cpp	$B/contrib/python/pyparsing/py2/aab39f37b99676c4efe01cc692.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\61447c278906b80b48a7e0811d.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\d9af000f0fd280497e6e6570f1.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\2c3e9ea3df0f9dd5f60806c2e6.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\aab39f37b99676c4efe01cc692.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
