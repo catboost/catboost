@@ -161,8 +161,8 @@ ALLOW maps_adv/ -> maps_adv/
 ALLOW smb/ -> maps_adv/
 DENY .* -> maps_adv/
 
-ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/common
-ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/revision
+ALLOW sdg/library/python/revision_manager -> maps/wikimap/mapspro/libs/common
+ALLOW sdg/library/python/revision_manager -> maps/wikimap/mapspro/libs/revision
 
 # Ydo libs can use some maps stuff
 ALLOW ydo/libs/dispatch -> maps/libs/pbstream
