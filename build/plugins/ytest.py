@@ -177,6 +177,9 @@ def validate_test(unit, kw):
     sb_tags = [tag for tag in tags if tag.startswith('sb:')]
 
     if is_fat:
+        if size != consts.TestSize.Large:
+            errors.append("Only LARGE test may have ya:fat tag")
+
         if in_autocheck and not is_force_sandbox:
             if invalid_requirements_for_distbuild:
                 errors.append("'{}' REQUIREMENTS options can be used only for FAT tests without ya:force_distbuild tag. Remove TAG(ya:force_distbuild) or an option.".format(invalid_requirements_for_distbuild))
@@ -184,8 +187,6 @@ def validate_test(unit, kw):
                 errors.append("You can set sandbox tags '{}' only for FAT tests without ya:force_distbuild. Remove TAG(ya:force_sandbox) or sandbox tags.".format(sb_tags))
             if 'ya:sandbox_coverage' in tags:
                 errors.append("You can set 'ya:sandbox_coverage' tag only for FAT tests without ya:force_distbuild.")
-            if size != consts.TestSize.Large:
-                errors.append("Only LARGE test may have ya:fat tag")
     else:
         if is_force_sandbox:
             errors.append('ya:force_sandbox can be used with LARGE tests only')
