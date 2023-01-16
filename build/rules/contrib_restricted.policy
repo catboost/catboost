@@ -8,6 +8,7 @@ ALLOW strm/cv/ffmpeg_adcv/toshik_filters -> contrib/restricted/ffmpeg-3-scale-ip
 
 # CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
 ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
+ALLOW library/cpp/clickhouse -> contrib/restricted/cityhash-1.0.2
 ALLOW saas/library/hash_to_block_mode -> contrib/restricted/cityhash-1.0.2
 
 # dragonbox is a specific library for float formatting
