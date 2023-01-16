@@ -3,6 +3,7 @@
 #include "fstat.h"
 #include "sysstat.h"
 #include "align.h"
+#include "info.h"
 
 #include <array>
 
