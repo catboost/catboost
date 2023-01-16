@@ -2,6 +2,7 @@ title: CatBoost 2.0
 href: index.yaml
 items:
   - name: Installation
+    expanded: true
     items:
       - href: concepts/installation.md
         name: Overview
@@ -895,22 +896,6 @@ items:
       - href: features/visualization_tensorboard.md
         name: TensorBoard
     name: Data visualization
-  - href: concepts/faq.md
-    name: FAQ
-  - name: Educational materials
-    items:
-      - href: concepts/tutorials.md
-        name: Tutorials
-      - href: concepts/educational-materials-papers.md
-        name: Reference papers
-      - href: concepts/educational-materials-videos.md
-        name: Videos
-  - href: concepts/for-developers.md
-    when: audience == "internal"
-    name: For developers
-  - href: concepts/development-and-contributions.md
-    when: audience == "external"
-    name: Development and contributions
   - name: Algorithm details
     items:
       - items:
@@ -939,6 +924,22 @@ items:
         name: Missing values processing
       - href: concepts/algorithm-score-functions.md
         name: Score functions
+  - href: concepts/faq.md
+    name: FAQ
+  - name: Educational materials
+    items:
+      - href: concepts/tutorials.md
+        name: Tutorials
+      - href: concepts/educational-materials-papers.md
+        name: Reference papers
+      - href: concepts/educational-materials-videos.md
+        name: Videos
+  - href: concepts/for-developers.md
+    when: audience == "internal"
+    name: For developers
+  - href: concepts/development-and-contributions.md
+    when: audience == "external"
+    name: Development and contributions
   - href: concepts/contacts.md
     name: Contacts
 
