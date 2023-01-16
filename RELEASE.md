@@ -1,3 +1,31 @@
+# Release 1.0.5
+## New features
+
+* CatBoost for Apache Spark: support Apple Darwin arm64 architecture. #1526.
+* Support feature tags in feature selection.
+* Support for Apache Spark 3.2
+
+## Python package
+
+* Accommodate multiple target-platform arguments used to build universal binaries.
+* Add grid creation function to utils.py
+
+## Bugfixes
+
+* Fix group weights in metrics calculation.
+* Fix `fit` for PySpark estimators. #1976.
+* Fix predict on GPU. #1901, #1923.
+* Disable exact leafs calculation for `MAE`, `MAPE`, `Quantile` on GPU.
+* Fix counter description for plotting. #1973.
+* Allow weights in `BrierScore`. #1967.
+* Disable AUC calculation for learn by default on GPU as well.
+* Fix `plot_tree` example in documentation.
+* Fix plots in `cv`.
+* Fix ui32 overflows in pairwise losses on GPU.
+* Fix for multiclass in nodejs evaluator. #1903.
+* Fix CatBoost R package installation on Monterey. #1912.
+
+
 # Release 1.0.4
 
 ## New features
