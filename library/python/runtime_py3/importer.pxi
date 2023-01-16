@@ -2,7 +2,7 @@ import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
 from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
-from _frozen_importlib_external import _os, _path_isfile, _path_isdir, path_sep, _path_join
+from _frozen_importlib_external import _os, _path_isfile, _path_isdir, _path_isabs, path_sep, _path_join, _path_split
 from _io import FileIO
 
 import __res as __resource
@@ -11,7 +11,9 @@ _b = lambda x: x if isinstance(x, bytes) else utf_8_encode(x)[0]
 _s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
 env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
+cfg_source_root = b'arcadia-source-root'
 env_extended_source_search = b'Y_PYTHON_EXTENDED_SOURCE_SEARCH'
+res_ya_ide_venv = b'YA_IDE_VENV'
 executable = sys.executable or 'Y_PYTHON'
 sys.modules['run_import_hook'] = __resource
 
@@ -19,8 +21,45 @@ sys.modules['run_import_hook'] = __resource
 py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
-Y_PYTHON_SOURCE_ROOT = _os.environ.get(env_source_root)
-Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search)
+YA_IDE_VENV = __resource.find(res_ya_ide_venv)
+Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search) or YA_IDE_VENV
+
+
+def _get_source_root():
+    env_value = _os.environ.get(env_source_root)
+    if env_value or not YA_IDE_VENV:
+        return env_value
+
+    if not _path_isabs(executable):
+        raise RuntimeError('path in sys.executable is not absolute: {}'.format(executable))
+
+    # Creative copy-paste from site.py
+    exe_dir, _ = _path_split(executable)
+    site_prefix, _ = _path_split(exe_dir)
+
+    conf_basename = 'pyvenv.cfg'
+    candidate_confs = [
+        conffile for conffile in (
+            _path_join(exe_dir, conf_basename),
+            _path_join(site_prefix, conf_basename)
+            )
+        if _path_isfile(conffile)
+        ]
+    if not candidate_confs:
+        raise RuntimeError('{} not found'.format(conf_basename))
+    virtual_conf = candidate_confs[0]
+    with FileIO(virtual_conf, 'r') as f:
+        for line in f:
+            if b'=' in line:
+                key, _, value = line.partition(b'=')
+                key = key.strip().lower()
+                value = value.strip()
+                if key == cfg_source_root:
+                    return value
+    raise RuntimeError('{} key not found in {}'.format(cfg_source_root, virtual_conf))
+
+
+Y_PYTHON_SOURCE_ROOT = _get_source_root()
 
 
 def _print(*xs):

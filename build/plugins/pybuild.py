@@ -6,6 +6,7 @@ import ymake
 from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks, pathid
 
 
+YA_IDE_VENV_VAR = 'YA_IDE_VENV'
 PY_NAMESPACE_PREFIX = 'py/namespace'
 
 
@@ -189,6 +190,7 @@ def onpy_srcs(unit, *args):
     with_py = not unit.get('PYBUILD_NO_PY')
     with_pyc = not unit.get('PYBUILD_NO_PYC')
     in_proto_library = unit.get('PY_PROTO') or unit.get('PY3_PROTO')
+    venv = unit.get(YA_IDE_VENV_VAR)
     need_gazetteer_peerdir = False
     trim = 0
 
@@ -434,14 +436,15 @@ def onpy_srcs(unit, *args):
             mod_list_md5 = md5()
             for path, mod in pys:
                 mod_list_md5.update(mod)
-                dest = 'py/' + mod.replace('.', '/') + '.py'
-                if with_py:
-                    res += ['DEST', dest, path]
-                if with_pyc:
-                    root_rel_path = rootrel_arc_src(path, unit)
-                    dst = path + uniq_suffix(path, unit)
-                    unit.on_py3_compile_bytecode([root_rel_path + '-', path, dst])
-                    res += ['DEST', dest + '.yapyc3', dst + '.yapyc3']
+                if not (venv and is_arc_src(path, unit)):
+                    dest = 'py/' + mod.replace('.', '/') + '.py'
+                    if with_py:
+                        res += ['DEST', dest, path]
+                    if with_pyc:
+                        root_rel_path = rootrel_arc_src(path, unit)
+                        dst = path + uniq_suffix(path, unit)
+                        unit.on_py3_compile_bytecode([root_rel_path + '-', path, dst])
+                        res += ['DEST', dest + '.yapyc3', dst + '.yapyc3']
 
             if py_namespaces:
                 # Note: Add md5 to key to prevent key collision if two or more PY_SRCS() used in the same ya.make
