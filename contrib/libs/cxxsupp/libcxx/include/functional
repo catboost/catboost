@@ -3019,14 +3019,6 @@ bind(_Fp&& __f, _BoundArgs&&... __bound_args)
 
 #if _LIBCPP_STD_VER > 14
 
-template <class _Fn, class ..._Args>
-_LIBCPP_CONSTEXPR_AFTER_CXX17 invoke_result_t<_Fn, _Args...>
-invoke(_Fn&& __f, _Args&&... __args)
-    noexcept(is_nothrow_invocable_v<_Fn, _Args...>)
-{
-    return _VSTD::__invoke(_VSTD::forward<_Fn>(__f), _VSTD::forward<_Args>(__args)...);
-}
-
 template<class _Op, class _Tuple,
          class _Idxs = typename __make_tuple_indices<tuple_size<_Tuple>::value>::type>
 struct __perfect_forward_impl;
@@ -3218,7 +3210,7 @@ __search(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
 
 // default searcher
 template<class _ForwardIterator, class _BinaryPredicate = equal_to<>>
-class _LIBCPP_TYPE_VIS default_searcher {
+class _LIBCPP_TEMPLATE_VIS default_searcher {
 public:
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     default_searcher(_ForwardIterator __f, _ForwardIterator __l,
@@ -3255,7 +3247,7 @@ using unwrap_ref_decay_t = typename unwrap_ref_decay<_Tp>::type;
 // [func.identity]
 struct identity {
     template<class _Tp>
-    constexpr _Tp&& operator()(_Tp&& __t) const noexcept
+    _LIBCPP_NODISCARD_EXT constexpr _Tp&& operator()(_Tp&& __t) const noexcept
     {
         return _VSTD::forward<_Tp>(__t);
   }
