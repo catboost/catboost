@@ -32,7 +32,6 @@ RECURSE(
     packaging
     pandas
     parso
-    path.py
     pathlib2
     pexpect
     pickleshare

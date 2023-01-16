@@ -1,4 +1,4 @@
-PY23_LIBRARY(simplegeneric)
+PY23_LIBRARY()
 
 LICENSE(ZPL-2.1)
 
@@ -12,5 +12,11 @@ PY_SRCS(
 )
 
 NO_LINT()
+
+RESOURCE_FILES(
+    PREFIX contrib/python/simplegeneric/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
 
 END()

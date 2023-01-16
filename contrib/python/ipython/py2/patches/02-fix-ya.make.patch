@@ -1,0 +1,45 @@
+--- contrib/python/ipython/py2/ya.make	(index)
++++ contrib/python/ipython/py2/ya.make	(working tree)
+@@ -13,7 +11,6 @@ PEERDIR(
+     contrib/python/backports.shutil-get-terminal-size
+     contrib/python/decorator
+     contrib/python/pathlib2
+-    contrib/python/pexpect
+     contrib/python/pickleshare
+     contrib/python/prompt-toolkit
+     contrib/python/setuptools
+@@ -21,6 +18,23 @@ PEERDIR(
+     contrib/python/traitlets
+ )
+ 
++IF (OS_WINDOWS)
++    PEERDIR(
++        contrib/python/colorama
++        contrib/python/win_unicode_console
++    )
++ELSE ()
++    PEERDIR(
++        contrib/python/pexpect
++    )
++ENDIF ()
++
++IF (OS_DARWIN)
++    PEERDIR(
++        contrib/python/appnope
++    )
++ENDIF ()
++
+ NO_LINT()
+ 
+ NO_CHECK_IMPORTS(
+@@ -257,10 +271,6 @@ RESOURCE_FILES(
+     .dist-info/entry_points.txt
+     .dist-info/top_level.txt
+     IPython/core/profile/README_STARTUP
+-    IPython/testing/plugin/README.txt
+-    IPython/testing/plugin/test_combo.txt
+-    IPython/testing/plugin/test_example.txt
+-    IPython/testing/plugin/test_exampleip.txt
+ )
+ 
+ END()
