@@ -2887,8 +2887,6 @@ migrations:
     - yabs/basic_packages/yabs-global-info/py-modules
     - yabs/bscount/protocol/pyfbs
     - yabs/cache-proxy/plugin/proxy_b2b/templates
-    - yabs/direct_tools/pylibs/api
-    - yabs/direct_tools/pylibs/utils
     - yabs/libs/ua_traits/orig/pymodules
     - yabs/qa/b2b_utils/bsserver_b2b/engine/external_logs
     - yabs/qa/bsinfo
