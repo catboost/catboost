@@ -124,9 +124,9 @@ def onjava_module(unit, *args):
         'FAKEID': extract_macro_calls(unit, 'FAKEID', args_delim),
         'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
         'JAVA_FORBIDDEN_LIBRARIES': extract_macro_calls(unit, 'JAVA_FORBIDDEN_LIBRARIES_VALUE', args_delim),
-        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT')
+        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION')  or unit.get('JDK_REAL_VERSION') or '_DEFAULT')
     }
-    if unit.get('ENABLE_PREVIEW_VALUE') == 'yes' and unit.get('JDK_VERSION') in ('15', '16', '17'):
+    if unit.get('ENABLE_PREVIEW_VALUE') == 'yes' and (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION')) in ('15', '16', '17'):
         data['ENABLE_PREVIEW'] = extract_macro_calls(unit, 'ENABLE_PREVIEW_VALUE', args_delim)
 
     if unit.get('SAVE_JAVAC_GENERATED_SRCS_DIR') and unit.get('SAVE_JAVAC_GENERATED_SRCS_TAR'):
