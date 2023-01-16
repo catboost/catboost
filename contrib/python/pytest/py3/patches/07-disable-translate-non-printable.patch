@@ -1,5 +1,5 @@
---- contrib/python/pytest/_pytest/compat.py	(index)
-+++ contrib/python/pytest/_pytest/compat.py	(working tree)
+--- contrib/python/pytest/py3/_pytest/compat.py	(index)
++++ contrib/python/pytest/py3/_pytest/compat.py	(working tree)
 @@ -244,7 +244,7 @@ if _PY3:
              ret = _bytes_to_ascii(val)
          else:
@@ -10,7 +10,7 @@
  
  else:
 @@ -267,7 +267,7 @@ else:
-                 ret = val.encode("string-escape").decode("utf-8")
+                 ret = val.decode("utf-8", "ignore")
          else:
              ret = val.encode("utf-8", "replace").decode("utf-8")
 -        return _translate_non_printable(ret)
