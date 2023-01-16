@@ -23,8 +23,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabutils
     - ads/libs/py_ml_factors/factor
     - ads/libs/py_ml_factors/matrixnet
-    - ads/libs/py_prgmg
-    - ads/libs/py_prgmg/factors
     - ads/libs/py_test_mapreduce
     - ads/ml_engine/learn/result/flow_generate_extended_fstr
     - ads/ml_engine/learn/result/local_extended_fstr
@@ -1504,7 +1502,6 @@ migrations:
     - maps/b2bgeo/apikeys_billing/preprocess_mapkit_logs
     - maps/b2bgeo/tools/load_testing/lib
     - maps/doc/proto/yandex/maps/proto/factory/tests
-    - maps/factory/pylibs
     - maps/infopoint/statistics/lib
     - maps/infra/apiteka/client/tests
     - maps/infra/ecstatic/tool/ecstatic_api
@@ -3799,7 +3796,6 @@ migrations:
     - yql/scripts/local
     - yql/tests/cli
     - yql/tests/dq/misc
-    - yql/tests/dq/ydb
     - yql/tests/jdbc
     - yql/tests/multi_process
     - yql/tests/sql/kikimr_yt
