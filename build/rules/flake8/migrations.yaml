@@ -409,7 +409,6 @@ migrations:
     - intranet/search/core/sources/invite
     - irt/bmgen/market_data
     - irt/bmgen/synonyms
-    - jupytercloud/tools/calc_notebooks_stats
     - keyboard/analytics/toloka/nirvana/blocks
     - keyboard/analytics/toloka/nirvana/swipe
     - keyboard/analytics/toloka/nirvana/typing
@@ -854,7 +853,6 @@ migrations:
     - yabs/server/infra/trivial_cron
     - yabs/server/infra/validator/hooks_bin/coredumps_cloud
     - yabs/server/infra/validator/hooks_bin/shoot_search
-    - yabs/server/libs/config/tests/updater
     - yabs/server/libs/internal_ver/depgrapher/lib
     - yabs/server/libs/py_markdown_strings
     - yabs/server/test/ft/BSDEV-73064
@@ -928,7 +926,6 @@ migrations:
     - yweb/antiporno/top_queries_cleanup/yql/test
     - yweb/antispam/adblock/viewer
     - yweb/antispam/clean_web/tools/run_cm_targets
-    - yweb/antispam/mascot/features/test
     - yweb/antispam/mascot/scripts/tcinet
     - yweb/antispam/seo_masks/py/static_impl/ut
     - yweb/antispam/tools/yql
@@ -1634,7 +1631,6 @@ migrations:
     - sandbox/projects/school/Load/MeduzaShooting
     - sandbox/projects/sdc
     - sandbox/projects/search_velocity/LightPageReviser
-    - sandbox/projects/security/FetchNvdFeed
     - sandbox/projects/smarttv
     - sandbox/projects/taxi/BuildDispatcherPackage
     - sandbox/projects/wmc
@@ -1909,7 +1905,6 @@ migrations:
     - ads/quality/phf/flask-restplus
     - ads/quality/phf/pika
     - ads/watchman/timeline/api/lib
-    - ads/yacontext/common
     - ads/yacontext/lib/testpy/tests/testmod
     - ads/yacontext/packages/mrkit
     - ads/yacontext/packages/rjob
