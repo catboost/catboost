@@ -665,6 +665,8 @@ items:
         name: Usage examples
   - name: CatBoost for Apache Spark
     items:
+      - href: concepts/spark-overview.md
+        name: Overview
       - items:
           - href: concepts/spark-quickstart-scala.md
             name: Scala
@@ -733,6 +735,8 @@ items:
         name: Select features
       - href: concepts/cli-sum-models.md
         name: Sum models
+      - href: concepts/cli-distributed-learning.md
+        name: Distributed learning
       - href: concepts/cli-usages-examples.md
         name: Usage examples
   - items:
