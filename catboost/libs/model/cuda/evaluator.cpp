@@ -1,5 +1,6 @@
 #include <catboost/libs/model/evaluation_interface.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/scale_and_bias.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 
 #include <catboost/libs/model/cuda/evaluator.cuh>
@@ -31,10 +32,10 @@ namespace NCB::NModelEvaluation {
                 TVector<float> flatBordersVec;
                 ui32 currentBinarizedBucket = 0;
                 for (const TFloatFeature& floatFeature : ModelTrees->GetFloatFeatures()) {
-                    Ctx.GPUModelData.UsedInModel[floatFeature.Position.Index] = floatFeature.UsedInModel();
                     if (!floatFeature.UsedInModel()) {
                         continue;
                     }
+                    Ctx.GPUModelData.UsedInModel[floatFeature.Position.Index] = floatFeature.UsedInModel();
                     CB_ENSURE(floatFeature.Borders.size() > 0 && floatFeature.Borders.size() < MAX_VALUES_PER_BIN);
                     floatFeatureForBucketIdx[currentBinarizedBucket] = floatFeature.Position.Index;
                     bordersCount[currentBinarizedBucket] = floatFeature.Borders.size();
@@ -284,6 +285,7 @@ namespace NCB::NModelEvaluation {
                 const TCudaQuantizedData* cudaQuantizedFeatures = dynamic_cast<const TCudaQuantizedData*>(quantizedFeatures);
                 CB_ENSURE(cudaQuantizedFeatures != nullptr, "Got improperly typed quantized data");
                 Ctx.EvalQuantizedData(cudaQuantizedFeatures, treeStart, treeEnd, results, PredictionType);
+                ApplyScaleAndBias(ModelTrees->GetScaleAndBias(), results, treeStart);
             }
 
             void CalcLeafIndexesSingle(
@@ -330,28 +332,28 @@ namespace NCB::NModelEvaluation {
             }
 
             void Quantize(
-		    TConstArrayRef<TConstArrayRef<float>> features,
-		    IQuantizedData* quantizedData
-	    ) const override {
-	        auto expectedFlatVecSize = ModelTrees->GetFlatFeatureVectorExpectedSize();
-	        const size_t docCount = features.size();
-	        const size_t stride = CeilDiv<size_t>(expectedFlatVecSize, 32) * 32;
+            TConstArrayRef<TConstArrayRef<float>> features,
+            IQuantizedData* quantizedData
+        ) const override {
+            auto expectedFlatVecSize = ModelTrees->GetFlatFeatureVectorExpectedSize();
+            const size_t docCount = features.size();
+            const size_t stride = CeilDiv<size_t>(expectedFlatVecSize, 32) * 32;
 
-		TGPUDataInput dataInput;
-	        dataInput.FloatFeatureLayout = TGPUDataInput::EFeatureLayout::RowFirst;
-	        dataInput.ObjectCount = docCount;
-	        dataInput.FloatFeatureCount = expectedFlatVecSize;
-	        dataInput.Stride = stride;
-	        Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount);
-	        dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
-	        auto copyBufRef = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
-	        for (size_t docId = 0; docId < docCount; ++docId) {
-		    memcpy(&copyBufRef[docId * stride], features[docId].data(), sizeof(float) * expectedFlatVecSize);
-		}
-	        MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
-	        TCudaQuantizedData* cudaQuantizedData = reinterpret_cast<TCudaQuantizedData*>(quantizedData);
-	        Ctx.QuantizeData(dataInput, cudaQuantizedData);
-	    }
+        TGPUDataInput dataInput;
+            dataInput.FloatFeatureLayout = TGPUDataInput::EFeatureLayout::RowFirst;
+            dataInput.ObjectCount = docCount;
+            dataInput.FloatFeatureCount = expectedFlatVecSize;
+            dataInput.Stride = stride;
+            Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount);
+            dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
+            auto copyBufRef = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
+            for (size_t docId = 0; docId < docCount; ++docId) {
+            memcpy(&copyBufRef[docId * stride], features[docId].data(), sizeof(float) * expectedFlatVecSize);
+        }
+            MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
+            TCudaQuantizedData* cudaQuantizedData = reinterpret_cast<TCudaQuantizedData*>(quantizedData);
+            Ctx.QuantizeData(dataInput, cudaQuantizedData);
+        }
         private:
             template <typename TCatFeatureContainer = TConstArrayRef<int>>
             void ValidateInputFeatures(
