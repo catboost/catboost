@@ -51,6 +51,12 @@ set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
 c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+set PyV=310
+echo c:\Python%PyV%\python.exe
+set PATH=c:\Python%PyV%\Scripts;%ORIG_PATH%
+c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Building R-package
 
 cd ..\..
