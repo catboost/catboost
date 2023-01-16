@@ -4,7 +4,10 @@ PY3TEST()
 
 DEPENDS(library/python/runtime_py3/test/traceback)
 
-PEERDIR(contrib/python/parameterized)
+PEERDIR(
+    contrib/python/parameterized
+    contrib/python/PyYAML
+)
 
 PY_SRCS(
     TOP_LEVEL

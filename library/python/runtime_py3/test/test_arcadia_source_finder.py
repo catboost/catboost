@@ -1,4 +1,5 @@
 import unittest
+import yaml
 from unittest.mock import patch
 from parameterized import parameterized
 
@@ -7,215 +8,128 @@ import __res as res
 
 NAMESPACE_PREFIX = b'py/namespace/'
 TEST_SOURCE_ROOT = '/home/arcadia'
-TEST_FS = {
-    'home': {
-        'arcadia': {
-            'project': {
-                'normal_lib': {
-                    'mod1.py': '',
-                    'package1': {
-                        'mod2.py': '',
-                    },
-                },
-                'lib_with_namespace': {
-                    'ns_mod1.py': '',
-                    'ns_package1': {
-                        'ns_mod2.py': '',
-                    },
-                },
-                'top_level_lib': {
-                    'tl_mod1.py': '',
-                    'tl_package1': {
-                        'tl_mod2.py': '',
-                    },
-                },
-                'normal_lib_extension': {
-                    'mod3.py': '',
-                    'package1': {
-                        'mod4.py': '',
-                    },
-                },
-            },
-            'contrib': {
-                'python': {
-                    'pylib': {
-                        'libmod.py': '',
-                        'tests': {
-                            'conftest.py': '',
-                            'ya.make': '',
-                        },
-                    },
-                },
-            },
-        },
-    },
-}
-TEST_RESOURCE = {
-    b'py/namespace/unique_prefix1/project/normal_lib': b'project.normal_lib.',
-    # 'normal_lib_extension' extend normal_lib by additional modules
-    b'py/namespace/unique_prefix1/project/normal_lib_extension': b'project.normal_lib.',
-    b'py/namespace/unique_prefix2/project/lib_with_namespace': b'virtual.namespace.',
-    b'py/namespace/unique_prefix3/project/top_level_lib': b'.',
-    # Contrib: the library is in the top level namespace but 'tests' project is not
-    b'py/namespace/unique_prefix4/contrib/python/pylib': b'.',
-    b'py/namespace/unique_prefix4/contrib/python/pylib/tests': b'contrib.python.pylib.tests.',
-}
-MODULES = {
-    'project.normal_lib.mod1': b'project/normal_lib/mod1.py',
-    'project.normal_lib.mod3': b'project/normal_lib_extension/mod3.py',
-    'project.normal_lib.package1.mod2': b'project/normal_lib/package1/mod2.py',
-    'project.normal_lib.package1.mod4': b'project/normal_lib_extension/package1/mod4.py',
-    'virtual.namespace.ns_mod1': b'project/lib_with_namespace/ns_mod1.py',
-    'virtual.namespace.ns_package1.ns_mod2': b'project/lib_with_namespace/ns_package1/ns_mod2.py',
-    'tl_mod1': b'project/top_level_lib/tl_mod1.py',
-    'tl_package1.tl_mod2': b'project/top_level_lib/tl_package1/tl_mod2.py',
-    'libmod': b'contrib/python/pylib/libmod.py',
-    'contrib.python.pylib.tests.conftest': b'contrib/python/pylib/tests/conftest.py',
-}
-PACKAGES = [
-    'project',
-    'project.normal_lib',
-    'project.normal_lib.package1',
-    'virtual',
-    'virtual.namespace',
-    'virtual.namespace.ns_package1',
-    'tl_package1',
-    'contrib',
-    'contrib.python',
-    'contrib.python.pylib',
-    'contrib.python.pylib.tests',
-]
-UNKNOWN_MODULES = [
-    'project.normal_lib.unknown_module',
-    'virtual.namespace.unknown_module',
-    'unknown_module',
-    # contribr/python/pylib directory is not a regular package and cannot be used for a usual module lookup
-    'contrib.python.pylib.libmod',
-    # Parent project contrib/python/pylib with top level namespace should not affect nested 'tests' project
-    'tests.conftest',
-]
 
 
-def iter_keys_mock(prefix):
-    assert prefix == NAMESPACE_PREFIX
-    l = len(prefix)
-    for k in TEST_RESOURCE.keys():
-        yield k, k[l:]
-
-
-def resource_find_mock(key):
-    return TEST_RESOURCE.get(key)
-
-
-def find_fake_fs(filename):
-    path = filename.lstrip('/').split('/')
-    curdir = TEST_FS
-    for item in path:
-        if item in curdir:
-            curdir = curdir[item]
-        else:
-            return None
-    return curdir
-
-
-def path_isfile_mock(filename):
-    f = find_fake_fs(filename)
-    return isinstance(f, str)
-
-
-def path_isdir_mock(filename):
-    f = find_fake_fs(filename)
-    return isinstance(f, dict)
-
-
-def os_listdir_mock(dirname):
-    f = find_fake_fs(dirname)
-    if isinstance(f, dict):
-        return f.keys()
-    else:
-        return []
-
-
-class TestArcadiaSourceFinder(unittest.TestCase):
-    def setUp(self):
-        self.patchers = [
-            patch('__res.iter_keys', wraps=iter_keys_mock),
-            patch('__res.__resource.find', wraps=resource_find_mock),
-            patch('__res._path_isdir', wraps=path_isdir_mock),
-            patch('__res._path_isfile', wraps=path_isfile_mock),
-            patch('__res._os.listdir', wraps=os_listdir_mock),
+class ImporterMocks(object):
+    def __init__(self, mock_fs, mock_resources):
+        self._mock_fs = mock_fs
+        self._mock_resources = mock_resources
+        self._patchers = [
+            patch('__res.iter_keys', wraps=self._iter_keys),
+            patch('__res.__resource.find', wraps=self._resource_find),
+            patch('__res._path_isdir', wraps=self._path_isdir),
+            patch('__res._path_isfile', wraps=self._path_isfile),
+            patch('__res._os.listdir', wraps=self._os_listdir),
         ]
-        for patcher in self.patchers:
+        for patcher in self._patchers:
             patcher.start()
+
+    def stop(self):
+        for patcher in self._patchers:
+            patcher.stop()
+
+    def _iter_keys(self, prefix):
+        assert prefix == NAMESPACE_PREFIX
+        l = len(prefix)
+        for k in self._mock_resources.keys():
+            yield k, k[l:]
+
+    def _resource_find(self, key):
+        return self._mock_resources.get(key)
+
+    def _lookup_mock_fs(self, filename):
+        path = filename.lstrip('/').split('/')
+        curdir = self._mock_fs
+        for item in path:
+            if item in curdir:
+                curdir = curdir[item]
+            else:
+                return None
+        return curdir
+
+    def _path_isfile(self, filename):
+        f = self._lookup_mock_fs(filename)
+        return isinstance(f, str)
+
+    def _path_isdir(self, filename):
+        f = self._lookup_mock_fs(filename)
+        return isinstance(f, dict)
+
+    def _os_listdir(self, dirname):
+        f = self._lookup_mock_fs(dirname)
+        if isinstance(f, dict):
+            return f.keys()
+        else:
+            return []
+
+
+class ArcadiaSourceFinderTestCase(unittest.TestCase):
+    def setUp(self):
+        self.import_mock = ImporterMocks(yaml.safe_load(self._get_mock_fs()), self._get_mock_resources())
         self.arcadia_source_finder = res.ArcadiaSourceFinder(TEST_SOURCE_ROOT)
 
     def tearDown(self):
-        for patcher in self.patchers:
-            patcher.stop()
+        self.import_mock.stop()
 
-    @parameterized.expand(MODULES.items())
-    def test_get_module_path_for_modules(self, module, path):
-        assert path == self.arcadia_source_finder.get_module_path(module)
+    def _get_mock_fs(self):
+        raise NotImplementedError()
 
-    @parameterized.expand(PACKAGES)
-    def test_get_module_path_for_packages(self, package):
-        assert self.arcadia_source_finder.get_module_path(package) is None
+    def _get_mock_resources(self):
+        raise NotImplementedError()
 
-    @parameterized.expand(UNKNOWN_MODULES)
-    def test_get_module_path_for_unknown_modules(self, unknown_module):
-        assert self.arcadia_source_finder.get_module_path(unknown_module) is None
 
-    @parameterized.expand(MODULES.keys())
-    def test_is_package_for_modules(self, module):
-        assert self.arcadia_source_finder.is_package(module) is False
+class TestLibraryWithoutNamespace(ArcadiaSourceFinderTestCase):
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               project:
+                 lib:
+                   mod1.py: ""
+                   package1:
+                     mod2.py: ""
+        '''
 
-    @parameterized.expand(PACKAGES)
-    def test_is_package_for_packages(self, package):
-        assert self.arcadia_source_finder.is_package(package) is True
-
-    @parameterized.expand(UNKNOWN_MODULES)
-    def test_is_package_for_unknown_modules(self, unknown_module):
-        self.assertRaises(ImportError, lambda: self.arcadia_source_finder.is_package(unknown_module))
+    def _get_mock_resources(self):
+        return {
+            b'py/namespace/unique_prefix1/project/lib': b'project.lib.',
+        }
 
     @parameterized.expand([
-        ('project.', {
-            ('PFX.normal_lib', True),
-        }),
-        ('project.normal_lib.', {
-            ('PFX.mod1', False),
-            ('PFX.mod3', False),
-            ('PFX.package1', True),
-        }),
-        ('project.normal_lib.package1.', {
-            ('PFX.mod2', False),
-            ('PFX.mod4', False),
-        }),
-        ('virtual.', {
-            ('PFX.namespace', True),
-        }),
-        ('virtual.namespace.', {
-            ('PFX.ns_mod1', False),
-            ('PFX.ns_package1', True),
-        }),
-        ('virtual.namespace.ns_package1.', {
-            ('PFX.ns_mod2', False),
-        }),
+        ('project.lib.mod1', b'project/lib/mod1.py'),
+        ('project.lib.package1.mod2', b'project/lib/package1/mod2.py'),
+        ('project.lib.unknown_module', None),
+        ('project.lib', None),  # package
+    ])
+    def test_get_module_path(self, module, path):
+        assert path == self.arcadia_source_finder.get_module_path(module)
+
+    @parameterized.expand([
+        ('project.lib.mod1', False),
+        ('project.lib.package1.mod2', False),
+        ('project', True),
+        ('project.lib', True),
+        ('project.lib.package1', True),
+    ])
+    def test_is_packages(self, module, is_package):
+        assert is_package == self.arcadia_source_finder.is_package(module)
+
+    def test_is_package_for_unknown_module(self):
+        self.assertRaises(ImportError, lambda: self.arcadia_source_finder.is_package('project.lib.package2'))
+
+    @parameterized.expand([
         ('', {
             ('PFX.project', True),
-            ('PFX.virtual', True),
-            ('PFX.tl_mod1', False),
-            ('PFX.tl_package1', True),
-            ('PFX.contrib', True),
-            ('PFX.libmod', False),
         }),
-        ('tl_package1.', {
-            ('PFX.tl_mod2', False),
+        ('project.', {
+            ('PFX.lib', True),
         }),
-        ('contrib.python.pylib.', {
-            ('PFX.tests', True),
+        ('project.lib.', {
+            ('PFX.mod1', False),
+            ('PFX.package1', True),
         }),
-        ('contrib.python.pylib.tests.', {
-            ('PFX.conftest', False),
+        ('project.lib.package1.', {
+            ('PFX.mod2', False),
         }),
     ])
     def test_iter_modules(self, package_prefix, expected):
@@ -225,36 +139,179 @@ class TestArcadiaSourceFinder(unittest.TestCase):
     # Check iter_modules() don't crash and return correct result after not existing module was requested
     def test_iter_modules_after_unknown_module_import(self):
         self.arcadia_source_finder.get_module_path('project.unknown_module')
-        assert {('normal_lib', True)} == set(self.arcadia_source_finder.iter_modules('project.', ''))
+        assert {('lib', True)} == set(self.arcadia_source_finder.iter_modules('project.', ''))
 
 
-class TestArcadiaSourceFinderForEmptyResources(unittest.TestCase):
-    @staticmethod
-    def _unreachable():
-        raise Exception()
+class TestLibraryExtendedFromAnotherLibrary(ArcadiaSourceFinderTestCase):
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               project:
+                 lib:
+                   mod1.py: ''
+                 lib_extension:
+                   mod2.py: ''
+        '''
 
-    def setUp(self):
-        self.patchers = [
-            patch('__res.iter_keys', wraps=lambda x: []),
-            patch('__res.__resource.find', wraps=self._unreachable),
-            patch('__res._path_isdir', wraps=self._unreachable),
-            patch('__res._path_isfile', wraps=self._unreachable),
-            patch('__res._os.listdir', wraps=self._unreachable),
-        ]
-        for patcher in self.patchers:
-            patcher.start()
-        self.arcadia_source_finder = res.ArcadiaSourceFinder(TEST_SOURCE_ROOT)
+    def _get_mock_resources(self):
+        return {
+            b'py/namespace/unique_prefix1/project/lib': b'project.lib.',
+            b'py/namespace/unique_prefix2/project/lib_extension': b'project.lib.',
+        }
 
-    def tearDown(self):
-        for patcher in self.patchers:
-            patcher.stop()
+    @parameterized.expand([
+        ('project.lib.mod1', b'project/lib/mod1.py'),
+        ('project.lib.mod2', b'project/lib_extension/mod2.py'),
+    ])
+    def test_get_module_path(self, module, path):
+        assert path == self.arcadia_source_finder.get_module_path(module)
+
+    @parameterized.expand([
+        ('project.lib.', {
+            ('PFX.mod1', False),
+            ('PFX.mod2', False),
+        }),
+    ])
+    def test_iter_modules(self, package_prefix, expected):
+        got = self.arcadia_source_finder.iter_modules(package_prefix, 'PFX.')
+        assert expected == set(got)
+
+
+class TestNamespaceAndTopLevelLibraries(ArcadiaSourceFinderTestCase):
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               project:
+                 ns_lib:
+                   mod1.py: ''
+                 top_level_lib:
+                   mod2.py: ''
+        '''
+
+    def _get_mock_resources(self):
+        return {
+            b'py/namespace/unique_prefix1/project/ns_lib': b'ns.',
+            b'py/namespace/unique_prefix2/project/top_level_lib': b'.',
+        }
+
+    @parameterized.expand([
+        ('ns.mod1', b'project/ns_lib/mod1.py'),
+        ('mod2', b'project/top_level_lib/mod2.py'),
+    ])
+    def test_get_module_path(self, module, path):
+        assert path == self.arcadia_source_finder.get_module_path(module)
+
+    @parameterized.expand([
+        ('ns', True),
+        ('ns.mod1', False),
+        ('mod2', False),
+    ])
+    def test_is_packages(self, module, is_package):
+        assert is_package == self.arcadia_source_finder.is_package(module)
+
+    @parameterized.expand([
+        'project',
+        'project.ns_lib',
+        'project.top_level_lib',
+    ])
+    def test_is_package_for_unknown_modules(self, module):
+        self.assertRaises(ImportError, lambda: self.arcadia_source_finder.is_package(module))
+
+    @parameterized.expand([
+        ('', {
+            ('PFX.ns', True),
+            ('PFX.mod2', False),
+        }),
+        ('ns.', {
+            ('PFX.mod1', False),
+        }),
+    ])
+    def test_iter_modules(self, package_prefix, expected):
+        got = self.arcadia_source_finder.iter_modules(package_prefix, 'PFX.')
+        assert expected == set(got)
+
+
+class TestIgnoreDirectoriesWithYaMakeFile(ArcadiaSourceFinderTestCase):
+    ''' Packages and modules from tests should not be part of pylib namespace '''
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               contrib:
+                 python:
+                   pylib:
+                     mod1.py: ""
+                     tests:
+                       conftest.py: ""
+                       ya.make: ""
+        '''
+
+    def _get_mock_resources(self):
+        return {
+            b'py/namespace/unique_prefix1/contrib/python/pylib': b'pylib.',
+        }
+
+    def test_get_module_path_for_lib(self):
+        assert b'contrib/python/pylib/mod1.py' == self.arcadia_source_finder.get_module_path('pylib.mod1')
+
+    def test_get_module_for_tests(self):
+        assert self.arcadia_source_finder.get_module_path('pylib.tests.conftest') is None
+
+    def test_is_package_for_tests(self):
+        self.assertRaises(ImportError, lambda: self.arcadia_source_finder.is_package('pylib.tests'))
+
+
+class TestMergingNamespaceAndDirectoryPackages(ArcadiaSourceFinderTestCase):
+    ''' Merge parent package (top level in this test) dirs with namespace dirs (DEVTOOLS-8979) '''
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               contrib:
+                 python:
+                   pylint:
+                     ya.make: ""
+                     pylint:
+                       __init__.py: ""
+                     patcher:
+                       patch.py: ""
+                       ya.make: ""
+        '''
+
+    def _get_mock_resources(self):
+        return {
+            b'py/namespace/unique_prefix1/contrib/python/pylint': b'.',
+            b'py/namespace/unique_prefix1/contrib/python/pylint/patcher': b'pylint.',
+        }
+
+    @parameterized.expand([
+        ('pylint.__init__', b'contrib/python/pylint/pylint/__init__.py'),
+        ('pylint.patch', b'contrib/python/pylint/patcher/patch.py'),
+    ])
+    def test_get_module_path(self, module, path):
+        assert path == self.arcadia_source_finder.get_module_path(module)
+
+
+class TestEmptyResources(ArcadiaSourceFinderTestCase):
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               project:
+                 lib:
+                   mod1.py: ''
+        '''
+
+    def _get_mock_resources(self):
+        return {}
 
     def test_get_module_path(self):
-        assert self.arcadia_source_finder.get_module_path('project.normal_lib.mod1') is None
+        assert self.arcadia_source_finder.get_module_path('project.lib.mod1') is None
 
     def test_is_package(self):
         self.assertRaises(ImportError, lambda: self.arcadia_source_finder.is_package('project'))
-        self.assertRaises(ImportError, lambda: self.arcadia_source_finder.is_package('project.normal_lib.mod1'))
 
     def test_iter_modules(self):
         assert [] == list(self.arcadia_source_finder.iter_modules('', 'PFX.'))
