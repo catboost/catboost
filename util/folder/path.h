@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "pathsplit.h"
 
 #include <util/generic/ptr.h>

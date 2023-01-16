@@ -65,6 +65,7 @@ JOIN_SRCS(
     folder/dirut.cpp
     folder/filelist.cpp
     folder/fts.cpp
+    folder/fwd.cpp
     folder/iterator.cpp
     folder/path.cpp
     folder/pathsplit.cpp
