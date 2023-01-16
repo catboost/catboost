@@ -1,5 +1,7 @@
 RESOURCES_LIBRARY()
 
+LICENSE(Service-Prebuilt-Tool)
+
 
 
 IF (USE_LTO OR USE_THINLTO)
