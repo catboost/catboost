@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{05234C11-4D51-B436-8F3B-183CA01121E9}</ProjectGUID>
+    <ProjectGUID>{158F3308-4FDA-F9BE-1124-5F3C4CD972CA}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3python-google_lib-protos_from_protoc.global</ProjectName>
+    <ProjectName>py3protobuf-builtin_proto-protos_from_protoc</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3python-google_lib-protos_from_protoc.global</TargetName>
+    <TargetName>py3protobuf-builtin_proto-protos_from_protoc</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\05234C11-4D51-B436-8F3B-183CA01121E9\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\158F3308-4FDA-F9BE-1124-5F3C4CD972CA\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8917923 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8917923 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8917923 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8917923 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)$(Configuration)/contrib/libs/protoc/src;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,12 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\de9b31391ebbaee6e0a4318bcd.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_de9b31391ebbaee6e0a4318bcd.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/de9b31391ebbaee6e0a4318bcd.cpp" "_77b0fa78519f66e608815880d0=resfs/src/resfs/file/py/google/protobuf/compiler/plugin_pb2.py" "_cadd8fe3881bb88260d7607cb7=resfs/file/py/google/protobuf/compiler/plugin_pb2.py" "_35e2ce4cacd840eeb01a6d0754=resfs/src/resfs/file/py/google/protobuf/compiler/plugin_pb2.py.yapyc3" "_aff7bc3a50d060992ba6557d2b=resfs/file/py/google/protobuf/compiler/plugin_pb2.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.py3.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -92,9 +91,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/de9b31391ebbaee6e0a4318bcd.cpp" "_77b0fa78519f66e608815880d0=resfs/src/resfs/file/py/google/protobuf/compiler/plugin_pb2.py" "_cadd8fe3881bb88260d7607cb7=resfs/file/py/google/protobuf/compiler/plugin_pb2.py" "_35e2ce4cacd840eeb01a6d0754=resfs/src/resfs/file/py/google/protobuf/compiler/plugin_pb2.py.yapyc3" "_aff7bc3a50d060992ba6557d2b=resfs/file/py/google/protobuf/compiler/plugin_pb2.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.py3.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,9 +101,79 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/protos_from_protoc/de9b31391ebbaee6e0a4318bcd.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\de9b31391ebbaee6e0a4318bcd.cpp;</Outputs>
+      <Message>$B/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_de9b31391ebbaee6e0a4318bcd.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_de9b31391ebbaee6e0a4318bcd.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.yasm" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "_8e22e63d83848ddefccdcb9ecc.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_8d48b77db1ac4838462cd7e9dd.rodata" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc3" "_547a7c270dcfb148a8d089546f.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_f7c61319a6bdc5ab6cc2ceaecf.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.yasm" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "_8e22e63d83848ddefccdcb9ecc.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_8d48b77db1ac4838462cd7e9dd.rodata" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc3" "_547a7c270dcfb148a8d089546f.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_f7c61319a6bdc5ab6cc2ceaecf.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_de9b31391ebbaee6e0a4318bcd.yasm	$B/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py.4fee.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_de9b31391ebbaee6e0a4318bcd.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_8d48b77db1ac4838462cd7e9dd.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_f7c61319a6bdc5ab6cc2ceaecf.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py.4fee.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.proto">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir).."
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.proto"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir).."
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/protoc/src" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/contrib/libs/protoc/src" "contrib/libs/protoc/src/google/protobuf/compiler/plugin.proto"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.proto;$(SolutionDir)..\build\scripts\gen_py_protos.py;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -137,8 +206,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
-      <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\py3protobuf-builtin_proto-protos_from_protobuf.vcxproj">
+      <Project>{05115C4C-B100-AC4C-6AD8-2198E604EA25}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
       <Project>{979D0A38-9505-F3B3-16F9-58B713DAE389}</Project>

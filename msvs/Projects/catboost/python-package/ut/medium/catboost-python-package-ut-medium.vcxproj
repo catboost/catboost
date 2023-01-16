@@ -663,20 +663,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\py3protobuf-builtin_proto-protos_from_protobuf.global.vcxproj">
+      <Project>{578F8CCF-0793-4FD7-1E57-C230913327F0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\pyprotobuf-builtin_proto-protos_from_protobuf.global.vcxproj">
+      <Project>{BCD8091B-F965-631B-C987-3E6F42F789E2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\py3protobuf-builtin_proto-protos_from_protoc.global.vcxproj">
+      <Project>{D91D403D-7F24-722C-300A-6E076283B3F5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\pyprotobuf-builtin_proto-protos_from_protoc.global.vcxproj">
+      <Project>{2B218A28-5A52-AB4F-EA37-7CFB392E3411}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protobuf\py3python-google_lib-protos_from_protobuf.global.vcxproj">
-      <Project>{2FCB933E-2BD1-40EC-532D-33858BBFAC23}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protobuf\pypython-google_lib-protos_from_protobuf.global.vcxproj">
-      <Project>{428E1DD7-34ED-B4EB-BA25-7BA6F6967AF4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc\py3python-google_lib-protos_from_protoc.global.vcxproj">
-      <Project>{05234C11-4D51-B436-8F3B-183CA01121E9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\protos_from_protoc\pypython-google_lib-protos_from_protoc.global.vcxproj">
-      <Project>{149AA938-E2E7-5002-C31C-5149AD88F533}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.global.vcxproj">
       <Project>{26C8000B-0B0B-9AF4-6BFD-1DE027799348}</Project>

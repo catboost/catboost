@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{2C4FBC77-A470-6FA9-FF50-0E8E3379D839}</ProjectGUID>
+    <ProjectGUID>{6A42BF6D-C1B9-AA07-9ED1-FCED7384231C}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pypython-google_lib-protos_from_protoc</ProjectName>
+    <ProjectName>pyprotobuf-builtin_proto-protos_from_protoc</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pypython-google_lib-protos_from_protoc</TargetName>
+    <TargetName>pyprotobuf-builtin_proto-protos_from_protoc</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\2C4FBC77-A470-6FA9-FF50-0E8E3379D839\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\6A42BF6D-C1B9-AA07-9ED1-FCED7384231C\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\_0f722865962bfe415e397f2c53.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_0f722865962bfe415e397f2c53.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.py2.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.py2.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,9 +91,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.py2.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.py2.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\_0f722865962bfe415e397f2c53.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\_0f722865962bfe415e397f2c53.py2.obj;</Outputs>
+      <Message>$B/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_0f722865962bfe415e397f2c53.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_0f722865962bfe415e397f2c53.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_837b0dbf203e15fac57e3606a1.rodata" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "_1387827b24b22800bd8aed050d.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_6d7977f4582953b78acf5e2344.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_75ed1bf646fb686299d1d49543.rodata" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "_acf7282bd549b236961f9c6a47.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_336bc024f7d6e0fd1ebe1dfa44.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -118,9 +118,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_837b0dbf203e15fac57e3606a1.rodata" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "_1387827b24b22800bd8aed050d.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_6d7977f4582953b78acf5e2344.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_75ed1bf646fb686299d1d49543.rodata" "-" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "_acf7282bd549b236961f9c6a47.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_336bc024f7d6e0fd1ebe1dfa44.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,13 +128,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm	</Message>
+      <Message>$B/contrib/libs/protobuf/builtin_proto/protos_from_protoc/_0f722865962bfe415e397f2c53.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protoc\src\google\protobuf\compiler\plugin__int___pb2.py.4fee.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\_0f722865962bfe415e397f2c53.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\_837b0dbf203e15fac57e3606a1.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc\_6d7977f4582953b78acf5e2344.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_0f722865962bfe415e397f2c53.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_75ed1bf646fb686299d1d49543.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc\_336bc024f7d6e0fd1ebe1dfa44.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
@@ -145,7 +145,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protoc/src/google/protobuf/compiler/plugin__int___pb2.py.4fee.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
@@ -161,7 +161,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\protoc\src\google\protobuf\compiler\plugin.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
@@ -174,7 +174,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protos_from_protoc
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protoc
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
@@ -221,8 +221,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
-      <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\pyprotobuf-builtin_proto-protos_from_protobuf.vcxproj">
+      <Project>{43ADBFD6-F655-8929-4665-E94E585F4058}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
       <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>
