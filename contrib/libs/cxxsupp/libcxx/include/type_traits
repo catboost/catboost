@@ -4238,13 +4238,4 @@ _LIBCPP_END_NAMESPACE_STD
 #pragma warning(pop)
 #endif
 
-#if _LIBCPP_STD_VER > 14
-// std::byte
-namespace std  // purposefully not versioned
-{
-
-
-}
-#endif
-
 #endif // _LIBCPP_TYPE_TRAITS

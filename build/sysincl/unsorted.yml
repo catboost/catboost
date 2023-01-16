@@ -365,6 +365,7 @@
   - crtassem.h
   #endif
   #if defined(_unix_) && TODO
+  - bits/types/mbstate_t.h
   - sys/atomic.h
   - sys/atomic_op.h
   - sys/bsdskt.h
@@ -376,6 +377,7 @@
   - sys/fmutex.h
   - sys/int_types.h
   - sys/loadavg.h
+  - sys/localedef.h
   - sys/machlock.h
   - sys/mkdev.h
   - sys/modem.h
@@ -409,6 +411,7 @@
   - QuickDraw.h
   - TextUtils.h
   - Types.h
+  - sys/_types/_mbstate_t.h
   #endif
   #if defined(_OS2_)
   - os2.h
