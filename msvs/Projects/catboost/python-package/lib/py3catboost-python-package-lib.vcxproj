@@ -1336,9 +1336,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\scipy-linalg-src.vcxproj">
       <Project>{B9F50016-E750-8620-FE7F-92FA9FAE22D7}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\misc\py3scipy-scipy-misc.vcxproj">
-      <Project>{F37263BB-F54F-BCEE-5720-3DBE69A44B8F}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\py3scipy-scipy-ndimage.vcxproj">
       <Project>{441FC54C-E78B-1EFE-D162-C84C57D50228}</Project>
     </ProjectReference>
@@ -1350,51 +1347,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\py3scipy-scipy-odr.vcxproj">
       <Project>{8EC2AD6B-9E53-D706-A436-8E8654C1E9BA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\signal\py3scipy-scipy-signal.vcxproj">
-      <Project>{F35AD15A-5B09-EC41-3A9D-8A93AC358064}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\csgraph\py3scipy-sparse-csgraph.vcxproj">
-      <Project>{F6FC21A0-4ECA-564B-C3EA-06192E18E89F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsolve-SuperLU-SRC.vcxproj">
-      <Project>{AC92B73C-DFD9-89C5-C716-4F75D190323D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\dsolve\py3sparse-linalg-dsolve.vcxproj">
-      <Project>{3E0BC584-0AAE-7C5A-C16A-2838E6F252EB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\eigen-arpack-ARPACK.vcxproj">
-      <Project>{664C508C-B3CE-09A9-FDFA-7158F797008B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\py3linalg-eigen-arpack.vcxproj">
-      <Project>{398D76D1-B4FF-F0F6-A7C9-A376E6D2391B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\lobpcg\py3linalg-eigen-lobpcg.vcxproj">
-      <Project>{AD4294A5-B820-9396-098C-5FBAA45262F3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\py3sparse-linalg-eigen.vcxproj">
-      <Project>{22F518EB-5F72-A3E1-C835-55D7C17DD7BC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\py3linalg-isolve-iterative.vcxproj">
-      <Project>{BFAAAEC1-CCE6-6D6A-A37F-50229A067D8D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\isolve\py3sparse-linalg-isolve.vcxproj">
-      <Project>{36D79018-A41D-B25D-15D6-476AD19D7B9F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\py3scipy-sparse-linalg.vcxproj">
-      <Project>{BA1957C9-55DC-56AB-DCC1-5ECC4A6CB6EB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\py3scipy-scipy-sparse.vcxproj">
-      <Project>{E6BC0035-D83E-0748-C4E0-40880BE600ED}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\sparsetools\py3scipy-sparse-sparsetools.vcxproj">
-      <Project>{948C1792-E99D-93D7-A0A9-B714E9620CD1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\ckdtree\src\py3spatial-ckdtree-src.vcxproj">
-      <Project>{B059DFE5-541E-2521-31ED-57CC9EDB3AFD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\py3scipy-scipy-spatial.vcxproj">
-      <Project>{997E821B-6B30-C275-58E2-DE83DAE51750}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3\pypython-setuptools-py3.vcxproj">
       <Project>{7B88BE8A-26E1-5596-FE7C-CF79CBCB2D3D}</Project>

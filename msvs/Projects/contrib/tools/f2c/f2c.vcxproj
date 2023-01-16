@@ -343,18 +343,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
       <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\py3scipy-scipy-ndimage.global.vcxproj">
-      <Project>{F7B79A1D-2B35-9243-19BD-7B4C02A86716}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\src\py3scipy-ndimage-src.global.vcxproj">
-      <Project>{05DBDAC8-F2A7-DAF6-612F-3C3FCB6709B0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\signal\py3scipy-scipy-signal.global.vcxproj">
-      <Project>{E8C4EC8B-3A1D-5514-2E82-3D70DA9FBF14}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\py3scipy-scipy-spatial.global.vcxproj">
-      <Project>{1BBFD535-3AA2-9369-F6CC-CEBF38F0AB2B}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.global.vcxproj">
       <Project>{3883A5C2-D594-2667-C63C-A665727800A7}</Project>
     </ProjectReference>
