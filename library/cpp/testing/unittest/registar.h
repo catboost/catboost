@@ -988,7 +988,7 @@ public:                       \
             TCurrentTest::AddTest(TTestCase##N::Create);    \
         }                                                   \
     };                                                      \
-    static TTestRegistration##N testRegistration##N;
+    static const TTestRegistration##N testRegistration##N;
 
 #define Y_UNIT_TEST_IMPL(N, FF, F)      \
     Y_UNIT_TEST_IMPL_REGISTER(N, FF, F) \
