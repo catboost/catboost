@@ -29,8 +29,9 @@ NO_UTIL()
 
 CFLAGS(
     -fno-exceptions
-    -fno-lto
 )
+
+SET_APPEND(CFLAGS -fno-lto)
 
 COMPILE_C_AS_CXX()
 
