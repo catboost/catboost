@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{2C3B36E6-6E70-A24F-9C2D-D4E027B536F3}</ProjectGUID>
+    <ProjectGUID>{15127EAF-6A59-636D-6354-64791D7806E0}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3idl-pool-proto.global</ProjectName>
+    <ProjectName>pycontrib-python-mypy-protobuf.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3idl-pool-proto.global</TargetName>
+    <TargetName>pycontrib-python-mypy-protobuf.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\2C3B36E6-6E70-A24F-9C2D-D4E027B536F3\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\15127EAF-6A59-636D-6354-64791D7806E0\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,12 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\6dc957ba92db1a56009fb679cc.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\04e9787491d8408a7e08cb5c71.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\13cf45073e79d59654042f10a4.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\b1f1932bca60e56cb57938458f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/6dc957ba92db1a56009fb679cc.cpp" "_7d0f2fc0b6708fb58cc25f6594=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_e00f9bdf4c9e6f1a0131ae7d26=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_cff5f035c1154d10f3b53f522d=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_6f3e4fff6d50b9988226e6a8d7=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_5120f4a50f3c62c6f5e4c8b7f2=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_b74700a3232823105322ac7963=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_ec7ab183087ddb8a478e9f005f=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3" "_c64a2285add2dddc64e6177d85=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/04e9787491d8408a7e08cb5c71.cpp" "_9513068142297f4e904ca8b377=resfs/src/resfs/file/contrib/python/mypy-protobuf/.dist-info/METADATA" "_13c8731fe3e66b52c4e86f6f9e=resfs/file/contrib/python/mypy-protobuf/.dist-info/METADATA" "_a78bb12c4e20104ded8f639896=resfs/src/resfs/file/contrib/python/mypy-protobuf/.dist-info/entry_points.txt" "_81f8178365ee1a8a72357d0523=resfs/file/contrib/python/mypy-protobuf/.dist-info/entry_points.txt" "_7432af8b197108c38286b5be3f=resfs/src/resfs/file/contrib/python/mypy-protobuf/.dist-info/top_level.txt" "_571c12bb6ed3d112fa795ba8f9=resfs/file/contrib/python/mypy-protobuf/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/13cf45073e79d59654042f10a4.cpp" "_d1613989ebedd391d1cfbe578f=py/namespace/46d84218f26152e4d6326feef64b3edf/contrib/python/mypy-protobuf"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/b1f1932bca60e56cb57938458f.cpp" "_bd6810daff7956b02026c32316=resfs/src/resfs/file/py/mypy_protobuf/__init__.py" "_760ca581ac28a44f618389fa71=resfs/file/py/mypy_protobuf/__init__.py" "_db2ae3fa03f4a22cdb42ff602f=resfs/src/resfs/file/py/mypy_protobuf/__init__.py.yapyc3" "_388bf1e56221f40ad82ac117ce=resfs/file/py/mypy_protobuf/__init__.py.yapyc3" "_32b36984c9f897c6b3ce0689fe=resfs/src/resfs/file/py/mypy_protobuf/extensions_pb2.py" "_6d0c1fbd3058491721f1931e7d=resfs/file/py/mypy_protobuf/extensions_pb2.py" "_95b2f700ac549804c3cc825120=resfs/src/resfs/file/py/mypy_protobuf/extensions_pb2.py.yapyc3" "_810f0c2cb43bd0fa82b63330c6=resfs/file/py/mypy_protobuf/extensions_pb2.py.yapyc3" "_e3d99ddba2574545fa6d2c5c56=resfs/src/resfs/file/py/mypy_protobuf/main.py" "_ebe52f6c0c061b7e78471a0149=resfs/file/py/mypy_protobuf/main.py" "_efb490dc4cf24d13c32dcad639=resfs/src/resfs/file/py/mypy_protobuf/main.py.yapyc3" "_740372d50e2a0a65f92a3daa23=resfs/file/py/mypy_protobuf/main.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -92,9 +102,17 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/6dc957ba92db1a56009fb679cc.cpp" "_7d0f2fc0b6708fb58cc25f6594=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_e00f9bdf4c9e6f1a0131ae7d26=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_cff5f035c1154d10f3b53f522d=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_6f3e4fff6d50b9988226e6a8d7=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_5120f4a50f3c62c6f5e4c8b7f2=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_b74700a3232823105322ac7963=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_ec7ab183087ddb8a478e9f005f=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3" "_c64a2285add2dddc64e6177d85=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/04e9787491d8408a7e08cb5c71.cpp" "_9513068142297f4e904ca8b377=resfs/src/resfs/file/contrib/python/mypy-protobuf/.dist-info/METADATA" "_13c8731fe3e66b52c4e86f6f9e=resfs/file/contrib/python/mypy-protobuf/.dist-info/METADATA" "_a78bb12c4e20104ded8f639896=resfs/src/resfs/file/contrib/python/mypy-protobuf/.dist-info/entry_points.txt" "_81f8178365ee1a8a72357d0523=resfs/file/contrib/python/mypy-protobuf/.dist-info/entry_points.txt" "_7432af8b197108c38286b5be3f=resfs/src/resfs/file/contrib/python/mypy-protobuf/.dist-info/top_level.txt" "_571c12bb6ed3d112fa795ba8f9=resfs/file/contrib/python/mypy-protobuf/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/13cf45073e79d59654042f10a4.cpp" "_d1613989ebedd391d1cfbe578f=py/namespace/46d84218f26152e4d6326feef64b3edf/contrib/python/mypy-protobuf"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/b1f1932bca60e56cb57938458f.cpp" "_bd6810daff7956b02026c32316=resfs/src/resfs/file/py/mypy_protobuf/__init__.py" "_760ca581ac28a44f618389fa71=resfs/file/py/mypy_protobuf/__init__.py" "_db2ae3fa03f4a22cdb42ff602f=resfs/src/resfs/file/py/mypy_protobuf/__init__.py.yapyc3" "_388bf1e56221f40ad82ac117ce=resfs/file/py/mypy_protobuf/__init__.py.yapyc3" "_32b36984c9f897c6b3ce0689fe=resfs/src/resfs/file/py/mypy_protobuf/extensions_pb2.py" "_6d0c1fbd3058491721f1931e7d=resfs/file/py/mypy_protobuf/extensions_pb2.py" "_95b2f700ac549804c3cc825120=resfs/src/resfs/file/py/mypy_protobuf/extensions_pb2.py.yapyc3" "_810f0c2cb43bd0fa82b63330c6=resfs/file/py/mypy_protobuf/extensions_pb2.py.yapyc3" "_e3d99ddba2574545fa6d2c5c56=resfs/src/resfs/file/py/mypy_protobuf/main.py" "_ebe52f6c0c061b7e78471a0149=resfs/file/py/mypy_protobuf/main.py" "_efb490dc4cf24d13c32dcad639=resfs/src/resfs/file/py/mypy_protobuf/main.py.yapyc3" "_740372d50e2a0a65f92a3daa23=resfs/file/py/mypy_protobuf/main.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,17 +120,14 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/6dc957ba92db1a56009fb679cc.cpp	</Message>
+      <Message>$B/contrib/python/mypy-protobuf/04e9787491d8408a7e08cb5c71.cpp	$B/contrib/python/mypy-protobuf/13cf45073e79d59654042f10a4.cpp	$B/contrib/python/mypy-protobuf/b1f1932bca60e56cb57938458f.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\6dc957ba92db1a56009fb679cc.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\04e9787491d8408a7e08cb5c71.cpp;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\13cf45073e79d59654042f10a4.cpp;$(SolutionDir)$(Configuration)\contrib\python\mypy-protobuf\b1f1932bca60e56cb57938458f.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
-      <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
@@ -173,17 +188,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\bin\protoc-gen-mypy\protoc-gen-mypy.vcxproj">
-      <Project>{336B97B1-38C2-9545-9D85-D0A972FD767D}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
       <Project>{3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\protoc.vcxproj">
-      <Project>{855A73D1-3E50-6765-A6D8-DB4F6F2EA5F8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
       <Project>{29D11B36-E190-930C-F04D-08E664A940A9}</Project>
