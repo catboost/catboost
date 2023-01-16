@@ -451,11 +451,11 @@ private:
     size_t MaxSize;
 };
 
-template <typename TKey, typename TValue, typename TListType, typename TDeleter>
+template <typename TKey, typename TValue, typename TListType, typename TDeleter, typename TAllocator = std::allocator<void>>
 class TCache {
     typedef typename TListType::TItem TItem;
     typedef typename TItem::THash THash;
-    typedef THashMultiSet<TItem, THash, typename TItem::TEqualTo> TIndex;
+    typedef THashMultiSet<TItem, THash, typename TItem::TEqualTo, TAllocator> TIndex;
     typedef typename TIndex::iterator TIndexIterator;
     typedef typename TIndex::const_iterator TIndexConstIterator;
 
@@ -496,7 +496,7 @@ public:
             return Iter->Value;
         }
 
-        friend class TCache<TKey, TValue, TListType, TDeleter>;
+        friend class TCache<TKey, TValue, TListType, TDeleter, TAllocator>;
 
     private:
         TIndexConstIterator Iter;
@@ -652,6 +652,15 @@ public:
         return List.GetMaxSize();
     }
 
+    void Reserve(size_t hint) {
+        Index.reserve(hint);
+    }
+
+    typedef typename TIndex::node_allocator_type TNodeAllocatorType;
+    TNodeAllocatorType& GetNodeAllocator() {
+        return Index.GetNodeAllocator();
+    }
+
 protected:
     TIndex Index;
     TListType List;
@@ -681,10 +690,10 @@ struct TNoopDelete {
     }
 };
 
-template <typename TKey, typename TValue, typename TDeleter = TNoopDelete, class TSizeProvider = TUniformSizeProvider<TValue>>
-class TLRUCache: public TCache<TKey, TValue, TLRUList<TKey, TValue, TSizeProvider>, TDeleter> {
+template <typename TKey, typename TValue, typename TDeleter = TNoopDelete, class TSizeProvider = TUniformSizeProvider<TValue>, typename TAllocator = std::allocator<void>>
+class TLRUCache: public TCache<TKey, TValue, TLRUList<TKey, TValue, TSizeProvider>, TDeleter, TAllocator> {
     using TListType = TLRUList<TKey, TValue, TSizeProvider>;
-    typedef TCache<TKey, TValue, TListType, TDeleter> TBase;
+    typedef TCache<TKey, TValue, TListType, TDeleter, TAllocator> TBase;
 
 public:
     TLRUCache(size_t maxSize, bool multiValue = false, const TSizeProvider& sizeProvider = TSizeProvider())
@@ -708,9 +717,9 @@ public:
     }
 };
 
-template <typename TKey, typename TValue, typename TDeleter = TNoopDelete>
-class TLFUCache: public TCache<TKey, TValue, TLFUList<TKey, TValue>, TDeleter> {
-    typedef TCache<TKey, TValue, TLFUList<TKey, TValue>, TDeleter> TBase;
+template <typename TKey, typename TValue, typename TDeleter = TNoopDelete, typename TAllocator = std::allocator<void>>
+class TLFUCache: public TCache<TKey, TValue, TLFUList<TKey, TValue>, TDeleter, TAllocator> {
+    typedef TCache<TKey, TValue, TLFUList<TKey, TValue>, TDeleter, TAllocator> TBase;
     using TListType = TLFUList<TKey, TValue>;
 
 public:
@@ -733,9 +742,9 @@ public:
 // Least Weighted cache
 // discards the least weighted items first
 // doesn't support promotion
-template <typename TKey, typename TValue, typename TWeight, typename TWeighter, typename TDeleter = TNoopDelete>
-class TLWCache: public TCache<TKey, TValue, TLWList<TKey, TValue, TWeight, TWeighter>, TDeleter> {
-    typedef TCache<TKey, TValue, TLWList<TKey, TValue, TWeight, TWeighter>, TDeleter> TBase;
+template <typename TKey, typename TValue, typename TWeight, typename TWeighter, typename TDeleter = TNoopDelete, typename TAllocator = std::allocator<void>>
+class TLWCache: public TCache<TKey, TValue, TLWList<TKey, TValue, TWeight, TWeighter>, TDeleter, TAllocator> {
+    typedef TCache<TKey, TValue, TLWList<TKey, TValue, TWeight, TWeighter>, TDeleter, TAllocator> TBase;
     using TListType = TLWList<TKey, TValue, TWeight, TWeighter>;
 
 public:
