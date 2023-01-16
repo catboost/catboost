@@ -8,7 +8,8 @@ from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ym
 
 YA_IDE_VENV_VAR = 'YA_IDE_VENV'
 PY_NAMESPACE_PREFIX = 'py/namespace'
-
+GOOGLE_LIB = 'python/google_lib'
+BUILTIN_PROTO = 'builtin_proto'
 
 def is_arc_src(src, unit):
     return (
@@ -482,14 +483,15 @@ def onpy_srcs(unit, *args):
             unit.onresource(res)
             add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
 
-    arcadia_protos_path = 'contrib/libs/protobuf/python/google_lib'
-    std_protos_path = 'contrib/libs/protobuf_std/python/google_lib'
+    arcadia_protos_path = 'contrib/libs/protobuf'
+    std_protos_path = 'contrib/libs/protobuf_std'
     use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes' or upath.startswith(std_protos_path)
     proto_path_pref = std_protos_path if use_vanilla_protoc else arcadia_protos_path
+    google_lib = os.path.join(proto_path_pref, GOOGLE_LIB)
 
     if protos:
-        if not upath.startswith(proto_path_pref):
-            unit.onpeerdir([proto_path_pref])
+        if not upath.startswith((google_lib, os.path.join(proto_path_pref, BUILTIN_PROTO))):
+            unit.onpeerdir([google_lib])
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
