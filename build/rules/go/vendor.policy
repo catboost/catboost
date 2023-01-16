@@ -807,6 +807,11 @@ ALLOW vendor -> vendor/github.com/fullstorydev/grpcurl/cmd/grpcurl
 # Temporary exceptions.
 #
 
+# migrate github.com/lucas-clemente/quic-go to Go 1.17, will be removed after switch the whole Arcadia
+ALLOW vendor -> vendor/github.com/marten-seemann/qtls-go1-16
+ALLOW vendor -> vendor/github.com/marten-seemann/qtls-go1-17
+
+
 # CONTRIB-1863. resposible: tserakhau@
 
 ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/errors
