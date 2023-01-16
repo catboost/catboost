@@ -39,25 +39,24 @@ test_that("model: catboost.train with per_float_quantization and ignored_feature
   pool_train <- catboost.load_pool(features[split, ], target[split])
   pool_test <- catboost.load_pool(features[-split, ], target[-split])
 
-  iterations <- 10
-  params1 <- list(iterations = iterations,
-                 loss_function = "Logloss",
-                 random_seed = 12345,
-                 ignored_features = c(1, 3),
-                 per_float_feature_quantization = c('0:border_count=1024'),
-                 use_best_model = FALSE,
-                 allow_writing_files = FALSE)
+  params <- list(
+    iterations = 10,
+    loss_function = "Logloss",
+    random_seed = 12345,
+    use_best_model = FALSE,
+    ignored_features = c(1, 3),
+    allow_writing_files = FALSE
+  )
 
-  catboost.train(pool_train, NULL, params1)
-  
-  params2 <- list(iterations = iterations,
-                 loss_function = "Logloss",
-                 random_seed = 12345,
-                 ignored_features = c(1, 3),
-                 per_float_feature_quantization = c('0:border_count=1024', '1:border_count=1024'),
-                 use_best_model = FALSE,
-                 allow_writing_files = FALSE)
-  catboost.train(pool_train, NULL, params2)
+  params$per_float_feature_quantization <- c("0:border_count=1024")
+  catboost.train(pool_train, NULL, params)
+
+  params$per_float_feature_quantization <- c("0:border_count=1024", "1:border_count=1024")
+  catboost.train(pool_train, NULL, params)
+
+  # issue with single ignored feature
+  params$ignored_features <- c(1)
+  catboost.train(pool_train, NULL, params)
 
   expect_true(TRUE)
 })
@@ -621,4 +620,10 @@ test_that("model: feature_count attribute", {
   train_pool <- catboost.load_pool(features, target, group_id = group_id)
   model <- catboost.train(train_pool, params = params)
   expect_equal(model$feature_count, feature_count)
+
+  # feature count with ignored features
+  params$ignored_features <- c(0)
+  train_pool <- catboost.load_pool(features, target, group_id = group_id)
+  model <- catboost.train(train_pool, params = params)
+  expect_equal(model$feature_count, feature_count - 1)
 })

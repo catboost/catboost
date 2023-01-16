@@ -791,6 +791,11 @@
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClass_/test.eval"
         }
     ],
+    "test.test_class_names_multilabel": [
+        {
+            "uri": "file://test.test_class_names_multilabel/test.eval"
+        }
+    ],
     "test.test_class_weight_logloss[Ordered]": [
         {
             "uri": "file://test.test_class_weight_logloss_Ordered_/test.eval"
@@ -1348,6 +1353,14 @@
         },
         {
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_custom_metric_for_multilabel": [
+        {
+            "uri": "file://test.test_custom_metric_for_multilabel/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_custom_metric_for_multilabel/test_error.tsv"
         }
     ],
     "test.test_custom_overfitting_detector_metric[Ordered]": [
@@ -3181,6 +3194,126 @@
     "test.test_eval_metrics_multiclass_with_baseline[Accuracy-2]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_with_baseline_Accuracy-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy:type=PerClass-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy_type=PerClass-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Accuracy:type=PerClass-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Accuracy_type=PerClass-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-F1-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F1-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-F1-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-MultiLogloss-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-MultiLogloss-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-MultiLogloss-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-MultiLogloss-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Precision-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Precision-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Precision-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Precision-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Recall-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Recall-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-Recall-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-Recall-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy:type=PerClass-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy_type=PerClass-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Accuracy:type=PerClass-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Accuracy_type=PerClass-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F1-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F1-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F1-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-MultiLogloss-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-MultiLogloss-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-MultiLogloss-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-MultiLogloss-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Precision-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Precision-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Precision-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Precision-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Recall-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Recall-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-Recall-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_with_baseline[AUC:type=Ranking-1]": [
@@ -7293,6 +7426,51 @@
     "test.test_prediction_type[Plain-RawFormulaVal-MultiClass]": [
         {
             "uri": "file://test.test_prediction_type_Plain-RawFormulaVal-MultiClass_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Class-scene]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Class-scene_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Class-scene_crossentropy]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Class-scene_crossentropy_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Class-yeast]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Class-yeast_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Probability-scene]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Probability-scene_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Probability-scene_crossentropy]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Probability-scene_crossentropy_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[Probability-yeast]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_Probability-yeast_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[RawFormulaVal-scene]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_RawFormulaVal-scene_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[RawFormulaVal-scene_crossentropy]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_RawFormulaVal-scene_crossentropy_/test.eval"
+        }
+    ],
+    "test.test_prediction_type_multilabel[RawFormulaVal-yeast]": [
+        {
+            "uri": "file://test.test_prediction_type_multilabel_RawFormulaVal-yeast_/test.eval"
         }
     ],
     "test.test_quantile_categorical[Ordered]": [

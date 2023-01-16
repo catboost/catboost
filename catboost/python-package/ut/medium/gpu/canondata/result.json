@@ -343,6 +343,12 @@
     "test.test_pairs_generation_with_max_pairs[GPU]": {
         "uri": "file://test.test_pairs_generation_with_max_pairs_GPU_/catboost_training.json"
     },
+    "test.test_pool_set_timestamp[GPU]": {
+        "uri": "file://test.test_pool_set_timestamp_GPU_/model.bin"
+    },
+    "test.test_pool_with_timestamp[GPU]": {
+        "uri": "file://test.test_pool_with_timestamp_GPU_/model.bin"
+    },
     "test.test_predict_class[GPU]": {
         "uri": "file://test.test_predict_class_GPU_/predictions.npy"
     },

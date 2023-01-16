@@ -21,3 +21,7 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    ut
+)

@@ -342,6 +342,8 @@ namespace NCB {
 
         void SetSubgroupIds(TConstArrayRef<TSubgroupId> subgroupIds); // [objectIdx]
 
+        void SetTimestamps(TConstArrayRef<ui64> timestamps); // [objectIdx]
+
 
         void SaveCommonDataNonSharedPart(IBinSaver* binSaver) const {
             CommonData.SaveNonSharedPart(binSaver);

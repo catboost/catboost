@@ -216,6 +216,9 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TMultiClassError>(isStoreExpApprox);
         case ELossFunction::MultiClassOneVsAll:
             return MakeHolder<TMultiClassOneVsAllError>(isStoreExpApprox);
+        case ELossFunction::MultiLogloss:
+        case ELossFunction::MultiCrossEntropy:
+            return MakeHolder<TMultiCrossEntropyError>();
         case ELossFunction::PairLogit:
             return MakeHolder<TPairLogitError>(isStoreExpApprox);
         case ELossFunction::PairLogitPairwise:

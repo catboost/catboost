@@ -48,7 +48,9 @@ namespace NCB {
     THolder<ITargetConverter> MakeTargetConverter(bool isRealTarget,
                                                   bool isClass,
                                                   bool isMultiClass,
+                                                  bool isMultiLabel,
                                                   TMaybe<float> targetBorder,
+                                                  size_t targetDim,
                                                   TMaybe<ui32> classCount,
                                                   const TVector<NJson::TJsonValue>& inputClassNames);
 

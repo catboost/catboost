@@ -445,6 +445,7 @@ class Pool(_PoolBase):
         subgroup_id=None,
         pairs_weight=None,
         baseline=None,
+        timestamp=None,
         feature_names=None,
         thread_count=-1,
         log_cout=sys.stdout,
@@ -537,6 +538,11 @@ class Pool(_PoolBase):
             Baseline for each instance.
             If not None, giving 2 dimensional array like data.
 
+        timestamp: list or numpy.ndarray, optional (default=None)
+            Timestamp for each instance.
+            Should be a non-negative integer.
+            Useful for sorting a learning dataset by this field during training.
+
         feature_names : list or string or pathlib.Path, optional (default=None)
             If list - list of names for each given data_feature.
             If string or pathlib.Path - path with scheme for feature names data to load.
@@ -619,7 +625,7 @@ class Pool(_PoolBase):
                         "python objects."
                     )
 
-                self._init(data, label, cat_features, text_features, embedding_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
+                self._init(data, label, cat_features, text_features, embedding_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, thread_count)
         super(Pool, self).__init__()
 
     def _check_files(self, data, column_description, pairs):
@@ -817,6 +823,21 @@ class Pool(_PoolBase):
         if len(subgroup_id) != samples_count:
             raise CatBoostError("Length of subgroup_id={} and length of data={} are different.".format(len(subgroup_id), samples_count))
 
+    def _check_timestamp_type(self, timestamp):
+        """
+        Check type of timestamp parameter.
+        """
+        if not isinstance(timestamp, ARRAY_TYPES):
+            raise CatBoostError("Invalid timestamp type={}: must be array like.".format(type(timestamp)))
+
+    def _check_timestamp_shape(self, timestamp, samples_count):
+        """
+        Check timestamp length.
+        """
+        if len(timestamp) != samples_count:
+            raise CatBoostError("Length of timestamp={} and length of data={} are different.".format(len(timestamp), samples_count))
+
+
     def _check_feature_names(self, feature_names, num_col=None):
         if num_col is None:
             num_col = self.num_col()
@@ -890,6 +911,13 @@ class Pool(_PoolBase):
         pairs_weight = self._if_pandas_to_numpy(pairs_weight)
         self._check_weight_shape(pairs_weight, self.num_pairs())
         self._set_pairs_weight(pairs_weight)
+        return self
+
+    def set_timestamp(self, timestamp):
+        self._check_timestamp_type(timestamp)
+        timestamp = self._if_pandas_to_numpy(timestamp)
+        self._check_timestamp_shape(timestamp, self.num_row())
+        self._set_timestamp(timestamp)
         return self
 
     def save(self, fname):
@@ -1064,6 +1092,7 @@ class Pool(_PoolBase):
         subgroup_id,
         pairs_weight,
         baseline,
+        timestamp,
         feature_names,
         thread_count
     ):
@@ -1135,7 +1164,11 @@ class Pool(_PoolBase):
             baseline = self._if_pandas_to_numpy(baseline)
             baseline = np.reshape(baseline, (samples_count, -1))
             self._check_baseline_shape(baseline, samples_count)
-        self._init_pool(data, label, cat_features, text_features, embedding_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
+        if timestamp is not None:
+            self._check_timestamp_type(timestamp)
+            timestamp = self._if_pandas_to_numpy(timestamp)
+            self._check_timestamp_shape(timestamp, samples_count)
+        self._init_pool(data, label, cat_features, text_features, embedding_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, thread_count)
 
 
 def _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
@@ -6139,12 +6172,32 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         del params['cat_features']
 
     if 'text_features' in params:
-        raise CatBoostError("Cv with text features is not implemented.")
+        text_feature_indices_from_params = _get_features_indices(params['text_features'], pool.get_feature_names())
+        if set(pool.get_text_feature_indices()) != set(text_feature_indices_from_params):
+            raise CatBoostError("text features indices in params are different from ones in pool "
+                                + str(text_feature_indices_from_params) +
+                                " vs " + str(pool.get_text_feature_indices()))
+        del params['text_features']
+
 
     if 'embedding_features' in params:
-        raise CatBoostError("Cv with embedding features is not implemented.")
+        embedding_feature_indices_from_params = _get_features_indices(params['embedding_features'], pool.get_feature_names())
+        if set(pool.get_embedding_feature_indices()) != set(embedding_feature_indices_from_params):
+            raise CatBoostError("embedding features indices in params are different from ones in pool "
+                                + str(embedding_feature_indices_from_params) +
+                                " vs " + str(pool.get_embedding_feature_indices()))
+        del params['embedding_features']
 
-    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [_get_train_dir(params)]):
+    create_if_not_exist = lambda path: os.mkdir(path) if not os.path.exists(path) else None
+    train_dir = _get_train_dir(params)
+    create_if_not_exist(train_dir)
+    plot_dirs = []
+    for step in range(fold_count):
+        plot_dirs.append(os.path.join(train_dir, 'fold-{}'.format(step)))
+    for plot_dir in plot_dirs:
+        create_if_not_exist(plot_dir)
+
+    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_dirs):
         if not return_models:
             return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
                     metric_update_interval, as_pandas, folds, type, return_models)

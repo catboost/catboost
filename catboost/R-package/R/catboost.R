@@ -140,12 +140,12 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (text_columns == 0 && float_and_cat_columns == 0)
       stop("Data has no columns")
 
-  if (!is.double(label) && !is.integer(label) && !is.null(label))
-      stop("Unsupported label type, expecting double or int, got: ", typeof(label))
   if (!is.null(label) && !is.matrix(label))
       label <- as.matrix(label)
+  if (!is.double(label) && !is.integer(label) && !is.null(label))
+      stop("Unsupported label type, expecting double or int, got: ", typeof(label))
   if (!is.null(label) && !is.double(label))
-      label <- as.matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
+      label <- matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
   if (!is.null(label) && nrow(label) != nrow(float_and_cat_features_data))
       stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
 
@@ -448,7 +448,7 @@ print.catboost.Pool <- function(x, ...) {
 print.catboost.Model <- function(x, ...) {
     cat(sprintf("CatBoost model (%d trees)\n", x$tree_count))
     cat(sprintf("Loss function: %s\n", catboost.get_plain_params(x)$loss_function))
-    cat(sprintf("Fit to %d features\n", NROW(x$feature_count)))
+    cat(sprintf("Fit to %d feature(s)\n", x$feature_count))
     if (is.null.handle(x$cpp_obj$handle))
         cat("(Handle is incomplete)\n")
     return(invisible(x))
@@ -1542,9 +1542,10 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
         }
     }
 
+    plain_params <- catboost.get_plain_params(model)
     model$tree_count <- catboost.ntrees(model)
-    model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
-    model$feature_count <- ncol(learn_pool)
+    model$learning_rate <- plain_params$learning_rate
+    model$feature_count <- ncol(learn_pool) - length(plain_params$ignored_features)
     return(model)
 }
 
@@ -1604,7 +1605,8 @@ prepare_train_export_parameters <- function(params) {
     }
 
     if (!is.null(params$ignored_features)) {
-        params$ignored_features <- as.character(params$ignored_features)
+        # treat parameter AsIs to avoid conversion from 1-element array to atomic value
+        params$ignored_features <- I(as.character(params$ignored_features))
     }
 
     return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = 10))
@@ -2069,6 +2071,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
             dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
         }
     } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
+        # TODO: incorrect pool and ignored_features lead to incorrect column names; testing length is not enough
         if (!is.null(pool) && dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }

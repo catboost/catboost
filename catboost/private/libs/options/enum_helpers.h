@@ -6,11 +6,13 @@
 
 TConstArrayRef<ELossFunction> GetAllObjectives();
 
-// metric type (regression, multi-regression, classification(bin, multi), ranking(pair, group))
+// metric type (regression, multi-regression, classification(bin, multi, multilabel), ranking(pair, group))
 bool IsRegressionMetric(ELossFunction lossFunction);
 bool IsMultiRegressionMetric(ELossFunction loss);
 bool IsSurvivalRegressionMetric(ELossFunction loss);
+bool IsMultiLabelMetric(ELossFunction loss);
 bool IsMultiTargetMetric(ELossFunction loss);
+bool IsMultiTargetOnlyMetric(ELossFunction loss);
 
 bool IsClassificationMetric(ELossFunction lossFunction);
 bool IsBinaryClassCompatibleMetric(ELossFunction lossFunction);
@@ -39,6 +41,8 @@ bool IsMultiTargetObjective(ELossFunction loss);
 bool IsMultiTargetObjective(TStringBuf loss);
 bool IsSurvivalRegressionObjective(ELossFunction loss);
 bool IsSurvivalRegressionObjective(TStringBuf loss);
+bool IsMultiLabelObjective(ELossFunction lossFunction);
+bool IsMultiLabelObjective(TStringBuf lossFunction);
 
 // various
 bool UsesPairsForCalculation(ELossFunction lossFunction);

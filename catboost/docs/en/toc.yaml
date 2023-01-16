@@ -573,6 +573,8 @@ items:
             name: set_pairs_weight
           - href: concepts/python-reference_pool_set_subgroup_id.md
             name: set_subgroup_id
+          - href: concepts/python-reference_pool_set_timestamp.md
+            name: set_timestamp
           - href: concepts/python-reference_pool_set_weight.md
             name: set_weight
           - href: concepts/python-reference_pool_slice.md

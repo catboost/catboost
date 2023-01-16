@@ -10,7 +10,6 @@ RECURSE(
     binsaver/ut_util
     blockcodecs
     blockcodecs/fuzz
-    blockcodecs/ut
     build_info
     cache
     cgiparam

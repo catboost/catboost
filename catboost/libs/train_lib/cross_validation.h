@@ -210,23 +210,6 @@ public:
 
 };
 
-void TrainBatch(
-    const NCatboostOptions::TCatBoostOptions& catboostOption,
-    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TLabelConverter& labelConverter,
-    TConstArrayRef<THolder<IMetric>> metrics,
-    TConstArrayRef<bool> skipMetricOnTrain,
-    double maxTimeSpentOnFixedCostRatio,
-    ui32 maxIterationsBatchSize,
-    size_t globalMaxIteration,
-    bool isErrorTrackerActive,
-    ELoggingLevel loggingLevel,
-    TFoldContext* foldContext,
-    IModelTrainer* modelTrainer,
-    NPar::ILocalExecutor* localExecutor,
-    TMaybe<ui32>* upToIteration);
-
 void Train(
     const NCatboostOptions::TCatBoostOptions& catboostOption,
     const TString& trainDir,

@@ -179,14 +179,18 @@ namespace {
     private:
 
         static ETargetType GetTargetType(ELossFunction lossFunction) {
-            if (lossFunction == ELossFunction::Logloss) {
-                return ETargetType::Logloss;
-            } else if (lossFunction == ELossFunction::MultiClass) {
-                return ETargetType::MultiClass;
-            } else if (lossFunction == ELossFunction::RMSE) {
-                return ETargetType::RMSE;
+            switch (lossFunction) {
+                case ELossFunction::Logloss:
+                case ELossFunction::MultiLogloss:
+                case ELossFunction::MultiCrossEntropy:
+                    return ETargetType::Logloss;
+                case ELossFunction::MultiClass:
+                    return ETargetType::MultiClass;
+                case ELossFunction::RMSE:
+                    return ETargetType::RMSE;
+                default:
+                    return ETargetType::Unknown;
             }
-            return ETargetType::Unknown;
         }
 
     public:

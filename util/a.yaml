@@ -1,5 +1,5 @@
 service: cpputil
-title: "Yandex CPlusPlus util base library"
+title: "Yandex C++ util base library"
 arcanum:
   auto_merge:
     requirements:
@@ -26,7 +26,7 @@ ci:
           abs-paths: [ 'util/tests/style/ya.make' ]
   flows:
     util-style-test:
-      title: "CPlusPlus style"
+      title: "C++ style"
       jobs:
         yamake-util-tests-style:
           title: "Ya Make: util/tests/style"
