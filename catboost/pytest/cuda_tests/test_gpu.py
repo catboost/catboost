@@ -6,6 +6,7 @@ import os
 import pytest
 import re
 import yatest.common
+import yatest.common.runtime
 
 from catboost_pytest_lib import (
     append_params_to_cmdline,
@@ -59,7 +60,7 @@ def diff_tool(threshold=2e-7):
 
 
 def skipif_no_cuda():
-    for flag in pytest.config.option.flags:
+    for flag in yatest.common.runtime._get_ya_config().option.flags:
         if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
             return pytest.mark.skipif(True, reason=flag)
 
