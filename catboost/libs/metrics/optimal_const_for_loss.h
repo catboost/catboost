@@ -13,7 +13,6 @@
 #include <util/generic/ymath.h>
 #include <util/string/cast.h>
 
-
 namespace NCB {
     inline float CalculateWeightedTargetAverage(TConstArrayRef<float> target, TConstArrayRef<float> weights) {
         const double summaryWeight = weights.empty() ? target.size() : Accumulate(weights, 0.0);
@@ -116,6 +115,44 @@ namespace NCB {
         return CalcSampleQuantile(target, weightsWithTarget, 0.5);
     }
 
+    inline float CalculateOptimalConstApproxForLogCosh(
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weights
+    ) {
+        const int BINSEARCH_ITERATIONS = 100;
+        const double APPROX_PRECISION = 1e-9;
+
+        if (target.empty()) {
+            return 0;
+        }
+        
+        auto func = [&] (double approx, auto hasWeights) {
+            double res = 0;
+            for (auto idx: xrange(target.size())) {
+                res += tanh(approx - target[idx]) * (hasWeights ? weights[idx]: 1.);
+            }
+            return res;
+        };
+
+        auto res = std::minmax_element(target.begin(), target.end());
+        double left = *res.first;
+        double right = *res.second;
+
+        for (auto id = 0; id < BINSEARCH_ITERATIONS && (right - left) > APPROX_PRECISION; id++) {
+            Y_UNUSED(id);
+            double m = (left + right) / 2;
+            double value = weights.empty() ? func(m, std::false_type()) : func(m, std::true_type());
+            if (value > 0) {
+                right = m;
+            }
+            else {
+                left = m;
+            }
+        }
+
+        return left;
+    }
+
     //TODO(isaf27): add baseline to CalcOptimumConstApprox
     inline TMaybe<double> CalcOneDimensionalOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
@@ -144,6 +181,9 @@ namespace NCB {
             }
             case ELossFunction::MAPE:
                 return CalculateOptimalConstApproxForMAPE(target, weights);
+            case ELossFunction::LogCosh: {
+                return CalculateOptimalConstApproxForLogCosh(target, weights);
+            }
             default:
                 return Nothing();
         }
