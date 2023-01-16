@@ -66,14 +66,14 @@ static void WalkJsonTree(const NJson::TJsonValue& jsonValue, NJson::TJsonCallbac
     Y_UNREACHABLE();
 }
 
-static TNode CreateEmptyNodeByType(EYsonType type)
+static TNode CreateEmptyNodeByType(::NYson::EYsonType type)
 {
     TNode result;
     switch (type) {
-        case YT_LIST_FRAGMENT:
+        case ::NYson::EYsonType::ListFragment:
             result = TNode::CreateList();
             break;
-        case YT_MAP_FRAGMENT:
+        case ::NYson::EYsonType::MapFragment:
             result = TNode::CreateMap();
             break;
         default:
@@ -82,7 +82,7 @@ static TNode CreateEmptyNodeByType(EYsonType type)
     return result;
 }
 
-TNode NodeFromYsonString(const TStringBuf input, EYsonType type)
+TNode NodeFromYsonString(const TStringBuf input, ::NYson::EYsonType type)
 {
     TMemoryInput stream(input);
     return NodeFromYsonStream(&stream, type);
@@ -102,7 +102,7 @@ TString NodeToCanonicalYsonString(const TNode& node, NYson::EYsonFormat format)
     return stream.Str();
 }
 
-TNode NodeFromYsonStream(IInputStream* input, EYsonType type)
+TNode NodeFromYsonStream(IInputStream* input, ::NYson::EYsonType type)
 {
     TNode result = CreateEmptyNodeByType(type);
 

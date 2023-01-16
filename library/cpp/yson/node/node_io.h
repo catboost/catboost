@@ -12,7 +12,7 @@ namespace NYT {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Parse TNode from string in YSON format
-TNode NodeFromYsonString(const TStringBuf input, ::NYson::EYsonType type = YT_NODE);
+TNode NodeFromYsonString(const TStringBuf input, ::NYson::EYsonType type = ::NYson::EYsonType::Node);
 
 // Serialize TNode to string in one of YSON formats with random order of maps' keys (don't use in tests)
 TString NodeToYsonString(const TNode& node, ::NYson::EYsonFormat format = ::NYson::EYsonFormat::Text);
@@ -21,7 +21,7 @@ TString NodeToYsonString(const TNode& node, ::NYson::EYsonFormat format = ::NYso
 TString NodeToCanonicalYsonString(const TNode& node, ::NYson::EYsonFormat format = ::NYson::EYsonFormat::Text);
 
 // Parse TNode from stream in YSON format
-TNode NodeFromYsonStream(IInputStream* input, ::NYson::EYsonType type = YT_NODE);
+TNode NodeFromYsonStream(IInputStream* input, ::NYson::EYsonType type = ::NYson::EYsonType::Node);
 
 // Serialize TNode to stream in one of YSON formats with random order of maps' keys (don't use in tests)
 void NodeToYsonStream(const TNode& node, IOutputStream* output, ::NYson::EYsonFormat format = ::NYson::EYsonFormat::Text);

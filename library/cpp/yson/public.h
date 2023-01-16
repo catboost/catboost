@@ -24,11 +24,12 @@ namespace NYson {
         (Pretty)
     );
 
-    enum EYsonType {
-        YT_NODE,
-        YT_LIST_FRAGMENT,
-        YT_MAP_FRAGMENT
-    };
+    // NB: -1 is used for serializing null TYsonString.
+    DEFINE_ENUM_WITH_UNDERLYING_TYPE(EYsonType, i8,
+        ((Node)          (0))
+        ((ListFragment)  (1))
+        ((MapFragment)   (2))
+    );
 
     struct IYsonConsumer;
     struct TYsonConsumerBase;
@@ -44,12 +45,3 @@ namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYson
-
-namespace NYT {
-
-using ::NYson::EYsonType;
-using ::NYson::EYsonType::YT_NODE;
-using ::NYson::EYsonType::YT_LIST_FRAGMENT;
-using ::NYson::EYsonType::YT_MAP_FRAGMENT;
-
-} // namespace NYT

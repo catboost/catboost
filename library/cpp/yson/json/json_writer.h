@@ -31,7 +31,7 @@ namespace NYT {
     public:
         TJsonWriter(
             IOutputStream* output,
-            EYsonType type = YT_NODE,
+            ::NYson::EYsonType type = ::NYson::EYsonType::Node,
             EJsonFormat format = JF_TEXT,
             EJsonAttributesMode attributesMode = JAM_ON_DEMAND,
             ESerializedBoolFormat booleanFormat = SBF_STRING);
@@ -39,7 +39,7 @@ namespace NYT {
         TJsonWriter(
             IOutputStream* output,
             NJson::TJsonWriterConfig config,
-            EYsonType type = YT_NODE,
+            ::NYson::EYsonType type = ::NYson::EYsonType::Node,
             EJsonAttributesMode attributesMode = JAM_ON_DEMAND,
             ESerializedBoolFormat booleanFormat = SBF_STRING);
 
@@ -68,7 +68,7 @@ namespace NYT {
         THolder<NJson::TJsonWriter> UnderlyingJsonWriter;
         NJson::TJsonWriter* JsonWriter;
         IOutputStream* Output;
-        EYsonType Type;
+        ::NYson::EYsonType Type;
         EJsonAttributesMode AttributesMode;
         ESerializedBoolFormat BooleanFormat;
 

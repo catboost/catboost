@@ -22,15 +22,15 @@ namespace NYson {
 
             void DoParse(EYsonType ysonType) {
                 switch (ysonType) {
-                    case YT_NODE:
+                    case ::NYson::EYsonType::Node:
                         ParseNode<true>();
                         break;
 
-                    case YT_LIST_FRAGMENT:
+                    case ::NYson::EYsonType::ListFragment:
                         ParseListFragment<true>(EndSymbol);
                         break;
 
-                    case YT_MAP_FRAGMENT:
+                    case ::NYson::EYsonType::MapFragment:
                         ParseMapFragment<true>(EndSymbol);
                         break;
 
@@ -322,7 +322,7 @@ namespace NYson {
 
     class TStatelessYsonParserImplBase {
     public:
-        virtual void Parse(const TStringBuf& data, EYsonType type = YT_NODE) = 0;
+        virtual void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node) = 0;
 
         virtual ~TStatelessYsonParserImplBase() {
         }
@@ -341,7 +341,7 @@ namespace NYson {
         {
         }
 
-        void Parse(const TStringBuf& data, EYsonType type = YT_NODE) override {
+        void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node) override {
             Parser.SetBuffer(data.begin(), data.end());
             Parser.DoParse(type);
         }
