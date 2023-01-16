@@ -865,6 +865,31 @@ ALLOW .* -> vendor/github.com/scim2/filter-parser/v2
 # CONTRIB-2488 reading and writing SSH Key Revocation Lists
 ALLOW .* -> vendor/github.com/stripe/krl
 
+# CONTRIB-2460
+ALLOW .* -> vendor/github.com/dgraph-io/ristretto
+
+# CONTRIB-2465
+ALLOW .* -> vendor/github.com/go-playground/form
+
+# CONTRIB-2470
+# go-autorest requried to be used for authentication and authorization in Azure sdk
+ALLOW .* -> vendor/github.com/Azure/go-autorest/autorest
+# whole SDK is HUGE (~500MiB commit size) and, for now, we need only network management part
+# new parts of SDK may be added later, as needed
+ALLOW .* -> vendor/github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network
+
+# CONTRIB-2483
+ALLOW .* -> vendor/github.com/hashicorp/hcl/v2
+
+# CONTRIB-2485
+ALLOW .* -> vendor/github.com/nxadm/tail
+
+# CONTRIB-2486
+ALLOW .* -> vendor/github.com/zclconf/go-cty/cty
+
+# CONTRIB-553
+ALLOW .* -> vendor/github.com/google/brotli/go/cbrotli
+
 #
 # Tools
 #
@@ -1039,28 +1064,6 @@ ALLOW infra/infractl/.* -> vendor/github.com/ghodss/yaml
 
 # CONTRIB-2445
 ALLOW psp -> vendor/github.com/zimmski/go-mutesting
-
-# CONTRIB-2460
-ALLOW .* -> vendor/github.com/dgraph-io/ristretto
-
-# CONTRIB-2465
-ALLOW .* -> vendor/github.com/go-playground/form
-
-# CONTRIB-2470
-# go-autorest requried to be used for authentication and authorization in Azure sdk
-ALLOW .* -> vendor/github.com/Azure/go-autorest/autorest
-# whole SDK is HUGE (~500MiB commit size) and, for now, we need only network management part
-# new parts of SDK may be added later, as needed
-ALLOW .* -> vendor/github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network
-
-# CONTRIB-2483
-ALLOW .* -> vendor/github.com/hashicorp/hcl/v2
-
-# CONTRIB-2485
-ALLOW .* -> vendor/github.com/nxadm/tail
-
-# CONTRIB-2486
-ALLOW .* -> vendor/github.com/zclconf/go-cty/cty
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
