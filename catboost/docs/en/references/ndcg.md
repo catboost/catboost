@@ -7,8 +7,6 @@
 
 ## {{ title__loss-functions__calculation-principles }} {#calculation}
 
-The possible label values ($t_{i}$) are limited to the following range: $[0; +\infty)$.
-
 {% include [loss-functions-function-calculation](../_includes/work_src/reusage-common-phrases/function-calculation.md) %}
 
 
@@ -16,8 +14,7 @@ The possible label values ($t_{i}$) are limited to the following range: $[0; +\i
 
 1. The {{ error-function__dcg }} metric is calculated for each group ($group \in groups$) with sorted objects (see step [1](#ndcg__calc-principles__sort-predicted-relevancies)).
 
-    The calculation principle depends on the specified value of the `` and `` parameters:
-    {{ error-function__ndcg__denominator__LogPosition }}{{ error-function__ndcg__denominator__Position }}
+    The calculation principle depends on the specified value of the `{{ loss-functions__params__type }}` and `{{ loss-functions__params__denominator }}` parameters:
 
    | type/denominator|{{ error-function__ndcg__denominator__LogPosition }}| {{ error-function__ndcg__denominator__Position }}|
    |-----------------|-----------------------------------------------------|-------------------------------------------------|
@@ -30,7 +27,7 @@ The possible label values ($t_{i}$) are limited to the following range: $[0; +\i
 
 1. The {{ error-function__idcg }} metric is calculated for each group ($group \in groups$) with sorted objects (see step [3](#ndcg__calc-principles__sort-target-relevancies)).
 
-    The calculation principle depends on the specified value of the `` and `` parameters:
+    The calculation principle depends on the specified value of the `{{ loss-functions__params__type }}` and `{{ loss-functions__params__denominator }}` parameters:
 
     | type/denominator|{{ error-function__ndcg__denominator__LogPosition }}| {{ error-function__ndcg__denominator__Position }}|
     |-----------------|-----------------------------------------------------|-------------------------------------------------|
@@ -51,8 +48,7 @@ The possible label values ($t_{i}$) are limited to the following range: $[0; +\i
 
 {% include [reusage-loss-functions-top__desc](../_includes/work_src/reusage-loss-functions/top__desc.md) %}
 
-
-{{ loss-functions__params__top__default }}
+_Default_: {{ loss-functions__params__top__default }}
 
 
 ###  use_weights
@@ -60,6 +56,8 @@ The possible label values ($t_{i}$) are limited to the following range: $[0; +\i
 #### Description
 
 {% include [reusage-loss-functions-use-weights__desc__without__note](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__note.md) %}
+
+_Default_: {{ loss-functions__use_weights__default }}
 
 ### type
 
@@ -71,6 +69,9 @@ Possible values:
 - {{ error-function__ndcg__type__Base }}
 - {{ error-function__ndcg__type__Exp }}
 
+_Default_: {{ error-function__ndcg__type__default }}
+
+
 ### denominator
 
 #### Description
@@ -81,4 +82,4 @@ Possible values:
 - {{ error-function__ndcg__denominator__LogPosition }}
 - {{ error-function__ndcg__denominator__Position }}
 
-
+_Default_: {{ error-function__ndcg__denominator__default }}

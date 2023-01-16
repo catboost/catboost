@@ -1,6 +1,8 @@
 ### {{ error-function--QueryAUC }} {#QueryAUC}
 
-- {{ loss-functions__params__type }}
+{{ title__loss-functions__text__user-defined-params }}:
+
+{% cut "{{ loss-functions__params__type }}" %}
 
   {% include [reusage-loss-functions-type_of_auc__p](../work_src/reusage-loss-functions/type_of_auc__p.md) %}
 
@@ -17,7 +19,6 @@
     ```
     AUC:type=Ranking
     ```
-
 
 
 #### {{ loss-functions__params__auc__type__Classic }}
@@ -47,9 +48,10 @@ The sum is calculated on all pairs of objects $(i,j)$ such that:
 - $I(x, y) = \begin{cases} 0 { , } & x < y \\ 0.5 { , } & x=y \\ 1 { , } & x>y \end{cases}$
 
 
-{{ title__loss-functions__text__user-defined-params }}:
+{% endcut %}
+
+_Default_: {{ loss-functions__params__auc__type__Ranking }}
 
 {% include [use-weights__desc__without__full](../work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
-
-_Default:_ false
+_Default_: false

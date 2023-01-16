@@ -17,7 +17,7 @@ default:
   fit__learn-set: Required parameter (the path must be specified).
   fit__ostr__output-path: object_importances.tsv
   fit__decay__pfound: '0.85'
-  fit__decay__yetirank: '0.99'
+  fit__decay__yetirank: '0.85'
   fit__top__allmetrics: –1
   fit__permutations: '10'
   autoclass__weights__none: None
@@ -535,6 +535,7 @@ default:
   loss-functions__params__beta: beta
   loss-functions__params__sigma: sigma
   loss-functions__params__border: border
+  loss-functions__params__border__default: '0'
   loss-functions__params__decay: decay
   loss-functions__params__permutations: permutations
   loss-functions__params__top: top
