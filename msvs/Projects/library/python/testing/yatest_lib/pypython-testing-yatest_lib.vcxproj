@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_f3e07d3c9bca49ded4cc844ee4.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_5c1b4b4552b340b982359b6ed4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,9 +101,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_f3e07d3c9bca49ded4cc844ee4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_f3e07d3c9bca49ded4cc844ee4.py2.obj;</Outputs>
+      <Message>$B/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_5c1b4b4552b340b982359b6ed4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_5c1b4b4552b340b982359b6ed4.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -119,6 +119,10 @@ cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_lib/tools.py-" "$(SolutionDir)../library/python/testing/yatest_lib/tools.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_lib/ya.py-" "$(SolutionDir)../library/python/testing/yatest_lib/ya.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/ya.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -138,21 +142,25 @@ cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_lib/tools.py-" "$(SolutionDir)../library/python/testing/yatest_lib/tools.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/testing/yatest_lib/ya.py-" "$(SolutionDir)../library/python/testing/yatest_lib/ya.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/ya.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/yatest_lib/external.py.yapyc	$B/library/python/testing/yatest_lib/test_splitter.py.yapyc	$B/library/python/testing/yatest_lib/tools.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\testing\yatest_lib\external.py;$(SolutionDir)..\library\python\testing\yatest_lib\test_splitter.py;$(SolutionDir)..\library\python\testing\yatest_lib\tools.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\external.py.yapyc;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\test_splitter.py.yapyc;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\tools.py.yapyc;</Outputs>
+      <Message>$B/library/python/testing/yatest_lib/external.py.yapyc	$B/library/python/testing/yatest_lib/test_splitter.py.yapyc	$B/library/python/testing/yatest_lib/tools.py.yapyc	$B/library/python/testing/yatest_lib/ya.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\testing\yatest_lib\external.py;$(SolutionDir)..\library\python\testing\yatest_lib\test_splitter.py;$(SolutionDir)..\library\python\testing\yatest_lib\tools.py;$(SolutionDir)..\library\python\testing\yatest_lib\ya.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\external.py.yapyc;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\test_splitter.py.yapyc;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\tools.py.yapyc;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\ya.py.yapyc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\testing\yatest_lib\external.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.yasm" "$(SolutionDir)../library/python/testing/yatest_lib/external.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f60734b18938ebfa3a8601a1b5.rodata" "-" "library/python/testing/yatest_lib/external.py" "_61523bc5b1be5253b245381ce4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/external.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_d7d8cdd3db13aaabac608967b2.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/test_splitter.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_be885758d09a20061d99229bde.rodata" "-" "library/python/testing/yatest_lib/test_splitter.py" "_9abcb239f4440f63526acb8ed4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/test_splitter.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9e6f4030ae0698fbb646e9d209.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/tools.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9faec23a02137d7d2271e38369.rodata" "-" "library/python/testing/yatest_lib/tools.py" "_7b116b8f200a9e8dfb0fc63e43.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_85a26ec9ddd5ed8d9bc6034ebb.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.yasm" "$(SolutionDir)../library/python/testing/yatest_lib/external.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f60734b18938ebfa3a8601a1b5.rodata" "-" "library/python/testing/yatest_lib/external.py" "_61523bc5b1be5253b245381ce4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/external.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_d7d8cdd3db13aaabac608967b2.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/test_splitter.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_be885758d09a20061d99229bde.rodata" "-" "library/python/testing/yatest_lib/test_splitter.py" "_9abcb239f4440f63526acb8ed4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/test_splitter.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9e6f4030ae0698fbb646e9d209.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/tools.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9faec23a02137d7d2271e38369.rodata" "-" "library/python/testing/yatest_lib/tools.py" "_7b116b8f200a9e8dfb0fc63e43.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_85a26ec9ddd5ed8d9bc6034ebb.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/ya.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_c87623df5866039855ef917da5.rodata" "-" "library/python/testing/yatest_lib/ya.py" "_cc0f82942581b8bb88c875910f.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/ya.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_a9a030218cd217b5f1839ca8d9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -163,7 +171,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.yasm" "$(SolutionDir)../library/python/testing/yatest_lib/external.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f60734b18938ebfa3a8601a1b5.rodata" "-" "library/python/testing/yatest_lib/external.py" "_61523bc5b1be5253b245381ce4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/external.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_d7d8cdd3db13aaabac608967b2.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/test_splitter.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_be885758d09a20061d99229bde.rodata" "-" "library/python/testing/yatest_lib/test_splitter.py" "_9abcb239f4440f63526acb8ed4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/test_splitter.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9e6f4030ae0698fbb646e9d209.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/tools.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9faec23a02137d7d2271e38369.rodata" "-" "library/python/testing/yatest_lib/tools.py" "_7b116b8f200a9e8dfb0fc63e43.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_85a26ec9ddd5ed8d9bc6034ebb.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.yasm" "$(SolutionDir)../library/python/testing/yatest_lib/external.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_f60734b18938ebfa3a8601a1b5.rodata" "-" "library/python/testing/yatest_lib/external.py" "_61523bc5b1be5253b245381ce4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/external.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_d7d8cdd3db13aaabac608967b2.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/test_splitter.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_be885758d09a20061d99229bde.rodata" "-" "library/python/testing/yatest_lib/test_splitter.py" "_9abcb239f4440f63526acb8ed4.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/test_splitter.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9e6f4030ae0698fbb646e9d209.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/tools.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_9faec23a02137d7d2271e38369.rodata" "-" "library/python/testing/yatest_lib/tools.py" "_7b116b8f200a9e8dfb0fc63e43.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_85a26ec9ddd5ed8d9bc6034ebb.rodata" "$(SolutionDir)../library/python/testing/yatest_lib/ya.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_c87623df5866039855ef917da5.rodata" "-" "library/python/testing/yatest_lib/ya.py" "_cc0f82942581b8bb88c875910f.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/ya.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/_a9a030218cd217b5f1839ca8d9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -171,9 +179,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/yatest_lib/_f3e07d3c9bca49ded4cc844ee4.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\testing\yatest_lib\external.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\external.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_lib\test_splitter.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\test_splitter.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_lib\tools.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\tools.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_f3e07d3c9bca49ded4cc844ee4.yasm;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_f60734b18938ebfa3a8601a1b5.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_d7d8cdd3db13aaabac608967b2.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_be885758d09a20061d99229bde.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_9e6f4030ae0698fbb646e9d209.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_9faec23a02137d7d2271e38369.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_85a26ec9ddd5ed8d9bc6034ebb.rodata;</Outputs>
+      <Message>$B/library/python/testing/yatest_lib/_5c1b4b4552b340b982359b6ed4.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\python\testing\yatest_lib\external.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\external.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_lib\test_splitter.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\test_splitter.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_lib\tools.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\tools.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_lib\ya.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\ya.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_5c1b4b4552b340b982359b6ed4.yasm;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_f60734b18938ebfa3a8601a1b5.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_d7d8cdd3db13aaabac608967b2.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_be885758d09a20061d99229bde.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_9e6f4030ae0698fbb646e9d209.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_9faec23a02137d7d2271e38369.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_85a26ec9ddd5ed8d9bc6034ebb.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_c87623df5866039855ef917da5.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\_a9a030218cd217b5f1839ca8d9.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

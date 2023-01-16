@@ -78,12 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\f3e07d3c9bca49ded4cc844ee4.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\5c1b4b4552b340b982359b6ed4.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/f3e07d3c9bca49ded4cc844ee4.cpp" "_f60734b18938ebfa3a8601a1b5=/py_modules/yatest_lib.external" "_61523bc5b1be5253b245381ce4=resfs/src//py_modules/yatest_lib.external" "_d7d8cdd3db13aaabac608967b2=/py_code/yatest_lib.external" "_be885758d09a20061d99229bde=/py_modules/yatest_lib.test_splitter" "_9abcb239f4440f63526acb8ed4=resfs/src//py_modules/yatest_lib.test_splitter" "_9e6f4030ae0698fbb646e9d209=/py_code/yatest_lib.test_splitter" "_9faec23a02137d7d2271e38369=/py_modules/yatest_lib.tools" "_7b116b8f200a9e8dfb0fc63e43=resfs/src//py_modules/yatest_lib.tools" "_85a26ec9ddd5ed8d9bc6034ebb=/py_code/yatest_lib.tools"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/5c1b4b4552b340b982359b6ed4.cpp" "_f60734b18938ebfa3a8601a1b5=/py_modules/yatest_lib.external" "_61523bc5b1be5253b245381ce4=resfs/src//py_modules/yatest_lib.external" "_d7d8cdd3db13aaabac608967b2=/py_code/yatest_lib.external" "_be885758d09a20061d99229bde=/py_modules/yatest_lib.test_splitter" "_9abcb239f4440f63526acb8ed4=resfs/src//py_modules/yatest_lib.test_splitter" "_9e6f4030ae0698fbb646e9d209=/py_code/yatest_lib.test_splitter" "_9faec23a02137d7d2271e38369=/py_modules/yatest_lib.tools" "_7b116b8f200a9e8dfb0fc63e43=resfs/src//py_modules/yatest_lib.tools" "_85a26ec9ddd5ed8d9bc6034ebb=/py_code/yatest_lib.tools" "_c87623df5866039855ef917da5=/py_modules/yatest_lib.ya" "_cc0f82942581b8bb88c875910f=resfs/src//py_modules/yatest_lib.ya" "_a9a030218cd217b5f1839ca8d9=/py_code/yatest_lib.ya"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/f3e07d3c9bca49ded4cc844ee4.cpp" "_f60734b18938ebfa3a8601a1b5=/py_modules/yatest_lib.external" "_61523bc5b1be5253b245381ce4=resfs/src//py_modules/yatest_lib.external" "_d7d8cdd3db13aaabac608967b2=/py_code/yatest_lib.external" "_be885758d09a20061d99229bde=/py_modules/yatest_lib.test_splitter" "_9abcb239f4440f63526acb8ed4=resfs/src//py_modules/yatest_lib.test_splitter" "_9e6f4030ae0698fbb646e9d209=/py_code/yatest_lib.test_splitter" "_9faec23a02137d7d2271e38369=/py_modules/yatest_lib.tools" "_7b116b8f200a9e8dfb0fc63e43=resfs/src//py_modules/yatest_lib.tools" "_85a26ec9ddd5ed8d9bc6034ebb=/py_code/yatest_lib.tools"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_lib/5c1b4b4552b340b982359b6ed4.cpp" "_f60734b18938ebfa3a8601a1b5=/py_modules/yatest_lib.external" "_61523bc5b1be5253b245381ce4=resfs/src//py_modules/yatest_lib.external" "_d7d8cdd3db13aaabac608967b2=/py_code/yatest_lib.external" "_be885758d09a20061d99229bde=/py_modules/yatest_lib.test_splitter" "_9abcb239f4440f63526acb8ed4=resfs/src//py_modules/yatest_lib.test_splitter" "_9e6f4030ae0698fbb646e9d209=/py_code/yatest_lib.test_splitter" "_9faec23a02137d7d2271e38369=/py_modules/yatest_lib.tools" "_7b116b8f200a9e8dfb0fc63e43=resfs/src//py_modules/yatest_lib.tools" "_85a26ec9ddd5ed8d9bc6034ebb=/py_code/yatest_lib.tools" "_c87623df5866039855ef917da5=/py_modules/yatest_lib.ya" "_cc0f82942581b8bb88c875910f=resfs/src//py_modules/yatest_lib.ya" "_a9a030218cd217b5f1839ca8d9=/py_code/yatest_lib.ya"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,9 +102,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/yatest_lib/f3e07d3c9bca49ded4cc844ee4.cpp	</Message>
+      <Message>$B/library/python/testing/yatest_lib/5c1b4b4552b340b982359b6ed4.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\f3e07d3c9bca49ded4cc844ee4.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\5c1b4b4552b340b982359b6ed4.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
