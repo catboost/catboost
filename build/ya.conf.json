@@ -9747,7 +9747,8 @@
         "devtools_license_analyzer_bundle": {
             "formula": {
                 "sandbox_id": [
-                    1042667929
+                    1044862346,
+                    1045761193
                 ],
                 "match": "license_analyzer"
             },
