@@ -3465,12 +3465,6 @@ struct hdsp_9632_aeb {
 #endif /* __SOUND_HDSP_H */
 
 
-====================GFDL-1.1-or-later====================
- * Any part of this program may be used in documents licensed under
- * the GNU Free Documentation License, Version 1.1 or any later version
- * published by the Free Software Foundation.
-
-
 ====================GPL-1.0-or-later WITH Linux-syscall-note====================
  		       Under the terms of the GNU General Public License
 
