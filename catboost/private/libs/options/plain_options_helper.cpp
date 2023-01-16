@@ -4,6 +4,7 @@
 #include "binarization_options.h"
 #include "plain_options_helper.h"
 #include "text_processing_options.h"
+#include "embedding_processing_options.h"
 
 #include <catboost/libs/logging/logging.h>
 
@@ -458,6 +459,9 @@ void NCatboostOptions::PlainJsonToOptions(
     auto& textProcessingOptions = dataProcessingOptions["text_processing_options"];
     ParseTextProcessingOptionsFromPlainJson(plainOptions, &textProcessingOptions, &seenKeys);
 
+    auto& embeddingProcessingOptions = dataProcessingOptions["embedding_processing_options"];
+    ParseEmbeddingProcessingOptionsFromPlainJson(plainOptions, &embeddingProcessingOptions, &seenKeys);
+
     //system
     auto& systemOptions = trainOptions["system_options"];
     systemOptions.SetType(NJson::JSON_MAP);
@@ -883,6 +887,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         seenKeys.insert("text_processing_options");
         DeleteSeenOption(&optionsCopyDataProcessing, "text_processing_options");
 
+        SaveEmbeddingProcessingOptionsToPlainJson(dataProcessingOptions["embedding_processing_options"], &plainOptionsJson);
+        seenKeys.insert("embedding_processing_options");
+        DeleteSeenOption(&optionsCopyDataProcessing, "embedding_processing_options");
+
         CopyOption(dataProcessingOptions, "dev_leafwise_scoring", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "dev_leafwise_scoring");
 
@@ -986,7 +994,8 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 void NCatboostOptions::CleanPlainJson(
     bool hasCatFeatures,
     NJson::TJsonValue* plainOptionsJsonEfficient,
-    bool hasTextFeatures
+    bool hasTextFeatures,
+    bool hasEmbeddingFeatures
 ) {
 
     CB_ENSURE(!plainOptionsJsonEfficient->GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty");
@@ -1044,6 +1053,12 @@ void NCatboostOptions::CleanPlainJson(
         DeleteSeenOption(plainOptionsJsonEfficient, "feature_calcers");
         DeleteSeenOption(plainOptionsJsonEfficient, "text_processing");
     }
+
+    if (!hasEmbeddingFeatures) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "embedding_calcers");
+        DeleteSeenOption(plainOptionsJsonEfficient, "embedding_processing");
+    }
+
     TVector<TStringBuf> keysToDelete;
     auto& map = plainOptionsJsonEfficient->GetMapSafe();
     for (const auto& [key, value] : map) {

@@ -15,6 +15,7 @@ SRCS(
     data_processing_options.cpp
     dataset_reading_params.cpp
     defaults_helper.cpp
+    embedding_processing_options.cpp
     enum_helpers.cpp
     feature_eval_options.cpp
     feature_penalties_options.cpp

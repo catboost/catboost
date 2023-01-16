@@ -140,6 +140,14 @@
             "1"
         ],
         "class_weights" : [ ],
+        "embedding_processing_options" : {
+            "embedding_processing" : {
+                "default" : [
+                    "LDA",
+                    "KNN"
+                ]
+            }
+        },
         "target_border" : null,
         "dev_leafwise_scoring" : false,
         "force_unit_auto_pair_weights" : false,

@@ -1136,19 +1136,33 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .Help("Comma separated list of feature calcers descriptions. Description should be written in format "
             "FeatureCalcerType[:optionName=optionValue][:optionName=optionValue]"
         ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
-            NJson::TJsonValue featureCalcers;
-            featureCalcers.SetType(NJson::EJsonValueType::JSON_ARRAY);
-            for (TStringBuf oneConfig : StringSplitter(descriptionLine).Split(',').SkipEmpty()) {
-                featureCalcers.AppendValue(oneConfig);
-            }
-            (*plainJsonPtr)["feature_calcers"] = featureCalcers;
+            ParseDigitizerDescriptions(descriptionLine, "calcer_type", &(*plainJsonPtr)["feature_calcers"]);
         });
 
     parser.AddLongOption("text-processing")
         .RequiredArgument("{...}")
-        .Help("Text processging json.")
+        .Help("Text processing json.")
         .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
             NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
+        });
+}
+
+static void BindEmbeddingFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+
+    parser.AddLongOption("embedding-calcers")
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of feature calcers descriptions. Description should be written in format "
+              "FeatureCalcerType[:optionName=optionValue][:optionName=optionValue]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            ParseDigitizerDescriptions(descriptionLine, "calcer_type", &(*plainJsonPtr)["embedding_calcers"]);
+        });
+
+    parser.AddLongOption("embedding-processing")
+        .RequiredArgument("{...}")
+        .Help("Embedding processing json.")
+        .Handler1T<TString>([plainJsonPtr](const TString& embeddingProcessingLine) {
+            NJson::ReadJsonTree(embeddingProcessingLine, &(*plainJsonPtr)["embedding_processing"]);
         });
 }
 
@@ -1461,6 +1475,8 @@ void ParseCommandLine(int argc, const char* argv[],
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
 
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
+
     BindDataProcessingParams(&parser, plainJsonPtr);
 
     BindBinarizationParams(&parser, plainJsonPtr);
@@ -1504,6 +1520,8 @@ void ParseModelBasedEvalCommandLine(
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
 
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
+
     BindDataProcessingParams(&parser, plainJsonPtr);
 
     BindBinarizationParams(&parser, plainJsonPtr);
@@ -1546,6 +1564,8 @@ void ParseFeatureEvalCommandLine(
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
 
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
+
     BindDataProcessingParams(&parser, plainJsonPtr);
 
     BindBinarizationParams(&parser, plainJsonPtr);
@@ -1587,6 +1607,8 @@ void ParseFeaturesSelectCommandLine(
     BindCatFeatureParams(&parser, plainJsonPtr);
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
+
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
 
     BindDataProcessingParams(&parser, plainJsonPtr);
 

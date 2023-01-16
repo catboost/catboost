@@ -4,7 +4,7 @@
 #include "enums.h"
 #include "binarization_options.h"
 #include "text_processing_options.h"
-#include "runtime_embedding_options.h"
+#include "embedding_processing_options.h"
 #include "unimplemented_aware_option.h"
 
 #include <catboost/libs/helpers/sparse_array.h>
