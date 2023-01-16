@@ -27,7 +27,7 @@ import os
 import select
 import selectors
 import threading
-from asyncio import AbstractEventLoop, get_event_loop
+from asyncio import AbstractEventLoop
 from selectors import BaseSelector, SelectorKey
 from typing import (
     TYPE_CHECKING,
@@ -41,6 +41,8 @@ from typing import (
 )
 
 from prompt_toolkit.utils import is_windows
+
+from .utils import get_event_loop
 
 __all__ = [
     "new_eventloop_with_inputhook",
