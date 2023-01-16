@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(2021-06-07-87039c048c0cbc3d8cbba86187269b006bf2f373)
+VERSION(2021-08-17)
 
-ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/87039c048c0cbc3d8cbba86187269b006bf2f373.tar.gz)
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/f0fcd42495432670664a661e75e7cae7e904dd3e.tar.gz)
 
 LICENSE(
     Apache-2.0 AND
@@ -19,8 +19,8 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     contrib/libs/cxxsupp/libcxxabi/include
-    contrib/libs/cxxsupp/libcxx
     contrib/libs/cxxsupp/libcxx/include
+    contrib/libs/cxxsupp/libcxx
 )
 
 NO_COMPILER_WARNINGS()
