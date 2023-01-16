@@ -27,11 +27,11 @@ NO_PLATFORM()
 
 NO_UTIL()
 
+NO_LTO()
+
 CFLAGS(
     -fno-exceptions
 )
-
-SET_APPEND(CFLAGS -fno-lto)
 
 COMPILE_C_AS_CXX()
 
