@@ -67,11 +67,6 @@ decltype(auto) Visit(F&& f, const std::variant<Ts...>&& v) {
     return std::visit(std::forward<F>(f), std::move(v));
 }
 
-template <class T, class... Ts>
-constexpr bool HoldsAlternative(const std::variant<Ts...>& v) noexcept {
-    return std::holds_alternative<T>(v);
-}
-
 template <size_t I, class... Ts>
 decltype(auto) Get(std::variant<Ts...>& v) {
     return std::get<I>(v);
