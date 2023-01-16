@@ -82,6 +82,7 @@ from .backend.context import cpu_count
 from .backend.queues import Queue, SimpleQueue
 from .backend.reduction import set_loky_pickler, get_loky_pickler_name
 from .backend.utils import recursive_terminate, get_exitcodes_terminated_worker
+from .initializers import _prepare_initializer
 
 try:
     from concurrent.futures.process import BrokenProcessPool as _BPPException
@@ -115,7 +116,9 @@ try:
         if force_gc:
             gc.collect()
 
-        return Process(pid).memory_info().rss
+        mem_size = Process(pid).memory_info().rss
+        mp.util.debug('psutil return memory size: {}'.format(mem_size))
+        return mem_size
 
 except ImportError:
     _USE_PSUTIL = False
@@ -421,11 +424,13 @@ def _process_worker(call_queue, result_queue, initializer, initargs,
                 # If we cannot format correctly the exception, at least print
                 # the traceback.
                 print(previous_tb)
+            mp.util.debug('Exiting with code 1')
             sys.exit(1)
         if call_item is None:
             # Notify queue management thread about clean worker shutdown
             result_queue.put(pid)
             with worker_exit_lock:
+                mp.util.debug('Exited cleanly')
                 return
         try:
             r = call_item()
@@ -467,6 +472,7 @@ def _process_worker(call_queue, result_queue, initializer, initargs,
                 mp.util.info("Memory leak detected: shutting down worker")
                 result_queue.put(pid)
                 with worker_exit_lock:
+                    mp.util.debug('Exit due to memory leak')
                     return
         else:
             # if psutil is not installed, trigger gc.collect events
@@ -542,7 +548,9 @@ class _ExecutorManagerThread(threading.Thread):
         # of new processes or shut down
         self.processes_management_lock = executor._processes_management_lock
 
-        super(_ExecutorManagerThread, self).__init__()
+        super(_ExecutorManagerThread, self).__init__(
+            name="ExecutorManagerThread"
+        )
         if sys.version_info < (3, 9):
             self.daemon = True
 
@@ -645,7 +653,13 @@ class _ExecutorManagerThread(threading.Thread):
                 # unstable, therefore they are not appended in the exception
                 # message.
                 exit_codes = "\nThe exit codes of the workers are {}".format(
-                    get_exitcodes_terminated_worker(self.processes))
+                    get_exitcodes_terminated_worker(self.processes)
+                )
+            mp.util.debug('A worker unexpectedly terminated. Workers that '
+                          'might have caused the breakage: '
+                          + str({p.name: p.exitcode
+                                 for p in list(self.processes.values())
+                                 if p is not None and p.sentinel in ready}))
             bpe = TerminatedWorkerError(
                 "A worker process managed by the executor was unexpectedly "
                 "terminated. This could be caused by a segmentation fault "
@@ -733,7 +747,7 @@ class _ExecutorManagerThread(threading.Thread):
 
         # Terminate remaining workers forcibly: the queues or their
         # locks may be in a dirty state and block forever.
-        self.kill_workers()
+        self.kill_workers(reason="broken executor")
 
         # clean up resources
         self.join_executor_internals()
@@ -753,15 +767,16 @@ class _ExecutorManagerThread(threading.Thread):
                 del work_item
 
             # Kill the remaining worker forcibly to no waste time joining them
-            self.kill_workers()
+            self.kill_workers(reason="executor shutting down")
 
-    def kill_workers(self):
+    def kill_workers(self, reason=''):
         # Terminate the remaining workers using SIGKILL. This function also
         # terminates descendant workers of the children in case there is some
         # nested parallelism.
         while self.processes:
             _, p = self.processes.popitem()
-            mp.util.debug('terminate process {}'.format(p.name))
+            mp.util.debug("terminate process {}, reason: {}"
+                          .format(p.name, reason))
             try:
                 recursive_terminate(p)
             except ProcessLookupError:  # pragma: no cover
@@ -964,11 +979,9 @@ class ProcessPoolExecutor(_base.Executor):
         self._context = context
         self._env = env
 
-        if initializer is not None and not callable(initializer):
-            raise TypeError("initializer must be a callable")
-        self._initializer = initializer
-        self._initargs = initargs
-
+        self._initializer, self._initargs = _prepare_initializer(
+            initializer, initargs
+        )
         _check_max_depth(self._context)
 
         if result_reducers is None:
@@ -1152,7 +1165,8 @@ class ProcessPoolExecutor(_base.Executor):
 
         results = super(ProcessPoolExecutor, self).map(
             partial(_process_chunk, fn), _get_chunks(chunksize, *iterables),
-            timeout=timeout)
+            timeout=timeout
+        )
         return _chain_from_iterable_of_lists(results)
 
     def shutdown(self, wait=True, kill_workers=False):

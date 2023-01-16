@@ -170,4 +170,4 @@ def main():
     from_parent.close()
 
     exitcode = self._bootstrap()
-    exit(exitcode)
+    sys.exit(exitcode)

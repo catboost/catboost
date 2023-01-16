@@ -60,23 +60,29 @@ class SemLock(object):
 
     _rand = tempfile._RandomNameSequence()
 
-    def __init__(self, kind, value, maxvalue):
+    def __init__(self, kind, value, maxvalue, name=None):
         # unlink_now is only used on win32 or when we are using fork.
         unlink_now = False
-        for i in range(100):
-            try:
-                self._semlock = _SemLock(
-                    kind, value, maxvalue, SemLock._make_name(),
-                    unlink_now)
-            except FileExistsError:  # pragma: no cover
-                pass
-            else:
-                break
-        else:  # pragma: no cover
-            raise FileExistsError('cannot find name for semaphore')
-
+        if name is None:
+            # Try to find an unused name for the SemLock instance.
+            for i in range(100):
+                try:
+                    self._semlock = _SemLock(
+                        kind, value, maxvalue, SemLock._make_name(), unlink_now
+                    )
+                except FileExistsError:  # pragma: no cover
+                    pass
+                else:
+                    break
+            else:  # pragma: no cover
+                raise FileExistsError('cannot find name for semaphore')
+        else:
+            self._semlock = _SemLock(
+                kind, value, maxvalue, name, unlink_now
+            )
+        self.name = name
         util.debug('created semlock with handle %s and name "%s"'
-                   % (self._semlock.handle, self._semlock.name))
+                   % (self._semlock.handle, self.name))
 
         self._make_methods()
 

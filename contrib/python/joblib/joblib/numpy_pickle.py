@@ -20,6 +20,7 @@ from .compressor import (ZlibCompressorWrapper, GzipCompressorWrapper,
 from .numpy_pickle_utils import Unpickler, Pickler
 from .numpy_pickle_utils import _read_fileobject, _write_fileobject
 from .numpy_pickle_utils import _read_bytes, BUFFER_SIZE
+from .numpy_pickle_utils import _ensure_native_byte_order
 from .numpy_pickle_compat import load_compatibility
 from .numpy_pickle_compat import NDArrayWrapper
 # For compatibility with old versions of joblib, we need ZNDArrayWrapper
@@ -147,7 +148,8 @@ class NumpyArrayWrapper(object):
             else:
                 array.shape = self.shape
 
-        return array
+        # Detect byte order mis-match and swap as needed.
+        return _ensure_native_byte_order(array)
 
     def read_mmap(self, unpickler):
         """Read an array using numpy memmap."""
