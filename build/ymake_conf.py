@@ -594,6 +594,7 @@ class Build(object):
             cxx_compiler = subprocess.check_output(['xcrun', '--find', 'clang++']).strip()
             detector.detect(c_compiler, cxx_compiler)
             emit('LOCAL_XCODE_TOOLS', 'yes')
+            emit('XCODE', 'yes')
             emit('ACTOOL_PATH', subprocess.check_output(['xcrun', '--find', 'actool']).strip())
             emit('IBTOOL_PATH', subprocess.check_output(['xcrun', '--find', 'ibtool']).strip())
         elif type_ == 'system_cxx':
@@ -1272,10 +1273,12 @@ class GnuToolchain(Toolchain):
             elif self.tc.is_local:
                 if target.is_apple:
                     if target.is_ios:
-                        self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                        ios_sdk = subprocess.check_output(['xcrun', '--show-sdk-path', '-sdk', 'iphoneos'])
+                        self.setup_sdk(project='build/platform/ios_sdk', var='{}'.format(ios_sdk))
                         self.platform_projects.append('build/platform/macos_system_stl')
                     if target.is_macos:
-                        self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+                        macos_sdk = subprocess.check_output(['xcrun', '--show-sdk-path', '-sdk', 'macosx'])
+                        self.setup_sdk(project='build/platform/macos_sdk', var='{}'.format(macos_sdk))
                         self.platform_projects.append('build/platform/macos_system_stl')
 
     def setup_sdk(self, project, var):
