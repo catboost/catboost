@@ -1015,6 +1015,9 @@ ALLOW .* -> vendor/github.com/godror/godror
 # CONTRIB-2439
 ALLOW .* -> vendor/github.com/elimity-com/scim
 
+# CONTRIB-2445
+ALLOW psp -> vendor/github.com/zimmski/go-mutesting
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
