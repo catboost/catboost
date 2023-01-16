@@ -654,7 +654,7 @@ struct TSerializer<std::variant<Args...>> {
 
     static void Save(IOutputStream* os, const TVar& v) {
         ::Save<ui8>(os, v.index());
-        Visit([os](const auto& data) {
+        std::visit([os](const auto& data) {
             ::Save(os, data);
         }, v);
     }

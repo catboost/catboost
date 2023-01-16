@@ -411,7 +411,7 @@ private:
         TBufferStream s;
         ::Save(&s, v);
         ::Load(&s, v);
-        UNIT_ASSERT_VALUES_EQUAL(Get<T>(v), expected);
+        UNIT_ASSERT_VALUES_EQUAL(std::get<T>(v), expected);
     }
 
     void TestVariant() {
