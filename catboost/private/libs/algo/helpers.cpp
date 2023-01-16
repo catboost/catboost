@@ -93,9 +93,7 @@ TVector<TEmbeddingFeature> CreateEmbeddingFeatures(const NCB::TFeaturesLayout& f
 
 void ConfigureMalloc() {
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
-    if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
-        CATBOOST_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
-    }
+    NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000");
 #endif
 }
 
