@@ -16,7 +16,6 @@ namespace NCoro::NStack {
     class TStorage final {
     public:
         TStorage(TContExecutor* executor, uint64_t stackSize, uint64_t rssPagesToKeep);
-        ~TStorage();
 
         bool IsEmpty() const noexcept;
         uint64_t Size() const noexcept;
@@ -27,14 +26,11 @@ namespace NCoro::NStack {
 
     private:
         void ReleaseMemory(char* alignedStackMemory, uint64_t pagesToKeep) noexcept;
-        void CheckReleaseCoro();
-        void RunReleaseCoro(TCont*) noexcept;
 
     private:
         TContExecutor* Executor_ = nullptr;
         TDeque<void*> Released_; //!< stacks memory with released RSS memory
         TDeque<void*> Full_;     //!< stacks memory with RSS memory
-        TCont* ReleaseCoro_ = nullptr;
         uint64_t StackSize_ = 0;
         uint64_t RssPagesToKeep_ = 0;
     };
