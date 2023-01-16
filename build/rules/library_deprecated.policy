@@ -10,10 +10,6 @@ ALLOW statbox/python-statinfra -> library/python/clickhouse_client
 ALLOW quality/ab_testing/cofe/bin/lib/files/py2/cofe_kernel_yql -> library/python/clickhouse_client
 DENY .* -> library/python/clickhouse_client
 
-# ticket_parser2
-# TODO: drop temporary rule with entire library: PASSP-30786
-DENY .* -> library/java/ticket_parser2
-
 # please use https://a.yandex-team.ru/arc/trunk/arcadia/library/python/tvmauth instead
 # https://clubs.at.yandex-team.ru/passport/3619
 ALLOW addappter/backend/addappter -> library/python/deprecated/ticket_parser2
