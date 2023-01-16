@@ -1023,6 +1023,9 @@ ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/openapiv3
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/compiler
 ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
 
+# CONTRIB-2423
+ALLOW .* -> vendor/github.com/godror/godror
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
