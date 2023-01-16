@@ -2074,7 +2074,6 @@ migrations:
     - ipreg/geogen-www/app/slow_search
     - ipreg/python/ipreg-diff/executive
     - ipreg/python/util
-    - juggler/sdk/juggler_sdk
     - keyboard/dict/learn_transfemes/pt_converter
     - keyboard/dict/learn_transfemes/word_aligner
     - keyboard/dict/lemmer_filter
@@ -3727,7 +3726,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/user/resources
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/yauth
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ydb
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/zen
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/actions/tasks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/boards
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/comments
@@ -3751,7 +3749,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/sb
     - yweb/yasap/pdb/pdb-backend/tests/lib/videosearch
     - yweb/yasap/pdb/pdb-backend/tests/lib/ydb
-    - yweb/yasap/pdb/pdb-backend/tests/lib/zen
     - yweb/yasap/pdb/quality/profile/action_v2/rtmr/tests
     - yweb/yasap/pdb/quality/profile/fresh_profiles/event_log_converter_rtmr/tests
     - yweb/yasap/pdb/quality/profile/redir_actions/rtmr_redir_actions/tests
