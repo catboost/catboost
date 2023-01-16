@@ -15,7 +15,6 @@ static inline void Throw2DontMove() {
 #include <util/random/mersenne.h>
 #include <util/stream/output.h>
 #include <util/string/subst.h>
-//#include <util/system/platform.h>
 
 #include "yexception_ut.h"
 #include "bt_exception.h"
