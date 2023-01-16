@@ -7303,7 +7303,10 @@
         },
         "appteka": {
             "formula": {
-                "sandbox_id": 1186598996,
+                "sandbox_id": [
+                    1186598996,
+                    1189804908
+                ],
                 "match": "appteka"
             },
             "executable": {
