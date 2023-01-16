@@ -20,7 +20,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>EmptyStaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
@@ -77,183 +77,7 @@
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\_b9599b7cd2c262d6cd74ac5f3a.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_b9599b7cd2c262d6cd74ac5f3a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_b9599b7cd2c262d6cd74ac5f3a.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/__init__.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/__init__.py.dbcb.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/_tracing.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_tracing.py.mbz3.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/_version.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_version.py.iyaq.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/callers.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/callers.py.qx2l.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/hooks.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/hooks.py.k56u.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/manager.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/manager.py.dv55.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/__init__.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/__init__.py.dbcb.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/_tracing.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_tracing.py.mbz3.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/_version.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_version.py.iyaq.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/callers.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/callers.py.qx2l.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/hooks.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/hooks.py.k56u.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pluggy/pluggy/manager.py-" "$(SolutionDir)../contrib/python/pluggy/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/manager.py.dv55.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/pluggy/__init__.py.dbcb.yapyc	$B/contrib/python/pluggy/pluggy/_tracing.py.mbz3.yapyc	$B/contrib/python/pluggy/pluggy/_version.py.iyaq.yapyc	$B/contrib/python/pluggy/pluggy/callers.py.qx2l.yapyc	$B/contrib/python/pluggy/pluggy/hooks.py.k56u.yapyc	$B/contrib/python/pluggy/pluggy/manager.py.dv55.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\__init__.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\_tracing.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\_version.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\callers.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\hooks.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\manager.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\__init__.py.dbcb.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\_tracing.py.mbz3.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\_version.py.iyaq.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\callers.py.qx2l.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\hooks.py.k56u.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\manager.py.dv55.yapyc;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\.dist-info\METADATA">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm" "-" "contrib/python/pluggy/.dist-info/METADATA" "_64e24082b238b72bb0382b014d.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_d07971e4a40b39a63bc6b0c232.rodata" "-" "contrib/python/pluggy/.dist-info/top_level.txt" "_8aa4916de97b738f7a8e444eb4.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_3b369e7878c728c5ae1c687354.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm" "-" "contrib/python/pluggy/.dist-info/METADATA" "_64e24082b238b72bb0382b014d.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_d07971e4a40b39a63bc6b0c232.rodata" "-" "contrib/python/pluggy/.dist-info/top_level.txt" "_8aa4916de97b738f7a8e444eb4.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_3b369e7878c728c5ae1c687354.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pluggy\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.yasm;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_d07971e4a40b39a63bc6b0c232.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_3b369e7878c728c5ae1c687354.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\pluggy\__init__.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.yasm" "$(SolutionDir)../contrib/python/pluggy/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_d94af1076d23c3ca3246af41d3.rodata" "-" "contrib/python/pluggy/pluggy/__init__.py" "_3407912912fcd8d7c608996a4a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/__init__.py.dbcb.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_21ba672561320b42882d97e65a.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_272f27981879f00847ee2d41fe.rodata" "-" "contrib/python/pluggy/pluggy/_tracing.py" "_fcdb4fb223fa546fb279a7db04.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_tracing.py.mbz3.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_5f393d38e85202fadf5f8e3eb7.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_73ca20b68d35b7b1c548b7e4ef.rodata" "-" "contrib/python/pluggy/pluggy/_version.py" "_368a37298411de6a1d73329b02.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_version.py.iyaq.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_e75837926543c35e9dc4d0b52c.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_3494e892239585676f9ea19647.rodata" "-" "contrib/python/pluggy/pluggy/callers.py" "_cf2b5c30c340d537512b8d6e8c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/callers.py.qx2l.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_12ec5844f68ce2bec133e177f1.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_1258781cca5cdc9042f96407c9.rodata" "-" "contrib/python/pluggy/pluggy/hooks.py" "_8bc353d0e2bc4a8447fd7ee90e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/hooks.py.k56u.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_5877b74899a48bd6d1ccb5e87e.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_60e43d3d0125ba1d695e23fe47.rodata" "-" "contrib/python/pluggy/pluggy/manager.py" "_1449ee421503680031e53299a4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/manager.py.dv55.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_1f75b51459bd7ee4b8530b5cfd.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.yasm" "$(SolutionDir)../contrib/python/pluggy/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_d94af1076d23c3ca3246af41d3.rodata" "-" "contrib/python/pluggy/pluggy/__init__.py" "_3407912912fcd8d7c608996a4a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/__init__.py.dbcb.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_21ba672561320b42882d97e65a.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_272f27981879f00847ee2d41fe.rodata" "-" "contrib/python/pluggy/pluggy/_tracing.py" "_fcdb4fb223fa546fb279a7db04.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_tracing.py.mbz3.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_5f393d38e85202fadf5f8e3eb7.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_73ca20b68d35b7b1c548b7e4ef.rodata" "-" "contrib/python/pluggy/pluggy/_version.py" "_368a37298411de6a1d73329b02.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/_version.py.iyaq.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_e75837926543c35e9dc4d0b52c.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_3494e892239585676f9ea19647.rodata" "-" "contrib/python/pluggy/pluggy/callers.py" "_cf2b5c30c340d537512b8d6e8c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/callers.py.qx2l.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_12ec5844f68ce2bec133e177f1.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_1258781cca5cdc9042f96407c9.rodata" "-" "contrib/python/pluggy/pluggy/hooks.py" "_8bc353d0e2bc4a8447fd7ee90e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/hooks.py.k56u.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_5877b74899a48bd6d1ccb5e87e.rodata" "$(SolutionDir)../contrib/python/pluggy/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_60e43d3d0125ba1d695e23fe47.rodata" "-" "contrib/python/pluggy/pluggy/manager.py" "_1449ee421503680031e53299a4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/pluggy/manager.py.dv55.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_1f75b51459bd7ee4b8530b5cfd.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/_b9599b7cd2c262d6cd74ac5f3a.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\pluggy\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\__init__.py.dbcb.yapyc;$(SolutionDir)..\contrib\python\pluggy\pluggy\_tracing.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\_tracing.py.mbz3.yapyc;$(SolutionDir)..\contrib\python\pluggy\pluggy\_version.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\_version.py.iyaq.yapyc;$(SolutionDir)..\contrib\python\pluggy\pluggy\callers.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\callers.py.qx2l.yapyc;$(SolutionDir)..\contrib\python\pluggy\pluggy\hooks.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\hooks.py.k56u.yapyc;$(SolutionDir)..\contrib\python\pluggy\pluggy\manager.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\manager.py.dv55.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_b9599b7cd2c262d6cd74ac5f3a.yasm;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_d94af1076d23c3ca3246af41d3.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_21ba672561320b42882d97e65a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_272f27981879f00847ee2d41fe.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_5f393d38e85202fadf5f8e3eb7.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_73ca20b68d35b7b1c548b7e4ef.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_e75837926543c35e9dc4d0b52c.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_3494e892239585676f9ea19647.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_12ec5844f68ce2bec133e177f1.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_1258781cca5cdc9042f96407c9.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_5877b74899a48bd6d1ccb5e87e.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_60e43d3d0125ba1d695e23fe47.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_1f75b51459bd7ee4b8530b5cfd.rodata;</Outputs>
-    </CustomBuild>
-  </ItemGroup>
+  <ItemGroup/>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
@@ -314,6 +138,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
       <Project>{09B94D29-C8D9-195E-BE7A-2CF5517C1312}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py2\pypython-pluggy-py2.vcxproj">
+      <Project>{263E9EDB-3237-E79D-CC9D-E38EC633C24F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
       <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
     </ProjectReference>
@@ -331,9 +158,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
-      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
       <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
@@ -361,12 +185,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
-      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
-      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
