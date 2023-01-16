@@ -10,6 +10,7 @@ ADDINCL(
     contrib/python/numpy/include/numpy/core/include/numpy
     contrib/python/numpy/include/numpy/core/src/common
     contrib/python/numpy/include/numpy/core/src/npymath
+    contrib/python/numpy/include/numpy/distutils/include
     contrib/python/numpy/include/numpy/random
 )
 
@@ -25,23 +26,31 @@ CFLAGS(
 )
 
 SRCS(
-    src/distributions/logfactorial.c
     src/distributions/distributions.c
+    src/distributions/logfactorial.c
+    src/distributions/random_hypergeometric.c
     src/distributions/random_mvhg_count.c
     src/distributions/random_mvhg_marginals.c
-    src/distributions/random_hypergeometric.c
     src/legacy/legacy-distributions.c
-    src/mt19937/mt19937.c
     src/mt19937/mt19937-jump.c
-    src/philox/philox.c
+    src/mt19937/mt19937.c
     src/pcg64/pcg64.c
+    src/philox/philox.c
     src/sfc64/sfc64.c
 )
 
 PY_SRCS(
     NAMESPACE numpy.random
     __init__.py
+    __init__.pyi
+    _generator.pyi
+    _mt19937.pyi
+    _pcg64.pyi
+    _philox.pyi
     _pickle.py
+    _sfc64.pyi
+    bit_generator.pyi
+    mtrand.pyi
 
     CYTHON_C
     _bounded_integers.pyx

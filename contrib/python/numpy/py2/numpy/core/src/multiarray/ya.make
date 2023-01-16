@@ -23,6 +23,7 @@ ADDINCL(
     contrib/python/numpy/include/numpy/core/src/multiarray
     contrib/python/numpy/include/numpy/core/src/npymath
     contrib/python/numpy/include/numpy/core/src/umath
+    contrib/python/numpy/include/numpy/distutils/include
 )
 
 SRCS(

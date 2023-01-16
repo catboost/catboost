@@ -46,7 +46,7 @@ nth_byte_bool(npy_ubyte key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ubyte*
+static npy_ubyte*
 radixsort0_bool(npy_ubyte *arr, npy_ubyte *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ubyte)][1 << 8] = { { 0 } };
@@ -95,7 +95,7 @@ radixsort0_bool(npy_ubyte *arr, npy_ubyte *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_bool(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -136,7 +136,7 @@ radixsort_bool(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_bool(npy_ubyte *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ubyte)][1 << 8] = { { 0 } };
@@ -185,7 +185,7 @@ aradixsort0_bool(npy_ubyte *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_bool(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -254,7 +254,7 @@ nth_byte_byte(npy_ubyte key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ubyte*
+static npy_ubyte*
 radixsort0_byte(npy_ubyte *arr, npy_ubyte *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ubyte)][1 << 8] = { { 0 } };
@@ -303,7 +303,7 @@ radixsort0_byte(npy_ubyte *arr, npy_ubyte *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_byte(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -344,7 +344,7 @@ radixsort_byte(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_byte(npy_ubyte *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ubyte)][1 << 8] = { { 0 } };
@@ -393,7 +393,7 @@ aradixsort0_byte(npy_ubyte *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_byte(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -462,7 +462,7 @@ nth_byte_ubyte(npy_ubyte key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ubyte*
+static npy_ubyte*
 radixsort0_ubyte(npy_ubyte *arr, npy_ubyte *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ubyte)][1 << 8] = { { 0 } };
@@ -511,7 +511,7 @@ radixsort0_ubyte(npy_ubyte *arr, npy_ubyte *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_ubyte(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -552,7 +552,7 @@ radixsort_ubyte(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_ubyte(npy_ubyte *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ubyte)][1 << 8] = { { 0 } };
@@ -601,7 +601,7 @@ aradixsort0_ubyte(npy_ubyte *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_ubyte(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -670,7 +670,7 @@ nth_byte_short(npy_ushort key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ushort*
+static npy_ushort*
 radixsort0_short(npy_ushort *arr, npy_ushort *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ushort)][1 << 8] = { { 0 } };
@@ -719,7 +719,7 @@ radixsort0_short(npy_ushort *arr, npy_ushort *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_short(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -760,7 +760,7 @@ radixsort_short(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_short(npy_ushort *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ushort)][1 << 8] = { { 0 } };
@@ -809,7 +809,7 @@ aradixsort0_short(npy_ushort *arr, npy_intp *aux, npy_intp *tosort, npy_intp num
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_short(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -878,7 +878,7 @@ nth_byte_ushort(npy_ushort key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ushort*
+static npy_ushort*
 radixsort0_ushort(npy_ushort *arr, npy_ushort *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ushort)][1 << 8] = { { 0 } };
@@ -927,7 +927,7 @@ radixsort0_ushort(npy_ushort *arr, npy_ushort *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_ushort(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -968,7 +968,7 @@ radixsort_ushort(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_ushort(npy_ushort *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ushort)][1 << 8] = { { 0 } };
@@ -1017,7 +1017,7 @@ aradixsort0_ushort(npy_ushort *arr, npy_intp *aux, npy_intp *tosort, npy_intp nu
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_ushort(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -1086,7 +1086,7 @@ nth_byte_int(npy_uint key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_uint*
+static npy_uint*
 radixsort0_int(npy_uint *arr, npy_uint *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_uint)][1 << 8] = { { 0 } };
@@ -1135,7 +1135,7 @@ radixsort0_int(npy_uint *arr, npy_uint *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_int(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -1176,7 +1176,7 @@ radixsort_int(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_int(npy_uint *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_uint)][1 << 8] = { { 0 } };
@@ -1225,7 +1225,7 @@ aradixsort0_int(npy_uint *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_int(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -1294,7 +1294,7 @@ nth_byte_uint(npy_uint key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_uint*
+static npy_uint*
 radixsort0_uint(npy_uint *arr, npy_uint *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_uint)][1 << 8] = { { 0 } };
@@ -1343,7 +1343,7 @@ radixsort0_uint(npy_uint *arr, npy_uint *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_uint(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -1384,7 +1384,7 @@ radixsort_uint(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_uint(npy_uint *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_uint)][1 << 8] = { { 0 } };
@@ -1433,7 +1433,7 @@ aradixsort0_uint(npy_uint *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_uint(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -1502,7 +1502,7 @@ nth_byte_long(npy_ulong key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ulong*
+static npy_ulong*
 radixsort0_long(npy_ulong *arr, npy_ulong *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulong)][1 << 8] = { { 0 } };
@@ -1551,7 +1551,7 @@ radixsort0_long(npy_ulong *arr, npy_ulong *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_long(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -1592,7 +1592,7 @@ radixsort_long(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_long(npy_ulong *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulong)][1 << 8] = { { 0 } };
@@ -1641,7 +1641,7 @@ aradixsort0_long(npy_ulong *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_long(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -1710,7 +1710,7 @@ nth_byte_ulong(npy_ulong key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ulong*
+static npy_ulong*
 radixsort0_ulong(npy_ulong *arr, npy_ulong *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulong)][1 << 8] = { { 0 } };
@@ -1759,7 +1759,7 @@ radixsort0_ulong(npy_ulong *arr, npy_ulong *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_ulong(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -1800,7 +1800,7 @@ radixsort_ulong(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_ulong(npy_ulong *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulong)][1 << 8] = { { 0 } };
@@ -1849,7 +1849,7 @@ aradixsort0_ulong(npy_ulong *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_ulong(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -1918,7 +1918,7 @@ nth_byte_longlong(npy_ulonglong key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ulonglong*
+static npy_ulonglong*
 radixsort0_longlong(npy_ulonglong *arr, npy_ulonglong *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulonglong)][1 << 8] = { { 0 } };
@@ -1967,7 +1967,7 @@ radixsort0_longlong(npy_ulonglong *arr, npy_ulonglong *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_longlong(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -2008,7 +2008,7 @@ radixsort_longlong(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_longlong(npy_ulonglong *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulonglong)][1 << 8] = { { 0 } };
@@ -2057,7 +2057,7 @@ aradixsort0_longlong(npy_ulonglong *arr, npy_intp *aux, npy_intp *tosort, npy_in
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_longlong(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;
@@ -2126,7 +2126,7 @@ nth_byte_ulonglong(npy_ulonglong key, npy_intp l) {
     return (key >> (l << 3)) & 0xFF;
 }
 
-npy_ulonglong*
+static npy_ulonglong*
 radixsort0_ulonglong(npy_ulonglong *arr, npy_ulonglong *aux, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulonglong)][1 << 8] = { { 0 } };
@@ -2175,7 +2175,7 @@ radixsort0_ulonglong(npy_ulonglong *arr, npy_ulonglong *aux, npy_intp num)
     return arr;
 }
 
-int
+NPY_NO_EXPORT int
 radixsort_ulonglong(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     void *sorted;
@@ -2216,7 +2216,7 @@ radixsort_ulonglong(void *start, npy_intp num, void *NPY_UNUSED(varr))
     return 0;
 }
 
-npy_intp*
+static npy_intp*
 aradixsort0_ulonglong(npy_ulonglong *arr, npy_intp *aux, npy_intp *tosort, npy_intp num)
 {
     npy_intp cnt[sizeof(npy_ulonglong)][1 << 8] = { { 0 } };
@@ -2265,7 +2265,7 @@ aradixsort0_ulonglong(npy_ulonglong *arr, npy_intp *aux, npy_intp *tosort, npy_i
     return tosort;
 }
 
-int
+NPY_NO_EXPORT int
 aradixsort_ulonglong(void *start, npy_intp* tosort, npy_intp num, void *NPY_UNUSED(varr))
 {
     npy_intp *sorted;

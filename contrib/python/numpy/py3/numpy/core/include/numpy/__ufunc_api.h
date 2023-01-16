@@ -10,7 +10,7 @@ NPY_NO_EXPORT  PyObject * PyUFunc_FromFuncAndData \
 NPY_NO_EXPORT  int PyUFunc_RegisterLoopForType \
        (PyUFuncObject *, int, PyUFuncGenericFunction, const int *, void *);
 NPY_NO_EXPORT  int PyUFunc_GenericFunction \
-       (PyUFuncObject *, PyObject *, PyObject *, PyArrayObject **);
+       (PyUFuncObject *NPY_UNUSED(ufunc), PyObject *NPY_UNUSED(args), PyObject *NPY_UNUSED(kwds), PyArrayObject **NPY_UNUSED(op));
 NPY_NO_EXPORT  void PyUFunc_f_f_As_d_d \
        (char **, npy_intp const *, npy_intp const *, void *);
 NPY_NO_EXPORT  void PyUFunc_d_d \
@@ -68,7 +68,7 @@ NPY_NO_EXPORT  int PyUFunc_ReplaceLoopBySignature \
 NPY_NO_EXPORT  PyObject * PyUFunc_FromFuncAndDataAndSignature \
        (PyUFuncGenericFunction *, void **, char *, int, int, int, int, const char *, const char *, int, const char *);
 NPY_NO_EXPORT  int PyUFunc_SetUsesArraysAsData \
-       (void **, size_t);
+       (void **NPY_UNUSED(data), size_t NPY_UNUSED(i));
 NPY_NO_EXPORT  void PyUFunc_e_e \
        (char **, npy_intp const *, npy_intp const *, void *);
 NPY_NO_EXPORT  void PyUFunc_e_e_As_f_f \
@@ -114,7 +114,7 @@ static void **PyUFunc_API=NULL;
         (*(int (*)(PyUFuncObject *, int, PyUFuncGenericFunction, const int *, void *)) \
          PyUFunc_API[2])
 #define PyUFunc_GenericFunction \
-        (*(int (*)(PyUFuncObject *, PyObject *, PyObject *, PyArrayObject **)) \
+        (*(int (*)(PyUFuncObject *NPY_UNUSED(ufunc), PyObject *NPY_UNUSED(args), PyObject *NPY_UNUSED(kwds), PyArrayObject **NPY_UNUSED(op))) \
          PyUFunc_API[3])
 #define PyUFunc_f_f_As_d_d \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
@@ -201,7 +201,7 @@ static void **PyUFunc_API=NULL;
         (*(PyObject * (*)(PyUFuncGenericFunction *, void **, char *, int, int, int, int, const char *, const char *, int, const char *)) \
          PyUFunc_API[31])
 #define PyUFunc_SetUsesArraysAsData \
-        (*(int (*)(void **, size_t)) \
+        (*(int (*)(void **NPY_UNUSED(data), size_t NPY_UNUSED(i))) \
          PyUFunc_API[32])
 #define PyUFunc_e_e \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \

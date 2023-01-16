@@ -42,12 +42,12 @@ typedef struct {
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_bool(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_bool(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -57,12 +57,12 @@ argbinsearch_left_bool(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_byte(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_byte(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -72,12 +72,12 @@ argbinsearch_left_byte(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_ubyte(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_ubyte(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -87,12 +87,12 @@ argbinsearch_left_ubyte(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_short(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_short(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -102,12 +102,12 @@ argbinsearch_left_short(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_ushort(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_ushort(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -117,12 +117,12 @@ argbinsearch_left_ushort(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_int(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_int(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -132,12 +132,12 @@ argbinsearch_left_int(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_uint(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_uint(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -147,12 +147,12 @@ argbinsearch_left_uint(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_long(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_long(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -162,12 +162,12 @@ argbinsearch_left_long(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_ulong(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_ulong(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -177,12 +177,12 @@ argbinsearch_left_ulong(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_longlong(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_longlong(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -192,12 +192,12 @@ argbinsearch_left_longlong(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_ulonglong(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_ulonglong(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -207,12 +207,12 @@ argbinsearch_left_ulonglong(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_half(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_half(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -222,12 +222,12 @@ argbinsearch_left_half(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_float(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_float(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -237,12 +237,12 @@ argbinsearch_left_float(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_double(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_double(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -252,12 +252,12 @@ argbinsearch_left_double(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_longdouble(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_longdouble(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -267,12 +267,12 @@ argbinsearch_left_longdouble(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_cfloat(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_cfloat(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -282,12 +282,12 @@ argbinsearch_left_cfloat(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_cdouble(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_cdouble(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -297,12 +297,12 @@ argbinsearch_left_cdouble(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_clongdouble(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_clongdouble(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -312,12 +312,12 @@ argbinsearch_left_clongdouble(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_datetime(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_datetime(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -327,12 +327,12 @@ argbinsearch_left_datetime(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_left_timedelta(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_left_timedelta(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -341,12 +341,12 @@ argbinsearch_left_timedelta(const char *arr, const char *key,
                            PyArrayObject *unused);
 
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 npy_binsearch_left(const char *arr, const char *key, char *ret,
                      npy_intp arr_len, npy_intp key_len,
                      npy_intp arr_str, npy_intp key_str,
                      npy_intp ret_str, PyArrayObject *cmp);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 npy_argbinsearch_left(const char *arr, const char *key,
                         const char *sort, char *ret,
                         npy_intp arr_len, npy_intp key_len,
@@ -358,12 +358,12 @@ npy_argbinsearch_left(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_bool(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_bool(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -373,12 +373,12 @@ argbinsearch_right_bool(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_byte(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_byte(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -388,12 +388,12 @@ argbinsearch_right_byte(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_ubyte(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_ubyte(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -403,12 +403,12 @@ argbinsearch_right_ubyte(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_short(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_short(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -418,12 +418,12 @@ argbinsearch_right_short(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_ushort(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_ushort(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -433,12 +433,12 @@ argbinsearch_right_ushort(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_int(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_int(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -448,12 +448,12 @@ argbinsearch_right_int(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_uint(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_uint(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -463,12 +463,12 @@ argbinsearch_right_uint(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_long(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_long(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -478,12 +478,12 @@ argbinsearch_right_long(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_ulong(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_ulong(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -493,12 +493,12 @@ argbinsearch_right_ulong(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_longlong(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_longlong(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -508,12 +508,12 @@ argbinsearch_right_longlong(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_ulonglong(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_ulonglong(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -523,12 +523,12 @@ argbinsearch_right_ulonglong(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_half(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_half(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -538,12 +538,12 @@ argbinsearch_right_half(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_float(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_float(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -553,12 +553,12 @@ argbinsearch_right_float(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_double(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_double(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -568,12 +568,12 @@ argbinsearch_right_double(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_longdouble(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_longdouble(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -583,12 +583,12 @@ argbinsearch_right_longdouble(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_cfloat(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_cfloat(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -598,12 +598,12 @@ argbinsearch_right_cfloat(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_cdouble(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_cdouble(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -613,12 +613,12 @@ argbinsearch_right_cdouble(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_clongdouble(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_clongdouble(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -628,12 +628,12 @@ argbinsearch_right_clongdouble(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_datetime(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_datetime(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -643,12 +643,12 @@ argbinsearch_right_datetime(const char *arr, const char *key,
 
 #line 42
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 binsearch_right_timedelta(const char *arr, const char *key, char *ret,
                         npy_intp arr_len, npy_intp key_len,
                         npy_intp arr_str, npy_intp key_str, npy_intp ret_str,
                         PyArrayObject *unused);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 argbinsearch_right_timedelta(const char *arr, const char *key,
                            const char *sort, char *ret,
                            npy_intp arr_len, npy_intp key_len,
@@ -657,12 +657,12 @@ argbinsearch_right_timedelta(const char *arr, const char *key,
                            PyArrayObject *unused);
 
 
-NPY_VISIBILITY_HIDDEN void
+NPY_NO_EXPORT void
 npy_binsearch_right(const char *arr, const char *key, char *ret,
                      npy_intp arr_len, npy_intp key_len,
                      npy_intp arr_str, npy_intp key_str,
                      npy_intp ret_str, PyArrayObject *cmp);
-NPY_VISIBILITY_HIDDEN int
+NPY_NO_EXPORT int
 npy_argbinsearch_right(const char *arr, const char *key,
                         const char *sort, char *ret,
                         npy_intp arr_len, npy_intp key_len,

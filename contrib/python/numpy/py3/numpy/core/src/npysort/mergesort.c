@@ -101,7 +101,7 @@ mergesort0_bool(npy_bool *pl, npy_bool *pr, npy_bool *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_bool(void *start, npy_intp num, void *NOT_USED)
 {
     npy_bool *pl, *pr, *pw;
@@ -164,7 +164,7 @@ amergesort0_bool(npy_intp *pl, npy_intp *pr, npy_bool *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_bool(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -227,7 +227,7 @@ mergesort0_byte(npy_byte *pl, npy_byte *pr, npy_byte *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_byte(void *start, npy_intp num, void *NOT_USED)
 {
     npy_byte *pl, *pr, *pw;
@@ -290,7 +290,7 @@ amergesort0_byte(npy_intp *pl, npy_intp *pr, npy_byte *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_byte(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -353,7 +353,7 @@ mergesort0_ubyte(npy_ubyte *pl, npy_ubyte *pr, npy_ubyte *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_ubyte(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ubyte *pl, *pr, *pw;
@@ -416,7 +416,7 @@ amergesort0_ubyte(npy_intp *pl, npy_intp *pr, npy_ubyte *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_ubyte(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -479,7 +479,7 @@ mergesort0_short(npy_short *pl, npy_short *pr, npy_short *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_short(void *start, npy_intp num, void *NOT_USED)
 {
     npy_short *pl, *pr, *pw;
@@ -542,7 +542,7 @@ amergesort0_short(npy_intp *pl, npy_intp *pr, npy_short *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_short(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -605,7 +605,7 @@ mergesort0_ushort(npy_ushort *pl, npy_ushort *pr, npy_ushort *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_ushort(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ushort *pl, *pr, *pw;
@@ -668,7 +668,7 @@ amergesort0_ushort(npy_intp *pl, npy_intp *pr, npy_ushort *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_ushort(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -731,7 +731,7 @@ mergesort0_int(npy_int *pl, npy_int *pr, npy_int *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_int(void *start, npy_intp num, void *NOT_USED)
 {
     npy_int *pl, *pr, *pw;
@@ -794,7 +794,7 @@ amergesort0_int(npy_intp *pl, npy_intp *pr, npy_int *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_int(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -857,7 +857,7 @@ mergesort0_uint(npy_uint *pl, npy_uint *pr, npy_uint *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_uint(void *start, npy_intp num, void *NOT_USED)
 {
     npy_uint *pl, *pr, *pw;
@@ -920,7 +920,7 @@ amergesort0_uint(npy_intp *pl, npy_intp *pr, npy_uint *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_uint(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -983,7 +983,7 @@ mergesort0_long(npy_long *pl, npy_long *pr, npy_long *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_long(void *start, npy_intp num, void *NOT_USED)
 {
     npy_long *pl, *pr, *pw;
@@ -1046,7 +1046,7 @@ amergesort0_long(npy_intp *pl, npy_intp *pr, npy_long *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_long(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1109,7 +1109,7 @@ mergesort0_ulong(npy_ulong *pl, npy_ulong *pr, npy_ulong *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_ulong(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ulong *pl, *pr, *pw;
@@ -1172,7 +1172,7 @@ amergesort0_ulong(npy_intp *pl, npy_intp *pr, npy_ulong *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_ulong(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1235,7 +1235,7 @@ mergesort0_longlong(npy_longlong *pl, npy_longlong *pr, npy_longlong *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_longlong(void *start, npy_intp num, void *NOT_USED)
 {
     npy_longlong *pl, *pr, *pw;
@@ -1298,7 +1298,7 @@ amergesort0_longlong(npy_intp *pl, npy_intp *pr, npy_longlong *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_longlong(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1361,7 +1361,7 @@ mergesort0_ulonglong(npy_ulonglong *pl, npy_ulonglong *pr, npy_ulonglong *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_ulonglong(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ulonglong *pl, *pr, *pw;
@@ -1424,7 +1424,7 @@ amergesort0_ulonglong(npy_intp *pl, npy_intp *pr, npy_ulonglong *v, npy_intp *pw
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_ulonglong(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1487,7 +1487,7 @@ mergesort0_half(npy_ushort *pl, npy_ushort *pr, npy_ushort *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_half(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ushort *pl, *pr, *pw;
@@ -1550,7 +1550,7 @@ amergesort0_half(npy_intp *pl, npy_intp *pr, npy_ushort *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_half(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1613,7 +1613,7 @@ mergesort0_float(npy_float *pl, npy_float *pr, npy_float *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_float(void *start, npy_intp num, void *NOT_USED)
 {
     npy_float *pl, *pr, *pw;
@@ -1676,7 +1676,7 @@ amergesort0_float(npy_intp *pl, npy_intp *pr, npy_float *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_float(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1739,7 +1739,7 @@ mergesort0_double(npy_double *pl, npy_double *pr, npy_double *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_double(void *start, npy_intp num, void *NOT_USED)
 {
     npy_double *pl, *pr, *pw;
@@ -1802,7 +1802,7 @@ amergesort0_double(npy_intp *pl, npy_intp *pr, npy_double *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_double(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1865,7 +1865,7 @@ mergesort0_longdouble(npy_longdouble *pl, npy_longdouble *pr, npy_longdouble *pw
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_longdouble(void *start, npy_intp num, void *NOT_USED)
 {
     npy_longdouble *pl, *pr, *pw;
@@ -1928,7 +1928,7 @@ amergesort0_longdouble(npy_intp *pl, npy_intp *pr, npy_longdouble *v, npy_intp *
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_longdouble(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -1991,7 +1991,7 @@ mergesort0_cfloat(npy_cfloat *pl, npy_cfloat *pr, npy_cfloat *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_cfloat(void *start, npy_intp num, void *NOT_USED)
 {
     npy_cfloat *pl, *pr, *pw;
@@ -2054,7 +2054,7 @@ amergesort0_cfloat(npy_intp *pl, npy_intp *pr, npy_cfloat *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_cfloat(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -2117,7 +2117,7 @@ mergesort0_cdouble(npy_cdouble *pl, npy_cdouble *pr, npy_cdouble *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_cdouble(void *start, npy_intp num, void *NOT_USED)
 {
     npy_cdouble *pl, *pr, *pw;
@@ -2180,7 +2180,7 @@ amergesort0_cdouble(npy_intp *pl, npy_intp *pr, npy_cdouble *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_cdouble(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -2243,7 +2243,7 @@ mergesort0_clongdouble(npy_clongdouble *pl, npy_clongdouble *pr, npy_clongdouble
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_clongdouble(void *start, npy_intp num, void *NOT_USED)
 {
     npy_clongdouble *pl, *pr, *pw;
@@ -2306,7 +2306,7 @@ amergesort0_clongdouble(npy_intp *pl, npy_intp *pr, npy_clongdouble *v, npy_intp
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_clongdouble(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -2369,7 +2369,7 @@ mergesort0_datetime(npy_datetime *pl, npy_datetime *pr, npy_datetime *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_datetime(void *start, npy_intp num, void *NOT_USED)
 {
     npy_datetime *pl, *pr, *pw;
@@ -2432,7 +2432,7 @@ amergesort0_datetime(npy_intp *pl, npy_intp *pr, npy_datetime *v, npy_intp *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_datetime(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -2495,7 +2495,7 @@ mergesort0_timedelta(npy_timedelta *pl, npy_timedelta *pr, npy_timedelta *pw)
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_timedelta(void *start, npy_intp num, void *NOT_USED)
 {
     npy_timedelta *pl, *pr, *pw;
@@ -2558,7 +2558,7 @@ amergesort0_timedelta(npy_intp *pl, npy_intp *pr, npy_timedelta *v, npy_intp *pw
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_timedelta(void *v, npy_intp *tosort, npy_intp num, void *NOT_USED)
 {
     npy_intp *pl, *pr, *pw;
@@ -2632,7 +2632,7 @@ mergesort0_string(npy_char *pl, npy_char *pr, npy_char *pw, npy_char *vp, size_t
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_string(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -2713,7 +2713,7 @@ amergesort0_string(npy_intp *pl, npy_intp *pr, npy_char *v, npy_intp *pw, size_t
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_string(void *v, npy_intp *tosort, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -2786,7 +2786,7 @@ mergesort0_unicode(npy_ucs4 *pl, npy_ucs4 *pr, npy_ucs4 *pw, npy_ucs4 *vp, size_
 }
 
 
-int
+NPY_NO_EXPORT int
 mergesort_unicode(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -2867,7 +2867,7 @@ amergesort0_unicode(npy_intp *pl, npy_intp *pr, npy_ucs4 *v, npy_intp *pw, size_
 }
 
 
-int
+NPY_NO_EXPORT int
 amergesort_unicode(void *v, npy_intp *tosort, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -2948,7 +2948,7 @@ npy_mergesort0(char *pl, char *pr, char *pw, char *vp, npy_intp elsize,
 }
 
 
-int
+NPY_NO_EXPORT int
 npy_mergesort(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -3026,7 +3026,7 @@ npy_amergesort0(npy_intp *pl, npy_intp *pr, char *v, npy_intp *pw,
 }
 
 
-int
+NPY_NO_EXPORT int
 npy_amergesort(void *v, npy_intp *tosort, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;

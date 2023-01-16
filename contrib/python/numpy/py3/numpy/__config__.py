@@ -18,13 +18,13 @@ if sys.platform == 'win32' and os.path.isdir(extra_dll_dir):
 blas_mkl_info={}
 blis_info={}
 openblas_info={}
+accelerate_info={}
 atlas_3_10_blas_threads_info={}
 atlas_3_10_blas_info={}
 atlas_blas_threads_info={}
 atlas_blas_info={}
-accelerate_info={}
-blas_info={'libraries': ['blas', 'blas'], 'library_dirs': ['/usr/lib'], 'include_dirs': ['/usr/local/include', '/usr/include'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)]}
-blas_opt_info={'define_macros': [('NO_ATLAS_INFO', 1), ('HAVE_CBLAS', None)], 'libraries': ['blas', 'blas'], 'library_dirs': ['/usr/lib'], 'include_dirs': ['/usr/local/include', '/usr/include'], 'language': 'c'}
+blas_info={'libraries': ['blas', 'blas'], 'library_dirs': ['/usr/lib'], 'include_dirs': ['/usr/local/include'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)]}
+blas_opt_info={'define_macros': [('NO_ATLAS_INFO', 1), ('HAVE_CBLAS', None)], 'libraries': ['blas', 'blas'], 'library_dirs': ['/usr/lib'], 'include_dirs': ['/usr/local/include'], 'language': 'c'}
 lapack_mkl_info={}
 openblas_lapack_info={}
 openblas_clapack_info={}
@@ -34,7 +34,7 @@ atlas_3_10_info={}
 atlas_threads_info={}
 atlas_info={}
 lapack_info={'libraries': ['lapack', 'lapack'], 'library_dirs': ['/usr/lib'], 'language': 'f77'}
-lapack_opt_info={'libraries': ['lapack', 'lapack', 'blas', 'blas'], 'library_dirs': ['/usr/lib'], 'language': 'c', 'define_macros': [('NO_ATLAS_INFO', 1), ('HAVE_CBLAS', None)], 'include_dirs': ['/usr/local/include', '/usr/include']}
+lapack_opt_info={'libraries': ['lapack', 'lapack', 'blas', 'blas'], 'library_dirs': ['/usr/lib'], 'language': 'c', 'define_macros': [('NO_ATLAS_INFO', 1), ('HAVE_CBLAS', None)], 'include_dirs': ['/usr/local/include']}
 
 def get_info(name):
     g = globals()
@@ -68,9 +68,14 @@ def show():
     * ``src_dirs``: directories containing library source files
     * ``define_macros``: preprocessor macros used by
       ``distutils.setup``
+    * ``baseline``: minimum CPU features required
+    * ``found``: dispatched features supported in the system
+    * ``not found``: dispatched features that are not supported
+      in the system
 
     Examples
     --------
+    >>> import numpy as np
     >>> np.show_config()
     blas_opt_info:
         language = c
@@ -78,6 +83,9 @@ def show():
         libraries = ['openblas', 'openblas']
         library_dirs = ['/usr/local/lib']
     """
+    from numpy.core._multiarray_umath import (
+        __cpu_features__, __cpu_baseline__, __cpu_dispatch__
+    )
     for name,info_dict in globals().items():
         if name[0] == "_" or type(info_dict) is not type({}): continue
         print(name + ":")
@@ -88,3 +96,16 @@ def show():
             if k == "sources" and len(v) > 200:
                 v = v[:60] + " ...\n... " + v[-60:]
             print("    %s = %s" % (k,v))
+
+    features_found, features_not_found = [], []
+    for feature in __cpu_dispatch__:
+        if __cpu_features__[feature]:
+            features_found.append(feature)
+        else:
+            features_not_found.append(feature)
+
+    print("Supported SIMD extensions in this NumPy install:")
+    print("    baseline = %s" % (','.join(__cpu_baseline__)))
+    print("    found = %s" % (','.join(features_found)))
+    print("    not found = %s" % (','.join(features_not_found)))
+

@@ -40,12 +40,12 @@
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_bool(npy_bool *v, npy_intp num,
+NPY_NO_EXPORT int introselect_bool(npy_bool *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_bool(npy_bool *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_bool(npy_bool *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -55,12 +55,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_bool(npy_bool *v, npy_intp* tosort, npy_i
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_byte(npy_byte *v, npy_intp num,
+NPY_NO_EXPORT int introselect_byte(npy_byte *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_byte(npy_byte *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_byte(npy_byte *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -70,12 +70,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_byte(npy_byte *v, npy_intp* tosort, npy_i
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_ubyte(npy_ubyte *v, npy_intp num,
+NPY_NO_EXPORT int introselect_ubyte(npy_ubyte *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_ubyte(npy_ubyte *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_ubyte(npy_ubyte *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -85,12 +85,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_ubyte(npy_ubyte *v, npy_intp* tosort, npy
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_short(npy_short *v, npy_intp num,
+NPY_NO_EXPORT int introselect_short(npy_short *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_short(npy_short *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_short(npy_short *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -100,12 +100,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_short(npy_short *v, npy_intp* tosort, npy
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_ushort(npy_ushort *v, npy_intp num,
+NPY_NO_EXPORT int introselect_ushort(npy_ushort *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_ushort(npy_ushort *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_ushort(npy_ushort *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -115,12 +115,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_ushort(npy_ushort *v, npy_intp* tosort, n
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_int(npy_int *v, npy_intp num,
+NPY_NO_EXPORT int introselect_int(npy_int *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_int(npy_int *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_int(npy_int *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -130,12 +130,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_int(npy_int *v, npy_intp* tosort, npy_int
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_uint(npy_uint *v, npy_intp num,
+NPY_NO_EXPORT int introselect_uint(npy_uint *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_uint(npy_uint *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_uint(npy_uint *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -145,12 +145,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_uint(npy_uint *v, npy_intp* tosort, npy_i
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_long(npy_long *v, npy_intp num,
+NPY_NO_EXPORT int introselect_long(npy_long *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_long(npy_long *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_long(npy_long *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -160,12 +160,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_long(npy_long *v, npy_intp* tosort, npy_i
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_ulong(npy_ulong *v, npy_intp num,
+NPY_NO_EXPORT int introselect_ulong(npy_ulong *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_ulong(npy_ulong *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_ulong(npy_ulong *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -175,12 +175,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_ulong(npy_ulong *v, npy_intp* tosort, npy
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_longlong(npy_longlong *v, npy_intp num,
+NPY_NO_EXPORT int introselect_longlong(npy_longlong *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_longlong(npy_longlong *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_longlong(npy_longlong *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -190,12 +190,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_longlong(npy_longlong *v, npy_intp* tosor
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_ulonglong(npy_ulonglong *v, npy_intp num,
+NPY_NO_EXPORT int introselect_ulonglong(npy_ulonglong *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_ulonglong(npy_ulonglong *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_ulonglong(npy_ulonglong *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -205,12 +205,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_ulonglong(npy_ulonglong *v, npy_intp* tos
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_half(npy_ushort *v, npy_intp num,
+NPY_NO_EXPORT int introselect_half(npy_ushort *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_half(npy_ushort *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_half(npy_ushort *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -220,12 +220,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_half(npy_ushort *v, npy_intp* tosort, npy
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_float(npy_float *v, npy_intp num,
+NPY_NO_EXPORT int introselect_float(npy_float *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_float(npy_float *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_float(npy_float *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -235,12 +235,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_float(npy_float *v, npy_intp* tosort, npy
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_double(npy_double *v, npy_intp num,
+NPY_NO_EXPORT int introselect_double(npy_double *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_double(npy_double *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_double(npy_double *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -250,12 +250,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_double(npy_double *v, npy_intp* tosort, n
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_longdouble(npy_longdouble *v, npy_intp num,
+NPY_NO_EXPORT int introselect_longdouble(npy_longdouble *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_longdouble(npy_longdouble *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_longdouble(npy_longdouble *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -265,12 +265,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_longdouble(npy_longdouble *v, npy_intp* t
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_cfloat(npy_cfloat *v, npy_intp num,
+NPY_NO_EXPORT int introselect_cfloat(npy_cfloat *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_cfloat(npy_cfloat *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_cfloat(npy_cfloat *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -280,12 +280,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_cfloat(npy_cfloat *v, npy_intp* tosort, n
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_cdouble(npy_cdouble *v, npy_intp num,
+NPY_NO_EXPORT int introselect_cdouble(npy_cdouble *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_cdouble(npy_cdouble *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_cdouble(npy_cdouble *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,
@@ -295,12 +295,12 @@ NPY_VISIBILITY_HIDDEN int aintroselect_cdouble(npy_cdouble *v, npy_intp* tosort,
 
 #line 44
 
-NPY_VISIBILITY_HIDDEN int introselect_clongdouble(npy_clongdouble *v, npy_intp num,
+NPY_NO_EXPORT int introselect_clongdouble(npy_clongdouble *v, npy_intp num,
                                              npy_intp kth,
                                              npy_intp * pivots,
                                              npy_intp * npiv,
                                              void *NOT_USED);
-NPY_VISIBILITY_HIDDEN int aintroselect_clongdouble(npy_clongdouble *v, npy_intp* tosort, npy_intp num,
+NPY_NO_EXPORT int aintroselect_clongdouble(npy_clongdouble *v, npy_intp* tosort, npy_intp num,
                                               npy_intp kth,
                                               npy_intp * pivots,
                                               npy_intp * npiv,

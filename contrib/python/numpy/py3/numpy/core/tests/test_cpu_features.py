@@ -48,7 +48,7 @@ def assert_features_equal(actual, desired, fname):
         "%s"
     ) % (fname, actual, desired, error_report))
 
-class AbstractTest(object):
+class AbstractTest:
     features = []
     features_groups = {}
     features_map = {}
@@ -57,7 +57,6 @@ class AbstractTest(object):
     def load_flags(self):
         # a hook
         pass
-    @pytest.mark.skip
     def test_features(self):
         self.load_flags()
         for gname, features in self.features_groups.items():

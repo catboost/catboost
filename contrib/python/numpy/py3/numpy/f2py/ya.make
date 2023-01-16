@@ -9,6 +9,7 @@ PEERDIR(
 PY_SRCS(
     NAMESPACE numpy.f2py
     __init__.py
+    __init__.pyi
     __main__.py
     __version__.py
     auxfuncs.py

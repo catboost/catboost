@@ -58,7 +58,7 @@
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_bool(void *start, npy_intp n, void *NOT_USED)
 {
     npy_bool tmp, *a;
@@ -109,7 +109,7 @@ heapsort_bool(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_bool(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_bool *v = vv;
@@ -161,7 +161,7 @@ aheapsort_bool(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_byte(void *start, npy_intp n, void *NOT_USED)
 {
     npy_byte tmp, *a;
@@ -212,7 +212,7 @@ heapsort_byte(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_byte(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_byte *v = vv;
@@ -264,7 +264,7 @@ aheapsort_byte(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_ubyte(void *start, npy_intp n, void *NOT_USED)
 {
     npy_ubyte tmp, *a;
@@ -315,7 +315,7 @@ heapsort_ubyte(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_ubyte(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_ubyte *v = vv;
@@ -367,7 +367,7 @@ aheapsort_ubyte(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_short(void *start, npy_intp n, void *NOT_USED)
 {
     npy_short tmp, *a;
@@ -418,7 +418,7 @@ heapsort_short(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_short(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_short *v = vv;
@@ -470,7 +470,7 @@ aheapsort_short(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_ushort(void *start, npy_intp n, void *NOT_USED)
 {
     npy_ushort tmp, *a;
@@ -521,7 +521,7 @@ heapsort_ushort(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_ushort(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_ushort *v = vv;
@@ -573,7 +573,7 @@ aheapsort_ushort(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_int(void *start, npy_intp n, void *NOT_USED)
 {
     npy_int tmp, *a;
@@ -624,7 +624,7 @@ heapsort_int(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_int(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_int *v = vv;
@@ -676,7 +676,7 @@ aheapsort_int(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_uint(void *start, npy_intp n, void *NOT_USED)
 {
     npy_uint tmp, *a;
@@ -727,7 +727,7 @@ heapsort_uint(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_uint(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_uint *v = vv;
@@ -779,7 +779,7 @@ aheapsort_uint(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_long(void *start, npy_intp n, void *NOT_USED)
 {
     npy_long tmp, *a;
@@ -830,7 +830,7 @@ heapsort_long(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_long(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_long *v = vv;
@@ -882,7 +882,7 @@ aheapsort_long(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_ulong(void *start, npy_intp n, void *NOT_USED)
 {
     npy_ulong tmp, *a;
@@ -933,7 +933,7 @@ heapsort_ulong(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_ulong(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_ulong *v = vv;
@@ -985,7 +985,7 @@ aheapsort_ulong(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_longlong(void *start, npy_intp n, void *NOT_USED)
 {
     npy_longlong tmp, *a;
@@ -1036,7 +1036,7 @@ heapsort_longlong(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_longlong(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_longlong *v = vv;
@@ -1088,7 +1088,7 @@ aheapsort_longlong(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_ulonglong(void *start, npy_intp n, void *NOT_USED)
 {
     npy_ulonglong tmp, *a;
@@ -1139,7 +1139,7 @@ heapsort_ulonglong(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_ulonglong(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_ulonglong *v = vv;
@@ -1191,7 +1191,7 @@ aheapsort_ulonglong(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_half(void *start, npy_intp n, void *NOT_USED)
 {
     npy_ushort tmp, *a;
@@ -1242,7 +1242,7 @@ heapsort_half(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_half(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_ushort *v = vv;
@@ -1294,7 +1294,7 @@ aheapsort_half(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_float(void *start, npy_intp n, void *NOT_USED)
 {
     npy_float tmp, *a;
@@ -1345,7 +1345,7 @@ heapsort_float(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_float(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_float *v = vv;
@@ -1397,7 +1397,7 @@ aheapsort_float(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_double(void *start, npy_intp n, void *NOT_USED)
 {
     npy_double tmp, *a;
@@ -1448,7 +1448,7 @@ heapsort_double(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_double(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_double *v = vv;
@@ -1500,7 +1500,7 @@ aheapsort_double(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_longdouble(void *start, npy_intp n, void *NOT_USED)
 {
     npy_longdouble tmp, *a;
@@ -1551,7 +1551,7 @@ heapsort_longdouble(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_longdouble(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_longdouble *v = vv;
@@ -1603,7 +1603,7 @@ aheapsort_longdouble(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_cfloat(void *start, npy_intp n, void *NOT_USED)
 {
     npy_cfloat tmp, *a;
@@ -1654,7 +1654,7 @@ heapsort_cfloat(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_cfloat(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_cfloat *v = vv;
@@ -1706,7 +1706,7 @@ aheapsort_cfloat(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_cdouble(void *start, npy_intp n, void *NOT_USED)
 {
     npy_cdouble tmp, *a;
@@ -1757,7 +1757,7 @@ heapsort_cdouble(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_cdouble(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_cdouble *v = vv;
@@ -1809,7 +1809,7 @@ aheapsort_cdouble(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_clongdouble(void *start, npy_intp n, void *NOT_USED)
 {
     npy_clongdouble tmp, *a;
@@ -1860,7 +1860,7 @@ heapsort_clongdouble(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_clongdouble(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_clongdouble *v = vv;
@@ -1912,7 +1912,7 @@ aheapsort_clongdouble(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_datetime(void *start, npy_intp n, void *NOT_USED)
 {
     npy_datetime tmp, *a;
@@ -1963,7 +1963,7 @@ heapsort_datetime(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_datetime(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_datetime *v = vv;
@@ -2015,7 +2015,7 @@ aheapsort_datetime(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 62
 
-int
+NPY_NO_EXPORT int
 heapsort_timedelta(void *start, npy_intp n, void *NOT_USED)
 {
     npy_timedelta tmp, *a;
@@ -2066,7 +2066,7 @@ heapsort_timedelta(void *start, npy_intp n, void *NOT_USED)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_timedelta(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 {
     npy_timedelta *v = vv;
@@ -2127,7 +2127,7 @@ aheapsort_timedelta(void *vv, npy_intp *tosort, npy_intp n, void *NOT_USED)
 
 #line 179
 
-int
+NPY_NO_EXPORT int
 heapsort_string(void *start, npy_intp n, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -2181,7 +2181,7 @@ heapsort_string(void *start, npy_intp n, void *varr)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_string(void *vv, npy_intp *tosort, npy_intp n, void *varr)
 {
     npy_char *v = vv;
@@ -2234,7 +2234,7 @@ aheapsort_string(void *vv, npy_intp *tosort, npy_intp n, void *varr)
 
 #line 179
 
-int
+NPY_NO_EXPORT int
 heapsort_unicode(void *start, npy_intp n, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -2288,7 +2288,7 @@ heapsort_unicode(void *start, npy_intp n, void *varr)
 }
 
 
-int
+NPY_NO_EXPORT int
 aheapsort_unicode(void *vv, npy_intp *tosort, npy_intp n, void *varr)
 {
     npy_ucs4 *v = vv;
@@ -2348,7 +2348,7 @@ aheapsort_unicode(void *vv, npy_intp *tosort, npy_intp n, void *varr)
  */
 
 
-int
+NPY_NO_EXPORT int
 npy_heapsort(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -2405,7 +2405,7 @@ npy_heapsort(void *start, npy_intp num, void *varr)
 }
 
 
-int
+NPY_NO_EXPORT int
 npy_aheapsort(void *vv, npy_intp *tosort, npy_intp n, void *varr)
 {
     char *v = vv;
