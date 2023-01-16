@@ -46,6 +46,7 @@ NULL
 #' If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' @examples
+#' \dontrun{
 #' # From file
 #' pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 #' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
@@ -64,6 +65,7 @@ NULL
 #' label = (1:10) %% 2
 #' pool <- catboost.load_pool(data_frame, label = label)
 #' print(pool)
+#' }
 #' @return catboost.Pool
 #' @export
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
@@ -1493,6 +1495,7 @@ summary.catboost.Model <- function(object, ...) {
 #'
 #' Default value: Required argument
 #' @examples
+#' \dontrun{
 #' train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 #' test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
 #' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
@@ -1508,6 +1511,7 @@ summary.catboost.Model <- function(object, ...) {
 #'     l2_leaf_reg = 3.5,
 #'     train_dir = 'train_dir')
 #' model <- catboost.train(train_pool, test_pool, fit_params)
+#' }
 #' @return Model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
