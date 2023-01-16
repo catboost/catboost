@@ -17,15 +17,7 @@ from numpy cimport (
 
 ctypedef double complex double_complex
 
-cdef extern from "numpy/ufuncobject.h":
-    int PyUFunc_getfperr() nogil
-
-cdef public int wrap_PyUFunc_getfperr() nogil:
-    """
-    Call PyUFunc_getfperr in a context where PyUFunc_API array is initialized;
-    this avoids messing with the UNIQUE_SYMBOL #defines
-    """
-    return PyUFunc_getfperr()
+cdef extern int wrap_PyUFunc_getfperrg()
 
 cimport libc
 
