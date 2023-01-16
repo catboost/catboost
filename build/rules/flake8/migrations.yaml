@@ -2552,7 +2552,6 @@ migrations:
     - sandbox/projects/market/promocoordinator
     - sandbox/projects/market/qa
     - sandbox/projects/market/report
-    - sandbox/projects/market/resource_monitor
     - sandbox/projects/market/sre
     - sandbox/projects/market/stock_storage
     - sandbox/projects/market/tpl
