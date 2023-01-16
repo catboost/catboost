@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{8385DDE2-4ADD-BCFC-9D2D-EE9978D8D792}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>py3contrib-python-toml</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>py3contrib-python-toml</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\toml\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\8385DDE2-4ADD-BCFC-9D2D-EE9978D8D792\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9107926 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9107926 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\toml\_2cf0c7652c87736f371d12ff02.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2cf0c7652c87736f371d12ff02.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2cf0c7652c87736f371d12ff02.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2cf0c7652c87736f371d12ff02.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2cf0c7652c87736f371d12ff02.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/_2cf0c7652c87736f371d12ff02.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_2cf0c7652c87736f371d12ff02.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_2cf0c7652c87736f371d12ff02.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\toml\_57d10fa65178e58bc1657c7b5a.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_57d10fa65178e58bc1657c7b5a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_57d10fa65178e58bc1657c7b5a.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\toml\_7a05c1409d2f6a1f40c7b01a63.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_7a05c1409d2f6a1f40c7b01a63.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_7a05c1409d2f6a1f40c7b01a63.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.yasm" "-" "." "_db3e4aaa4d8b18b7e1101ec9fb.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.yasm" "-" "." "_db3e4aaa4d8b18b7e1101ec9fb.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/_7a05c1409d2f6a1f40c7b01a63.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_7a05c1409d2f6a1f40c7b01a63.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\toml\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.yasm" "-" "contrib/python/toml/.dist-info/METADATA" "_92a99a501459db034ab3697cce.rodata" "$(SolutionDir)../contrib/python/toml/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/toml/_5d5c5476e2f9966ced99fc9d1d.rodata" "-" "contrib/python/toml/.dist-info/top_level.txt" "_1b04d97b4f1c23c341c54ed014.rodata" "$(SolutionDir)../contrib/python/toml/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/toml/_fcd79ef608625109f04f2e16d0.rodata" "-" "contrib/python/toml/toml/__init__.pyi" "_fa041785cfaeb714c8deeef6db.rodata" "$(SolutionDir)../contrib/python/toml/toml/__init__.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_73641e3c9933e02050f5a3fa2a.rodata" "-" "contrib/python/toml/toml/decoder.pyi" "_59fd5b0a4ba9850ed599a0a9a9.rodata" "$(SolutionDir)../contrib/python/toml/toml/decoder.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_a1d76fee3dce8a67c5b71bcdd8.rodata" "-" "contrib/python/toml/toml/encoder.pyi" "_b3f42802b980b1ca3f72cf05ab.rodata" "$(SolutionDir)../contrib/python/toml/toml/encoder.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_ac3a6a645380fc44a7553312f6.rodata" "-" "contrib/python/toml/toml/ordered.pyi" "_a0f77c2b93edaef0149f298e17.rodata" "$(SolutionDir)../contrib/python/toml/toml/ordered.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_e692b78b232fbecb142e9d05c0.rodata" "-" "contrib/python/toml/toml/tz.pyi" "_a9bfc9abb7dd8e434e15d524e6.rodata" "$(SolutionDir)../contrib/python/toml/toml/tz.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_d05c08bf83e0e9b23a5ba122de.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.yasm" "-" "contrib/python/toml/.dist-info/METADATA" "_92a99a501459db034ab3697cce.rodata" "$(SolutionDir)../contrib/python/toml/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/toml/_5d5c5476e2f9966ced99fc9d1d.rodata" "-" "contrib/python/toml/.dist-info/top_level.txt" "_1b04d97b4f1c23c341c54ed014.rodata" "$(SolutionDir)../contrib/python/toml/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/toml/_fcd79ef608625109f04f2e16d0.rodata" "-" "contrib/python/toml/toml/__init__.pyi" "_fa041785cfaeb714c8deeef6db.rodata" "$(SolutionDir)../contrib/python/toml/toml/__init__.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_73641e3c9933e02050f5a3fa2a.rodata" "-" "contrib/python/toml/toml/decoder.pyi" "_59fd5b0a4ba9850ed599a0a9a9.rodata" "$(SolutionDir)../contrib/python/toml/toml/decoder.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_a1d76fee3dce8a67c5b71bcdd8.rodata" "-" "contrib/python/toml/toml/encoder.pyi" "_b3f42802b980b1ca3f72cf05ab.rodata" "$(SolutionDir)../contrib/python/toml/toml/encoder.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_ac3a6a645380fc44a7553312f6.rodata" "-" "contrib/python/toml/toml/ordered.pyi" "_a0f77c2b93edaef0149f298e17.rodata" "$(SolutionDir)../contrib/python/toml/toml/ordered.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_e692b78b232fbecb142e9d05c0.rodata" "-" "contrib/python/toml/toml/tz.pyi" "_a9bfc9abb7dd8e434e15d524e6.rodata" "$(SolutionDir)../contrib/python/toml/toml/tz.pyi" "$(SolutionDir)$(Configuration)/contrib/python/toml/_d05c08bf83e0e9b23a5ba122de.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/_57d10fa65178e58bc1657c7b5a.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\toml\.dist-info\METADATA;$(SolutionDir)..\contrib\python\toml\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\toml\toml\__init__.pyi;$(SolutionDir)..\contrib\python\toml\toml\decoder.pyi;$(SolutionDir)..\contrib\python\toml\toml\encoder.pyi;$(SolutionDir)..\contrib\python\toml\toml\ordered.pyi;$(SolutionDir)..\contrib\python\toml\toml\tz.pyi;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_57d10fa65178e58bc1657c7b5a.yasm;$(SolutionDir)$(Configuration)\contrib\python\toml\_5d5c5476e2f9966ced99fc9d1d.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_fcd79ef608625109f04f2e16d0.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_73641e3c9933e02050f5a3fa2a.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_a1d76fee3dce8a67c5b71bcdd8.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_ac3a6a645380fc44a7553312f6.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_e692b78b232fbecb142e9d05c0.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_d05c08bf83e0e9b23a5ba122de.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\toml\toml\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2cf0c7652c87736f371d12ff02.yasm" "-" "contrib/python/toml/toml/__init__.py" "_8c5c3bb8c539c689c86f546bcf.rodata" "$(SolutionDir)../contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_3056d53a46c87baadb1c71316d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc3" "_71c899bed882c337cf4eec4448.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_0f2f73c680ce5bed21432943e5.rodata" "-" "contrib/python/toml/toml/decoder.py" "_3c431846b71c07055cb6d2dad4.rodata" "$(SolutionDir)../contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_f59fd31d799f3737b09687550a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc3" "_b27127005c3b7ef1137d40234a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_0638de02c495fd6c5f0da8a42b.rodata" "-" "contrib/python/toml/toml/encoder.py" "_708e596aae6a713bc0d963da02.rodata" "$(SolutionDir)../contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_d3546a2d4c52e60ca17bf8be36.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc3" "_6c9ba873cec894f73521aea601.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_fc48b83619925432fec570f9fe.rodata" "-" "contrib/python/toml/toml/ordered.py" "_374dd49e2691555a3d43fa190f.rodata" "$(SolutionDir)../contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_ec2594e886244fa25f9ba45ddb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc3" "_a5c3e0a26d47bd6158ce2d5070.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_8f37571553150c31e6d5f86e76.rodata" "-" "contrib/python/toml/toml/tz.py" "_0796631548f6d3144a21359155.rodata" "$(SolutionDir)../contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2dfb03fc57f8b48bd705b44c29.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc3" "_797218a092692a98dc668e3c9d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_4097ae6f1bdf3d624be90c88e1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/__init__.py-" "$(SolutionDir)../contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2cf0c7652c87736f371d12ff02.yasm" "-" "contrib/python/toml/toml/__init__.py" "_8c5c3bb8c539c689c86f546bcf.rodata" "$(SolutionDir)../contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_3056d53a46c87baadb1c71316d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc3" "_71c899bed882c337cf4eec4448.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_0f2f73c680ce5bed21432943e5.rodata" "-" "contrib/python/toml/toml/decoder.py" "_3c431846b71c07055cb6d2dad4.rodata" "$(SolutionDir)../contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_f59fd31d799f3737b09687550a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc3" "_b27127005c3b7ef1137d40234a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_0638de02c495fd6c5f0da8a42b.rodata" "-" "contrib/python/toml/toml/encoder.py" "_708e596aae6a713bc0d963da02.rodata" "$(SolutionDir)../contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_d3546a2d4c52e60ca17bf8be36.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc3" "_6c9ba873cec894f73521aea601.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_fc48b83619925432fec570f9fe.rodata" "-" "contrib/python/toml/toml/ordered.py" "_374dd49e2691555a3d43fa190f.rodata" "$(SolutionDir)../contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_ec2594e886244fa25f9ba45ddb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc3" "_a5c3e0a26d47bd6158ce2d5070.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_8f37571553150c31e6d5f86e76.rodata" "-" "contrib/python/toml/toml/tz.py" "_0796631548f6d3144a21359155.rodata" "$(SolutionDir)../contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/_2dfb03fc57f8b48bd705b44c29.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc3" "_797218a092692a98dc668e3c9d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/toml/_4097ae6f1bdf3d624be90c88e1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/__init__.py-" "$(SolutionDir)../contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/_2cf0c7652c87736f371d12ff02.yasm	$B/contrib/python/toml/toml/__init__.py.u3ek.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\toml\toml\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\toml\toml\__init__.py.u3ek.yapyc3;$(SolutionDir)..\contrib\python\toml\toml\decoder.py;$(SolutionDir)$(Configuration)\contrib\python\toml\toml\decoder.py.pb46.yapyc3;$(SolutionDir)..\contrib\python\toml\toml\encoder.py;$(SolutionDir)$(Configuration)\contrib\python\toml\toml\encoder.py.6rra.yapyc3;$(SolutionDir)..\contrib\python\toml\toml\ordered.py;$(SolutionDir)$(Configuration)\contrib\python\toml\toml\ordered.py.pcrr.yapyc3;$(SolutionDir)..\contrib\python\toml\toml\tz.py;$(SolutionDir)$(Configuration)\contrib\python\toml\toml\tz.py.jgg7.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\_2cf0c7652c87736f371d12ff02.yasm;$(SolutionDir)$(Configuration)\contrib\python\toml\_3056d53a46c87baadb1c71316d.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_0f2f73c680ce5bed21432943e5.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_f59fd31d799f3737b09687550a.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_0638de02c495fd6c5f0da8a42b.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_d3546a2d4c52e60ca17bf8be36.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_fc48b83619925432fec570f9fe.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_ec2594e886244fa25f9ba45ddb.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_8f37571553150c31e6d5f86e76.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_2dfb03fc57f8b48bd705b44c29.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\_4097ae6f1bdf3d624be90c88e1.rodata;$(SolutionDir)$(Configuration)\contrib\python\toml\toml\__init__.py.u3ek.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\toml\toml\decoder.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/decoder.py-" "$(SolutionDir)../contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/decoder.py-" "$(SolutionDir)../contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/toml/decoder.py.pb46.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\toml\toml\decoder.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\toml\decoder.py.pb46.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\toml\toml\encoder.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/encoder.py-" "$(SolutionDir)../contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/encoder.py-" "$(SolutionDir)../contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/toml/encoder.py.6rra.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\toml\toml\encoder.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\toml\encoder.py.6rra.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\toml\toml\ordered.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/ordered.py-" "$(SolutionDir)../contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/ordered.py-" "$(SolutionDir)../contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/toml/ordered.py.pcrr.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\toml\toml\ordered.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\toml\ordered.py.pcrr.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\toml\toml\tz.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/tz.py-" "$(SolutionDir)../contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/toml/toml/tz.py-" "$(SolutionDir)../contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/toml/toml/tz.py.jgg7.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\toml\toml\tz.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\toml\tz.py.jgg7.yapyc3;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
+      <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
+      <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
+      <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
+      <Project>{979D0A38-9505-F3B3-16F9-58B713DAE389}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\py3contrib-libs-python.vcxproj">
+      <Project>{5B790388-FDEE-2F70-2F9B-EDB49D07DACF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
+      <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\common\libs-xz-common.vcxproj">
+      <Project>{F9804092-4C13-EB40-22ED-4230BA4B282E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\liblzma\libs-xz-liblzma.vcxproj">
+      <Project>{D34AC41F-BA71-4FE6-9395-4F644C2FED80}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
+      <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
+      <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
+      <Project>{29D11B36-E190-930C-F04D-08E664A940A9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
+      <Project>{CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
+      <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
+      <Project>{1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
+      <Project>{D9DA0254-41B3-1659-443E-58F351ADA4FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
+      <Project>{3853084F-52D5-B05E-2706-65BD06611610}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
+      <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\core\cpp-blockcodecs-core.vcxproj">
+      <Project>{61E795C2-BF87-52A4-C82D-38B38AA63595}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
+      <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
+      <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\py3python-symbols-module.vcxproj">
+      <Project>{D01E799B-0965-1C31-0C5E-2F984B04A0B2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\python\python-symbols-python.vcxproj">
+      <Project>{652F51EE-85DE-3688-41FA-4C2CDAC4C75A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
