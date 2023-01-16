@@ -8,6 +8,7 @@
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/labels/label_converter.h>
@@ -93,14 +94,7 @@ namespace NCB {
                  * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
                  */
                 if (ensureConsecutiveIfDenseFeaturesDataForCpu) {
-                    if (!quantizedObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
-                        // TODO(akhropov): make it work in non-shared case
-                        CB_ENSURE_INTERNAL(
-                            (srcData->RefCount() <= 1) && (quantizedObjectsDataProvider->RefCount() <= 1),
-                            "Cannot modify QuantizedForCPUObjectsDataProvider because it's shared"
-                        );
-                        quantizedObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
-                    }
+                    EnsureObjectsDataIsConsecutiveIfQuantized(cpuRamLimit, localExecutor, &srcData);
                 }
             } else { // GPU
                 /*
@@ -559,4 +553,30 @@ namespace NCB {
         }
     }
 
+    void EnsureObjectsDataIsConsecutiveIfQuantized(
+        ui64 cpuUsedRamLimit,
+        NPar::ILocalExecutor* localExecutor,
+        TDataProviderPtr* dataProvider
+    ) {
+        if (auto* quantizedObjectsDataProvider
+                = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get()))
+        {
+            if (!quantizedObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
+                if (dataProvider->RefCount() > 1) {
+                    CATBOOST_DEBUG_LOG << "Copy dataProvider to enusure data is consecutive";
+                    *dataProvider = (*dataProvider)->Clone(cpuUsedRamLimit, localExecutor);
+                    quantizedObjectsDataProvider
+                        = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get());
+                }
+                if (quantizedObjectsDataProvider->RefCount() > 1) {
+                    CATBOOST_DEBUG_LOG << "Copy dataProvider->ObjectsData to enusure data is consecutive";
+                    (*dataProvider)->ObjectsData = (*dataProvider)->ObjectsData->Clone(localExecutor);
+                    (*dataProvider)->ObjectsGrouping = (*dataProvider)->ObjectsData->GetObjectsGrouping();
+                    quantizedObjectsDataProvider
+                        = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get());
+                }
+                quantizedObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
+            }
+        }
+    }
 }

@@ -1040,6 +1040,20 @@ static void TrainModel(
 
     pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
 
+    const ui64 cpuUsedRamLimit = ParseMemorySizeDescription(
+        catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()
+    );
+
+    const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+        catBoostOptions,
+        poolLoadOptions ? MakeMaybe(poolLoadOptions->LearnSetPath) : Nothing()
+    );
+
+    if (haveLearnFeaturesInMemory && (taskType == ETaskType::CPU)) {
+        // We need data to be consecutive for efficient blocked permutations
+        EnsureObjectsDataIsConsecutiveIfQuantized(cpuUsedRamLimit, executor, &pools.Learn);
+    }
+
     TLabelConverter labelConverter;
 
     const bool needInitModelApplyCompatiblePools = initModel.Defined();
@@ -1049,10 +1063,6 @@ static void TrainModel(
         NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputOptions.GetTrainDir(), &tmpDir);
     }
 
-    const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
-        catBoostOptions,
-        poolLoadOptions ? MakeMaybe(poolLoadOptions->LearnSetPath) : Nothing()
-    );
     CB_ENSURE_INTERNAL(
         haveLearnFeaturesInMemory || poolLoadOptions, "Learn dataset is not loaded, and load options are not provided");
     TTrainingDataProviders trainingData = GetTrainingData(
@@ -1088,7 +1098,7 @@ static void TrainModel(
         } else {
             SetTrainDataFromMaster(
                 trainingData,
-                ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
+                cpuUsedRamLimit,
                 executor
             );
         }
@@ -1291,7 +1301,15 @@ void TrainModel(
             quantizedFeaturesInfo.Get());
     }
 
-    bool needPoolAfterTrain = !evalOutputFileName.empty() || isLossFunctionChangeFstr;
+    // need a copy to allow to move original 'pools' to TrainModel.
+    TDataProviders poolsForAfterTrain;
+    if (needFstr && haveLearnFeaturesInMemory && isLossFunctionChangeFstr) {
+        poolsForAfterTrain.Learn = pools.Learn;
+    }
+    if (!evalOutputFileName.empty()) {
+        poolsForAfterTrain.Test = pools.Test;
+    }
+
     TrainModel(
         updatedTrainJson,
         outputOptions,
@@ -1299,7 +1317,7 @@ void TrainModel(
         /*objectiveDescriptor*/ Nothing(),
         /*evalMetricDescriptor*/ Nothing(),
         /*callbackDescriptor*/ Nothing(),
-        needPoolAfterTrain ? pools : std::move(pools),
+        std::move(pools),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
         /*initModel*/ Nothing(),
         /*initLearnProgress*/ nullptr,
@@ -1326,8 +1344,8 @@ void TrainModel(
         }
         CATBOOST_INFO_LOG << "Writing test eval to: " << evalOutputFileName << Endl;
         TOFStream fileStream(evalOutputFileName);
-        for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
-            const TDataProvider& testPool = *pools.Test[testIdx];
+        for (int testIdx = 0; testIdx < poolsForAfterTrain.Test.ysize(); ++testIdx) {
+            const TDataProvider& testPool = *poolsForAfterTrain.Test[testIdx];
             const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
             OutputEvalResultToFile(
                 evalResults[testIdx],
@@ -1338,12 +1356,12 @@ void TrainModel(
                 testPool,
                 &fileStream,
                 testSetPath,
-                {testIdx, pools.Test.ysize()},
+                {testIdx, poolsForAfterTrain.Test.ysize()},
                 loadOptions.ColumnarPoolFormatParams.DsvFormat,
                 /*writeHeader*/ testIdx < 1);
         }
 
-        if (pools.Test.empty()) {
+        if (poolsForAfterTrain.Test.empty()) {
             CATBOOST_WARNING_LOG << "can't evaluate model (--eval-file) without test set" << Endl;
         }
     } else {
@@ -1363,7 +1381,7 @@ void TrainModel(
         const bool useLearnToCalcFstr = haveLearnFeaturesInMemory && isLossFunctionChangeFstr;
         CalcAndOutputFstr(
             model,
-            useLearnToCalcFstr ? pools.Learn : nullptr,
+            useLearnToCalcFstr ? poolsForAfterTrain.Learn : nullptr,
             localExecutorHolder.Get(),
             &fstrRegularFileName,
             &fstrInternalFileName,

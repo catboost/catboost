@@ -144,6 +144,20 @@ namespace NCB {
             return GetSubset(objectsGroupingSubset, cpuUsedRamLimit, &localExecutor);
         }
 
+        TIntrusivePtr<TDataProviderTemplate> Clone(
+            ui64 cpuUsedRamLimit,
+            NPar::ILocalExecutor* localExecutor
+        ) const {
+            return GetSubset(
+                GetGroupingSubsetFromObjectsSubset(
+                    ObjectsGrouping,
+                    TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+                    EObjectsOrder::Ordered),
+                cpuUsedRamLimit,
+                localExecutor
+            );
+        }
+
         // ObjectsGrouping->GetObjectCount() used a lot, so make it a member here
         ui32 GetObjectCount() const {
             return ObjectsGrouping->GetObjectCount();

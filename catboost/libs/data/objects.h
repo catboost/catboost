@@ -292,6 +292,9 @@ namespace NCB {
             NPar::ILocalExecutor* localExecutor
         ) const;
 
+        TIntrusivePtr<TObjectsDataProvider> Clone(NPar::ILocalExecutor* localExecutor) const;
+
+
         // The following Get* functions are common for all implementations, so they're in this base class
 
         TFeaturesLayoutPtr GetFeaturesLayout() const {
