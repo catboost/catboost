@@ -44,11 +44,16 @@ NO_CHECK_IMPORTS(
 CFLAGS(
     -Dc_sqrt=SuperLU_c_sqrt
     -Dc_exp=SuperLU_c_exp
-    -Dchla_transtype__=chla_transtype_
     -Dchla_transtypewrp_=chla_transtypewrp__
     -DUNDERSCORE_G77
     -fcommon
 )
+
+IF (HAVE_MKL)
+    CFLAGS(
+        -Dchla_transtype__=chla_transtype_
+    )
+ENDIF()
 
 IF (OS_WINDOWS)
     CFLAGS(
