@@ -33,9 +33,7 @@
 #if __has_include(<string_view>) && __cplusplus >= 201703L
 #include <string_view>
 #endif
-#if defined(ARCADIA_ROOT)
 #include <util/generic/string.h>
-#endif
 
 namespace re2 {
 
@@ -70,10 +68,8 @@ class StringPiece {
       : data_(str), size_(str == NULL ? 0 : strlen(str)) {}
   StringPiece(const char* str, size_type len)
       : data_(str), size_(len) {}
-#if defined(ARCADIA_ROOT)
   StringPiece(const TString& str)
       : StringPiece(str.data(), str.size()) {}
-#endif
 
   const_iterator begin() const { return data_; }
   const_iterator end() const { return data_ + size_; }
