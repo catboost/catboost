@@ -323,7 +323,7 @@ def _graceful_shutdown(*args):
     traceback.print_stack(file=sys.stderr)
     capman = pytest_config.pluginmanager.getplugin("capturemanager")
     capman.suspend(in_=True)
-    _graceful_shutdown_on_log(capman._current_item is not None)
+    _graceful_shutdown_on_log(not capman.is_globally_capturing())
 
 
 def _get_rusage():
