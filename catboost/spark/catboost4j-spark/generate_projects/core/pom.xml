@@ -70,7 +70,7 @@
                         </goals>
                         <configuration>
                             <executable>java</executable>
-                            <classpathScope>compile</classpathScope>>
+                            <classpathScope>compile</classpathScope>
                             <arguments>
                                 <argument>-classpath</argument>
                                 <!-- automatically creates the classpath using all project dependencies,
