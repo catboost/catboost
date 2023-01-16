@@ -52,6 +52,12 @@ namespace NJson {
         template <class T>
         TJsonValue(const T*) = delete;
         TJsonValue(TStringBuf value);
+
+        TJsonValue(const std::string& s)
+            : TJsonValue(TStringBuf(s))
+        {
+        }
+
         TJsonValue(const TJsonValue& vval);
         TJsonValue(TJsonValue&& vval) noexcept;
 

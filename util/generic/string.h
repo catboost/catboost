@@ -4,9 +4,7 @@
 #include <cstring>
 #include <stlfwd>
 #include <stdexcept>
-#ifdef TSTRING_IS_STD_STRING
-    #include <string>
-#endif
+#include <string>
 #include <string_view>
 
 #include <util/system/yassert.h>
@@ -398,6 +396,16 @@ public:
     {
     }
 
+    template <typename T, typename A>
+    inline TBasicString(std::basic_string<TCharType, T, A>&& s)
+#ifdef TSTRING_IS_STD_STRING
+        : Storage_(std::move(s))
+#else
+        : S_(Construct(std::move(s)))
+#endif
+    {
+    }
+
     TBasicString(const TBasicString& s, size_t pos, size_t n) Y_NOEXCEPT
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(s.Storage_, pos, n)
@@ -649,6 +657,13 @@ public:
         return *this;
     }
 
+    template <typename T, typename A>
+    TBasicString& operator=(std::basic_string<TCharType, T, A>&& s) noexcept {
+        TBasicString(std::move(s)).swap(*this);
+
+        return *this;
+    }
+
     TBasicString& operator=(const TBasicStringBuf<TCharType, TTraits> s) {
         return assign(s);
     }
@@ -894,6 +909,14 @@ public:
 
     friend TBasicString operator+(const TCharType* s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
+    }
+
+    friend TBasicString operator+(std::basic_string<TCharType, TTraits> l, TBasicString r) {
+        return l + r.ConstRef();
+    }
+
+    friend TBasicString operator+(TBasicString l, std::basic_string<TCharType, TTraits> r) {
+        return l.ConstRef() + r;
     }
 
     // ~~~ Prepending ~~~ : FAMILY0(TBasicString&, prepend);
@@ -1209,4 +1232,25 @@ inline S&& LegacyErase(S&& s, size_t pos, Args&&... args) {
 
 inline const char* LegacyStr(const char* s) noexcept {
     return s ? s : "";
+}
+
+// interop
+template <class TCharType, class TTraits>
+auto& MutRef(TBasicString<TCharType, TTraits>& s) {
+    return s.MutRef();
+}
+
+template <class TCharType, class TTraits>
+const auto& ConstRef(const TBasicString<TCharType, TTraits>& s) noexcept {
+    return s.ConstRef();
+}
+
+template <class TCharType, class TCharTraits, class TAllocator>
+auto& MutRef(std::basic_string<TCharType, TCharTraits, TAllocator>& s) noexcept {
+    return s;
+}
+
+template <class TCharType, class TCharTraits, class TAllocator>
+const auto& ConstRef(const std::basic_string<TCharType, TCharTraits, TAllocator>& s) noexcept {
+    return s;
 }
