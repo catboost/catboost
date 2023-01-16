@@ -456,6 +456,9 @@
         },
         "license_analyzer": {
             "description": "Run devtools license analyzer"
+        },
+        "eductl": {
+            "description": "eductl is a toolchain of Yandex Education"
         }
     },
     "toolchain": {
@@ -7190,6 +7193,28 @@
                 "ar": "$(GCC)/bin/arm-none-eabi-ar",
                 "gcc_version": "10.2.1"
             }
+        },
+        "eductl": {
+            "tools": {
+                "eductl": {
+                    "bottle": "eductl",
+                    "executable": "eductl"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -9737,6 +9762,17 @@
                     "bin",
                     "arm-none-eabi",
                     "arm-none-eabi-strip"
+                ]
+            }
+        },
+        "eductl": {
+            "formula": {
+                "sandbox_id": 1045623592,
+                "match": "eductl"
+            },
+            "executable": {
+                "eductl": [
+                    "eductl"
                 ]
             }
         }
