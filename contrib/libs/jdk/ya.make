@@ -2,7 +2,9 @@
 
 LIBRARY()
 
-LICENSE(BCL)
+LICENSE(Oracle)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(GLOBAL contrib/libs/jdk/include)
 
@@ -12,7 +14,7 @@ ELSEIF (OS_DARWIN OR OS_IOS)
     ADDINCL(GLOBAL contrib/libs/jdk/include/darwin)
 ELSEIF (OS_WINDOWS)
     ADDINCL(GLOBAL contrib/libs/jdk/include/win32)
-ENDIF ()
+ENDIF()
 
 NO_UTIL()
 
