@@ -596,7 +596,11 @@ public:
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
         pc = (const TCharType*)HidePointerOrigin((void*)pc);
 #endif
-        MutRef().assign(pc, len);
+        if (IsDetached()) {
+            MutRef().assign(pc, len);
+        } else {
+            TBasicString(pc, len).swap(*this);
+        }
 
         return *this;
     }
