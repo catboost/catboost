@@ -40,10 +40,6 @@ def get_import_path(unit):
     return import_path
 
 
-def need_compiling_runtime(import_path):
-    return import_path in ('runtime', 'reflect', 'syscall') or import_path.startswith('runtime/internal/')
-
-
 def get_appended_values(unit, key):
     value = []
     raw_value = unit.get(key)
@@ -63,6 +59,12 @@ def compare_versions(version1, version2):
     if v1 == v2:
         return 0
     return 1 if v1 < v2 else -1
+
+
+def need_compiling_runtime(import_path, gostd_version):
+    return import_path in ('runtime', 'reflect', 'syscall') or \
+        import_path.startswith('runtime/internal/') or \
+        compare_versions('1.17', gostd_version) >= 0 and import_path == 'internal/bytealg'
 
 
 def go_package_name(unit):
@@ -226,7 +228,7 @@ def on_go_process_srcs(unit):
         if compare_versions('1.16', gostd_version) >= 0:
             import_path = get_import_path(unit)
             symabis_flags.extend(['FLAGS', '-p', import_path])
-            if need_compiling_runtime(import_path):
+            if need_compiling_runtime(import_path, gostd_version):
                 symabis_flags.append('-compiling-runtime')
         unit.on_go_compile_symabis(asm_files + symabis_flags)
 
