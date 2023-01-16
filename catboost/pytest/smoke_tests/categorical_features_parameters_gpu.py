@@ -1,8 +1,10 @@
 import os
 try:
     import catboost_dev as catboost
+    from catboost_dev import CatBoost, CatBoostRegressor, Pool
 except:
     import catboost
+    from catboost import CatBoost, CatBoostRegressor, Pool
 ## CatBoost tutorial: Categorical features parameters
 #
 #*Mastering the parameters you didn't know exist*
@@ -99,10 +101,6 @@ np.median(df.price_usd.values)
 #First, we are going to roughly estimate the number of trees and the learning rate required that are sufficient for this task.
 
 
-os.system("pip install catboost")
-
-
-from catboost import CatBoost, CatBoostRegressor, Pool
 df_ = df.sample(frac=1., random_state=0)
 df_train = df_.iloc[: 2 * len(df) // 3]
 df_test = df_.iloc[2 * len(df) // 3 :]
@@ -114,8 +112,8 @@ test_pool = Pool(df_test.drop(['price_usd'], 1),
                  cat_features=categorical_features_names)
 
 
-model = CatBoostRegressor(custom_metric= ['R2', 'RMSE'], learning_rate=0.1, n_estimators=5000)
-model.fit(train_pool, eval_set=test_pool, verbose=2000, plot=True)
+model = CatBoostRegressor(custom_metric= ['R2', 'RMSE'], learning_rate=0.95, n_estimators=100)
+model.fit(train_pool, eval_set=test_pool, verbose=500, plot=True)
 
 
 #Now we are going to write a simple function that tests CatBoost performance on 3-fold cross-validation given the parameters and returns the full list of parameters for the last model. Optionally this function compares the model's metrics with the results of the model trained with the default categorical features parameters.
@@ -124,7 +122,7 @@ model.fit(train_pool, eval_set=test_pool, verbose=2000, plot=True)
 
 
 kf = KFold(n_splits=3, shuffle=True)
-DEFAULT_PARAMETERS = {'n_estimators' : 4500, 'learning_rate' : 0.1}
+DEFAULT_PARAMETERS = {'n_estimators' : 100, 'learning_rate' : 0.95}
 DEFAULT_MODEL_METRICS = {}
 def score_catboost_model(catboost_parameters, update_defaults=False):
     r2_values = []
@@ -355,9 +353,6 @@ model_params = score_catboost_model({'combinations_ctr': 'BinarizedTargetMeanVal
                                      'simple_ctr': 'BinarizedTargetMeanValue'})
 
 
-{k:v for k, v in model_params.items() if k in ctr_parameters}
-
-
 #While using the `BinarizedTargetMeanValue` method we can also finetune `Prior` and `CtrBorderCount`(the number of borders for quantization the category feature encoding). By default `CtrBorderCount`=15 and 0, 0.5 and 1 `Prior` values are used to build three different encodings.
 
 
@@ -480,7 +475,7 @@ model_params = score_catboost_model({'per_feature_ctr': ['1:Borders:TargetBorder
 #The parameter determines whether to use validation dataset(provided through parameter `eval_set` of `fit` method) to estimate categories frequencies with `Counter`. By default, it is `Full` and the objects from validation dataset are used; Pass `SkipTest` value to ignore the objects from the validation set In our `score_catboost_model` function we don't give to CatBoost the validation dataset at all during training so to check this method effect we will use train/test split.
 
 
-model = CatBoostRegressor(custom_metric= ['R2', 'RMSE'], learning_rate=0.1, n_estimators=4500,
+model = CatBoostRegressor(custom_metric= ['R2', 'RMSE'], learning_rate=0.95, n_estimators=100,
                           counter_calc_method='Full')
 model.fit(train_pool, eval_set=test_pool, verbose=False)
 r2_res = r2_score(df_test.price_usd.values, model.predict(test_pool))
@@ -488,7 +483,7 @@ rmse_res = mean_squared_error(df_test.price_usd.values, model.predict(test_pool)
 print('Counter Calculation Method Full: R2={:.4f} RMSE={:.0f}'.format(r2_res, rmse_res))
 
 
-model = CatBoostRegressor(custom_metric= ['R2', 'RMSE'], learning_rate=0.1, n_estimators=4500,
+model = CatBoostRegressor(custom_metric= ['R2', 'RMSE'], learning_rate=0.95, n_estimators=100,
                           counter_calc_method='SkipTest')
 model.fit(train_pool, eval_set=test_pool, verbose=False)
 r2_res = r2_score(df_test.price_usd.values, model.predict(test_pool))
