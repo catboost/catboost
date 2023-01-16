@@ -662,7 +662,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         out << "";
         out.Finish();
         TString result = outBuf.Str();
-        UNIT_ASSERT(!result.Contains(AsStringBuf("0\r\n")));
+        UNIT_ASSERT(!result.Contains(TStringBuf("0\r\n")));
     }
 
     Y_UNIT_TEST(TestHttpOutputDisableCompressionHeader) {

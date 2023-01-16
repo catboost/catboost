@@ -41,7 +41,7 @@ struct TParserCtx {
         return b && e && b <= e;
     }
 
-    bool OnError(TStringBuf reason = AsStringBuf(""), bool end = false) const {
+    bool OnError(TStringBuf reason = TStringBuf(""), bool end = false) const {
         size_t off = 0;
         TStringBuf token;
 
