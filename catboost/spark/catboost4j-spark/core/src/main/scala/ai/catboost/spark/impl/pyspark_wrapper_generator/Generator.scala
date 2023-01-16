@@ -29,12 +29,26 @@ from enum import Enum
 from py4j.java_gateway import JavaObject
 
 from pyspark import keyword_only, SparkContext
-from pyspark.ml.classification import JavaClassificationModel
 """
     )
 
-    if (sparkCompatVersion.startsWith("3.")) {
-        out.println("from pyspark.ml.regression import JavaRegressionModel")
+    sparkCompatVersion match {
+      case "3.0" => out.println(s"""
+from pyspark.ml.classification import JavaProbabilisticClassificationModel
+from pyspark.ml.regression import JavaRegressionModel
+"""
+        )
+      case "3.1" => out.println(s"""
+from pyspark.ml.classification import _JavaProbabilisticClassificationModel
+from pyspark.ml.regression import _JavaRegressionModel
+"""
+        )
+      case _ => out.println(s"""
+from pyspark.ml.classification import JavaClassificationModel
+from pyspark.ml.util import JavaPredictionModel
+from pyspark.ml.wrapper import JavaModel
+"""
+      )
     }
 
     out.println(
@@ -45,15 +59,6 @@ from pyspark.ml.param import Param, Params
 from pyspark.ml.util import JavaMLReader, JavaMLWriter, JavaMLWritable, MLReadable
 """
     )
-
-    if (!sparkCompatVersion.startsWith("3.")) {
-      out.println(
-        s"""
-from pyspark.ml.util import JavaPredictionModel
-from pyspark.ml.wrapper import JavaModel
-"""
-      )
-    }
 
     out.println(
       s"""
@@ -994,7 +999,11 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostRegressor, 
           new CatBoostRegressionModel(new native_impl.TFullModel()), 
-          if (sparkCompatVersion.startsWith("3.")) { "JavaRegressionModel" } else { "JavaPredictionModel" },
+          sparkCompatVersion match {
+            case "3.0" => "JavaRegressionModel"
+            case "3.1" => "_JavaRegressionModel"
+            case _ => "JavaPredictionModel"
+          },
           "Class to train CatBoostRegressionModel",
           "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
           sparkCompatVersion,
@@ -1003,7 +1012,11 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostClassifier, 
           new CatBoostClassificationModel(new native_impl.TFullModel()),
-          "JavaClassificationModel", 
+          sparkCompatVersion match {
+            case "3.0" => "JavaProbabilisticClassificationModel"
+            case "3.1" => "_JavaProbabilisticClassificationModel"
+            case _ => "JavaClassificationModel"
+          },
           "Class to train CatBoostClassificationModel",
           "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
           sparkCompatVersion,
