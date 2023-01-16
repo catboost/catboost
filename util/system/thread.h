@@ -104,6 +104,12 @@ public:
     static TId ImpossibleThreadId() noexcept;
     static TId CurrentThreadId() noexcept;
 
+    /*
+     * Returns numeric thread id, as visible in e. g. htop.
+     * Consider using this value for logging.
+     */
+    static TId CurrentThreadNumericId() noexcept;
+
     // NOTE: Content of `name` will be copied.
     //
     // NOTE: On Linux thread name is limited to 15 symbols which is probably the smallest one among
