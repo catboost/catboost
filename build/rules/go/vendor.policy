@@ -1045,6 +1045,9 @@ ALLOW .* -> vendor/github.com/Azure/go-autorest/autorest
 # new parts of SDK may be added later, as needed
 ALLOW .* -> vendor/github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network
 
+# CONTRIB-2483
+ALLOW .* -> vendor/github.com/hashicorp/hcl/v2
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
