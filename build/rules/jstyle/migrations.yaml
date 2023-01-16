@@ -8,3 +8,4 @@ jstyle:
             - 'ParameterNumber'
         prefixes: 
             - 'tracker'
+            - 'ci'
