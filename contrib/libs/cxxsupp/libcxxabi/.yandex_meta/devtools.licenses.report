@@ -61,6 +61,7 @@ BELONGS ya.make
 
 KEEP     MIT                  5debb370f50e1dfd24ff5144233a2ef6
 BELONGS ya.make
+    # any - just word, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: MIT
@@ -161,8 +162,9 @@ BELONGS ya.make
     Files with this license:
         LICENSE.TXT [208:222]
 
-KEEP     Apache-2.0 WITH LLVM-exception 9ac77f65a898755c7eed97099caded94
+KEEP     Apache-2.0           9ac77f65a898755c7eed97099caded94
 BELONGS ya.make
+    # any and version - just words, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: Apache-2.0
@@ -174,6 +176,7 @@ BELONGS ya.make
 
 KEEP     NCSA                 b160d8bd561da097b0edd40b062e1c84
 BELONGS ya.make
+    # any and list - just words, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: NCSA

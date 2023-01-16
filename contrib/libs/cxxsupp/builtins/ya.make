@@ -10,6 +10,7 @@ LIBRARY()
 # os_version_check.c was patched from git repository https://github.com/apple/llvm-project.git revision a02454b91d2aec347b9ce03020656c445f3b2841
 
 LICENSE(
+    Apache-2.0 AND
     Apache-2.0 WITH LLVM-exception AND
     MIT AND
     NCSA

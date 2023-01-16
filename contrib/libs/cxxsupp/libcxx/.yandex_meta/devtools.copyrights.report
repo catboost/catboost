@@ -29,33 +29,23 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
-KEEP     COPYRIGHT_SERVICE_LABEL 6abb44b35108cb004d9a12213d837344
+KEEP     COPYRIGHT_SERVICE_LABEL 7e6a182a2f65f965d96f2755976c1829
 BELONGS ya.make
     License text:
-        Copyright (c) 2009-2018 by the contributors listed in CREDITS.TXT
+         * FreeBSD libc.  These are covered by the following copyright:
+         *
+         * Copyright (c) 2002-2004 Tim J. Robbins.
     Scancode info:
         Original SPDX id: COPYRIGHT_SERVICE_LABEL
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        LICENSE.os_version_check.c.txt [17:17]
-
-KEEP     COPYRIGHT_SERVICE_LABEL debfce3edcb19585edc08c5b1d986c0b
-BELONGS ya.make
-    License text:
-        Copyright (c) 2009-2015 by the contributors listed in CREDITS.TXT
-    Scancode info:
-        Original SPDX id: COPYRIGHT_SERVICE_LABEL
-        Score           : 100.00
-        Match type      : COPYRIGHT
-    Files with this license:
-        LICENSE.os_version_check.c.patch.txt [293:293]
-        LICENSE.os_version_check.c.txt [58:58]
-        LICENSE.txt [17:17]
-        LICENSE.txt [58:58]
+        src/support/solaris/mbsnrtowcs.inc [5:7]
+        src/support/solaris/wcsnrtombs.inc [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL ebc015cad7377d32e7b2fc0ae5293aa1
 BELONGS ya.make
+FILE_INCLUDE CREDITS.TXT found in files: LICENSE.TXT at line 252
     # libcxxabi/CREDITS.TXT included in libcxxabi
     License text:
         Copyright (c) 2009-2019 by the contributors listed in CREDITS.TXT
@@ -64,4 +54,17 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        LICENSE.os_version_check.c.patch.txt [252:252]
+        LICENSE.TXT [252:252]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f52c727d32a7eaf5a8de6bc96b82797c
+BELONGS ya.make
+FILE_INCLUDE CREDITS.TXT found in files: LICENSE.TXT at line 293
+    # libcxxabi/CREDITS.TXT included in libcxxabi
+    License text:
+        Copyright (c) 2009-2014 by the contributors listed in CREDITS.TXT
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSE.TXT [293:293]
