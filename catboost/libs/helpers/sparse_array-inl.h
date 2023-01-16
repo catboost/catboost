@@ -375,7 +375,7 @@ namespace NCB {
         , NonDefaultSize(0) // properly inited later
         , Size(0) // properly inited later
     {
-        Visit(
+        std::visit(
             [&](const auto& impl) {
                 NonDefaultSize = impl.GetSize();
                 InitSize(size, impl.GetUpperBound());
@@ -655,7 +655,7 @@ namespace NCB {
         IDynamicIteratorPtr<TSize>* iterator,
         TSize* nonDefaultBegin) const {
 
-        Visit(
+        std::visit(
             [&](const auto& impl) {
                 GetIteratorAndNonDefaultBeginImpl(impl, begin, iterator, nonDefaultBegin);
             },
@@ -668,7 +668,7 @@ namespace NCB {
         ISparseArrayIndexingBlockIteratorPtr<TSize>* iterator,
         TSize* nonDefaultBegin) const {
 
-        Visit(
+        std::visit(
             [&](const auto& impl) {
                 GetBlockIteratorAndNonDefaultBeginImpl(impl, begin, iterator, nonDefaultBegin);
             },

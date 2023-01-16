@@ -610,7 +610,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
-        Visit(NCB::TDumperArraySubsetVisitor<S, TSize>(s), subset);
+        std::visit(NCB::TDumperArraySubsetVisitor<S, TSize>(s), subset);
     }
 };
 
@@ -852,7 +852,7 @@ namespace NCB {
         const TArraySubsetIndexing<TSize>& src,
         const TArraySubsetIndexing<TSize>& srcSubset
     ) {
-        return ::Visit([&](const auto& val) {
+        return ::std::visit([&](const auto& val) {
             return Compose(val, srcSubset);
         }, src);
     }
@@ -1223,7 +1223,7 @@ namespace NCB {
         }
 
         TSize GetSize() const {
-            return Visit(
+            return std::visit(
                 [&] (const auto& variant) { return variant.GetSize(); },
                 *this
             );
@@ -1358,7 +1358,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetInvertedIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetInvertedIndexing<TSize>& invertedSubset) {
-        Visit(NCB::TDumperArraySubsetInvertedIndexingVisitor<S, TSize>(s), invertedSubset);
+        std::visit(NCB::TDumperArraySubsetInvertedIndexingVisitor<S, TSize>(s), invertedSubset);
     }
 };
 

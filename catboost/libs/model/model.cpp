@@ -1742,7 +1742,7 @@ TFullModel SumModels(
     }
     TFlatFeatureMergerVisitor merger;
     for (auto& flatFeature: flatFeatureInfoVector) {
-        Visit(merger, flatFeature.FeatureVariant);
+        std::visit(merger, flatFeature.FeatureVariant);
     }
     TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, {}, approxDimension);
     TVector<double> totalBias(approxDimension);

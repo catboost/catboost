@@ -376,7 +376,7 @@ void TRawTargetData::Check(
     if (Pairs) {
         tasks.emplace_back(
             [&, this]() {
-                Visit(
+            std::visit(
                     [&] (const auto& pairsData) {
                         CheckPairs(pairsData, objectsGrouping);
                     },
@@ -606,7 +606,7 @@ static void GetPairsSubset(
         *result = pairs;
         return;
     }
-    Visit(
+    std::visit(
         [&] (const auto& pairs) {
             *result = GetPairsSubset(pairs, objectsGrouping, objectsGroupingSubset);
         },
