@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/farmhash/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -101,6 +101,18 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\arch\sse41\farmhash-arch-sse41.vcxproj">
+      <Project>{786F1317-9200-AD1B-EA39-65E68AEE6D3A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\arch\sse42\farmhash-arch-sse42.vcxproj">
+      <Project>{C8CA3BCD-F73D-FC20-2052-518590325FDC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\arch\sse42_aesni\farmhash-arch-sse42_aesni.vcxproj">
+      <Project>{A993C899-B035-BA9E-F539-6F76A4717981}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\contrib-libs-farmhash.vcxproj">
+      <Project>{B8ABCDE4-AB07-4A0F-FB0A-AB18C556F7DB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
       <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
