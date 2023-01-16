@@ -1,5 +1,4 @@
-      recursive
-     *double precision function enorm(n,x)
+      double precision function enorm(n,x)
       integer n
       double precision x(n)
 c     **********

@@ -1,5 +1,4 @@
-      recursive
-     *subroutine lmpar(n,r,ldr,ipvt,diag,qtb,delta,par,x,sdiag,wa1,
+      subroutine lmpar(n,r,ldr,ipvt,diag,qtb,delta,par,x,sdiag,wa1,
      *                 wa2)
       integer n,ldr
       integer ipvt(n)

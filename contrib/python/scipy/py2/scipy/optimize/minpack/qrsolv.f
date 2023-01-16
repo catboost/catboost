@@ -1,5 +1,4 @@
-      recursive
-     *subroutine qrsolv(n,r,ldr,ipvt,diag,qtb,x,sdiag,wa)
+      subroutine qrsolv(n,r,ldr,ipvt,diag,qtb,x,sdiag,wa)
       integer n,ldr
       integer ipvt(n)
       double precision r(ldr,n),diag(n),qtb(n),x(n),sdiag(n),wa(n)

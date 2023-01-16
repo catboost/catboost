@@ -1,7 +1,5 @@
       SUBROUTINE COSTI (N,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, K, KC, NM1, NP1, NS2
-      REAL :: WSAVE(*), DT, FK, PI
+      DIMENSION       WSAVE(*)
       DATA PI /3.14159265358979/
       IF (N .LE. 3) RETURN
       NM1 = N-1

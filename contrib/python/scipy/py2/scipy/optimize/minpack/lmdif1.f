@@ -1,5 +1,4 @@
-      recursive
-     *subroutine lmdif1(fcn,m,n,x,fvec,tol,info,iwa,wa,lwa)
+      subroutine lmdif1(fcn,m,n,x,fvec,tol,info,iwa,wa,lwa)
       integer m,n,info,lwa
       integer iwa(n)
       double precision tol

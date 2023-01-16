@@ -86,6 +86,8 @@ def configuration(parent_package='', top_path=None):
         'idd_random_transf0',
         'idd_random_transf0_inv',
         'idd_random_transf_init0',
+        'idd_sfft1',
+        'idd_sffti1',
         'idd_subselect',
         'iddp_asvd0',
         'iddp_rsvd0',

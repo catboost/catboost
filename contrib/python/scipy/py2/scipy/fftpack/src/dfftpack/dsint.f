@@ -1,7 +1,6 @@
       SUBROUTINE DSINT (N,X,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, IW1, IW2, IW3, NP1
-      DOUBLE PRECISION :: X(1), WSAVE(1)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION       X(1)       ,WSAVE(1)      
       NP1 = N+1
       IW1 = N/2+1
       IW2 = IW1+NP1

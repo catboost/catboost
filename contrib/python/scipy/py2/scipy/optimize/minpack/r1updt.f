@@ -1,5 +1,4 @@
-      recursive
-     *subroutine r1updt(m,n,s,ls,u,v,w,sing)
+      subroutine r1updt(m,n,s,ls,u,v,w,sing)
       integer m,n,ls
       logical sing
       double precision s(ls),u(m),v(n),w(m)

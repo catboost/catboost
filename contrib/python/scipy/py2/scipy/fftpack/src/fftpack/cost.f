@@ -1,7 +1,5 @@
       SUBROUTINE COST (N,X,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, I, K, KC, MODN, NM1, NP1, NS2
-      REAL :: X(*), WSAVE(*), C1, T1, T2, TX2, X1H, X1P3, XI, XIM2
+      DIMENSION       X(*)       ,WSAVE(*)
       NM1 = N-1
       NP1 = N+1
       NS2 = N/2

@@ -1,5 +1,4 @@
-      recursive
-     *double precision function dpmpar(i)
+      double precision function dpmpar(i)
       integer i
 c     **********
 c
