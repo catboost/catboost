@@ -526,9 +526,10 @@ def onadd_check(unit, *args):
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
     uid_ext = ''
-    if check_type == "check.data":
+    if check_type in ("check.data", "check.resource"):
         if unit.get("VALIDATE_DATA") == "no":
             return
+    if check_type == "check.data":
         uid_ext = unit.get("SBR_UID_EXT").split(" ", 1)[-1]  # strip variable name
         data_re = re.compile(r"sbr:/?/?(\d+)=?.*")
         data = flat_args[1:]
