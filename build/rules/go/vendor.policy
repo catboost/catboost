@@ -62,6 +62,7 @@ ALLOW .* -> vendor/k8s.io/apimachinery/pkg/watch
 
 # CONTRIB-2279
 ALLOW .* -> vendor/sigs.k8s.io/controller-runtime
+ALLOW .* -> vendor/github.com/go-logr/logr
 
 # CONTRIB-2195
 ALLOW .* -> vendor/github.com/timakin/bodyclose
