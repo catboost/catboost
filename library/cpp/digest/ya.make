@@ -5,6 +5,8 @@ RECURSE(
     md5/ut
     md5/medium_ut
     md5/bench
+    murmur
+    murmur/ut
     crc32c
     crc32c/ut
 )

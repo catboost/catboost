@@ -12,6 +12,7 @@ RECURSE(
     blockcodecs/fuzz
     build_info
     cache
+    case_insensitive_string
     cgiparam
     cgiparam/fuzz
     cgiparam/ut

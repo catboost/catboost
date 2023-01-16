@@ -1,145 +1,123 @@
 #include "httpreqdata.h"
 
+#include <library/cpp/case_insensitive_string/case_insensitive_string.h>
 #include <util/stream/mem.h>
 
 TBaseServerRequestData::TBaseServerRequestData(SOCKET s)
-    : Addr(nullptr)
-    , Host()
-    , Port()
-    , Path(nullptr)
-    , Search(nullptr)
-    , SearchLength(0)
-    , Socket(s)
-    , BeginTime(MicroSeconds())
+    : Socket_(s)
+    , BeginTime_(MicroSeconds())
 {
 }
 
-TBaseServerRequestData::TBaseServerRequestData(const char* qs, SOCKET s)
-    : Addr(nullptr)
-    , Host()
-    , Port()
-    , Path(nullptr)
-    , Search((char*)qs)
-    , SearchLength(qs ? strlen(qs) : 0)
-    , OrigSearch(Search, SearchLength)
-    , Socket(s)
-    , BeginTime(MicroSeconds())
+TBaseServerRequestData::TBaseServerRequestData(TStringBuf qs, SOCKET s)
+    : Query_(qs)
+    , OrigQuery_(Query_)
+    , Socket_(s)
+    , BeginTime_(MicroSeconds())
 {
 }
 
-void TBaseServerRequestData::AppendQueryString(const char* str, size_t length) {
-    if (Y_UNLIKELY(Search)) {
-        Y_ASSERT(strlen(Search) == SearchLength);
-        ModifiedQueryString.Reserve(SearchLength + length + 2);
-        ModifiedQueryString.Assign(Search, SearchLength);
-        if (SearchLength > 0 && Search[SearchLength - 1] != '&' &&
-            length > 0 && str[0] != '&') {
-            ModifiedQueryString.Append('&');
-        }
-        ModifiedQueryString.Append(str, length);
-    } else {
-        ModifiedQueryString.Reserve(length + 1);
-        ModifiedQueryString.Assign(str, length);
-    }
-    ModifiedQueryString.Append('\0');
-    Search = ModifiedQueryString.data();
-    SearchLength = ModifiedQueryString.size() - 1; // ignore terminator
+void TBaseServerRequestData::AppendQueryString(TStringBuf str) {
+    if (Y_UNLIKELY(!Query_.empty())) {
+        TStringBuf separator = !Query_.EndsWith('&') && !str.StartsWith('&') ? "&"sv : ""sv;
+        ModifiedQueryString_ = TString::Join(Query_, separator, str);
+     } else {
+        ModifiedQueryString_ = str;
+     }
+    Query_ = ModifiedQueryString_;
 }
 
 void TBaseServerRequestData::SetRemoteAddr(TStringBuf addr) {
-    TMemoryOutput out(AddrData, Y_ARRAY_SIZE(AddrData) - 1);
-    out.Write(addr.substr(0, Y_ARRAY_SIZE(AddrData) - 1));
-    *out.Buf() = '\0';
-
-    Addr = AddrData;
+    Addr_.ConstructInPlace(addr.substr(0, INET6_ADDRSTRLEN - 1));
 }
 
-const char* TBaseServerRequestData::RemoteAddr() const {
-    if (!Addr) {
-        *AddrData = 0;
-        GetRemoteAddr(Socket, AddrData, sizeof(AddrData));
-        Addr = AddrData;
-    }
+TStringBuf TBaseServerRequestData::RemoteAddr() const {
+    if (!Addr_) {
+        auto& addr = Addr_.ConstructInPlace();
+        addr.ReserveAndResize(INET6_ADDRSTRLEN);
+        if (GetRemoteAddr(Socket_, addr.begin(), sizeof(INET6_ADDRSTRLEN))) {
+            if (auto pos = addr.find('\0'); pos != TString::npos) {
+                addr.resize(pos);
+            }
+        } else {
+            addr.clear();
+        }
+     }
 
-    return Addr;
+    return *Addr_;
+ }
+
+const TString* TBaseServerRequestData::HeaderIn(TStringBuf key) const {
+    return HeadersIn_.FindPtr(key);
 }
 
-const char* TBaseServerRequestData::HeaderIn(TStringBuf key) const {
-    auto it = HeadersIn_.find(key);
-
-    if (it == HeadersIn_.end()) {
-        return nullptr;
-    }
-
-    return it->second.data();
+TStringBuf TBaseServerRequestData::HeaderInOrEmpty(TStringBuf key) const {
+    const auto* ptr = HeaderIn(key);
+    return ptr ? TStringBuf{*ptr} : TStringBuf{};
 }
 
 TString TBaseServerRequestData::HeaderByIndex(size_t n) const noexcept {
-    if (n >= HeadersCount()) {
-        return nullptr;
+    if (n >= HeadersIn_.size()) {
+        return {};
     }
 
-    THttpHeadersContainer::const_iterator i = HeadersIn_.begin();
+    const auto& [key, value] = *std::next(HeadersIn_.begin(), n);
 
-    while (n) {
-        ++i;
-        --n;
-    }
-
-    return TString(i->first) + TStringBuf(": ") + i->second;
+    return TString::Join(key, ": ", value);
 }
 
-const char* TBaseServerRequestData::Environment(const char* key) const {
-    if (stricmp(key, "REMOTE_ADDR") == 0) {
-        const char* ip = HeaderIn("X-Real-IP");
-        if (ip)
-            return ip;
-        return RemoteAddr();
-    } else if (stricmp(key, "QUERY_STRING") == 0) {
-        return QueryString();
-    } else if (stricmp(key, "SERVER_NAME") == 0) {
-        return ServerName().data();
-    } else if (stricmp(key, "SERVER_PORT") == 0) {
-        return ServerPort().data();
-    } else if (stricmp(key, "SCRIPT_NAME") == 0) {
+TStringBuf TBaseServerRequestData::Environment(TStringBuf key) const {
+    TCaseInsensitiveStringBuf ciKey(key.data(), key.size());
+    if (ciKey == "REMOTE_ADDR") {
+        const auto ip = HeaderIn("X-Real-IP");
+        return ip ? *ip : RemoteAddr();
+    } else if (ciKey == "QUERY_STRING") {
+        return Query();
+    } else if (ciKey == "SERVER_NAME") {
+        return ServerName();
+    } else if (ciKey == "SERVER_PORT") {
+        return ServerPort();
+    } else if (ciKey == "SCRIPT_NAME") {
         return ScriptName();
     }
-    return nullptr;
+    return {};
 }
 
-void TBaseServerRequestData::Clear() {
+ void TBaseServerRequestData::Clear() {
     HeadersIn_.clear();
-    Addr = Path = Search = nullptr;
-    OrigSearch = {};
-    SearchLength = 0;
-    Host.clear();
-    Port.clear();
-    CurPage.remove();
-    ParseBuf.Clear();
-    BeginTime = MicroSeconds();
+    Addr_ = Nothing();
+    Path_.clear();
+    Query_ = {};
+    OrigQuery_ = {};
+    Host_.clear();
+    Port_.clear();
+    CurPage_.remove();
+    ParseBuf_.clear();
+    BeginTime_ = MicroSeconds();
 }
 
-const char* TBaseServerRequestData::GetCurPage() const {
-    if (!CurPage && Host) {
-        CurPage = "http://";
-        CurPage += Host;
-        if (Port) {
-            CurPage += ':';
-            CurPage += Port;
+const TString& TBaseServerRequestData::GetCurPage() const {
+    if (!CurPage_ && Host_) {
+        CurPage_ = "http://";
+        CurPage_ += Host_;
+        if (Port_) {
+            CurPage_ += ':';
+            CurPage_ += Port_;
         }
-        CurPage += Path;
-        if (Search) {
-            CurPage += '?';
-            CurPage += Search;
+        CurPage_ += Path_;
+        if (Query_) {
+            CurPage_ += '?';
+            CurPage_ += Query_;
         }
     }
-    return CurPage.data();
+    return CurPage_;
 }
 
-bool TBaseServerRequestData::Parse(const char* origReq) {
-    size_t origReqLength = strlen(origReq);
-    ParseBuf.Assign(origReq, origReqLength + 1);
-    char* req = ParseBuf.Data();
+bool TBaseServerRequestData::Parse(TStringBuf origReqBuf) {
+    ParseBuf_.reserve(origReqBuf.size() + 1);
+    ParseBuf_.assign(origReqBuf.begin(), origReqBuf.end());
+    ParseBuf_.push_back('\0');
+    char* req = ParseBuf_.data();
 
     while (*req == ' ' || *req == '\t')
         req++;
@@ -161,20 +139,20 @@ bool TBaseServerRequestData::Parse(const char* origReq) {
         *fragment = 0; // ignore fragment
     else
         fragment = urlEnd;
-    Path = req;
+    char* path = req;
 
     // calculate Search length without additional strlen-ing
-    Search = strchr(Path, '?');
-    if (Search) {
-        *Search++ = 0;
-        ptrdiff_t delta = fragment - Search;
+    char* query = strchr(path, '?');
+    if (query) {
+        *query++ = 0;
+        ptrdiff_t delta = fragment - query;
         // indeed, second case is a parse error
-        SearchLength = (delta >= 0) ? delta : (urlEnd - Search);
-        Y_ASSERT(strlen(Search) == SearchLength);
+        Query_ = {query, static_cast<size_t>(delta >= 0 ? delta : (urlEnd - query))};
     } else {
-        SearchLength = 0;
+        Query_ = {};
     }
-    OrigSearch = {Search, SearchLength};
+    Path_ = path;
+    OrigQuery_ = Query_;
 
     return true;
 }
@@ -185,12 +163,11 @@ void TBaseServerRequestData::AddHeader(const TString& name, const TString& value
     if (stricmp(name.data(), "Host") == 0) {
         size_t hostLen = strcspn(value.data(), ":");
         if (value[hostLen] == ':')
-            Port = value.substr(hostLen + 1);
-        Host = value.substr(0, hostLen);
+            Port_ = value.substr(hostLen + 1);
+        Host_ = value.substr(0, hostLen);
     }
 }
 
-void TBaseServerRequestData::SetPath(const TString& path) {
-    PathStorage = TBuffer(path.data(), path.size() + 1);
-    Path = PathStorage.Data();
+void TBaseServerRequestData::SetPath(TString path) {
+    Path_ = std::move(path);
 }
