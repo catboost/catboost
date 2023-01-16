@@ -1482,8 +1482,6 @@ class GnuCompiler(Compiler):
         else:
             self.c_defines.append('-UNDEBUG')
 
-        if self.build.is_coverage:
-            self.c_foptions.extend(['-fprofile-arcs', '-ftest-coverage'])
         if self.build.profiler_type in (Profiler.Generic, Profiler.GProf):
             self.c_foptions.append('-fno-omit-frame-pointer')
 
@@ -1650,11 +1648,6 @@ class GnuCompiler(Compiler):
             emit('DUMP_DEPS', '-MD', '${output;hide;noauto;suf=${OBJ_SUF}.o.d:SRC}')
         elif is_positive('DUMP_COMPILER_DEPS_FAST'):
             emit('DUMP_DEPS', '-E', '-M', '-MF', '${output;noauto;suf=${OBJ_SUF}.o.d:SRC}')
-
-        if not self.build.is_coverage:
-            emit('EXTRA_OUTPUT')
-        else:
-            emit('EXTRA_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s${COMPILE_OUT_SUFFIX}.gcno:SRC}' % self.cross_suffix)
 
         compiler_time_trace_requested = is_positive('TIME_TRACE') or is_positive('COMPILER_TIME_TRACE')
         compiler_supports_time_trace = self.tc.is_clang and self.tc.version_at_least(9)
@@ -1929,9 +1922,6 @@ class LD(Linker):
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
-
-        if self.build.is_coverage:
-            self.ld_flags.extend(('-fprofile-arcs', '-ftest-coverage'))
 
         # TODO(somov): Единое условие на coverage.
         if self.build.is_coverage or is_positive('GCOV_COVERAGE') or is_positive('CLANG_COVERAGE') or self.build.is_sanitized:
