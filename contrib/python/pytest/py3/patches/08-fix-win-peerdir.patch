@@ -1,7 +1,7 @@
 --- contrib/python/pytest/py3/ya.make	(index)
 +++ contrib/python/pytest/py3/ya.make	(working tree)
-@@ -15,6 +15,12 @@ PEERDIR(
-     contrib/python/wcwidth
+@@ -17,6 +17,12 @@ PEERDIR(
+     contrib/python/tomli
  )
  
 +IF (OS_WINDOWS)

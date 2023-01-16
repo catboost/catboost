@@ -2,7 +2,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(6.2.5)
+VERSION(7.0.1)
 
 LICENSE(MIT)
 
@@ -12,7 +12,7 @@ PEERDIR(
     contrib/python/packaging
     contrib/python/pluggy
     contrib/python/py
-    contrib/python/toml
+    contrib/python/tomli
 )
 
 IF (OS_WINDOWS)
@@ -49,6 +49,7 @@ PY_SRCS(
     _pytest/compat.py
     _pytest/config/__init__.py
     _pytest/config/argparsing.py
+    _pytest/config/compat.py
     _pytest/config/exceptions.py
     _pytest/config/findpaths.py
     _pytest/debugging.py
@@ -60,6 +61,7 @@ PY_SRCS(
     _pytest/helpconfig.py
     _pytest/hookspec.py
     _pytest/junitxml.py
+    _pytest/legacypath.py
     _pytest/logging.py
     _pytest/main.py
     _pytest/mark/__init__.py
@@ -75,14 +77,16 @@ PY_SRCS(
     _pytest/pytester_assertions.py
     _pytest/python.py
     _pytest/python_api.py
+    _pytest/python_path.py
     _pytest/recwarn.py
     _pytest/reports.py
     _pytest/runner.py
+    _pytest/scope.py
     _pytest/setuponly.py
     _pytest/setupplan.py
     _pytest/skipping.py
+    _pytest/stash.py
     _pytest/stepwise.py
-    _pytest/store.py
     _pytest/terminal.py
     _pytest/threadexception.py
     _pytest/timing.py

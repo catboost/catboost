@@ -2458,7 +2458,6 @@ class MSVCCompiler(MSVC, Compiler):
                 flags.append('-m64')
 
             c_warnings.extend((
-                '-Wno-absolute-value',
                 '-Wno-bitwise-op-parentheses',
                 '-Wno-dll-attribute-on-redeclaration',
                 '-Wno-extern-initializer',

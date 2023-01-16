@@ -31,15 +31,15 @@ from _pytest.deprecated import check_ispytest
 from _pytest.fixtures import fixture
 from _pytest.fixtures import FixtureRequest
 from _pytest.main import Session
-from _pytest.store import StoreKey
+from _pytest.stash import StashKey
 from _pytest.terminal import TerminalReporter
 
 
 DEFAULT_LOG_FORMAT = "%(levelname)-8s %(name)s:%(filename)s:%(lineno)d %(message)s"
 DEFAULT_LOG_DATE_FORMAT = "%H:%M:%S"
 _ANSI_ESCAPE_SEQ = re.compile(r"\x1b\[[\d;]+m")
-caplog_handler_key = StoreKey["LogCaptureHandler"]()
-caplog_records_key = StoreKey[Dict[str, List[logging.LogRecord]]]()
+caplog_handler_key = StashKey["LogCaptureHandler"]()
+caplog_records_key = StashKey[Dict[str, List[logging.LogRecord]]]()
 
 
 def _remove_ansi_escape_sequences(text: str) -> str:
@@ -59,12 +59,30 @@ class ColoredLevelFormatter(logging.Formatter):
         logging.DEBUG: {"purple"},
         logging.NOTSET: set(),
     }
-    LEVELNAME_FMT_REGEX = re.compile(r"%\(levelname\)([+-.]?\d*s)")
+    LEVELNAME_FMT_REGEX = re.compile(r"%\(levelname\)([+-.]?\d*(?:\.\d+)?s)")
 
     def __init__(self, terminalwriter: TerminalWriter, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self._terminalwriter = terminalwriter
         self._original_fmt = self._style._fmt
         self._level_to_fmt_mapping: Dict[int, str] = {}
+
+        for level, color_opts in self.LOGLEVEL_COLOROPTS.items():
+            self.add_color_level(level, *color_opts)
+
+    def add_color_level(self, level: int, *color_opts: str) -> None:
+        """Add or update color opts for a log level.
+
+        :param level:
+            Log level to apply a style to, e.g. ``logging.INFO``.
+        :param color_opts:
+            ANSI escape sequence color options. Capitalized colors indicates
+            background color, i.e. ``'green', 'Yellow', 'bold'`` will give bold
+            green text on yellow background.
+
+        .. warning::
+            This is an experimental API.
+        """
 
         assert self._fmt is not None
         levelname_fmt_match = self.LEVELNAME_FMT_REGEX.search(self._fmt)
@@ -72,19 +90,16 @@ class ColoredLevelFormatter(logging.Formatter):
             return
         levelname_fmt = levelname_fmt_match.group()
 
-        for level, color_opts in self.LOGLEVEL_COLOROPTS.items():
-            formatted_levelname = levelname_fmt % {
-                "levelname": logging.getLevelName(level)
-            }
+        formatted_levelname = levelname_fmt % {"levelname": logging.getLevelName(level)}
 
-            # add ANSI escape sequences around the formatted levelname
-            color_kwargs = {name: True for name in color_opts}
-            colorized_formatted_levelname = terminalwriter.markup(
-                formatted_levelname, **color_kwargs
-            )
-            self._level_to_fmt_mapping[level] = self.LEVELNAME_FMT_REGEX.sub(
-                colorized_formatted_levelname, self._fmt
-            )
+        # add ANSI escape sequences around the formatted levelname
+        color_kwargs = {name: True for name in color_opts}
+        colorized_formatted_levelname = self._terminalwriter.markup(
+            formatted_levelname, **color_kwargs
+        )
+        self._level_to_fmt_mapping[level] = self.LEVELNAME_FMT_REGEX.sub(
+            colorized_formatted_levelname, self._fmt
+        )
 
     def format(self, record: logging.LogRecord) -> str:
         fmt = self._level_to_fmt_mapping.get(record.levelno, self._original_fmt)
@@ -102,14 +117,6 @@ class PercentStyleMultiline(logging.PercentStyle):
     def __init__(self, fmt: str, auto_indent: Union[int, str, bool, None]) -> None:
         super().__init__(fmt)
         self._auto_indent = self._get_auto_indent(auto_indent)
-
-    @staticmethod
-    def _update_message(
-        record_dict: Dict[str, object], message: str
-    ) -> Dict[str, object]:
-        tmp = record_dict.copy()
-        tmp["message"] = message
-        return tmp
 
     @staticmethod
     def _get_auto_indent(auto_indent_option: Union[int, str, bool, None]) -> int:
@@ -176,7 +183,7 @@ class PercentStyleMultiline(logging.PercentStyle):
 
             if auto_indent:
                 lines = record.message.splitlines()
-                formatted = self._fmt % self._update_message(record.__dict__, lines[0])
+                formatted = self._fmt % {**record.__dict__, "message": lines[0]}
 
                 if auto_indent < 0:
                     indentation = _remove_ansi_escape_sequences(formatted).find(
@@ -372,7 +379,7 @@ class LogCaptureFixture:
 
         :rtype: LogCaptureHandler
         """
-        return self._item._store[caplog_handler_key]
+        return self._item.stash[caplog_handler_key]
 
     def get_records(self, when: str) -> List[logging.LogRecord]:
         """Get the logging records for one of the possible test phases.
@@ -385,7 +392,7 @@ class LogCaptureFixture:
 
         .. versionadded:: 3.4
         """
-        return self._item._store[caplog_records_key].get(when, [])
+        return self._item.stash[caplog_records_key].get(when, [])
 
     @property
     def text(self) -> str:
@@ -451,7 +458,7 @@ class LogCaptureFixture:
 
     @contextmanager
     def at_level(
-        self, level: int, logger: Optional[str] = None
+        self, level: Union[int, str], logger: Optional[str] = None
     ) -> Generator[None, None, None]:
         """Context manager that sets the level for capturing of logs. After
         the end of the 'with' statement the level is restored to its original
@@ -626,7 +633,8 @@ class LoggingPlugin:
             finally:
                 self.log_file_handler.release()
         if old_stream:
-            old_stream.close()
+            # https://github.com/python/typeshed/pull/5663
+            old_stream.close()  # type:ignore[attr-defined]
 
     def _log_cli_enabled(self):
         """Return whether live logging is enabled."""
@@ -685,14 +693,16 @@ class LoggingPlugin:
     def _runtest_for(self, item: nodes.Item, when: str) -> Generator[None, None, None]:
         """Implement the internals of the pytest_runtest_xxx() hooks."""
         with catching_logs(
-            self.caplog_handler, level=self.log_level,
+            self.caplog_handler,
+            level=self.log_level,
         ) as caplog_handler, catching_logs(
-            self.report_handler, level=self.log_level,
+            self.report_handler,
+            level=self.log_level,
         ) as report_handler:
             caplog_handler.reset()
             report_handler.reset()
-            item._store[caplog_records_key][when] = caplog_handler.records
-            item._store[caplog_handler_key] = caplog_handler
+            item.stash[caplog_records_key][when] = caplog_handler.records
+            item.stash[caplog_handler_key] = caplog_handler
 
             yield
 
@@ -704,7 +714,7 @@ class LoggingPlugin:
         self.log_cli_handler.set_when("setup")
 
         empty: Dict[str, List[logging.LogRecord]] = {}
-        item._store[caplog_records_key] = empty
+        item.stash[caplog_records_key] = empty
         yield from self._runtest_for(item, "setup")
 
     @hookimpl(hookwrapper=True)
@@ -718,8 +728,8 @@ class LoggingPlugin:
         self.log_cli_handler.set_when("teardown")
 
         yield from self._runtest_for(item, "teardown")
-        del item._store[caplog_records_key]
-        del item._store[caplog_handler_key]
+        del item.stash[caplog_records_key]
+        del item.stash[caplog_handler_key]
 
     @hookimpl
     def pytest_runtest_logfinish(self) -> None:
@@ -766,7 +776,7 @@ class _LiveLoggingStreamHandler(logging.StreamHandler):
         terminal_reporter: TerminalReporter,
         capture_manager: Optional[CaptureManager],
     ) -> None:
-        logging.StreamHandler.__init__(self, stream=terminal_reporter)  # type: ignore[arg-type]
+        super().__init__(stream=terminal_reporter)  # type: ignore[arg-type]
         self.capture_manager = capture_manager
         self.reset()
         self.set_when(None)

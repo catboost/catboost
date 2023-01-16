@@ -42,9 +42,22 @@ class PytestCollectionWarning(PytestWarning):
     __module__ = "pytest"
 
 
-@final
 class PytestDeprecationWarning(PytestWarning, DeprecationWarning):
     """Warning class for features that will be removed in a future version."""
+
+    __module__ = "pytest"
+
+
+@final
+class PytestRemovedIn7Warning(PytestDeprecationWarning):
+    """Warning class for features that will be removed in pytest 7."""
+
+    __module__ = "pytest"
+
+
+@final
+class PytestRemovedIn8Warning(PytestDeprecationWarning):
+    """Warning class for features that will be removed in pytest 8."""
 
     __module__ = "pytest"
 
@@ -116,7 +129,7 @@ _W = TypeVar("_W", bound=PytestWarning)
 
 
 @final
-@attr.s
+@attr.s(auto_attribs=True)
 class UnformattedWarning(Generic[_W]):
     """A warning meant to be formatted during runtime.
 
@@ -124,8 +137,8 @@ class UnformattedWarning(Generic[_W]):
     as opposed to a direct message.
     """
 
-    category = attr.ib(type=Type["_W"])
-    template = attr.ib(type=str)
+    category: Type["_W"]
+    template: str
 
     def format(self, **kwargs: Any) -> _W:
         """Return an instance of the warning category, formatted with given kwargs."""

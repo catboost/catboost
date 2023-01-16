@@ -53,7 +53,7 @@ RECURSE(
     six
     subprocess32
     testpath
-    toml
+    tomli
     tornado
     traitlets
     wcwidth

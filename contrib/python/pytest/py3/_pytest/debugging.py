@@ -90,7 +90,7 @@ def pytest_addoption(parser: Parser) -> None:
         dest="usepdb_cls",
         metavar="modulename:classname",
         type=_validate_usepdb_cls,
-        help="start a custom interactive Python debugger on errors. "
+        help="specify a custom interactive Python debugger for use with --pdb."
         "For example: --pdbcls=IPython.terminal.debugger:TerminalPdb",
     )
     group._addoption(
@@ -125,7 +125,7 @@ def pytest_configure(config: Config) -> None:
             pytestPDB._config,
         ) = pytestPDB._saved.pop()
 
-    config._cleanup.append(fin)
+    config.add_cleanup(fin)
 
 
 class pytestPDB:

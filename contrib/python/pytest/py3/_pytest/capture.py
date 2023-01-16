@@ -68,30 +68,6 @@ def _colorama_workaround() -> None:
             pass
 
 
-def _readline_workaround() -> None:
-    """Ensure readline is imported so that it attaches to the correct stdio
-    handles on Windows.
-
-    Pdb uses readline support where available--when not running from the Python
-    prompt, the readline module is not imported until running the pdb REPL.  If
-    running pytest with the --pdb option this means the readline module is not
-    imported until after I/O capture has been started.
-
-    This is a problem for pyreadline, which is often used to implement readline
-    support on Windows, as it does not attach to the correct handles for stdout
-    and/or stdin if they have been redirected by the FDCapture mechanism.  This
-    workaround ensures that readline is imported before I/O capture is setup so
-    that it can attach to the actual stdin/out for the console.
-
-    See https://github.com/pytest-dev/pytest/pull/1281.
-    """
-    if sys.platform.startswith("win32"):
-        try:
-            import readline  # noqa: F401
-        except ImportError:
-            pass
-
-
 def _py36_windowsconsoleio_workaround(stream: TextIO) -> None:
     """Workaround for Windows Unicode console handling on Python>=3.6.
 
@@ -154,7 +130,6 @@ def pytest_load_initial_conftests(early_config: Config):
     if ns.capture == "fd":
         _py36_windowsconsoleio_workaround(sys.stdout)
     _colorama_workaround()
-    _readline_workaround()
     pluginmanager = early_config.pluginmanager
     capman = CaptureManager(ns.capture)
     pluginmanager.register(capman, "capturemanager")
@@ -363,7 +338,7 @@ class FDCaptureBinary:
         except OSError:
             # FD capturing is conceptually simple -- create a temporary file,
             # redirect the FD to it, redirect back when done. But when the
-            # target FD is invalid it throws a wrench into this loveley scheme.
+            # target FD is invalid it throws a wrench into this lovely scheme.
             #
             # Tests themselves shouldn't care if the FD is valid, FD capturing
             # should work regardless of external circumstances. So falling back
@@ -556,7 +531,11 @@ class MultiCapture(Generic[AnyStr]):
 
     def __repr__(self) -> str:
         return "<MultiCapture out={!r} err={!r} in_={!r} _state={!r} _in_suspended={!r}>".format(
-            self.out, self.err, self.in_, self._state, self._in_suspended,
+            self.out,
+            self.err,
+            self.in_,
+            self._state,
+            self._in_suspended,
         )
 
     def start_capturing(self) -> None:
@@ -614,14 +593,8 @@ class MultiCapture(Generic[AnyStr]):
         return self._state == "started"
 
     def readouterr(self) -> CaptureResult[AnyStr]:
-        if self.out:
-            out = self.out.snap()
-        else:
-            out = ""
-        if self.err:
-            err = self.err.snap()
-        else:
-            err = ""
+        out = self.out.snap() if self.out else ""
+        err = self.err.snap() if self.err else ""
         return CaptureResult(out, err)
 
 
@@ -843,7 +816,9 @@ class CaptureFixture(Generic[AnyStr]):
     def _start(self) -> None:
         if self._capture is None:
             self._capture = MultiCapture(
-                in_=None, out=self.captureclass(1), err=self.captureclass(2),
+                in_=None,
+                out=self.captureclass(1),
+                err=self.captureclass(2),
             )
             self._capture.start_capturing()
 
