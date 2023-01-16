@@ -255,11 +255,11 @@
     - sasl/sasl.h
     - sasl/saslutil.h
 
-- source_filter: "^contrib/libs/apr"
+- source_filter: "^contrib/libs/apache/apr"
   includes:
     - atomic.h
 
-- source_filter: "^contrib/libs/(apr|httpd|llvm)"
+- source_filter: "^contrib/libs/(apache/apr|httpd|llvm)"
   includes:
     - uuid.h
     - uuid/uuid.h
@@ -328,7 +328,7 @@
   includes:
     - config.h
 
-- source_filter: "^contrib/libs/(apr|httpd|openssl)"
+- source_filter: "^contrib/libs/(apache/apr|httpd|openssl)"
   includes:
     - netinet/sctp.h
 
