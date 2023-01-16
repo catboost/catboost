@@ -398,3 +398,102 @@ Y_UNIT_TEST_SUITE(TAsio) {
         UNIT_ASSERT(TTestAcceptorLifespan::Destroyed);
     }
 }
+
+
+Y_UNIT_TEST_SUITE(TTestIOServiceApi) {
+    Y_UNIT_TEST(TestLambdaCaptureMoved) {
+        // When we pass some lambda-function with non-trivial captured objects
+        // we do not want to make any extra copies of this objects.
+
+        struct TObject {
+            TObject(int* copies, int* destructions, int* moves)
+                : Copies(copies)
+                , Destructions(destructions)
+                , Moves(moves)
+            {
+            }
+
+            ~TObject() {
+                ++(*Destructions);
+            }
+
+            TObject(const TObject& other) {
+                Copies = other.Copies;
+                Destructions = other.Destructions;
+                Moves = other.Moves;
+
+                ++(*Copies);
+            }
+
+            TObject(TObject&& other) {
+                Copies = other.Copies;
+                Destructions = other.Destructions;
+                Moves = other.Moves;
+
+                ++(*Moves);
+            }
+
+            TObject& operator=(const TObject& other) {
+                Copies = other.Copies;
+                Destructions = other.Destructions;
+                Moves = other.Moves;
+
+                ++(*Copies);
+
+                return *this;
+            }
+
+            TObject& operator=(TObject&& other) {
+                Copies = other.Copies;
+                Destructions = other.Destructions;
+                Moves = other.Moves;
+
+                ++(*Moves);
+
+                return *this;
+            }
+
+            int* Copies = nullptr;
+            int* Destructions = nullptr;
+            int* Moves = nullptr;
+        };
+
+
+        int unavoidableСopies = 0;
+        int unavoidableDestructions = 0;
+        int unavoidableMoves = 0;
+
+        {
+            // Here we count unavoidable operations.
+            {
+                TObject obj(&unavoidableСopies, &unavoidableDestructions, &unavoidableMoves);
+                TCompletionHandler func([var=std::move(obj)](){});
+                Y_UNUSED(func);
+            }
+            UNIT_ASSERT_VALUES_EQUAL(unavoidableСopies, 0);
+            UNIT_ASSERT_VALUES_EQUAL(unavoidableDestructions, unavoidableMoves + 1);
+            UNIT_ASSERT_VALUES_EQUAL(unavoidableMoves, 2);
+        }
+
+        // We are convinced that object will be moved twice:
+        // at first object is moved to the capture,
+        // then capture is moved to std::function.
+
+        // Now let's prove that TIOService::Post does not add any overhead.
+
+        {
+            int copies = 0;
+            int destructions = 0;
+            int moves = 0;
+            {
+                TObject obj(&copies, &destructions, &moves);
+                TIOService ioService;
+                ioService.Post([var=std::move(obj)](){});
+                ioService.Run();
+            }
+            UNIT_ASSERT_VALUES_EQUAL(copies, unavoidableСopies);
+            UNIT_ASSERT_VALUES_EQUAL(destructions, unavoidableDestructions);
+            UNIT_ASSERT_VALUES_EQUAL(moves, unavoidableMoves);
+        }
+    }
+}
