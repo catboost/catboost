@@ -411,16 +411,16 @@ cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatb
 
 cdef class Py_ObjectsOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TLocalExecutor local_executor
+    cdef THolder[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawObjectsOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
-    def __cinit__(self, thread_count):
-        self.local_executor.RunAdditionalThreads(thread_count - 1)
+    def __cinit__(self, int thread_count):
+        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
-            &self.local_executor,
+            <ILocalExecutor*>self.local_executor.Get(),
             &self.data_provider_builder,
             &self.builder_visitor
         )
@@ -440,16 +440,16 @@ cdef class Py_ObjectsOrderBuilderVisitor:
 
 cdef class Py_FeaturesOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TLocalExecutor local_executor
+    cdef THolder[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
-    def __cinit__(self, thread_count):
-        self.local_executor.RunAdditionalThreads(thread_count - 1)
+    def __cinit__(self, int thread_count):
+        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
-            &self.local_executor,
+            <ILocalExecutor*>self.local_executor.Get(),
             &self.data_provider_builder,
             &self.builder_visitor
         )
@@ -2870,7 +2870,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.float64_t:
         data_np = cast_to_nparray(data, np.float64)
@@ -2880,7 +2880,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int8_t:
         data_np = cast_to_nparray(data, np.int8)
@@ -2890,7 +2890,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint8_t:
         data_np = cast_to_nparray(data, np.uint8)
@@ -2900,7 +2900,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int16_t:
         data_np = cast_to_nparray(data, np.int16)
@@ -2910,7 +2910,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint16_t:
         data_np = cast_to_nparray(data, np.uint16)
@@ -2920,7 +2920,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int32_t:
         data_np = cast_to_nparray(data, np.int32)
@@ -2930,7 +2930,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint32_t:
         data_np = cast_to_nparray(data, np.uint32)
@@ -2940,7 +2940,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int64_t:
         data_np = cast_to_nparray(data, np.int64)
@@ -2950,7 +2950,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint64_t:
         data_np = cast_to_nparray(data, np.uint64)
@@ -2960,7 +2960,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
     else:
         assert False, "CSR sparse arrays support only numeric data types"
 
@@ -4008,7 +4008,7 @@ cdef class _PoolBase:
         feature matrix : np.ndarray of shape (object_count, feature_count)
         """
         cdef int thread_count = UpdateThreadCount(-1)
-        cdef TLocalExecutor local_executor
+        cdef THolder[TTbbLocalExecutor] local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         cdef TFeaturesLayout* features_layout =self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()
         cdef TRawObjectsDataProvider* raw_objects_data_provider = dynamic_cast_to_TRawObjectsDataProvider(
             self.__pool.Get()[0].ObjectsData.Get()
@@ -4018,12 +4018,10 @@ cdef class _PoolBase:
         if features_layout[0].GetExternalFeatureCount() != features_layout[0].GetFloatFeatureCount():
             raise CatBoostError('Pool has non-numeric features, get_features supports only numeric features')
 
-        local_executor.RunAdditionalThreads(thread_count - 1)
-
         data = np.empty(self.shape, dtype=np.float32)
 
         for factor in range(self.num_col()):
-            self._get_feature(raw_objects_data_provider, factor, <ILocalExecutor*>&local_executor, data)
+            self._get_feature(raw_objects_data_provider, factor, <ILocalExecutor*>local_executor.Get(), data)
 
         return data
 
@@ -5346,7 +5344,7 @@ cdef class _StagedPredictIterator:
     cdef TVector[TVector[double]] __approx
     cdef TVector[TVector[double]] __pred
     cdef TFullModel* __model
-    cdef TLocalExecutor __executor
+    cdef THolder[TTbbLocalExecutor] __executor
     cdef TModelCalcerOnPool* __modelCalcerOnPool
     cdef EPredictionType predictionType
     cdef int ntree_start, ntree_end, eval_period, thread_count
@@ -5359,14 +5357,14 @@ cdef class _StagedPredictIterator:
         self.eval_period = eval_period
         self.thread_count = UpdateThreadCount(thread_count)
         self.verbose = verbose
-        self.__executor.RunAdditionalThreads(self.thread_count - 1)
+        self.__executor = MakeHolder[TTbbLocalExecutor](thread_count)
 
     cdef _initialize_model_calcer(self, TFullModel* model, _PoolBase pool):
         self.__model = model
         self.__modelCalcerOnPool = new TModelCalcerOnPool(
             dereference(self.__model),
             pool.__pool.Get()[0].ObjectsData,
-            <ILocalExecutor*>&self.__executor
+            <ILocalExecutor*>self.__executor.Get()
         )
         cdef TMaybeData[TBaselineArrayRef] maybe_baseline = pool.__pool.Get()[0].RawTargetData.GetBaseline()
         cdef TBaselineArrayRef baseline

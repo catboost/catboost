@@ -47,12 +47,13 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
 
 
 cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespace "NPar":
-    cdef cppclass TLocalExecutor:
-        TLocalExecutor() nogil
-        void RunAdditionalThreads(int threadCount) nogil except +ProcessException
-
     cdef cppclass ILocalExecutor:
         pass
+
+
+cdef extern from "library/cpp/threading/local_executor/tbb_local_executor.h" namespace "NPar":
+    cdef cppclass TTbbLocalExecutor[false]:
+        TTbbLocalExecutor(int nThreads) nogil
 
 
 cdef extern from "catboost/private/libs/options/json_helper.h":

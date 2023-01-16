@@ -367,7 +367,7 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
 
     cdef void CreateDataProviderBuilderAndVisitor[IVisitor](
         const TDataProviderBuilderOptions& options,
-        TLocalExecutor* localExecutor,
+        ILocalExecutor* localExecutor,
         THolder[IDataProviderBuilder]* dataProviderBuilder,
         IVisitor** loader
     ) except +ProcessException
