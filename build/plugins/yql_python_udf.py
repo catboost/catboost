@@ -19,7 +19,7 @@ def onregister_yql_python_udf(unit, *args):
 
     unit.onyql_abi_version(['2', '9', '0'])
     unit.onpeerdir(['yql/udfs/common/python/python_udf'])
-    unit.onpeerdir(['yql/library/udf'])
+    unit.onpeerdir(['ydb/library/yql/public/udf'])
 
     if add_libra_modules:
         unit.onpeerdir(['quality/user_sessions/libra_arc/noyql'])
@@ -39,7 +39,7 @@ def onregister_yql_python_udf(unit, *args):
 
     output_includes = [
         'yql/udfs/common/python/python_udf/python_udf.h',
-        'yql/library/udf/udf_registrator.h',
+        'ydb/library/yql/public/udf/udf_registrator.h',
     ]
     if add_libra_modules:
         output_includes.append('yql/udfs/quality/libra/module/module.h')

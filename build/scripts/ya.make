@@ -95,4 +95,8 @@ TEST_SRCS(
     yndexer.py
 )
 
+PEERDIR(
+    ydb/library/yql/public/udf
+)
+
 END()
