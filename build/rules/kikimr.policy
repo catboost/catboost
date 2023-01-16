@@ -141,14 +141,14 @@ ALLOW solomon/ -> kikimr/library/mkql_proto/protos
 ALLOW solomon/ -> kikimr/yq/libs/config/protos
 ALLOW solomon/ -> kikimr/library/login/protos
 
-ALLOW yql/providers/dq/actors -> kikimr/core/base
-ALLOW yql/providers/dq/worker_manager -> kikimr/core/kqp
+ALLOW ydb/library/yql/providers/dq/actors -> kikimr/core/base
+ALLOW ydb/library/yql/providers/dq/worker_manager -> kikimr/core/kqp
 
-ALLOW yql/providers/clickhouse/provider -> kikimr/yq/libs/db_resolver
-ALLOW yql/providers/clickhouse/provider -> kikimr/yq/libs/common
+ALLOW ydb/library/yql/providers/clickhouse/provider -> kikimr/yq/libs/db_resolver
+ALLOW ydb/library/yql/providers/clickhouse/provider -> kikimr/yq/libs/common
 
-ALLOW yql/providers/pq/provider -> kikimr/yq/libs/db_resolver
-ALLOW yql/providers/pq/provider -> kikimr/yq/libs/common
+ALLOW ydb/library/yql/providers/pq/provider -> kikimr/yq/libs/db_resolver
+ALLOW ydb/library/yql/providers/pq/provider -> kikimr/yq/libs/common
 
 ALLOW yql/tools/yqlworker/dq/worker_manager -> kikimr/core/kqp
 
@@ -161,8 +161,8 @@ ALLOW yql/ -> kikimr/library/binary_json
 ALLOW yql/ -> kikimr/library/dynumber
 ALLOW yql/ -> kikimr/yndx/security
 
-ALLOW yql/providers/ydb -> kikimr/yq
-ALLOW yql/providers/ydb -> kikimr/public/lib/experimental
+ALLOW ydb/library/yql/providers/ydb -> kikimr/yq
+ALLOW ydb/library/yql/providers/ydb -> kikimr/public/lib/experimental
 
 ALLOW yql/udfs/ydb -> kikimr/public/lib/experimental
 
@@ -175,7 +175,7 @@ ALLOW yql/library/test_framework -> kikimr/yf/sdk/python/native
 
 ALLOW yql/providers/rtmr/gateway -> kikimr/yf/yf_client
 ALLOW yql/providers/rtmr/gateway -> kikimr/yf/util
-ALLOW yql/providers/common/ut_helpers -> kikimr/core/testlib/basics
+ALLOW ydb/library/yql/providers/common/ut_helpers -> kikimr/core/testlib/basics
 
 ALLOW yql/tests -> kikimr/yf
 ALLOW yql/tests -> kikimr/yq
