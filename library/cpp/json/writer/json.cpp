@@ -323,7 +323,7 @@ namespace NJsonWriter {
 #define MATCH(sym, string)                        \
     case sym:                                     \
         UnsafeWriteRawBytes(beg, cur - beg);      \
-        UnsafeWriteRawBytes(AsStringBuf(string)); \
+        UnsafeWriteRawBytes(TStringBuf(string));  \
         return true
 
     inline bool TBuf::EscapedWriteChar(const char* beg, const char* cur, EHtmlEscapeMode hem) {
