@@ -34,9 +34,14 @@ IF (OS_ANDROID)
         -DLIBCXX_BUILDING_LIBCXXABI
     )
 ELSEIF (OS_IOS)
+    # Take cxxabi implementation from system.
     LDFLAGS(-lc++abi)
     CFLAGS(
         -DLIBCXX_BUILDING_LIBCXXABI
+    )
+    # Yet take builtins library from Arcadia
+    PEERDIR(
+        contrib/libs/cxxsupp/builtins
     )
 ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
     IF (ARCH_ARM7)
