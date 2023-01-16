@@ -54,7 +54,7 @@ namespace NCB {
             return BitIdx;
         }
 
-        bool IsSparse() const {
+        bool IsSparse() const override {
             return PacksData->IsSparse();
         }
 
