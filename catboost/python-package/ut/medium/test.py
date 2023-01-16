@@ -42,7 +42,6 @@ from pandas.arrays import SparseArray
 import scipy.sparse
 import scipy.special
 
-
 from catboost_pytest_lib import (
     DelayedTee,
     binary_path,
@@ -3173,6 +3172,7 @@ def test_copy_model():
 
 def test_cv(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3181,6 +3181,7 @@ def test_cv(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
     assert "train-Logloss-mean" in results
@@ -3189,14 +3190,16 @@ def test_cv(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_query(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
-        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type},
+        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')},
     )
     assert "train-QueryRMSE-mean" in results
 
@@ -3204,11 +3207,12 @@ def test_cv_query(task_type):
     for value in results["train-QueryRMSE-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_pairs(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3216,7 +3220,8 @@ def test_cv_pairs(task_type):
             "learning_rate": 0.03,
             "random_seed": 8,
             "loss_function": "PairLogit",
-            "task_type": task_type
+            "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
     assert "train-PairLogit-mean" in results
@@ -3225,11 +3230,12 @@ def test_cv_pairs(task_type):
     for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_pairs_generated(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3237,7 +3243,8 @@ def test_cv_pairs_generated(task_type):
             "learning_rate": 0.03,
             "random_seed": 8,
             "loss_function": "PairLogit",
-            "task_type": task_type
+            "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
     assert "train-PairLogit-mean" in results
@@ -3246,11 +3253,12 @@ def test_cv_pairs_generated(task_type):
     for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_custom_loss(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3259,14 +3267,16 @@ def test_cv_custom_loss(task_type):
             "loss_function": "Logloss",
             "custom_loss": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         }
     )
     assert "test-AUC-mean" in results
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_skip_train(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3275,6 +3285,7 @@ def test_cv_skip_train(task_type):
             "loss_function": "Logloss:hints=skip_train~true",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
     assert "train-Logloss-mean" not in results
@@ -3282,11 +3293,12 @@ def test_cv_skip_train(task_type):
     assert "train-AUC-mean" not in results
     assert "train-AUC-std" not in results
 
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_skip_train_default(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3295,16 +3307,18 @@ def test_cv_skip_train_default(task_type):
             "loss_function": "Logloss",
             "custom_loss": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
     assert "train-AUC-mean" not in results
     assert "train-AUC-std" not in results
 
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_metric_period(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3313,6 +3327,7 @@ def test_cv_metric_period(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
         metric_period=5,
     )
@@ -3322,7 +3337,7 @@ def test_cv_metric_period(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 @pytest.mark.parametrize(
@@ -3332,6 +3347,7 @@ def test_cv_metric_period(task_type):
 )
 def test_cv_overfitting_detector(with_metric_period, task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3340,6 +3356,7 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
         metric_period=5 if with_metric_period else None,
         early_stopping_rounds=7,
@@ -3350,7 +3367,7 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
     for value in results["train-Logloss-mean"][1:-1]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 @pytest.mark.parametrize('param_type', ['indices', 'strings'])
@@ -3367,9 +3384,11 @@ def test_cv_with_cat_features_param(param_type):
     label = _generate_nontrivial_binary_target(20, prng=prng)
     pool = Pool(data, label, cat_features=cat_features_param, feature_names=feature_names_param)
 
+    train_dir_prefix = test_output_path('')
     params = {
         'loss_function': 'Logloss',
-        'iterations': 10
+        'iterations': 10,
+        'train_dir': os.path.join(train_dir_prefix, 'catboost_info')
     }
 
     results1 = cv(pool, params, as_pandas=False)
@@ -3392,11 +3411,13 @@ def test_cv_with_text():
     labels = np.random.choice(2, 1000)
     texts = [[' '.join(np.random.choice(words[label], 3, replace=False))] for label in labels]
     data_pool = Pool(data=texts, label=labels, text_features=[0])
+    train_dir_prefix = test_output_path('')
     params = {
         'loss_function': 'Logloss',
         'iterations': 10,
         'random_seed': 42,
-        'learning_rate': 0.5
+        'learning_rate': 0.5,
+        'train_dir': os.path.join(train_dir_prefix, 'catboost_info')
     }
     result = cv(iterations=10, pool=data_pool, params=params, fold_count=3).round(decimals=3)
 
@@ -3407,6 +3428,7 @@ def test_cv_with_text():
 
 def test_cv_with_save_snapshot(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     with pytest.raises(CatBoostError):
         cv(
             pool,
@@ -3416,7 +3438,8 @@ def test_cv_with_save_snapshot(task_type):
                 "loss_function": "Logloss",
                 "eval_metric": "AUC",
                 "task_type": task_type,
-                "save_snapshot": True
+                "save_snapshot": True,
+                "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
             },
         )
 
@@ -3426,7 +3449,9 @@ def test_cv_with_save_snapshot(task_type):
     {"loss_function": "RMSE", "eval_metric": "R2"},
 ])
 def test_cv_return_models(params):
-    params.update({"iterations": 20, "learning_rate": 0.03})
+    train_dir_prefix = test_output_path('')
+    params.update({"iterations": 20, "learning_rate": 0.03,
+                    "train_dir": os.path.join(train_dir_prefix, 'catboost_info')})
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     fold_count = 5
@@ -3481,11 +3506,13 @@ def test_cv_small_data():
     pool = Pool(data=cv_data,
                 label=labels,
                 cat_features=[0])
+    train_dir_prefix = test_output_path('')
     params = {
         "iterations": 100,
         "depth": 2,
         "loss_function": "Logloss",
-        "verbose": False
+        "verbose": False,
+        "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
     }
     cv(pool, params, fold_count=2)
 
@@ -4419,22 +4446,25 @@ def test_full_history(task_type):
 
 def test_cv_logging(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     cv(
         pool,
         {
             "iterations": 14,
             "learning_rate": 0.03,
             "loss_function": "Logloss",
-            "task_type": task_type
+            "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_with_not_binarized_target(task_type):
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
     pool = Pool(train_file, column_description=cd)
+    train_dir_prefix = test_output_path('')
     cv(
         pool,
         {
@@ -4442,10 +4472,11 @@ def test_cv_with_not_binarized_target(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "task_type": task_type,
-            "target_border": 0.5
+            "target_border": 0.5,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
@@ -5408,9 +5439,11 @@ def test_learning_rate_auto_set(task_type):
 
 def test_learning_rate_auto_set_in_cv(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
-        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type},
+        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')},
     )
     assert "train-Logloss-mean" in results
 
@@ -5418,7 +5451,7 @@ def test_learning_rate_auto_set_in_cv(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_shap_multiclass(task_type):
@@ -5664,12 +5697,14 @@ def test_compare():
 
 def test_cv_fold_count_alias(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results_fold_count = cv(pool=pool, params={
         "iterations": 5,
         "learning_rate": 0.03,
         "loss_function": "Logloss",
         "eval_metric": "AUC",
         "task_type": task_type,
+        "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
     }, fold_count=4)
     results_nfold = cv(pool=pool, params={
         "iterations": 5,
@@ -5677,6 +5712,7 @@ def test_cv_fold_count_alias(task_type):
         "loss_function": "Logloss",
         "eval_metric": "AUC",
         "task_type": task_type,
+        "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
     }, nfold=4)
     assert results_fold_count.equals(results_nfold)
 
@@ -6025,6 +6061,7 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
     else:
         raise Exception('bad params: data_type=%s, has_missing=%s' % (data_type, has_missing))
 
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -6033,7 +6070,8 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
-            "ignored_features": ignored_features
+            "ignored_features": ignored_features,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
     assert "train-Logloss-mean" in results
@@ -6045,7 +6083,7 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
 
     # Unfortunately, for GPU results differ too much between different GPU models.
     if task_type != 'GPU':
-        return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+        return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_use_last_testset_for_best_iteration():
