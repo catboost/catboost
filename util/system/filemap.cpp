@@ -3,7 +3,6 @@
 #include "defaults.h"
 #include "hi_lo.h"
 
-#include <util/generic/buffer.h>
 #include <util/generic/yexception.h>
 #include <util/generic/singleton.h>
 
