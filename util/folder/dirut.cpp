@@ -449,57 +449,6 @@ int MakeTempDir(char path[/*FILENAME_MAX*/], const char* prefix) {
     return 0;
 }
 
-int RemoveTempDir(const char* dirName) {
-    DIR* dir;
-#ifndef DT_DIR
-    stat_struct sbp;
-#endif
-    if ((dir = opendir(dirName)) == nullptr)
-        return errno ? errno : ENOENT;
-
-    int ret;
-    dirent ent, *pent;
-    char path[FILENAME_MAX], *ptr;
-    size_t len = strlcpy(path, dirName, FILENAME_MAX);
-
-    if (path[len - 1] != LOCSLASH_C) {
-        path[len] = LOCSLASH_C;
-        path[++len] = 0;
-    }
-    ptr = path + len;
-    // TODO(yazevnul|IGNIETFERRO-1070): remove these macroses by replacing `readdir_r` with proper
-    // alternative
-    Y_PRAGMA_DIAGNOSTIC_PUSH
-    Y_PRAGMA_NO_DEPRECATED
-    while ((ret = readdir_r(dir, &ent, &pent)) == 0 && pent == &ent) {
-        Y_PRAGMA_DIAGNOSTIC_POP
-        if (!strcmp(ent.d_name, ".") || !strcmp(ent.d_name, ".."))
-            continue;
-#ifdef DT_DIR
-        if (ent.d_type == DT_DIR)
-#else
-        lstat(ent.d_name, &sbp);
-        if (S_ISREG(sbp.st_mode))
-#endif
-        {
-            ret = ENOTEMPTY;
-            break;
-        }
-        strcpy(ptr, ent.d_name);
-        if (unlink(path)) {
-            ret = errno ? errno : ENOENT;
-            break;
-        }
-    }
-    closedir(dir);
-    if (ret)
-        return ret;
-    *ptr = 0;
-    if (rmdir(path))
-        return errno ? errno : ENOTEMPTY;
-    return 0;
-}
-
 bool IsDir(const TString& path) {
     return TFileStat(path).IsDir();
 }
