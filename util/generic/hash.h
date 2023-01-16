@@ -77,8 +77,8 @@ struct __yhashtable_iterator {
         : cur(n)
     {
     } /*y*/
-    __yhashtable_iterator() {
-    }
+    __yhashtable_iterator() = default;
+
     reference operator*() const {
         return cur->val;
     }
