@@ -42,7 +42,7 @@ public:
         : ClearSignalMask(false)
         , CloseAllFdsOnExec(false)
         , AsyncMode(false)
-        , PollDelayMs(DefaultSyncPollDelay)
+        , PollDelayMs(DefaultSyncPollDelayMs)
         , UseShell(true)
         , QuoteArguments(true)
         , DetachSession(true)
@@ -296,6 +296,9 @@ public:
     }
 
 public:
+    static constexpr size_t DefaultSyncPollDelayMs = 1000;
+
+public:
     bool ClearSignalMask = false;
     bool CloseAllFdsOnExec = false;
     bool AsyncMode = false;
@@ -304,7 +307,7 @@ public:
     bool QuoteArguments = false;
     bool DetachSession = false;
     bool CloseStreams = false;
-    bool ShouldCloseInput = false;
+    TAtomic ShouldCloseInput = false;
     EHandleMode InputMode = HANDLE_STREAM;
     EHandleMode OutputMode = HANDLE_STREAM;
     EHandleMode ErrorMode = HANDLE_STREAM;
@@ -321,7 +324,6 @@ public:
     THashMap<TString, TString> Environment;
     int Nice = 0;
 
-    static const size_t DefaultSyncPollDelay = 1000; // ms
     std::function<void()> FuncAfterFork = {};
 };
 
