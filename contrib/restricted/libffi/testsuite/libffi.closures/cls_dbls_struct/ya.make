@@ -2,7 +2,11 @@
 
 PROGRAM()
 
+WITHOUT_LICENSE_TEXTS()
 
+
+
+LICENSE(GPL-2.0-only)
 
 PEERDIR(
     contrib/restricted/libffi
