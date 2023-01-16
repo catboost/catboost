@@ -738,7 +738,7 @@ _Unwind_GetLanguageSpecificData(struct _Unwind_Context *context) {
   return result;
 }
 
-static uint64_t ValueAsBitPattern(_Unwind_VRS_DataRepresentation representation,
+[[maybe_unused]] static uint64_t ValueAsBitPattern(_Unwind_VRS_DataRepresentation representation,
                                   void* valuep) {
   uint64_t value = 0;
   switch (representation) {
@@ -992,7 +992,7 @@ _Unwind_DeleteException(_Unwind_Exception *exception_object) {
 }
 
 extern "C" _LIBUNWIND_EXPORT _Unwind_Reason_Code
-__gnu_unwind_frame(_Unwind_Exception *exception_object,
+__gnu_unwind_frame([[maybe_unused]] _Unwind_Exception *exception_object,
                    struct _Unwind_Context *context) {
   unw_cursor_t *cursor = (unw_cursor_t *)context;
   if (__unw_step(cursor) != UNW_STEP_SUCCESS)
