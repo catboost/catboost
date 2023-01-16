@@ -438,3 +438,181 @@ Y_UNIT_TEST_SUITE(TThreadSafeCacheUnsafeTest) {
         }
     }
 }
+
+Y_UNIT_TEST_SUITE(TThreadSafeLRUCacheTest) {
+    typedef TThreadSafeLRUCache<size_t, TString, size_t> TCache;
+
+    TVector<TString> Values = {"zero", "one", "two", "three", "four"};
+
+    class TCallbacks: public TCache::ICallbacks {
+    public:
+        TKey GetKey(size_t i) const override {
+            return i;
+        }
+        TValue* CreateObject(size_t i) const override {
+            UNIT_ASSERT(i < Values.size());
+            Creations++;
+            return new TString(Values[i]);
+        }
+
+        mutable size_t Creations = 0;
+    };
+
+    Y_UNIT_TEST(SimpleTest) {
+        for (size_t i = 0; i < Values.size(); ++i) {
+            const TString data = *TCache::Get<TCallbacks>(i);
+            UNIT_ASSERT(data == Values[i]);
+        }
+    }
+
+    Y_UNIT_TEST(InsertUpdateTest) {
+        TCallbacks callbacks;
+        TCache cache(callbacks, 10);
+
+        cache.Insert(2, MakeAtomicShared<TString>("hj"));
+        TAtomicSharedPtr<TString> item = cache.Get(2);
+
+        UNIT_ASSERT(callbacks.Creations == 0);
+        UNIT_ASSERT(*item == "hj");
+
+        cache.Insert(2, MakeAtomicShared<TString>("hjk"));
+        item = cache.Get(2);
+
+        UNIT_ASSERT(callbacks.Creations == 0);
+        UNIT_ASSERT(*item == "hj");
+
+        cache.Update(2, MakeAtomicShared<TString>("hjk"));
+        item = cache.Get(2);
+
+        UNIT_ASSERT(callbacks.Creations == 0);
+        UNIT_ASSERT(*item == "hjk");
+    }
+
+    Y_UNIT_TEST(LRUTest) {
+        TCallbacks callbacks;
+        TCache cache(callbacks, 3);
+
+        UNIT_ASSERT_EQUAL(cache.GetMaxSize(), 3);
+
+        for (size_t i = 0; i < Values.size(); ++i) {
+            TAtomicSharedPtr<TString> item = cache.Get(i);
+            UNIT_ASSERT(*item == Values[i]);
+        }
+        UNIT_ASSERT(callbacks.Creations == Values.size());
+
+        size_t expectedCreations = Values.size();
+        TAtomicSharedPtr<TString> item;
+
+
+        item = cache.Get(4);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "four");
+
+        item = cache.Get(2);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "two");
+
+        item = cache.Get(0);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "zero");
+
+        UNIT_ASSERT(cache.Contains(1) == false);
+        UNIT_ASSERT(cache.Contains(3) == false);
+        UNIT_ASSERT(cache.Contains(4));
+        UNIT_ASSERT(cache.Contains(2));
+        UNIT_ASSERT(cache.Contains(0));
+
+        item = cache.Get(3);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "three");
+
+        item = cache.Get(2);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "two");
+
+        item = cache.Get(0);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "zero");
+
+        item = cache.Get(1);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "one");
+
+        item = cache.Get(2);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "two");
+
+        item = cache.Get(4);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "four");
+    }
+
+    Y_UNIT_TEST(ChangeMaxSizeTest) {
+        TCallbacks callbacks;
+        TCache cache(callbacks, 3);
+
+        UNIT_ASSERT_EQUAL(cache.GetMaxSize(), 3);
+
+        for (size_t i = 0; i < Values.size(); ++i) {
+            TAtomicSharedPtr<TString> item = cache.Get(i);
+            UNIT_ASSERT(*item == Values[i]);
+        }
+
+        size_t expectedCreations = Values.size();
+        TAtomicSharedPtr<TString> item;
+
+        item = cache.Get(4);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "four");
+
+        item = cache.Get(3);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "three");
+
+        item = cache.Get(2);
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "two");
+
+        item = cache.Get(1);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "one");
+
+        cache.SetMaxSize(4);
+
+        item = cache.Get(0);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "zero");
+
+        item = cache.Get(4);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "four");
+
+        item = cache.Get(3);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "three");
+        UNIT_ASSERT(cache.Contains(2) == false);
+
+        cache.SetMaxSize(2);
+        UNIT_ASSERT(cache.Contains(3));
+        UNIT_ASSERT(cache.Contains(4));
+        UNIT_ASSERT(cache.Contains(2) == false);
+        UNIT_ASSERT(cache.Contains(1) == false);
+        UNIT_ASSERT(cache.Contains(0) == false);
+
+        item = cache.Get(0);
+        expectedCreations++;
+        UNIT_ASSERT_EQUAL(callbacks.Creations, expectedCreations);
+        UNIT_ASSERT(*item == "zero");
+        UNIT_ASSERT(cache.Contains(4) == false);
+        UNIT_ASSERT(cache.Contains(3));
+        UNIT_ASSERT(cache.Contains(0));
+    }
+}
