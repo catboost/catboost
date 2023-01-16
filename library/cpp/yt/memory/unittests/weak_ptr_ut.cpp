@@ -5,11 +5,6 @@
 
 #include <array>
 
-#if 0
-#include <yt/yt/core/concurrency/event_count.h>
-#include <util/system/thread.h>
-#endif
-
 namespace NYT {
 namespace {
 
@@ -395,11 +390,11 @@ static void* AsynchronousDeleter(void* param)
     return nullptr;
 }
 
-std::unique_ptr<NConcurrency::TEvent> DeathEvent;
+std::unique_ptr<NThreading::TEvent> DeathEvent;
 
 TEST_F(TWeakPtrTest, DISABLED_AcquisionOfSlowlyDyingObject)
 {
-    DeathEvent.reset(new NConcurrency::TEvent());
+    DeathEvent.reset(new NThreading::TEvent());
 
     TSlowlyDyingObjectPtr object = New<TSlowlyDyingObject>();
     TSlowlyDyingObjectWkPtr ptr(object);
