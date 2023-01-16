@@ -3979,6 +3979,12 @@
                         "os": "LINUX"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -7151,7 +7157,7 @@
         "node-search": {
             "formula": {
                 "sandbox_id": [
-                    1104084318
+                    1142027066
                 ],
                 "match": "node_search"
             },
