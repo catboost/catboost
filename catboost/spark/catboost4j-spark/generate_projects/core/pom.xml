@@ -24,6 +24,7 @@
         <catboost_root>${global_project_root}/../..</catboost_root>
         <core_project_root>${global_project_root}/core</core_project_root>
         <src.root>${core_project_root}/src</src.root>
+        <buildNative.extraArgs></buildNative.extraArgs>
     </properties>
 
     <distributionManagement>
@@ -330,19 +331,19 @@
                           </goals>
                           <configuration>
                               <executable>python</executable>
-                              <arguments>
-                                  <argument>${catboost_root}/jvm-packages/tools/build_native_for_maven.py</argument>
-                                  <argument>${core_project_root}</argument>
-                                  <argument>catboost4j-spark-impl</argument>
-                                  <argument>--build</argument>
-                                  <argument>release</argument>
-                                  <argument>--no-src-links</argument>
-                                  <argument>-DOS_SDK=local</argument>
-                                  <argument>-DHAVE_CUDA=no</argument>
-                                  <argument>-DUSE_LOCAL_SWIG=yes</argument>
-                                  <argument>-DUSE_SYSTEM_JDK=${JAVA_HOME}</argument>
-                                  <argument>-DJAVA_HOME=${JAVA_HOME}</argument>
-                              </arguments>
+                              <commandlineArgs>
+                                ${catboost_root}/jvm-packages/tools/build_native_for_maven.py
+                                ${core_project_root}
+                                catboost4j-spark-impl
+                                --build release
+                                --no-src-links
+                                -DOS_SDK=local
+                                -DHAVE_CUDA=no
+                                -DUSE_LOCAL_SWIG=yes
+                                -DUSE_SYSTEM_JDK=${JAVA_HOME}
+                                -DJAVA_HOME=${JAVA_HOME}
+                                ${buildNative.extraArgs}
+                              </commandlineArgs>
                               <workingDirectory>${user.dir}</workingDirectory>
                           </configuration>
                       </execution>
