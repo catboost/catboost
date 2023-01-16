@@ -2456,7 +2456,6 @@ class MSVCCompiler(MSVC, Compiler):
 
             c_warnings.extend((
                 '-Wno-bitwise-op-parentheses',
-                '-Wno-dll-attribute-on-redeclaration',
                 '-Wno-extern-initializer',
                 '-Wno-format',
                 '-Wno-inconsistent-dllimport',

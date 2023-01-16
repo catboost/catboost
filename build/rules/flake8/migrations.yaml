@@ -1615,7 +1615,6 @@ migrations:
     - ads/libs/py_categories
     - ads/libs/py_conf
     - ads/libs/py_core
-    - ads/libs/py_ecom_recommendations
     - ads/libs/py_ml_clusterization
     - ads/libs/py_ml_common
     - ads/libs/py_ml_engine

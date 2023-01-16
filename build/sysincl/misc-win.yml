@@ -14,14 +14,30 @@
 - source_filter: "^contrib/libs/libpq/src"
   includes:
   - arpa/inet.h:   contrib/libs/libpq/src/include/port/win32/arpa/inet.h
+  - netdb.h: contrib/libs/libpq/src/include/port/win32/netdb.h
+  - netinet/in.h: contrib/libs/libpq/src/include/port/win32/netinet/in.h
+  - pwd.h: contrib/libs/libpq/src/include/port/win32/pwd.h
   - sys/file.h:    contrib/libs/libpq/src/include/port/win32_msvc/sys/file.h
   - sys/param.h:   contrib/libs/libpq/src/include/port/win32_msvc/sys/param.h
+  - sys/socket.h:  contrib/libs/libpq/src/include/port/win32/sys/socket.h
   - sys/time.h:    contrib/libs/libpq/src/include/port/win32_msvc/sys/time.h
   - unistd.h:      contrib/libs/libpq/src/include/port/win32_msvc/unistd.h
-  - netdb.h:       contrib/libs/libpq/src/include/port/win32/netdb.h
-  - netinet/in.h:  contrib/libs/libpq/src/include/port/win32/netinet/in.h
-  - pwd.h:         contrib/libs/libpq/src/include/port/win32/pwd.h
-  - sys/socket.h:  contrib/libs/libpq/src/include/port/win32/sys/socket.h
+
+- source_filer: "^contrib/libs/postgresql/src"
+  includes:
+  - arpa/inet.h:   contrib/libs/postgresql/src/include/port/win32/arpa/inet.h
+  - dirent.h:      contrib/libs/postgresql/src/include/port/win32_msvc/dirent.h
+  - grp.h:         contrib/libs/postgresql/src/include/port/win32/grp.h
+  - netdb.h:       contrib/libs/postgresql/src/include/port/win32/netdb.h
+  - netinet/in.h:  contrib/libs/postgresql/src/include/port/win32/netinet/in.h
+  - pwd.h:         contrib/libs/postgresql/src/include/port/win32/pwd.h
+  - sys/file.h:    contrib/libs/postgresql/src/include/port/win32_msvc/sys/file.h
+  - sys/param.h:   contrib/libs/postgresql/src/include/port/win32_msvc/sys/param.h
+  - sys/socket.h:  contrib/libs/postgresql/src/include/port/win32/sys/socket.h
+  - sys/time.h:    contrib/libs/postgresql/src/include/port/win32_msvc/sys/time.h
+  - sys/wait.h:    contrib/libs/postgresql/src/include/port/win32/sys/wait.h
+  - unistd.h:      contrib/libs/postgresql/src/include/port/win32_msvc/unistd.h
+  - utime.h:       contrib/libs/postgresql/src/include/port/win32_msvc/utime.h
 
 - source_filter: "^contrib/libs/libx264"
   includes:

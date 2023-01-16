@@ -80,6 +80,12 @@
         "gdbserver": {
             "description": "Run gdbserver"
         },
+        "gdbnew": {
+            "description": "Run gdb for Ubuntu 16.04 or later"
+        },
+        "gdbservernew": {
+            "description": "Run gdbserver for Ubuntu 16.04 or later"
+        },
         "ag": {
             "description": "Run ag (super fast source-code grep)"
         },
@@ -2962,6 +2968,43 @@
                     "host": {
                         "os": "LINUX",
                         "arch": "ppc64le"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "gdbnew": {
+            "tools": {
+                "gdbnew": {
+                    "bottle": "gdbnew",
+                    "executable": "gdb"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ],
+            "env": {
+                "TERMINFO": [
+                    "$(ROOT)/gdb/lib/terminfo"
+                ]
+            }
+        },
+        "gdbservernew": {
+            "tools": {
+                "gdbservernew": {
+                    "bottle": "gdbnew",
+                    "executable": "gdbserver"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
                     },
                     "default": true
                 }
@@ -7009,6 +7052,24 @@
                 ]
             }
         },
+        "gdbnew": {
+            "formula": {
+                "sandbox_id": [
+                    1230533443
+                ],
+                "match": "GDB"
+            },
+            "executable": {
+                "gdb": [
+                    "bin",
+                    "gdb"
+                ],
+                "gdbserver": [
+                    "bin",
+                    "gdbserver"
+                ]
+            }
+        },
         "pprof": {
             "formula": {
                 "sandbox_id": 1115456319,
@@ -7449,7 +7510,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1231175334,
+                "sandbox_id": 1232270717,
                 "match": "horadric"
             },
             "executable": {
@@ -8244,7 +8305,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1231174767,
+                "sandbox_id": 1232270271,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8255,7 +8316,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1231178013,
+                "sandbox_id": 1232270324,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8277,7 +8338,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1231175127,
+                "sandbox_id": 1232272205,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8288,7 +8349,7 @@
         },
         "bigb_yt_profiles_dumper": {
             "formula": {
-                "sandbox_id": 1231175123,
+                "sandbox_id": 1232270245,
                 "match": "yt_profiles_dumper"
             },
             "executable": {
@@ -8299,7 +8360,7 @@
         },
         "bigb_ab": {
             "formula": {
-                "sandbox_id": 1231175022,
+                "sandbox_id": 1232270185,
                 "match": "ab"
             },
             "executable": {
@@ -8323,7 +8384,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1231177453,
+                "sandbox_id": 1232270175,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8334,7 +8395,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1231175132,
+                "sandbox_id": 1232270286,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8345,7 +8406,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1231177519,
+                "sandbox_id": 1232270765,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8356,7 +8417,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1231179471,
+                "sandbox_id": 1232270171,
                 "match": "profile_size_analyzer"
             },
             "executable": {
