@@ -364,7 +364,7 @@ void NUnitTest::TTestBase::AtEnd() {
     Processor()->UnitStop(unit);
 }
 
-void NUnitTest::TTestBase::Run(std::function<void()> f, const TString suite, const char* name, const bool forceFork) {
+void NUnitTest::TTestBase::Run(std::function<void()> f, const TString& suite, const char* name, const bool forceFork) {
     TestErrors_ = 0;
     CurrentSubtest_ = name;
     Processor()->Run(f, suite, name, forceFork);

@@ -135,7 +135,7 @@ namespace NUnitTest {
         // Should execute a test whitin suite?
         virtual bool CheckAccessTest(TString /*suite*/, const char* /*name*/);
 
-        virtual void Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, const bool /*forceFork*/);
+        virtual void Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, bool /*forceFork*/);
 
         // This process is forked for current test
         virtual bool GetIsForked() const;
@@ -219,11 +219,11 @@ namespace NUnitTest {
 
         void AtEnd();
 
-        void Run(std::function<void()> f, const TString suite, const char* name, const bool forceFork);
+        void Run(std::function<void()> f, const TString& suite, const char* name, bool forceFork);
 
         class TCleanUp {
         public:
-            TCleanUp(TTestBase* base);
+            explicit TCleanUp(TTestBase* base);
 
             ~TCleanUp();
 
@@ -788,9 +788,9 @@ public:                       \
         {
         }
 
-        inline TBaseTestCase(const char* name, const std::function<void(TTestContext&)>& body, bool forceFork)
+        inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork)
             : Name_(name)
-            , Body_(body)
+            , Body_(std::move(body))
             , ForceFork_(forceFork)
         {
         }
@@ -833,7 +833,7 @@ public:                       \
                 Parent->SetHandler();
             }
 
-            TInvokeGuard(TInvokeGuard&& guard)
+            TInvokeGuard(TInvokeGuard&& guard) noexcept
                 : Parent(guard.Parent)
             {
                 guard.Parent = nullptr;
@@ -895,7 +895,7 @@ public:                       \
     };
 
 #define UNIT_TEST_SUITE_REGISTRATION(T) \
-    static ::NUnitTest::TTestBaseFactory<T> Y_GENERATE_UNIQUE_ID(UTREG_);
+    static const ::NUnitTest::TTestBaseFactory<T> Y_GENERATE_UNIQUE_ID(UTREG_);
 
 #define Y_UNIT_TEST_SUITE_IMPL_F(N, T, F)                                                                          \
     namespace NTestSuite##N {                                                                                           \
