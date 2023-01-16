@@ -163,6 +163,7 @@ template <class T, class Allocator, class Predicate>
 #include <__config>
 #include <__debug>
 #include <__split_buffer>
+#include <__utility/forward.h>
 #include <algorithm>
 #include <compare>
 #include <initializer_list>
@@ -1319,7 +1320,7 @@ public:
         deque(_InputIter __f, _InputIter __l, const allocator_type& __a,
               typename enable_if<__is_cpp17_input_iterator<_InputIter>::value>::type* = 0);
     deque(const deque& __c);
-    deque(const deque& __c, const allocator_type& __a);
+    deque(const deque& __c, const __identity_t<allocator_type>& __a);
 
     deque& operator=(const deque& __c);
 
@@ -1333,7 +1334,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     deque(deque&& __c) _NOEXCEPT_(is_nothrow_move_constructible<__base>::value);
     _LIBCPP_INLINE_VISIBILITY
-    deque(deque&& __c, const allocator_type& __a);
+    deque(deque&& __c, const __identity_t<allocator_type>& __a);
     _LIBCPP_INLINE_VISIBILITY
     deque& operator=(deque&& __c)
         _NOEXCEPT_(__alloc_traits::propagate_on_container_move_assignment::value &&
@@ -1662,7 +1663,7 @@ deque<_Tp, _Allocator>::deque(const deque& __c)
 }
 
 template <class _Tp, class _Allocator>
-deque<_Tp, _Allocator>::deque(const deque& __c, const allocator_type& __a)
+deque<_Tp, _Allocator>::deque(const deque& __c, const __identity_t<allocator_type>& __a)
     : __base(__a)
 {
     __append(__c.begin(), __c.end());
@@ -1705,7 +1706,7 @@ deque<_Tp, _Allocator>::deque(deque&& __c)
 
 template <class _Tp, class _Allocator>
 inline
-deque<_Tp, _Allocator>::deque(deque&& __c, const allocator_type& __a)
+deque<_Tp, _Allocator>::deque(deque&& __c, const __identity_t<allocator_type>& __a)
     : __base(_VSTD::move(__c), __a)
 {
     if (__a != __c.__alloc())

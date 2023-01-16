@@ -159,6 +159,7 @@ template <class Stream, class T>
 */
 
 #include <__config>
+#include <__utility/forward.h>
 #include <ostream>
 #include <version>
 
@@ -302,8 +303,7 @@ public:
 //    ~sentry() = default;
 
     _LIBCPP_INLINE_VISIBILITY
-        _LIBCPP_EXPLICIT
-        operator bool() const {return __ok_;}
+    explicit operator bool() const {return __ok_;}
 };
 
 template <class _CharT, class _Traits>

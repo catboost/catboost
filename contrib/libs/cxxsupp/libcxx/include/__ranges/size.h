@@ -13,6 +13,9 @@
 #include <__iterator/concepts.h>
 #include <__iterator/iterator_traits.h>
 #include <__ranges/access.h>
+#include <__utility/__decay_copy.h>
+#include <__utility/forward.h>
+#include <concepts>
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
