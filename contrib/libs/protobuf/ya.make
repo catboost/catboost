@@ -8,6 +8,8 @@ PROVIDES(protobuf)
 
 VERSION(3.17.3)
 
+ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.17.3.tar.gz)
+
 LICENSE(
     BSD-3-Clause
     Protobuf-License

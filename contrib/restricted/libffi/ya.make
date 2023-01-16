@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(3.3)
 
+ORIGINAL_SOURCE(https://sourceware.org/pub/libffi/libffi-3.3.tar.gz)
+
 LICENSE(MIT)
 
 ADDINCL(

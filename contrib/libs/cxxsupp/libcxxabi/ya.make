@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(2021-06-07-87039c048c0cbc3d8cbba86187269b006bf2f373)
 
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/87039c048c0cbc3d8cbba86187269b006bf2f373.tar.gz)
+
 LICENSE(
     Apache-2.0 WITH LLVM-exception
     MIT

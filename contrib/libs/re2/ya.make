@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(2021-08-01)
 
+ORIGINAL_SOURCE(https://github.com/google/re2/archive/2021-08-01.tar.gz)
+
 LICENSE(
     BSD-3-Clause
     X11-Lucent

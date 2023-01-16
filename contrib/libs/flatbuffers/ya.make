@@ -6,6 +6,8 @@ LIBRARY()
 
 VERSION(2.0.0)
 
+ORIGINAL_SOURCE(https://github.com/google/flatbuffers/archive/v2.0.0.tar.gz)
+
 LICENSE(
     Apache-2.0
     BSD-3-Clause
