@@ -2,22 +2,69 @@
 
 #include "quantized_features_info.h"
 
+#include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/index_hash_calcer.h>
 #include <catboost/private/libs/algo_helpers/scratch_cache.h>
+#include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/private/libs/options/defaults_helper.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/system_options.h>
 
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>
 #include <util/stream/input.h>
+#include <util/system/compiler.h>
 #include <util/system/tempfile.h>
 
 
 using namespace NCB;
+
+
+/* this function assumes that class count can be inferred from parameters
+ * (either they have been specified by a user or calculated by CatBoostClassifier preprocessing)
+*/
+static size_t GetClassCount(const NCatboostOptions::TDataProcessingOptions& options) {
+    if (options.ClassesCount.IsSet()) {
+        return options.ClassesCount.Get();
+    }
+    if (options.ClassWeights.IsSet()) {
+        return options.ClassWeights->size();
+    }
+    if (options.ClassLabels.IsSet()) {
+        return options.ClassLabels->size();
+    }
+    CB_ENSURE_INTERNAL(false, "Cannot get class count from parameters after preprocessing");
+    Y_UNREACHABLE();
+}
+
+/* this function assumes that if it is a classification problem
+ *  lossFunction is set and class count can be inferred from parameters
+ * (either they have been specified by a user or calculated by CatBoostClassifier preprocessing)
+*/
+static TLabelConverter CreateLabelConverter(const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+    TLabelConverter labelConverter;
+
+    ELossFunction lossFunction = catBoostOptions.LossFunctionDescription->LossFunction.Get();
+    if (IsBinaryClassOnlyMetric(lossFunction)) {
+        labelConverter.InitializeBinClass();
+    } else if (IsClassificationObjective(lossFunction)) {
+        auto classCount = GetClassCount(catBoostOptions.DataProcessingOptions);
+
+        if (IsMultiClassOnlyMetric(lossFunction) || (classCount > 2)) {
+            labelConverter.InitializeMultiClass(SafeIntegerCast<int>(classCount));
+        } else {
+            labelConverter.InitializeBinClass();
+        }
+    }
+
+    return labelConverter;
+}
+
 
 TCtrHelper GetCtrHelper(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
@@ -27,13 +74,15 @@ TCtrHelper GetCtrHelper(
     auto lossFunction = catBoostOptions.LossFunctionDescription->GetLossFunction();
     NCatboostOptions::TCatFeatureParams updatedCatFeatureParams = catBoostOptions.CatFeatureParams.Get();
 
+    ui32 approxDimension = GetApproxDimension(
+        catBoostOptions,
+       CreateLabelConverter(catBoostOptions),
+        /*targetDimension*/ 1
+    );
+
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> targetsParam;
     if (!learnTarget.empty()) {
-        UpdateCtrsTargetBordersOption(
-            lossFunction,
-            /*approxDimension*/ 1,
-            &updatedCatFeatureParams
-        );
+        UpdateCtrsTargetBordersOption(lossFunction, approxDimension, &updatedCatFeatureParams);
         targetsParam = TConstArrayRef<TConstArrayRef<float>>(&learnTarget, 1);
     }
 

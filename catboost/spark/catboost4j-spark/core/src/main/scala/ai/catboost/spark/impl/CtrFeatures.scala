@@ -123,7 +123,7 @@ object CtrFeatures {
   def addCtrsAsEstimated(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool],
-    params: TrainingParamsTrait,
+    updatedCatBoostJsonParams: JObject,  // with set loss_function and class labels can be inferred
     oneHotMaxSize: Int
   ) : (Pool, Array[Pool], CtrsContext) = {
     val spark = quantizedTrainPool.data.sparkSession
@@ -131,13 +131,11 @@ object CtrFeatures {
     // Cache pools data because it's heavily reused here
     quantizedTrainPool.data.cache()
     quantizedEvalPools.map(evalPool => evalPool.data.cache())
-    
-    val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(params)
    
     var learnTarget = getLearnTarget(quantizedTrainPool)
     
     val catBoostOptions = new TCatBoostOptions(ETaskType.CPU)
-    native_impl.InitCatBoostOptions(compact(catBoostJsonParams), catBoostOptions)
+    native_impl.InitCatBoostOptions(compact(updatedCatBoostJsonParams), catBoostOptions)
     val ctrHelper = native_impl.GetCtrHelper(
       catBoostOptions,
       quantizedTrainPool.getFeaturesLayout.__deref__(),
