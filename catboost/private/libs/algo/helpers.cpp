@@ -3,6 +3,7 @@
 #include "learn_context.h"
 
 #include <catboost/libs/data/quantized_features_info.h>
+#include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -198,10 +199,18 @@ void CalcErrorsLocally(
         auto weights = GetWeights(*targetData);
         auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
+        TVector<TVector<double>>* approx = &ctx->LearnProgress->AvrgApprox;
+        bool isExpApprox = false;
+        if (UseAveragingFoldAsFoldZero(*ctx) && trainMetrics.size() == 1) {
+            const auto lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();
+            isExpApprox = IsStoreExpApprox(lossFunction);
+            approx = &ctx->LearnProgress->AveragingFold.BodyTailArr[0].Approx;
+        }
+
         auto errors = EvalErrorsWithCaching(
-            ctx->LearnProgress->AvrgApprox,
+            *approx,
             /*approxDelta*/{},
-            /*isExpApprox*/false,
+            isExpApprox,
             targetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
             weights,
             queryInfo,

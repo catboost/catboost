@@ -825,3 +825,10 @@ bool NeedToUseTreeLevelCaching(
         !IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction()) &&
         maxLeafCount * approxDimension * maxBodyTailCount < 64 * 1 * 10);
 }
+
+bool UseAveragingFoldAsFoldZero(const TLearnContext& ctx) {
+    const auto lossFunction = ctx.Params.LossFunctionDescription->GetLossFunction();
+    const bool usePairs = UsesPairsForCalculation(lossFunction);
+    const bool isPlainBoosting = ctx.Params.BoostingOptions->BoostingType == EBoostingType::Plain;
+    return isPlainBoosting && !ctx.LearnProgress->IsAveragingFoldPermuted && !usePairs;
+}

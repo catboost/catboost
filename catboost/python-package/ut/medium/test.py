@@ -7233,7 +7233,12 @@ def test_binclass_with_nontrivial_classes():
     X = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     y = [1, 2, 1]
     model.fit(X, y)
-    return local_canonical_file(remove_time_from_json(catboost_training_path))
+    json_log = json.load(open(remove_time_from_json(catboost_training_path)))
+    json_log['iterations'] = [
+        dict({'iteration': row['iteration'], 'learn': [np.round(row['learn'][0], decimals=4)]})
+        for row in json_log['iterations']]
+    json.dump(json_log, open(catboost_training_path, 'w'))
+    return local_canonical_file(catboost_training_path)
 
 
 def test_loss_function_auto_set():
@@ -9700,8 +9705,8 @@ def test_eval_metric_with_weights(task_type, task, metric, use_weights):
         eval_metric=full_metric_name,
         task_type=task_type
     )
-    model.fit(pool)
-    fit_metric = model.evals_result_['learn'][full_metric_name]
+    model.fit(pool, eval_set=pool)
+    fit_metric = model.evals_result_['validation'][full_metric_name]
     eval_metric = model.eval_metrics(pool, full_metric_name)[full_metric_name]
     eval_metric_inverse = model.eval_metrics(pool, full_metric_name_inverse)[full_metric_name_inverse]
     assert not np.array_equal(eval_metric, eval_metric_inverse)
