@@ -998,6 +998,10 @@ ALLOW yweb/animals/internal/authserver -> vendor/github.com/xeipuuv/gojsonschema
 # CONTRIB-2356 Django-syntax like template-engine
 ALLOW .* -> vendor/github.com/flosch/pongo2/v4
 
+# CONTRIB-2355 Minifiers for web formats
+DENY .* -> vendor/github.com/tdewolff/minify/v2/cmd
+ALLOW .* -> vendor/github.com/tdewolff/minify/v2
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
