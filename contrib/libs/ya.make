@@ -101,3 +101,9 @@ IF (OS_LINUX AND ARCH_ARM64)
     
 )
 ENDIF()
+
+IF (MUSL)
+    RECURSE(
+    
+)
+ENDIF()

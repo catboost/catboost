@@ -14,6 +14,7 @@
 #include <util/generic/intrlist.h>
 #include <util/datetime/base.h>
 #include <util/generic/maybe.h>
+#include <util/generic/function.h>
 
 
 #define EWAKEDUP 34567
@@ -47,8 +48,7 @@ private:
         NCoro::NStack::IAllocator& allocator,
         uint32_t stackSize,
         TContExecutor& executor,
-        TContFunc func,
-        void* arg,
+        NCoro::TTrampoline::TFunc func,
         const char* name
     ) noexcept;
 
@@ -195,6 +195,12 @@ public:
     TCont* Create(
         TContFunc func,
         void* arg,
+        const char* name,
+        TMaybe<ui32> customStackSize = Nothing()
+    ) noexcept;
+
+    TCont* CreateOwned(
+        NCoro::TTrampoline::TFunc func,
         const char* name,
         TMaybe<ui32> customStackSize = Nothing()
     ) noexcept;

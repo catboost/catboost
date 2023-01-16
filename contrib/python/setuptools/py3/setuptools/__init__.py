@@ -21,20 +21,19 @@ from . import monkey
 
 
 __all__ = [
-    'setup', 'Distribution', 'Command', 'Extension', 'Require',
+    'setup',
+    'Distribution',
+    'Command',
+    'Extension',
+    'Require',
     'SetuptoolsDeprecationWarning',
-    'find_packages', 'find_namespace_packages',
+    'find_packages',
+    'find_namespace_packages',
 ]
 
 __version__ = setuptools.version.__version__
 
 bootstrap_install_from = None
-
-# If we run 2to3 on .py files, should we also convert docstrings?
-# Default: yes; assume that we can detect doctests reliably
-run_2to3_on_doctests = True
-# Standard package names for fixer packages
-lib2to3_fixer_packages = ['lib2to3.fixes']
 
 
 class PackageFinder:
@@ -60,10 +59,13 @@ class PackageFinder:
         shell style wildcard patterns just like 'exclude'.
         """
 
-        return list(cls._find_packages_iter(
-            convert_path(where),
-            cls._build_filter('ez_setup', '*__pycache__', *exclude),
-            cls._build_filter(*include)))
+        return list(
+            cls._find_packages_iter(
+                convert_path(where),
+                cls._build_filter('ez_setup', '*__pycache__', *exclude),
+                cls._build_filter(*include),
+            )
+        )
 
     @classmethod
     def _find_packages_iter(cls, where, exclude, include):
@@ -82,7 +84,7 @@ class PackageFinder:
                 package = rel_path.replace(os.path.sep, '.')
 
                 # Skip directory trees that are not valid packages
-                if ('.' in dir or not cls._looks_like_package(full_path)):
+                if '.' in dir or not cls._looks_like_package(full_path):
                     continue
 
                 # Should this package be included?
@@ -125,12 +127,10 @@ def _install_setup_requires(attrs):
         A minimal version of a distribution for supporting the
         fetch_build_eggs interface.
         """
+
         def __init__(self, attrs):
             _incl = 'dependency_links', 'setup_requires'
-            filtered = {
-                k: attrs[k]
-                for k in set(_incl) & set(attrs)
-            }
+            filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
             distutils.core.Distribution.__init__(self, filtered)
 
         def finalize_options(self):
@@ -178,8 +178,9 @@ class Command(_Command):
             setattr(self, option, default)
             return default
         elif not isinstance(val, str):
-            raise DistutilsOptionError("'%s' must be a %s (got `%s`)"
-                                       % (option, what, val))
+            raise DistutilsOptionError(
+                "'%s' must be a %s (got `%s`)" % (option, what, val)
+            )
         return val
 
     def ensure_string_list(self, option):
@@ -200,8 +201,8 @@ class Command(_Command):
                 ok = False
             if not ok:
                 raise DistutilsOptionError(
-                    "'%s' must be a list of strings (got %r)"
-                    % (option, val))
+                    "'%s' must be a list of strings (got %r)" % (option, val)
+                )
 
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)

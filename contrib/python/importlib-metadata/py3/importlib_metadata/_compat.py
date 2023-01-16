@@ -15,17 +15,20 @@ except ImportError:  # pragma: no cover
     from typing_extensions import Protocol  # type: ignore
 
 
-def install(cls):
-    """
-    Class decorator for installation on sys.meta_path.
+def install(flag):
+    def dec_install(cls):
+        """
+        Class decorator for installation on sys.meta_path.
 
-    Adds the backport DistributionFinder to sys.meta_path and
-    attempts to disable the finder functionality of the stdlib
-    DistributionFinder.
-    """
-    sys.meta_path.append(cls())
-    disable_stdlib_finder()
-    return cls
+        Adds the backport DistributionFinder to sys.meta_path and
+        attempts to disable the finder functionality of the stdlib
+        DistributionFinder.
+        """
+        if flag:
+            sys.meta_path.append(cls())
+            disable_stdlib_finder()
+        return cls
+    return dec_install
 
 
 def disable_stdlib_finder():

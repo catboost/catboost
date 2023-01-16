@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument("--config-file", required=True)
     parser.add_argument("--export-fixes", required=True)
     parser.add_argument("--checks", required=False, default="")
+    parser.add_argument("--header-filter", required=False, default=None)
     return parser.parse_known_args()
 
 
@@ -90,7 +91,10 @@ def main():
     generate_outputs(output_json)
     if is_generated(args.testing_src, args.build_root):
         return
-    header_filter = r"^(" + r"|".join(map(re.escape, [os.path.dirname(args.testing_src)])) + r").*(?<!\.pb\.h)$"
+    if args.header_filter is None:
+        header_filter = r"^(" + r"|".join(map(re.escape, [os.path.dirname(args.testing_src)])) + r").*(?<!\.pb\.h)$"
+    else:
+        header_filter = r"^(" + args.header_filter + r").*"
     with gen_tmpdir() as profile_tmpdir, gen_tmpdir() as db_tmpdir, gen_tmpfile() as fixes_file:
         compile_command_path = generate_compilation_database(clang_cmd, args.source_root, args.testing_src, db_tmpdir)
         cmd = [

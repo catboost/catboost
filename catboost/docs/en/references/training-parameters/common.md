@@ -654,29 +654,47 @@ Command-line: `-I`, `--ignore-features`
 
 #### Description
 
-{% include [reusage-ignored-feature__common-div](../../_includes/work_src/reusage/ignored-feature__common-div.md) %}
+Feature indices to exclude from the training.
 
-For example, use the following construction if features indexed 1, 2, 7, 42, 43, 44, 45, should be ignored:
+{% cut "Python package" %}
 
-```
-[1,2,7,42,43,44,45]
-```
+ {% include [ignored-features](../../_includes/work_src/reusage/ignored-features.md) %}
 
-**Type**
+ {% include [cli__ignored_features__specifics](../../_includes/work_src/reusage/cli__ignored_features__specifics.md) %}
 
-{{ python-type--list }}
+ For example, use the following construction if features indexed 1, 2, 7, 42, 43, 44, 45, should be ignored: `[1,2,7,42,43,44,45]`
+
+{% endcut %}
+
+{% cut "R package" %}
+
+ {% include [cli__ignored_features__specifics](../../_includes/work_src/reusage/cli__ignored_features__specifics.md) %}
+
+ For example, if training should exclude features with the identifiers 1, 2, 7, 42, 43, 44, 45, the value of this parameter should be set to c(1,2,7,42,43,44,45).
+
+{% endcut %}
+
+{% cut "Command-line" %}
+
+ {% include [ignored-features](../../_includes/work_src/reusage/ignored-features.md) %}
+
+ {% include [reusage-cli__ignored_features__specifics](../../_includes/work_src/reusage/cli__ignored_features__specifics.md) %}
+
+ For example, if training should exclude features with the identifiers 1, 2, 7, 42, 43, 44, 45, use the following construction: `1:2:7:42-45`.
+
+{% endcut %}
 
 **Default value**
 
 {% cut "Python package, R package" %}
 
-None
+ None
 
 {% endcut %}
 
-{% cut "Сommand-line" %}
+{% cut "Command-line" %}
 
-Omitted
+ Omitted
 
 {% endcut %}
 

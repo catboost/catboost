@@ -31,7 +31,9 @@ namespace NCatboostOptions {
     TPoolMetaInfoOptions LoadPoolMetaInfoOptions(const NCB::TPathWithScheme& path) {
         TPoolMetaInfoOptions poolMetaInfoOptions;
         if (path.Inited()) {
-            CB_ENSURE(path.Scheme.empty() || path.Scheme == "file", "Pool metainfo doesn't support path with scheme yet.");
+            CB_ENSURE(
+                path.Scheme.empty() || path.Scheme == "file",
+                "Pool metainfo doesn't support path with scheme yet.");
             TIFStream in(path.Path);
             NJson::TJsonValue json = NJson::ReadJsonTree(&in);
             poolMetaInfoOptions.Load(json);
@@ -41,7 +43,9 @@ namespace NCatboostOptions {
 
     void LoadPoolMetaInfoOptions(const NCB::TPathWithScheme& path, NJson::TJsonValue* catBoostJsonOptions) {
         if (path.Inited()) {
-            CB_ENSURE(path.Scheme.empty() || path.Scheme == "file", "Pool metainfo doesn't support path with scheme yet.");
+            CB_ENSURE(
+                path.Scheme.empty() || path.Scheme == "file",
+                "Pool metainfo doesn't support path with scheme yet.");
             TIFStream in(path.Path);
             (*catBoostJsonOptions)["pool_metainfo_options"] = NJson::ReadJsonTree(&in);
         }

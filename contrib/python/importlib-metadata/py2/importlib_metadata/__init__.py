@@ -33,6 +33,11 @@ from ._compat import (
 from importlib import import_module
 from itertools import starmap
 
+try:
+    import library.python.resource
+    ARCADIA = True
+except ImportError:
+    ARCADIA = False
 
 __metaclass__ = type
 
@@ -524,7 +529,7 @@ class Prepared:
             and base.endswith('.egg'))
 
 
-#@install
+@install(ARCADIA == False)
 class MetadataPathFinder(NullFinder, DistributionFinder):
     """A degenerate finder for distribution packages on the file system.
 
@@ -588,7 +593,7 @@ class ArcadiaDistribution(Distribution):
         return '{}{}'.format(self.prefix, path)
 
 
-@install
+@install(ARCADIA == True)
 class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
 
     prefixes = {}

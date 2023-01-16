@@ -439,8 +439,7 @@ default:
   ostr__update-method__default: SinglePoint
   method_name__apply_python_model: apply_catboost_model
   method_name__apply_cplusplus_model: ApplyCatboostModel
-  cuda_version__compiled-packages: '9.1'
-  cuda_version__compile-packages: '9.0'
+  cuda_version__compiled-packages: '11.0'
   input_data__title__scheme: Scheme
   input_data__scheme__dsv: dsv
   input_data__scheme__quantized: 'quantized://'

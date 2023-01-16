@@ -433,7 +433,6 @@ migrations:
     - maps/mobile/server/tools/cache_deprecator
     - maps/mobile/tools/android-manifest
     - maps/pylibs/dataset_collector
-    - maps/pylibs/infrastructure_api/staff
     - maps/pylibs/monitoring/lib
     - maps/pylibs/monitoring/tests
     - maps/renderer/tilesgen/tools/lib
@@ -1146,7 +1145,6 @@ migrations:
     - passport/python/meltingpot/utils
     - plus/gift/gift
     - plus/gift/gift/admin
-    - quality/ab_testing/cofe/projects/uslugi/competition
     - quality/ab_testing/cofe/projects/zalogin
     - quality/functionality/chats/common/utils
     - quality/functionality/chats/feedback/src/feedback/api
@@ -1521,7 +1519,6 @@ migrations:
     - quality/ab_testing/cofe/projects/mapkit/user_count_and_spu
     - quality/ab_testing/cofe/projects/mapkit/via_points_and_alternatives
     - quality/ab_testing/cofe/projects/router
-    - quality/ab_testing/cofe/projects/uslugi/searchcost
     - quality/ab_testing/cofe/projects/zalogin
     - quality/ab_testing/cofe/python/metrics
     - quality/functionality/chats/common/bunker_client
@@ -1624,8 +1621,6 @@ migrations:
     - search/scraper_over_yt/scripts/zombie_monitors
     - sprav/altay/tools/auto_close/ml_predictor
     - sprav/mining/bs/tools/extract_social_data
-    - sprav/snezhana_v3/app
-    - sprav/snezhana_v3/task
     - sprav/tycoon/nirvana/mail/sync_subscriptions/lib
     - statbox/qb2
     - statbox/statkey/jam/actions
@@ -1719,7 +1714,6 @@ migrations:
     - yweb/animals/admin_service/lib
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/cp_conv/text_classif/bin
-    - yweb/antispam/cid/library/geo
     - yweb/antispam/clean_web/router
     - yweb/antispam/mascot/monitorings/check_table_age
     - yweb/robot/limbo
@@ -3474,7 +3468,6 @@ migrations:
     - mapreduce/yt/tests
     - maps/fastcgi/meta/bin/tests
     - maps/libs/tile/pymod-tests
-    - maps/realty/jams_generator/tests/integration
     - maps/wikimap/mapspro/tools/topology_fixer/tests
     - market/contrib/python/BitTorrent
     - market/dynamic_pricing/pricing/common/checks/checker/ut
@@ -3857,7 +3850,6 @@ migrations:
     - yweb/webdaemons/explogdaemon/tests
     - yweb/webscripts/video/fastrecrawl/fresh_deltas/tests
     - yweb/webscripts/video/redirects_unwind
-    - yweb/yasap/answers_recommender/dj/recommender/snippets/utils/ut
     - yweb/yasap/pdb/pdb-backend/tests/lib/commands/set_market_merchant_data
     - yweb/yasap/pdb/pdb-backend/tests/lib/detected_objects
     - yweb/yasap/pdb/pdb-backend/tests/lib/its

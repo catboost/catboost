@@ -460,12 +460,6 @@ _Alias:_`verbose_eval`
 
 {% include [sections-with-methods-desc-python__feature-importances__verbose__short-description__list-intro](../../_includes/work_src/reusage/python__feature-importances__verbose__short-description__list-intro.md) %}
 
-### [train_final_model](output.md#train_final_model)
-
-Only for Python.
-
-If specified, then the model with selected features will be trained after features selection.
-
 ### [train_dir](output.md#train_dir)
 
 Command line: `--train-dir`

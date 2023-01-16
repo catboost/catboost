@@ -2,7 +2,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(57.4.0)
+VERSION(58.0.0)
 
 LICENSE(MIT)
 
@@ -146,7 +146,6 @@ PY_SRCS(
     setuptools/glob.py
     setuptools/installer.py
     setuptools/launch.py
-    setuptools/lib2to3_ex.py
     setuptools/monkey.py
     setuptools/msvc.py
     setuptools/namespaces.py

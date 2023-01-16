@@ -29,6 +29,12 @@ from importlib.abc import MetaPathFinder
 from itertools import starmap
 from typing import Any, List, Mapping, Optional, TypeVar, Union
 
+try:
+    import library.python.resource
+    ARCADIA = True
+except ImportError:
+    ARCADIA = False
+
 
 __all__ = [
     'Distribution',
@@ -766,7 +772,7 @@ class Prepared:
         return bool(self.name)
 
 
-#@install
+@install(ARCADIA == False)
 class MetadataPathFinder(NullFinder, DistributionFinder):
     """A degenerate finder for distribution packages on the file system.
 
@@ -839,7 +845,7 @@ class ArcadiaDistribution(Distribution):
         return '{}{}'.format(self.prefix, path)
 
 
-@install
+@install(ARCADIA == True)
 class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
 
     prefixes = {}

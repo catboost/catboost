@@ -187,9 +187,9 @@ IF (CUDA_REQUIRED)
 ENDIF()
 
 IF (HOST_OS_WINDOWS)
-    LDFLAGS(cudart_static.lib)
+    LDFLAGS(cudadevrt.lib cudart_static.lib)
 ELSE()
-    EXTRALIBS(-lcudart_static -lculibos)
+    EXTRALIBS(-lcudadevrt -lcudart_static -lculibos)
 ENDIF()
 
 END()

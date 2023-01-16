@@ -12,7 +12,6 @@
 #   error "unsupported"
 #endif
 
-// TODO(velavokr): allow any std::function objects, not only TContFunc
 class TCont;
 typedef void (*TContFunc)(TCont*, void*);
 
@@ -24,26 +23,19 @@ namespace NCoro {
 
     class TTrampoline : public ITrampoLine, TNonCopyable {
     public:
+        typedef std::function<void (TCont*)> TFunc;
+
         TTrampoline(
             NCoro::NStack::IAllocator& allocator,
             uint32_t stackSize,
-            TContFunc f,
-            TCont* cont,
-            void* arg
+            TFunc f,
+            TCont* cont
         ) noexcept;
 
         TArrayRef<char> Stack() noexcept;
 
         TExceptionSafeContext* Context() noexcept {
             return &Ctx_;
-        }
-
-        TContFunc Func() const noexcept {
-            return Func_;
-        }
-
-        void* Arg() const noexcept {
-            return Arg_;
         }
 
         void SwitchTo(TExceptionSafeContext* ctx) noexcept {
@@ -62,8 +54,7 @@ namespace NCoro {
         NStack::TStackHolder Stack_;
         const TContClosure Clo_;
         TExceptionSafeContext Ctx_;
-        TContFunc const Func_ = nullptr;
+        TFunc Func_;
         TCont* const Cont_;
-        void* const Arg_;
     };
 }

@@ -630,6 +630,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tcmalloc\contrib-libs-tcmalloc.vcxproj">
       <Project>F45B041A-78F1-C9F5-824A-68E3CD3574A3</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tcmalloc\malloc_extension\libs-tcmalloc-malloc_extension.vcxproj">
+      <Project>18CEFA97-91EE-19AF-E577-1BD32E799645</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
       <Project>85643E70-B3E5-4747-7C6D-59B9CF26EE48</Project>
     </ProjectReference>

@@ -1,0 +1,1 @@
+It is assumed that all passed values are feature names if at least one of the passed values can not be converted to a number or a range of numbers.  Otherwise, it is assumed that all passed values are feature indices.

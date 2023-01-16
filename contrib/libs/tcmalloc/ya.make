@@ -32,7 +32,6 @@ SRCS(
     tcmalloc/internal/percpu_rseq_unsupported.cc
     tcmalloc/internal/util.cc
     tcmalloc/legacy_size_classes.cc
-    tcmalloc/malloc_extension.cc
     tcmalloc/noruntime_size_classes.cc
     tcmalloc/page_allocator.cc
     tcmalloc/page_allocator_interface.cc
@@ -52,10 +51,9 @@ SRCS(
     tcmalloc/transfer_cache.cc
 )
 
-PEERDIR(contrib/restricted/abseil-cpp)
-
-ADDINCL(
-    contrib/libs/tcmalloc
+PEERDIR(
+    contrib/restricted/abseil-cpp
+    contrib/libs/tcmalloc/malloc_extension
 )
 
 CFLAGS(-DTCMALLOC_256K_PAGES)

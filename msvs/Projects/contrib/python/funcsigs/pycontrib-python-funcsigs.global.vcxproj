@@ -79,7 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\0b8ce068eb4016b5f5a657945b.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\4ccd8b43f9b2a5c3d636fde4b0.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\7dbdffdf06ec05b0016b0aa628.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
@@ -88,7 +88,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/7dbdffdf06ec05b0016b0aa628.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_518e5b1ea0e9f0aba26e4c9542=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/top_level.txt" "_cd965d01f3b77ada76c0096988=resfs/file/contrib/python/funcsigs/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,7 +103,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/7dbdffdf06ec05b0016b0aa628.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_518e5b1ea0e9f0aba26e4c9542=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/top_level.txt" "_cd965d01f3b77ada76c0096988=resfs/file/contrib/python/funcsigs/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/funcsigs/0b8ce068eb4016b5f5a657945b.cpp	$B/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp	</Message>
+      <Message>$B/contrib/python/funcsigs/0b8ce068eb4016b5f5a657945b.cpp	$B/contrib/python/funcsigs/7dbdffdf06ec05b0016b0aa628.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\0b8ce068eb4016b5f5a657945b.cpp;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\4ccd8b43f9b2a5c3d636fde4b0.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\0b8ce068eb4016b5f5a657945b.cpp;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\7dbdffdf06ec05b0016b0aa628.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

@@ -607,16 +607,13 @@ It is not recommended to use values greater than 64, since it can significantly 
 
 #### Description
 
-
 Feature indices to exclude from the training.
 
 {% include [reusage-cli__ignored_features__specifics](cli__ignored_features__specifics.md) %}
 
-
 The identifiers of features to exclude should be enumerated at vector.
 
 For example, if training should exclude features with the identifiers 1, 2, 7, 42, 43, 44, 45, the value of this parameter should be set to `c(1,2,7,42,43,44,45)`.
-
 
 **Default value**
 
@@ -624,10 +621,7 @@ None
 
 **{{ cli__params-table__title__processing-units-type }}**
 
-
 {{ cpu-gpu }}
-
-
 
 ### one_hot_max_size
 
