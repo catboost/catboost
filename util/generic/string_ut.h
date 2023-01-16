@@ -909,7 +909,7 @@ public:
         //s2.reserve();
 
         TStringType s5(Data.abcde());
-        s5 = nullptr;
+        s5.clear();
         UNIT_ASSERT(s5 == Data.Empty());
     }
 

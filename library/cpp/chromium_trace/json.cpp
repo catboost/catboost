@@ -76,10 +76,9 @@ void TJsonTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventArgs*
 }
 
 NJsonWriter::TPairContext TJsonTraceConsumer::BeginEvent(char type, const TEventOrigin& origin) {
-    const char ph[2] = {type, 0};
     return Json.BeginObject()
         .WriteKey(TStringBuf("ph"))
-        .WriteString(AsStringBuf(ph))
+        .WriteString(TStringBuf(&type, 1))
         .WriteKey(TStringBuf("pid"))
         .WriteULongLong(origin.ProcessId)
         .WriteKey(TStringBuf("tid"))

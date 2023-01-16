@@ -22,7 +22,7 @@ namespace {
         str = TStringBuf(data, size);
     }
 
-    using TConstAnyEventPtr = TVariant<
+    using TConstAnyEventPtr = std::variant<
         const TDurationBeginEvent*,
         const TDurationEndEvent*,
         const TDurationCompleteEvent*,
@@ -132,7 +132,7 @@ void TSaveLoadTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventA
 }
 
 void TSerializer<TEventArgs::TArg>::Save(IOutputStream* out, const TEventArgs::TArg& v) {
-    // TODO: saveload for TVariant (?)
+    // TODO: saveload for std::variant (?)
 
     ::SaveStr(out, v.Name);
 

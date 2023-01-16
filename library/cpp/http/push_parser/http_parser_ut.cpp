@@ -256,7 +256,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         {
             // test broken snappy
             THttpParser p(THttpParser::Request);
-            TString snappyTestLine(AsStringBuf("\x1b some very\x05,long payload"));
+            TString snappyTestLine(TStringBuf("\x1b some very\x05,long payload"sv));
             TString msg = MakeEncodedRequest("z-snappy", snappyTestLine);
             UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }

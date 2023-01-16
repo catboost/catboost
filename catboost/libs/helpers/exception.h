@@ -7,7 +7,7 @@ class TCatBoostException : public TWithBackTrace<yexception> {
 
 #define CB_ENSURE_IMPL_1(CONDITION) Y_ENSURE_EX( \
      CONDITION, \
-     TCatBoostException() << AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'") \
+     TCatBoostException() << "Condition violated: `" Y_STRINGIZE(CONDITION) "'"sv  \
 )
 
 #define CB_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, TCatBoostException() << MESSAGE)

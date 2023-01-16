@@ -415,7 +415,7 @@ private:
     }
 
     void TestVariant() {
-        TVariant<int, bool, TString, TVector<char>> v(1);
+        std::variant<int, bool, TString, TVector<char>> v(1);
         TestVariantImpl(v, 42);
         TestVariantImpl(v, true);
         TestVariantImpl(v, TString("foo"));
@@ -425,7 +425,7 @@ private:
         TBufferStream s;
         ::Save(&s, v);
 
-        TVariant<char, bool> v2 = false;
+        std::variant<char, bool> v2 = false;
         UNIT_ASSERT_EXCEPTION(::Load(&s, v2), TLoadEOF);
     }
 };

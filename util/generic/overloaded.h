@@ -3,9 +3,9 @@
 /**
  * Construct an ad-hoc object with an overloaded `operator()`.
  *
- * Typically used with lambdas to construct type-matching visitors for e.g. TVariant:
+ * Typically used with lambdas to construct type-matching visitors for e.g. std::variant:
  * ```
- * TVariant<int, void*, TString> var;
+ * std::variant<int, void*, TString> var;
  * Visit(TOverloaded{
  *     [](int val) { Cerr << "int: " << val; },
  *     [](void* val) { Cerr << "ptr: " << val; },
@@ -22,7 +22,7 @@
  * For example, the following code will compile and run by casting all values to
  * double:
  * ```
- * TVariant<int, double, char> var;
+ * std::variant<int, double, char> var;
  * Visit(TOverloaded{
  *     [](double val) { Cerr << "dbl: " << val; },
  * }, var);
@@ -31,7 +31,7 @@
  * If cases may be ambigous or specific type-matching logic is required,
  * a verbose `if constexpr`-based version would be preferred:
  * ```
- * TVariant<int, double, char> var;
+ * std::variant<int, double, char> var;
  * Visit([](auto&& val) {
  *     using T = std::decay_t<decltype(val)>;
  *     if constexpr (std::is_same_v<T, int>) {

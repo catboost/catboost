@@ -103,16 +103,18 @@ namespace NMemInfo {
         TMemInfo result;
 
 #if defined(_unix_)
-        if (!pid) {
-            pid = getpid();
-        }
 
     #if defined(_linux_) || defined(_freebsd_) || defined(_cygwin_)
         const ui32 pagesize = NSystemInfo::GetPageSize();
     #endif
 
     #if defined(_linux_) || defined(_cygwin_)
-        const TString path = TStringBuilder() << TStringBuf("/proc/") << pid << TStringBuf("/statm");
+        TString path;
+        if (!pid) {
+            path = "/proc/self/statm";
+        } else {
+            path = TStringBuilder() << TStringBuf("/proc/") << pid << TStringBuf("/statm");
+        }
         const TString stats = TUnbufferedFileInput(path).ReadAll();
 
         TStringBuf statsiter(stats);
@@ -141,6 +143,9 @@ namespace NMemInfo {
         result.VMS = proc.ki_size;
         result.RSS = proc.ki_rssize * pagesize;
     #elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
+        if (!pid) {
+            pid = getpid();
+        }
         struct proc_taskinfo taskInfo;
         const int r = proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &taskInfo, sizeof(taskInfo));
 
@@ -152,6 +157,7 @@ namespace NMemInfo {
         result.VMS = taskInfo.pti_virtual_size;
         result.RSS = taskInfo.pti_resident_size;
     #elif defined(__MACH__) && defined(__APPLE__)
+        Y_UNUSED(pid);
         struct mach_task_basic_info taskInfo;
         mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
 
@@ -164,6 +170,7 @@ namespace NMemInfo {
         result.VMS = taskInfo.virtual_size;
         result.RSS = taskInfo.resident_size;
     #elif defined(_arm_)
+        Y_UNUSED(pid);
         ythrow yexception() << "arm is not supported";
     #endif
 #elif defined(_win_)

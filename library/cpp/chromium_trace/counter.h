@@ -13,9 +13,8 @@ namespace NChromiumTrace {
         TEventArgs Args;
 
     public:
-        template <typename TChar, size_t size>
-        TCounter(const TChar (&name)[size])
-            : TCounter(AsStringBuf(name), TStringBuf("sample"))
+        TCounter(TStringBuf name)
+            : TCounter(name, "sample"sv)
         {
         }
 

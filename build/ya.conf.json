@@ -9432,7 +9432,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1076170416,
+                "sandbox_id": 1078638326,
                 "match": "horadric"
             },
             "executable": {
@@ -9575,7 +9575,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1076171082,
+                "sandbox_id": 1078638045,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9980,7 +9980,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 1067633202,
+                "sandbox_id": 1077613317,
                 "match": "SEDEM archive"
             },
             "executable": {

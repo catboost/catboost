@@ -2,7 +2,7 @@ PROGRAM()
 
 
 
-VERSION(3.9.6)
+VERSION(3.9.7)
 
 LICENSE(Python-2.0)
 

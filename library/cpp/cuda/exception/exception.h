@@ -26,7 +26,7 @@ public:
 
 #define CUDA_ENSURE_IMPL_1(CONDITION) Y_ENSURE_EX( \
      CONDITION, \
-     TCudaEnsureException() << AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'") \
+     TCudaEnsureException() << "Condition violated: `" Y_STRINGIZE(CONDITION) "'"sv \
 )
 
 #define CUDA_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, TCudaEnsureException() << MESSAGE)

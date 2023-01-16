@@ -12,17 +12,17 @@ class ProcessWholeArchiveOption():
         self.start_wa_marker = '--start-wa'
         self.end_wa_marker = '--end-wa'
 
-    def _match_peer_lib(self, arg):
+    def _match_peer_lib(self, arg, ext):
         key = None
-        if arg.endswith('.a'):
+        if arg.endswith(ext):
             key = os.path.dirname(arg)
         return key if key and self.peers and key in self.peers else None
 
     def _match_lib(self, arg):
         return arg if self.libs and arg in self.libs else None
 
-    def _process_arg(self, arg):
-        peer_key = self._match_peer_lib(arg)
+    def _process_arg(self, arg, ext='.a'):
+        peer_key = self._match_peer_lib(arg, ext)
         lib_key = self._match_lib(arg)
         if peer_key:
             self.peers[peer_key] += 1
@@ -62,7 +62,7 @@ class ProcessWholeArchiveOption():
         is_inside_wa_markers = False
 
         def add_prefix(arg, need_check_peers_and_libs):
-            key = self._process_arg(arg) if need_check_peers_and_libs else arg
+            key = self._process_arg(arg, '.lib') if need_check_peers_and_libs else arg
             return whole_archive_prefix + arg if key else arg
 
         def add_whole_archive_prefix(arg, need_check_peers_and_libs):

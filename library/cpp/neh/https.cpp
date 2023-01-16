@@ -68,7 +68,7 @@ namespace NNeh {
 
     bool THttpsOptions::Set(TStringBuf name, TStringBuf value) {
 #define YNDX_NEH_HTTPS_TRY_SET(optName)                 \
-    if (name == AsStringBuf(#optName)) {                \
+    if (name == TStringBuf(#optName)) {                 \
         optName = FromString<decltype(optName)>(value); \
         return true;                                    \
     }
@@ -1686,8 +1686,8 @@ namespace NNeh {
 
                 void DoRun(TCont* c) override {
                     THolder<TFail> This(this);
-                    const TStringBuf answer = AsStringBuf("HTTP/1.1 503 Service unavailable\r\n"
-                                                          "Content-Length: 0\r\n\r\n");
+                    constexpr TStringBuf answer = "HTTP/1.1 503 Service unavailable\r\n"
+                                                          "Content-Length: 0\r\n\r\n"sv;
 
                     try {
                         TContBIOWatcher w(*IO_, c);

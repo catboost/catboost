@@ -780,7 +780,7 @@
 /* #undef HAVE_PRLIMIT */
 
 /* Define if you have the '_dyld_shared_cache_contains_path' function. */
-/* #undef HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH */
+#define HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH 1
 
 /* Define to 1 if you have the <process.h> header file. */
 /* #undef HAVE_PROCESS_H */

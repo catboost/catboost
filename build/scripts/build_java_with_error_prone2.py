@@ -18,7 +18,7 @@ JAVA10_EXPORTS = [
     '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
     '--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
     '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
-    '--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED'
+    '--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
 ]
 
 
@@ -26,11 +26,11 @@ def get_java_version(exe):
     p = subprocess.Popen([exe, '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     for line in ((out or '').strip() + (err or '').strip()).split("\n"):
-        m = re.match('java version "(.+)"', line)
+        m = re.match(r'java version "(.+)"', line)
         if m:
             parts = m.groups()[0].split(".")
             return parts[1] if parts[0] == "1" else parts[0]
-        m = re.match('openjdk version "(\d+).*"', line)
+        m = re.match(r'openjdk version "(\d+).*"', line)
         if m:
             parts = m.groups()[0].split(".")
             return parts[0]
@@ -81,7 +81,6 @@ def just_do_it(argv):
         sys.exit(subprocess.Popen(cmd).wait())
     else:
         os.execv(cmd[0], cmd)
-
 
 
 if __name__ == '__main__':

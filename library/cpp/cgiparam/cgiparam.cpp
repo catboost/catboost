@@ -237,7 +237,7 @@ TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
         buf += name.size() + 1;
         TStringBuf value = CgiUnescapeBuf(buf, val);
         buf += value.size() + 1;
-        Y_ASSERT(buf <= UnescapeBuf.begin() + UnescapeBuf.reserve() + 1 /*trailing zero*/);
+        Y_ASSERT(buf <= UnescapeBuf.begin() + UnescapeBuf.capacity() + 1 /*trailing zero*/);
         emplace(name, value);
     };
 

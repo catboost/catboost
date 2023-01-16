@@ -80,25 +80,11 @@ BELONGS ya.make
     Files with this license:
         LICENSE [34:48]
 
-KEEP     COPYRIGHT_SERVICE_LABEL 48475541821128a33477b7b5a278822f
-BELONGS ya.make
-    License text:
-        Copyright (c) 2012-2020 Yann Collet
-        All rights reserved.
-    Scancode info:
-        Original SPDX id: COPYRIGHT_SERVICE_LABEL
-        Score           : 100.00
-        Match type      : COPYRIGHT
-    Files with this license:
-        LICENSE [2:3]
-        xxhash.c [3:3]
-        xxhash.h [4:4]
-
 SKIP     BSD-3-Clause         536e2c3bf1951155aea6a026055e681c
 BELONGS ya.make
-# False positive
 FILE_INCLUDE xxhash.c found in files: README.md at line 63
 FILE_INCLUDE xxhash.h found in files: README.md at line 63
+# False positive
     License text:
         The library files `xxhash.c` and `xxhash.h` are BSD licensed.
     Scancode info:
@@ -131,18 +117,6 @@ BELONGS ya.make
         Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
     Files with this license:
         LICENSE [7:26]
-
-KEEP     COPYRIGHT_SERVICE_LABEL 6dd7501dfb3109ce4ea135f3031dd699
-BELONGS ya.make
-    License text:
-        Copyright (c) 2013-2020 Yann Collet
-        All rights reserved.
-    Scancode info:
-        Original SPDX id: COPYRIGHT_SERVICE_LABEL
-        Score           : 100.00
-        Match type      : COPYRIGHT
-    Files with this license:
-        LICENSE [31:32]
 
 KEEP     BSD-2-Clause         f05cc2b806cdaaca7e1b27dccc610bdb
 BELONGS ya.make

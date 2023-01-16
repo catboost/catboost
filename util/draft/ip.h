@@ -91,7 +91,7 @@ inline void Out<TIp6>(IOutputStream& os, const TIp6& a) {
     os << Ip6ToString(a);
 }
 
-using TIp4Or6 = TVariant<TIp4, TIp6>;
+using TIp4Or6 = std::variant<TIp4, TIp6>;
 
 static inline TIp4Or6 Ip4Or6FromString(const char* ipStr) {
     const char* c = ipStr;
