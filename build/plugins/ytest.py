@@ -405,9 +405,6 @@ def get_project_tidy_config(unit):
 
     for project_prefix, config_path in tidy_map.items():
         if unit_path.startswith(project_prefix):
-            # Remove after release project configs
-            assert config_path.startswith("devtools/dummy_arcadia/example_tidy_project")
-            assert project_prefix.startswith("devtools/dummy_arcadia/example_tidy_project")
             return config_path
     else:
         return get_default_tidy_config(unit)
