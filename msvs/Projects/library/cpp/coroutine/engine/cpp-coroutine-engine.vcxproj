@@ -147,6 +147,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\library\cpp\coroutine\engine\stack\stack_common.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\cpp\coroutine\engine\stack\stack_common.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\callbacks.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\cont_poller.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\custom_time.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\events.h"/>
@@ -154,7 +155,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\impl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\iostatus.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\network.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\schedule_callback.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\sockmap.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\sockpool.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\stack\stack.h"/>
