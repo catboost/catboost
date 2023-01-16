@@ -302,7 +302,7 @@
         "go_1.18beta1": {
             "description": "Run go tool (1.18beta1)"
         },
-        "gofmt_18beta1": {
+        "gofmt_1.18beta1": {
             "description": "Run gofmt tool (1.18beta1)"
         },
         "godoc": {
