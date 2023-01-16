@@ -32,6 +32,16 @@ trait TrainingParamsTrait
   setDefault(workerInitializationTimeout, java.time.Duration.ofMinutes(10))
 
   @ParamGetterSetter
+  final val connectTimeout: DurationParam = new DurationParam(
+    this,
+    "connectTimeout",
+    "Timeout to wait while establishing socket connections between TrainingDriver and workers."
+    + "Default is 1 minute"
+  )
+
+  setDefault(connectTimeout, java.time.Duration.ofMinutes(1))
+
+  @ParamGetterSetter
   final val lossFunction: Param[String] = new Param[String](
     this,
     "lossFunction",

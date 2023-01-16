@@ -1,5 +1,7 @@
 package ai.catboost.spark
 
+import util.control.Breaks._
+
 import java.io._
 import java.net._
 import java.nio.file.{Files,Path}
@@ -145,12 +147,15 @@ private[spark] class UpdatableWorkersInfo (
     }
   }
   
-  def shutdownRemainingWorkers(workerShutdownTimeout: java.time.Duration) = {
+  def shutdownRemainingWorkers(
+    connectTimeout: java.time.Duration,
+    workerShutdownTimeout: java.time.Duration
+  ) = {
     log.info("Shutdown remaining workers: start")
 
     val remainingWorkersInfo = workersInfo.filter(
       workerInfo => {
-        val isListening = TrainingDriver.isWorkerListening(workerInfo.host, workerInfo.port)
+        val isListening = TrainingDriver.isWorkerListening(workerInfo.host, workerInfo.port, connectTimeout)
         if (isListening) {
           log.info(s"remaining listening workerInfo=${workerInfo}")
         }
@@ -196,6 +201,7 @@ private[spark] class UpdatableWorkersInfo (
  */
 private[spark] class TrainingDriver (
   val updatableWorkersInfo: UpdatableWorkersInfo,
+  val connectTimeout: java.time.Duration,
   val workerInitializationTimeout: java.time.Duration,
   val workerShutdownOptimisticTimeout: java.time.Duration,
   val workerShutdownPessimisticTimeout: java.time.Duration,
@@ -207,6 +213,7 @@ private[spark] class TrainingDriver (
    *  @param workerCount How many workers == partitions participate in training
    *  @param startMasterCallback pass a routine to start CatBoost master process given WorkerInfos.
    * 		Throw CatBoostWorkersConnectionLostException if master failed due to loss of workers
+   *  @param connectTimeout Timeout to wait while establishing socket connections between TrainingDriver and workers
    *  @param workerInitializationTimeout Timeout to wait until CatBoost workers on Spark executors are initalized and sent their WorkerInfo
    *  @param workerShutdownOptimisticTimeout Timeout to wait for CatBoost workers to shut down after CatBoost master failed
    *   (assuming CatBoost master has been able to issue 'stop' command to workers)
@@ -217,11 +224,13 @@ private[spark] class TrainingDriver (
     listeningPort: Int,
     workerCount: Int,
     startMasterCallback: Array[WorkerInfo] => Unit,
+    connectTimeout: java.time.Duration = java.time.Duration.ofMinutes(1),
     workerInitializationTimeout: java.time.Duration = java.time.Duration.ofMinutes(10),
     workerShutdownOptimisticTimeout : java.time.Duration = java.time.Duration.ofSeconds(40),
     workerShutdownPessimisticTimeout : java.time.Duration = java.time.Duration.ofMinutes(5)
   ) = this(
     updatableWorkersInfo = new UpdatableWorkersInfo(listeningPort, workerCount),
+    connectTimeout = connectTimeout,
     workerInitializationTimeout = workerInitializationTimeout,
     workerShutdownOptimisticTimeout = workerShutdownOptimisticTimeout,
     workerShutdownPessimisticTimeout = workerShutdownPessimisticTimeout,
@@ -277,7 +286,7 @@ private[spark] class TrainingDriver (
            (assuming CatBoost master has been able to issue 'stop' command to workers)
         */
         Thread.sleep(workerShutdownOptimisticTimeout.toMillis)
-        updatableWorkersInfo.shutdownRemainingWorkers(workerShutdownPessimisticTimeout)
+        updatableWorkersInfo.shutdownRemainingWorkers(connectTimeout, workerShutdownPessimisticTimeout)
       }
       log.info("finished")
     }
@@ -319,18 +328,19 @@ private[spark] object TrainingDriver extends Logging {
     }
   }
 
-  def isWorkerListening(host: String, port: Int) : Boolean = {
-    var socket : Socket = null
-    try {
-      socket = new Socket(host, port)
+  def isWorkerListening(host: String, port: Int, connectTimeout: java.time.Duration) : Boolean = {
+    val socket = new Socket
+    val socketAddress = new InetSocketAddress(host, port)
+    val connected = try {
+      socket.connect(socketAddress, connectTimeout.toMillis.toInt)
       true
     } catch {
       case _ : Throwable => false
-    } finally {
-      if (socket != null) {
-        socket.close
-      }
+    } 
+    if (connected) {
+      socket.close
     }
+    connected
   }
 
   // use on workers
@@ -338,21 +348,37 @@ private[spark] object TrainingDriver extends Logging {
     trainingDriverListeningAddress: InetSocketAddress,
     partitionId: Int,
     partitionSize: Int,
-    workerPort: Int
+    workerPort: Int,
+    connectTimeout:  java.time.Duration,
+    workerInitializationTimeout: java.time.Duration
   ) = {
+    if (workerInitializationTimeout.toMillis < 10) {
+      throw new RuntimeException("workerInitializationTimeout must be >= 10 ms")
+    }
+
     if (partitionSize > 0) {
       log.info(s"wait for CatBoost worker to start listening at port ${workerPort}")
-      do {
-        Thread.sleep(10)
-      } while (!isWorkerListening("localhost", workerPort))
-      log.info(s"CatBoost worker started listening at port ${workerPort}")
+      val initializationDeadline = java.time.Instant.now().plus(workerInitializationTimeout)
+
+      breakable {
+        while (true) {
+          Thread.sleep(10)
+          if (isWorkerListening("localhost", workerPort, workerInitializationTimeout)) {
+            log.info(s"CatBoost worker started listening at port ${workerPort}")
+            break
+          }
+          if (java.time.Instant.now().compareTo(initializationDeadline) > 0) {
+            throw new CatBoostError(
+              s"Initial worker wait timeout of ${impl.TimeHelpers.format(workerInitializationTimeout)} expired"
+            )
+          }
+        }
+      }
     }
 
     log.info(s"send WorkerInfo to CatBoost training driver at ${trainingDriverListeningAddress}")
-    val socket = new Socket(
-      trainingDriverListeningAddress.getAddress,
-      trainingDriverListeningAddress.getPort
-    )
+    val socket = new Socket
+    socket.connect(trainingDriverListeningAddress, connectTimeout.toMillis.toInt)
 
     val workerInfo = new WorkerInfo(
       partitionId,

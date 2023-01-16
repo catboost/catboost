@@ -45,6 +45,8 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
     precomputedOnlineCtrMetaDataAsJsonString: String,
     threadCount: Int,
+    connectTimeout: java.time.Duration,
+    workerInitializationTimeout: java.time.Duration,
     
     // returns (quantizedDataProviders, estimatedQuantizedDataProviders, dstRows) can return null
     getDataProvidersCallback : (TLocalExecutor) => (TVector_TDataProviderPtr, TVector_TDataProviderPtr, Array[mutable.ArrayBuffer[Array[Any]]])
@@ -99,7 +101,9 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
               trainingDriverListeningAddress,
               partitionId,
               partitionSize,
-              workerPort
+              workerPort,
+              connectTimeout,
+              workerInitializationTimeout
             )
           }
         },
@@ -144,6 +148,8 @@ private[spark] class CatBoostWorkers(
   val spark: SparkSession,
   val workerCount: Int,
   val trainingDriverListeningPort: Int,
+  val connectTimeout: java.time.Duration,
+  val workerInitializationTimeout: java.time.Duration,
   val preparedTrainPool: DatasetForTraining,
   val preparedEvalPools: Seq[DatasetForTraining],
   val catBoostJsonParams: JObject,
@@ -198,8 +204,11 @@ private[spark] class CatBoostWorkers(
     val dataMetaInfo = preparedTrainPool.srcPool.createDataMetaInfo()
     val schemaForWorkers = trainDataForWorkers.mainDataSchema
 
-    // copy needed because Spark will try to capture the whole CatBoostWorkers class and fail
+    // copies are needed because Spark will try to capture the whole CatBoostWorkers class and fail
+    val connectTimeoutCopy = connectTimeout
+    val workerInitializationTimeoutCopy = workerInitializationTimeout
     val precomputedOnlineCtrMetaDataAsJsonStringCopy = precomputedOnlineCtrMetaDataAsJsonString
+
     val totalDatasetCount = 1 + evalDataForWorkers.size
     
     if (trainDataForWorkers.isInstanceOf[DatasetForTrainingWithPairs]) {
@@ -224,6 +233,8 @@ private[spark] class CatBoostWorkers(
             quantizedFeaturesInfo,
             precomputedOnlineCtrMetaDataAsJsonStringCopy,
             threadCount,
+            connectTimeoutCopy,
+            workerInitializationTimeoutCopy,
             (localExecutor: TLocalExecutor) => {
               if (groups.hasNext) {
                 DataHelpers.loadQuantizedDatasetsWithPairs(
@@ -265,6 +276,8 @@ private[spark] class CatBoostWorkers(
             quantizedFeaturesInfo,
             precomputedOnlineCtrMetaDataAsJsonStringCopy,
             threadCount,
+            connectTimeoutCopy,
+            workerInitializationTimeoutCopy,
             (localExecutor: TLocalExecutor) => {
               if (rows.hasNext) {
                 DataHelpers.loadQuantizedDatasets(

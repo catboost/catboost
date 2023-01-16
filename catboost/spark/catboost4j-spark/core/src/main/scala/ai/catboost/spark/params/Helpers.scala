@@ -344,6 +344,7 @@ private[spark] object Helpers {
 
     "spark_partition_count" -> null,
     "worker_initialization_timeout" -> null,
+    "connect_timeout" -> null,
 
     // processed in separate functions
     "class_weights_map" -> null,
