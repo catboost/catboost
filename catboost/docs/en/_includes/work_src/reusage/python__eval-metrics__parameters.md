@@ -4,11 +4,11 @@
 
 A file or matrix with the input dataset.
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -24,11 +24,11 @@ For example, if the {{ error-function--AUC }} and {{ error-function--Logit }} 
 ['Logloss', 'AUC']
 ```
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--list-of-strings }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -40,7 +40,7 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 {% include [eval-start-end-ntree_start__short-param-desc](../reusage-common-phrases/ntree_start__short-param-desc.md) %}
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--int }}
 
@@ -99,3 +99,5 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 **Default value**
 
 {{ fit__thread_count__wrappers }}
+
+{% include [python__log-params](../../../_includes/work_src/reusage-python/python__log-params.md) %}

@@ -12,7 +12,9 @@ get_object_importance(pool,
                       update_method='SinglePoint',
                       importance_values_sign='All',
                       thread_count=-1,
-                      verbose=False)
+                      verbose=False,
+                      log_cout=sys.stdout,
+                      log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}

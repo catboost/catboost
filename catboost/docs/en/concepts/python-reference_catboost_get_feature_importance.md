@@ -11,7 +11,9 @@ get_feature_importance(data=None,
                        type=EFstrType.FeatureImportance,
                        prettified=False,
                        thread_count=-1,
-                       verbose=False)
+                       verbose=False,
+                       log_cout=sys.stdout,
+                       log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -28,11 +30,11 @@ The required dataset depends on the selected feature importance calculation type
 - {{ title__regular-feature-importance-LossFunctionChange }}  — Any dataset. Feature importances are calculated on a subset for large datasets.
 - {{ title__predictiondiff }} — A list of object pairs.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }} for the {{ title__regular-feature-importance-LossFunctionChange }} and {{ title__ShapValues }} type of feature importances and in case the model does not contain information regarding the weight of leaves.
 
@@ -42,11 +44,11 @@ The required dataset depends on the selected feature importance calculation type
 
 Reference data for Independent Tree SHAP values from [Explainable AI for Trees: From Local Explanations to Global Understanding](https://arxiv.org/abs/1905.04610v1). If `type` is [`ShapValues`](shap-values.md) and `reference_data` is not `None`, then Independent Tree SHAP values are calculated.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
  None
 
@@ -64,11 +66,11 @@ Possible values:
 - [Interaction](feature-interaction.md#feature-interaction__feature-interaction-strength): The value of the feature interaction strength for each pair of features.
 - PredictionDiff: A vector with contributions of each feature to the RawFormulaVal difference for each pair of objects.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 FeatureImportance
 
@@ -87,11 +89,11 @@ Should be used if one of the following values of the typeparameter is selected:
 - PredictionValuesChange
 
 
-**Possible types** 
+**Possible types**
 
 bool
 
-**Default value** 
+**Default value**
 False
 
 
@@ -105,7 +107,7 @@ Optimizes the speed of execution. This parameter doesn't affect results.
 
 **Possible types** int
 
-**Default value** 
+**Default value**
 
 -1 (the number of threads is equal to the number of processor cores)
 
@@ -116,19 +118,20 @@ Optimizes the speed of execution. This parameter doesn't affect results.
 
 The purpose of this parameter depends on the type of the given value:
 
-- bool — Output progress to stdout. 
+- bool — Output progress to stdout.
 Works with the [ShapValues](shap-values.md) type of feature importance calculation.
 - int — The logging period.
 
-**Possible types** 
+**Possible types**
 
 - bool
 - int
 
-**Default value** 
+**Default value**
 
 False
 
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 ## {{ dl--output-format }} {#output-format}
 

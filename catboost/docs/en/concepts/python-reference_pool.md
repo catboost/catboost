@@ -16,7 +16,9 @@ class Pool(data,
            pairs_weight=None
            baseline=None,
            feature_names=None,
-           thread_count=-1)
+           thread_count=-1,
+           log_cout=sys.stdout,
+           log_cerr=sys.stderr)
 ```
 
 ## {{ dl--purpose }} {#purpose}
@@ -380,6 +382,8 @@ Use only when the dataset is read from an input file.
 
 {{ fit__thread_count__wrappers }}
 
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
+
 
 ## {{ dl--attributes }} {#attributes}
 
@@ -402,27 +406,17 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [get-baseline-get_baseline-desc](../_includes/work_src/reusage-python/get_baseline-desc.md) %}
-
-
 
 **Method:** [get_cat_feature_indices](python-reference_pool_get_cat_feature_indices.md)
 
 #### Description
 
-
-
 {% include [get-cat-feature-indices-get_cat_feature_indices-desc](../_includes/work_src/reusage-python/get_cat_feature_indices-desc.md) %}
-
-
 
 **Method:** [get_features](python-reference_pool_get_features.md)
 
 #### Description
-
-
 
 {% include [get-features-get_features-desc](../_includes/work_src/reusage-python/get_features-desc.md) %}
 
@@ -430,15 +424,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [get_group_id-get_group_id__desc](../_includes/work_src/reusage-python/get_group_id__desc.md) %}
 
 **Method:** [get_label](python-reference_pool_get_label.md)
 
 #### Description
-
-
 
 {% include [get-label-get_label-desc](../_includes/work_src/reusage-python/get_label-desc.md) %}
 
@@ -446,15 +436,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [get_text_feature_indices-get_text_features_indices__desc](../_includes/work_src/reusage-python/get_text_features_indices__desc.md) %}
 
 **Method:** [get_weight](python-reference_pool_get_weight.md)
 
 #### Description
-
-
 
 {% include [get_weight-get_weight-desc](../_includes/work_src/reusage-python/get_weight-desc.md) %}
 
@@ -462,15 +448,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [pool__is_quantized-python__pool__is_quantized__desc__div](../_includes/work_src/reusage-python/python__pool__is_quantized__desc__div.md) %}
 
 **Method:** [num_col](python-reference_pool_num_col.md)
 
 #### Description
-
-
 
 {% include [num-row-and-num-col-num_col-desc](../_includes/work_src/reusage-python/num_col-desc.md) %}
 
@@ -478,23 +460,17 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [num-row-and-num-col-num_row-desc](../_includes/work_src/reusage-python/num_row-desc.md) %}
 
 **Method:** [quantize](python-reference_pool_quantized.md)
 
 #### Description
 
-
-
 {% include [quantized-python_quantized](../_includes/work_src/reusage-python/python_quantized.md) %}
 
 **Method:** [save](python-reference_pool_save.md)
 
 #### Description
-
-
 
 {% include [pool_save-python__pool__save__desc__div](../_includes/work_src/reusage-python/python__pool__save__desc__div.md) %}
 
@@ -503,15 +479,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [pool__save_quantization_borders-pool__save_quantization_borders_div](../_includes/work_src/reusage-python/pool__save_quantization_borders_div.md) %}
 
 **Method:** [set_baseline](python-reference_pool_set_baseline.md)
 
 #### Description
-
-
 
 {% include [set_baseline-set_baseline__desc](../_includes/work_src/reusage-python/set_baseline__desc.md) %}
 
@@ -519,15 +491,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [set_feature_names-set_feature_names__desc](../_includes/work_src/reusage-python/set_feature_names__desc.md) %}
 
 **Method:** [set_group_id](python-reference_pool_set_group_id.md)
 
 #### Description
-
-
 
 {% include [set_group_id-set_group_id__desc](../_includes/work_src/reusage-python/set_group_id__desc.md) %}
 
@@ -536,15 +504,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [set_group_weight-set_group_weight__desc](../_includes/work_src/reusage-python/set_group_weight__desc.md) %}
 
 **Method:** [set_pairs](python-reference_pool_set_pairs.md)
 
 #### Description
-
-
 
 {% include [set_pairs-set_pairs__desc](../_includes/work_src/reusage-python/set_pairs__desc.md) %}
 
@@ -553,15 +517,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [set_pairs_weight-set_pairs_weight__desc](../_includes/work_src/reusage-python/set_pairs_weight__desc.md) %}
 
 **Method:** [set_subgroup_id](python-reference_pool_set_subgroup_id.md)
 
 #### Description
-
-
 
 {% include [set_subgroup_id-set_subgroup_identifiers__desc](../_includes/work_src/reusage-python/set_subgroup_identifiers__desc.md) %}
 
@@ -570,15 +530,11 @@ Use only when the dataset is read from an input file.
 
 #### Description
 
-
-
 {% include [set_weight-set_weight__desc](../_includes/work_src/reusage-python/set_weight__desc.md) %}
 
 **Method:** [slice](python-reference_pool_slice.md)
 
 #### Description
-
-
 
 {% include [slice-python__pool__slice__desc](../_includes/work_src/reusage-python/python__pool__slice__desc.md) %}
 

@@ -13,7 +13,9 @@ compare(model,
         ntree_end=0,
         eval_period=1,
         thread_count=-1,
-        tmp_dir=None)
+        tmp_dir=None,
+        log_cout=sys.stdout,
+        log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -154,6 +156,8 @@ The name of the temporary directory for intermediate results.
 **Default value**
 
 None (the name is generated)
+
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 
 ## {{ dl--example }} {#examples}

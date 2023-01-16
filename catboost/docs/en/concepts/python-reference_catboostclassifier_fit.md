@@ -28,7 +28,9 @@ fit(X,
     save_snapshot=None,
     snapshot_file=None,
     snapshot_interval=None,
-    init_model=None)
+    init_model=None,
+    log_cout=sys.stdout,
+    log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -130,7 +132,7 @@ The `cat_features` parameter can also be specified in the constructor of the cl
 
 {% include [default-value-none](../_includes/concepts/default-value-none.md) %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -152,7 +154,7 @@ A one-dimensional array of text columns indices (specified as integers) or names
 
 {% include [default-value-none](../_includes/concepts/default-value-none.md) %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -173,11 +175,11 @@ A one-dimensional array of text columns indices (specified as integers) or names
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 None
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -200,11 +202,11 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 - {{ python-type--list }}
 - {{ python-type--numpyarray }}
 
-**Default value** 
+**Default value**
 
 None
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -230,7 +232,7 @@ This option requires a validation dataset to be provided.
 
 True if a validation set is input (the `eval_set` parameter is defined) and at least one of the label values of objects in this set differs from the others. False otherwise.
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -254,11 +256,11 @@ The validation dataset or datasets used for the following processes:
 - {{ python-type--string }} (path to the dataset file)
 - {{ python-type--list }} of {{ python-type--string }}s (paths to dataset files)
 
-**Default value** 
+**Default value**
 
 None
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -295,11 +297,11 @@ Do not use this parameter with the `logging_level` parameter.
 - {{ python-type--bool }}
 - {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ train_verbose_fr-of-iterations-to-output__default }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -328,11 +330,11 @@ Possible values:
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 None (corresponds to the {{ fit--verbose }} logging level)
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -353,11 +355,11 @@ This [option can be used](../features/visualization_jupyter-notebook.md) if tra
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 {{ fit--plot }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
 
@@ -373,7 +375,7 @@ The given file is used to build pools from the train and/or validation datasets,
 
 None
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -389,11 +391,11 @@ Defines the logging level:
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 False
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -404,15 +406,15 @@ False
 
 Sets the overfitting detector type to {{ fit--od-type-iter }} and stops the training after the specified number of iterations since the iteration with the optimal metric value.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 False
 
-**Supported processing units**  
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -424,15 +426,15 @@ Enable snapshotting for [restoring the training progress after an interruption]
 
 {% include [reusage-common-phrases-snapshot-not-working-for-cv](../_includes/work_src/reusage-common-phrases/snapshot-not-working-for-cv.md) %}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 {{ fit--save_snapshot }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -447,7 +449,7 @@ The name of the file to save the training progress information in. This file is 
 
 {% include [reusage-common-phrases-snapshot-not-working-for-cv](../_includes/work_src/reusage-common-phrases/snapshot-not-working-for-cv.md) %}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
@@ -459,7 +461,7 @@ The name of the file to save the training progress information in. This file is 
 
 {% endcut %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -477,11 +479,11 @@ The first snapshot is taken after the specified number of seconds since the star
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__snapshot-interval__default }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
@@ -520,10 +522,11 @@ The path to the input file that contains the initial model.
 
 None (incremental learning is not used)
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
 
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 ## {{ dl__usage-examples }} {#usage-examples}
 

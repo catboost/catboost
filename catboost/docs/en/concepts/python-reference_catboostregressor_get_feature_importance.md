@@ -11,7 +11,9 @@ get_feature_importance(data=None,
                        type=EFstrType.FeatureImportance,
                        prettified=False,
                        thread_count=-1,
-                       verbose=False)
+                       verbose=False,
+                       log_cout=sys.stdout,
+                       log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -142,6 +144,7 @@ The purpose of this parameter depends on the type of the given value:
 
 False
 
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 ## {{ dl--output-format }} {#output-format}
 

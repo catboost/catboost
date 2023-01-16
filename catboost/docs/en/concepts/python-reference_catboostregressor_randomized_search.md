@@ -6,7 +6,21 @@
 ## {{ dl--invoke-format }} {#method-call-format}
 
 ```python
-plot_tree(tree_idx, pool=None)
+randomized_search(param_distributions,
+                  X,
+                  y=None,
+                  cv=3,
+                  n_iter=10,
+                  partition_random_seed=0,
+                  calc_cv_statistics=True,
+                  search_by_train_test_split=True,
+                  refit=True,
+                  shuffle=True,
+                  stratified=None,
+                  train_size=0.8,
+                  verbose=True,
+                  log_cout=sys.stdout,
+                  log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -291,7 +305,7 @@ Draw train and evaluation metrics for every set of parameters in Jupyter [Jupyte
 
 False
 
-
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 ## {{ dl--example }} {#example}
 

@@ -20,7 +20,9 @@ model.select_features(
                 train_final_model=False,
                 verbose=None,
                 logging_level=None,
-                plot=False)
+                plot=False,
+                log_cout=sys.stdout,
+                log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -37,15 +39,15 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 {% endnote %}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -67,18 +69,18 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 
 {% endnote %}
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--list }}
 - {{ python-type--numpyarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 None
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -92,17 +94,17 @@ The validation dataset or datasets used for the following processes:
 - best iteration selection
 - monitoring metrics' changes
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--pool }}
 - {{ python-type--tuple }} (x, y)
 - {{ python-type--string }} (path to the dataset file)
 
-**Default value** 
+**Default value**
 
 None
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -111,19 +113,19 @@ None
 
 #### Description
 
-Features which participate in the selection. The following formats are supported: 
+Features which participate in the selection. The following formats are supported:
 - A list with indices, names, index ranges, name ranges. For example: `[0, 3, 5, 6, '10-15', 'City', 'Player1-Player11']`.
 - A string with indices, names, index ranges, name ranges. Values are separated by commas, for example: `0,3,5,6,10-15,City,Player1-Player11`.
 
-**Possible types** 
+**Possible types**
 - list
 - string
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -136,15 +138,15 @@ Features which participate in the selection. The following formats are supported
 The number of features to select from `features_for_select`.
 
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -156,15 +158,15 @@ int
 
 The number of times for training the model. Use more steps for more accurate selection.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 1
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -180,15 +182,15 @@ The main algorithm is [Recursive Feature Elimination](https://scikit-learn.org/s
 - `RecursiveByLossFunctionChange` — the optimal option according to accuracy/speed balance.
 - `RecursiveByShapValues` — the most accurate method.
 
-**Possible types** 
+**Possible types**
 
 EFeaturesSelectionAlgorithm
 
-**Default value** 
+**Default value**
 
 RecursiveByShapValues
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -205,15 +207,15 @@ The method of the SHAP values calculations ordered by accuracy:
 
 Used in RecursiveByLossFunctionChange and RecursiveByShapValues.
 
-**Possible types** 
+**Possible types**
 
 EShapCalcType
 
-**Default value** 
+**Default value**
 
 Regular
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -224,15 +226,15 @@ Regular
 
 If specified, then the model with selected features will be trained after features selection.
 
-**Possible types** 
+**Possible types**
 
 bool
 
-**Default value** 
+**Default value**
 
 True
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -249,7 +251,7 @@ _Alias:_`verbose_eval`
 - {{ python-type--bool }} — Defines the logging level:
     - <q>True</q>  corresponds to the Verbose logging level
     - <q>False</q> corresponds to the Silent logging level
-    
+
 - {{ python-type--int }} — Use the Verbose logging level and set the logging period to the value of this parameter.
 
 
@@ -259,16 +261,16 @@ Do not use this parameter with the `logging_level` parameter.
 
 {% endnote %}
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--bool }}
 - {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ train_verbose_fr-of-iterations-to-output__default }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -282,26 +284,26 @@ The logging level to output to stdout.
 
 Possible values:
 - Silent — Do not output any logging information to stdout.
-    
+
 - Verbose — Output the following data to stdout:
-    
+
     - optimized metric
     - elapsed time of training
     - remaining time of training
-    
+
 - Info — Output additional information and the number of trees.
-    
+
 - Debug — Output debugging information.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 None (corresponds to the {{ fit--verbose }} logging level)
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
@@ -319,23 +321,24 @@ Plot the following information during training:
 - the remaining time until the end of training.
 This [option can be used](../features/visualization_jupyter-notebook.md) if training is performed in Jupyter notebook.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 {{ fit--plot }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {% include [reusage-python-cpu](../_includes/work_src/reusage-python/cpu.md) %}
 
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 
 ## {{ dl__return-value }} {#output-format}
 
-Dict with four fields: 
+Dict with four fields:
 - `selected_features` — a list with indices of selected features.
 - `selected_features_names` — a list with names of selected features, if feature names were specified.
 - `eliminated_features` — a list with indices of eliminated features.

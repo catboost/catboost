@@ -18,7 +18,9 @@ grid_search(param_grid,
             stratified=None,
             train_size=0.8,
             verbose=True,
-            plot=False)
+            plot=False,
+            log_cout=sys.stdout,
+            log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -269,6 +271,8 @@ bool
 **Default value**
 
 False
+
+{% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
 
 ## {{ dl__return-value }} {#output-format}
