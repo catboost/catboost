@@ -3102,7 +3102,6 @@ migrations:
     - yweb/tellurium/lib
     - yweb/webscripts/video/common/sandbox
     - yweb/webscripts/video/docker/cm_tool
-    - yweb/webscripts/video/metarobot/parsepage/python
     - yweb/yasap/answers/3rdparty/apns
     - yweb/yasap/answers/3rdparty/falcon_apispec
     - yweb/yasap/answers/3rdparty/sendgrid
@@ -3673,8 +3672,6 @@ migrations:
     - yweb/structhtml/richsnippets/semanticdata2json/tool/tests
     - yweb/structhtml/richsnippets/videoobject/tool/tests
     - yweb/structhtml/schemaorg/tool/tests
-    - yweb/tellurium/test/integration
-    - yweb/tellurium/test/unit
     - yweb/video/index/vtriebuilder/tests
     - yweb/video/mr_scripts/calcstaticfactors/tests
     - yweb/video/mr_scripts/vmetamerge/tests
