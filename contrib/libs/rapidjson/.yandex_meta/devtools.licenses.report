@@ -29,7 +29,7 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
-KEEP     Json                 1280ad5e2fe5cbf7099bb4a7bd9dc846
+KEEP     JSON                 1280ad5e2fe5cbf7099bb4a7bd9dc846
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
@@ -185,7 +185,7 @@ BELONGS ya.make
         include/rapidjson/msinttypes/inttypes.h [6:29]
         include/rapidjson/msinttypes/stdint.h [6:29]
 
-KEEP     Json                 ce8f2ef92da7033a35651f574f691599
+KEEP     JSON                 ce8f2ef92da7033a35651f574f691599
 BELONGS ya.make
     License text:
         Open Source Software Licensed Under the JSON License:

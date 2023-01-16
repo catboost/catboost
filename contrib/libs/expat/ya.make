@@ -8,7 +8,7 @@ VERSION(2.4.1)
 
 LICENSE(
     CC0-1.0
-    Json
+    JSON
     MIT
 )
 

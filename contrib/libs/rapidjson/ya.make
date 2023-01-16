@@ -3,7 +3,7 @@ LIBRARY()
 LICENSE(
     BSD-3-Clause
     ISC
-    Json
+    JSON
     MIT
 )
 
