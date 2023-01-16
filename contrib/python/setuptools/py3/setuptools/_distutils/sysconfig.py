@@ -129,6 +129,14 @@ def get_python_inc(plat_specific=0, prefix=None):
             "on platform '%s'" % os.name)
 
 
+# allow this behavior to be monkey-patched. Ref pypa/distutils#2.
+def _posix_lib(standard_lib, libpython, early_prefix, prefix):
+    if standard_lib:
+        return libpython
+    else:
+        return os.path.join(libpython, "site-packages")
+
+
 def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
     """Return the directory containing the Python library (standard or
     site additions).
@@ -152,6 +160,8 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             return os.path.join(prefix, "lib-python", sys.version[0])
         return os.path.join(prefix, 'site-packages')
 
+    early_prefix = prefix
+
     if prefix is None:
         if standard_lib:
             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
@@ -169,10 +179,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         implementation = 'pypy' if IS_PYPY else 'python'
         libpython = os.path.join(prefix, libdir,
                                  implementation + get_python_version())
-        if standard_lib:
-            return libpython
-        else:
-            return os.path.join(libpython, "site-packages")
+        return _posix_lib(standard_lib, libpython, early_prefix, prefix)
     elif os.name == "nt":
         if standard_lib:
             return os.path.join(prefix, "Lib")
@@ -273,14 +280,24 @@ def get_config_h_filename():
     return os.path.join(inc_dir, 'pyconfig.h')
 
 
+# Allow this value to be patched by pkgsrc. Ref pypa/distutils#16.
+_makefile_tmpl = 'config-{python_ver}{build_flags}{multiarch}'
+
+
 def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
     if python_build:
         return os.path.join(_sys_home or project_base, "Makefile")
     lib_dir = get_python_lib(plat_specific=0, standard_lib=1)
-    config_file = 'config-{}{}'.format(get_python_version(), build_flags)
-    if hasattr(sys.implementation, '_multiarch'):
-        config_file += '-%s' % sys.implementation._multiarch
+    multiarch = (
+        '-%s' % sys.implementation._multiarch
+        if hasattr(sys.implementation, '_multiarch') else ''
+    )
+    config_file = _makefile_tmpl.format(
+        python_ver=get_python_version(),
+        build_flags=build_flags,
+        multiarch=multiarch,
+    )
     return os.path.join(lib_dir, config_file, 'Makefile')
 
 
@@ -452,15 +469,21 @@ def expand_makefile_vars(s, vars):
 
 _config_vars = None
 
+
+_sysconfig_name_tmpl = '_sysconfigdata_{abi}_{platform}_{multiarch}'
+
+
 def _init_posix():
     """Initialize the module as appropriate for POSIX systems."""
     # _sysconfigdata is generated at build time, see the sysconfig module
-    name = os.environ.get('_PYTHON_SYSCONFIGDATA_NAME',
-        '_sysconfigdata_{abi}_{platform}_{multiarch}'.format(
-        abi=sys.abiflags,
-        platform=sys.platform,
-        multiarch=getattr(sys.implementation, '_multiarch', ''),
-    ))
+    name = os.environ.get(
+        '_PYTHON_SYSCONFIGDATA_NAME',
+        _sysconfig_name_tmpl.format(
+            abi=sys.abiflags,
+            platform=sys.platform,
+            multiarch=getattr(sys.implementation, '_multiarch', ''),
+        ),
+    )
     try:
         _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
     except ImportError:

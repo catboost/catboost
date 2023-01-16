@@ -20,7 +20,7 @@
    :alt: Code style: Black
 
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
-    :target: https://setuptools.readthedocs.io
+    :target: https://setuptools.pypa.io
 
 .. image:: https://img.shields.io/badge/skeleton-2021-informational
    :target: https://blog.jaraco.com/skeleton

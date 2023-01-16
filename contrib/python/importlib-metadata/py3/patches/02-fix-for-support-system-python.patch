@@ -1,8 +1,8 @@
 --- contrib/python/importlib-metadata/py3/importlib_metadata/__init__.py	(index)
 +++ contrib/python/importlib-metadata/py3/importlib_metadata/__init__.py	(working tree)
-@@ -29,6 +29,12 @@ from importlib.abc import MetaPathFinder
+@@ -30,6 +30,12 @@ from importlib.abc import MetaPathFinder
  from itertools import starmap
- from typing import Any, List, Mapping, Optional, TypeVar, Union
+ from typing import List, Mapping, Optional, Union
  
 +try:
 +    import library.python.resource
@@ -13,7 +13,7 @@
  
  __all__ = [
      'Distribution',
-@@ -766,7 +772,7 @@ class Prepared:
+@@ -872,7 +878,7 @@ class Prepared:
          return bool(self.name)
  
  
@@ -22,7 +22,7 @@
  class MetadataPathFinder(NullFinder, DistributionFinder):
      """A degenerate finder for distribution packages on the file system.
  
-@@ -839,7 +845,7 @@ class ArcadiaDistribution(Distribution):
+@@ -960,7 +966,7 @@ class ArcadiaDistribution(Distribution):
          return '{}{}'.format(self.prefix, path)
  
  
@@ -33,7 +33,7 @@
      prefixes = {}
 --- contrib/python/importlib-metadata/py3/importlib_metadata/_compat.py	(index)
 +++ contrib/python/importlib-metadata/py3/importlib_metadata/_compat.py	(working tree)
-@@ -15,17 +15,20 @@ except ImportError:  # pragma: no cover
+@@ -11,17 +11,20 @@ except ImportError:  # pragma: no cover
      from typing_extensions import Protocol  # type: ignore
  
  
