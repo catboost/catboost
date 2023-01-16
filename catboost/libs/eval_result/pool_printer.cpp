@@ -131,6 +131,7 @@ namespace NCB {
             case EColumn::GroupId:
             case EColumn::SubgroupId:
                 token = GetStringColumnToken(docId, columnType);
+                break;
             default:
                 CB_ENSURE("Unsupported output columnType for Quantized pool.");
         }
