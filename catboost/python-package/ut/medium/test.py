@@ -1886,6 +1886,28 @@ def test_multilabel_class_names():
     assert set(pred.flatten()) == {0, 1}
 
 
+def test_multilabel_eval_metric():
+    train_pool = Pool(SCENE_TRAIN_FILE, column_description=SCENE_CD_FILE)
+    test_pool = Pool(SCENE_TEST_FILE, column_description=SCENE_CD_FILE)
+    classifier = CatBoostClassifier(iterations=100, loss_function='MultiLogloss')
+    classifier.fit(train_pool, eval_set=test_pool)
+    target = test_pool.get_label().astype(int)
+    num_classes = target.shape[1]
+    approx = classifier.predict(test_pool, prediction_type='RawFormulaVal')
+    prediction = classifier.predict(test_pool, prediction_type='Class')
+    accuracy = eval_metric(target, approx, 'Accuracy')[0]
+    assert accuracy == np.mean([np.array_equal(t, p) for t, p in zip(target, prediction)])
+    accuracy_per_class = eval_metric(target, approx, 'Accuracy:type=PerClass')
+    assert len(accuracy_per_class) == num_classes
+    for j in range(num_classes):
+        assert accuracy_per_class[j] == eval_metric(target[:, j], approx[:, j], 'Accuracy')[0]
+    for metric in ('Precision', 'Recall', 'F1'):
+        metric_per_class = eval_metric(target, approx, metric)
+        assert len(metric_per_class) == num_classes
+        for j in range(num_classes):
+            assert metric_per_class[j] == eval_metric(target[:, j], approx[:, j], metric)[0]
+
+
 def test_class_names(task_type):
     class_names = ['Small', 'Medium', 'Large']
 
