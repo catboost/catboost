@@ -5934,6 +5934,6 @@ cpdef _get_onnx_model(model, export_parameters):
     cdef size_t result_len = result.size()
     return bytes(result_ptr[:result_len])
 
-
+include "_grid_creator.pxi"
 include "_monoforest.pxi"
 include "_text_processing.pxi"

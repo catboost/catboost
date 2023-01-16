@@ -12,6 +12,7 @@ _get_confusion_matrix = _catboost._get_confusion_matrix
 _select_threshold = _catboost._select_threshold
 _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 _get_onnx_model = _catboost._get_onnx_model
+_calculate_quantization_grid = _catboost._calculate_quantization_grid
 
 compute_wx_test = _catboost.compute_wx_test
 TargetStats = _catboost.TargetStats
@@ -719,3 +720,7 @@ def convert_to_onnx_object(model, export_parameters=None, **kwargs):
     model_str = _get_onnx_model(model._object, params_string)
     onnx_model = onnx.load_model_from_string(model_str)
     return onnx_model
+
+def calculate_quantization_grid(values, border_count, border_type='Median'):
+    assert border_count > 0, 'Border count should be > 0'
+    return _calculate_quantization_grid(values, border_count, border_type)
