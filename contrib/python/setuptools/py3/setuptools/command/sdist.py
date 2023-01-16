@@ -31,6 +31,10 @@ class sdist(sdist_add_defaults, orig.sdist):
         ('dist-dir=', 'd',
          "directory to put the source distribution archive(s) in "
          "[default: dist]"),
+        ('owner=', 'u',
+         "Owner name used when creating a tar file [default: current user]"),
+        ('group=', 'g',
+         "Group name used when creating a tar file [default: current group]"),
     ]
 
     negative_opt = {}
