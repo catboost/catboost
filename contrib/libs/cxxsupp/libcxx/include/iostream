@@ -45,7 +45,6 @@ extern wostream wclog;
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#ifndef _LIBCPP_HAS_NO_STDIN
 #if defined(_MSC_VER) && !defined(__clang__)
 extern _LIBCPP_FUNC_VIS istream& cin;
 extern _LIBCPP_FUNC_VIS wistream& wcin;
@@ -53,15 +52,12 @@ extern _LIBCPP_FUNC_VIS wistream& wcin;
 extern _LIBCPP_FUNC_VIS istream cin;
 extern _LIBCPP_FUNC_VIS wistream wcin;
 #endif
-#endif
-#ifndef _LIBCPP_HAS_NO_STDOUT
 #if defined(_MSC_VER) && !defined(__clang__)
 extern _LIBCPP_FUNC_VIS ostream& cout;
 extern _LIBCPP_FUNC_VIS wostream& wcout;
 #else
 extern _LIBCPP_FUNC_VIS ostream cout;
 extern _LIBCPP_FUNC_VIS wostream wcout;
-#endif
 #endif
 #if defined(_MSC_VER) && !defined(__clang__)
 extern _LIBCPP_FUNC_VIS ostream& cerr;
