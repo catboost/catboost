@@ -3379,7 +3379,6 @@ migrations:
     - passport/python/tools/metrics/ut
     - passport/python/vault/cli/yav/tests
     - quality/ab_testing/scripts/exp_veles/exp_mr_server/scripts/ut
-    - quality/ab_testing/tests/calc_abt
     - quality/ab_testing/tools/postgres_local/tests
     - quality/antifraud/scripts/prod/tests/large_yql_scripts_tests
     - quality/click_machine/tests
