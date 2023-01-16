@@ -107,26 +107,6 @@ decltype(auto) Get(const std::variant<Ts...>&& v) {
     return std::get<T>(std::move(v));
 }
 
-template <size_t I, class... Ts>
-auto* GetIf(std::variant<Ts...>* v) noexcept {
-    return std::get_if<I>(v);
-}
-
-template <size_t I, class... Ts>
-const auto* GetIf(const std::variant<Ts...>* v) noexcept {
-    return std::get_if<I>(v);
-}
-
-template <class T, class... Ts>
-T* GetIf(std::variant<Ts...>* v) noexcept {
-    return std::get_if<T>(v);
-}
-
-template <class T, class... Ts>
-const T* GetIf(const std::variant<Ts...>* v) noexcept {
-    return std::get_if<T>(v);
-}
-
 template <class... Ts>
 struct THash<std::variant<Ts...>> {
 public:
