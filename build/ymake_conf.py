@@ -1375,7 +1375,6 @@ class GnuCompiler(Compiler):
                 self.cxx_warnings.extend((
                     '-Wno-c99-designator',
                     '-Wno-deprecated-copy',
-                    '-Wno-final-dtor-non-final-class',
                     '-Wno-pessimizing-move',
                     '-Wno-range-loop-construct',
                     '-Wno-reorder-init-list',
