@@ -546,13 +546,17 @@ namespace NCB {
         }
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
+        TInputClassificationInfo updatedInputClassificationInfo = inputClassificationInfo;
 
-        bool isRealTarget = !inputClassificationInfo.TargetBorder;
+        bool isRealTarget = !updatedInputClassificationInfo.TargetBorder;
         if (targetCreationOptions.IsClass) {
             isRealTarget
                 = mainLossFunction
                     && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy ||
                         mainLossFunction->GetLossFunction() == ELossFunction::MultiCrossEntropy);
+            if (isRealTarget) {
+                updatedInputClassificationInfo.TargetBorder = Nothing();
+            }
 
             if (!isRealTarget && !knownClassCount && knownModelApproxDimension > 1) {
                 knownClassCount = knownModelApproxDimension;
@@ -568,9 +572,9 @@ namespace NCB {
             targetCreationOptions.IsClass,
             targetCreationOptions.IsMultiClass,
             targetCreationOptions.IsMultiLabel,
-            inputClassificationInfo.TargetBorder,
+            updatedInputClassificationInfo.TargetBorder,
             !knownClassCount,
-            inputClassificationInfo.ClassLabels,
+            updatedInputClassificationInfo.ClassLabels,
             &outputClassificationInfo->ClassLabels,
             localExecutor,
             &classCount
@@ -651,26 +655,26 @@ namespace NCB {
 
         // Weights
         {
-            if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() ||
-                inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None))
+            if (createClassTarget && (!updatedInputClassificationInfo.ClassWeights.empty() ||
+                updatedInputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None))
             {
                 auto targetClasses = !maybeConvertedTarget.empty()
                     ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0])
                     : Nothing();
 
                 TConstArrayRef<float> classWeights = targetClasses
-                    ? inputClassificationInfo.ClassWeights
+                    ? updatedInputClassificationInfo.ClassWeights
                     : TConstArrayRef<float>();
 
                 TVector<float> autoClassWeights;
                 if (targetClasses && classWeights.empty() &&
-                    inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)
+                    updatedInputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)
                 {
                     classWeights = autoClassWeights = CalculateClassWeights(
                         *targetClasses,
                         rawData.GetWeights(),
                         targetCreationOptions.CreateMultiClassTarget ? classCount : ui32(2),
-                        inputClassificationInfo.AutoClassWeightsType,
+                        updatedInputClassificationInfo.AutoClassWeightsType,
                         localExecutor);
 
                     if (outputClassificationInfo->ClassWeights) {
