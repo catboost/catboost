@@ -19,7 +19,6 @@ LICENSE(
     BSD-3-Clause AND
     GFDL-1.1-or-later AND
     GPL-1.0-or-later WITH Linux-syscall-note AND
-    GPL-2.0-only AND
     GPL-2.0-only WITH Linux-syscall-note AND
     GPL-2.0-or-later WITH Linux-syscall-note AND
     ISC AND
