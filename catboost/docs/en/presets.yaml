@@ -79,7 +79,7 @@ default:
   fit--target_border_type: MinEntropy
   fit--feature_border_type: GreedyLogSum
   fit--ctr_type: Borders
-  fit--counter-calc-method: Full
+  fit--counter-calc-method: SkipTest
   fit--auto_stop_pval: 0 (the overfitting detection is turned off)
   fit--od-wait: '20'
   fit--od-type-inctodec: IncToDec
