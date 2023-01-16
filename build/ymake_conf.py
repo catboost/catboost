@@ -579,6 +579,15 @@ class Build(object):
     def is_ide_build_type(build_type):
         return build_type == 'nobuild'
 
+    def _configure_runtime_versions(self):
+        res = subprocess.check_output(['xcrun', 'simctl', 'list', '--json', 'runtimes'])
+        raw_object = json.loads(res)
+        raw_object = raw_object['runtimes']
+        for runtime in raw_object:
+            if runtime['isAvailable']:
+                if "iOS" in runtime['identifier']:
+                    emit('DEFAULT_IOS_RUNTIME', '{}'.format(runtime['identifier']))
+
     def _get_toolchain_options(self):
         type_ = self.params['params']['type']
 
@@ -597,6 +606,7 @@ class Build(object):
             emit('XCODE', 'yes')
             emit('ACTOOL_PATH', subprocess.check_output(['xcrun', '--find', 'actool']).strip())
             emit('IBTOOL_PATH', subprocess.check_output(['xcrun', '--find', 'ibtool']).strip())
+            self._configure_runtime_versions()
         elif type_ == 'system_cxx':
             detector = CompilerDetector()
             detector.detect(self.params['params'].get('c_compiler'), self.params['params'].get('cxx_compiler'))
