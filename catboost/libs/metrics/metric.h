@@ -268,7 +268,6 @@ static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockS
 
 THolder<IMetric> MakeCtrFactorMetric(const TLossParams& params);
 
-THolder<IMetric> MakeBinClassAucMetric(const TLossParams& params);
 THolder<IMetric> MakeMultiClassAucMetric(const TLossParams& params, int positiveClass);
 
 THolder<IMetric> MakeBinClassPrecisionMetric(const TLossParams& params,
