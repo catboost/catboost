@@ -6265,6 +6265,7 @@ def test_set_cat_features_in_init(param_type):
         'logging_level': 'Silent',
         'loss_function': 'Logloss',
         'iterations': 10,
+        'thread_count': -1,
         'random_seed': 20
     }
 

@@ -3062,6 +3062,8 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("You can't change params of fitted model.")
         for key, value in iteritems(params):
             self._init_params[key] = value
+        if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
+            self._init_params.pop('thread_count')
         return self
 
     def plot_predictions(self, data, features_to_change, plot=True, plot_file=None):
