@@ -237,6 +237,8 @@ ALLOW .* -> vendor/github.com/jackc/pgconn
 ALLOW .* -> vendor/github.com/jackc/pgtype
 ALLOW .* -> vendor/github.com/jackc/pgerrcode
 ALLOW .* -> vendor/github.com/jackc/pgproto3/v2
+ALLOW .* -> vendor/github.com/jackc/pgio
+ALLOW .* -> vendor/github.com/jackc/pglogrepl
 
 # database/sql wrapper with a lot of helper functions
 ALLOW .* -> vendor/github.com/jmoiron/sqlx
