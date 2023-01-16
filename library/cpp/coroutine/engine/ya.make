@@ -27,3 +27,7 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    stack/benchmark
+)
