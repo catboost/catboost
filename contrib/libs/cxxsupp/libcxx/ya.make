@@ -20,6 +20,11 @@ ADDINCL(
 
 CXXFLAGS(-D_LIBCPP_BUILDING_LIBRARY)
 
+IF (EXPORT_CMAKE)
+    # TODO(YMAKE-91) split C_DEFINES core.conf var into parts and avoid libc++ ya.make modification
+    CXXFLAGS(GLOBAL -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES)
+ENDIF()
+
 IF (OS_ANDROID)
     DEFAULT(CXX_RT "default")
     IF (ARCH_I686 OR ARCH_ARM7)
