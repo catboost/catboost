@@ -2470,7 +2470,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-invalid-noreturn',
                 '-Wno-logical-op-parentheses',
                 '-Wno-macro-redefined',
-                '-Wno-microsoft-extra-qualification',
                 '-Wno-microsoft-include',
                 '-Wno-parentheses',
                 '-Wno-pragma-pack',
