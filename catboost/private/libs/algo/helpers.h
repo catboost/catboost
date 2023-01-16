@@ -18,7 +18,8 @@ namespace NCB {
 
 TVector<TFloatFeature> CreateFloatFeatures(
     const NCB::TFeaturesLayout& featuresLayout,
-    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo);
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
+);
 
 TVector<TTextFeature> CreateTextFeatures(const NCB::TFeaturesLayout& featuresLayout);
 
