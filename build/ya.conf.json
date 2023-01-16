@@ -290,6 +290,9 @@
         "renderer": {
             "description": "Run local renderer instance"
         },
+        "appteka": {
+            "description": "Run local appteka instance"
+        },
         "news": {
             "description": "Run news team tools"
         },
@@ -4716,6 +4719,28 @@
                 }
             ]
         },
+        "appteka": {
+            "tools": {
+                "appteka": {
+                    "bottle": "appteka",
+                    "executable": "appteka"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "news": {
             "tools": {
                 "news": {
@@ -7273,6 +7298,19 @@
             "executable": {
                 "renderer": [
                     "report-renderer/bin/run"
+                ]
+            }
+        },
+        "appteka": {
+            "formula": {
+                "sandbox_id": [
+                    2688373947
+                ],
+                "match": ""
+            },
+            "executable": {
+                "appteka": [
+                    "./appteka/appteka"
                 ]
             }
         },
