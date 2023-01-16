@@ -30,7 +30,7 @@
 # =======================
 
 KEEP     Apache-2.0           0e8699c5f5ea602534a6558430df2b8d
-BELONGS absl/base/ya.make ya.make
+BELONGS absl/base/ya.make absl/hash/internal/ya.make absl/numeric/ya.make absl/strings/internal/ya.make ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: Apache-2.0
@@ -50,8 +50,6 @@ BELONGS absl/base/ya.make ya.make
         absl/strings/internal/cord_rep_ring.cc [3:13]
         absl/strings/internal/cord_rep_ring.h [3:13]
         absl/strings/internal/cord_rep_ring_reader.h [3:13]
-    Belongs difference:
-        - absl/hash/internal/ya.make absl/numeric/ya.make absl/strings/internal/ya.make
 
 KEEP     Apache-2.0           0f66a26c8211d9f8c21369fcb6702370
 BELONGS absl/time/ya.make
@@ -110,7 +108,7 @@ BELONGS absl/time/ya.make
         absl/time/internal/cctz/src/tzfile.h [8:8]
 
 KEEP     Apache-2.0           3ea5060c4f08f5769674fbf0c0fb3992
-BELONGS absl/base/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/flags/ya.make absl/hash/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/status/ya.make absl/strings/internal/str_format/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make absl/synchronization/ya.make absl/time/ya.make ya.make
+BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/flags/ya.make absl/functional/ya.make absl/hash/internal/ya.make absl/hash/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/status/ya.make absl/strings/internal/str_format/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make absl/synchronization/ya.make absl/time/ya.make absl/types/ya.make absl/utility/ya.make ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: Apache-2.0
@@ -477,11 +475,9 @@ BELONGS absl/base/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make
         absl/types/span.h [4:14]
         absl/types/variant.h [3:13]
         absl/utility/utility.h [3:13]
-    Belongs difference:
-        - absl/hash/internal/ya.make
 
 KEEP     LicenseRef-scancode-warranty-disclaimer 5ba761db85e57267704f71a6bcf20c2a
-BELONGS ya.make
+BELONGS absl/container/ya.make
     License text:
         // This utility is internal-only. Use at your own risk.
     Scancode info:
