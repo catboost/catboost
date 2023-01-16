@@ -418,6 +418,7 @@ migrations:
     - market/mstat/ch-cache/lib/database
     - market/reductor/configure/lib
     - market/reductor/www
+    - market/report/lite
     - market/sre/library/python/maaslib
     - market/sre/services/balancer_api/lib
     - market/tools/report_stats/lib
@@ -3594,7 +3595,6 @@ migrations:
     - infra/walle/server/tests
     - market/forecaster/lite
     - market/idx/marketindexer/medium_tests/yatf
-    - market/report/lite
     - ofd/notifier/tests/test_unit
     - saas/rtyserver_test/tests
     - search/lingboost/saas/codecs/test_bundle_codecs/tests
