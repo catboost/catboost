@@ -8,7 +8,7 @@
 Y_UNIT_TEST_SUITE(TMD5Test) {
     Y_UNIT_TEST(TestMD5) {
         // echo -n 'qwertyuiopqwertyuiopasdfghjklasdfghjkl' | md5sum
-        char b[] = "qwertyuiopqwertyuiopasdfghjklasdfghjkl";
+        constexpr const char* b = "qwertyuiopqwertyuiopasdfghjklasdfghjkl";
 
         MD5 r;
         r.Update((const unsigned char*)b, 15);
@@ -20,7 +20,7 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
 
         UNIT_ASSERT_EQUAL(s, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
 
-        TString result = r.Calc(AsStringBuf(b));
+        TString result = r.Calc(TStringBuf(b));
         result.to_lower();
         UNIT_ASSERT_EQUAL(result, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
     }
