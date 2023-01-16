@@ -613,7 +613,6 @@ migrations:
     - sandbox/projects/YabsDebuilder
     - sandbox/projects/YabsDebuilderDev
     - sandbox/projects/YabsServerStatPerformance
-    - sandbox/projects/YabsServerToolRtbshadowStat
     - sandbox/projects/adfox/adfox_ui/testpalm/testrunCreate
     - sandbox/projects/alice_evo
     - sandbox/projects/alice_evo/AliceEvoIntegrationTestsWrapper
@@ -1981,7 +1980,6 @@ migrations:
     - intranet/femida/src/vacancies/migrations
     - intranet/hidereferer/src
     - intranet/magiclinks/src
-    - intranet/paste/src
     - intranet/table_flow/src/rules/migrations
     - intranet/table_flow/src/users/migrations
     - intranet/webauth/lib
@@ -3548,7 +3546,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/delete_board
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/forbid_patch
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/get
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/image_props
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/log
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/market
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/merchants
@@ -3562,7 +3559,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/user
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/wish
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/celery
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/clicks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/common
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/complaints
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/components
@@ -3573,14 +3569,12 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/langdetect
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/metrics
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_answers
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_tags
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/organizations
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/pages
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/shares
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/stats
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/tasks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ugcdb
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/underside
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/user/resources
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/yauth
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ydb
