@@ -721,7 +721,27 @@ $t_{q,i} \in [0, 1]$
     {{ loss-functions__params__top__default }}
 
 
-## AUC {#auc}
+### {{ error-function__mrr }} {#mrr}
+
+{{ title__loss-functions__calculation-principles }}
+
+$MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers to the rank position of the first relevant document for the _q_-th query.
+
+
+{{ title__loss-functions__text__user-defined-params }}:
+
+- {{ loss-functions__params__top }}
+
+  The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+
+
+    {{ loss-functions__params__top__default }}
+
+- {{ loss-functions__params__border }}
+
+  The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
+
+    {{ fit--border }}
 
 ### {{ error-function--AUC }} {#AUC}
 
@@ -757,35 +777,9 @@ The calculation of this metric is disabled by default for the training dataset t
     AUC:type=Ranking
     ```
 
-
-## {{ title__loss-functions__text__optimization }}
-
-### {{ error-function__mrr }} {#mrr}
-
-{{ title__loss-functions__calculation-principles }}
-
-$MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers to the rank position of the first relevant document for the _q_-th query.
-
-
-{{ title__loss-functions__text__user-defined-params }}:
-
-- {{ loss-functions__params__top }}
-
-  The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
-
-- {{ loss-functions__params__border }}
-
-  The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
-
-
-{{ fit--border }}
-
 {% include [query-auc](../_includes/concepts/query-auc.md) %}
 
-### {{ title__loss-functions__text__optimization }}
+## {{ title__loss-functions__text__optimization }}
 
 
 | Name                                                        | Optimization            |

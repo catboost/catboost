@@ -1,3 +1,9 @@
+# Release 1.0.3
+
+## CatBoost for Apache Spark
+* Fix Linux `so` in deployed Maven artifacts (no code changes)
+
+
 # Release 1.0.2
 
 ## CatBoost for Apache Spark
@@ -17,7 +23,7 @@
 
 # Release 1.0.1
 
-> :warning: **PySpark support is broken in this release.**: Please use release 1.0.2 instead.
+> :warning: **PySpark support is broken in this release.**: Please use release 1.0.3 instead.
 
 ## CatBoost for Apache Spark
 * More robust handling of CatBoost Master and Workers failures, avoid freezes.
