@@ -25,7 +25,7 @@ namespace std {
 _LIBCPP_BEGIN_NAMESPACE_STD
 #endif
 
-#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_SPACESHIP_OPERATOR)
+#if _LIBCPP_STD_VER > 17
 
 // exposition only
 enum class _LIBCPP_ENUM_VIS _OrdResult : signed char {
@@ -319,7 +319,7 @@ inline constexpr strong_ordering strong_ordering::equal(_OrdResult::__equiv);
 inline constexpr strong_ordering strong_ordering::equivalent(_OrdResult::__equiv);
 inline constexpr strong_ordering strong_ordering::greater(_OrdResult::__greater);
 
-#endif // _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_SPACESHIP_OPERATOR)
+#endif // _LIBCPP_STD_VER > 17
 
 #if defined(_MSC_VER) && !defined(__clang__)
 }
