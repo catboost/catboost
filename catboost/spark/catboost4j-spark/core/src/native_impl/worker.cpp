@@ -77,7 +77,7 @@ void CreateTrainingDataForWorker(
     CATBOOST_DEBUG_LOG << "Create train data for worker " << hostId << "..." << Endl;
     localData.TrainData = GetTrainingData(
         std::move(pools),
-        /*trainingDataCanBeEmpty*/ false,
+        /*trainingDataCanBeEmpty*/ true,
         /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
         /*allowWriteFiles*/ false,
