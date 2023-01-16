@@ -2464,7 +2464,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-extern-initializer',
                 '-Wno-format',
                 '-Wno-ignored-pragma-optimize',
-                '-Wno-incompatible-pointer-types-discards-qualifiers',
                 '-Wno-inconsistent-dllimport',
                 '-Wno-int-conversion',
                 '-Wno-int-to-void-pointer-cast',
