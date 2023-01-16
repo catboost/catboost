@@ -206,7 +206,7 @@ namespace NKernel {
         line[threadIdx.x] = 0;
 
         const int x = threadIdx.x & 31;
-        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0;
+        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0; // qCount == QidsOffsets.Size() - 1
 
         float sumTarget = 0;
         float sumWeight = 0;
@@ -259,7 +259,7 @@ namespace NKernel {
         line[threadIdx.x] = 0;
 
         const int x = threadIdx.x & 31;
-        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0;
+        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0; // qCount == QidsOffsets.Size() - 1
 
         float maxValue = NegativeInfty();
 

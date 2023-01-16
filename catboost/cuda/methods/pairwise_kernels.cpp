@@ -1,5 +1,7 @@
 #include "pairwise_kernels.h"
 
+#include <util/generic/cast.h>
+
 using namespace NKernelHost;
 
 namespace NCudaLib {
@@ -129,7 +131,7 @@ void TComputePairwiseHistogramKernel::Run(const TCudaStream& stream) const {
                         static_cast<int>(Features.Size()),             \
                         FoldsHist.FeatureCountForBits(FromBit, ToBit), \
                         CompressedIndex.Get(),                         \
-                        Pairs.Get(), Pairs.Size(),                     \
+                        Pairs.Get(), SafeIntegerCast<ui32>(Pairs.Size()),\
                         Weight.Get(),                                  \
                         Partition.Get(),                               \
                         partCount,                                     \

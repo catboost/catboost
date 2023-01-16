@@ -369,6 +369,7 @@ namespace NCudaLib {
         using TTaskPtr = THolder<TTask>;
 
         static TTaskPtr Create(ui64 handle, ui64 size) {
+            CB_ENSURE(size < 80ull * 1024 * 1024 * 1024, "Allocation of size " << size);
             return MakeHolder<TTask>(handle, size);
         }
     };

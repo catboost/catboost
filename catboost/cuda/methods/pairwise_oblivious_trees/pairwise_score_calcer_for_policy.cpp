@@ -363,13 +363,15 @@ TMirrorBuffer<const TCBinFeature>& NCatboostCuda::TComputePairwiseScoresHelper::
         });
 
     } else {
-        return DataSet.GetCacheHolder().Cache(DataSet, Policy, [&]() -> TMirrorBuffer<const TCBinFeature> {
+        auto& cachedBinFeatures = DataSet.GetCacheHolder().Cache(DataSet, Policy, [&]() -> TMirrorBuffer<const TCBinFeature> {
             TMirrorBuffer<TCBinFeature> mirrorBinFeatures;
             mirrorBinFeatures.Reset(NCudaLib::TMirrorMapping(DataSet.GetBinFeatures(Policy).size()));
             mirrorBinFeatures.Write(DataSet.GetBinFeatures(Policy));
             NCudaLib::GetCudaManager().Barrier();
             return mirrorBinFeatures.ConstCopyView();
         });
+
+        return cachedBinFeatures;
     }
 }
 

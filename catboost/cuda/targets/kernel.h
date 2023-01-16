@@ -13,6 +13,8 @@
 #include <catboost/cuda/targets/kernel/pfound_f.cuh>
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 
+#include <util/generic/cast.h>
+
 namespace NKernelHost {
     class TCrossEntropyTargetKernel: public TStatelessKernel {
     private:
@@ -540,7 +542,7 @@ namespace NKernelHost {
                                               Pairs.Get(),
                                               PairWeights.Get(),
                                               Indices.Get(),
-                                              Pairs.Size(), QueryOffsetsBias,
+                                              SafeIntegerCast<ui32>(Pairs.Size()), QueryOffsetsBias,
                                               FunctionValue.Get(),
                                               Der.Get(),
                                               Der2.Get(),
@@ -594,7 +596,7 @@ namespace NKernelHost {
                                        PointDer.Get(),
                                        PointDer.Size(),
                                        PairDer2.Get(),
-                                       Pairs.Size(),
+                                       SafeIntegerCast<ui32>(Pairs.Size()),
                                        stream.GetStream());
         }
     };
@@ -773,7 +775,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(NzPairWeights.Size() == NzPairs.Size());
-            NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), QuerywiseWeights.Get(), Relevs.Get(), NzPairWeights.Get(), NzPairWeights.Size(), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
+            NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), QuerywiseWeights.Get(), Relevs.Get(), NzPairWeights.Get(), SafeIntegerCast<ui32>(NzPairWeights.Size()), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
         }
     };
 
@@ -795,7 +797,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Relevs, NzPairs);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::SwapWrongOrderPairs(Relevs.Get(), NzPairs.Size(), NzPairs.Get(), stream.GetStream());
+            NKernel::SwapWrongOrderPairs(Relevs.Get(), SafeIntegerCast<ui32>(NzPairs.Size()), NzPairs.Get(), stream.GetStream());
         }
     };
 
@@ -816,7 +818,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(NzPairs, Bias);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::RemoveOffsetsBias(Bias, NzPairs.Size(), NzPairs.Get(), stream.GetStream());
+            NKernel::RemoveOffsetsBias(Bias, SafeIntegerCast<ui32>(NzPairs.Size()), NzPairs.Get(), stream.GetStream());
         }
     };
 }

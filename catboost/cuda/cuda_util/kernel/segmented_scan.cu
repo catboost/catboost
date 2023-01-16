@@ -23,7 +23,7 @@ namespace NKernel
     cudaError_t SegmentedScanCub(const T* input, const ui32* flags, ui32 flagMask,
                                  T* output,
                                  ui32 size, bool inclusive,
-                                 TScanKernelContext<T>& context,
+                                 TScanKernelContext<T, T>& context,
                                  TCudaStream stream) {
         if (inclusive) {
             using TInput = TSegmentedScanInputIterator<T>;
@@ -62,7 +62,7 @@ namespace NKernel
 
     #define SEGMENTED_SCAN_CUB(Type)\
     template  cudaError_t SegmentedScanCub<Type>(const Type* input, const ui32* flags, ui32 mask, Type* output, ui32 size, bool inclusive,\
-                                                  TScanKernelContext<Type>& context, TCudaStream stream);
+                                                  TScanKernelContext<Type, Type>& context, TCudaStream stream);
 
     SEGMENTED_SCAN_CUB(float)
     SEGMENTED_SCAN_CUB(double)
