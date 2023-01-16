@@ -1109,6 +1109,28 @@ def test_ndcg(boosting_type, ndcg_power_mode, metric_type, ndcg_denominator):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('ndcg_power_mode', ['Base', 'Exp'])
+@pytest.mark.parametrize('ndcg_denominator', ['LogPosition', 'Position'])
+@pytest.mark.parametrize('ndcg_sort_type', ['None', 'ByPrediction', 'ByTarget'])
+def test_filtered_dcg(ndcg_power_mode, ndcg_denominator, ndcg_sort_type):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    cmd = (
+        '--loss-function', 'YetiRank',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '--eval-metric', 'FilteredDCG:type={};denominator={};sort={};hints=skip_train~false'.format(ndcg_power_mode, ndcg_denominator, ndcg_sort_type),
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
 def test_queryrmse_approx_on_full_history():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')

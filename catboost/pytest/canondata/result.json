@@ -3469,6 +3469,102 @@
     "test.test_feature_id_fstr[Plain]": {
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
+    "test.test_filtered_dcg[ByPrediction-LogPosition-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByPrediction-LogPosition-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByPrediction-Position-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByPrediction-Position-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-LogPosition-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-LogPosition-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-Position-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-Position-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-LogPosition-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-LogPosition-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-Position-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-Position-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Exp_/test_error.tsv"
+        }
+    ],
     "test.test_fit_binclass_with_text_features[BM25-ByDelimiter-Ordered]": [
         {
             "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/learn.tsv"

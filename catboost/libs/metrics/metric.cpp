@@ -4754,7 +4754,9 @@ namespace {
     class TFilteredDcgMetric final: public TAdditiveSingleTargetMetric {
     public:
         explicit TFilteredDcgMetric(const TLossParams& params,
-                                    ENdcgMetricType metricType, ENdcgDenominatorType denominatorType);
+                                    ENdcgMetricType metricType,
+                                    ENdcgDenominatorType denominatorType,
+                                    ENdcgSortType sortType);
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         static TVector<TParamSet> ValidParamSets();
@@ -4776,6 +4778,7 @@ namespace {
     private:
         const ENdcgMetricType MetricType;
         const ENdcgDenominatorType DenominatorType;
+        const ENdcgSortType SortType;
 
         static constexpr ENdcgMetricType DefaultMetricType = ENdcgMetricType::Base;
         static constexpr ENdcgDenominatorType DefaultDenominatorType= ENdcgDenominatorType::Position;
@@ -4786,19 +4789,21 @@ namespace {
 TVector<THolder<IMetric>> TFilteredDcgMetric::Create(const TMetricConfig& config) {
     auto type = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "type", DefaultMetricType);
     auto denominator = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "denominator", DefaultDenominatorType);
-    config.ValidParams->insert("sigma");
-    config.ValidParams->insert("num_estimations");
+    auto sort = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "sort", ENdcgSortType::None);
     config.ValidParams->insert("type");
     config.ValidParams->insert("denominator");
-    return AsVector(MakeHolder<TFilteredDcgMetric>(
-        config.Params, type, denominator));
+    config.ValidParams->insert("sort");
+    return AsVector(MakeHolder<TFilteredDcgMetric>(config.Params, type, denominator, sort));
 }
 
 TFilteredDcgMetric::TFilteredDcgMetric(const TLossParams& params,
-                                       ENdcgMetricType metricType, ENdcgDenominatorType denominatorType)
+                                       ENdcgMetricType metricType,
+                                       ENdcgDenominatorType denominatorType,
+                                       ENdcgSortType sortType)
     : TAdditiveSingleTargetMetric(ELossFunction::FilteredDCG, params)
     , MetricType(metricType)
-    , DenominatorType(denominatorType) {
+    , DenominatorType(denominatorType)
+    , SortType(sortType) {
     UseWeights.MakeIgnored();
 }
 
@@ -4816,17 +4821,40 @@ TMetricHolder TFilteredDcgMetric::EvalSingleThread(
     Y_ASSERT(weight.empty());
 
     TMetricHolder metric(2);
+    TVector<double> filteredApprox;
+    TVector<double> filteredTarget;
+    TVector<NMetrics::TSample> samples;
+
     for(int queryIndex = queryBegin; queryIndex < queryEnd; ++queryIndex) {
         const int begin = queriesInfo[queryIndex].Begin;
         const int end = queriesInfo[queryIndex].End;
-        int pos = 0;
+        filteredApprox.clear();
+        filteredTarget.clear();
+        filteredApprox.reserve(end - begin);
+        filteredTarget.reserve(end - begin);
         for (int i = begin; i < end; ++i) {
             const double currentApprox = approxDelta.empty() ? approx[0][i] : approx[0][i] + approxDelta[0][i];
             if (currentApprox >= 0.0) {
-                pos += 1;
-                float numerator = MetricType == ENdcgMetricType::Exp ? pow(2, target[i]) - 1 : target[i];
-                float denominator = DenominatorType == ENdcgDenominatorType::LogPosition ? log2(pos + 1) : pos;
-                metric.Stats[0] += numerator / denominator;
+                filteredApprox.push_back(currentApprox);
+                filteredTarget.push_back(target[i]);
+            }
+        }
+        if (filteredApprox.empty()) {
+            continue;
+        }
+        switch (SortType) {
+            case ENdcgSortType::None:
+                metric.Stats[0] += CalcDcgSorted(filteredTarget, MetricType, Nothing(), DenominatorType);
+                break;
+            case ENdcgSortType::ByPrediction: {
+                NMetrics::TSample::FromVectors(filteredTarget, filteredApprox, &samples);
+                metric.Stats[0] += CalcDcg(samples, MetricType, Nothing(), Max<ui32>(), DenominatorType);
+                break;
+            }
+            case ENdcgSortType::ByTarget: {
+                NMetrics::TSample::FromVectors(filteredTarget, filteredApprox, &samples);
+                metric.Stats[0] += CalcIDcg(samples, MetricType, Nothing(), Max<ui32>(), DenominatorType);
+                break;
             }
         }
     }

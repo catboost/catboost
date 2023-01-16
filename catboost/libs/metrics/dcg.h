@@ -11,6 +11,12 @@ namespace NMetrics {
     struct TSample;
 }
 
+double CalcDcgSorted(
+    const TConstArrayRef<double> sortedTargets,
+    const ENdcgMetricType type,
+    const TMaybe<double> expDecay,
+    const ENdcgDenominatorType denominator);
+
 double CalcNdcg(
     TConstArrayRef<NMetrics::TSample> samples,
     ENdcgMetricType type = ENdcgMetricType::Base,

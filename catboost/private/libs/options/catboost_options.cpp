@@ -836,7 +836,8 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             break;
         }
         case ELossFunction::StochasticFilter: {
-            NCatboostOptions::TLossDescription lossDescription = LossFunctionDescription->CloneWithLossFunction(ELossFunction::FilteredDCG);
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.LossFunction.Set(ELossFunction::FilteredDCG);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
