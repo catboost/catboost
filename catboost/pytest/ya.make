@@ -22,7 +22,7 @@ IF(AUTOCHECK)
     SPLIT_FACTOR(240)
     REQUIREMENTS(cpu:4 network:full)
 ELSE()
-    REQUIREMENTS(cpu:2 network:full)
+    REQUIREMENTS(cpu:2 network:full ram:19)
 ENDIF()
 
 PEERDIR(

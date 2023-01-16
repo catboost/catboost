@@ -83,4 +83,6 @@ IF (OS_WINDOWS)
     )
 ENDIF()
 
+REQUIREMENTS(ram:12)
+
 END()
