@@ -462,7 +462,7 @@ def do_link_lib(args):
             args.objects.append(asmargs.output)
     else:
         do_compile_go(args)
-    if args.objects:
+    if args.objects or args.sysos:
         cmd = [args.go_pack, 'r', args.output] + args.objects + args.sysos
         call(cmd, args.build_root)
 
