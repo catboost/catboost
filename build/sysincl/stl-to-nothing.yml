@@ -29,6 +29,7 @@
 
 - includes:
   - __config
+  - __undef_macros
   - algorithm
   - any
   - array
