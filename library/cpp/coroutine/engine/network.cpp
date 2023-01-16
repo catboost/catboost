@@ -68,7 +68,8 @@ namespace NCoro {
             case ETIMEDOUT:
                 if (status != EINPROGRESS) {
                     break;
-                } // else fallthrough
+                }
+                [[fallthrough]];
             default:
                 status = ev.Status();
                 ret = &ev;
