@@ -4,6 +4,7 @@ browser/frontend
 data-ui/arcanum
 data-ui/unity
 direct/frontend
+direct/yfa
 drive/pyback
 frontend
 games/frontend
