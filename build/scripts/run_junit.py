@@ -20,13 +20,13 @@ def on_shutdown(s, f):
     raise SignalInterruptionError()
 
 
-def dump_suite_error(args, name, imps):
+def dump_chunk_error(args, name, imps):
     tracefile = args[args.index('--output') + 1]
 
     with open(tracefile, 'a') as afile:
         msg = {
             "timestamp": time.time(),
-            "name": "suite-event",
+            "name": "chunk-event",
             "value": {
                 "errors": [
                     [
@@ -59,7 +59,7 @@ def verify_classpath(args):
 
     for name, imps in collisions.items():
         if len(imps) > 1:
-            dump_suite_error(args, name, imps)
+            dump_chunk_error(args, name, imps)
             return False
     return True
 

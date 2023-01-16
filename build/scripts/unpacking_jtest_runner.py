@@ -60,8 +60,8 @@ def dump_event(etype, data, filename):
         afile.write(unicode(json.dumps(event) + '\n'))
 
 
-def dump_suite_event(data, filename):
-    return dump_event('suite-event', data, filename)
+def dump_chunk_event(data, filename):
+    return dump_event('chunk-event', data, filename)
 
 
 def extract_jars(dest, archive):
@@ -135,7 +135,7 @@ def main():
     metrics['suite_jtest_fix_classpath_(seconds)'] = time.time() - s
 
     if opts.trace_file:
-        dump_suite_event({'metrics': metrics}, opts.trace_file)
+        dump_chunk_event({'metrics': metrics}, opts.trace_file)
 
     # run java cmd
     if platform.system() == 'Windows':
