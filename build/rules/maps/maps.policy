@@ -27,7 +27,6 @@ ALLOW maps/wikimap/mapspro/services/mrc -> maps/libs/deprecated/localeutils
 ALLOW netsys/tiles-vcdiff/gen-tiles -> maps/libs/deprecated/localeutils
 
 # Use maps/libs/geolib instead
-ALLOW maps/hotspots/spotsvis/core -> maps/libs/deprecated/coordtrans
 ALLOW maps/streetview/backoffice/lib -> maps/libs/deprecated/coordtrans_pymod
 
 # Use std::chrono or util/datetime instead
