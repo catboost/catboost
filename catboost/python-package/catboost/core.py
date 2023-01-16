@@ -6390,7 +6390,7 @@ def _plot_feature_statistics(statistics_by_feature, pool_names, feature_names, m
     for feature_num in statistics_by_feature:
         feature_name = feature_names[feature_num]
         statistics = statistics_by_feature[feature_num]
-        need_skip = True
+        need_skip = 'cat_values' not in statistics[0].keys()
         if 'borders' in statistics[0].keys():
             for stats in statistics:
                 if len(stats['borders']) > 0:
