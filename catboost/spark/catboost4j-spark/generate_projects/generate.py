@@ -61,6 +61,15 @@ configs = [
             'spark_compat_version_placeholder': '3.0',
             'spark_version_placeholder': '3.0.1'
         }
+    },
+    {
+        'dst_dir' : '../projects/spark_3.1_2.12',
+        'substitution_dict' : {
+            'scala_compat_version_placeholder': '2.12',
+            'scala_version_placeholder': '2.12.12',
+            'spark_compat_version_placeholder': '3.1',
+            'spark_version_placeholder': '3.1.0'
+        }
     }
 ]
 
