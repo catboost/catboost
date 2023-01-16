@@ -95,9 +95,9 @@ class Platform(object):
         self.is_macos = self.os == 'macos'
         self.is_macos_x86_64 = self.is_macos and self.is_x86_64
         self.is_macos_arm64 = self.is_macos and self.is_arm64
-        self.is_ios = self.os == 'ios'
-        self.is_iossim = self.os == 'iossim' or (self.is_ios and self.is_intel)
-        self.is_apple = self.is_macos or self.is_ios or self.is_iossim
+        self.is_iossim = self.os == 'iossim' or (self.os == 'ios' and self.is_intel)
+        self.is_ios = self.os == 'ios' or self.is_iossim
+        self.is_apple = self.is_macos or self.is_ios
 
         self.is_windows = self.os == 'windows'
         self.is_windows_x86_64 = self.is_windows and self.is_x86_64
@@ -1111,8 +1111,8 @@ class GnuToolchain(Toolchain):
             (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios10-simulator'),
             (target.is_iossim and target.is_x86, 'i386-apple-ios10-simulator'),
             (target.is_iossim and target.is_armv8, 'arm64-apple-ios10-simulator'),
-            (target.is_ios and target.is_armv8, 'arm64-apple-ios9'),
-            (target.is_ios and target.is_armv7, 'armv7-apple-ios9'),
+            (not target.is_iossim and target.is_ios and target.is_armv8, 'arm64-apple-ios9'),
+            (not target.is_iossim and target.is_ios and target.is_armv7, 'armv7-apple-ios9'),
         ])
         if swift_target:
             self.swift_flags_platform += ['-target', swift_target]
@@ -1120,7 +1120,7 @@ class GnuToolchain(Toolchain):
         if self.tc.is_from_arcadia:
             self.swift_lib_path = select(default=None, selectors=[
                 (host.is_macos and target.is_iossim, '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphonesimulator'),
-                (host.is_macos and target.is_ios and (target.is_armv8 or target.is_armv7), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphoneos'),
+                (host.is_macos and not target.is_iossim and target.is_ios and (target.is_armv8 or target.is_armv7), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphoneos'),
             ])
 
         if self.tc.is_clang:
@@ -1202,12 +1202,12 @@ class GnuToolchain(Toolchain):
             if target_flags:
                 self.c_flags_platform.extend(target_flags)
 
-            if target.is_ios or target.is_iossim:
+            if target.is_ios:
                 self.c_flags_platform.append('-D__IOS__=1')
 
             if self.tc.is_from_arcadia:
                 if target.is_apple:
-                    if target.is_ios or target.is_iossim:
+                    if target.is_ios:
                         self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
                     if target.is_macos:
                         self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
@@ -1935,7 +1935,8 @@ class LD(Linker):
         self.ld_sdk = select(default=None, selectors=[
             (target.is_macos_arm64, '-Wl,-sdk_version,11.0'),
             (target.is_macos, '-Wl,-sdk_version,10.15'),
-            (target.is_ios, '-Wl,-sdk_version,13.1'),
+            (not target.is_iossim and target.is_ios, '-Wl,-sdk_version,13.1'),
+            (target.is_iossim, '-Wl,-sdk_version,14.5'),
         ])
 
         if self.ld_sdk:
