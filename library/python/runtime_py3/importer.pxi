@@ -344,29 +344,30 @@ class BuiltinSubmoduleImporter(BuiltinImporter):
 
 
 class ArcadiaSourceFinder:
+    """
+        Search modules and packages in arcadia source tree.
+        See https://wiki.yandex-team.ru/devtools/extended-python-source-search/ for details
+    """
     NAMESPACE_PREFIX = b'py/namespace/'
     PY_EXT = '.py'
+    YA_MAKE = 'ya.make'
 
     def __init__(self, source_root):
         self.source_root = source_root
-        # key: module_name:
-        # value:
-        #   list of relative package paths - for a package
-        #   relative module path - for a module
-        #   None - module or package is not found
-        self.module_path_cache = {}
-        self.namespace_paths = {}
+        self.module_path_cache = {'': set()}
         for key, dirty_path in iter_keys(self.NAMESPACE_PREFIX):
             # dirty_path contains unique prefix to prevent repeatable keys in the resource storage
             path = dirty_path.split(b'/', 1)[1]
             namespaces = __resource.find(key).split(b':')
             for n in namespaces:
-                self.namespace_paths.setdefault(_s(n.rstrip(b'.')), set()).add(_s(path))
-
-        # Populate module cache by namespace packages
-        self.module_path_cache[''] = self.namespace_paths.get('', set())
-        for package_name in self.namespace_paths:
-            self._cache_module_path(package_name, find_package_only=True, force_package_exists=True)
+                package_name = _s(n.rstrip(b'.'))
+                self.module_path_cache.setdefault(package_name, set()).add(_s(path))
+                # Fill parents with default empty path set if parent doesn't exist in the cache yet
+                while package_name:
+                    package_name = package_name.rpartition('.')[0]
+                    if package_name in self.module_path_cache:
+                        break
+                    self.module_path_cache.setdefault(package_name, set())
 
     def get_module_path(self, fullname):
         """
@@ -397,51 +398,61 @@ class ArcadiaSourceFinder:
             # Yield from cache
             import re
             rx = re.compile(re.escape(package_prefix) + r'([^.]+)$')
-            for p in self.module_path_cache.keys():
-                m = rx.match(p)
-                if m:
-                    yield prefix + m.group(1), self.is_package(p)
+            for mod, path in self.module_path_cache.items():
+                if path is not None:
+                    m = rx.match(mod)
+                    if m:
+                        yield prefix + m.group(1), self.is_package(mod)
 
             # Yield from file system
             for path in paths:
                 abs_path = _path_join(self.source_root, path)
                 for dir_item in _os.listdir(abs_path):
-                    if _path_isdir(_path_join(abs_path, dir_item)):
+                    if self._path_is_simple_dir(_path_join(abs_path, dir_item)):
                         yield prefix  +  dir_item, True
                     elif dir_item.endswith(self.PY_EXT) and _path_isfile(_path_join(abs_path, dir_item)):
                         yield prefix + dir_item[:-len(self.PY_EXT)], False
 
-    def _cache_module_path(self, fullname, find_package_only=False, force_package_exists=False):
+    def _path_is_simple_dir(self, abs_path):
+        """
+            Check if path is a directory but doesn't contain ya.make file.
+            We don't want to steal directory from nested project and treat it as a package
+        """
+        return _path_isdir(abs_path) and not _path_isfile(_path_join(abs_path, self.YA_MAKE))
+
+    def _find_module_in_paths(self, find_package_only, paths, module):
+        """Auxiliary method. See _cache_module_path() for details"""
+        if paths:
+            package_paths = set()
+            for path in paths:
+                rel_path = _path_join(path, module)
+                if not find_package_only:
+                    # Check if file_path is a module
+                    module_path = rel_path + self.PY_EXT
+                    if _path_isfile(_path_join(self.source_root, module_path)):
+                        return module_path
+                # Check if file_path is a package
+                if self._path_is_simple_dir(_path_join(self.source_root, rel_path)):
+                    package_paths.add(rel_path)
+            if package_paths:
+                return package_paths
+
+    def _cache_module_path(self, fullname, find_package_only=False):
         """ 
             Find module path or package directory paths and save result in the cache
 
             find_package_only=True - don't try to find module
-            force_package_exists=True - create 'virtual' packages for the namespace even if there is no underlying directory for fullname
+
+            Returns:
+               List of relative package paths - for a package
+               Relative module path - for a module
+               None - module or package is not found
         """
-        if force_package_exists and not find_package_only:
-            raise ValueError("find_package_only must be True if force_package_exists is True")
-        if fullname in self.module_path_cache:
-            return self.module_path_cache[fullname]
-        package_paths = self.namespace_paths.get(fullname, set())
-        parent, _, tail = fullname.rpartition('.')
-        parent_paths = self._cache_module_path(parent, find_package_only=True, force_package_exists=force_package_exists)
-        result = None
-        if parent_paths:
-            for path in parent_paths:
-                file_path = _path_join(path, tail)
-                if not find_package_only:
-                    # Check if file_path is a module
-                    module_path = file_path + self.PY_EXT
-                    if _path_isfile(_path_join(self.source_root, module_path)):
-                        result = module_path
-                        break
-                # Check if file_path is a package
-                if _path_isdir(_path_join(self.source_root, file_path)):
-                    package_paths.add(file_path)
-        if not result and (package_paths or force_package_exists):
-            result = package_paths
-        self.module_path_cache[fullname] = result
-        return result
+        if fullname not in self.module_path_cache:
+            parent, _, tail = fullname.rpartition('.')
+            parent_paths = self._cache_module_path(parent, find_package_only=True)
+            self.module_path_cache[fullname] = self._find_module_in_paths(find_package_only, parent_paths, tail)
+        return self.module_path_cache[fullname]
 
 
 def excepthook(*args, **kws):
