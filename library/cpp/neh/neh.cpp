@@ -72,6 +72,10 @@ namespace {
             return true;
         }
 
+        bool IsEmpty() const override {
+            return Reqs_.empty() && Complete_.empty();
+        }
+
         inline void OnComplete(const THandleRef& req) {
             Complete_.push_back(req);
             Reqs_.erase(req);
