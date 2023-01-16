@@ -180,7 +180,13 @@ static inline bool AsciiEqualsIgnoreCase(const char* s1, const char* s2) noexcep
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
 static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
-    return (s1.size() == s2.size()) && strnicmp(s1.data(), s2.data(), s1.size()) == 0;
+    if (s1.size() != s2.size()) {
+        return false;
+    }
+    if (s1.empty()) {
+        return true;
+    }
+    return strnicmp(s1.data(), s2.data(), s1.size()) == 0;
 }
 
 /**
