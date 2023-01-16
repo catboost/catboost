@@ -456,9 +456,13 @@ public: // string subsequences
         return *this;
     }
 
+    // coverity[exn_spec_violation]
     inline TdSelf& Trunc(size_t targetSize) noexcept {
-        //WARN: removing TStringView:: will lead to an infinite recursion
-        *this = TStringView::substr(0, targetSize);
+        // Coverity false positive issue
+        // exn_spec_violation: An exception of type "std::out_of_range" is thrown but the exception specification "noexcept" doesn't allow it to be thrown. This will result in a call to terminate().
+        // fun_call_w_exception: Called function TStringView::substr throws an exception of type "std::out_of_range".
+        // Suppress this issue because we pass argument pos=0 and string_view can't throw std::out_of_range.
+        *this = TStringView::substr(0, targetSize); //WARN: removing TStringView:: will lead to an infinite recursion
         return *this;
     }
 
