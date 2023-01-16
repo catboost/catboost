@@ -490,7 +490,7 @@
         "caesar_profile_size_analyzer": {
             "description": "caesar utility"
         },
-        "exp_stats" : {
+        "exp_stats": {
             "description": "bsyeti tool"
         }
     },
@@ -673,7 +673,7 @@
         },
         "exp_stats": {
             "tools": {
-                "exp_stats" : {
+                "exp_stats": {
                     "bottle": "exp_stats",
                     "executable": "exp_stats"
                 }
@@ -10329,9 +10329,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": [
-                    1075389659
-                ],
+                "sandbox_id": 1079606450,
                 "match": "exp_stats"
             },
             "executable": {
