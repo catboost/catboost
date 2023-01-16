@@ -22,12 +22,12 @@ To install the {{ r-package }} directly from the {{ product }} repository:
     - macOS: `xcode-select --install`
     - Linux: Install the appropriate package (for example, `libc6-dev` on Ubuntu)
 
-1. Create a script file with the following code:
+1. Run the following commands:
 
-    ```no-highlight
+    ```
     install.packages('devtools')
     devtools::install_github('catboost/catboost', subdir = 'catboost/R-package')
     ```
 
-1. Run the resulting script file.
+{% include [r__troubleshooting](../_includes/work_src/reusage-installation/r__troubleshooting.md) %}
 

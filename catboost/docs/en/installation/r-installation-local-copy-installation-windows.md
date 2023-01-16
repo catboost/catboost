@@ -73,7 +73,7 @@ To install the {{ r-package }} from a local copy of the {{ product }} reposito
     ```
 
     Then open the solution:
-    ```no-highlight
+    ```
     start msvs\arcadia.sln
     ```
     {% endcut %}
@@ -91,10 +91,11 @@ To install the {{ r-package }} from a local copy of the {{ product }} reposito
 
     1. Run the following commands:
 
-    ```no-highlight
+    ```
     install.packages('devtools')
     devtools::build()
     devtools::install()
     ```
 
+{% include [r__troubleshooting](../_includes/work_src/reusage-installation/r__troubleshooting.md) %}
 
