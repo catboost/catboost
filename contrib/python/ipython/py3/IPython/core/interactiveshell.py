@@ -898,9 +898,7 @@ class InteractiveShell(SingletonConfigurable):
         virtualenv was built, and it ignores the --no-site-packages option. A
         warning will appear suggesting the user installs IPython in the
         virtualenv, but for many cases, it probably works well enough.
-        
         Adapted from code snippets online.
-        
         http://blog.ufsoft.org/2009/1/29/ipython-and-virtualenv
         """
         if 'VIRTUAL_ENV' not in os.environ:
@@ -931,17 +929,27 @@ class InteractiveShell(SingletonConfigurable):
             # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
 
-        warn("Attempting to work in a virtualenv. If you encounter problems, please "
-             "install IPython inside the virtualenv.")
         if sys.platform == "win32":
-            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
-                "Lib", "site-packages"
-            )
+            virtual_env = str(Path(os.environ["VIRTUAL_ENV"], "Lib", "site-packages"))
         else:
-            virtual_env = Path(os.environ["VIRTUAL_ENV"]).joinpath(
-                "lib", "python{}.{}".format(*sys.version_info[:2]), "site-packages"
+            virtual_env_path = Path(
+                os.environ["VIRTUAL_ENV"], "lib", "python{}.{}", "site-packages"
             )
-        
+            p_ver = sys.version_info[:2]
+
+            # Predict version from py[thon]-x.x in the $VIRTUAL_ENV
+            re_m = re.search(r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"])
+            if re_m:
+                predicted_path = Path(str(virtual_env_path).format(*re_m.groups()))
+                if predicted_path.exists():
+                    p_ver = re_m.groups()
+
+            virtual_env = str(virtual_env_path).format(*p_ver)
+
+        warn(
+            "Attempting to work in a virtualenv. If you encounter problems, "
+            "please install IPython inside the virtualenv."
+        )
         import site
         sys.path.insert(0, virtual_env)
         site.addsitedir(virtual_env)
@@ -1804,8 +1812,13 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                return self.inspector._get_info(info.obj, oname, info=info,
-                            detail_level=detail_level
+                docformat = sphinxify if self.sphinxify_docstring else None
+                return self.inspector._get_info(
+                    info.obj,
+                    oname,
+                    info=info,
+                    detail_level=detail_level,
+                    formatter=docformat,
                 )
             else:
                 raise KeyError(oname)
@@ -2968,7 +2981,7 @@ class InteractiveShell(SingletonConfigurable):
         result: bool
             Whether the code needs to be run with a coroutine runner or not
 
-        .. versionadded: 7.0
+        .. versionadded:: 7.0
         """
         if not self.autoawait:
             return False
@@ -3033,7 +3046,7 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
 
-        .. versionadded: 7.0
+        .. versionadded:: 7.0
         """
         info = ExecutionInfo(
             raw_cell, store_history, silent, shell_futures)

@@ -166,7 +166,13 @@ else:
 # may have trouble processing.
 MATCHES_LIMIT = 500
 
-_deprecation_readline_sentinel = object()
+
+class Sentinel:
+    def __repr__(self):
+        return "<deprecated sentinel>"
+
+
+_deprecation_readline_sentinel = Sentinel()
 
 
 class ProvisionalCompleterWarning(FutureWarning):
@@ -1144,18 +1150,18 @@ class IPCompleter(Completer):
         if self.use_jedi:
             return [
                 *self.custom_matchers,
+                self.dict_key_matches,
                 self.file_matches,
                 self.magic_matches,
-                self.dict_key_matches,
             ]
         else:
             return [
                 *self.custom_matchers,
+                self.dict_key_matches,
                 self.python_matches,
                 self.file_matches,
                 self.magic_matches,
                 self.python_func_kw_matches,
-                self.dict_key_matches,
             ]
 
     def all_completions(self, text) -> List[str]:
