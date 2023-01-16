@@ -147,9 +147,6 @@ migrations:
     - devtools/unitybot/responsibility
     - devtools/ya/test
     - devtools/ya/test/tests/lib
-    - devtools/ymake/tests/fat
-    - devtools/ymake/tests/lib
-    - devtools/ymake/tests/medium_dirty
     - dict/moria/nirvana/context/begemot_thesaurus_rule
     - dict/moria/nirvana/lib/util
     - dict/mt/alice/scenarios/prepare_data
@@ -828,7 +825,6 @@ migrations:
     - yabs/sbyt/testing/core
     - yabs/server/cs/pylibs/partner_interface_monitor
     - yabs/server/cs/pylibs/settings
-    - yabs/server/infra/bstr/config
     - yabs/server/infra/bstrbufbuf/plugin
     - yabs/server/infra/trivial_cron
     - yabs/server/infra/validator/hooks_bin/coredumps_cloud
@@ -1004,7 +1000,6 @@ migrations:
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
     - billing/refs/refs
-    - cloud/iam/token_agent/bin
     - cloud/marketplace/queue/yc_marketplace_queue
     - cloud/netinfra/rknfilter/yc_rkn_common
     - cloud/netinfra/rknfilter/yc_rkn_config_node
@@ -1143,7 +1138,6 @@ migrations:
     - quality/functionality/turbo/tools/pq_delete_docs
     - quality/functionality/turbo/tools/tdm
     - quality/logs/mousetrack_lib/python/tests
-    - quality/nirvana_tools/conveyor_operations/bert/rebuild_bert_model
     - quality/nirvana_tools/conveyor_operations/bert/state_to_ynmt
     - quality/relev_tools/choice_screen/create_stove
     - quality/trailer/suggest/toloka_processor/report_yt
@@ -2142,7 +2136,6 @@ migrations:
     - infra/nanny/sepelib/src
     - infra/nanny/vendor/object-validator
     - infra/nanny/vendor/porto_python
-    - infra/qyp/account_manager/src
     - infra/qyp/deploy
     - infra/qyp/integration_tests
     - infra/qyp/novnc_server/contrib/websockify
@@ -2415,7 +2408,6 @@ migrations:
     - passport/python/oauth/settings/api_settings
     - passport/python/oauth/settings/tvm_settings
     - passport/python/perimeter_api/settings
-    - passport/python/takeout/common
     - passport/python/tools/rm_attrs
     - payplatform/balance_support_dev/dev_kpi_counter
     - payplatform/balance_support_dev/support_kpi_counter
@@ -3377,7 +3369,6 @@ migrations:
     - entity/recommender/tools/features_diff_checker/ut
     - extsearch/audio/yamrec/upper
     - extsearch/fresh/meta/rearrange_data/tests
-    - extsearch/geo/meta/tests/blackbox
     - extsearch/images/kernel/new_runtime/doc_factors/tests
     - extsearch/images/robot/parsers/html_parser/imagelib/ut2
     - extsearch/images/tools/cbircomparer/tests
