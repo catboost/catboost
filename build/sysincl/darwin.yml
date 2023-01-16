@@ -112,6 +112,7 @@
   - objc/objc-sync.h
   - objc/runtime.h
   - os/lock.h
+  - os/proc.h
   - os/trace.h
   - panel.h
   - pthread_spis.h
@@ -225,6 +226,7 @@
   - SystemConfiguration/SystemConfiguration.h
   - UIKit/UIImage.h
   - UIKit/UIKit.h
+  - UIKit/UIScreen.h
   - UIKit/UIWebView.h
   - UIKit/UIView.h
   - VideoDecodeAcceleration/VDADecoder.h
