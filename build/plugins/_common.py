@@ -195,3 +195,7 @@ def strip_roots(path):
         if path.startswith(prefix):
             return path[len(prefix):]
     return path
+
+
+def to_yesno(x):
+    return "yes" if x else "no"
