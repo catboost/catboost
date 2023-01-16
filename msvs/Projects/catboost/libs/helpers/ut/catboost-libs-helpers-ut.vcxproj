@@ -106,6 +106,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\benchmarks_ut\pylibs-data-benchmarks_ut.global.vcxproj">
+      <Project>{D66E3595-6B8A-B9C0-B145-1C21C0B19AA9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
     </ProjectReference>
@@ -126,6 +129,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.global.vcxproj">
       <Project>{775BF033-F658-849F-EECB-F18F50769072}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\pycatboost-pytest.global.vcxproj">
+      <Project>{50F9DE16-0F7D-0258-C04E-022551063402}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\py3catboost-python-package-lib.global.vcxproj">
       <Project>{59BB056C-CFD0-4DCB-5BFB-D6D460A31787}</Project>
