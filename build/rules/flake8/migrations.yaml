@@ -2138,10 +2138,7 @@ migrations:
     - infra/nanny/clusterpb
     - infra/nanny/instancectl/src
     - infra/nanny/its_client
-    - infra/nanny/nanny_proto_schemas
-    - infra/nanny/nanny_repo
     - infra/nanny/nanny_rpc_client
-    - infra/nanny/nanny_tickets
     - infra/nanny/sepelib/src
     - infra/nanny/vendor/object-validator
     - infra/nanny/vendor/porto_python
@@ -3173,7 +3170,6 @@ migrations:
     - yt/python/contrib/python-urllib3
     - yt/python/yt
     - yt/yt/experiments/dyntables_stress_test
-    - yweb/antimalware/threats_db/core
     - yweb/antimalware/visual_html_parser/yandex-search-antivirus-discovery
     - yweb/antiporno/bert/development/python/lib/google_bert
     - yweb/antiporno/queries_active_learning/work_with_markup_cache
