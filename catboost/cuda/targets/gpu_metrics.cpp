@@ -468,14 +468,14 @@ namespace NCatboostCuda {
                                            const TVector<float>& weight,
                                            const TVector<TQueryInfo>& queriesInfo,
                                            NPar::ILocalExecutor* localExecutor) const {
-        const TSingleTargetMetric& metric = dynamic_cast<const TSingleTargetMetric&>(GetCpuMetric());
         const int start = 0;
-        const int end = static_cast<const int>(metric.GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
+        const int end = static_cast<const int>(GetCpuMetric().GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
         CB_ENSURE(approx.size() >= 1);
         for (ui32 dim = 0; dim < approx.size(); ++dim) {
             CB_ENSURE(approx[dim].size() == target.size());
         }
-        return metric.Eval(approx,
+        const ISingleTargetEval& singleEvalMetric = dynamic_cast<const ISingleTargetEval&>(GetCpuMetric());
+        return singleEvalMetric.Eval(approx,
                            target,
                            weight,
                            queriesInfo,
