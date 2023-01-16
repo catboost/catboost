@@ -47,7 +47,7 @@ namespace NCatboostCuda {
             void SplitByExternalComputedFeature(const TBinarySplit& split,
                                                 const TSingleBuffer<const ui64>& compressedBits,
                                                 TMirrorBuffer<ui32>& dst,
-                                                ui32 depth) {
+                                                ui32 depth) override {
                 CB_ENSURE(FeaturesManager.IsTreeCtr(split.FeatureId), "Feature id should be combinations ctr");
 
                 const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);

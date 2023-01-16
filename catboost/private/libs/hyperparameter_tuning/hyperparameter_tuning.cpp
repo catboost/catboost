@@ -105,7 +105,7 @@ namespace {
             : TProductIteratorBase<TEnumeratedSet, TValue>(sets)
         {}
 
-        virtual bool Next(TConstArrayRef<TValue>* value) override {
+        bool Next(TConstArrayRef<TValue>* value) override {
             if (this->IsIteratorReachedEnd()) {
                  return false;
             }
@@ -161,7 +161,7 @@ namespace {
             this->TotalElementsCount = count;
         }
 
-        virtual bool Next(TConstArrayRef<TValue>* values) override {
+        bool Next(TConstArrayRef<TValue>* values) override {
             if (this->IsIteratorReachedEnd()) {
                  return false;
             }
