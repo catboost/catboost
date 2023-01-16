@@ -7310,7 +7310,7 @@
             },
             "executable": {
                 "appteka": [
-                    "./appteka/appteka"
+                    "appteka-archive/appteka"
                 ]
             }
         },
