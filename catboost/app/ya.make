@@ -72,4 +72,12 @@ IF (OPENSOURCE AND AUTOCHECK)
     INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
 ENDIF()
 
+IF (HAVE_CUDA)
+    CFLAGS(-DHAVE_CUDA)
+
+    PEERDIR(
+        catboost/cuda/cuda_lib
+    )
+ENDIF()
+
 END()
