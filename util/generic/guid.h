@@ -24,6 +24,18 @@ struct TGUID {
     constexpr explicit operator bool() const noexcept {
         return !IsEmpty();
     }
+
+    // xxxx-xxxx-xxxx-xxxx
+    TString AsGuidString() const;
+
+    /**
+    * RFC4122 GUID, which described in
+    * https://en.wikipedia.org/wiki/Universally_unique_identifier
+    * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    **/
+    TString AsUuidString() const;
+
+    static TGUID Create();
 };
 
 constexpr bool operator==(const TGUID& a, const TGUID& b) noexcept {
