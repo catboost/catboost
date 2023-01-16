@@ -69,11 +69,11 @@ struct TStripImpl {
         const size_t oldLen = e - b;
 
         if (stripBeg) {
-            StripRangeBegin(b, e, std::forward<TStripCriterion>(criterion));
+            StripRangeBegin(b, e, criterion);
         }
 
         if (stripEnd) {
-            StripRangeEnd(b, e, std::forward<TStripCriterion>(criterion));
+            StripRangeEnd(b, e, criterion);
         }
 
         const size_t newLen = e - b;
@@ -85,7 +85,7 @@ struct TStripImpl {
         auto b = from.begin();
         auto e = from.end();
 
-        if (StripRange(b, e, std::forward<TStripCriterion>(criterion))) {
+        if (StripRange(b, e, criterion)) {
             to = T(b, e - b);
 
             return true;
@@ -99,7 +99,7 @@ struct TStripImpl {
     template <class T, class TStripCriterion>
     static inline T StripString(const T& from, TStripCriterion&& criterion) {
         T ret;
-        StripString(from, ret, std::forward<TStripCriterion>(criterion));
+        StripString(from, ret, criterion);
         return ret;
     }
 
@@ -111,7 +111,7 @@ struct TStripImpl {
 
 template <class It, class TStripCriterion>
 inline bool StripRange(It& b, It& e, TStripCriterion&& criterion) noexcept {
-    return TStripImpl<true, true>::StripRange(b, e, std::forward<TStripCriterion>(criterion));
+    return TStripImpl<true, true>::StripRange(b, e, criterion);
 }
 
 template <class It>
@@ -123,7 +123,7 @@ template <class It, class TStripCriterion>
 inline bool Strip(It& b, size_t& len, TStripCriterion&& criterion) noexcept {
     It e = b + len;
 
-    if (StripRange(b, e, std::forward<TStripCriterion>(criterion))) {
+    if (StripRange(b, e, criterion)) {
         len = e - b;
 
         return true;
@@ -139,7 +139,7 @@ inline bool Strip(It& b, size_t& len) noexcept {
 
 template <class T, class TStripCriterion>
 static inline bool StripString(const T& from, T& to, TStripCriterion&& criterion) {
-    return TStripImpl<true, true>::StripString(from, to, std::forward<TStripCriterion>(criterion));
+    return TStripImpl<true, true>::StripString(from, to, criterion);
 }
 
 template <class T>
@@ -149,7 +149,7 @@ static inline bool StripString(const T& from, T& to) {
 
 template <class T, class TStripCriterion>
 static inline T StripString(const T& from, TStripCriterion&& criterion) {
-    return TStripImpl<true, true>::StripString(from, std::forward<TStripCriterion>(criterion));
+    return TStripImpl<true, true>::StripString(from, criterion);
 }
 
 template <class T>
@@ -169,12 +169,12 @@ static inline T StripStringRight(const T& from) {
 
 template <class T, class TStripCriterion>
 static inline T StripStringLeft(const T& from, TStripCriterion&& criterion) {
-    return TStripImpl<true, false>::StripString(from, std::forward<TStripCriterion>(criterion));
+    return TStripImpl<true, false>::StripString(from, criterion);
 }
 
 template <class T, class TStripCriterion>
 static inline T StripStringRight(const T& from, TStripCriterion&& criterion) {
-    return TStripImpl<false, true>::StripString(from, std::forward<TStripCriterion>(criterion));
+    return TStripImpl<false, true>::StripString(from, criterion);
 }
 
 /// Copies the given string removing leading and trailing spaces.
