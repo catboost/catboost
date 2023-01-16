@@ -6,7 +6,6 @@
 #include <util/system/tls.h>
 #include <util/system/pipe.h>
 #include <util/system/event.h>
-#include <util/system/yield.h>
 #include <util/system/mutex.h>
 #include <util/system/condvar.h>
 #include <util/system/guard.h>

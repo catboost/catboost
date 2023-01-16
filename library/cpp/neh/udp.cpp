@@ -11,12 +11,10 @@
 #include <util/network/address.h>
 #include <util/generic/deque.h>
 #include <util/generic/hash.h>
-#include <util/generic/hash_set.h>
 #include <util/generic/string.h>
 #include <util/generic/buffer.h>
 #include <util/generic/singleton.h>
 #include <util/digest/murmur.h>
-#include <util/random/entropy.h>
 #include <util/random/random.h>
 #include <util/ysaveload.h>
 #include <util/system/thread.h>
