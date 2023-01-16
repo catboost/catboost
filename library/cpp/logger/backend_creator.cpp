@@ -19,6 +19,13 @@ bool ILogBackendCreator::Init(const IInitContext& /*ctx*/) {
     return true;
 }
 
+
+NJson::TJsonValue ILogBackendCreator::AsJson() const {
+    NJson::TJsonValue json;
+    ToJson(json);
+    return json;
+}
+
 THolder<ILogBackendCreator> ILogBackendCreator::Create(const IInitContext& ctx) {
     auto res = MakeHolder<TLogBackendCreatorUninitialized>();
     if(!res->Init(ctx)) {
@@ -26,4 +33,13 @@ THolder<ILogBackendCreator> ILogBackendCreator::Create(const IInitContext& ctx) 
         return nullptr;
     }
     return res;
+}
+
+TLogBackendCreatorBase::TLogBackendCreatorBase(const TString& type)
+    : Type(type)
+{}
+
+void TLogBackendCreatorBase::ToJson(NJson::TJsonValue& value) const {
+    value["LoggerType"] = Type;
+    DoToJson(value);
 }

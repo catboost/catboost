@@ -14,6 +14,13 @@ bool TOwningThreadedLogBackendCreator::Init(const IInitContext& ctx) {
     return Slave->Init(ctx);
 }
 
+
+void TOwningThreadedLogBackendCreator::ToJson(NJson::TJsonValue& value) const {
+    value["QueueLen"] =  QueueLen;
+    value["Threaded"] = true;
+    Slave->ToJson(value);
+}
+
 void TOwningThreadedLogBackendCreator::SetQueueOverflowCallback(std::function<void()> callback) {
     QueueOverflowCallback = std::move(callback);
 }

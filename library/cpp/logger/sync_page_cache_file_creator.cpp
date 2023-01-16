@@ -5,6 +5,11 @@ THolder<TLogBackend> TSyncPageCacheFileLogBackendCreator::DoCreateLogBackend() c
     return MakeHolder<TSyncPageCacheFileLogBackend>(Path, MaxBufferSize, MaxPendingCacheSize);
 }
 
+
+TSyncPageCacheFileLogBackendCreator::TSyncPageCacheFileLogBackendCreator()
+    : TFileLogBackendCreator("", "sync_page")
+{}
+
 bool TSyncPageCacheFileLogBackendCreator::Init(const IInitContext& ctx) {
     if (!TFileLogBackendCreator::Init(ctx)) {
         return false;
@@ -15,3 +20,9 @@ bool TSyncPageCacheFileLogBackendCreator::Init(const IInitContext& ctx) {
 }
 
 ILogBackendCreator::TFactory::TRegistrator<TSyncPageCacheFileLogBackendCreator> TSyncPageCacheFileLogBackendCreator::Registrar("sync_page");
+
+void TSyncPageCacheFileLogBackendCreator::DoToJson(NJson::TJsonValue& value) const {
+    TFileLogBackendCreator::DoToJson(value);
+    value["MaxBufferSize"] = MaxBufferSize;
+    value["MaxPendingCacheSize"] = MaxPendingCacheSize;
+}

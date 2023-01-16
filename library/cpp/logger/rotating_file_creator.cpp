@@ -5,6 +5,11 @@ THolder<TLogBackend> TRotatingFileLogBackendCreator::DoCreateLogBackend() const 
     return MakeHolder<TRotatingFileLogBackend>(Path, MaxSizeBytes, RotatedFilesCount);
 }
 
+
+TRotatingFileLogBackendCreator::TRotatingFileLogBackendCreator()
+    : TFileLogBackendCreator("", "rotating")
+{}
+
 bool TRotatingFileLogBackendCreator::Init(const IInitContext& ctx) {
     if (!TFileLogBackendCreator::Init(ctx)) {
         return false;
@@ -15,3 +20,9 @@ bool TRotatingFileLogBackendCreator::Init(const IInitContext& ctx) {
 }
 
 ILogBackendCreator::TFactory::TRegistrator<TRotatingFileLogBackendCreator> TRotatingFileLogBackendCreator::Registrar("rotating");
+
+void TRotatingFileLogBackendCreator::DoToJson(NJson::TJsonValue& value) const {
+    TFileLogBackendCreator::DoToJson(value);
+    value["MaxSizeBytes"] = MaxSizeBytes;
+    value["RotatedFilesCount"] = RotatedFilesCount;
+}
