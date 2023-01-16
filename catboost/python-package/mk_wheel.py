@@ -14,10 +14,17 @@ from argparse import ArgumentParser
 
 sys.dont_write_bytecode = True
 
-PL_LINUX = 'manylinux1_x86_64'
-PL_MACOS_X86_64 = 'macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64'
-PL_MACOS_ARM64 = 'macosx_11_0_arm64.macosx_12_0_arm64'
-PL_WIN = 'win_amd64'
+PL_LINUX = ['manylinux1_x86_64']
+PL_MACOS_X86_64 = [
+    'macosx_10_6_intel',
+    'macosx_10_9_intel',
+    'macosx_10_9_x86_64',
+    'macosx_10_10_intel',
+    'macosx_10_10_x86_64'
+]
+PL_MACOS_ARM64 = ['macosx_11_0_arm64', 'macosx_12_0_arm64']
+PL_MACOS_UNIVERSAL = ['macosx_10_6_universal2']
+PL_WIN = ['win_amd64']
 
 
 class PythonVersion(object):
@@ -33,7 +40,7 @@ class PythonTrait(object):
         self.out_root = out_root
         self.tail_args = tail_args
         self.python_version = mine_system_python_ver(self.tail_args)
-        self.platform = mine_platform(self.tail_args)
+        self.platform_tag_string = mine_platform_tag_string(self.tail_args)
         self.py_config, self.lang = self.get_python_info()
 
     def gen_cmd(self, arc_path):
@@ -70,53 +77,63 @@ class PythonTrait(object):
         return '.so'
 
     def _on_win(self):
-        if self.platform == PL_WIN:
+        if self.platform_tag_string == PL_WIN[0]:
             return True
         return platform.system() == 'Windows'
 
 
-def mine_platform(tail_args):
-    platform = find_target_platform(tail_args)
-    if platform:
-        return transform_platform(platform)
-    return gen_platform()
+def mine_platform_tag_string(tail_args):
+    target_platforms = find_target_platforms(tail_args)
+    platform_tags = transform_target_platforms(target_platforms) if target_platforms else gen_platform_tags()
+    if all([tag.startswith('macos') for tag in platform_tags]) and ('--lipo' in tail_args):
+        platform_tags = PL_MACOS_UNIVERSAL
+    return '.'.join(sorted(platform_tags))
 
 
-def gen_platform():
+def gen_platform_tags():
     import distutils.util
 
     value = distutils.util.get_platform().replace("linux", "manylinux1")
     value = value.replace('-', '_').replace('.', '_')
     if 'macosx' in value:
-        value = PL_MACOS_X86_64
-    return value
+        return PL_MACOS_X86_64
+    return [value]
 
 
-def find_target_platform(tail_args):
-    try:
-        target_platform_index = tail_args.index('--target-platform')
-        return tail_args[target_platform_index + 1].lower()
-    except ValueError:
-        target_platform = [arg for arg in tail_args if '--target-platform' in arg]
-        if target_platform:
-            _, platform = target_platform[0].split('=')
-            return platform.lower()
-    return None
+def find_target_platforms(tail_args):
+    target_platforms = []
 
-
-def transform_platform(platform):
-    if 'linux' in platform:
-        return PL_LINUX
-    elif 'darwin' in platform:
-        if 'arm64' in platform:
-           return PL_MACOS_ARM64
+    arg_idx = 0
+    while arg_idx < len(tail_args):
+        arg = tail_args[arg_idx]
+        if arg.startswith('--target-platform'):
+            if len(arg) == len('--target-platform'):
+                target_platforms.append(tail_args[arg_idx + 1])
+                arg_idx += 2
+            elif arg[len('--target-platform')] == '=':
+                target_platforms.append(arg[(len('--target-platform') + 1):])
+                arg_idx += 1
         else:
-           return PL_MACOS_X86_64
-    elif 'win' in platform:
-        return PL_WIN
-    else:
-        raise Exception('Unsupported platform {}'.format(platform))
+            arg_idx += 1
 
+    return [platform.lower() for platform in target_platforms]
+
+
+def transform_target_platforms(target_platforms):
+    platform_tags = set()
+    for platform in target_platforms:
+        if 'linux' in platform:
+            platform_tags = platform_tags.union(PL_LINUX)
+        elif 'darwin' in platform:
+            if 'arm64' in platform:
+               platform_tags = platform_tags.union(PL_MACOS_ARM64)
+            else:
+               platform_tags = platform_tags.union(PL_MACOS_X86_64)
+        elif 'win' in platform:
+            platform_tags = platform_tags.union(PL_WIN)
+        else:
+            raise Exception('Unsupported platform {}'.format(platform))
+    return list(platform_tags)
 
 def get_version(version_py):
     exec(compile(open(version_py, "rb").read(), version_py, 'exec'))
@@ -319,7 +336,7 @@ def build(arc_root, out_root, tail_args, should_build_widget):
             if should_build_widget:
                 build_widget(arc_root)
             wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package',
-                                      '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
+                                      '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform_tag_string))
             make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build_widget)
             os.remove(dst)
             return wheel_name
