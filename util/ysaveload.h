@@ -10,8 +10,8 @@
 #include <util/stream/input.h>
 
 #ifndef __NVCC__
-// cuda is compiled in C++14 mode at the time
-#include <variant>
+    // cuda is compiled in C++14 mode at the time
+    #include <variant>
 #endif
 
 template <typename T>

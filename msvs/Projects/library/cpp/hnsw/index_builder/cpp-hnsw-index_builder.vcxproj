@@ -83,9 +83,13 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\build_options.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\build_routines.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\dense_vector_distance.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\dense_vector_index_builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\dense_vector_storage.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\index_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\index_data.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\index_writer.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\internal_build_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\hnsw\index_builder\mobius_transform.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

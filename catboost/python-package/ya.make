@@ -6,3 +6,7 @@ RECURSE(
     lib
     ut
 )
+
+RECURSE_ROOT_RELATIVE(
+    library/python/hnsw
+)

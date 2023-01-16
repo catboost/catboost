@@ -1512,14 +1512,6 @@ class GnuCompiler(Compiler):
             }
             when ($NOGCCSTACKCHECK != "yes") {
                 FSTACK += -fstack-check
-            }
-            ### @usage: MSVC_FLAGS([GLOBAL compiler_flag]* compiler_flags)
-            ###
-            ### Add the specified flags to the compilation line of C/C++files.
-            ### Flags apply only if the compiler used is MSVC (cl.exe)
-            macro MSVC_FLAGS(Flags...) {
-                # TODO: FIXME
-                ENABLE(UNUSED_MACRO)
             }''')
 
         c_builtins = [
@@ -2634,15 +2626,6 @@ class MSVCCompiler(MSVC, Compiler):
              '${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ' +
              masm_io + ' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}'
              )
-
-        emit_big('''
-            ### @usage: MSVC_FLAGS([GLOBAL compiler_flag]* compiler_flags)
-            ###
-            ### Add the specified flags to the compilation line of C/C++files.
-            ### Flags apply only if the compiler used is MSVC (cl.exe)"
-            macro MSVC_FLAGS(Flags...) {
-                CFLAGS($Flags)
-            }''')  # noqa E501
 
 
 class MSVCLinker(MSVC, Linker):

@@ -37,6 +37,7 @@ TEST_SRCS(
 DATA(
     arcadia/catboost/pytest/data
     arcadia/catboost/python-package
+    arcadia/library/python/hnsw
 )
 
 DEPENDS(
@@ -45,6 +46,7 @@ DEPENDS(
     catboost/tools/model_comparator
     catboost/python-package/catboost/no_cuda
     catboost/python-package/ut/medium/python_binary
+    library/python/hnsw/hnsw
 )
 
 IF (CATBOOST_OPENSOURCE AND AUTOCHECK)

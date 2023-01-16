@@ -701,8 +701,7 @@ The initial model must have the same problem type as the one being solved in the
 
 **Possible types**
 
-{% cut "{{ [catboost.CatBoost](../concepts/python-reference_catboost.md), [catboost.CatBoostClassifier](../concepts/python-reference_catboostclassifier.md), [catboost.CatBoostRegressor](../concepts/python-reference_catboostregressor.md) }}" %}
-
+{% cut "catboost.CatBoost, catboost.CatBoostClassifier, catboost.CatBoostRegressor" %}
 
 The initial model object.
 

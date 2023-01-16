@@ -79,11 +79,11 @@ struct TStdString: public TRefCountHolder, public B {
     }
 
     static TStdString* NullStr() noexcept {
-#ifdef _LIBCPP_VERSION
+    #ifdef _LIBCPP_VERSION
         return (TStdString*)NULL_STRING_REPR;
-#else
+    #else
         return Singleton<TStdString>();
-#endif
+    #endif
     }
 
 private:

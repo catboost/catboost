@@ -24,7 +24,6 @@ __all__ = [
     'TestMaybe',
     'TestStroka',
     'TestVector',
-
     'TestFromString',
     'TestToString',
 ]

@@ -332,14 +332,14 @@ class PROTOBUF_EXPORT MessageLite {
   PROTOBUF_ATTRIBUTE_REINITIALIZES bool ParseFromString(ConstStringParam data);
   // Like ParseFromString(), but accepts messages that are missing
   // required fields.
-  PROTOBUF_ATTRIBUTE_REINITIALIZES bool ParsePartialFromString(
+  PROTOBUF_ATTRIBUTE_REINITIALIZES PROTOBUF_MUST_USE_RESULT bool ParsePartialFromString(
       ConstStringParam data);
   // Parse a protocol buffer contained in an array of bytes.
   PROTOBUF_ATTRIBUTE_REINITIALIZES bool ParseFromArray(const void* data,
                                                        int size);
   // Like ParseFromArray(), but accepts messages that are missing
   // required fields.
-  PROTOBUF_ATTRIBUTE_REINITIALIZES bool ParsePartialFromArray(const void* data,
+  PROTOBUF_ATTRIBUTE_REINITIALIZES PROTOBUF_MUST_USE_RESULT bool ParsePartialFromArray(const void* data,
                                                               int size);
 
 
@@ -354,14 +354,14 @@ class PROTOBUF_EXPORT MessageLite {
   //
   // ParseFromCodedStream() is implemented as Clear() followed by
   // MergeFromCodedStream().
-  bool MergeFromCodedStream(io::CodedInputStream* input);
+  PROTOBUF_MUST_USE_RESULT bool MergeFromCodedStream(io::CodedInputStream* input);
 
   // Like MergeFromCodedStream(), but succeeds even if required fields are
   // missing in the input.
   //
   // MergeFromCodedStream() is just implemented as MergePartialFromCodedStream()
   // followed by IsInitialized().
-  bool MergePartialFromCodedStream(io::CodedInputStream* input);
+  PROTOBUF_MUST_USE_RESULT bool MergePartialFromCodedStream(io::CodedInputStream* input);
 
   // Merge a protocol buffer contained in a string.
   PROTOBUF_MUST_USE_RESULT bool MergeFromString(ConstStringParam data);
@@ -376,7 +376,7 @@ class PROTOBUF_EXPORT MessageLite {
   // this may GOOGLE_CHECK-fail.
   bool SerializeToCodedStream(io::CodedOutputStream* output) const;
   // Like SerializeToCodedStream(), but allows missing required fields.
-  bool SerializePartialToCodedStream(io::CodedOutputStream* output) const;
+  PROTOBUF_MUST_USE_RESULT bool SerializePartialToCodedStream(io::CodedOutputStream* output) const;
   // Write the message to the given zero-copy output stream.  All required
   // fields must be set.
   bool SerializeToZeroCopyStream(io::ZeroCopyOutputStream* output) const;
@@ -386,7 +386,7 @@ class PROTOBUF_EXPORT MessageLite {
   // fields must be set.
   bool SerializeToString(TProtoStringType* output) const;
   // Like SerializeToString(), but allows missing required fields.
-  bool SerializePartialToString(TProtoStringType* output) const;
+  PROTOBUF_MUST_USE_RESULT bool SerializePartialToString(TProtoStringType* output) const;
   // Serialize the message and store it in the given byte array.  All required
   // fields must be set.
   bool SerializeToArray(void* data, int size) const;
@@ -416,9 +416,9 @@ class PROTOBUF_EXPORT MessageLite {
 
   // Like SerializeToString(), but appends to the data to the string's
   // existing contents.  All required fields must be set.
-  bool AppendToString(TProtoStringType* output) const;
+  PROTOBUF_MUST_USE_RESULT bool AppendToString(TProtoStringType* output) const;
   // Like AppendToString(), but allows missing required fields.
-  bool AppendPartialToString(TProtoStringType* output) const;
+  PROTOBUF_MUST_USE_RESULT bool AppendPartialToString(TProtoStringType* output) const;
 
 
   // Computes the serialized size of the message.  This recursively calls

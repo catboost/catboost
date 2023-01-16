@@ -4,7 +4,7 @@ Welcome to the CatBoost [docs](https://catboost.ai/docs/).
 
 ## About the docs
 
-The documentation is developed using [Yandex Flavored Markdown](https://github.com/yandex-cloud/yfm-docs).
+The documentation is developed using [Yandex Flavored Markdown](https://github.com/yandex-cloud/yfm-docs) (YFM). See [YFM syntax](https://github.com/yandex-cloud/yfm-transform/blob/master/DOCS.md).
 
 ## Making the CatBoost docs better
 

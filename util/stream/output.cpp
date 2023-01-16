@@ -203,7 +203,7 @@ DEF_CONV_NUM(long double, 512)
 
 #if !defined(_YNDX_LIBCXX_ENABLE_VECTOR_BOOL_COMPRESSION) || (_YNDX_LIBCXX_ENABLE_VECTOR_BOOL_COMPRESSION == 1)
 // TODO: acknowledge std::bitset::reference for both libc++ and libstdc++
-template<>
+template <>
 void Out<typename std::vector<bool>::reference>(IOutputStream& o, const std::vector<bool>::reference& bit) {
     return Out<bool>(o, static_cast<bool>(bit));
 }

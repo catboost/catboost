@@ -107,7 +107,7 @@ protected:
         // Non-shared behaviour - never shrink
 
         s.reserve(256);
-#ifndef TSTRING_IS_STD_STRING
+    #ifndef TSTRING_IS_STD_STRING
         const auto* data = s.data();
 
         UNIT_ASSERT(s.capacity() >= 256);
@@ -115,18 +115,18 @@ protected:
         s.reserve(128);
 
         UNIT_ASSERT(s.capacity() >= 256 && s.data() == data);
-#endif
+    #endif
 
         s.resize(64, 'x');
         s.reserve(10);
 
-#ifdef TSTRING_IS_STD_STRING
+    #ifdef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s.capacity() >= 64);
-#else
+    #else
         UNIT_ASSERT(s.capacity() >= 256 && s.data() == data);
-#endif
+    #endif
 
-#ifndef TSTRING_IS_STD_STRING
+    #ifndef TSTRING_IS_STD_STRING
         // Shared behaviour - always reallocate, just as much as requisted
 
         TStringType holder = s;
@@ -146,7 +146,7 @@ protected:
 
         UNIT_ASSERT(s.capacity() >= 64 && s.capacity() < 128 && s.data() != data);
         UNIT_ASSERT(s.IsDetached());
-#endif
+    #endif
 #endif
     }
 
