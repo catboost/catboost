@@ -1427,61 +1427,6 @@
                 }
             }
         },
-        "gcc8": {
-            "tools": {
-                "cc": {
-                    "bottle": "gcc82",
-                    "executable": "cc"
-                },
-                "c++": {
-                    "bottle": "gcc82",
-                    "executable": "c++"
-                },
-                "gcov": {
-                    "bottle": "gcc82",
-                    "executable": "gcov"
-                },
-                "c++filt": {
-                    "bottle": "gcc82",
-                    "executable": "c++filt"
-                },
-                "nm": {
-                    "bottle": "gcc82",
-                    "executable": "nm"
-                },
-                "strip": {
-                    "bottle": "gcc82",
-                    "executable": "strip"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    }
-                }
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(GCC)/gcc/bin/gcc",
-                "cxx_compiler": "$(GCC)/gcc/bin/g++",
-                "cxx_std": "c++17",
-                "gcc_version": "8.2.0",
-                "arch_opt": [
-                    "-w"
-                ],
-                "dwarf_tool": {
-                    "DARWIN": "dsymutil -f"
-                }
-            }
-        },
         "clang12-windows": {
             "name": "clang12",
             "tools": {
