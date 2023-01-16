@@ -185,7 +185,8 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
-        TDatasetSubset trainDatasetSubset,
+        TDatasetSubset learnDatasetSubset,
+        TConstArrayRef<TDatasetSubset> testDatasetSubsets,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* const executor,
         TProfileInfo* const profile
@@ -213,7 +214,7 @@ namespace NCB {
                 loadOptions.ColumnarPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
-                trainDatasetSubset,
+                learnDatasetSubset,
                 classLabels,
                 executor
             );
@@ -249,7 +250,7 @@ namespace NCB {
                     loadOptions.ColumnarPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
-                    TDatasetSubset::MakeColumns(trainDatasetSubset.HasFeatures || taskType == ETaskType::CPU),
+                    testDatasetSubsets[testIdx],
                     classLabels,
                     executor
                 );

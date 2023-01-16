@@ -121,7 +121,9 @@ public:
         NPar::ILocalExecutor* localExecutor,
         const TMaybe<TRestorableFastRng64*> rand,
         TFullModel* dstModel,
-        const TVector<TEvalResult*>& evalResultPtrs,
+
+        // can be empty if eval results are not needed
+        const TVector<TEvalResult*>& evalResultPtrs, // [testIdx]
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         THolder<TLearnProgress>* dstLearnProgress
     ) const = 0;

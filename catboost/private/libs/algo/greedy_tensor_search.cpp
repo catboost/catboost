@@ -1190,7 +1190,7 @@ static TSplitTree GreedyTensorSearchOblivious(
                 data,
                 curDepth + 1,
                 *fold,
-                indices,
+                *indices,
                 ctx->LocalExecutor);
             if (isSamplingPerTree) {
                 if (useLeafwiseScoring) {

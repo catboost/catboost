@@ -11,6 +11,7 @@
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/maybe.h>
 #include <util/generic/xrange.h>
 
@@ -460,7 +461,7 @@ static void CalcWeightedData(
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     bool hasOfflineEstimatedFeatures,
-    const TVector<TIndexType>& indices,
+    TConstArrayRef<TIndexType> indices,
     const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
@@ -469,7 +470,7 @@ void Bootstrap(
     bool shouldSortByLeaf,
     ui32 leavesCount
 ) {
-    const int learnSampleCount = indices.ysize();
+    const int learnSampleCount = SafeIntegerCast<int>(indices.size());
     const EBootstrapType bootstrapType = params.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     const EBoostingType boostingType = params.BoostingOptions->BoostingType;
     const ESamplingUnit samplingUnit = params.ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();

@@ -63,7 +63,8 @@ int mode_eval_feature(int argc, const char* argv[]) {
         poolLoadParams,
         objectsOrder,
         /*readTestData*/false,
-        TDatasetSubset::MakeColumns(),
+        /*learnDatasetSubset*/ TDatasetSubset::MakeColumns(),
+        /*testDatasetSubsets*/ {},
         &classLabels,
         &NPar::LocalExecutor(),
         /*profile*/nullptr

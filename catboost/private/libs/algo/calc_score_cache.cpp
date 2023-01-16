@@ -4,6 +4,7 @@
 #include <catboost/private/libs/options/oblivious_tree_options.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/system/guard.h>
@@ -712,19 +713,20 @@ void TCalcScoreFold::Sample(
     const TFold& fold,
     ESamplingUnit samplingUnit,
     bool hasOfflineEstimatedFeatures,
-    const TVector<TIndexType>& indices,
+    TConstArrayRef<TIndexType> indices,
     TRestorableFastRng64* rand,
     NPar::ILocalExecutor* localExecutor,
     bool performRandomChoice,
     bool shouldSortByLeaf,
     ui32 leavesCount
 ) {
+    int objectCount = SafeIntegerCast<int>(indices.size());
     if (performRandomChoice) {
-        SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
+        SetSampledControl(objectCount, samplingUnit, fold.LearnQueriesInfo, rand);
     } else {
         BernoulliSampleRate = 0.0f;
         Y_ASSERT(samplingUnit == ESamplingUnit::Object);
-        SetControlNoZeroWeighted(indices.ysize(), fold.SampleWeights.data());
+        SetControlNoZeroWeighted(objectCount, fold.SampleWeights.data());
     }
 
     TVectorSlicing srcBlocks;
@@ -733,7 +735,7 @@ void TCalcScoreFold::Sample(
 
     CreateBlocksAndUpdateQueriesInfoByControl(
         localExecutor,
-        indices.ysize(),
+        objectCount,
         fold.LearnQueriesInfo,
         &blockCount,
         &srcBlocks,
@@ -786,8 +788,8 @@ void TCalcScoreFold::Sample(
     }
 }
 
-void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::ILocalExecutor* localExecutor) {
-    NPar::ILocalExecutor::TExecRangeParams blockParams(0, indices.ysize());
+void TCalcScoreFold::UpdateIndices(TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor) {
+    NPar::ILocalExecutor::TExecRangeParams blockParams(0, indices.size());
     blockParams.SetBlockSize(2000);
     const int blockCount = blockParams.GetBlockCount();
     TVectorSlicing srcBlocks;
