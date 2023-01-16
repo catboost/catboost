@@ -56,16 +56,10 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/gendsa.c [2:2]
         apps/genrsa.c [2:2]
         apps/rsa.c [2:2]
-        apps/s_cb.c [2:2]
         apps/s_client.c [2:2]
-        apps/s_server.c [2:2]
-        apps/s_time.c [2:2]
         apps/speed.c [2:2]
         apps/x509.c [2:2]
         crypto/asn1/asn1_err.c [2:3]
-        crypto/asn1/asn1_lib.c [2:2]
-        crypto/asn1/asn1_par.c [2:2]
-        crypto/asn1/d2i_pr.c [2:2]
         crypto/bio/b_print.c [2:2]
         crypto/bio/bss_acpt.c [2:2]
         crypto/bio/bss_conn.c [2:2]
@@ -88,9 +82,7 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/pem/pem_lib.c [2:2]
         crypto/pem/pem_pkey.c [2:2]
         crypto/rand/rand_err.c [2:3]
-        crypto/rand/rand_lib.c [2:2]
         crypto/rand/rand_local.h [2:2]
-        crypto/rand/rand_unix.c [2:2]
         crypto/rand/randfile.c [2:2]
         crypto/x509/x509_att.c [2:2]
         crypto/x509/x509_err.c [2:3]
@@ -102,28 +94,18 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         include/openssl/asn1err.h [2:3]
         include/openssl/bio.h [2:2]
         include/openssl/bn.h [2:2]
-        include/openssl/e_os2.h [2:2]
         include/openssl/ecerr.h [2:3]
         include/openssl/lhash.h [2:2]
         include/openssl/pemerr.h [2:3]
         include/openssl/randerr.h [2:3]
         include/openssl/ssl.h [2:2]
         include/openssl/ssl3.h [2:2]
-        include/openssl/sslerr.h [2:3]
         include/openssl/x509.h [2:2]
         include/openssl/x509_vfy.h [2:2]
         include/openssl/x509err.h [2:3]
-        ssl/bio_ssl.c [2:2]
-        ssl/record/rec_layer_s3.c [2:2]
-        ssl/record/ssl3_buffer.c [2:2]
-        ssl/record/ssl3_record.c [2:2]
-        ssl/s3_lib.c [2:2]
-        ssl/ssl_lib.c [2:2]
         ssl/ssl_rsa.c [2:2]
         ssl/ssl_sess.c [2:2]
         ssl/statem/statem_lib.c [2:2]
-        ssl/statem/statem_srvr.c [2:2]
-        ssl/t1_lib.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 0169b343573768be858d1b637c4c8e6c
 BELONGS crypto/ya.make
@@ -141,7 +123,6 @@ BELONGS crypto/ya.make
         crypto/x509v3/ext_dat.h [2:2]
         crypto/x509v3/standard_exts.h [2:2]
         crypto/x509v3/v3_info.c [2:2]
-        crypto/x509v3/v3_utl.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 02d45de65a7fcdb2c9e5c0afce8132e9
 BELONGS crypto/ya.make
@@ -189,6 +170,23 @@ BELONGS crypto/ya.make ya.make
         crypto/evp/e_aria.c [3:3]
         include/crypto/aria.h [3:3]
 
+KEEP     COPYRIGHT_SERVICE_LABEL 052e9c6f5e4319c121dd64275f63a624
+BELONGS crypto/ya.make
+    License text:
+         * Copyright 2006-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/asn1/bio_asn1.c [2:2]
+        crypto/dsa/dsa_prn.c [2:2]
+        crypto/evp/e_camellia.c [2:2]
+        crypto/rsa/rsa_prn.c [2:2]
+        crypto/sm2/sm2_pmeth.c [2:2]
+        crypto/ts/ts_rsp_verify.c [2:2]
+        crypto/ts/ts_verify_ctx.c [2:2]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 05729a0085694fff4d3ff745c09b59b2
 BELONGS crypto/ya.make ya.make
     License text:
@@ -202,7 +200,6 @@ BELONGS crypto/ya.make ya.make
         crypto/evp/e_chacha20_poly1305.c [2:2]
         engines/e_dasync.c [2:2]
         ssl/statem/statem.c [2:2]
-        ssl/statem/statem_local.h [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 09f307449bb558104bc23c309fd91517
 BELONGS apps/ya.make
@@ -298,7 +295,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         include/internal/refcount.h [2:2]
         include/openssl/store.h [2:2]
         ssl/ssl_init.c [2:2]
-        ssl/statem/extensions_clnt.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 13bbe158875c7424180f21c33a93f2c3
 BELONGS crypto/ya.make
@@ -320,9 +316,7 @@ BELONGS crypto/ya.make ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        asm/ppc64le/crypto/include/internal/dso_conf.h [4:4]
         crypto/async/async_wait.c [2:2]
-        crypto/bio/b_sock2.c [2:2]
         crypto/bio/bio_meth.c [2:2]
         crypto/ct/ct_log.c [2:2]
         crypto/dh/dh_meth.c [2:2]
@@ -343,7 +337,6 @@ BELONGS crypto/ya.make ya.make
         include/openssl/ct.h [2:2]
         include/openssl/kdf.h [2:2]
         include/openssl/opensslconf-ios-armv7.h [5:5]
-        include/openssl/opensslconf-linux_aarch64.h [5:5]
         include/openssl/opensslconf-linux_arm.h [5:5]
         ssl/record/ssl3_record_tls13.c [2:2]
 
@@ -359,7 +352,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/prime.c [2:2]
         crypto/LPdir_unix.c [2:2]
         crypto/sha/sha512.c [2:2]
-        crypto/x509/x509_vpm.c [2:2]
         crypto/x509v3/pcy_cache.c [2:2]
         crypto/x509v3/pcy_node.c [2:2]
         crypto/x509v3/pcy_tree.c [2:2]
@@ -382,6 +374,19 @@ BELONGS crypto/ya.make
         crypto/bn/bn_nist.c [2:2]
         crypto/conf/conf_mall.c [2:2]
         crypto/ec/ec_print.c [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 1750606e68546e12e350f98dfb9205d6
+BELONGS ya.make
+    License text:
+         Copyright (c) 1998-2021 The OpenSSL Project
+         Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
+         All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        README [4:6]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 180160f76e66abaae1251831c71299bf
 BELONGS crypto/ya.make
@@ -435,7 +440,6 @@ BELONGS crypto/ya.make ya.make
         crypto/ec/curve448/f_generic.c [2:2]
         crypto/ec/curve448/point_448.h [2:2]
         crypto/ec/curve448/scalar.c [2:2]
-        crypto/engine/eng_devcrypto.c [2:2]
         crypto/evp/e_aria.c [2:2]
         crypto/evp/m_sha3.c [2:2]
         crypto/sm2/sm2_sign.c [2:2]
@@ -451,7 +455,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         Match type      : COPYRIGHT
     Files with this license:
         apps/passwd.c [2:2]
-        crypto/asn1/a_strex.c [2:2]
         crypto/asn1/tasn_new.c [2:2]
         crypto/asn1/tasn_utl.c [2:2]
         crypto/evp/evp_local.h [2:2]
@@ -482,7 +485,6 @@ BELONGS crypto/ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        crypto/ec/ec2_oct.c [2:2]
         crypto/ec/ecp_nistputil.c [2:2]
         crypto/mips_arch.h [2:2]
 
@@ -523,8 +525,11 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        crypto/sparcv9cap.c [2:2]
         ssl/d1_lib.c [2:2]
         ssl/record/rec_layer_d1.c [2:2]
+    Belongs difference:
+        - crypto/ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL 2b5c031227cbf70e9537679803c4378b
 BELONGS ya.make
@@ -632,7 +637,14 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        crypto/bio/b_addr.c [2:2]
+        crypto/bio/b_sock2.c [2:2]
+        crypto/store/loader_file.c [2:2]
         ssl/statem/extensions.c [2:2]
+        ssl/statem/extensions_clnt.c [2:2]
+        ssl/statem/extensions_srvr.c [2:2]
+    Belongs difference:
+        - crypto/ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL 3ea015dc19faced324178d408c620ca4
 BELONGS crypto/ya.make ya.make
@@ -669,7 +681,6 @@ BELONGS crypto/ya.make ya.make
         crypto/camellia/cmll_misc.c [2:2]
         crypto/camellia/cmll_ofb.c [2:2]
         crypto/dh/dh_ameth.c [2:2]
-        crypto/dsa/dsa_prn.c [2:2]
         crypto/evp/pmeth_fn.c [2:2]
         crypto/evp/pmeth_gn.c [2:2]
         crypto/pkcs7/bio_pk7.c [2:2]
@@ -679,7 +690,6 @@ BELONGS crypto/ya.make ya.make
         crypto/ts/ts_req_utils.c [2:2]
         crypto/ts/ts_rsp_print.c [2:2]
         crypto/ts/ts_rsp_utils.c [2:2]
-        crypto/ts/ts_verify_ctx.c [2:2]
         crypto/x509v3/v3_addr.c [2:2]
         include/openssl/camellia.h [2:2]
 
@@ -699,7 +709,6 @@ BELONGS apps/ya.make crypto/ya.make
         crypto/ec/ec_ameth.c [2:2]
         crypto/rsa/rsa_ameth.c [2:2]
         crypto/ts/ts_rsp_sign.c [2:2]
-        crypto/ts/ts_rsp_verify.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 486e9549e647450aae5e5f281731661a
 BELONGS apps/ya.make crypto/ya.make ya.make
@@ -713,7 +722,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/vms_term_sock.c [2:2]
         apps/vms_term_sock.h [2:2]
         apps/win32_init.c [2:2]
-        asm/ppc64le/crypto/include/internal/bn_conf.h [4:4]
         crypto/blake2/m_blake2b.c [2:2]
         crypto/blake2/m_blake2s.c [2:2]
         crypto/ct/ct_b64.c [2:2]
@@ -785,6 +793,7 @@ BELONGS crypto/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         crypto/armcap.c [2:2]
+        crypto/ec/ec2_oct.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 52f2e779183feedf51fb89ccfc4f6bbe
 BELONGS apps/ya.make crypto/ya.make ya.make
@@ -821,8 +830,31 @@ BELONGS crypto/ya.make
         crypto/x509v3/pcy_lib.c [2:2]
         crypto/x509v3/pcy_local.h [2:2]
         crypto/x509v3/pcy_map.c [2:2]
-        crypto/x509v3/v3_pci.c [2:2]
         crypto/x509v3/v3_pcia.c [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 54adebab64253387626b0370bb880aff
+BELONGS crypto/ya.make
+    License text:
+         * Copyright 2002-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/ec/ec_asn1.c [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 552248b20296cb6331b7c35889d4ff97
+BELONGS crypto/ya.make ya.make
+    License text:
+         * Copyright 2017-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/engine/eng_devcrypto.c [2:2]
+        crypto/sm2/sm2_crypt.c [2:2]
+        include/crypto/sm2.h [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 56dfd2959a2df3880415390c1c6ee913
 BELONGS ya.make
@@ -891,7 +923,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/asn1/p5_pbe.c [2:2]
         crypto/asn1/p8_pkey.c [2:2]
         crypto/asn1/t_bitst.c [2:2]
-        crypto/asn1/t_spki.c [2:2]
         crypto/asn1/tbl_standard.h [2:2]
         crypto/dsa/dsa_asn1.c [2:2]
         crypto/evp/evp_pkey.c [2:2]
@@ -900,14 +931,12 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/pkcs12/p12_attr.c [2:2]
         crypto/pkcs12/p12_crpt.c [2:2]
         crypto/pkcs12/p12_decr.c [2:2]
-        crypto/pkcs12/p12_key.c [2:2]
         crypto/pkcs12/p12_kiss.c [2:2]
         crypto/pkcs12/p12_npas.c [2:2]
         crypto/pkcs7/pk7_attr.c [2:2]
         crypto/x509/t_crl.c [2:2]
         crypto/x509/x509spki.c [2:2]
         crypto/x509/x_x509a.c [2:2]
-        crypto/x509v3/v3_akey.c [2:2]
         crypto/x509v3/v3_bcons.c [2:2]
         crypto/x509v3/v3_bitst.c [2:2]
         crypto/x509v3/v3_crld.c [2:2]
@@ -936,7 +965,6 @@ BELONGS apps/ya.make crypto/ya.make
         crypto/cms/cms_lib.c [2:2]
         crypto/cms/cms_sd.c [2:2]
         crypto/cms/cms_smime.c [2:2]
-        crypto/modes/cbc128.c [2:2]
         crypto/modes/cfb128.c [2:2]
         crypto/modes/ctr128.c [2:2]
         crypto/modes/ofb128.c [2:2]
@@ -988,8 +1016,9 @@ BELONGS crypto/ya.make ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        crypto/srp/srp_vfy.c [2:2]
         engines/e_padlock.c [2:2]
+    Belongs difference:
+        + crypto/ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL 608e28b1106453a3a97921a9320476ac
 BELONGS crypto/ya.make ya.make
@@ -1019,6 +1048,30 @@ BELONGS crypto/ya.make
     Files with this license:
         crypto/bio/b_print.c [18:21]
 
+KEEP     COPYRIGHT_SERVICE_LABEL 65065adab5597ca0f2c51137c909a527
+BELONGS ya.make
+    License text:
+         * Copyright 2015-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        include/crypto/x509.h [2:2]
+        ssl/statem/statem_local.h [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 67bf5428331cf7d96b561d7d8555f747
+BELONGS crypto/ya.make
+    License text:
+         * Copyright 2008-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/asn1/bio_ndef.c [2:2]
+        crypto/modes/cbc128.c [2:2]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 689fdef4e5de978da2278e6bb95dc850
 BELONGS apps/ya.make crypto/ya.make ya.make
     License text:
@@ -1029,18 +1082,49 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         Match type      : COPYRIGHT
     Files with this license:
         apps/ca.c [2:2]
+        apps/crl2p7.c [2:2]
+        apps/enc.c [2:2]
         apps/progs-linux_aarch64-linux-osx_arm64.h [5:5]
+        apps/s_cb.c [2:2]
+        apps/s_server.c [2:2]
+        apps/s_socket.c [2:2]
+        apps/s_time.c [2:2]
+        crypto/asn1/a_object.c [2:2]
+        crypto/asn1/asn1_lib.c [2:2]
+        crypto/asn1/asn1_par.c [2:2]
+        crypto/asn1/d2i_pr.c [2:2]
+        crypto/bn/bn_div.c [2:2]
         crypto/conf/conf_def.c [2:2]
         crypto/conf/conf_def.h [5:5]
         crypto/dh/dh_key.c [2:2]
+        crypto/evp/evp_enc.c [2:2]
         crypto/evp/evp_err.c [2:3]
         crypto/objects/obj_dat.h [5:5]
+        crypto/rand/rand_lib.c [2:2]
+        crypto/rand/rand_unix.c [2:2]
+        crypto/rsa/rsa_ssl.c [2:2]
+        crypto/x509/t_x509.c [2:2]
         crypto/x509/x509_cmp.c [2:2]
         crypto/x509/x509_vfy.c [2:2]
         crypto/x509/x_all.c [2:2]
+        crypto/x509v3/v3err.c [2:3]
+        include/openssl/e_os2.h [2:2]
         include/openssl/evperr.h [2:3]
+        include/openssl/sslerr.h [2:3]
+        include/openssl/x509v3err.h [2:3]
+        ssl/bio_ssl.c [2:2]
+        ssl/record/rec_layer_s3.c [2:2]
+        ssl/record/ssl3_buffer.c [2:2]
+        ssl/record/ssl3_record.c [2:2]
+        ssl/s3_lib.c [2:2]
+        ssl/s3_msg.c [2:2]
+        ssl/ssl_cert.c [2:2]
+        ssl/ssl_err.c [2:3]
+        ssl/ssl_lib.c [2:2]
         ssl/ssl_local.h [2:2]
         ssl/statem/statem_clnt.c [2:2]
+        ssl/statem/statem_srvr.c [2:2]
+        ssl/t1_lib.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 6bb15a22dc916382590212ac4039caa0
 BELONGS crypto/ya.make
@@ -1065,6 +1149,17 @@ BELONGS crypto/ya.make
         crypto/ec/curve448/arch_32/f_impl.c [3:3]
         crypto/ec/curve448/field.h [3:3]
         crypto/ec/curve448/word.h [3:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 6d27389887f32a542cbbe908103071a9
+BELONGS crypto/ya.make
+    License text:
+         * Copyright 2003-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/x509v3/v3_ncons.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 6eb860d239408f2ea5f9f2ec6715b399
 BELONGS crypto/ya.make ya.make
@@ -1100,7 +1195,6 @@ BELONGS crypto/ya.make ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        crypto/asn1/bio_ndef.c [2:2]
         crypto/cms/cms_enc.c [2:2]
         engines/e_capi.c [2:2]
 
@@ -1117,7 +1211,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/apps.h [2:2]
         apps/asn1pars.c [2:2]
         apps/dgst.c [2:2]
-        apps/enc.c [2:2]
         apps/openssl.c [2:2]
         apps/progs-win.h [5:5]
         apps/req.c [2:2]
@@ -1127,7 +1220,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/asn1/d2i_pu.c [2:2]
         crypto/bio/bss_file.c [2:2]
         crypto/bio/bss_mem.c [2:2]
-        crypto/bn/bn_div.c [2:2]
         crypto/bn/bn_exp.c [2:2]
         crypto/bn/bn_rand.c [2:2]
         crypto/cms/cms_err.c [2:3]
@@ -1152,7 +1244,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/rsa/rsa_lib.c [2:2]
         crypto/rsa/rsa_ossl.c [2:2]
         crypto/rsa/rsa_pk1.c [2:2]
-        crypto/rsa/rsa_ssl.c [2:2]
         crypto/rsa/rsa_x931g.c [2:2]
         crypto/x509/by_dir.c [2:2]
         crypto/x509/t_req.c [2:2]
@@ -1188,11 +1279,8 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         include/openssl/tls1.h [2:2]
         include/openssl/tserr.h [2:3]
         include/openssl/uierr.h [2:3]
-        include/openssl/x509v3err.h [2:3]
         ssl/s3_enc.c [2:2]
-        ssl/ssl_cert.c [2:2]
         ssl/ssl_ciph.c [2:2]
-        ssl/ssl_err.c [2:3]
         ssl/t1_enc.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 7b715397bb29673a48bee09c54b31dfa
@@ -1221,9 +1309,9 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/pkcs12/p12_crt.c [2:2]
         crypto/pkcs7/pk7_smime.c [2:2]
         crypto/x509/x509_trs.c [2:2]
-        crypto/x509v3/v3_alt.c [2:2]
         crypto/x509v3/v3_genn.c [2:2]
-        include/openssl/opensslv.h [2:2]
+    Belongs difference:
+        + ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL 7e1724b8402b7946ad8f2c8a92df19c3
 BELONGS crypto/ya.make
@@ -1262,6 +1350,19 @@ BELONGS crypto/ya.make
         crypto/asn1/asn_mstbl.c [2:2]
         crypto/evp/evp_cnf.c [2:2]
 
+KEEP     COPYRIGHT_SERVICE_LABEL 802c9a12b514e4c7ed869c97fad0a95f
+BELONGS crypto/ya.make
+    License text:
+         * Copyright 2007-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/hmac/hm_ameth.c [2:2]
+        crypto/poly1305/poly1305_ameth.c [2:2]
+        crypto/siphash/siphash_ameth.c [2:2]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 859a96684583f91919efd161f6c66a31
 BELONGS crypto/ya.make ya.make
     License text:
@@ -1278,6 +1379,10 @@ BELONGS crypto/ya.make ya.make
         crypto/buildinf-android_arm64.h [5:5]
         crypto/buildinf-android_x86.h [5:5]
         crypto/buildinf-android_x86_64.h [5:5]
+        crypto/buildinf-ios-arm.h [5:5]
+        crypto/buildinf-ios-arm64.h [5:5]
+        crypto/buildinf-ios-i386.h [5:5]
+        crypto/buildinf-ios-x86_64.h [5:5]
         crypto/buildinf-linux.h [5:5]
         crypto/buildinf-linux_aarch64.h [5:5]
         crypto/buildinf-osx.h [5:5]
@@ -1310,17 +1415,14 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/pkey.c [2:2]
         apps/pkeyparam.c [2:2]
         crypto/asn1/ameth_lib.c [2:2]
-        crypto/asn1/bio_asn1.c [2:2]
         crypto/asn1/standard_methods.h [2:2]
         crypto/camellia/camellia.c [2:2]
         crypto/ec/eck_prn.c [2:2]
         crypto/engine/tb_asnmth.c [2:2]
         crypto/engine/tb_pkmeth.c [2:2]
-        crypto/evp/e_camellia.c [2:2]
         crypto/evp/m_sigver.c [2:2]
         crypto/evp/pmeth_lib.c [2:2]
         crypto/objects/obj_xref.c [2:2]
-        crypto/sm2/sm2_pmeth.c [2:2]
         crypto/ts/ts_lib.c [2:2]
         crypto/x509v3/v3_asid.c [2:2]
         include/crypto/aria.h [2:2]
@@ -1481,7 +1583,6 @@ BELONGS crypto/ya.make
     Files with this license:
         crypto/cmac/cmac.c [2:2]
         crypto/ec/ecp_nistp224.c [2:2]
-        crypto/modes/gcm128.c [2:2]
         crypto/modes/modes_local.h [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 94d946cd25e201b6bda2c9bfabe6a541
@@ -1496,7 +1597,6 @@ BELONGS crypto/ya.make
         crypto/ec/ecp_mont.c [2:2]
         crypto/ec/ecp_nist.c [2:2]
         crypto/ui/ui_lib.c [2:2]
-        crypto/uid.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 94e16fc277a7abeab1fb4f4b0db2e7b8
 BELONGS crypto/ya.make ya.make
@@ -1515,17 +1615,6 @@ BELONGS crypto/ya.make ya.make
         crypto/ocsp/ocsp_ext.c [2:2]
         crypto/ocsp/ocsp_lib.c [2:2]
         include/openssl/ocsp.h [2:2]
-
-KEEP     COPYRIGHT_SERVICE_LABEL 966e8e4b6cf3b487d522cde5572f95ca
-BELONGS crypto/ya.make
-    License text:
-         * Copyright 2003-2018 The OpenSSL Project Authors. All Rights Reserved.
-    Scancode info:
-        Original SPDX id: COPYRIGHT_SERVICE_LABEL
-        Score           : 100.00
-        Match type      : COPYRIGHT
-    Files with this license:
-        crypto/x509v3/v3_ncons.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 97eb35e56dfa64827cf807739975298c
 BELONGS apps/ya.make crypto/ya.make
@@ -1697,7 +1786,6 @@ BELONGS crypto/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         crypto/pem/pvkfmt.c [2:2]
-        crypto/sparcv9cap.c [2:2]
         crypto/whrlpool/wp_block.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL a74524cba47e5ae22059015969d08fbf
@@ -1744,7 +1832,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/pkcs12/p12_sbag.c [2:2]
         crypto/pkcs12/p12_utl.c [2:2]
         crypto/x509v3/v3_conf.c [2:2]
-        crypto/x509v3/v3_cpols.c [2:2]
         crypto/x509v3/v3_lib.c [2:2]
         include/crypto/md32_common.h [2:2]
         include/openssl/pem2.h [2:2]
@@ -1884,7 +1971,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         include/crypto/asn1.h [2:2]
         include/crypto/chacha.h [2:2]
         include/crypto/evp.h [2:2]
-        include/crypto/x509.h [2:2]
         include/openssl/async.h [2:2]
         include/openssl/comp.h [2:2]
         ssl/packet.c [2:2]
@@ -1895,7 +1981,7 @@ BELONGS apps/ya.make crypto/ya.make ya.make
 KEEP     COPYRIGHT_SERVICE_LABEL beea0aae0d735f32d905cc9edbb4e145
 BELONGS ya.make
     License text:
-         Copyright (c) 1998-2020 The OpenSSL Project
+         Copyright (c) 1998-2021 The OpenSSL Project
          Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
          All rights reserved.
     Scancode info:
@@ -1959,19 +2045,6 @@ BELONGS ya.make
         asm/ios/armv7/crypto/sha/sha256-armv4.S [1:1]
         asm/ios/armv7/crypto/sha/sha512-armv4.S [1:1]
 
-KEEP     COPYRIGHT_SERVICE_LABEL cb6dd4e85cb3020a6899780dbba80457
-BELONGS ya.make
-    License text:
-         Copyright (c) 1998-2020 The OpenSSL Project
-         Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
-         All rights reserved.
-    Scancode info:
-        Original SPDX id: COPYRIGHT_SERVICE_LABEL
-        Score           : 100.00
-        Match type      : COPYRIGHT
-    Files with this license:
-        README [4:6]
-
 KEEP     COPYRIGHT_SERVICE_LABEL cf09c285133d644c8cd89957e89ab0a6
 BELONGS crypto/ya.make
     License text:
@@ -2029,6 +2102,7 @@ BELONGS crypto/ya.make ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        crypto/asn1/a_strex.c [2:2]
         crypto/asn1/charmap.h [5:5]
         include/openssl/obj_mac.h [5:5]
 
@@ -2070,8 +2144,6 @@ BELONGS apps/ya.make crypto/ya.make
         crypto/ec/ecp_smpl.c [2:2]
         crypto/engine/eng_lib.c [2:2]
         crypto/engine/eng_openssl.c [2:2]
-        crypto/evp/e_aes.c [2:2]
-        crypto/o_time.c [2:2]
         crypto/rand/rand_vms.c [2:2]
         crypto/ui/ui_openssl.c [2:2]
 
@@ -2199,7 +2271,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/sha/sha1_one.c [2:2]
         crypto/sha/sha1dgst.c [2:2]
         crypto/sha/sha_local.h [2:2]
-        crypto/x509/t_x509.c [2:2]
         crypto/x509/x509_d2.c [2:2]
         crypto/x509/x509_def.c [2:2]
         crypto/x509/x509_r2x.c [2:2]
@@ -2246,7 +2317,6 @@ BELONGS crypto/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         crypto/rsa/rsa_local.h [2:2]
-        crypto/rsa/rsa_prn.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL e1ef49d9dccfb013da73a9dc7b514289
 BELONGS apps/ya.make crypto/ya.make ya.make
@@ -2260,13 +2330,10 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/app_rand.c [2:2]
         apps/ciphers.c [2:2]
         apps/crl.c [2:2]
-        apps/crl2p7.c [2:2]
         apps/errstr.c [2:2]
         apps/pkcs7.c [2:2]
-        apps/s_socket.c [2:2]
         apps/sess_id.c [2:2]
         apps/version.c [2:2]
-        crypto/asn1/a_object.c [2:2]
         crypto/async/async_err.c [2:3]
         crypto/bio/b_dump.c [2:2]
         crypto/bio/b_sock.c [2:2]
@@ -2299,7 +2366,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/evp/e_des.c [2:2]
         crypto/evp/e_des3.c [2:2]
         crypto/evp/e_rc2.c [2:2]
-        crypto/evp/evp_enc.c [2:2]
         crypto/evp/m_sha1.c [2:2]
         crypto/evp/p_seal.c [2:2]
         crypto/kdf/kdf_err.c [2:3]
@@ -2322,7 +2388,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/x509/x509name.c [2:2]
         crypto/x509/x509type.c [2:2]
         crypto/x509/x_name.c [2:2]
-        crypto/x509v3/v3err.c [2:3]
         include/openssl/buffer.h [2:2]
         include/openssl/conf.h [2:2]
         include/openssl/dh.h [2:2]
@@ -2334,7 +2399,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         include/openssl/rsa.h [2:2]
         ssl/record/record.h [2:2]
         ssl/record/record_local.h [2:2]
-        ssl/s3_msg.c [2:2]
         ssl/ssl_asn1.c [2:2]
         ssl/ssl_txt.c [2:2]
 
@@ -2347,13 +2411,21 @@ BELONGS crypto/ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        crypto/hmac/hm_ameth.c [2:2]
         crypto/hmac/hm_pmeth.c [2:2]
-        crypto/poly1305/poly1305_ameth.c [2:2]
         crypto/poly1305/poly1305_pmeth.c [2:2]
         crypto/seed/seed_local.h [2:2]
-        crypto/siphash/siphash_ameth.c [2:2]
         crypto/siphash/siphash_pmeth.c [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e4cc97d317601112a60fc606b07007ec
+BELONGS crypto/ya.make
+    License text:
+         * Copyright 2010-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/modes/gcm128.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL e56bc2ee97b0d5e48feeb882d7a08615
 BELONGS ya.make
@@ -2402,7 +2474,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/ecparam.c [2:2]
         crypto/aes/aes_core.c [2:2]
         crypto/aes/aes_local.h [2:2]
-        crypto/ec/ec_asn1.c [2:2]
         crypto/ec/ec_key.c [2:2]
         crypto/ec/ecdsa_vrf.c [2:2]
         include/openssl/ec.h [2:2]
@@ -2417,6 +2488,9 @@ BELONGS crypto/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         crypto/srp/srp_lib.c [2:2]
+        crypto/srp/srp_vfy.c [2:2]
+        crypto/x509/x509_vpm.c [2:2]
+        crypto/x509v3/v3_pci.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL f2c9710a729e51b70e082677d6591bc0
 BELONGS apps/ya.make
@@ -2439,8 +2513,6 @@ BELONGS crypto/ya.make ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        crypto/bio/b_addr.c [2:2]
-        crypto/store/loader_file.c [2:2]
         crypto/store/store_lib.c [2:2]
         crypto/threads_win.c [2:2]
         engines/e_afalg.c [2:2]
@@ -2452,11 +2524,11 @@ BELONGS crypto/ya.make ya.make
         include/openssl/opensslconf-ios-i386.h [5:5]
         include/openssl/opensslconf-ios-x86_64.h [5:5]
         include/openssl/opensslconf-linux.h [5:5]
+        include/openssl/opensslconf-linux_aarch64.h [5:5]
         include/openssl/opensslconf-osx-arm64.h [5:5]
         include/openssl/opensslconf-osx.h [5:5]
         include/openssl/opensslconf-win-i686.h [5:5]
         include/openssl/opensslconf-win-x86_64.h [5:5]
-        ssl/statem/extensions_srvr.c [2:2]
         ssl/tls13_enc.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL f8b40389203c1bb65287bb3536f063f3
@@ -2536,11 +2608,9 @@ BELONGS crypto/ya.make ya.make
         crypto/rsa/rsa_mp.c [2:2]
         crypto/s390x_arch.h [2:2]
         crypto/siphash/siphash.c [2:2]
-        crypto/sm2/sm2_crypt.c [2:2]
         crypto/x509v3/v3_admis.c [2:2]
         crypto/x509v3/v3_admis.h [2:2]
         include/crypto/siphash.h [2:2]
-        include/crypto/sm2.h [2:2]
         include/openssl/rand_drbg.h [2:2]
         ssl/ssl_cert_table.h [2:2]
 
@@ -2573,6 +2643,19 @@ BELONGS crypto/ya.make
     Files with this license:
         crypto/ec/curve448/eddsa.c [2:2]
 
+KEEP     COPYRIGHT_SERVICE_LABEL fdcf93bb2878a830e0f6509349559159
+BELONGS crypto/ya.make
+    License text:
+         * Copyright 2001-2021 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        crypto/evp/e_aes.c [2:2]
+        crypto/o_time.c [2:2]
+        crypto/uid.c [2:2]
+
 KEEP     COPYRIGHT_SERVICE_LABEL ff0bae5a813cfcffbe9a117a32c514a6
 BELONGS crypto/ya.make ya.make
     License text:
@@ -2582,5 +2665,12 @@ BELONGS crypto/ya.make ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        crypto/asn1/t_spki.c [2:2]
+        crypto/pkcs12/p12_key.c [2:2]
+        crypto/x509v3/v3_akey.c [2:2]
+        crypto/x509v3/v3_alt.c [2:2]
+        crypto/x509v3/v3_cpols.c [2:2]
         crypto/x509v3/v3_purp.c [2:2]
+        crypto/x509v3/v3_utl.c [2:2]
+        include/openssl/opensslv.h [2:2]
         include/openssl/x509v3.h [2:2]

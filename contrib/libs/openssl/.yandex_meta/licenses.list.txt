@@ -266,6 +266,10 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2015-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -302,6 +306,10 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2017-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -310,7 +318,7 @@
 
 
 ====================COPYRIGHT====================
- Copyright (c) 1998-2020 The OpenSSL Project
+ Copyright (c) 1998-2021 The OpenSSL Project
  Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
  All rights reserved.
 

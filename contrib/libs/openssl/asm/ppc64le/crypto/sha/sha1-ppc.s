@@ -1,13 +1,15 @@
 .machine	"any"
-.abiversion	2
 .text
 
 .globl	sha1_block_data_order
 .type	sha1_block_data_order,@function
-.align	4
+.section	".opd","aw"
+.align	3
 sha1_block_data_order:
-.localentry	sha1_block_data_order,0
-
+.quad	.sha1_block_data_order,.TOC.@tocbase,0
+.previous
+.align	4
+.sha1_block_data_order:
 	stdu	1,-256(1)
 	mflr	0
 	std	15,120(1)
@@ -112,14 +114,8 @@ sha1_block_data_order:
 .Lsha1_block_private:
 	lis	0,0x5a82
 	ori	0,0,0x7999
-	lwz	12,0(4)
-	rotlwi	16,12,8
-	rlwimi	16,12,24,0,7
-	rlwimi	16,12,24,16,23
-	lwz	12,4(4)
-	rotlwi	17,12,8
-	rlwimi	17,12,24,0,7
-	rlwimi	17,12,24,16,23
+	lwz	16,0(4)
+	lwz	17,4(4)
 	add	12,0,11
 	rotlwi	11,7,5
 	add	12,12,16
@@ -129,10 +125,7 @@ sha1_block_data_order:
 	rotlwi	8,8,30
 	or	15,15,6
 	add	12,12,15
-	lwz	11,8(4)
-	rotlwi	18,11,8
-	rlwimi	18,11,24,0,7
-	rlwimi	18,11,24,16,23
+	lwz	18,8(4)
 	add	11,0,10
 	rotlwi	10,12,5
 	add	11,11,17
@@ -142,10 +135,7 @@ sha1_block_data_order:
 	rotlwi	7,7,30
 	or	15,15,6
 	add	11,11,15
-	lwz	10,12(4)
-	rotlwi	19,10,8
-	rlwimi	19,10,24,0,7
-	rlwimi	19,10,24,16,23
+	lwz	19,12(4)
 	add	10,0,9
 	rotlwi	9,11,5
 	add	10,10,18
@@ -155,10 +145,7 @@ sha1_block_data_order:
 	rotlwi	12,12,30
 	or	15,15,6
 	add	10,10,15
-	lwz	9,16(4)
-	rotlwi	20,9,8
-	rlwimi	20,9,24,0,7
-	rlwimi	20,9,24,16,23
+	lwz	20,16(4)
 	add	9,0,8
 	rotlwi	8,10,5
 	add	9,9,19
@@ -168,10 +155,7 @@ sha1_block_data_order:
 	rotlwi	11,11,30
 	or	15,15,6
 	add	9,9,15
-	lwz	8,20(4)
-	rotlwi	21,8,8
-	rlwimi	21,8,24,0,7
-	rlwimi	21,8,24,16,23
+	lwz	21,20(4)
 	add	8,0,7
 	rotlwi	7,9,5
 	add	8,8,20
@@ -181,10 +165,7 @@ sha1_block_data_order:
 	rotlwi	10,10,30
 	or	15,15,6
 	add	8,8,15
-	lwz	7,24(4)
-	rotlwi	22,7,8
-	rlwimi	22,7,24,0,7
-	rlwimi	22,7,24,16,23
+	lwz	22,24(4)
 	add	7,0,12
 	rotlwi	12,8,5
 	add	7,7,21
@@ -194,10 +175,7 @@ sha1_block_data_order:
 	rotlwi	9,9,30
 	or	15,15,6
 	add	7,7,15
-	lwz	12,28(4)
-	rotlwi	23,12,8
-	rlwimi	23,12,24,0,7
-	rlwimi	23,12,24,16,23
+	lwz	23,28(4)
 	add	12,0,11
 	rotlwi	11,7,5
 	add	12,12,22
@@ -207,10 +185,7 @@ sha1_block_data_order:
 	rotlwi	8,8,30
 	or	15,15,6
 	add	12,12,15
-	lwz	11,32(4)
-	rotlwi	24,11,8
-	rlwimi	24,11,24,0,7
-	rlwimi	24,11,24,16,23
+	lwz	24,32(4)
 	add	11,0,10
 	rotlwi	10,12,5
 	add	11,11,23
@@ -220,10 +195,7 @@ sha1_block_data_order:
 	rotlwi	7,7,30
 	or	15,15,6
 	add	11,11,15
-	lwz	10,36(4)
-	rotlwi	25,10,8
-	rlwimi	25,10,24,0,7
-	rlwimi	25,10,24,16,23
+	lwz	25,36(4)
 	add	10,0,9
 	rotlwi	9,11,5
 	add	10,10,24
@@ -233,10 +205,7 @@ sha1_block_data_order:
 	rotlwi	12,12,30
 	or	15,15,6
 	add	10,10,15
-	lwz	9,40(4)
-	rotlwi	26,9,8
-	rlwimi	26,9,24,0,7
-	rlwimi	26,9,24,16,23
+	lwz	26,40(4)
 	add	9,0,8
 	rotlwi	8,10,5
 	add	9,9,25
@@ -246,10 +215,7 @@ sha1_block_data_order:
 	rotlwi	11,11,30
 	or	15,15,6
 	add	9,9,15
-	lwz	8,44(4)
-	rotlwi	27,8,8
-	rlwimi	27,8,24,0,7
-	rlwimi	27,8,24,16,23
+	lwz	27,44(4)
 	add	8,0,7
 	rotlwi	7,9,5
 	add	8,8,26
@@ -259,10 +225,7 @@ sha1_block_data_order:
 	rotlwi	10,10,30
 	or	15,15,6
 	add	8,8,15
-	lwz	7,48(4)
-	rotlwi	28,7,8
-	rlwimi	28,7,24,0,7
-	rlwimi	28,7,24,16,23
+	lwz	28,48(4)
 	add	7,0,12
 	rotlwi	12,8,5
 	add	7,7,27
@@ -272,10 +235,7 @@ sha1_block_data_order:
 	rotlwi	9,9,30
 	or	15,15,6
 	add	7,7,15
-	lwz	12,52(4)
-	rotlwi	29,12,8
-	rlwimi	29,12,24,0,7
-	rlwimi	29,12,24,16,23
+	lwz	29,52(4)
 	add	12,0,11
 	rotlwi	11,7,5
 	add	12,12,28
@@ -285,10 +245,7 @@ sha1_block_data_order:
 	rotlwi	8,8,30
 	or	15,15,6
 	add	12,12,15
-	lwz	11,56(4)
-	rotlwi	30,11,8
-	rlwimi	30,11,24,0,7
-	rlwimi	30,11,24,16,23
+	lwz	30,56(4)
 	add	11,0,10
 	rotlwi	10,12,5
 	add	11,11,29
@@ -298,10 +255,7 @@ sha1_block_data_order:
 	rotlwi	7,7,30
 	or	15,15,6
 	add	11,11,15
-	lwz	10,60(4)
-	rotlwi	31,10,8
-	rlwimi	31,10,24,0,7
-	rlwimi	31,10,24,16,23
+	lwz	31,60(4)
 	add	10,0,9
 	rotlwi	9,11,5
 	add	10,10,30
@@ -1163,6 +1117,7 @@ sha1_block_data_order:
 	blr	
 .long	0
 .byte	0,12,0x14,0,0,0,0,0
-.size	sha1_block_data_order,.-sha1_block_data_order
+.size	.sha1_block_data_order,.-.sha1_block_data_order
+.size	sha1_block_data_order,.-.sha1_block_data_order
 .byte	83,72,65,49,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,80,80,67,44,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,102,121,46,99,104,97,108,109,101,114,115,46,115,101,62,0
 .align	2

@@ -360,7 +360,7 @@ $L$ChaCha20_ssse3::
 	ja	$L$ChaCha20_4x
 
 $L$do_sse3_after_all::
-	sub	rsp,64+40
+	sub	rsp,64+168
 	movaps	XMMWORD PTR[(-40)+r9],xmm6
 	movaps	XMMWORD PTR[(-24)+r9],xmm7
 $L$ssse3_body::

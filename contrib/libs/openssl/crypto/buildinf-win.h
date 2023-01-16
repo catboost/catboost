@@ -10,8 +10,8 @@
  * https://www.openssl.org/source/license.html
  */
 
-#define PLATFORM "platform: VC-WIN64A"
-#define DATE "built on: Mon Apr 19 17:50:40 2021 UTC"
+#define PLATFORM "platform: VC-WIN64A-masm"
+#define DATE "built on: Wed Oct 20 16:49:54 2021 UTC"
 
 /*
  * Generate compiler_flags as an array of individual characters. This is a

@@ -1,4 +1,12 @@
-#if defined(__APPLE__) && defined(__x86_64__)
+#if defined(__APPLE__) && defined(__IOS__) && defined(__i386__)
+#   include "buildinf-ios-i386.h"
+#elif defined(__APPLE__) && defined(__IOS__) && defined(__x86_64__)
+#   include "buildinf-ios-x86_64.h"
+#elif defined(__APPLE__) && defined(__IOS__) && defined(__aarch64__)
+#   include "buildinf-ios-arm64.h"
+#elif defined(__APPLE__) && defined(__IOS__) && defined(__arm__)
+#   include "buildinf-ios-arm.h"
+#elif defined(__APPLE__) && defined(__x86_64__)
 #   include "buildinf-osx.h"
 #elif defined(__APPLE__) && defined(__aarch64__)
 #   include "buildinf-osx_arm64.h"

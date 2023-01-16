@@ -1,13 +1,15 @@
 .machine	"any"
-.abiversion	2
 .text
 
 .globl	bn_mul_mont_int
 .type	bn_mul_mont_int,@function
-.align	5
+.section	".opd","aw"
+.align	3
 bn_mul_mont_int:
-.localentry	bn_mul_mont_int,0
-
+.quad	.bn_mul_mont_int,.TOC.@tocbase,0
+.previous
+.align	5
+.bn_mul_mont_int:
 	mr	9,3
 	li	3,0
 	slwi	8,8,3
@@ -214,13 +216,17 @@ bn_mul_mont_int:
 .long	0
 .byte	0,12,4,0,0x80,12,6,0
 .long	0
-.size	bn_mul_mont_int,.-bn_mul_mont_int
+.size	.bn_mul_mont_int,.-.bn_mul_mont_int
+.size	bn_mul_mont_int,.-.bn_mul_mont_int
 .globl	bn_mul4x_mont_int
 .type	bn_mul4x_mont_int,@function
-.align	5
+.section	".opd","aw"
+.align	3
 bn_mul4x_mont_int:
-.localentry	bn_mul4x_mont_int,0
-
+.quad	.bn_mul4x_mont_int,.TOC.@tocbase,0
+.previous
+.align	5
+.bn_mul4x_mont_int:
 	andi.	0,8,7
 	bne	.Lmul4x_do
 	cmpld	4,5
@@ -785,7 +791,8 @@ bn_mul4x_mont_int:
 .long	0
 .byte	0,12,4,0x20,0x80,18,6,0
 .long	0
-.size	bn_mul4x_mont_int,.-bn_mul4x_mont_int
+.size	.bn_mul4x_mont_int,.-.bn_mul4x_mont_int
+.size	bn_mul4x_mont_int,.-.bn_mul4x_mont_int
 .align	5
 __bn_sqr8x_mont:
 .Lsqr8x_do:
