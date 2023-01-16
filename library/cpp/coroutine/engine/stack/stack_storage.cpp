@@ -8,11 +8,10 @@
 
 namespace NCoro::NStack {
 
-    constexpr uint64_t ReleaseForEach = 16;
+    constexpr uint64_t ReleaseForEach = 8;
 
-    TStorage::TStorage(TContExecutor* executor, uint64_t stackSize, uint64_t rssPagesToKeep)
-        : Executor_(executor)
-        , StackSize_(stackSize)
+    TStorage::TStorage(uint64_t stackSize, uint64_t rssPagesToKeep)
+        : StackSize_(stackSize)
         , RssPagesToKeep_(rssPagesToKeep)
     {
         Y_ASSERT(StackSize_ && RssPagesToKeep_);
@@ -35,10 +34,6 @@ namespace NCoro::NStack {
             Released_.push_back(stack.GetAlignedMemory());
         }
         stack.Reset();
-
-        if (!Executor_) {
-            return;
-        }
     }
 
     void TStorage::ReleaseMemory([[maybe_unused]] char* alignedStackMemory, [[maybe_unused]] uint64_t pagesToKeep) noexcept {
