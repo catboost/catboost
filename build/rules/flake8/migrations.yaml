@@ -1717,7 +1717,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14309
     - yabs/server/test/ft/BSSERVER-14556
     - yabs/server/test/ft/BSSERVER-14610
-    - yabs/server/test/ft/BSSERVER-14904
     - yabs/server/test/ft/BSSERVER-2495
     - yabs/server/test/ft/BSSERVER-8804
     - yabs/server/test/pylibs/simulator
