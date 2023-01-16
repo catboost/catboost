@@ -310,14 +310,4 @@ uint128 CityHash128(const char* s, size_t len) noexcept {
     }
 }
 
-// TODO(yazevnul): move this function to unittests
-void TestCompilationOfCityHashTemplates() {
-    TStringBuf s;
-    CityHash64(s);
-    CityHash64WithSeed(s, 1);
-    CityHash64WithSeeds(s, 1, 2);
-    CityHash128(s);
-    CityHash128WithSeed(s, uint128(1, 2));
-}
-
 #endif
