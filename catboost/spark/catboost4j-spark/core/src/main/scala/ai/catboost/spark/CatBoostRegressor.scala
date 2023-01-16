@@ -83,6 +83,10 @@ class CatBoostRegressionModel (
     this.copyValues(that, extra).asInstanceOf[CatBoostRegressionModel]
   }
 
+  override def transformImpl(dataset: Dataset[_]): DataFrame = {
+    transformCatBoostImpl(dataset)
+  }
+
   /**
    * Prefer batch computations operating on datasets as a whole for efficiency
    */

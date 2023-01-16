@@ -100,13 +100,13 @@ class CatBoostClassificationModel (
         s" numClasses=$numClasses, but thresholds has length ${$(thresholds).length}")
     }
 
-    transformImpl(dataset)
+    transformCatBoostImpl(dataset)
   }
 
   /**
    * Prefer batch computations operating on datasets as a whole for efficiency
    */
-  override protected def predictRaw(features: Vector): Vector = {
+  override def predictRaw(features: Vector): Vector = {
     val nativePredictions = predictRawImpl(features)
     if (nativeDimension == 1) {
       Vectors.dense(-nativePredictions(0), nativePredictions(0))
