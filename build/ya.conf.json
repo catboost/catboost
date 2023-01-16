@@ -519,6 +519,9 @@
         },
         "exp_stats": {
             "description": "bsyeti tool"
+        },
+        "lama": {
+            "description": "Analytics tool for safe reactor calculation"
         }
     },
     "toolchain": {
@@ -703,6 +706,28 @@
                 "exp_stats": {
                     "bottle": "exp_stats",
                     "executable": "exp_stats"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "lama": {
+            "tools": {
+                "lama": {
+                    "bottle": "lama",
+                    "executable": "lama"
                 }
             },
             "platforms": [
@@ -8397,7 +8422,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1239152137,
+                "sandbox_id": 1239149477,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8414,6 +8439,17 @@
             "executable": {
                 "exp_stats": [
                     "exp_stats"
+                ]
+            }
+        },
+        "lama": {
+            "formula": {
+                "sandbox_id": 1239609953,
+                "match": "lama"
+            },
+            "executable": {
+                "lama": [
+                    "lama"
                 ]
             }
         },
