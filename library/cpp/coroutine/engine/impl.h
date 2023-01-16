@@ -235,6 +235,8 @@ public:
         return TotalConts() - TotalReadyConts();
     }
 
+    NCoro::NStack::TAllocatorStats GetAllocatorStats() const noexcept;
+
     // TODO(velavokr): rename, it is just CancelAll actually
     void Abort() noexcept;
 

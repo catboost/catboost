@@ -28,6 +28,10 @@ namespace NCoro::NStack {
         NDetails::TStack AllocStack(const char* name);
         void FreeStack(NDetails::TStack& stack);
 
+        uint64_t GetReleasedSize() const noexcept;
+        uint64_t GetFullSize() const noexcept;
+        uint64_t GetNumOfAllocated() const noexcept { return NumOfAllocated_; }
+
     private:
         void AllocNewMemoryChunk();
         bool IsSmallStack() const noexcept;
@@ -42,6 +46,7 @@ namespace NCoro::NStack {
         THolder<TStorage> Storage_;
         char* NextToAlloc_ = nullptr; // points to next available stack in the last memory chunk
         const uint64_t ChunkSize_ = 0;
+        uint64_t NumOfAllocated_ = 0;
     };
 
 }

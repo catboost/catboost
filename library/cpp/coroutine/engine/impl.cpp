@@ -242,6 +242,10 @@ TCont* TContExecutor::CreateOwned(
     return cont;
 }
 
+NCoro::NStack::TAllocatorStats TContExecutor::GetAllocatorStats() const noexcept {
+    return StackAllocator_->GetStackStats();
+}
+
 void TContExecutor::Release(TCont* cont) noexcept {
     delete cont;
     Allocated_ -= 1;
