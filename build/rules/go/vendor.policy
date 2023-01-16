@@ -995,6 +995,9 @@ ALLOW passport/go/daemons/tirole_internal/internal -> vendor/github.com/xeipuuv/
 ALLOW yt/admin/cms/internal/walle -> vendor/github.com/xeipuuv/gojsonschema
 ALLOW yweb/animals/internal/authserver -> vendor/github.com/xeipuuv/gojsonschema
 
+# CONTRIB-2356 Django-syntax like template-engine
+ALLOW .* -> vendor/github.com/flosch/pongo2/v4
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
