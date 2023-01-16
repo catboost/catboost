@@ -26,12 +26,12 @@ Main advantages of CatBoost:
 
 Get Started and Documentation
 --------------
-All CatBoost documentation is available [here](https://catboost.ai/docs/concepts/about.html).
+All CatBoost documentation is available [here](https://catboost.ai/docs/).
 
 Install CatBoost by following the guide for the
- * [Python package](https://catboost.ai/docs/concepts/python-installation.html)
- * [R-package](https://catboost.ai/docs/concepts/r-installation.html)
- * [command line](https://catboost.ai/docs/concepts/cli-installation.html)
+ * [Python package](https://catboost.ai/en/docs/concepts/python-installation)
+ * [R-package](https://catboost.ai/en/docs/concepts/r-installation)
+ * [Сommand line](https://catboost.ai/en/docs/concepts/cli-installation)
  * [Package for Apache Spark](https://catboost.ai/en/docs/concepts/spark-installation)
 
 Next you may want to investigate:
