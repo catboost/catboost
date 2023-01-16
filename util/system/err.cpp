@@ -5,6 +5,7 @@
 
 #include <util/generic/scope.h>
 
+#include <util/system/compat.h>
 #include <util/stream/printf.h>
 #include <util/stream/output.h>
 
@@ -52,12 +53,12 @@ void warnx(const char* fmt, ...) {
     va_end(args);
 }
 
-void verr(int status, const char* fmt, va_list args) {
+[[noreturn]] void verr(int status, const char* fmt, va_list args) {
     vwarn(fmt, args);
-    exit(status);
+    std::exit(status);
 }
 
-void err(int status, const char* fmt, ...) {
+[[noreturn]] void err(int status, const char* fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
@@ -65,12 +66,12 @@ void err(int status, const char* fmt, ...) {
     va_end(args);
 }
 
-void verrx(int status, const char* fmt, va_list args) {
+[[noreturn]] void verrx(int status, const char* fmt, va_list args) {
     vwarnx(fmt, args);
-    exit(status);
+    std::exit(status);
 }
 
-void errx(int status, const char* fmt, ...) {
+[[noreturn]] void errx(int status, const char* fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
