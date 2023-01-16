@@ -464,6 +464,9 @@ void CrossValidate(
             catBoostOptions.RandomSeed,
             cvParams.ReturnModels
         );
+        if (cvParams.IsCalledFromSearchHyperparameters) {
+            foldContext.OutputOptions.SetSaveSnapshotFlag(false); // hotfix for MLTOOLS-5965
+        }
         const THolder<ITrainingCallbacks> cvCallbacks = MakeHolder<TCrossValidationCallbacks>(
             globalMaxIteration,
             &errorTracker,
