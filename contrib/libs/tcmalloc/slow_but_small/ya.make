@@ -10,6 +10,8 @@ SRCDIR(contrib/libs/tcmalloc)
 
 INCLUDE(../common.inc)
 
-CFLAGS(-DTCMALLOC_SMALL_BUT_SLOW)
+CFLAGS(
+    -DTCMALLOC_SMALL_BUT_SLOW
+)
 
 END()

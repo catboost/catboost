@@ -23,8 +23,12 @@ PEERDIR(
     contrib/restricted/abseil-cpp
 )
 
-ADDINCL(GLOBAL contrib/libs/tcmalloc)
+ADDINCL(
+    GLOBAL contrib/libs/tcmalloc
+)
 
-CFLAGS(-DTCMALLOC_256K_PAGES)
+CFLAGS(
+    -DTCMALLOC_256K_PAGES
+)
 
 END()

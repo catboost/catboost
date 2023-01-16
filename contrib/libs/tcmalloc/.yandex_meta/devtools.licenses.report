@@ -40,9 +40,11 @@ BELONGS ya.make
     Files with this license:
         tcmalloc/arena.cc [3:13]
         tcmalloc/arena.h [3:13]
+        tcmalloc/arena_test.cc [3:13]
         tcmalloc/background.cc [3:13]
         tcmalloc/central_freelist.cc [3:13]
         tcmalloc/central_freelist.h [3:13]
+        tcmalloc/central_freelist_benchmark.cc [3:13]
         tcmalloc/central_freelist_test.cc [3:13]
         tcmalloc/common.cc [3:13]
         tcmalloc/common.h [3:13]
@@ -55,6 +57,8 @@ BELONGS ya.make
         tcmalloc/experiment_config_test.cc [3:13]
         tcmalloc/experiment_fuzz.cc [3:13]
         tcmalloc/experimental_56_size_class.cc [3:13]
+        tcmalloc/experimental_pow2_below64_size_class.cc [3:13]
+        tcmalloc/experimental_pow2_size_class.cc [3:13]
         tcmalloc/guarded_page_allocator.cc [3:13]
         tcmalloc/guarded_page_allocator.h [3:13]
         tcmalloc/guarded_page_allocator_benchmark.cc [3:13]
@@ -81,11 +85,19 @@ BELONGS ya.make
         tcmalloc/internal/atomic_stats_counter.h [3:13]
         tcmalloc/internal/bits.h [3:13]
         tcmalloc/internal/bits_test.cc [3:13]
+        tcmalloc/internal/cache_topology.cc [3:13]
+        tcmalloc/internal/cache_topology.h [3:13]
+        tcmalloc/internal/cache_topology_test.cc [3:13]
+        tcmalloc/internal/clock.h [3:13]
         tcmalloc/internal/config.h [3:13]
         tcmalloc/internal/declarations.h [3:13]
         tcmalloc/internal/environment.cc [3:13]
         tcmalloc/internal/environment.h [3:13]
         tcmalloc/internal/environment_test.cc [3:13]
+        tcmalloc/internal/lifetime_predictions.h [3:13]
+        tcmalloc/internal/lifetime_predictions_test.cc [3:13]
+        tcmalloc/internal/lifetime_tracker.h [3:13]
+        tcmalloc/internal/lifetime_tracker_test.cc [3:13]
         tcmalloc/internal/linked_list.h [3:13]
         tcmalloc/internal/linked_list_benchmark.cc [3:13]
         tcmalloc/internal/linked_list_test.cc [3:13]
@@ -93,6 +105,7 @@ BELONGS ya.make
         tcmalloc/internal/logging.cc [3:13]
         tcmalloc/internal/logging.h [3:13]
         tcmalloc/internal/logging_test.cc [3:13]
+        tcmalloc/internal/logging_test_helper.cc [3:13]
         tcmalloc/internal/memory_stats.cc [3:13]
         tcmalloc/internal/memory_stats.h [3:13]
         tcmalloc/internal/memory_stats_test.cc [3:13]
@@ -101,6 +114,9 @@ BELONGS ya.make
         tcmalloc/internal/mincore_benchmark.cc [3:13]
         tcmalloc/internal/mincore_test.cc [3:13]
         tcmalloc/internal/mock_span.h [3:13]
+        tcmalloc/internal/numa.cc [3:13]
+        tcmalloc/internal/numa.h [3:13]
+        tcmalloc/internal/numa_test.cc [3:13]
         tcmalloc/internal/optimization.h [3:13]
         tcmalloc/internal/parameter_accessors.h [3:13]
         tcmalloc/internal/percpu.cc [3:13]
@@ -199,6 +215,7 @@ BELONGS ya.make
         tcmalloc/want_hpaa_subrelease.cc [3:13]
         tcmalloc/want_legacy_spans.cc [3:13]
         tcmalloc/want_no_hpaa.cc [3:13]
+        tcmalloc/want_numa_aware.cc [3:13]
 
 KEEP     Apache-2.0           24be4e5673a9c71cdba851c53ed9677b
 BELONGS ya.make
@@ -210,6 +227,17 @@ BELONGS ya.make
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
         tcmalloc/internal/percpu_rseq_aarch64.S [4:14]
+
+KEEP     Apache-2.0           34ef0c6d1296bad9c0b8ea4447611e19
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        tcmalloc/BUILD [3:13]
 
 KEEP     Apache-2.0           566444825cbcc83578050639168bd08f
 BELONGS ya.make
@@ -273,9 +301,10 @@ BELONGS ya.make
     Files with this license:
         LICENSE [2:202]
 
-KEEP     LicenseRef-scancode-other-permissive cd348406a46a4c91e9edaa5be5e9c074
+SKIP     LicenseRef-scancode-other-permissive cd348406a46a4c91e9edaa5be5e9c074
 BELONGS ya.make
 FILE_INCLUDE LICENSE found in files: README.md at line 42
+    # File LICENSES allready included
     License text:
         license. See LICENSE for more information.
     Scancode info:
