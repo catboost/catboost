@@ -169,11 +169,7 @@ namespace NCB {
         void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
             TStringStream value;
             PrinterPtr->OutputFeatureColumnByIndex(&value, DocIdOffset + docIndex, FeatureId);
-            if (GetOutputType() == GetOutputTypeIndex<double>()) {
-                *result = FromString<double>(value.Str());
-            } else {
-                *result = value.Str();
-            }
+            *result = value.Str();
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -181,7 +177,7 @@ namespace NCB {
         }
 
         size_t GetOutputType() override {
-            return PrinterPtr->GetOutputFeatureType(FeatureId);
+            return GetOutputTypeIndex<TString>();
         }
 
     private:
