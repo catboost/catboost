@@ -85,7 +85,7 @@ def generate_mf():
         if meta['license_texts']:
             final_credits.append(generate_header(meta) + '\n' + meta['license_texts'])
         for peer in peers:
-            candidate = peer + '.mf'
+            candidate = os.path.join(build_root, peer + '.mf')
             with open(candidate) as src:
                 data = json.loads(src.read())
                 texts = data.get('license_texts')
