@@ -22,7 +22,9 @@ def main():
         rel_dst = os.path.dirname(os.path.normpath(src))
         for prefix in prefixes:
             if src.startswith(prefix):
-                rel_dst = src[len(prefix):]
+                rel_dst = rel_dst[len(prefix):]
+                break
+        assert not os.path.isabs(rel_dst)
         dest_dir = os.path.join(args.dest_dir, rel_dst)
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
