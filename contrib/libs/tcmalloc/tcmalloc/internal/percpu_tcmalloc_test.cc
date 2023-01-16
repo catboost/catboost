@@ -110,6 +110,9 @@ class TcmallocSlabTest : public testing::TestWithParam<SlabInit> {
     slab_test_ = &slab_;
     metadata_bytes_ = 0;
 
+// Ignore false-positive warning in GCC. For more information, see:
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96003
+#pragma GCC diagnostic ignored "-Wnonnull"
     slab_.Init(
         &ByteCountingMalloc, [](size_t cl) { return kCapacity; },
         GetParam() == SlabInit::kLazy, kShift);
@@ -269,7 +272,9 @@ TEST_P(TcmallocSlabTest, Unit) {
 
 #if !defined(__ppc__)
     if (UsingFlatVirtualCpus()) {
+#if TCMALLOC_PERCPU_USE_RSEQ
       __rseq_abi.vcpu_id = cpu ^ 1;
+#endif
       cpu = cpu ^ 1;
     }
 #endif
@@ -291,6 +296,7 @@ TEST_P(TcmallocSlabTest, Unit) {
       ASSERT_EQ(slab_.Capacity(cpu, cl), 0);
 
       if (!initialized[cpu]) {
+#pragma GCC diagnostic ignored "-Wnonnull"
         void* ptr = slab_.Pop(cl, [](int cpu, size_t cl) {
           slab_test_->InitCPU(cpu, [](size_t cl) { return kCapacity; });
 
@@ -793,9 +799,12 @@ static void BM_PushPop(benchmark::State& state) {
   RunOnSingleCpu([&](int this_cpu) {
     const int kBatchSize = 32;
     TcmallocSlab slab;
+
+#pragma GCC diagnostic ignored "-Wnonnull"
     slab.Init(
         allocator, [](size_t cl) -> size_t { return kBatchSize; }, false,
         kShift);
+
     CHECK_CONDITION(slab.Grow(this_cpu, 0, kBatchSize, kBatchSize) ==
                     kBatchSize);
     void* batch[kBatchSize];

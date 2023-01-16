@@ -423,6 +423,11 @@ static void DumpStats(Printer* out, int level) {
     }
 
     out->printf("------------------------------------------------\n");
+    out->printf("Transfer cache implementation: %s\n",
+                TransferCacheImplementationToLabel(
+                    Static::transfer_cache().implementation()));
+
+    out->printf("------------------------------------------------\n");
     out->printf("Transfer cache insert/remove hits/misses by size class\n");
     for (int cl = 1; cl < kNumClasses; ++cl) {
       out->printf(
@@ -564,6 +569,10 @@ namespace {
                        tc_stats[cl].remove_non_batch_misses);
       }
     }
+
+    region.PrintRaw("transfer_cache_implementation",
+                    TransferCacheImplementationToLabel(
+                        Static::transfer_cache().implementation()));
 
     if (UsePerCpuCache()) {
       Static::cpu_cache().PrintInPbtxt(&region);

@@ -52,7 +52,10 @@ void BM_CrossThread(benchmark::State& state) {
   static CrossThreadState* s = nullptr;
   if (state.thread_index == 0) {
     s = new CrossThreadState();
-    for (int i = 0; i < Env::kInitialCapacityInBatches / 2; ++i) {
+    for (int i = 0; i < ::tcmalloc::tcmalloc_internal::internal_transfer_cache::
+                                kInitialCapacityInBatches /
+                            2;
+         ++i) {
       for (Cache& c : s->c) {
         c.freelist().AllocateBatch(batch, kBatchSize);
         c.InsertRange(kSizeClass, {batch, kBatchSize});

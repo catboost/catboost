@@ -31,6 +31,14 @@
 #include "absl/types/span.h"
 #include "tcmalloc/internal/config.h"
 
+#define TCMALLOC_RETRY_ON_TEMP_FAILURE(expression)               \
+  (__extension__({                                               \
+    long int _temp_failure_retry_result;                         \
+    do _temp_failure_retry_result = (long int)(expression);      \
+    while (_temp_failure_retry_result == -1L && errno == EINTR); \
+    _temp_failure_retry_result;                                  \
+  }))
+
 // Useful internal utility functions.  These calls are async-signal safe
 // provided the signal handler saves errno at entry and restores it before
 // return.

@@ -19,6 +19,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <cmath>
 #include <limits>
 
 #include "absl/numeric/bits.h"
@@ -59,6 +60,8 @@ struct alignas(8) SizeInfo {
   int32_t used;
   int32_t capacity;
 };
+static constexpr int kMaxCapacityInBatches = 64;
+static constexpr int kInitialCapacityInBatches = 16;
 
 // TransferCache is used to cache transfers of
 // sizemap.num_objects_to_move(size_class) back and forth between
@@ -68,9 +71,6 @@ class TransferCache {
  public:
   using Manager = TransferCacheManager;
   using FreeList = CentralFreeList;
-
-  static constexpr int kMaxCapacityInBatches = 64;
-  static constexpr int kInitialCapacityInBatches = 16;
 
   TransferCache(Manager *owner, int cl)
       : TransferCache(owner, cl, CapacityNeeded(cl)) {}
@@ -129,11 +129,6 @@ class TransferCache {
                       (1024 * 1024) / (bytes * objs_to_move) * objs_to_move));
     capacity = std::min(capacity, max_capacity);
 
-    if (IsExperimentActive(Experiment::TEST_ONLY_TCMALLOC_16X_TRANSFER_CACHE) ||
-        IsExperimentActive(Experiment::TCMALLOC_16X_TRANSFER_CACHE_REAL)) {
-      capacity *= 16;
-      max_capacity *= 16;
-    }
     return {capacity, max_capacity};
   }
 
@@ -438,14 +433,8 @@ class RingBufferTransferCache {
   using Manager = TransferCacheManager;
   using FreeList = CentralFreeList;
 
-  static constexpr int kMaxCapacityInBatches = 64;
-  static constexpr int kInitialCapacityInBatches = 16;
-
   RingBufferTransferCache(Manager *owner, int cl)
-      : RingBufferTransferCache(
-            owner, cl,
-            TransferCache<CentralFreeList,
-                          TransferCacheManager>::CapacityNeeded(cl)) {}
+      : RingBufferTransferCache(owner, cl, CapacityNeeded(cl)) {}
 
   RingBufferTransferCache(
       Manager *owner, int cl,
@@ -604,17 +593,11 @@ class RingBufferTransferCache {
     lock_.Unlock();
   }
 
-  // Returns the number of free objects in the central cache.
-  size_t central_length() const { return freelist().length(); }
-
   // Returns the number of free objects in the transfer cache.
   size_t tc_length() ABSL_LOCKS_EXCLUDED(lock_) {
     absl::base_internal::SpinLockHolder h(&lock_);
     return static_cast<size_t>(GetSlotInfo().used);
   }
-
-  // Returns the number of spans allocated and deallocated from the CFL
-  SpanStats GetSpanStats() const { return freelist().GetSpanStats(); }
 
   // Returns the number of transfer cache insert/remove hits/misses.
   TransferCacheStats GetHitRateStats() const ABSL_LOCKS_EXCLUDED(lock_) {
@@ -623,25 +606,12 @@ class RingBufferTransferCache {
     stats.insert_hits = insert_hits_.value();
     stats.remove_hits = remove_hits_.value();
     stats.insert_misses = insert_misses_.value();
-    stats.insert_non_batch_misses = insert_non_batch_misses_.value();
+    stats.insert_non_batch_misses = 0;
     stats.remove_misses = remove_misses_.value();
-    stats.remove_non_batch_misses = remove_non_batch_misses_.value();
-
-    // For performance reasons, we only update a single atomic as part of the
-    // actual allocation operation.  For reporting, we keep reporting all
-    // misses together and separately break-out how many of those misses were
-    // non-batch sized.
-    stats.insert_misses += stats.insert_non_batch_misses;
-    stats.remove_misses += stats.remove_non_batch_misses;
+    stats.remove_non_batch_misses = 0;
 
     return stats;
   }
-
-  // Returns the memory overhead (internal fragmentation) attributable
-  // to the freelist.  This is memory lost when the size of elements
-  // in a freelist doesn't exactly divide the page-size (an 8192-byte
-  // page full of 5-byte objects would have 2 bytes memory overhead).
-  size_t OverheadBytes() const { return freelist().OverheadBytes(); }
 
   RingBufferSizeInfo GetSlotInfo() const ABSL_EXCLUSIVE_LOCKS_REQUIRED(lock_) {
     return slot_info_;
@@ -750,6 +720,27 @@ class RingBufferTransferCache {
   }
 
  private:
+  // Due to decreased downward pressure, the ring buffer based transfer cache
+  // contains on average more bytes than the legacy implementation.
+  // To counteract this, decrease the capacity (but not max capacity).
+  // TODO(b/161927252):  Revisit TransferCache rebalancing strategy
+  static typename TransferCache<CentralFreeList, TransferCacheManager>::Capacity
+  CapacityNeeded(int cl) {
+    auto capacity =
+        TransferCache<CentralFreeList, TransferCacheManager>::CapacityNeeded(
+            cl);
+    const int N = Manager::num_objects_to_move(cl);
+    if (N == 0) return {0, 0};
+    ASSERT(capacity.capacity % N == 0);
+    // We still want capacity to be in multiples of batches.
+    const int capacity_in_batches = capacity.capacity / N;
+    // This factor was found by trial and error.
+    const int new_batches =
+        static_cast<int>(std::ceil(capacity_in_batches / 1.5));
+    capacity.capacity = new_batches * N;
+    return capacity;
+  }
+
   // Converts a logical index (i.e. i-th element stored in the ring buffer) into
   // a physical index into slots_.
   size_t GetSlotIndex(size_t start, size_t i) const {
@@ -869,9 +860,7 @@ class RingBufferTransferCache {
   StatsCounter remove_hits_;
   // Miss counters do not hold lock_, so they use Add.
   StatsCounter insert_misses_;
-  StatsCounter insert_non_batch_misses_;
   StatsCounter remove_misses_;
-  StatsCounter remove_non_batch_misses_;
 
   FreeList freelist_do_not_access_directly_;
   Manager *const owner_;

@@ -41,6 +41,15 @@ GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
+enum class TransferCacheImplementation {
+  Legacy,
+  None,
+  Ring,
+};
+
+absl::string_view TransferCacheImplementationToLabel(
+    TransferCacheImplementation type);
+
 #ifndef TCMALLOC_SMALL_BUT_SLOW
 
 class StaticForwarder {
@@ -157,10 +166,9 @@ class TransferCacheManager : public StaticForwarder {
   TransferCacheManager &operator=(const TransferCacheManager &) = delete;
 
   void Init() ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
-    use_ringbuffer_ = IsExperimentActive(
-        Experiment::TEST_ONLY_TCMALLOC_RING_BUFFER_TRANSFER_CACHE);
+    implementation_ = ChooseImplementation();
     for (int i = 0; i < kNumClasses; ++i) {
-      if (use_ringbuffer_) {
+      if (implementation_ == TransferCacheImplementation::Ring) {
         new (&cache_[i].rbtc) RingBufferTransferCache(this, i);
       } else {
         new (&cache_[i].tc) TransferCache(this, i);
@@ -169,7 +177,7 @@ class TransferCacheManager : public StaticForwarder {
   }
 
   void InsertRange(int size_class, absl::Span<void *> batch) {
-    if (use_ringbuffer_) {
+    if (implementation_ == TransferCacheImplementation::Ring) {
       cache_[size_class].rbtc.InsertRange(size_class, batch);
     } else {
       cache_[size_class].tc.InsertRange(size_class, batch);
@@ -177,7 +185,7 @@ class TransferCacheManager : public StaticForwarder {
   }
 
   ABSL_MUST_USE_RESULT int RemoveRange(int size_class, void **batch, int n) {
-    if (use_ringbuffer_) {
+    if (implementation_ == TransferCacheImplementation::Ring) {
       return cache_[size_class].rbtc.RemoveRange(size_class, batch, n);
     } else {
       return cache_[size_class].tc.RemoveRange(size_class, batch, n);
@@ -188,7 +196,7 @@ class TransferCacheManager : public StaticForwarder {
   // been called will return all objects to the freelist.
   void Plunder() {
     for (int i = 0; i < kNumClasses; ++i) {
-      if (use_ringbuffer_) {
+      if (implementation_ == TransferCacheImplementation::Ring) {
         cache_[i].rbtc.TryPlunder(i);
       } else {
         cache_[i].tc.TryPlunder(i);
@@ -199,7 +207,7 @@ class TransferCacheManager : public StaticForwarder {
   // This is not const because the underlying ring-buffer transfer cache
   // function requires acquiring a lock.
   size_t tc_length(int size_class) {
-    if (use_ringbuffer_) {
+    if (implementation_ == TransferCacheImplementation::Ring) {
       return cache_[size_class].rbtc.tc_length();
     } else {
       return cache_[size_class].tc.tc_length();
@@ -207,7 +215,7 @@ class TransferCacheManager : public StaticForwarder {
   }
 
   TransferCacheStats GetHitRateStats(int size_class) const {
-    if (use_ringbuffer_) {
+    if (implementation_ == TransferCacheImplementation::Ring) {
       return cache_[size_class].rbtc.GetHitRateStats();
     } else {
       return cache_[size_class].tc.GetHitRateStats();
@@ -215,31 +223,29 @@ class TransferCacheManager : public StaticForwarder {
   }
 
   const CentralFreeList &central_freelist(int size_class) const {
-    if (use_ringbuffer_) {
+    if (implementation_ == TransferCacheImplementation::Ring) {
       return cache_[size_class].rbtc.freelist();
     } else {
       return cache_[size_class].tc.freelist();
     }
   }
 
+  TransferCacheImplementation implementation() const { return implementation_; }
+
  private:
+  static TransferCacheImplementation ChooseImplementation();
+
   int DetermineSizeClassToEvict();
   bool ShrinkCache(int size_class) {
-    if (use_ringbuffer_) {
+    if (implementation_ == TransferCacheImplementation::Ring) {
       return cache_[size_class].rbtc.ShrinkCache(size_class);
     } else {
       return cache_[size_class].tc.ShrinkCache(size_class);
     }
   }
-  bool GrowCache(int size_class) {
-    if (use_ringbuffer_) {
-      return cache_[size_class].rbtc.GrowCache(size_class);
-    } else {
-      return cache_[size_class].tc.GrowCache(size_class);
-    }
-  }
 
-  bool use_ringbuffer_ = false;
+  TransferCacheImplementation implementation_ =
+      TransferCacheImplementation::Legacy;
   std::atomic<int32_t> next_to_evict_;
   union Cache {
     constexpr Cache() : dummy(false) {}
@@ -283,6 +289,10 @@ class TransferCacheManager {
 
   const CentralFreeList &central_freelist(int size_class) const {
     return freelist_[size_class];
+  }
+
+  TransferCacheImplementation implementation() const {
+    return TransferCacheImplementation::None;
   }
 
  private:

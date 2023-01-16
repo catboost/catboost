@@ -891,6 +891,7 @@ cc_test(
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/numeric:bits",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
@@ -1048,6 +1049,7 @@ cc_test(
 cc_test(
     name = "profile_test",
     size = "medium",
+    timeout = "long",
     srcs = ["profile_test.cc"],
     copts = TCMALLOC_DEFAULT_COPTS,
     flaky = 1,  # TODO(b/134690164)

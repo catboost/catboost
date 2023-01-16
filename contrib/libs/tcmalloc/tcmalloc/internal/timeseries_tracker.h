@@ -27,23 +27,12 @@
 #include "absl/numeric/int128.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "tcmalloc/internal/clock.h"
 #include "tcmalloc/internal/logging.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
-
-// Represents an abstract clock to underpin a time-based tracker. The now and
-// freq functions are analogous to CycleClock::Now and CycleClock::Frequency,
-// which will be the most commonly used implementations. Tests can use this
-// interface to mock out the real clock.
-struct Clock {
-  // Returns the current time in ticks (relative to an arbitrary time base).
-  int64_t (*now)();
-
-  // Returns the number of ticks per second.
-  double (*freq)();
-};
 
 // Aggregates a series of reported values of type S in a set of entries of type
 // T, one entry per epoch. This class factors out common functionality of
@@ -77,7 +66,7 @@ class TimeSeriesTracker {
   // Iterates over the last num_epochs data points (if -1, iterate to the
   // oldest entry). Offsets are relative to the end of the buffer.
   void IterBackwards(absl::FunctionRef<void(size_t, int64_t, const T&)> f,
-                     size_t num_epochs = -1) const;
+                     int64_t num_epochs = -1) const;
 
   // This retrieves a particular data point (if offset is outside the valid
   // range, the default data point will be returned).
@@ -169,7 +158,7 @@ void TimeSeriesTracker<T, S, kEpochs>::Iter(
 template <class T, class S, size_t kEpochs>
 void TimeSeriesTracker<T, S, kEpochs>::IterBackwards(
     absl::FunctionRef<void(size_t, int64_t, const T&)> f,
-    size_t num_epochs) const {
+    int64_t num_epochs) const {
   // -1 means that we are outputting all epochs.
   num_epochs = (num_epochs == -1) ? kEpochs : num_epochs;
   size_t j = current_epoch_;

@@ -231,7 +231,7 @@ void *CPUCache::Refill(int cpu, size_t cl) {
         Static::transfer_cache().InsertRange(cl, absl::Span<void *>(batch, i));
       }
     }
-  } while (i == 0 && total < target &&
+  } while (got == batch_length && i == 0 && total < target &&
            cpu == freelist_.GetCurrentVirtualCpuUnsafe());
 
   for (int i = to_return.count; i < kMaxToReturn; ++i) {
@@ -361,6 +361,41 @@ void CPUCache::Grow(int cpu, size_t cl, size_t desired_increase,
   }
 }
 
+void CPUCache::TryReclaimingCaches() {
+  const int num_cpus = absl::base_internal::NumCPUs();
+
+  for (int cpu = 0; cpu < num_cpus; ++cpu) {
+    // Nothing to reclaim if the cpu is not populated.
+    if (!HasPopulated(cpu)) {
+      continue;
+    }
+
+    uint64_t used_bytes = UsedBytes(cpu);
+    uint64_t prev_used_bytes =
+        resize_[cpu].reclaim_used_bytes.load(std::memory_order_relaxed);
+
+    // Get reclaim miss and used bytes stats that were captured at the end of
+    // the previous interval.
+    const CpuCacheMissStats miss_stats = GetReclaimCacheMissStats(cpu);
+    uint64_t misses =
+        uint64_t{miss_stats.underflows} + uint64_t{miss_stats.overflows};
+
+    // Reclaim the cache if the number of used bytes and total number of misses
+    // stayed constant since the last interval.
+    if (used_bytes != 0 && used_bytes == prev_used_bytes && misses == 0) {
+      Reclaim(cpu);
+    }
+
+    // Takes a snapshot of used bytes in the cache at the end of this interval
+    // so that we can calculate if cache usage changed in the next interval.
+    //
+    // Reclaim occurs on a single thread. So, the relaxed store to used_bytes
+    // is safe.
+    resize_[cpu].reclaim_used_bytes.store(used_bytes,
+                                          std::memory_order_relaxed);
+  }
+}
+
 void CPUCache::ShuffleCpuCaches() {
   // Knobs that we can potentially tune depending on the workloads.
   constexpr double kBytesToStealPercent = 5.0;
@@ -417,8 +452,8 @@ void CPUCache::ShuffleCpuCaches() {
     StealFromOtherCache(misses[i].first, max_populated_cpu, to_steal);
   }
 
-  // Takes a snapshot of underflows and overflows at the end of this iteration
-  // so that we can calculate the misses that occurred in the next iteration.
+  // Takes a snapshot of underflows and overflows at the end of this interval
+  // so that we can calculate the misses that occurred in the next interval.
   for (int cpu = 0; cpu < num_cpus; ++cpu) {
     size_t underflows =
         resize_[cpu].total_underflows.load(std::memory_order_relaxed);
@@ -427,8 +462,9 @@ void CPUCache::ShuffleCpuCaches() {
 
     // Shuffle occurs on a single thread. So, the relaxed stores to
     // prev_underflow and pre_overflow counters are safe.
-    resize_[cpu].prev_underflows.store(underflows, std::memory_order_relaxed);
-    resize_[cpu].prev_overflows.store(overflows, std::memory_order_relaxed);
+    resize_[cpu].shuffle_underflows.store(underflows,
+                                          std::memory_order_relaxed);
+    resize_[cpu].shuffle_overflows.store(overflows, std::memory_order_relaxed);
   }
 }
 
@@ -838,7 +874,16 @@ uint64_t CPUCache::Reclaim(int cpu) {
 
   DrainContext ctx{&resize_[cpu].available, 0};
   freelist_.Drain(cpu, &ctx, DrainHandler);
+
+  // Record that the reclaim occurred for this CPU.
+  resize_[cpu].num_reclaims.store(
+      resize_[cpu].num_reclaims.load(std::memory_order_relaxed) + 1,
+      std::memory_order_relaxed);
   return ctx.bytes;
+}
+
+uint64_t CPUCache::GetNumReclaims(int cpu) const {
+  return resize_[cpu].num_reclaims.load(std::memory_order_relaxed);
 }
 
 void CPUCache::RecordCacheMissStat(const int cpu, const bool is_malloc) {
@@ -852,24 +897,64 @@ void CPUCache::RecordCacheMissStat(const int cpu, const bool is_malloc) {
   }
 }
 
-CPUCache::CpuCacheMissStats CPUCache::GetIntervalCacheMissStats(int cpu) const {
+CPUCache::CpuCacheMissStats CPUCache::GetReclaimCacheMissStats(int cpu) const {
   CpuCacheMissStats stats;
   size_t total_underflows =
       resize_[cpu].total_underflows.load(std::memory_order_relaxed);
-  size_t prev_underflows =
-      resize_[cpu].prev_underflows.load(std::memory_order_relaxed);
+  size_t prev_reclaim_underflows =
+      resize_[cpu].reclaim_underflows.load(std::memory_order_relaxed);
+  // Takes a snapshot of underflows at the end of this interval so that we can
+  // calculate the misses that occurred in the next interval.
+  //
+  // Reclaim occurs on a single thread. So, a relaxed store to the reclaim
+  // underflow stat is safe.
+  resize_[cpu].reclaim_underflows.store(total_underflows,
+                                        std::memory_order_relaxed);
+
   // In case of a size_t overflow, we wrap around to 0.
-  stats.underflows = total_underflows > prev_underflows
-                         ? total_underflows - prev_underflows
+  stats.underflows = total_underflows > prev_reclaim_underflows
+                         ? total_underflows - prev_reclaim_underflows
                          : 0;
 
   size_t total_overflows =
       resize_[cpu].total_overflows.load(std::memory_order_relaxed);
-  size_t prev_overflows =
-      resize_[cpu].prev_overflows.load(std::memory_order_relaxed);
+  size_t prev_reclaim_overflows =
+      resize_[cpu].reclaim_overflows.load(std::memory_order_relaxed);
+  // Takes a snapshot of overflows at the end of this interval so that we can
+  // calculate the misses that occurred in the next interval.
+  //
+  // Reclaim occurs on a single thread. So, a relaxed store to the reclaim
+  // overflow stat is safe.
+  resize_[cpu].reclaim_overflows.store(total_overflows,
+                                       std::memory_order_relaxed);
+
   // In case of a size_t overflow, we wrap around to 0.
-  stats.overflows =
-      total_overflows > prev_overflows ? total_overflows - prev_overflows : 0;
+  stats.overflows = total_overflows > prev_reclaim_overflows
+                        ? total_overflows - prev_reclaim_overflows
+                        : 0;
+
+  return stats;
+}
+
+CPUCache::CpuCacheMissStats CPUCache::GetIntervalCacheMissStats(int cpu) const {
+  CpuCacheMissStats stats;
+  size_t total_underflows =
+      resize_[cpu].total_underflows.load(std::memory_order_relaxed);
+  size_t shuffle_underflows =
+      resize_[cpu].shuffle_underflows.load(std::memory_order_relaxed);
+  // In case of a size_t overflow, we wrap around to 0.
+  stats.underflows = total_underflows > shuffle_underflows
+                         ? total_underflows - shuffle_underflows
+                         : 0;
+
+  size_t total_overflows =
+      resize_[cpu].total_overflows.load(std::memory_order_relaxed);
+  size_t shuffle_overflows =
+      resize_[cpu].shuffle_overflows.load(std::memory_order_relaxed);
+  // In case of a size_t overflow, we wrap around to 0.
+  stats.overflows = total_overflows > shuffle_overflows
+                        ? total_overflows - shuffle_overflows
+                        : 0;
 
   return stats;
 }
@@ -907,17 +992,20 @@ void CPUCache::Print(Printer *out) const {
   }
 
   out->printf("------------------------------------------------\n");
-  out->printf("Number of per-CPU cache underflows and overflows\n");
+  out->printf("Number of per-CPU cache underflows, overflows and reclaims\n");
   out->printf("------------------------------------------------\n");
   for (int cpu = 0, num_cpus = absl::base_internal::NumCPUs(); cpu < num_cpus;
        ++cpu) {
     CpuCacheMissStats miss_stats = GetTotalCacheMissStats(cpu);
+    uint64_t reclaims = GetNumReclaims(cpu);
     out->printf(
         "cpu %3d:"
         "%12" PRIu64
         " underflows,"
-        "%12" PRIu64 " overflows\n",
-        cpu, miss_stats.underflows, miss_stats.overflows);
+        "%12" PRIu64
+        " overflows,"
+        "%12" PRIu64 " reclaims\n",
+        cpu, miss_stats.underflows, miss_stats.overflows, reclaims);
   }
 }
 
@@ -931,6 +1019,7 @@ void CPUCache::PrintInPbtxt(PbtxtRegion *region) const {
     bool populated = HasPopulated(cpu);
     uint64_t unallocated = Unallocated(cpu);
     CpuCacheMissStats miss_stats = GetTotalCacheMissStats(cpu);
+    uint64_t reclaims = GetNumReclaims(cpu);
     entry.PrintI64("cpu", uint64_t(cpu));
     entry.PrintI64("used", rbytes);
     entry.PrintI64("unused", unallocated);
@@ -938,6 +1027,7 @@ void CPUCache::PrintInPbtxt(PbtxtRegion *region) const {
     entry.PrintBool("populated", populated);
     entry.PrintI64("underflows", miss_stats.underflows);
     entry.PrintI64("overflows", miss_stats.overflows);
+    entry.PrintI64("reclaims", reclaims);
   }
 }
 

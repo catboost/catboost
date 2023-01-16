@@ -10,7 +10,7 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 # https://github.com/google/tcmalloc
-VERSION(2021-07-30-ae1b63023d69c188b6de4e9f14fb09e30f241d55)
+VERSION(2021-10-04-45c59ccbc062ac96d83710205033c656e490d376)
 
 SRCS(
     # Options
