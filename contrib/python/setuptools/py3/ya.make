@@ -1,20 +1,20 @@
 PY3_LIBRARY()
 
+
+
+VERSION(57.4.0)
+
 LICENSE(MIT)
-
-
-
-VERSION(57.2.0)
 
 PEERDIR(
     library/python/resource
 )
 
+NO_LINT()
+
 NO_CHECK_IMPORTS(
     setuptools.*
 )
-
-NO_LINT()
 
 PY_SRCS(
     TOP_LEVEL
