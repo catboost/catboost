@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     bool error = false;
     while (ind < argc) {
         TString compressed;
-        if (AsStringBuf("-") == argv[ind]) {
+        if ("-"sv == argv[ind]) {
             ind++;
             if (ind >= argc) {
                 error = true;
