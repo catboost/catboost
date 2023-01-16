@@ -1428,7 +1428,6 @@ class GnuCompiler(Compiler):
                     '-Wno-unknown-warning-option',  # For nvcc to accept the above.
                 ))
                 self.cxx_warnings.extend((
-                    '-Wno-c99-designator',
                     '-Wno-deprecated-copy',
                     '-Wno-pessimizing-move',
                     '-Wno-range-loop-construct',
