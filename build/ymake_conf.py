@@ -2478,7 +2478,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
                 '-Wimport-preprocessor-directive-pedantic',
-                '-Wno-c++17-extensions',
                 '-Wno-inconsistent-missing-override',
                 '-Wno-undefined-var-template',
                 '-Wno-ambiguous-delete',
