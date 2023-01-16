@@ -760,7 +760,6 @@ migrations:
     - smart_devices/crash_analytics/tools/minidump_analyzer
     - smart_devices/tools/launcher2/tests/restarts
     - smm/lib/models/sklearn
-    - sport/backend/django_mds
     - sprav/mining/botanik_miner
     - statbox/qb2
     - statbox/qb2/qb2_extensions/api/v1/extractors
@@ -2339,7 +2338,6 @@ migrations:
     - noc/annlib/contrib/valkit
     - noc/checkist/clients/python/swagger_client
     - noc/hbf-server
-    - noc/rtapi
     - noc/soft_pingers
     - noc/yanet/yanetagent
     - ofd/notifier/server/blueprints/monitoring
