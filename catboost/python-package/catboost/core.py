@@ -6202,7 +6202,16 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         params['snapshot_interval'] = snapshot_interval
 
     if nfold is None and fold_count is None:
-        fold_count = 3
+        if folds is None:
+            fold_count = 3
+        else:
+            if hasattr(folds, 'get_n_splits'):  # sklearn splitter
+                fold_count = folds.get_n_splits()
+            elif hasattr(folds, '__len__'):
+                fold_count = len(folds)
+            else:
+                folds = list(folds)
+                fold_count = len(folds)
     elif fold_count is None:
         fold_count = nfold
     else:
