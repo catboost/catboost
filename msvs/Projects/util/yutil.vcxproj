@@ -336,7 +336,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\generic\utility.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\va_args.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\variant.h"/>
-    <ClInclude Include="$(SolutionDir)..\util\generic\variant_traits.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\vector.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\xrange.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\yexception.h"/>
