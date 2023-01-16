@@ -44,6 +44,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestComputeCoroutineYield)
     UNIT_TEST(TestPollEngines);
     UNIT_TEST(TestUserEvent);
+    UNIT_TEST(TestPause);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -74,6 +75,7 @@ public:
     void TestComputeCoroutineYield();
     void TestPollEngines();
     void TestUserEvent();
+    void TestPause();
 };
 
 void TCoroTest::TestException() {
@@ -936,6 +938,23 @@ void TCoroTest::TestPollEngines() {
     }
 
     UNIT_ASSERT(defaultChecked);
+}
+
+void TCoroTest::TestPause() {
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing()};
+
+    int i = 0;
+    executor.CreateOwned([&](TCont*) {
+        i++;
+        executor.Pause();
+        i++;
+    }, "coro");
+
+    UNIT_ASSERT_EQUAL(i, 0);
+    executor.Execute();
+    UNIT_ASSERT_EQUAL(i, 1);
+    executor.Execute();
+    UNIT_ASSERT_EQUAL(i, 2);
 }
 
 void TCoroTest::TestUserEvent() {
