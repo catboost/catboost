@@ -1536,7 +1536,7 @@ class GnuCompiler(Compiler):
             }
             when ($NO_COMPILER_WARNINGS == "yes") {
                 C_WARNING_OPTS = -w
-                CXX_WARNING_OPTS = -Wno-register
+                CXX_WARNING_OPTS = -Wno-everything
             }
             when ($NO_OPTIMIZE == "yes") {
                 OPTIMIZE = -O0
