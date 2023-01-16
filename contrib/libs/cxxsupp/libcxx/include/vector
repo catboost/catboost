@@ -782,8 +782,6 @@ public:
     }
 
 #if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
-    void yresize(size_type __new_size);
-
     void resize_uninitialized(size_type __sz);
 #endif
 
@@ -2053,17 +2051,6 @@ vector<_Tp, _Allocator>::insert(const_iterator __position, _ForwardIterator __fi
 }
 
 #if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
-
-template <class _Tp, class _Allocator>
-void
-vector<_Tp, _Allocator>::yresize(size_type __new_size)
-{
-    if (is_pod<_Tp>::value) {
-        resize_uninitialized(__new_size);
-    } else {
-        resize(__new_size);
-    }
-}
 
 template <class _Tp, class _Allocator>
 void
