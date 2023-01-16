@@ -1011,6 +1011,9 @@ ALLOW .* -> vendor/github.com/haproxytech/client-native/v2
 ALLOW .* -> vendor/github.com/haproxytech/config-parser/v4
 ALLOW .* -> vendor/github.com/haproxytech/go-logger
 
+# CONTRIB-2416 Bit Reader/Writer
+ALLOW .* -> vendor/github.com/icza/bitio
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
