@@ -1,4 +1,4 @@
-PY2_LIBRARY()
+PY23_LIBRARY()
 
 
 
@@ -7,11 +7,16 @@ VERSION(2.1.1)
 LICENSE(Apache-2.0)
 
 PEERDIR(
-    contrib/python/configparser
-    contrib/python/contextlib2
-    contrib/python/pathlib2
     library/python/resource
 )
+
+IF (PYTHON2)
+    PEERDIR(
+        contrib/python/configparser
+        contrib/python/contextlib2
+        contrib/python/pathlib2
+    )
+ENDIF()
 
 NO_LINT()
 
