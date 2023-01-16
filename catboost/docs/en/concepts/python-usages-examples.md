@@ -805,6 +805,50 @@ model2.fit(train_data, train_labels, init_model=model1)
 ```
 
 
+## Batch training {#batch-training}
+
+```python
+from catboost import (CatBoostRegressor, Pool, sum_models,)
+
+# Initialize data
+
+train_data1 = [[1, 4, 5, 6],
+                [4, 5, 6, 7],
+                [30, 40, 50, 60]]
+train_labels1 = [10, 20, 30]
+
+train_data2 = [[2, 4, 6, 8],
+                [41, 14, 56, 65],
+                [1, 4, 50, 60]]
+train_labels2 = [17, 23, 73]
+
+
+# training parameters
+
+params = {
+    'task_type': 'GPU',
+    'iterations': 2,
+    'learning_rate': 0.2,
+    'depth': 2
+}
+
+model1 = CatBoostRegressor(**params)
+batch1 = Pool(train_data1, label=train_labels1)
+model1.fit(X=batch1)
+
+# continue training with different portion of data
+
+model2 = CatBoostRegressor(**params)
+batch2 = Pool(train_data2, label=train_labels2)
+batch2.set_baseline(model1.predict(batch1))
+model2.fit(X=batch2)
+
+# build resulting model
+
+model = sum_models([model1, model2])
+```
+
+
 ## Exporting the model to Apple CoreML {#exporting-to-apple-core-ml}
 
 {% include [export-to-core-ml-exporting-to-apple-core-ml__div](../_includes/work_src/reusage-python/exporting-to-apple-core-ml__div.md) %}
