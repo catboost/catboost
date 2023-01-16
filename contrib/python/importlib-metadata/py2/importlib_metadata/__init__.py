@@ -33,11 +33,6 @@ from ._compat import (
 from importlib import import_module
 from itertools import starmap
 
-try:
-    import library.python.resource
-    ARCADIA = True
-except ImportError:
-    ARCADIA = False
 
 __metaclass__ = type
 
@@ -452,8 +447,8 @@ class FastPath:
     def children(self):
         with suppress(Exception):
             return os.listdir(self.root or '')
-        # with suppress(Exception):
-        #     return self.zip_children()
+        with suppress(Exception):
+            return self.zip_children()
         return []
 
     def zip_children(self):
@@ -529,7 +524,7 @@ class Prepared:
             and base.endswith('.egg'))
 
 
-@install(ARCADIA == False)
+#@install
 class MetadataPathFinder(NullFinder, DistributionFinder):
     """A degenerate finder for distribution packages on the file system.
 
@@ -593,26 +588,31 @@ class ArcadiaDistribution(Distribution):
         return '{}{}'.format(self.prefix, path)
 
 
-@install(ARCADIA == True)
+@install
 class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
 
     prefixes = {}
 
-    def find_distributions(self, context=DistributionFinder.Context()):
-        found = self._search_prefixes(context.name)
+    @classmethod
+    def find_distributions(cls, context=DistributionFinder.Context()):
+        found = cls._search_prefixes(context.name)
         return map(ArcadiaDistribution, found)
 
     @classmethod
     def _init_prefixes(cls):
         from library.python.resource import resfs_read, resfs_files
+        cls.prefixes.clear()
+
+        METADATA_NAME = re.compile('^Name: (.*)$', re.MULTILINE)
 
         for resource in resfs_files():
-            if not resource.endswith('top_level.txt'):
+            if not resource.endswith('METADATA'):
                 continue
             data = resfs_read(resource).decode('utf-8')
-            for top_level in data.split('\n'):
-                if top_level:
-                    cls.prefixes[top_level] = resource[:-len('top_level.txt')]
+            metadata_name = METADATA_NAME.search(data)
+            if metadata_name:
+                metadata_name = Prepared(metadata_name.group(1))
+                cls.prefixes[metadata_name.normalized] = resource[:-len('METADATA')]
 
     @classmethod
     def _search_prefixes(cls, name):
@@ -620,9 +620,12 @@ class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
             cls._init_prefixes()
 
         if name:
-            yield cls.prefixes[name.replace('-', '_')]
+            try:
+                yield cls.prefixes[Prepared(name).normalized]
+            except KeyError:
+                raise PackageNotFoundError(name)
         else:
-            for prefix in sorted(set(cls.prefixes.values())):
+            for prefix in sorted(cls.prefixes.values()):
                 yield prefix
 
 
