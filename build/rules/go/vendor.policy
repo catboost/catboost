@@ -1002,9 +1002,9 @@ ALLOW .* -> vendor/github.com/tdewolff/minify/v2
 ALLOW .* -> vendor/github.com/disintegration/imaging
 
 # CONTRIB-2376 HAProxy Native Golang Client
-ALLOW .* -> vendor/github.com/haproxytech/client-native
-ALLOW .* -> vendor/github.com/haproxytech/config-parser
-ALLOW .* -> vendor/github.com/haproxytech/models
+ALLOW .* -> vendor/github.com/haproxytech/client-native/v2
+ALLOW .* -> vendor/github.com/haproxytech/config-parser/v4
+ALLOW .* -> vendor/github.com/haproxytech/go-logger
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
