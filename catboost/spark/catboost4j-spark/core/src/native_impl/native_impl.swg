@@ -39,6 +39,7 @@
 %include "data_provider_builders.i"
 %include "pairs.i"
 %include "quantization.i"
+%include "target.i"
 
 %include "ctrs.i"
 

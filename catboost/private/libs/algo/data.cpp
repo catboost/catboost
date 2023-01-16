@@ -28,7 +28,7 @@
 
 namespace NCB {
 
-    static TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
+    TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
         const NCatboostOptions::TCatBoostOptions& params) {
 
         TVector<NCatboostOptions::TLossDescription> result;

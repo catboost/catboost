@@ -55,6 +55,15 @@ namespace NCB {
     };
 
     TTargetCreationOptions MakeTargetCreationOptions(
+        bool dataHasWeights,
+        ui32 dataTargetDimension,
+        bool dataHasGroups,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+        TMaybe<ui32> knownModelApproxDimension,
+        bool knownIsClassification,
+        const TInputClassificationInfo& inputClassificationInfo);
+
+    TTargetCreationOptions MakeTargetCreationOptions(
         const TRawTargetDataProvider &rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
@@ -114,6 +123,15 @@ namespace NCB {
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         const TWeights<float>& groupWeights,
         TMaybe<TRawPairsDataRef> pairs);
+
+    void UpdateTargetProcessingParams(
+        const TInputClassificationInfo& inputClassificationInfo,
+        const TTargetCreationOptions& targetCreationOptions,
+        TMaybe<ui32> knownApproxDimension,
+        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
+        bool* isRealTarget,
+        TMaybe<ui32>* knownClassCount,
+        TInputClassificationInfo* updatedInputClassificationInfo);
 
     TVector<TSharedVector<float>> ConvertTarget(
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,

@@ -14,6 +14,7 @@ void CreateTrainingDataForWorker(
     i32 hostId,
     i32 numThreads,
     const TString& plainJsonParamsAsString,
+    const TVector<i8>& serializedLabelConverter,
     const TVector<NCB::TDataProviderPtr>& trainDataProviders,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TVector<NCB::TDataProviderPtr>& trainEstimatedDataProviders, // can be empty

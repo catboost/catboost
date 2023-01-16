@@ -337,9 +337,12 @@ namespace NCB {
 
 
     TTargetCreationOptions MakeTargetCreationOptions(
-        const TRawTargetDataProvider& rawData,
+        bool dataHasWeights,
+        ui32 dataTargetDimension,
+        bool dataHasGroups,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
+        bool knownIsClassification,
         const TInputClassificationInfo& inputClassificationInfo
     ) {
         auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
@@ -360,7 +363,7 @@ namespace NCB {
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
-        if (!rawData.GetWeights().IsTrivial() && isAnyOfMetrics(UsesPairsForCalculation)) {
+        if (dataHasWeights && isAnyOfMetrics(UsesPairsForCalculation)) {
             CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights." << '\n';
         }
 
@@ -372,13 +375,14 @@ namespace NCB {
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
         bool classTargetData = (
+            knownIsClassification ||
             hasClassificationOnlyMetrics ||
             knownClassCount ||
             (inputClassificationInfo.ClassWeights.size() > 0) ||
             (inputClassificationInfo.ClassLabels.size() > 0) ||
             inputClassificationInfo.TargetBorder
         );
-        bool multiLabelTargetData = classTargetData && (hasMultiLabelOnlyMetrics || rawData.GetTargetDimension() > 1);
+        bool multiLabelTargetData = classTargetData && (hasMultiLabelOnlyMetrics || dataTargetDimension > 1);
 
         bool multiClassTargetData = false;
 
@@ -400,6 +404,8 @@ namespace NCB {
                 }
                 multiClassTargetData = !hasMultiRegressionOrSurvivalMetrics;
                 if (multiClassTargetData && !knownClassCount) {
+                    classTargetData = true;
+
                     // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
                 }
@@ -445,12 +451,29 @@ namespace NCB {
             /*CreateMultiLabelTarget*/ multiLabelTargetData,
             /*CreateGroups*/ (
                 hasGroupwiseMetrics
-                || (!rawData.GetObjectsGrouping()->IsTrivial() && hasUserDefinedMetrics)
+                || (dataHasGroups && hasUserDefinedMetrics)
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
             /*MaxPairsCount*/ maxPairsCount
         };
         return options;
+    }
+
+    TTargetCreationOptions MakeTargetCreationOptions(
+        const TRawTargetDataProvider& rawData,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+        TMaybe<ui32> knownModelApproxDimension,
+        const TInputClassificationInfo& inputClassificationInfo
+    ) {
+        return MakeTargetCreationOptions(
+            !rawData.GetWeights().IsTrivial(),
+            rawData.GetTargetDimension(),
+            !rawData.GetObjectsGrouping()->IsTrivial(),
+            metricDescriptions,
+            knownModelApproxDimension,
+            /*knownIsClassification*/ false,
+            inputClassificationInfo
+        );
     }
 
 
@@ -524,6 +547,34 @@ namespace NCB {
         }
     }
 
+    void UpdateTargetProcessingParams(
+        const TInputClassificationInfo& inputClassificationInfo,
+        const TTargetCreationOptions& targetCreationOptions,
+        TMaybe<ui32> knownApproxDimension,
+        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
+        bool* isRealTarget,
+        TMaybe<ui32>* knownClassCount,
+        TInputClassificationInfo* updatedInputClassificationInfo
+    ) {
+        *knownClassCount = inputClassificationInfo.KnownClassCount;
+        *updatedInputClassificationInfo = inputClassificationInfo;
+
+        *isRealTarget = !updatedInputClassificationInfo->TargetBorder;
+        if (targetCreationOptions.IsClass) {
+            *isRealTarget
+                = mainLossFunction
+                    && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy ||
+                        mainLossFunction->GetLossFunction() == ELossFunction::MultiCrossEntropy);
+            if (*isRealTarget) {
+                updatedInputClassificationInfo->TargetBorder = Nothing();
+            }
+
+            if (!*isRealTarget && !*knownClassCount && knownApproxDimension && (*knownApproxDimension > 1)) {
+                *knownClassCount = knownApproxDimension;
+            }
+        }
+    }
+
 
     TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
@@ -547,23 +598,19 @@ namespace NCB {
             );
         }
 
-        TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
-        TInputClassificationInfo updatedInputClassificationInfo = inputClassificationInfo;
+        bool isRealTarget;
+        TMaybe<ui32> knownClassCount;
+        TInputClassificationInfo updatedInputClassificationInfo;
 
-        bool isRealTarget = !updatedInputClassificationInfo.TargetBorder;
-        if (targetCreationOptions.IsClass) {
-            isRealTarget
-                = mainLossFunction
-                    && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy ||
-                        mainLossFunction->GetLossFunction() == ELossFunction::MultiCrossEntropy);
-            if (isRealTarget) {
-                updatedInputClassificationInfo.TargetBorder = Nothing();
-            }
-
-            if (!isRealTarget && !knownClassCount && knownModelApproxDimension > 1) {
-                knownClassCount = knownModelApproxDimension;
-            }
-        }
+        UpdateTargetProcessingParams(
+            inputClassificationInfo,
+            targetCreationOptions,
+            knownModelApproxDimension,
+            mainLossFunction,
+            &isRealTarget,
+            &knownClassCount,
+            &updatedInputClassificationInfo
+        );
 
         ui32 classCount = knownClassCount.GetOrElse(0);
 

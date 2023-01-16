@@ -12,6 +12,7 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/load_options.h>
@@ -85,6 +86,7 @@ namespace NCatboostDistributed {
         NCB::TObjectsGrouping LearnObjectsGrouping;
         TVector<NCB::TObjectsGrouping> TestObjectsGroupings;
         NCB::TFeaturesLayout FeaturesLayout;
+        TLabelConverter LabelConverter;
         ui64 RandomSeed;
 
     public:
@@ -95,6 +97,7 @@ namespace NCatboostDistributed {
             LearnObjectsGrouping,
             TestObjectsGroupings,
             FeaturesLayout,
+            LabelConverter,
             RandomSeed);
     };
 

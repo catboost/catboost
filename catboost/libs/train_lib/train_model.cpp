@@ -1096,6 +1096,7 @@ static void TrainModel(
                 TObjectsGrouping(*trainingData.Learn->ObjectsGrouping),
                 std::move(testObjectsGroupings),
                 *trainingData.Learn->MetaInfo.FeaturesLayout,
+                labelConverter,
                 &rand
             );
         } else {
