@@ -2354,6 +2354,11 @@ class MSVCCompiler(MSVC, Compiler):
         flags_release = ['/Ox', '/Ob2', '/Oi', '/DNDEBUG']
 
         flags_c_only = []
+        cxx_flags = [
+            # Provide proper __cplusplus value
+            # https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
+            "/Zc:__cplusplus"
+        ]
 
         if self.tc.use_clang:
             flags.append('-fcase-insensitive-paths')
@@ -2502,7 +2507,7 @@ class MSVCCompiler(MSVC, Compiler):
             emit('CFLAGS_PER_TYPE', '@[debug|$CFLAGS_DEBUG]@[release|$CFLAGS_RELEASE]')
 
         append('CFLAGS', flags, flags_msvs_only, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_WARNING_OPTS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, cxx_defines, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '/std:' + self.tc.cxx_std, cxx_flags, cxx_defines, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
 
         append('BC_CFLAGS', '$CFLAGS')
