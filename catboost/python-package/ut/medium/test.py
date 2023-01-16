@@ -445,7 +445,7 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
     )
     feature_names = get_only_features_names(columns_metadata)
 
-    pool_from_file = Pool(train_file, column_description=cd_file)
+    pool_from_file = Pool(train_file, column_description=cd_file, ignore_csv_quoting=True)
     pool_from_file.set_feature_names(feature_names)
 
     for dtype in dtypes:
@@ -582,7 +582,7 @@ def test_load_df_vs_load_from_file(dataset):
         'rotten_tomatoes_small_with_embeddings': (
             ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
             ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE,
-            11,
+            14,
             None,
             []
         )

@@ -408,17 +408,21 @@ namespace NCB::NModelEvaluation {
                     }
                 }
             }
-            if (applyData.UsedTextFeaturesCount > 0 && applyData.UsedEstimatedFeaturesCount > 0) {
-
+            if (applyData.UsedEstimatedFeaturesCount > 0) {
                 CB_ENSURE(
-                    textProcessingCollection,
+                    textProcessingCollection || applyData.UsedTextFeaturesCount == 0,
                     "Fail to apply with text features: TextProcessingCollection must present in FullModel"
                 );
+                CB_ENSURE(
+                    embeddingProcessingCollection || applyData.UsedEmbeddingFeaturesCount == 0,
+                    "Fail to apply with embedding features: EmbeddingProcessingCollection must present in FullModel"
+                );
 
-                TVector<TStringBuf> texts;
-                texts.yresize(docCount);
+                ui32 textFeaturesTotalNum = 0;
 
-                {
+                if (textProcessingCollection) {
+                    textFeaturesTotalNum = textProcessingCollection->TotalNumberOfOutputFeatures();
+
                     TVector<ui32> textFeatureIds;
                     THashMap<ui32, ui32> textFeatureIdToFlatIndex;
                     // TODO(d-kruchinin) Check out how index recalculation affects the speed
@@ -450,38 +454,7 @@ namespace NCB::NModelEvaluation {
                     );
                 }
 
-                for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
-                    if (estimatedFeature.ModelEstimatedFeature.SourceFeatureType != EEstimatedSourceFeatureType::Text) {
-                        continue;
-                    }
-                    const ui32 featureOffset =
-                        textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
-                        + estimatedFeature.ModelEstimatedFeature.LocalId;
-
-                    auto estimatedFeaturePtr = &estimatedFeatures[featureOffset * docCount];
-
-                    BinarizeFloats<false>(
-                        TFeaturePosition(),
-                        docCount,
-                        [estimatedFeaturePtr](TFeaturePosition, size_t index) {
-                            return estimatedFeaturePtr[index];
-                        },
-                        MakeConstArrayRef(estimatedFeature.Borders),
-                        0,
-                        resultPtr
-                    );
-                }
-            }
-            if (applyData.UsedEmbeddingFeaturesCount > 0 && applyData.UsedEstimatedFeaturesCount > 0) {
-                CB_ENSURE(
-                    embeddingProcessingCollection,
-                    "Fail to apply with embedding features: EmbeddingProcessingCollection must present in FullModel"
-                );
-
-                TVector<TEmbeddingsArray> embeddings;
-                embeddings.yresize(docCount);
-
-                {
+                if (embeddingProcessingCollection) {
                     TVector<ui32> embeddingFeatureIds;
                     THashMap<ui32, ui32> embeddingFeatureIdToFlatIndex;
                     for (const auto& embeddingFeature : trees.GetEmbeddingFeatures()) {
@@ -495,7 +468,6 @@ namespace NCB::NModelEvaluation {
                         embeddingFeatureIds.push_back(position.Index);
                         embeddingFeatureIdToFlatIndex[position.Index] = position.FlatIndex;
                     }
-
                     embeddingProcessingCollection->CalcFeatures(
                         [start, &embeddingFeatureAccessor, &embeddingFeatureIdToFlatIndex](ui32 embeddingFeatureId,
                                                                                            ui32 docId) {
@@ -509,19 +481,24 @@ namespace NCB::NModelEvaluation {
                         },
                         MakeConstArrayRef(embeddingFeatureIds),
                         docCount,
-                        estimatedFeatures
+                        MakeArrayRef(estimatedFeatures.begin() + textFeaturesTotalNum * docCount,
+                                     estimatedFeatures.end())
                     );
                 }
 
-                for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
-                    if (estimatedFeature.ModelEstimatedFeature.SourceFeatureType != EEstimatedSourceFeatureType::Embedding) {
-                        continue;
+                for (auto estimatedFeature : trees.GetEstimatedFeatures()) {
+                    ui32 reorderedOffset;
+                    if (estimatedFeature.ModelEstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Embedding) {
+                        reorderedOffset = textFeaturesTotalNum
+                            + embeddingProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
+                            + estimatedFeature.ModelEstimatedFeature.LocalId;
+                    } else {
+                        reorderedOffset =
+                            textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
+                            + estimatedFeature.ModelEstimatedFeature.LocalId;
                     }
-                    const ui32 featureOffset =
-                        embeddingProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
-                        + estimatedFeature.ModelEstimatedFeature.LocalId;
 
-                    auto estimatedFeaturePtr = &estimatedFeatures[featureOffset * docCount];
+                    auto estimatedFeaturePtr = &estimatedFeatures[reorderedOffset * docCount];
 
                     BinarizeFloats<false>(
                         TFeaturePosition(),
@@ -534,7 +511,6 @@ namespace NCB::NModelEvaluation {
                         resultPtr
                     );
                 }
-
             }
             ComputeOneHotAndCtrFeaturesForBlock(
                 trees,
