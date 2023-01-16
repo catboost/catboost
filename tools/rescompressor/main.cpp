@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
     }
 
     while (TStringBuf(argv[ind]).StartsWith("--replace=")) {
-        replacements.push_back(TStringBuf(argv[ind]).SubStr(AsStringBuf("--replace=").Size()));
+        replacements.push_back(TStringBuf(argv[ind]).SubStr(TStringBuf("--replace=").Size()));
         ind++;
     }
 
