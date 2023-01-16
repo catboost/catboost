@@ -8,6 +8,7 @@ really defined in distutils.dist and distutils.cmd.
 
 import os
 import sys
+import tokenize
 
 from distutils.debug import DEBUG
 from distutils.errors import *
@@ -144,27 +145,39 @@ def setup (**attrs):
 
     # And finally, run all the commands found on the command line.
     if ok:
-        try:
-            dist.run_commands()
-        except KeyboardInterrupt:
-            raise SystemExit("interrupted")
-        except OSError as exc:
-            if DEBUG:
-                sys.stderr.write("error: %s\n" % (exc,))
-                raise
-            else:
-                raise SystemExit("error: %s" % (exc,))
-
-        except (DistutilsError,
-                CCompilerError) as msg:
-            if DEBUG:
-                raise
-            else:
-                raise SystemExit("error: " + str(msg))
+        return run_commands(dist)
 
     return dist
 
 # setup ()
+
+
+def run_commands (dist):
+    """Given a Distribution object run all the commands,
+    raising ``SystemExit`` errors in the case of failure.
+
+    This function assumes that either ``sys.argv`` or ``dist.script_args``
+    is already set accordingly.
+    """
+    try:
+        dist.run_commands()
+    except KeyboardInterrupt:
+        raise SystemExit("interrupted")
+    except OSError as exc:
+        if DEBUG:
+            sys.stderr.write("error: %s\n" % (exc,))
+            raise
+        else:
+            raise SystemExit("error: %s" % (exc,))
+
+    except (DistutilsError,
+            CCompilerError) as msg:
+        if DEBUG:
+            raise
+        else:
+            raise SystemExit("error: " + str(msg))
+
+    return dist
 
 
 def run_setup (script_name, script_args=None, stop_after="run"):
@@ -205,14 +218,16 @@ def run_setup (script_name, script_args=None, stop_after="run"):
     _setup_stop_after = stop_after
 
     save_argv = sys.argv.copy()
-    g = {'__file__': script_name}
+    g = {'__file__': script_name, '__name__': '__main__'}
     try:
         try:
             sys.argv[0] = script_name
             if script_args is not None:
                 sys.argv[1:] = script_args
-            with open(script_name, 'rb') as f:
-                exec(f.read(), g)
+            # tokenize.open supports automatic encoding detection
+            with tokenize.open(script_name) as f:
+                code = f.read().replace(r'\r\n', r'\n')
+                exec(code, g)
         finally:
             sys.argv = save_argv
             _setup_stop_after = None

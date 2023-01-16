@@ -48,11 +48,15 @@ def enabled():
 
 def ensure_local_distutils():
     clear_distutils()
-    distutils = importlib.import_module('setuptools._distutils')
-    distutils.__name__ = 'distutils'
-    sys.modules['distutils'] = distutils
 
-    # sanity check that submodules load as expected
+    # With the DistutilsMetaFinder in place,
+    # perform an import to cause distutils to be
+    # loaded from setuptools._distutils. Ref #2906.
+    add_shim()
+    importlib.import_module('distutils')
+    remove_shim()
+
+    # check that submodules load as expected
     core = importlib.import_module('distutils.core')
     assert '_distutils' in core.__file__, core.__file__
 
