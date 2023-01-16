@@ -1,21 +1,21 @@
 PY2_LIBRARY()
 
-LICENSE(BSD-3-Clause)
-
 
 
 VERSION(2.5.2)
 
+LICENSE(BSD-3-Clause)
+
 PEERDIR(
-    contrib/python/six
     contrib/python/setuptools
+    contrib/python/six
 )
+
+NO_LINT()
 
 NO_CHECK_IMPORTS(
     pygments.sphinxext
 )
-
-NO_LINT()
 
 PY_SRCS(
     TOP_LEVEL

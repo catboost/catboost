@@ -386,10 +386,14 @@ class BaseBlockManager(DataManager):
             # We only get here with fill_value not-lib.no_default
             ncols = self.shape[0]
             if periods > 0:
-                indexer = [-1] * periods + list(range(ncols - periods))
+                indexer = np.array(
+                    [-1] * periods + list(range(ncols - periods)), dtype=np.intp
+                )
             else:
                 nper = abs(periods)
-                indexer = list(range(nper, ncols)) + [-1] * nper
+                indexer = np.array(
+                    list(range(nper, ncols)) + [-1] * nper, dtype=np.intp
+                )
             result = self.reindex_indexer(
                 self.items,
                 indexer,
@@ -1184,8 +1188,8 @@ class BlockManager(libinternals.BlockManager, BaseBlockManager):
             warnings.warn(
                 "DataFrame is highly fragmented.  This is usually the result "
                 "of calling `frame.insert` many times, which has poor performance.  "
-                "Consider using pd.concat instead.  To get a de-fragmented frame, "
-                "use `newframe = frame.copy()`",
+                "Consider joining all columns at once using pd.concat(axis=1) "
+                "instead.  To get a de-fragmented frame, use `newframe = frame.copy()`",
                 PerformanceWarning,
                 stacklevel=5,
             )

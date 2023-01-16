@@ -2631,23 +2631,22 @@ class FennelLexer(RegexLexer):
     aliases = ['fennel', 'fnl']
     filenames = ['*.fnl']
 
-    # these two lists are taken from fennel-mode.el:
-    # https://gitlab.com/technomancy/fennel-mode
-    # this list is current as of Fennel version 0.6.0.
+    # this list is current as of Fennel version 0.10.0.
     special_forms = (
-        'require-macros', 'eval-compiler', 'doc', 'lua', 'hashfn',
-        'macro', 'macros', 'import-macros', 'pick-args', 'pick-values',
-        'macroexpand', 'macrodebug', 'do', 'values', 'if', 'when',
-        'each', 'for', 'fn', 'lambda', 'λ', 'partial', 'while',
-        'set', 'global', 'var', 'local', 'let', 'tset', 'set-forcibly!',
-        'doto', 'match', 'or', 'and', 'true', 'false', 'nil', 'not',
-        'not=', '.', '+', '..', '^', '-', '*', '%', '/', '>',
-        '<', '>=', '<=', '=', '...', ':', '->', '->>', '-?>',
-        '-?>>', 'rshift', 'lshift', 'bor', 'band', 'bnot', 'bxor',
-        'with-open', 'length'
+        '#', '%', '*', '+', '-', '->', '->>', '-?>', '-?>>', '.', '..',
+        '/', '//', ':', '<', '<=', '=', '>', '>=', '?.', '^', 'accumulate',
+        'and', 'band', 'bnot', 'bor', 'bxor', 'collect', 'comment', 'do', 'doc',
+        'doto', 'each', 'eval-compiler', 'for', 'hashfn', 'icollect', 'if',
+        'import-macros', 'include', 'length', 'let', 'lshift', 'lua',
+        'macrodebug', 'match', 'not', 'not=', 'or', 'partial', 'pick-args',
+        'pick-values', 'quote', 'require-macros', 'rshift', 'set',
+        'set-forcibly!', 'tset', 'values', 'when', 'while', 'with-open', '~='
     )
 
-    # Might be nicer to use the list from _lua_builtins.py but it's unclear how?
+    declarations = (
+        'fn', 'global', 'lambda', 'local', 'macro', 'macros', 'var', 'λ'
+    )
+
     builtins = (
         '_G', '_VERSION', 'arg', 'assert', 'bit32', 'collectgarbage',
         'coroutine', 'debug', 'dofile', 'error', 'getfenv',
@@ -2673,6 +2672,8 @@ class FennelLexer(RegexLexer):
 
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
 
+            (r'(true|false|nil)', Name.Constant),
+
             # these are technically strings, but it's worth visually
             # distinguishing them because their intent is different
             # from regular strings.
@@ -2680,6 +2681,8 @@ class FennelLexer(RegexLexer):
 
             # special forms are keywords
             (words(special_forms, suffix=' '), Keyword),
+            # these are ... even more special!
+            (words(declarations, suffix=' '), Keyword.Declaration),
             # lua standard library are builtins
             (words(builtins, suffix=' '), Name.Builtin),
             # special-case the vararg symbol

@@ -68,7 +68,7 @@ class NuSMVLexer(RegexLexer):
             (r'\-?\d+\b', Number.Integer),
             (r'0[su][bB]\d*_[01_]+', Number.Bin),
             (r'0[su][oO]\d*_[0-7_]+', Number.Oct),
-            (r'0[su][dD]\d*_[\d_]+', Number.Dec),
+            (r'0[su][dD]\d*_[\d_]+', Number.Decimal),
             (r'0[su][hH]\d*_[\da-fA-F_]+', Number.Hex),
 
             # Whitespace, punctuation and the rest

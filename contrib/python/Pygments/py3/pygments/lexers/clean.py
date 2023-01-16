@@ -59,15 +59,15 @@ class CleanLexer(ExtendedRegexLexer):
         ],
         'comments': [
             (r'//.*\n', Comment.Single),
-            (r'/\*', Comment.Multi, 'comments.in'),
+            (r'/\*', Comment.Multiline, 'comments.in'),
             (r'/\*\*', Comment.Special, 'comments.in'),
         ],
         'comments.in': [
-            (r'\*\/', Comment.Multi, '#pop'),
-            (r'/\*', Comment.Multi, '#push'),
-            (r'[^*/]+', Comment.Multi),
-            (r'\*(?!/)', Comment.Multi),
-            (r'/', Comment.Multi),
+            (r'\*\/', Comment.Multiline, '#pop'),
+            (r'/\*', Comment.Multiline, '#push'),
+            (r'[^*/]+', Comment.Multiline),
+            (r'\*(?!/)', Comment.Multiline),
+            (r'/', Comment.Multiline),
         ],
         'keywords': [
             (words(keywords, prefix=r'\b', suffix=r'\b'), Keyword),

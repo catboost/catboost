@@ -192,10 +192,13 @@ class ShellSessionBaseLexer(Lexer):
                                    [(0, Generic.Prompt, m.group(1))]))
                 curcode += m.group(2)
                 backslash_continuation = curcode.endswith('\\\n')
-            elif line.startswith(self._ps2) and backslash_continuation:
-                insertions.append((len(curcode),
-                                   [(0, Generic.Prompt, line[:len(self._ps2)])]))
-                curcode += line[len(self._ps2):]
+            elif backslash_continuation:
+                if line.startswith(self._ps2):
+                    insertions.append((len(curcode),
+                                    [(0, Generic.Prompt, line[:len(self._ps2)])]))
+                    curcode += line[len(self._ps2):]
+                else:
+                    curcode += line
                 backslash_continuation = curcode.endswith('\\\n')
             else:
                 if insertions:
@@ -652,7 +655,7 @@ class PowerShellLexer(RegexLexer):
     .. versionadded:: 1.5
     """
     name = 'PowerShell'
-    aliases = ['powershell', 'posh', 'ps1', 'psm1']
+    aliases = ['powershell', 'pwsh', 'posh', 'ps1', 'psm1']
     filenames = ['*.ps1', '*.psm1']
     mimetypes = ['text/x-powershell']
 
@@ -768,7 +771,7 @@ class PowerShellSessionLexer(ShellSessionBaseLexer):
     """
 
     name = 'PowerShell Session'
-    aliases = ['ps1con']
+    aliases = ['pwsh-session', 'ps1con']
     filenames = []
     mimetypes = []
 

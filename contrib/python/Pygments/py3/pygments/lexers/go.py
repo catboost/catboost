@@ -25,7 +25,7 @@ class GoLexer(RegexLexer):
     """
     name = 'Go'
     filenames = ['*.go']
-    aliases = ['go']
+    aliases = ['go', 'golang']
     mimetypes = ['text/x-gosrc']
 
     flags = re.MULTILINE | re.UNICODE

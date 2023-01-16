@@ -164,7 +164,7 @@ class CddlLexer(RegexLexer):
                 Number.Float,
             ),
             # Int
-            (_re_int, Number.Int),
+            (_re_int, Number.Integer),
             (r'"(\\\\|\\"|[^"])*"', String.Double),
         ],
         "bstrb64url": [
