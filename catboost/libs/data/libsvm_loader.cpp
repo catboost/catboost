@@ -167,7 +167,7 @@ namespace NCB {
 
         const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
         for (auto catFeatureExternalIdx : featuresLayout.GetCatFeatureInternalIdxToExternalIdx()) {
-            visitor->AddCatFeatureDefaultValue(catFeatureExternalIdx, AsStringBuf("0"));
+            visitor->AddCatFeatureDefaultValue(catFeatureExternalIdx, TStringBuf("0"));
         }
     }
 

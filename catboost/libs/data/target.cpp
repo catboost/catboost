@@ -188,8 +188,8 @@ static void CheckPairs(TConstArrayRef<TPairInGroup> pairs, const TObjectsGroupin
                     fieldName << " (" << idx << ") > group size (" << groupSize << ')'
                 );
             };
-            checkIdx(pairInGroup.WinnerIdxInGroup, AsStringBuf("WinnerIdxInGroup"));
-            checkIdx(pairInGroup.LoserIdxInGroup, AsStringBuf("LoserIdxInGroup"));
+            checkIdx(pairInGroup.WinnerIdxInGroup, TStringBuf("WinnerIdxInGroup"));
+            checkIdx(pairInGroup.LoserIdxInGroup, TStringBuf("LoserIdxInGroup"));
 
             CB_ENSURE(pairInGroup.Weight >= 0.0f, "Weight is negative");
         } catch (const TCatBoostException& e) {

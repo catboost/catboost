@@ -18,7 +18,7 @@ LIBRA_MODULE(TLibraModule, "Libra@MODULE_NAME@");
 #endif
 
 extern "C" UDF_API void Register(IRegistrator& registrator, ui32 flags) {
-    RegisterYqlPythonUdf(registrator, flags, AsStringBuf("@MODULE_NAME@"), AsStringBuf("@PACKAGE_NAME@"), EPythonFlavor::@FLAVOR@);
+    RegisterYqlPythonUdf(registrator, flags, TStringBuf("@MODULE_NAME@"), TStringBuf("@PACKAGE_NAME@"), EPythonFlavor::@FLAVOR@);
 #if @WITH_LIBRA@
     RegisterHelper<TLibraModule>(registrator);
 #endif

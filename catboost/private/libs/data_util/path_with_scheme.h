@@ -25,7 +25,7 @@ namespace NCB {
 
         explicit TPathWithScheme(TStringBuf pathWithScheme, TStringBuf defaultScheme = "") {
             TStringBuf part1, part2;
-            pathWithScheme.Split(AsStringBuf("://"), part1, part2);
+            pathWithScheme.Split(TStringBuf("://"), part1, part2);
             if (part1 == pathWithScheme) { // no scheme in pathWithScheme
                 Scheme = defaultScheme;
                 Path = part1;
