@@ -14,7 +14,8 @@ test_that("model: catboost.train", {
   params <- list(iterations = iterations,
                  loss_function = "Logloss",
                  random_seed = 12345,
-                 use_best_model = FALSE)
+                 use_best_model = FALSE,
+                 allow_writing_files = FALSE)
 
   model_train_test <- catboost.train(pool_train, pool_test, params)
   prediction_train_test <- catboost.predict(model_train_test, pool_test)
@@ -44,7 +45,8 @@ test_that("model: catboost.train with per_float_quantization and ignored_feature
                  random_seed = 12345,
                  ignored_features = c(1, 3),
                  per_float_feature_quantization = c('0:border_count=1024'),
-                 use_best_model = FALSE)
+                 use_best_model = FALSE,
+                 allow_writing_files = FALSE)
 
   catboost.train(pool_train, NULL, params1)
   
@@ -53,7 +55,8 @@ test_that("model: catboost.train with per_float_quantization and ignored_feature
                  random_seed = 12345,
                  ignored_features = c(1, 3),
                  per_float_feature_quantization = c('0:border_count=1024', '1:border_count=1024'),
-                 use_best_model = FALSE)
+                 use_best_model = FALSE,
+                 allow_writing_files = FALSE)
   catboost.train(pool_train, NULL, params2)
 
   expect_true(TRUE)
@@ -94,7 +97,8 @@ test_that("model: catboost.train synonyms", {
   params <- list(iterations = 10,
                 loss_function = "Logloss",
                 random_seed = 12345,
-                random_state = 12345)
+                random_state = 12345,
+                allow_writing_files = FALSE)
   
   expect_error(catboost.train(pool, NULL, params),
                "Only one of the parameters [random_seed, random_state] should be initialized.",
@@ -112,7 +116,8 @@ test_that("model: catboost.train synonyms", {
       c('verbose', 'verbose_eval')
   )
   params_values <- list('Logloss', 5, 0.04, 12345, 4, 5, 0.5, 32, 20)
-  check_models_with_synonyms(pool, vector(mode = "list"), synonym_params, params_values)
+  init_params <- list(allow_writing_files = FALSE)
+  check_models_with_synonyms(pool, init_params, synonym_params, params_values)
 
   synonym_params <- list(
     c('min_data_in_leaf', 'min_child_samples'),
@@ -122,7 +127,8 @@ test_that("model: catboost.train synonyms", {
   init_params <- list(iterations = 5,
                       loss_function = "Logloss",
                       grow_policy = "Lossguide",
-                      random_seed = 12345)
+                      random_seed = 12345,
+                      allow_writing_files = FALSE)
   check_models_with_synonyms(pool, init_params, synonym_params, params_values)
 })
 
@@ -136,7 +142,8 @@ test_that("model: catboost.importance", {
   iterations <- 10
   params <- list(iterations = iterations,
                  loss_function = "Logloss",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
   feature_importance <- model$feature_importances
@@ -158,7 +165,8 @@ test_that("model: catboost.importance with shapvalues for multiclass", {
   params <- list(iterations = iterations,
                  loss_function = "MultiClass",
                  random_seed = 12345,
-                 use_best_model = FALSE)
+                 use_best_model = FALSE,
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
   feature_importance <- catboost.get_feature_importance(model = model, pool = pool, type = 'ShapValues')
@@ -174,7 +182,8 @@ test_that("model: catboost.train & catboost.predict multiclass", {
   pool <- catboost.load_pool(features, target)
   params <- list(iterations = 10,
                  loss_function = "MultiClass",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
 
@@ -199,6 +208,8 @@ is_equal_model_and_load_model <- function(model, pool, file_format = "cbm") {
   catboost.save_model(model, model_path, file_format = file_format)
   loaded_model <- catboost.load_model(model_path, file_format = file_format)
 
+  unlink(model_path)
+
   loaded_model_prediction <- catboost.predict(loaded_model, pool)
 
   return (all(abs(prediction - loaded_model_prediction) < 0.00001))
@@ -213,7 +224,8 @@ test_that("model: catboost.load_model", {
 
   params <- list(iterations = 10,
                  loss_function = "Logloss",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
   expect_true(is_equal_model_and_load_model(model, pool))
@@ -229,7 +241,8 @@ test_that("model: catboost.save_model", {
 
   params <- list(iterations = 10,
                  loss_function = "Logloss",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
 
@@ -251,7 +264,8 @@ test_that("model: loss_function = multiclass", {
 
   params <- list(iterations = 10,
                  loss_function = "MultiClass",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
   prediction <- catboost.predict(model, pool, prediction_type = "Class")
@@ -279,7 +293,8 @@ test_that("model: baseline", {
 
   params_baseline <- list(iterations = 3,
                           loss_function = "MultiClass",
-                          random_seed = 12345)
+                          random_seed = 12345,
+                          allow_writing_files = FALSE)
 
   model_baseline <- catboost.train(pool, NULL, params_baseline)
   baseline <- catboost.predict(model_baseline, pool, prediction_type = "RawFormulaVal")
@@ -291,7 +306,8 @@ test_that("model: baseline", {
 
   params <- list(iterations = 10,
                  loss_function = "MultiClass",
-                 random_seed = 12345)
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool_with_baseline, NULL, params)
 
@@ -321,7 +337,8 @@ test_that("model: full_history", {
                  loss_function = "MultiClass",
                  random_seed = 12345,
                  approx_on_full_history = TRUE,
-                 boosting_type = "Ordered")
+                 boosting_type = "Ordered",
+                 allow_writing_files = FALSE)
   model <- catboost.train(pool, NULL, params)
   pred <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
 
@@ -335,7 +352,8 @@ test_that("model: catboost.predict vs catboost.staged_predict", {
   pool <- catboost.load_pool(pool_path, column_description = column_description_path)
 
   params <- list(iterations = 10,
-                 loss_function = "Logloss")
+                 loss_function = "Logloss",
+                 allow_writing_files = FALSE)
 
   model <- catboost.train(pool, NULL, params)
   prediction_first <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 4)
@@ -353,17 +371,21 @@ test_that("model: save/load by R", {
   cd_path <- system.file("extdata", "adult.cd", package = "catboost")
   train_pool <- catboost.load_pool(train_path, column_description = cd_path)
   test_pool <- catboost.load_pool(test_path, column_description = cd_path)
-  fit_params <- list(iterations = 4, thread_count = 1, loss_function = "Logloss")
+  fit_params <- list(iterations = 4, thread_count = 1, loss_function = "Logloss",
+                     allow_writing_files = FALSE)
 
   model <- catboost.train(train_pool, params = fit_params)
   prediction <- catboost.predict(model, test_pool)
 
-  save(model, file = "tmp.rda")
+  model_path <- "tmp.rda"
+  save(model, file = model_path)
   model <- NULL
-  load("tmp.rda")
+  load(model_path)
 
   prediction_after_save_load <- catboost.predict(model, test_pool)
   expect_equal(prediction, prediction_after_save_load)
+
+  unlink(model_path)
 })
 
 test_that("model: saveRDS/readRDS by R", {
@@ -372,16 +394,21 @@ test_that("model: saveRDS/readRDS by R", {
   cd_path <- system.file("extdata", "adult.cd", package = "catboost")
   train_pool <- catboost.load_pool(train_path, column_description = cd_path)
   test_pool <- catboost.load_pool(test_path, column_description = cd_path)
-  fit_params <- list(iterations = 4, thread_count = 1, loss_function = "Logloss")
+  fit_params <- list(iterations = 4, thread_count = 1, loss_function = "Logloss",
+                     allow_writing_files = FALSE)
 
   model <- catboost.train(train_pool, params = fit_params)
   prediction <- catboost.predict(model, test_pool)
 
-  saveRDS(model, "tmp.rds")
-  model <- readRDS("tmp.rds")
+  model_path <- "tmp.rds"
+
+  saveRDS(model, model_path)
+  model <- readRDS(model_path)
 
   prediction_after_save_load <- catboost.predict(model, test_pool)
   expect_equal(prediction, prediction_after_save_load)
+
+  unlink(model_path)
 })
 
 test_that("model: catboost.cv", {
@@ -395,7 +422,8 @@ test_that("model: catboost.cv", {
   params <- list(iterations = iterations,
                  loss_function = "Logloss",
                  random_seed = 12345,
-                 use_best_model = FALSE)
+                 use_best_model = FALSE,
+                 allow_writing_files = FALSE)
 
   fold_count <- 5
   cv_result <- catboost.cv(pool = pool, params = params, fold_count = fold_count)
@@ -419,7 +447,8 @@ test_that("model: catboost.cv with eval_metric=AUC", {
   label_values <- sample(0:1, 20, T)
   pool <- catboost.load_pool(apply(dataset, 2, as.numeric), label = label_values)
   cv_result <- catboost.cv(pool,
-                           params = list(iterations = 10, loss_function = 'Logloss', eval_metric='AUC'))
+                           params = list(iterations = 10, loss_function = 'Logloss', eval_metric='AUC',
+                                         allow_writing_files = FALSE))
   print(cv_result)
 
   expect_true(all(cv_result$train.Logloss.std >= 0))
@@ -443,7 +472,8 @@ test_that("model: catboost.sum_models", {
     pool_train <- catboost.load_pool(features_train, target_train)
     pool_test <- catboost.load_pool(features_test, target_test)
     params <- list(iterations=100,
-                   depth=4)
+                   depth=4,
+                   allow_writing_files = FALSE)
     model_train <- catboost.train(pool_train, pool_test, params)
     model_test <- catboost.train(pool_train, pool_test, params)
 
@@ -511,6 +541,8 @@ test_that("model: catboost.eval_metrics", {
                 "ntree_start should be greater or equal zero.", fixed = TRUE)
   expect_error( catboost.eval_metrics(model, pool_test, list(), eval_period = -1),
                 "eval_period should be greater than zero.", fixed = TRUE)
+
+  unlink('catboost_info', recursive = TRUE)
 })
 
 test_that("model: catboost.virtual_ensembles_predict", {

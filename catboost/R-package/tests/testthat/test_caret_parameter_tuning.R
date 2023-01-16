@@ -54,4 +54,6 @@ test_that("test caret train and parameter tuning on adult pool", {
   )
 
   expect_true(report$results$Accuracy > 0.75)
+
+  unlink("catboost_info", recursive = TRUE)
 })
