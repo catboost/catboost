@@ -87,7 +87,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -161,7 +161,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -252,7 +252,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -322,7 +322,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -404,7 +404,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
     
@@ -506,7 +506,7 @@ class CatBoostRegressorTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }
@@ -581,7 +581,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
     
@@ -637,7 +637,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -705,7 +705,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -787,7 +787,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
     
@@ -871,7 +871,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -947,7 +947,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1056,7 +1056,7 @@ class CatBoostRegressorTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }
@@ -1138,7 +1138,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1255,7 +1255,7 @@ class CatBoostRegressorTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }
@@ -1339,7 +1339,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1394,7 +1394,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ pool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1453,7 +1453,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 

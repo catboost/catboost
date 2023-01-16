@@ -47,7 +47,7 @@ private[spark] object RunClassInNewProcess {
       cmd ++= args.get
     }
 
-    val processBuilder = new ProcessBuilder(cmd: _*)
+    val processBuilder = new ProcessBuilder(cmd.toSeq: _*)
     if (inheritIO) {
       if (redirectInput.isDefined || redirectOutput.isDefined || redirectError.isDefined) {
         throw new java.lang.IllegalArgumentException(

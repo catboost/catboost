@@ -264,7 +264,7 @@ class CatBoostClassifierTest {
             /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
           )
           val expectedPredictions = spark.createDataFrame(
-            spark.sparkContext.parallelize(expectedPredictionsData),
+            spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
             StructType(expectedPredictionsSchema)
           )
           
@@ -970,7 +970,7 @@ class CatBoostClassifierTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }
@@ -1149,7 +1149,7 @@ class CatBoostClassifierTest {
             /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
           )
           val expectedPredictions = spark.createDataFrame(
-            spark.sparkContext.parallelize(expectedPredictionsData),
+            spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
             StructType(expectedPredictionsSchema)
           )
           
@@ -1369,7 +1369,7 @@ class CatBoostClassifierTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }

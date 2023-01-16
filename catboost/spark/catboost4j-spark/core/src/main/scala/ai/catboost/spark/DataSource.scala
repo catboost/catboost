@@ -123,7 +123,7 @@ private[spark] final class DatasetRowsReaderIterator (
     }
   }
 
-  def next: InternalRow = {
+  def next(): InternalRow = {
     if (currentBlockOffset >= currentBlockSize) {
       updateBlock
       if (currentBlockSize == 0) {

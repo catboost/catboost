@@ -137,13 +137,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                <compilerPlugins>
-                    <compilerPlugin>
-                    <groupId>org.scalamacros</groupId>
-                    <artifactId>paradise_${scala.version}</artifactId>
-                    <version>2.1.1</version>
-                </compilerPlugin>
-                </compilerPlugins>
+                   ${scala_maven_plugin_configuration_placeholder}
                 </configuration>
             </plugin>
             <plugin>
@@ -214,6 +208,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-collection-compat_${scala.compat.version}</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>29.0-jre</version>
@@ -239,18 +239,103 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        <version>2.6.7.3</version>
+        <version>2.13.1</version>
         </dependency>
             <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-            <version>2.6.7.1</version>
+            <version>2.13.1</version>
         </dependency>
 
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
             <version>4.8.98</version>
+        </dependency>
+
+        <!-- 
+          Default Spark 3.2's 4.1.68.Final dependency is broken because of https://github.com/netty/netty/issues/11657
+          so upgrade to 4.1.72.Final as in Spark itself: https://github.com/apache/spark/pull/34881 
+        -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty_all_version_placeholer}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-dns</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-haproxy</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-http</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-http2</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-memcache</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-mqtt</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-redis</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-smtp</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-socks</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-stomp</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-xml</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-handler-proxy</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-resolver-dns</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-resolver-dns-classes-macos</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-resolver-dns-native-macos</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-rxtx</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-sctp</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-udt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- newer version than in dependencies to support Apple Darwin arm64 architecture -->

@@ -9,7 +9,7 @@ import concurrent.duration.Duration
 import concurrent.{Await,Future}
 import concurrent.ExecutionContext.Implicits.global
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer,ArrayBuilder}
 
@@ -40,7 +40,7 @@ private[spark] class QuantizedRowsOutputIterator(
     val quantizedRowAssembler : TQuantizedRowAssembler,
     val objectBlobSize : Int
 ) extends Iterator[Row] {
-  def next : Row = {
+  def next() : Row = {
     val quantizedFeaturesBlob = new Array[Byte](objectBlobSize)
     quantizedRowAssembler.AssembleObjectBlob(objectIdx, quantizedFeaturesBlob)
     val dstRow = dstRows(objectIdx)
@@ -791,7 +791,7 @@ class Pool (
     nanModeAndBordersBuilder.SetSampleSize(dataForBuildBorders.count.toInt)
     
     log.info("calcNanModesAndBorders: reading data: start")
-    for (row <- dataForBuildBorders.toLocalIterator) {
+    for (row <- dataForBuildBorders.toLocalIterator.asScala) {
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
     log.info("calcNanModesAndBorders: reading data: end")
@@ -1143,8 +1143,8 @@ class Pool (
               dstRowLength
             )
             f(
-              dataProviders(0),
-              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dataProviders.get(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders.get(0) } else { null },
               dstRows(0),
               localExecutor
             )
@@ -1174,8 +1174,8 @@ class Pool (
               dstRowLength
             )
             f(
-              dataProviders(0),
-              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dataProviders.get(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders.get(0) } else { null },
               dstRows(0),
               localExecutor
             )

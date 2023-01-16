@@ -145,7 +145,7 @@ private[spark] class UpdatableWorkersInfo (
       }
 
     } catch {
-      case _: InterruptedException => Unit
+      case _: InterruptedException => ()
     }
   }
 
@@ -276,7 +276,7 @@ private[spark] class TrainingDriver (
         try {
           workersUpdateFuture.get // to throw exceptions if there were any
         } catch {
-          case _: CancellationException => Unit
+          case _: CancellationException => ()
         }
       }
     } finally {
