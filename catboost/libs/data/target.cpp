@@ -71,7 +71,7 @@ static void CheckRawTarget(ERawTargetType targetType, const TVector<TRawTarget>&
                 targetType == ERawTargetType::String,
                 "target data contains float values but targetType is " << targetType
             );
-            const TVector<TString>& stringVector = Get<TVector<TString>>(target[i]);
+            const TVector<TString>& stringVector = std::get<TVector<TString>>(target[i]);
             CheckDataSize(stringVector.size(), (size_t)objectCount, "Target[" + ToString(i) + "]", false);
             for (auto j : xrange(stringVector.size())) {
                 CB_ENSURE(!stringVector[j].empty(), "Target[" << i << ", " << j << "] is empty");
@@ -308,14 +308,14 @@ bool Equal(const TRawTarget& lhs, const TRawTarget& rhs) {
         if (const ITypedSequencePtr<float>* rhsTypedSequence = std::get_if<ITypedSequencePtr<float>>(&rhs)) {
             return (*lhsTypedSequence)->EqualTo(**rhsTypedSequence, /*strict*/ false);
         } else {
-            return EqualAsFloatTarget(*lhsTypedSequence, Get<TVector<TString>>(rhs));
+            return EqualAsFloatTarget(*lhsTypedSequence, std::get<TVector<TString>>(rhs));
         }
     } else {
-        const TVector<TString>& lhsStringVector = Get<TVector<TString>>(lhs);
+        const TVector<TString>& lhsStringVector = std::get<TVector<TString>>(lhs);
         if (const TVector<TString>* rhsStringVector = std::get_if<TVector<TString>>(&rhs)) {
             return lhsStringVector == *rhsStringVector;
         } else {
-            return EqualAsFloatTarget(Get<ITypedSequencePtr<float>>(rhs), lhsStringVector);
+            return EqualAsFloatTarget(std::get<ITypedSequencePtr<float>>(rhs), lhsStringVector);
         }
     }
 }
@@ -420,14 +420,14 @@ ERawTargetType TRawTargetDataProvider::GetTargetType() const {
 void TRawTargetDataProvider::GetNumericTarget(TArrayRef<TArrayRef<float>> dst) const {
     CB_ENSURE(dst.size() == Data.Target.size());
     for (auto targetIdx : xrange(Data.Target.size())) {
-        ToArray(*Get<ITypedSequencePtr<float>>(Data.Target[targetIdx]), dst[targetIdx]);
+        ToArray(*std::get<ITypedSequencePtr<float>>(Data.Target[targetIdx]), dst[targetIdx]);
     }
 }
 
 void TRawTargetDataProvider::GetStringTargetRef(TVector<TConstArrayRef<TString>>* dst) const {
     dst->resize(Data.Target.size());
     for (auto targetIdx : xrange(Data.Target.size())) {
-        (*dst)[targetIdx] = Get<TVector<TString>>(Data.Target[targetIdx]);
+        (*dst)[targetIdx] = std::get<TVector<TString>>(Data.Target[targetIdx]);
     }
 }
 
@@ -478,7 +478,7 @@ static void GetRawTargetSubset(
             std::move(dstData)
         );
     } else {
-        (*dst) = GetSubset<TString>(Get<TVector<TString>>(src), subset, localExecutor);
+        (*dst) = GetSubset<TString>(std::get<TVector<TString>>(src), subset, localExecutor);
     }
 }
 

@@ -653,17 +653,17 @@ public:
 
 inline TVector<TCtr> GetUsedCtrs(const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
     if (std::holds_alternative<TSplitTree>(tree)) {
-        return Get<TSplitTree>(tree).GetUsedCtrs();
+        return std::get<TSplitTree>(tree).GetUsedCtrs();
     } else {
-        return Get<TNonSymmetricTreeStructure>(tree).GetUsedCtrs();
+        return std::get<TNonSymmetricTreeStructure>(tree).GetUsedCtrs();
     }
 }
 
 inline int GetLeafCount(const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
     if (std::holds_alternative<TSplitTree>(tree)) {
-        return Get<TSplitTree>(tree).GetLeafCount();
+        return std::get<TSplitTree>(tree).GetLeafCount();
     } else {
-        return Get<TNonSymmetricTreeStructure>(tree).GetLeafCount();
+        return std::get<TNonSymmetricTreeStructure>(tree).GetLeafCount();
     }
 }
 

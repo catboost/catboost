@@ -17,7 +17,7 @@
     #error "sorry, not expected to work on 32-bit platform"
 #endif
 
-// TODO(yazevnul): current implementation invokes `Get<PrimitiveType>ArrayRegion` with `mode=0`
+// TODO(yazevnul): current implementation invokes `std::get<PrimitiveType>ArrayRegion` with `mode=0`
 // which which asks JRE to make a copy of array [1] and then we invoke
 // `Release<PrimitiveType>ArrayElements` with `mode=0` which asks JRE to copy elements back and free
 // the buffer. In most of the cases we have no need to copy elements back (because we don't change

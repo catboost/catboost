@@ -162,7 +162,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                     UNIT_ASSERT_VALUES_EQUAL(targetData.size(), target.size());
 
                     for (auto i : xrange(target.size())) {
-                        UNIT_ASSERT_EQUAL(Get<TVector<TString>>(targetData[i]), target[i]);
+                        UNIT_ASSERT_EQUAL(std::get<TVector<TString>>(targetData[i]), target[i]);
                     }
                 }
             }

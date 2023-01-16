@@ -618,7 +618,7 @@ static void SaveModel(
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
             Y_ASSERT(std::holds_alternative<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]));
-            TVector<TSplit> splits = Get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
+            TVector<TSplit> splits = std::get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
             for (const auto& split : splits) {
                 modelSplits.push_back(getModelSplit(split));
             }
@@ -634,7 +634,7 @@ static void SaveModel(
             ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             Y_ASSERT(std::holds_alternative<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]));
-            const auto& structure = Get<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]);
+            const auto& structure = std::get<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]);
             auto tree = BuildTree(
                 structure.GetRoot(),
                 structure.GetNodes(),

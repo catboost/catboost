@@ -248,7 +248,7 @@ namespace NCB {
             return CreateQuantizedSparseSubset<IQuantizedFloatValuesHolder, ui8>(
                 this->GetId(),
                 this->SrcData,
-                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                std::get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
                 [=] (float srcValue) -> ui8 {
                     return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
                 },
@@ -312,7 +312,7 @@ namespace NCB {
             return CreateQuantizedSparseSubset<IQuantizedCatValuesHolder, ui32>(
                 this->GetId(),
                 this->SrcData,
-                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                std::get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
                 getPerfectHashValue,
                 sizeof(ui32) * CHAR_BIT
             );

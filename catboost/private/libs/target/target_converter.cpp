@@ -53,7 +53,7 @@ namespace NCB {
                 }
             );
         } else {
-            TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
+            TConstArrayRef<TString> stringLabels = std::get<TVector<TString>>(rawTarget);
             result.yresize(stringLabels.size());
             TArrayRef<float> resultRef = result;
             localExecutor->ExecRangeBlockedWithThrow(
@@ -230,7 +230,7 @@ namespace NCB {
             } else {
                 UpdateStringLabelToClass();
 
-                TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
+                TConstArrayRef<TString> stringLabels = std::get<TVector<TString>>(rawTarget);
                 result.yresize(stringLabels.size());
                 TArrayRef<float> resultRef = result;
                 localExecutor->ExecRangeBlockedWithThrow(

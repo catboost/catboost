@@ -228,7 +228,7 @@ namespace NCB {
                         } else {
                             columnPrinter.push_back(
                                 MakeHolder<TArrayPrinter<TString>>(
-                                    Get<TVector<TString>>(target[targetIdx]),
+                                    std::get<TVector<TString>>(target[targetIdx]),
                                     header
                                 )
                             );

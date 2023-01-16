@@ -1039,7 +1039,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                     srcData.FloatFeatures.emplace_back(
                         new TSrcColumn<ui8>(
                             NCB::GenerateSrcColumn<ui8>(
-                                Get<TVector<ui8>>(*expectedData.Objects.FloatFeatures.back()),
+                                std::get<TVector<ui8>>(*expectedData.Objects.FloatFeatures.back()),
                                 EColumn::Num
                             )
                         )

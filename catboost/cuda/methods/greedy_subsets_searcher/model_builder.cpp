@@ -174,11 +174,11 @@ namespace NCatboostCuda {
             }
 
             TLeaf& GetLeaf() {
-                return Get<TLeaf>(Value);
+                return std::get<TLeaf>(Value);
             }
 
             TBinarySplit& GetSplit() {
-                return Get<TBinarySplit>(Value);
+                return std::get<TBinarySplit>(Value);
             }
 
             bool IsTerminal() const {

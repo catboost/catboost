@@ -32,7 +32,7 @@ namespace NCB{
                     std::holds_alternative<TSplitTree>(learnProgress.TreeStruct[treeId]),
                     "ReadModel is unimplemented for non-symmetric trees yet");
 
-                const TSplitTree& tree = Get<TSplitTree>(learnProgress.TreeStruct[treeId]);
+                const TSplitTree& tree = std::get<TSplitTree>(learnProgress.TreeStruct[treeId]);
                 modelSplits.resize(tree.Splits.size());
                 auto iter = modelSplits.begin();
                 for (const TSplit& split : tree.Splits) {

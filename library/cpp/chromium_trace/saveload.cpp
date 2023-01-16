@@ -151,17 +151,17 @@ void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, 
     switch (tag) {
         case TVariantIndexV<TStringBuf, TValue>:
             v.Value = TStringBuf();
-            ::LoadStr(in, Get<TStringBuf>(v.Value), pool);
+            ::LoadStr(in, std::get<TStringBuf>(v.Value), pool);
             break;
 
         case TVariantIndexV<i64, TValue>:
             v.Value = i64();
-            ::Load(in, Get<i64>(v.Value));
+            ::Load(in, std::get<i64>(v.Value));
             break;
 
         case TVariantIndexV<double, TValue>:
             v.Value = double();
-            ::Load(in, Get<double>(v.Value));
+            ::Load(in, std::get<double>(v.Value));
             break;
 
         default:
@@ -262,7 +262,7 @@ void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMem
 #define CASE(type)                            \
     case TVariantIndexV<type, TAnyEvent>:     \
         v.Event = type();                     \
-        ::Load(in, Get<type>(v.Event), pool); \
+        ::Load(in, std::get<type>(v.Event), pool); \
         break;
 
         CASE(TDurationBeginEvent)
