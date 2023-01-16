@@ -16,9 +16,6 @@ CXXFLAGS(-D_LIBCPP_BUILDING_LIBRARY)
 
 IF (OS_ANDROID)
     DEFAULT(CXX_RT "default")
-    SRCS(
-        src/support/android/locale_android.cpp
-    )
 
     # android_support actually depends on c++abi:
     # https://github.com/android/ndk/issues/1130
