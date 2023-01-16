@@ -35,7 +35,7 @@ TStringBuf TBaseServerRequestData::RemoteAddr() const {
     if (!Addr_) {
         auto& addr = Addr_.ConstructInPlace();
         addr.ReserveAndResize(INET6_ADDRSTRLEN);
-        if (GetRemoteAddr(Socket_, addr.begin(), sizeof(INET6_ADDRSTRLEN))) {
+        if (GetRemoteAddr(Socket_, addr.begin(), addr.size())) {
             if (auto pos = addr.find('\0'); pos != TString::npos) {
                 addr.resize(pos);
             }
