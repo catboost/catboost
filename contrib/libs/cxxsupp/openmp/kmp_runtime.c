@@ -38,6 +38,7 @@
 #include <process.h>
 #endif
 
+
 #if defined(KMP_GOMP_COMPAT)
 char const __kmp_version_alt_comp[] = KMP_VERSION_PREFIX "alternative compiler support: yes";
 #endif /* defined(KMP_GOMP_COMPAT) */

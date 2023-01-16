@@ -25,4 +25,5 @@ RECURSE(
     libcxx
     libcxxabi
     libcxxrt
+    openmp
 )

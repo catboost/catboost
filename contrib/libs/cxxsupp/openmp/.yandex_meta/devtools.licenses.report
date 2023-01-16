@@ -31,6 +31,7 @@
 
 KEEP     NCSA AND MIT         0791db4b6d90edd44c715bba1e426f74
 BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: kmp.h at line 12, kmp_affinity.cpp at line 11, kmp_affinity.h at line 11, kmp_alloc.c at line 11, kmp_atomic.c at line 11, kmp_atomic.h at line 11, kmp_barrier.cpp at line 11, kmp_cancel.cpp at line 7, kmp_config.h at line 9, kmp_csupport.c at line 11, kmp_debug.c at line 11, kmp_debug.h at line 11, kmp_dispatch.cpp at line 11, kmp_environment.c at line 11, kmp_environment.h at line 11, kmp_error.c at line 11, kmp_error.h at line 11, kmp_ftn_cdecl.c at line 11, kmp_ftn_entry.h at line 11, kmp_ftn_extra.c at line 11, kmp_ftn_os.h at line 11, kmp_global.c at line 11, kmp_gsupport.c at line 11, kmp_i18n.c at line 11, kmp_i18n.h at line 11, kmp_io.c at line 11, kmp_io.h at line 11, kmp_itt.c at line 14, kmp_itt.h at line 12, kmp_itt.inl at line 12, kmp_lock.cpp at line 11, kmp_lock.h at line 11, kmp_os.h at line 11, kmp_platform.h at line 10, kmp_runtime.c at line 11, kmp_safe_c_api.h at line 7, kmp_sched.cpp at line 11, kmp_settings.c at line 11, kmp_settings.h at line 11, kmp_stats.h at line 14, kmp_str.c at line 11, kmp_str.h at line 11, kmp_taskdeps.cpp at line 11, kmp_tasking.c at line 11, kmp_taskq.c at line 11, kmp_threadprivate.c at line 11, kmp_utility.c at line 11, kmp_version.c at line 11, kmp_version.h at line 11, kmp_wait_release.cpp at line 11, kmp_wait_release.h at line 11, kmp_wrapper_getpid.h at line 11, kmp_wrapper_malloc.h at line 12, omp.h at line 11, thirdparty/ittnotify/disable_warnings.h at line 7, thirdparty/ittnotify/ittnotify.h at line 7, thirdparty/ittnotify/ittnotify_config.h at line 7, thirdparty/ittnotify/ittnotify_static.c at line 7, thirdparty/ittnotify/ittnotify_types.h at line 7, thirdparty/ittnotify/legacy/ittnotify.h at line 7, z_Linux_util.c at line 11
     License text:
         // This file is dual licensed under the MIT and the University of Illinois Open
         // Source Licenses. See LICENSE.txt for details.
@@ -40,10 +41,6 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        extractExternal.cpp [10:11]
-        include/30/omp.h.var [10:11]
-        include/40/omp.h.var [10:11]
-        include/41/omp.h.var [10:11]
         kmp.h [11:12]
         kmp_affinity.cpp [10:11]
         kmp_affinity.h [10:11]
@@ -56,8 +53,6 @@ BELONGS ya.make
         kmp_csupport.c [10:11]
         kmp_debug.c [10:11]
         kmp_debug.h [10:11]
-        kmp_debugger.c [11:12]
-        kmp_debugger.h [11:12]
         kmp_dispatch.cpp [10:11]
         kmp_environment.c [10:11]
         kmp_environment.h [10:11]
@@ -67,12 +62,10 @@ BELONGS ya.make
         kmp_ftn_entry.h [10:11]
         kmp_ftn_extra.c [10:11]
         kmp_ftn_os.h [10:11]
-        kmp_ftn_stdcall.c [10:11]
         kmp_global.c [10:11]
         kmp_gsupport.c [10:11]
         kmp_i18n.c [10:11]
         kmp_i18n.h [10:11]
-        kmp_import.c [10:11]
         kmp_io.c [10:11]
         kmp_io.h [10:11]
         kmp_itt.c [13:14]
@@ -80,7 +73,6 @@ BELONGS ya.make
         kmp_itt.inl [11:12]
         kmp_lock.cpp [10:11]
         kmp_lock.h [10:11]
-        kmp_omp.h [12:13]
         kmp_os.h [10:11]
         kmp_platform.h [9:10]
         kmp_runtime.c [10:11]
@@ -88,14 +80,9 @@ BELONGS ya.make
         kmp_sched.cpp [10:11]
         kmp_settings.c [10:11]
         kmp_settings.h [10:11]
-        kmp_stats.cpp [10:11]
         kmp_stats.h [13:14]
-        kmp_stats_timing.cpp [10:11]
-        kmp_stats_timing.h [13:14]
         kmp_str.c [10:11]
         kmp_str.h [10:11]
-        kmp_stub.c [10:11]
-        kmp_stub.h [10:11]
         kmp_taskdeps.cpp [10:11]
         kmp_tasking.c [10:11]
         kmp_taskq.c [10:11]
@@ -108,7 +95,6 @@ BELONGS ya.make
         kmp_wrapper_getpid.h [10:11]
         kmp_wrapper_malloc.h [11:12]
         omp.h [10:11]
-        test-touch.c [8:9]
         thirdparty/ittnotify/disable_warnings.h [6:7]
         thirdparty/ittnotify/ittnotify.h [6:7]
         thirdparty/ittnotify/ittnotify_config.h [6:7]
@@ -116,18 +102,12 @@ BELONGS ya.make
         thirdparty/ittnotify/ittnotify_types.h [6:7]
         thirdparty/ittnotify/legacy/ittnotify.h [6:7]
         z_Linux_util.c [10:11]
-        z_Windows_NT-586_util.c [10:11]
-        z_Windows_NT_util.c [10:11]
     Scancode info:
         Original SPDX id: MIT
         Score           : 100.00
         Match type      : NOTICE
         Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
     Files with this license:
-        extractExternal.cpp [10:11]
-        include/30/omp.h.var [10:11]
-        include/40/omp.h.var [10:11]
-        include/41/omp.h.var [10:11]
         kmp.h [11:12]
         kmp_affinity.cpp [10:11]
         kmp_affinity.h [10:11]
@@ -140,8 +120,6 @@ BELONGS ya.make
         kmp_csupport.c [10:11]
         kmp_debug.c [10:11]
         kmp_debug.h [10:11]
-        kmp_debugger.c [11:12]
-        kmp_debugger.h [11:12]
         kmp_dispatch.cpp [10:11]
         kmp_environment.c [10:11]
         kmp_environment.h [10:11]
@@ -151,12 +129,10 @@ BELONGS ya.make
         kmp_ftn_entry.h [10:11]
         kmp_ftn_extra.c [10:11]
         kmp_ftn_os.h [10:11]
-        kmp_ftn_stdcall.c [10:11]
         kmp_global.c [10:11]
         kmp_gsupport.c [10:11]
         kmp_i18n.c [10:11]
         kmp_i18n.h [10:11]
-        kmp_import.c [10:11]
         kmp_io.c [10:11]
         kmp_io.h [10:11]
         kmp_itt.c [13:14]
@@ -164,7 +140,6 @@ BELONGS ya.make
         kmp_itt.inl [11:12]
         kmp_lock.cpp [10:11]
         kmp_lock.h [10:11]
-        kmp_omp.h [12:13]
         kmp_os.h [10:11]
         kmp_platform.h [9:10]
         kmp_runtime.c [10:11]
@@ -172,14 +147,9 @@ BELONGS ya.make
         kmp_sched.cpp [10:11]
         kmp_settings.c [10:11]
         kmp_settings.h [10:11]
-        kmp_stats.cpp [10:11]
         kmp_stats.h [13:14]
-        kmp_stats_timing.cpp [10:11]
-        kmp_stats_timing.h [13:14]
         kmp_str.c [10:11]
         kmp_str.h [10:11]
-        kmp_stub.c [10:11]
-        kmp_stub.h [10:11]
         kmp_taskdeps.cpp [10:11]
         kmp_tasking.c [10:11]
         kmp_taskq.c [10:11]
@@ -192,7 +162,6 @@ BELONGS ya.make
         kmp_wrapper_getpid.h [10:11]
         kmp_wrapper_malloc.h [11:12]
         omp.h [10:11]
-        test-touch.c [8:9]
         thirdparty/ittnotify/disable_warnings.h [6:7]
         thirdparty/ittnotify/ittnotify.h [6:7]
         thirdparty/ittnotify/ittnotify_config.h [6:7]
@@ -200,11 +169,35 @@ BELONGS ya.make
         thirdparty/ittnotify/ittnotify_types.h [6:7]
         thirdparty/ittnotify/legacy/ittnotify.h [6:7]
         z_Linux_util.c [10:11]
-        z_Windows_NT-586_util.c [10:11]
-        z_Windows_NT_util.c [10:11]
+
+KEEP     NCSA AND MIT         1046d955b73b76a5985bad28cebed867
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: NCSA
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+    Files with this license:
+        LICENSE.txt [3:10]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        LICENSE.txt [3:10]
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-generic-cla
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/generic-cla.LICENSE
+    Files with this license:
+        LICENSE.txt [3:10]
 
 KEEP     NCSA AND MIT         479de2cae020eacfac58212c03d33ab1
 BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: thirdparty/ittnotify/ittnotify_static.h at line 7
     License text:
         // This file is dual licensed under the MIT and the University of Illinois Open
         // Source Licenses. See LICENSE.txt for details.
@@ -223,8 +216,20 @@ BELONGS ya.make
     Files with this license:
         thirdparty/ittnotify/ittnotify_static.h [6:7]
 
+KEEP     MIT                  5debb370f50e1dfd24ff5144233a2ef6
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        LICENSE.txt [56:72]
+
 KEEP     NCSA AND MIT         61ab203794bd26e0aab2c6b954e30d9a
 BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: z_Linux_asm.s at line 10
     License text:
         //// This file is dual licensed under the MIT and the University of Illinois Open
         //// Source Licenses. See LICENSE.txt for details.
@@ -234,7 +239,6 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        libomp.rc.var [8:9]
         z_Linux_asm.s [9:10]
     Scancode info:
         Original SPDX id: MIT
@@ -242,67 +246,46 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
     Files with this license:
-        libomp.rc.var [8:9]
         z_Linux_asm.s [9:10]
 
-KEEP     NCSA AND MIT         9d5ffd6253d2b406a8bc3bbf3cb4f38b
+KEEP     NCSA                 6caabae7bd314fb6e6055ec150ee747f
 BELONGS ya.make
-    License text:
-        !// This file is dual licensed under the MIT and the University of Illinois Open
-        !// Source Licenses. See LICENSE.txt for details.
+    Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: NCSA
-        Score           : 100.00
-        Match type      : NOTICE
+        Score           : 99.55
+        Match type      : TEXT
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        include/30/omp_lib.f.var [8:9]
-        include/30/omp_lib.f90.var [8:9]
-        include/30/omp_lib.h.var [8:9]
-        include/40/omp_lib.f.var [8:9]
-        include/40/omp_lib.f90.var [8:9]
-        include/40/omp_lib.h.var [8:9]
-        include/41/omp_lib.f.var [8:9]
-        include/41/omp_lib.f90.var [8:9]
-        include/41/omp_lib.h.var [8:9]
-    Scancode info:
-        Original SPDX id: MIT
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
-    Files with this license:
-        include/30/omp_lib.f.var [8:9]
-        include/30/omp_lib.f90.var [8:9]
-        include/30/omp_lib.h.var [8:9]
-        include/40/omp_lib.f.var [8:9]
-        include/40/omp_lib.f90.var [8:9]
-        include/40/omp_lib.h.var [8:9]
-        include/41/omp_lib.f.var [8:9]
-        include/41/omp_lib.f90.var [8:9]
-        include/41/omp_lib.h.var [8:9]
+        LICENSE.txt [26:50]
 
-KEEP     NCSA AND MIT         d2725783fa0a2f24d855943aac3dbdf9
+KEEP     NCSA                 c26d0b72f92421989c4471ae0acbc943
 BELONGS ya.make
     License text:
-        ;// This file is dual licensed under the MIT and the University of Illinois Open
-        ;// Source Licenses. See LICENSE.txt for details.
+        University of Illinois/NCSA
+        Open Source License
     Scancode info:
         Original SPDX id: NCSA
         Score           : 100.00
-        Match type      : NOTICE
+        Match type      : REFERENCE
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        z_Windows_NT-586_asm.asm [9:10]
+        LICENSE.txt [14:15]
+
+KEEP     Intel-LLVM-SGA       d5a6528c4e206fd72c16045a75e34576
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
     Scancode info:
-        Original SPDX id: MIT
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+        Original SPDX id: LicenseRef-scancode-arm-llvm-sga
+        Score           : 99.00
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/arm-llvm-sga.LICENSE
     Files with this license:
-        z_Windows_NT-586_asm.asm [9:10]
+        LICENSE.txt [78:122]
 
 KEEP     NCSA AND MIT         e56769dac6aaa0678164025adda8a1da
 BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: exports_so.txt at line 9
     License text:
         \#// This file is dual licensed under the MIT and the University of Illinois Open
         \#// Source Licenses. See LICENSE.txt for details.
@@ -312,11 +295,11 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        i18n/en_US.txt [8:9]
+        exports_so.txt [8:9]
     Scancode info:
         Original SPDX id: MIT
         Score           : 100.00
         Match type      : NOTICE
         Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
     Files with this license:
-        i18n/en_US.txt [8:9]
+        exports_so.txt [8:9]

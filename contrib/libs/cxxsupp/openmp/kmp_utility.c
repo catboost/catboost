@@ -438,3 +438,4 @@ __kmp_expand_file_name( char *result, size_t rlen, char *pattern )
 
     *pos = '\0';
 }
+
