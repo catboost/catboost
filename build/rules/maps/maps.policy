@@ -171,5 +171,8 @@ ALLOW ydo/libs/dispatch -> maps/libs/kdtree
 # use of privacy_detector
 ALLOW toloka -> maps/wikimap/mapspro/services/mrc/libs/
 
+# allow using yacare to implement piglet sync service
+ALLOW devtools/contrib -> maps/infra/yacare
+
 # Do not allow PEERDIRs into maps unless such PEERDIRs have be explicitly allowed above
 DENY .* -> maps/
