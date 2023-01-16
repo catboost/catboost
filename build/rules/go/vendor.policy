@@ -1026,6 +1026,9 @@ ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
 # CONTRIB-2423
 ALLOW .* -> vendor/github.com/godror/godror
 
+# CONTRIB-2439
+ALLOW .* -> vendor/github.com/elimity-com/scim
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
