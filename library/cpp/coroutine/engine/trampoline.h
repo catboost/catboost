@@ -52,7 +52,7 @@ namespace NCoro {
             Ctx_.SwitchTo(ctx);
         }
 
-        void DoRun();
+        void DoRun() override;
 
         void DoRunNaked() override;
 
