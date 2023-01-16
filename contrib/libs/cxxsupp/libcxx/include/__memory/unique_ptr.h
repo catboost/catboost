@@ -13,11 +13,14 @@
 #include <__config>
 #include <__functional_base> // std::less
 #include <__memory/allocator_traits.h> // __pointer
-#include <__memory/auto_ptr.h>
 #include <__memory/compressed_pair.h>
 #include <cstddef>
 #include <type_traits>
 #include <utility>
+
+#if _LIBCPP_STD_VER <= 14 || defined(_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR)
+#   include <__memory/auto_ptr.h>
+#endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -735,7 +738,7 @@ template<class _Tp, class... _Args>
     typename __unique_if<_Tp>::__unique_array_known_bound
     make_unique(_Args&&...) = delete;
 
-#endif  // _LIBCPP_STD_VER > 11
+#endif // _LIBCPP_STD_VER > 11
 
 template <class _Tp> struct _LIBCPP_TEMPLATE_VIS hash;
 
@@ -761,4 +764,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP___MEMORY_UNIQUE_PTR_H
+#endif // _LIBCPP___MEMORY_UNIQUE_PTR_H

@@ -21,7 +21,6 @@ _LIBCPP_PUSH_MACROS
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER <= 14 || defined(_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR)
 template <class _Tp>
 struct _LIBCPP_DEPRECATED_IN_CXX11 auto_ptr_ref
 {
@@ -78,10 +77,9 @@ class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX11 auto_ptr<void>
 public:
     typedef void element_type;
 };
-#endif
 
 _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP___MEMORY_AUTO_PTR_H
+#endif // _LIBCPP___MEMORY_AUTO_PTR_H

@@ -17,7 +17,6 @@
 #include <__memory/allocation_guard.h>
 #include <__memory/allocator.h>
 #include <__memory/allocator_traits.h>
-#include <__memory/auto_ptr.h>
 #include <__memory/compressed_pair.h>
 #include <__memory/pointer_traits.h>
 #include <__memory/unique_ptr.h>
@@ -29,6 +28,10 @@
 #include <utility>
 #if !defined(_LIBCPP_HAS_NO_THREADS) //!defined(_LIBCPP_HAS_NO_ATOMIC_HEADER)
 #  include <atomic>
+#endif
+
+#if _LIBCPP_STD_VER <= 14 || defined(_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR)
+#   include <__memory/auto_ptr.h>
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -279,7 +282,7 @@ __shared_ptr_pointer<_Tp, _Dp, _Alloc>::__get_deleter(const type_info& __t) cons
     return __t == typeid(_Dp) ? _VSTD::addressof(__data_.first().second()) : nullptr;
 }
 
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 
 template <class _Tp, class _Dp, class _Alloc>
 void
@@ -405,6 +408,16 @@ struct __compatible_with
     : is_convertible<_Tp*, _Up*> {};
 #endif // _LIBCPP_STD_VER > 14
 
+template <class _Ptr, class = void>
+struct __is_deletable : false_type { };
+template <class _Ptr>
+struct __is_deletable<_Ptr, decltype(delete _VSTD::declval<_Ptr>())> : true_type { };
+
+template <class _Ptr, class = void>
+struct __is_array_deletable : false_type { };
+template <class _Ptr>
+struct __is_array_deletable<_Ptr, decltype(delete[] _VSTD::declval<_Ptr>())> : true_type { };
+
 template <class _Dp, class _Pt,
     class = decltype(_VSTD::declval<_Dp>()(_VSTD::declval<_Pt>()))>
 static true_type __well_formed_deleter_test(int);
@@ -450,9 +463,27 @@ public:
     _LIBCPP_CONSTEXPR shared_ptr() _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     _LIBCPP_CONSTEXPR shared_ptr(nullptr_t) _NOEXCEPT;
-    template<class _Yp>
-        explicit shared_ptr(_Yp* __p,
-                            typename enable_if<__compatible_with<_Yp, element_type>::value, __nat>::type = __nat());
+
+    template<class _Yp, class = _EnableIf<
+        _And<
+            __compatible_with<_Yp, _Tp>
+            // In C++03 we get errors when trying to do SFINAE with the
+            // delete operator, so we always pretend that it's deletable.
+            // The same happens on GCC.
+#if !defined(_LIBCPP_CXX03_LANG) && !defined(_LIBCPP_COMPILER_GCC)
+            , _If<is_array<_Tp>::value, __is_array_deletable<_Yp*>, __is_deletable<_Yp*> >
+#endif
+        >::value
+    > >
+    explicit shared_ptr(_Yp* __p) : __ptr_(__p) {
+        unique_ptr<_Yp> __hold(__p);
+        typedef typename __shared_ptr_default_allocator<_Yp>::type _AllocT;
+        typedef __shared_ptr_pointer<_Yp*, __shared_ptr_default_delete<_Tp, _Yp>, _AllocT > _CntrlBlk;
+        __cntrl_ = new _CntrlBlk(__p, __shared_ptr_default_delete<_Tp, _Yp>(), _AllocT());
+        __hold.release();
+        __enable_weak_this(__p, __p);
+    }
+
     template<class _Yp, class _Dp>
         shared_ptr(_Yp* __p, _Dp __d,
                    typename enable_if<__shared_ptr_deleter_ctor_reqs<_Dp, _Yp, element_type>::value, __nat>::type = __nat());
@@ -618,7 +649,7 @@ public:
             {return static_cast<_Dp*>(__cntrl_
                     ? const_cast<void *>(__cntrl_->__get_deleter(typeid(_Dp)))
                       : nullptr);}
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 
     template<class _Yp, class _CntrlBlk>
     static shared_ptr<_Tp>
@@ -705,20 +736,6 @@ shared_ptr<_Tp>::shared_ptr(nullptr_t) _NOEXCEPT
 }
 
 template<class _Tp>
-template<class _Yp>
-shared_ptr<_Tp>::shared_ptr(_Yp* __p,
-                            typename enable_if<__compatible_with<_Yp, element_type>::value, __nat>::type)
-    : __ptr_(__p)
-{
-    unique_ptr<_Yp> __hold(__p);
-    typedef typename __shared_ptr_default_allocator<_Yp>::type _AllocT;
-    typedef __shared_ptr_pointer<_Yp*, __shared_ptr_default_delete<_Tp, _Yp>, _AllocT > _CntrlBlk;
-    __cntrl_ = new _CntrlBlk(__p, __shared_ptr_default_delete<_Tp, _Yp>(), _AllocT());
-    __hold.release();
-    __enable_weak_this(__p, __p);
-}
-
-template<class _Tp>
 template<class _Yp, class _Dp>
 shared_ptr<_Tp>::shared_ptr(_Yp* __p, _Dp __d,
                             typename enable_if<__shared_ptr_deleter_ctor_reqs<_Dp, _Yp, element_type>::value, __nat>::type)
@@ -727,7 +744,7 @@ shared_ptr<_Tp>::shared_ptr(_Yp* __p, _Dp __d,
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         typedef typename __shared_ptr_default_allocator<_Yp>::type _AllocT;
         typedef __shared_ptr_pointer<_Yp*, _Dp, _AllocT > _CntrlBlk;
 #ifndef _LIBCPP_CXX03_LANG
@@ -743,7 +760,7 @@ shared_ptr<_Tp>::shared_ptr(_Yp* __p, _Dp __d,
         __d(__p);
         throw;
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class _Tp>
@@ -754,7 +771,7 @@ shared_ptr<_Tp>::shared_ptr(nullptr_t __p, _Dp __d)
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         typedef typename __shared_ptr_default_allocator<_Tp>::type _AllocT;
         typedef __shared_ptr_pointer<nullptr_t, _Dp, _AllocT > _CntrlBlk;
 #ifndef _LIBCPP_CXX03_LANG
@@ -769,7 +786,7 @@ shared_ptr<_Tp>::shared_ptr(nullptr_t __p, _Dp __d)
         __d(__p);
         throw;
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class _Tp>
@@ -781,7 +798,7 @@ shared_ptr<_Tp>::shared_ptr(_Yp* __p, _Dp __d, _Alloc __a,
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         typedef __shared_ptr_pointer<_Yp*, _Dp, _Alloc> _CntrlBlk;
         typedef typename __allocator_traits_rebind<_Alloc, _CntrlBlk>::type _A2;
         typedef __allocator_destructor<_A2> _D2;
@@ -802,7 +819,7 @@ shared_ptr<_Tp>::shared_ptr(_Yp* __p, _Dp __d, _Alloc __a,
         __d(__p);
         throw;
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class _Tp>
@@ -813,7 +830,7 @@ shared_ptr<_Tp>::shared_ptr(nullptr_t __p, _Dp __d, _Alloc __a)
 #ifndef _LIBCPP_NO_EXCEPTIONS
     try
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
         typedef __shared_ptr_pointer<nullptr_t, _Dp, _Alloc> _CntrlBlk;
         typedef typename __allocator_traits_rebind<_Alloc, _CntrlBlk>::type _A2;
         typedef __allocator_destructor<_A2> _D2;
@@ -833,7 +850,7 @@ shared_ptr<_Tp>::shared_ptr(nullptr_t __p, _Dp __d, _Alloc __a)
         __d(__p);
         throw;
     }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
 }
 
 template<class _Tp>
@@ -1327,7 +1344,7 @@ get_deleter(const shared_ptr<_Tp>& __p) _NOEXCEPT
     return __p.template __get_deleter<_Dp>();
 }
 
-#endif  // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_NO_RTTI
 
 template<class _Tp>
 class _LIBCPP_SHARED_PTR_TRIVIAL_ABI _LIBCPP_TEMPLATE_VIS weak_ptr
@@ -1858,10 +1875,10 @@ atomic_compare_exchange_weak_explicit(shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v
     return atomic_compare_exchange_weak(__p, __v, __w);
 }
 
-#endif  // !defined(_LIBCPP_HAS_NO_ATOMIC_HEADER)
+#endif // !defined(_LIBCPP_HAS_NO_ATOMIC_HEADER)
 
 _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP___MEMORY_SHARED_PTR_H
+#endif // _LIBCPP___MEMORY_SHARED_PTR_H

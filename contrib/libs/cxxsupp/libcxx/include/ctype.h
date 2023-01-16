@@ -60,4 +60,4 @@ int toupper(int c);
 
 #endif
 
-#endif  // _LIBCPP_CTYPE_H
+#endif // _LIBCPP_CTYPE_H
