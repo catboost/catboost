@@ -24,7 +24,10 @@
 #include "tcmalloc/huge_pages.h"
 #include "tcmalloc/stats.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
+
 // these typedefs allow replacement of tcmalloc::System* for tests.
 typedef void *(*MemoryAllocFunction)(size_t bytes, size_t *actual,
                                      size_t align);
@@ -65,7 +68,7 @@ class HugeAllocator {
     return s;
   }
 
-  void Print(TCMalloc_Printer *out);
+  void Print(Printer *out);
   void PrintInPbtxt(PbtxtRegion *hpaa) const;
 
  private:
@@ -98,6 +101,8 @@ class HugeAllocator {
   HugeRange AllocateRange(HugeLength n);
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_HUGE_ALLOCATOR_H_

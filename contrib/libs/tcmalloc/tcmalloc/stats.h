@@ -24,7 +24,9 @@
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/pages.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 struct BackingStats {
   BackingStats() : system_bytes(0), free_bytes(0), unmapped_bytes(0) {}
@@ -83,9 +85,9 @@ inline LargeSpanStats operator+(LargeSpanStats lhs, LargeSpanStats rhs) {
   return lhs += rhs;
 }
 
-void PrintStats(const char* label, TCMalloc_Printer* out,
-                const BackingStats& backing, const SmallSpanStats& small,
-                const LargeSpanStats& large, bool everything);
+void PrintStats(const char* label, Printer* out, const BackingStats& backing,
+                const SmallSpanStats& small, const LargeSpanStats& large,
+                bool everything);
 
 class PageAgeHistograms {
  public:
@@ -97,7 +99,7 @@ class PageAgeHistograms {
   // changed.
   void RecordRange(Length pages, bool released, int64_t when);
 
-  void Print(const char* label, TCMalloc_Printer* out) const;
+  void Print(const char* label, Printer* out) const;
 
   static constexpr size_t kNumBuckets = 7;
   static constexpr size_t kNumSizes = 64;
@@ -106,7 +108,7 @@ class PageAgeHistograms {
   class Histogram {
    public:
     void Record(Length pages, double age);
-    void Print(TCMalloc_Printer* out) const;
+    void Print(Printer* out) const;
 
     uint32_t pages_in_bucket(size_t i) const { return buckets_[i]; }
 
@@ -156,7 +158,7 @@ class PageAgeHistograms {
  private:
   struct PerSizeHistograms {
     void Record(Length pages, double age);
-    void Print(const char* kind, TCMalloc_Printer* out) const;
+    void Print(const char* kind, Printer* out) const;
 
     Histogram* GetSmall(Length n) {
       CHECK_CONDITION(n.raw_num() < kNumSizes);
@@ -202,7 +204,7 @@ class PageAllocInfo {
   void RecordFree(PageId p, Length n);
   void RecordRelease(Length n, Length got);
   // And invoking this in their Print() implementation.
-  void Print(TCMalloc_Printer* out) const;
+  void Print(Printer* out) const;
   void PrintInPbtxt(PbtxtRegion* region, absl::string_view stat_name) const;
 
   // Total size of allocations < 1 MiB
@@ -262,6 +264,8 @@ class PageAllocInfo {
   void LogRelease(int64_t when, Length n) { Write(when, 2, PageId{0}, n); }
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_STATS_H_

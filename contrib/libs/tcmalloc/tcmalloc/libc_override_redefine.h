@@ -23,8 +23,6 @@
 #ifndef TCMALLOC_LIBC_OVERRIDE_REDEFINE_H_
 #define TCMALLOC_LIBC_OVERRIDE_REDEFINE_H_
 
-#include <sys/cdefs.h>
-
 #include <cstddef>
 #include <new>
 
@@ -46,40 +44,57 @@ void operator delete(void* ptr, const std::nothrow_t& nt) noexcept {
 void operator delete[](void* ptr, const std::nothrow_t& nt) noexcept {
   return TCMallocInternalDeleteArrayNothrow(ptr, nt);
 }
+
 extern "C" {
+void* malloc(size_t s) { return TCMallocInternalMalloc(s); }
+void* calloc(size_t n, size_t s) { return TCMallocInternalCalloc(n, s); }
+void* realloc(void* p, size_t s) { return TCMallocInternalRealloc(p, s); }
+void free(void* p) { TCMallocInternalFree(p); }
+void* memalign(size_t a, size_t s) { return TCMallocInternalMemalign(a, s); }
+int posix_memalign(void** r, size_t a, size_t s) {
+  return TCMallocInternalPosixMemalign(r, a, s);
+}
+size_t malloc_usable_size(void* p) { return TCMallocInternalMallocSize(p); }
+
+// tcmalloc extension
 void sdallocx(void* p, size_t s, int flags) noexcept {
   TCMallocInternalSdallocx(p, s, flags);
 }
-#define noexcept __THROW
-void* malloc(size_t s) noexcept { return TCMallocInternalMalloc(s); }
-void free(void* p) noexcept { TCMallocInternalFree(p); }
-void* realloc(void* p, size_t s) noexcept {
-  return TCMallocInternalRealloc(p, s);
-}
-void* calloc(size_t n, size_t s) noexcept {
-  return TCMallocInternalCalloc(n, s);
-}
-void cfree(void* p) noexcept { TCMallocInternalCfree(p); }
-void* memalign(size_t a, size_t s) noexcept {
-  return TCMallocInternalMemalign(a, s);
-}
-void* valloc(size_t s) noexcept { return TCMallocInternalValloc(s); }
-void* pvalloc(size_t s) noexcept { return TCMallocInternalPvalloc(s); }
-int posix_memalign(void** r, size_t a, size_t s) noexcept {
-  return TCMallocInternalPosixMemalign(r, a, s);
-}
-void malloc_stats(void) noexcept { TCMallocInternalMallocStats(); }
-int mallopt(int cmd, int v) noexcept { return TCMallocInternalMallOpt(cmd, v); }
-#ifdef HAVE_STRUCT_MALLINFO
-struct mallinfo mallinfo(void) noexcept {
+
+#if defined(__GLIBC__) || defined(__NEWLIB__)
+// SunOS extension
+void cfree(void* p) { TCMallocInternalCfree(p); }
+#endif
+
+#if defined(OS_MACOSX) || defined(__BIONIC__) || defined(__GLIBC__) || \
+    defined(__NEWLIB__) || defined(__UCLIBC__)
+// Obsolete memalign
+void* valloc(size_t s) { return TCMallocInternalValloc(s); }
+#endif
+
+#if defined(__BIONIC__) || defined(__GLIBC__) || defined(__NEWLIB__)
+// Obsolete memalign
+void* pvalloc(size_t s) { return TCMallocInternalPvalloc(s); }
+#endif
+
+#if defined(__GLIBC__) || defined(__NEWLIB__) || defined(__UCLIBC__)
+void malloc_stats(void) { TCMallocInternalMallocStats(); }
+#endif
+
+#if defined(__BIONIC__) || defined(__GLIBC__) || defined(__NEWLIB__) || \
+    defined(__UCLIBC__)
+int mallopt(int cmd, int v) { return TCMallocInternalMallOpt(cmd, v); }
+#endif
+
+#ifdef TCMALLOC_HAVE_STRUCT_MALLINFO
+struct mallinfo mallinfo(void) {
   return TCMallocInternalMallocInfo();
 }
 #endif
-size_t malloc_size(void* p) noexcept { return TCMallocInternalMallocSize(p); }
-size_t malloc_usable_size(void* p) noexcept {
-  return TCMallocInternalMallocSize(p);
-}
-#undef noexcept
+
+#if defined(__GLIBC__)
+size_t malloc_size(void* p) { return TCMallocInternalMallocSize(p); }
+#endif
 }  // extern "C"
 
 #endif  // TCMALLOC_LIBC_OVERRIDE_REDEFINE_H_

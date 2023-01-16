@@ -25,7 +25,9 @@
 #include "tcmalloc/parameters.h"
 #include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 int ABSL_ATTRIBUTE_WEAK default_want_hpaa();
 
@@ -42,11 +44,32 @@ bool decide_want_hpaa() {
   const char *e =
       tcmalloc::tcmalloc_internal::thread_safe_getenv("TCMALLOC_HPAA_CONTROL");
   if (e) {
-    if (e[0] == '0') return false;
-    if (e[0] == '1') return true;
-    if (e[0] == '2') return true;
-    Crash(kCrash, __FILE__, __LINE__, "bad env var", e);
-    return false;
+    switch (e[0]) {
+      case '0':
+        if (kPageShift <= 12) {
+          return false;
+        }
+
+        if (default_want_hpaa != nullptr) {
+          int default_hpaa = default_want_hpaa();
+          if (default_hpaa < 0) {
+            return false;
+          }
+        }
+
+        Log(kLog, __FILE__, __LINE__,
+            "Runtime opt-out from HPAA requires building with "
+            "//tcmalloc:want_no_hpaa."
+        );
+        break;
+      case '1':
+        return true;
+      case '2':
+        return true;
+      default:
+        Crash(kCrash, __FILE__, __LINE__, "bad env var", e);
+        return false;
+    }
   }
 
   if (default_want_hpaa != nullptr) {
@@ -73,14 +96,22 @@ bool want_hpaa() {
 PageAllocator::PageAllocator() {
   const bool kUseHPAA = want_hpaa();
   if (kUseHPAA) {
-    normal_impl_ =
+    normal_impl_[0] =
         new (&choices_[0].hpaa) HugePageAwareAllocator(MemoryTag::kNormal);
-    sampled_impl_ =
-        new (&choices_[1].hpaa) HugePageAwareAllocator(MemoryTag::kSampled);
+    if (Static::numa_topology().numa_aware()) {
+      normal_impl_[1] =
+          new (&choices_[1].hpaa) HugePageAwareAllocator(MemoryTag::kNormalP1);
+    }
+    sampled_impl_ = new (&choices_[kNumaPartitions + 0].hpaa)
+        HugePageAwareAllocator(MemoryTag::kSampled);
     alg_ = HPAA;
   } else {
-    normal_impl_ = new (&choices_[0].ph) PageHeap(MemoryTag::kNormal);
-    sampled_impl_ = new (&choices_[1].ph) PageHeap(MemoryTag::kSampled);
+    normal_impl_[0] = new (&choices_[0].ph) PageHeap(MemoryTag::kNormal);
+    if (Static::numa_topology().numa_aware()) {
+      normal_impl_[1] = new (&choices_[1].ph) PageHeap(MemoryTag::kNormalP1);
+    }
+    sampled_impl_ =
+        new (&choices_[kNumaPartitions + 0].ph) PageHeap(MemoryTag::kSampled);
     alg_ = PAGE_HEAP;
   }
 }
@@ -141,10 +172,12 @@ bool PageAllocator::ShrinkHardBy(Length pages) {
           limit_, "without breaking hugepages - performance will drop");
       warned_hugepages = true;
     }
-    ret += static_cast<HugePageAwareAllocator *>(normal_impl_)
-               ->ReleaseAtLeastNPagesBreakingHugepages(pages - ret);
-    if (ret >= pages) {
-      return true;
+    for (int partition = 0; partition < active_numa_partitions(); partition++) {
+      ret += static_cast<HugePageAwareAllocator *>(normal_impl_[partition])
+                 ->ReleaseAtLeastNPagesBreakingHugepages(pages - ret);
+      if (ret >= pages) {
+        return true;
+      }
     }
 
     ret += static_cast<HugePageAwareAllocator *>(sampled_impl_)
@@ -154,4 +187,10 @@ bool PageAllocator::ShrinkHardBy(Length pages) {
   return (pages <= ret);
 }
 
+size_t PageAllocator::active_numa_partitions() const {
+  return Static::numa_topology().active_partitions();
+}
+
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

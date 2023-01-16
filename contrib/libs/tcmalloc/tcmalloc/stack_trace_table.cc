@@ -25,7 +25,9 @@
 #include "tcmalloc/sampler.h"
 #include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 bool StackTraceTable::Bucket::KeyEqual(uintptr_t h, const StackTrace& t) const {
   // Do not merge entries with different sizes so that profiling tools
@@ -100,18 +102,12 @@ void StackTraceTable::AddTrace(double count, const StackTrace& t) {
     depth_total_ += t.depth;
     bucket_total_++;
     b = Static::bucket_allocator().New();
-    if (b == nullptr) {
-      Log(kLog, __FILE__, __LINE__, "tcmalloc: could not allocate bucket",
-          sizeof(*b));
-      error_ = true;
-    } else {
-      b->hash = h;
-      b->trace = t;
-      b->count = count;
-      b->total_weight = t.weight * count;
-      b->next = table_[idx];
-      table_[idx] = b;
-    }
+    b->hash = h;
+    b->trace = t;
+    b->count = count;
+    b->total_weight = t.weight * count;
+    b->next = table_[idx];
+    table_[idx] = b;
   }
 }
 
@@ -150,4 +146,6 @@ void StackTraceTable::Iterate(
   }
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

@@ -32,6 +32,7 @@
 #include "tcmalloc/internal/logging.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 class HugeAllocatorTest : public testing::TestWithParam<bool> {
@@ -56,8 +57,6 @@ class HugeAllocatorTest : public testing::TestWithParam<bool> {
  protected:
   HugeLength HugePagesRequested() { return huge_pages_requested_; }
   HugeLength HugePagesReceived() { return huge_pages_received_; }
-
-  size_t MetadataBytes() { return metadata_bytes_; }
 
   HugeAllocatorTest() {
     should_overallocate_ = GetParam();
@@ -446,4 +445,5 @@ INSTANTIATE_TEST_SUITE_P(
     });
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

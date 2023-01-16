@@ -30,6 +30,7 @@
 #include "tcmalloc/static_vars.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 // Rather than deal with heap allocating stack/tags, AllocationEntry contains
@@ -384,4 +385,5 @@ TEST(StackTraceTableTest, StackTraceTable) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

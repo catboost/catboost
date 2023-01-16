@@ -24,7 +24,7 @@
 #include "tcmalloc/span.h"
 
 namespace tcmalloc {
-
+namespace tcmalloc_internal {
 namespace {
 
 class TestingSizeMap : public SizeMap {
@@ -106,18 +106,22 @@ TEST_F(RunTimeSizeClassesTest, EnvRealClasses) {
   // With the runtime_size_classes library linked, the environment variable
   // will be parsed.
 
-  for (int c = 0; c < count; c++) {
-    EXPECT_EQ(m_.class_to_size(c), m_.DefaultSizeClasses()[c].size);
-    EXPECT_EQ(m_.class_to_pages(c), m_.DefaultSizeClasses()[c].pages);
-    EXPECT_EQ(m_.num_objects_to_move(c),
-              m_.DefaultSizeClasses()[c].num_to_move);
-  }
-  for (int c = count; c < kNumClasses; c++) {
-    EXPECT_EQ(m_.class_to_size(c), 0);
-    EXPECT_EQ(m_.class_to_pages(c), 0);
-    EXPECT_EQ(m_.num_objects_to_move(c), 0);
+  for (int c = 0; c < kNumClasses;) {
+    for (int end = c + count; c < end; c++) {
+      const SizeClassInfo& default_info =
+          m_.DefaultSizeClasses()[c % kNumBaseClasses];
+      EXPECT_EQ(m_.class_to_size(c), default_info.size) << c;
+      EXPECT_EQ(m_.class_to_pages(c), default_info.pages);
+      EXPECT_EQ(m_.num_objects_to_move(c), default_info.num_to_move);
+    }
+    for (; (c % kNumBaseClasses) != 0; c++) {
+      EXPECT_EQ(m_.class_to_size(c), 0);
+      EXPECT_EQ(m_.class_to_pages(c), 0);
+      EXPECT_EQ(m_.num_objects_to_move(c), 0);
+    }
   }
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

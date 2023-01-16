@@ -24,6 +24,7 @@
 #include "absl/strings/str_format.h"
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
@@ -165,3 +166,4 @@ bool ProcMapsIterator::NextExt(uint64_t* start, uint64_t* end, char** flags,
 
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

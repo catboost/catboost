@@ -25,11 +25,13 @@
 
 #include "gtest/gtest.h"
 #include "absl/strings/str_format.h"
+#include "benchmark/benchmark.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/malloc_extension.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 class MmapAlignedTest : public testing::TestWithParam<size_t> {
@@ -40,12 +42,12 @@ class MmapAlignedTest : public testing::TestWithParam<size_t> {
     for (MemoryTag tag : {MemoryTag::kNormal, MemoryTag::kSampled}) {
       SCOPED_TRACE(static_cast<unsigned int>(tag));
 
-      void* p = tcmalloc::MmapAligned(size, alignment, tag);
+      void* p = MmapAligned(size, alignment, tag);
       EXPECT_NE(p, nullptr);
       EXPECT_EQ(reinterpret_cast<uintptr_t>(p) % alignment, 0);
-      EXPECT_EQ(tcmalloc::IsTaggedMemory(p), tag == MemoryTag::kSampled);
-      EXPECT_EQ(tcmalloc::GetMemoryTag(p), tag);
-      EXPECT_EQ(tcmalloc::GetMemoryTag(static_cast<char*>(p) + size - 1), tag);
+      EXPECT_EQ(IsTaggedMemory(p), tag == MemoryTag::kSampled);
+      EXPECT_EQ(GetMemoryTag(p), tag);
+      EXPECT_EQ(GetMemoryTag(static_cast<char*>(p) + size - 1), tag);
       EXPECT_EQ(munmap(p, size), 0);
     }
   }
@@ -105,7 +107,11 @@ TEST(Basic, InvokedTest) {
   MallocExtension::SetRegionFactory(&f);
 
   // An allocation size that is likely to trigger the system allocator.
-  ::operator delete(::operator new(tcmalloc::kMinSystemAlloc));
+  void* ptr = ::operator new(kMinSystemAlloc * 2);
+  // TODO(b/183453911): Remove workaround for GCC 10.x deleting operator new,
+  // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94295.
+  benchmark::DoNotOptimize(ptr);
+  ::operator delete(ptr);
 
   // Make sure that our allocator was invoked.
   ASSERT_TRUE(simple_region_alloc_invoked);
@@ -137,4 +143,5 @@ TEST(Basic, RetryFailTest) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

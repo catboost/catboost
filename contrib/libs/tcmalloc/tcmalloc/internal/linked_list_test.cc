@@ -19,17 +19,16 @@
 #include <algorithm>
 #include <vector>
 
-#include "benchmark/benchmark.h"
 #include "gtest/gtest.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/container/node_hash_set.h"
 #include "absl/random/random.h"
+#include "benchmark/benchmark.h"
 #include "tcmalloc/internal/mock_span.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
-
-using tcmalloc_internal::MockSpan;
-using tcmalloc_internal::MockSpanList;
 
 class LinkedListTest : public ::testing::Test {
  protected:
@@ -77,7 +76,7 @@ TEST_F(LinkedListTest, PushPop) {
 // the batch is maintained.
 TEST_F(LinkedListTest, PushPopBatch) {
   const std::vector<int> batch_sizes{1, 3, 5, 7, 10, 16};
-  absl::node_hash_set<void*> pushed;
+  absl::flat_hash_set<void*> pushed;
 
   size_t length = 0;
   for (int batch_size : batch_sizes) {
@@ -97,7 +96,7 @@ TEST_F(LinkedListTest, PushPopBatch) {
     EXPECT_EQ(length == 0, list_.empty());
   }
 
-  absl::node_hash_set<void*> popped;
+  absl::flat_hash_set<void*> popped;
   for (int batch_size : batch_sizes) {
     std::vector<void*> batch(batch_size, nullptr);
     list_.PopBatch(batch_size, batch.data());
@@ -236,4 +235,5 @@ TEST_F(TListTest, AppendRandomRemove) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

@@ -29,10 +29,12 @@
 #include "absl/base/internal/sysinfo.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
+#include "tcmalloc/internal/config.h"
 
 // Useful internal utility functions.  These calls are async-signal safe
 // provided the signal handler saves errno at entry and restores it before
 // return.
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
@@ -123,5 +125,6 @@ class ScopedAffinityMask {
 
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_INTERNAL_UTIL_H_

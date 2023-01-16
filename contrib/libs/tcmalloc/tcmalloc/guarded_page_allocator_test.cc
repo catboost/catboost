@@ -39,10 +39,10 @@
 #include "tcmalloc/static_vars.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
-static constexpr size_t kMaxGpaPages =
-    tcmalloc::GuardedPageAllocator::kGpaMaxPages;
+static constexpr size_t kMaxGpaPages = GuardedPageAllocator::kGpaMaxPages;
 
 // Size of pages used by GuardedPageAllocator.
 static size_t PageSize() {
@@ -54,20 +54,20 @@ static size_t PageSize() {
 class GuardedPageAllocatorTest : public testing::Test {
  protected:
   GuardedPageAllocatorTest() {
-    absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+    absl::base_internal::SpinLockHolder h(&pageheap_lock);
     gpa_.Init(kMaxGpaPages, kMaxGpaPages);
     gpa_.AllowAllocations();
   }
 
   explicit GuardedPageAllocatorTest(size_t num_pages) {
-    absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+    absl::base_internal::SpinLockHolder h(&pageheap_lock);
     gpa_.Init(num_pages, kMaxGpaPages);
     gpa_.AllowAllocations();
   }
 
   ~GuardedPageAllocatorTest() override { gpa_.Destroy(); }
 
-  tcmalloc::GuardedPageAllocator gpa_;
+  GuardedPageAllocator gpa_;
 };
 
 class GuardedPageAllocatorParamTest
@@ -132,7 +132,7 @@ TEST_F(GuardedPageAllocatorTest, PointerIsMine) {
 
 TEST_F(GuardedPageAllocatorTest, Print) {
   char buf[1024] = {};
-  TCMalloc_Printer out(buf, sizeof(buf));
+  Printer out(buf, sizeof(buf));
   gpa_.Print(&out);
   EXPECT_THAT(buf, testing::ContainsRegex("GWP-ASan Status"));
 }
@@ -207,4 +207,5 @@ TEST_F(GuardedPageAllocatorTest, ThreadedHighContention) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

@@ -28,18 +28,18 @@
 #include "tcmalloc/static_vars.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 // PageHeap expands by kMinSystemAlloc by default, so use this as the minimum
 // Span length to not get more memory than expected.
 constexpr Length kMinSpanLength = BytesToLengthFloor(kMinSystemAlloc);
 
-void CheckStats(const tcmalloc::PageHeap* ph, Length system_pages,
-                Length free_pages, Length unmapped_pages)
-    ABSL_LOCKS_EXCLUDED(tcmalloc::pageheap_lock) {
-  tcmalloc::BackingStats stats;
+void CheckStats(const PageHeap* ph, Length system_pages, Length free_pages,
+                Length unmapped_pages) ABSL_LOCKS_EXCLUDED(pageheap_lock) {
+  BackingStats stats;
   {
-    absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+    absl::base_internal::SpinLockHolder h(&pageheap_lock);
     stats = ph->stats();
   }
 
@@ -48,16 +48,15 @@ void CheckStats(const tcmalloc::PageHeap* ph, Length system_pages,
   ASSERT_EQ(unmapped_pages.in_bytes(), stats.unmapped_bytes);
 }
 
-static void Delete(tcmalloc::PageHeap* ph, tcmalloc::Span* s)
-    ABSL_LOCKS_EXCLUDED(tcmalloc::pageheap_lock) {
+static void Delete(PageHeap* ph, Span* s) ABSL_LOCKS_EXCLUDED(pageheap_lock) {
   {
-    absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+    absl::base_internal::SpinLockHolder h(&pageheap_lock);
     ph->Delete(s);
   }
 }
 
-static Length Release(tcmalloc::PageHeap* ph, Length n) {
-  absl::base_internal::SpinLockHolder h(&tcmalloc::pageheap_lock);
+static Length Release(PageHeap* ph, Length n) {
+  absl::base_internal::SpinLockHolder h(&pageheap_lock);
   return ph->ReleaseAtLeastNPages(n);
 }
 
@@ -72,21 +71,20 @@ class PageHeapTest : public ::testing::Test {
 
 // TODO(b/36484267): replace this test wholesale.
 TEST_F(PageHeapTest, Stats) {
-  auto pagemap = absl::make_unique<tcmalloc::PageMap>();
-  void* memory = calloc(1, sizeof(tcmalloc::PageHeap));
-  tcmalloc::PageHeap* ph =
-      new (memory) tcmalloc::PageHeap(pagemap.get(), MemoryTag::kNormal);
+  auto pagemap = absl::make_unique<PageMap>();
+  void* memory = calloc(1, sizeof(PageHeap));
+  PageHeap* ph = new (memory) PageHeap(pagemap.get(), MemoryTag::kNormal);
 
   // Empty page heap
   CheckStats(ph, Length(0), Length(0), Length(0));
 
   // Allocate a span 's1'
-  tcmalloc::Span* s1 = ph->New(kMinSpanLength);
+  Span* s1 = ph->New(kMinSpanLength);
   CheckStats(ph, kMinSpanLength, Length(0), Length(0));
 
   // Allocate an aligned span 's2'
   static const Length kHalf = kMinSpanLength / 2;
-  tcmalloc::Span* s2 = ph->NewAligned(kHalf, kHalf);
+  Span* s2 = ph->NewAligned(kHalf, kHalf);
   ASSERT_EQ(s2->first_page().index() % kHalf.raw_num(), 0);
   CheckStats(ph, kMinSpanLength * 2, Length(0), kHalf);
 
@@ -107,4 +105,5 @@ TEST_F(PageHeapTest, Stats) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

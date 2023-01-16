@@ -20,7 +20,9 @@
 #include "absl/base/macros.h"
 #include "tcmalloc/transfer_cache.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 size_t ThreadCache::per_thread_cache_size_ = kMaxThreadCacheSize;
 size_t ThreadCache::overall_thread_cache_size_ = kDefaultOverallThreadCacheSize;
@@ -146,14 +148,14 @@ void ThreadCache::ReleaseToCentralCache(FreeList* src, size_t cl, int N) {
     src->PopBatch(batch_size, batch);
     static_assert(ABSL_ARRAYSIZE(batch) >= kMaxObjectsToMove,
                   "not enough space in batch");
-    Static::transfer_cache().InsertRange(cl, absl::Span<void*>(batch),
-                                         batch_size);
+    Static::transfer_cache().InsertRange(cl,
+                                         absl::Span<void*>(batch, batch_size));
     N -= batch_size;
   }
   src->PopBatch(N, batch);
   static_assert(ABSL_ARRAYSIZE(batch) >= kMaxObjectsToMove,
                 "not enough space in batch");
-  Static::transfer_cache().InsertRange(cl, absl::Span<void*>(batch), N);
+  Static::transfer_cache().InsertRange(cl, absl::Span<void*>(batch, N));
   size_ -= delta_bytes;
 }
 
@@ -410,4 +412,6 @@ void ThreadCache::set_overall_thread_cache_size(size_t new_size) {
   RecomputePerThreadCacheSize();
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

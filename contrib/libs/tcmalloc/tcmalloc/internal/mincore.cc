@@ -20,13 +20,20 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "tcmalloc/internal/config.h"
+
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 // Class that implements the call into the OS provided mincore() function.
 class OsMInCore final : public MInCoreInterface {
+ public:
   int mincore(void* addr, size_t length, unsigned char* result) final {
     return ::mincore(addr, length, result);
   }
+
+  ~OsMInCore() override = default;
 };
 
 // Returns the number of resident bytes for an range of memory of arbitrary
@@ -117,4 +124,6 @@ size_t MInCore::residence(void* addr, size_t size) {
   return residence_impl(addr, size, &mc);
 }
 
-}  // End namespace tcmalloc
+}  // namespace tcmalloc_internal
+}  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

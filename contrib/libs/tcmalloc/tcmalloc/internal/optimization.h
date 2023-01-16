@@ -34,4 +34,12 @@
 #endif
 #endif
 
+// Annotations for functions that are not affected by nor affect observable
+// state of the program.
+#if ABSL_HAVE_ATTRIBUTE(const)
+#define TCMALLOC_ATTRIBUTE_CONST __attribute__((const))
+#else
+#define TCMALLOC_ATTRIBUTE_CONST
+#endif
+
 #endif  // TCMALLOC_INTERNAL_OPTIMIZATION_H_

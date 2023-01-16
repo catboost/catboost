@@ -19,22 +19,18 @@
 
 #include "gmock/gmock.h"
 #include "absl/base/internal/spinlock.h"
+#include "absl/types/span.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 class FakeCentralFreeListBase {
  public:
-  FakeCentralFreeListBase() : size_class_(0) {}
+  FakeCentralFreeListBase() {}
   FakeCentralFreeListBase(const FakeCentralFreeListBase&) = delete;
   FakeCentralFreeListBase& operator=(const FakeCentralFreeListBase&) = delete;
 
-  void Init(size_t cl) { size_class_ = cl; }
-  size_t length() { return 0; }
-  size_t OverheadBytes() { return 0; }
-  size_t size_class() const { return size_class_; }
-
- private:
-  size_t size_class_;
+  static constexpr void Init(size_t) {}
 };
 
 // CentralFreeList implementation that backs onto the system's malloc.
@@ -43,11 +39,11 @@ class FakeCentralFreeListBase {
 // is important.
 class FakeCentralFreeList : public FakeCentralFreeListBase {
  public:
-  void InsertRange(void** batch, int N);
+  void InsertRange(absl::Span<void*> batch);
   int RemoveRange(void** batch, int N);
 
   void AllocateBatch(void** batch, int n);
-  void FreeBatch(void** batch, int n);
+  void FreeBatch(absl::Span<void*> batch);
 };
 
 // CentralFreeList implementation that does minimal work but no correctness
@@ -56,11 +52,11 @@ class FakeCentralFreeList : public FakeCentralFreeListBase {
 // Useful for benchmarks where you want to avoid unrelated expensive operations.
 class MinimalFakeCentralFreeList : public FakeCentralFreeListBase {
  public:
-  void InsertRange(void** batch, int N);
+  void InsertRange(absl::Span<void*> batch);
   int RemoveRange(void** batch, int N);
 
   void AllocateBatch(void** batch, int n);
-  void FreeBatch(void** batch, int n);
+  void FreeBatch(absl::Span<void*> batch);
 
  private:
   absl::base_internal::SpinLock lock_;
@@ -73,20 +69,21 @@ class MinimalFakeCentralFreeList : public FakeCentralFreeListBase {
 class RawMockCentralFreeList : public FakeCentralFreeList {
  public:
   RawMockCentralFreeList() : FakeCentralFreeList() {
-    ON_CALL(*this, InsertRange).WillByDefault([this](void** batch, int n) {
-      return static_cast<FakeCentralFreeList*>(this)->InsertRange(batch, n);
+    ON_CALL(*this, InsertRange).WillByDefault([this](absl::Span<void*> batch) {
+      return static_cast<FakeCentralFreeList*>(this)->InsertRange(batch);
     });
     ON_CALL(*this, RemoveRange).WillByDefault([this](void** batch, int n) {
       return static_cast<FakeCentralFreeList*>(this)->RemoveRange(batch, n);
     });
   }
 
-  MOCK_METHOD(void, InsertRange, (void** batch, int N));
+  MOCK_METHOD(void, InsertRange, (absl::Span<void*> batch));
   MOCK_METHOD(int, RemoveRange, (void** batch, int N));
 };
 
 using MockCentralFreeList = testing::NiceMock<RawMockCentralFreeList>;
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
 
 #endif  // TCMALLOC_MOCK_CENTRAL_FREELIST_H_

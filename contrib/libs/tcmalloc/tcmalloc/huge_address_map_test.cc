@@ -22,6 +22,7 @@
 #include "gtest/gtest.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 class HugeAddressMapTest : public ::testing::Test {
@@ -80,4 +81,5 @@ TEST_F(HugeAddressMapTest, Merging) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

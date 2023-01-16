@@ -17,7 +17,11 @@
 
 #include <stddef.h>
 
+#include "tcmalloc/internal/config.h"
+
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 // Class to wrap mincore so that we can replace it for testing.
 class MInCoreInterface {
@@ -54,6 +58,8 @@ class MInCore {
   friend class MInCoreTest;
 };
 
-}  // End namespace tcmalloc
+}  // namespace tcmalloc_internal
+}  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_INTERNAL_MINCORE_H_

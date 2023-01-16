@@ -27,16 +27,17 @@
 #include "tcmalloc/internal/util.h"
 #include "tcmalloc/static_vars.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
-
-using tcmalloc::tcmalloc_internal::signal_safe_open;
-using tcmalloc::tcmalloc_internal::thread_safe_getenv;
+namespace tcmalloc_internal {
 
 static int OpenLog(MemoryTag tag) {
   const char *fname = [&]() {
     switch (tag) {
       case MemoryTag::kNormal:
         return thread_safe_getenv("TCMALLOC_PAGE_LOG_FILE");
+      case MemoryTag::kNormalP1:
+        return thread_safe_getenv("TCMALLOC_PAGE_LOG_FILE_P1");
       case MemoryTag::kSampled:
         return thread_safe_getenv("TCMALLOC_SAMPLED_PAGE_LOG_FILE");
       default:
@@ -83,4 +84,6 @@ PageAllocatorInterface::~PageAllocatorInterface() {
   Crash(kCrash, __FILE__, __LINE__, "should never destroy this");
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

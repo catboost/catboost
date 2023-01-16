@@ -23,7 +23,9 @@
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/stats.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 template <size_t kEpochs>
 void MinMaxTracker<kEpochs>::Report(HugeLength val) {
@@ -51,7 +53,7 @@ HugeLength MinMaxTracker<kEpochs>::MinOverTime(absl::Duration t) const {
 }
 
 template <size_t kEpochs>
-void MinMaxTracker<kEpochs>::Print(TCMalloc_Printer *out) const {
+void MinMaxTracker<kEpochs>::Print(Printer *out) const {
   // Prints timestamp:min_pages:max_pages for each window with records.
   // Timestamp == kEpochs - 1 is the most recent measurement.
   const int64_t millis = absl::ToInt64Milliseconds(kEpochLength);
@@ -88,11 +90,6 @@ void MinMaxTracker<kEpochs>::PrintInPbtxt(PbtxtRegion *hpaa) const {
 template <size_t kEpochs>
 bool MinMaxTracker<kEpochs>::Extrema::operator==(const Extrema &other) const {
   return (other.max == max) && (other.min == min);
-}
-
-template <size_t kEpochs>
-bool MinMaxTracker<kEpochs>::Extrema::operator!=(const Extrema &other) const {
-  return !(this->operator==(other));
 }
 
 // Explicit instantiations of template
@@ -375,7 +372,7 @@ HugeAddressMap::Node *HugeCache::Find(HugeLength n) {
   return best;
 }
 
-void HugeCache::Print(TCMalloc_Printer *out) {
+void HugeCache::Print(Printer *out) {
   const int64_t millis = absl::ToInt64Milliseconds(kCacheTime);
   out->printf(
       "HugeCache: contains unused, backed hugepage(s) "
@@ -442,9 +439,9 @@ void HugeCache::PrintInPbtxt(PbtxtRegion *hpaa) {
   const double overflow_rate = safe_ratio(overflows_, fills_);
 
   // number of bytes in HugeCache
-  hpaa->PrintI64("cached_huge_page_bytes", size_.raw_num() * kPageSize);
+  hpaa->PrintI64("cached_huge_page_bytes", size_.in_bytes());
   // max allowed bytes in HugeCache
-  hpaa->PrintI64("max_cached_huge_page_bytes", limit().raw_num() * kPageSize);
+  hpaa->PrintI64("max_cached_huge_page_bytes", limit().in_bytes());
   // lifetime cache hit rate
   hpaa->PrintDouble("huge_cache_hit_rate", hit_rate);
   // lifetime cache overflow rate
@@ -492,4 +489,6 @@ void HugeCache::PrintInPbtxt(PbtxtRegion *hpaa) {
   detailed_tracker_.PrintInPbtxt(hpaa);
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

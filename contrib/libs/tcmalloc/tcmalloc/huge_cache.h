@@ -28,11 +28,14 @@
 #include "tcmalloc/experiment_config.h"
 #include "tcmalloc/huge_allocator.h"
 #include "tcmalloc/huge_pages.h"
+#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/timeseries_tracker.h"
 #include "tcmalloc/stats.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 typedef void (*MemoryModifyFunction)(void *start, size_t len);
 
@@ -45,7 +48,7 @@ class MinMaxTracker {
       : kEpochLength(w / kEpochs), timeseries_(clock, w) {}
 
   void Report(HugeLength val);
-  void Print(TCMalloc_Printer *out) const;
+  void Print(Printer *out) const;
   void PrintInPbtxt(PbtxtRegion *hpaa) const;
 
   // If t < kEpochLength, these functions return statistics for last epoch. The
@@ -76,7 +79,6 @@ class MinMaxTracker {
     bool empty() const { return (*this == Nil()); }
 
     bool operator==(const Extrema &other) const;
-    bool operator!=(const Extrema &other) const;
   };
 
   TimeSeriesTracker<Extrema, HugeLength, kEpochs> timeseries_;
@@ -149,7 +151,7 @@ class HugeCache {
     return s;
   }
 
-  void Print(TCMalloc_Printer *out);
+  void Print(Printer *out);
   void PrintInPbtxt(PbtxtRegion *hpaa);
 
  private:
@@ -219,6 +221,8 @@ class HugeCache {
   MemoryModifyFunction unback_;
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_HUGE_CACHE_H_

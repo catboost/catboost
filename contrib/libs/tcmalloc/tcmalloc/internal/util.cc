@@ -27,6 +27,7 @@
 #include "absl/time/time.h"
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
@@ -191,3 +192,4 @@ bool ScopedAffinityMask::Tampered() {
 
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

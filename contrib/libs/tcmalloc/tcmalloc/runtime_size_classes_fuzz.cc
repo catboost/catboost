@@ -21,7 +21,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* d, size_t size) {
   absl::string_view env =
       absl::string_view(reinterpret_cast<const char*>(d), size);
 
-  tcmalloc::SizeClassInfo parsed[kNumClasses];
-  tcmalloc::internal::ParseSizeClasses(env, kMaxSize, kNumClasses, parsed);
+  tcmalloc::tcmalloc_internal::SizeClassInfo
+      parsed[tcmalloc::tcmalloc_internal::kNumClasses];
+  tcmalloc::tcmalloc_internal::runtime_size_classes_internal::ParseSizeClasses(
+      env, tcmalloc::tcmalloc_internal::kMaxSize,
+      tcmalloc::tcmalloc_internal::kNumClasses, parsed);
   return 0;
 }

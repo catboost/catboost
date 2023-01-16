@@ -25,6 +25,7 @@
 #include "tcmalloc/huge_page_filler.h"
 #include "tcmalloc/huge_pages.h"
 #include "tcmalloc/huge_region.h"
+#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/page_allocator_interface.h"
 #include "tcmalloc/page_heap_allocator.h"
@@ -32,7 +33,9 @@
 #include "tcmalloc/stats.h"
 #include "tcmalloc/system-alloc.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 bool decide_subrelease();
 
@@ -42,6 +45,7 @@ bool decide_subrelease();
 class HugePageAwareAllocator final : public PageAllocatorInterface {
  public:
   explicit HugePageAwareAllocator(MemoryTag tag);
+  ~HugePageAwareAllocator() override = default;
 
   // Allocate a run of "n" pages.  Returns zero if out of memory.
   // Caller should not pass "n == 0" -- instead, n should have
@@ -80,12 +84,11 @@ class HugePageAwareAllocator final : public PageAllocatorInterface {
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
 
   // Prints stats about the page heap to *out.
-  void Print(TCMalloc_Printer* out) ABSL_LOCKS_EXCLUDED(pageheap_lock) override;
+  void Print(Printer* out) ABSL_LOCKS_EXCLUDED(pageheap_lock) override;
 
   // Print stats to *out, excluding long/likely uninteresting things
   // unless <everything> is true.
-  void Print(TCMalloc_Printer* out, bool everything)
-      ABSL_LOCKS_EXCLUDED(pageheap_lock);
+  void Print(Printer* out, bool everything) ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
   void PrintInPbtxt(PbtxtRegion* region)
       ABSL_LOCKS_EXCLUDED(pageheap_lock) override;
@@ -105,11 +108,10 @@ class HugePageAwareAllocator final : public PageAllocatorInterface {
   static void UnbackWithoutLock(void* start, size_t length)
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
 
-  typedef HugeRegion<SystemRelease> Region;
-  HugeRegionSet<Region> regions_;
+  HugeRegionSet<HugeRegion> regions_;
 
   PageHeapAllocator<FillerType::Tracker> tracker_allocator_;
-  PageHeapAllocator<Region> region_allocator_;
+  PageHeapAllocator<HugeRegion> region_allocator_;
 
   FillerType::Tracker* GetTracker(HugePage p);
 
@@ -166,6 +168,8 @@ class HugePageAwareAllocator final : public PageAllocatorInterface {
   Span* Finalize(Length n, PageId page);
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_HUGE_PAGE_AWARE_ALLOCATOR_H_

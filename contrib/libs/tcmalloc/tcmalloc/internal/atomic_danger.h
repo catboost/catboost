@@ -20,6 +20,9 @@
 #include <atomic>
 #include <type_traits>
 
+#include "tcmalloc/internal/config.h"
+
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 namespace atomic_danger {
@@ -52,5 +55,6 @@ IntType* CastToIntegral(std::atomic<IntType>* atomic_for_syscall) {
 }  // namespace atomic_danger
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_INTERNAL_ATOMIC_DANGER_H_

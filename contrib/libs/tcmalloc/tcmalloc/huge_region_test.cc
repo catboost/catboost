@@ -32,6 +32,7 @@
 #include "tcmalloc/stats.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 using testing::NiceMock;
@@ -42,7 +43,7 @@ class HugeRegionTest : public ::testing::Test {
   HugeRegionTest()
       :  // an unlikely magic page
         p_(HugePageContaining(reinterpret_cast<void *>(0x1faced200000))),
-        region_({p_, region_.size()}) {
+        region_({p_, region_.size()}, MockUnback) {
     // we usually don't care about backing calls, unless testing that
     // specifically.
     mock_ = absl::make_unique<NiceMock<MockBackingInterface>>();
@@ -81,7 +82,7 @@ class HugeRegionTest : public ::testing::Test {
   };
 
   HugePage p_;
-  typedef HugeRegion<MockUnback> Region;
+  typedef HugeRegion Region;
   Region region_;
   size_t next_mark_{0};
   size_t marks_[Region::size().in_pages().raw_num()];
@@ -453,13 +454,13 @@ static void NilUnback(void *p, size_t bytes) {}
 
 class HugeRegionSetTest : public testing::Test {
  protected:
-  // These regions are backed by "real" memory, but we don't touch it.
-  typedef HugeRegion<NilUnback> Region;
+  typedef HugeRegion Region;
 
   HugeRegionSetTest() { next_ = HugePageContaining(nullptr); }
 
   std::unique_ptr<Region> GetRegion() {
-    std::unique_ptr<Region> r(new Region({next_, Region::size()}));
+    // These regions are backed by "real" memory, but we don't touch it.
+    std::unique_ptr<Region> r(new Region({next_, Region::size()}, NilUnback));
     next_ += Region::size();
     return r;
   }
@@ -527,10 +528,9 @@ TEST_F(HugeRegionSetTest, Set) {
             });
 
   for (int i = 0; i < regions.size(); i++) {
-    tcmalloc::Log(tcmalloc::kLog, __FILE__, __LINE__, i,
-                  regions[i]->used_pages().raw_num(),
-                  regions[i]->free_pages().raw_num(),
-                  regions[i]->unmapped_pages().raw_num());
+    Log(kLog, __FILE__, __LINE__, i, regions[i]->used_pages().raw_num(),
+        regions[i]->free_pages().raw_num(),
+        regions[i]->unmapped_pages().raw_num());
   }
   // Now first two should be "full" (ish)
   EXPECT_LE(Region::size().in_pages().raw_num() * 0.9,
@@ -555,10 +555,11 @@ TEST_F(HugeRegionSetTest, Set) {
 
   // Print out the stats for inspection of formats.
   std::vector<char> buf(64 * 1024);
-  TCMalloc_Printer out(&buf[0], buf.size());
+  Printer out(&buf[0], buf.size());
   set_.Print(&out);
   printf("%s\n", &buf[0]);
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

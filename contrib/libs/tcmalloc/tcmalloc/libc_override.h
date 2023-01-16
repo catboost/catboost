@@ -30,10 +30,9 @@
 
 #if defined(__GLIBC__)
 #include "tcmalloc/libc_override_glibc.h"
-#elif defined(_musl_)
-#include "tcmalloc/libc_override_redefine.h"
+
 #else
-#error Need to add support for your libc/OS here
+#include "tcmalloc/libc_override_redefine.h"
 
 #endif
 

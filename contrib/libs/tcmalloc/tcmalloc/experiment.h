@@ -38,8 +38,9 @@
 //     BORG_DISABLE_EXPERIMENTS=all *or*
 //     BORG_DISABLE_EXPERIMENTS=BAD_EXPERIMENT_LABEL
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
-namespace internal {
+namespace tcmalloc_internal {
 
 constexpr size_t kNumExperiments =
     static_cast<size_t>(Experiment::kMaxExperimentID);
@@ -53,17 +54,18 @@ constexpr size_t kNumExperiments =
 const bool* SelectExperiments(bool* buffer, absl::string_view active,
                               absl::string_view disabled);
 
-}  // namespace internal
-
-bool IsExperimentActive(Experiment exp);
-
 void FillExperimentProperties(
     std::map<std::string, MallocExtension::Property>* result);
 
+void PrintExperiments(Printer* printer);
+
+}  // namespace tcmalloc_internal
+
+bool IsExperimentActive(Experiment exp);
+
 absl::optional<Experiment> FindExperimentByName(absl::string_view name);
 
-void PrintExperiments(TCMalloc_Printer* printer);
-
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_EXPERIMENT_H_

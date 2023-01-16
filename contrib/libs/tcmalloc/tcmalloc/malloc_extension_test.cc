@@ -18,6 +18,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "absl/time/time.h"
 
 namespace tcmalloc {
 namespace {
@@ -36,6 +37,17 @@ TEST(MallocExtension, BackgroundReleaseRate) {
 
   EXPECT_EQ(static_cast<size_t>(MallocExtension::GetBackgroundReleaseRate()),
             0);
+}
+
+TEST(MallocExtension, SkipSubreleaseInterval) {
+
+  // Mutate via MallocExtension.
+  MallocExtension::SetSkipSubreleaseInterval(absl::Seconds(10));
+  EXPECT_EQ(MallocExtension::GetSkipSubreleaseInterval(), absl::Seconds(10));
+
+  // Disable skip subrelease
+  MallocExtension::SetSkipSubreleaseInterval(absl::ZeroDuration());
+  EXPECT_EQ(MallocExtension::GetSkipSubreleaseInterval(), absl::ZeroDuration());
 }
 
 TEST(MallocExtension, Properties) {

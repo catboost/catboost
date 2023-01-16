@@ -19,9 +19,11 @@
 #include "tcmalloc/huge_address_map.h"
 #include "tcmalloc/internal/logging.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
-void HugeAllocator::Print(TCMalloc_Printer *out) {
+void HugeAllocator::Print(Printer *out) {
   out->printf("HugeAllocator: contiguous, unbacked hugepage(s)\n");
   free_.Print(out);
   out->printf(
@@ -168,4 +170,6 @@ void HugeAllocator::AddSpanStats(SmallSpanStats *small, LargeSpanStats *large,
   }
 }
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END

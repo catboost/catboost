@@ -23,7 +23,9 @@
 #include "tcmalloc/span.h"
 #include "tcmalloc/stats.h"
 
+GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
+namespace tcmalloc_internal {
 
 // -------------------------------------------------------------------------
 // Page-level allocator
@@ -38,6 +40,7 @@ class PageHeap final : public PageAllocatorInterface {
   explicit PageHeap(MemoryTag tag);
   // for testing
   PageHeap(PageMap* map, MemoryTag tag);
+  ~PageHeap() override = default;
 
   // Allocate a run of "n" pages.  Returns zero if out of memory.
   // Caller should not pass "n == 0" -- instead, n should have
@@ -76,7 +79,7 @@ class PageHeap final : public PageAllocatorInterface {
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) override;
 
   // Prints stats about the page heap to *out.
-  void Print(TCMalloc_Printer* out) ABSL_LOCKS_EXCLUDED(pageheap_lock) override;
+  void Print(Printer* out) ABSL_LOCKS_EXCLUDED(pageheap_lock) override;
 
   void PrintInPbtxt(PbtxtRegion* region)
       ABSL_LOCKS_EXCLUDED(pageheap_lock) override;
@@ -151,6 +154,8 @@ class PageHeap final : public PageAllocatorInterface {
   void RecordSpan(Span* span) ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
 };
 
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
+GOOGLE_MALLOC_SECTION_END
 
 #endif  // TCMALLOC_PAGE_HEAP_H_

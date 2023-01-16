@@ -24,6 +24,7 @@
 #include "tcmalloc/huge_pages.h"
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 class PrintTest : public ::testing::Test {
@@ -33,8 +34,8 @@ class PrintTest : public ::testing::Test {
 
   void ExpectStats(const BackingStats &back, const SmallSpanStats &small,
                    const LargeSpanStats &large, const std::string &expected) {
-    TCMalloc_Printer out(&buf_[0], kBufferSize);
-    tcmalloc::PrintStats("PrintTest", &out, back, small, large, true);
+    Printer out(&buf_[0], kBufferSize);
+    PrintStats("PrintTest", &out, back, small, large, true);
     EXPECT_EQ(expected, buf_);
   }
 
@@ -92,9 +93,8 @@ class AgeTest : public testing::Test {
     return kNow - freq * age;
   }
 
-  void ExpectAges(const tcmalloc::PageAgeHistograms &ages,
-                  const std::string &expected) {
-    TCMalloc_Printer out(&buf_[0], kBufferSize);
+  void ExpectAges(const PageAgeHistograms &ages, const std::string &expected) {
+    Printer out(&buf_[0], kBufferSize);
     ages.Print("AgeTest", &out);
     std::string got = buf_;
     EXPECT_EQ(expected, got);
@@ -102,7 +102,7 @@ class AgeTest : public testing::Test {
 };
 
 TEST_F(AgeTest, Basic) {
-  tcmalloc::PageAgeHistograms ages(kNow);
+  PageAgeHistograms ages(kNow);
   ages.RecordRange(Length(1), false, WhenForAge(0.5));
   ages.RecordRange(Length(1), false, WhenForAge(1.2));
   ages.RecordRange(Length(1), false, WhenForAge(3.7));
@@ -134,7 +134,7 @@ Unmapped span,   >=64 pages:    600.0       0       0       0     200       0   
 }
 
 TEST_F(AgeTest, Overflow) {
-  tcmalloc::PageAgeHistograms ages(kNow);
+  PageAgeHistograms ages(kNow);
   const Length too_big = Length(4 * (std::numeric_limits<uint32_t>::max() / 5));
   ages.RecordRange(too_big, false, WhenForAge(0.5));
   ages.RecordRange(too_big, false, WhenForAge(0.5));
@@ -155,8 +155,8 @@ Unmapped span   TOTAL PAGES:      0.0       0       0       0       0       0   
 }
 
 TEST_F(AgeTest, ManySizes) {
-  tcmalloc::PageAgeHistograms ages(kNow);
-  const Length N = tcmalloc::PageAgeHistograms::kLargeSize;
+  PageAgeHistograms ages(kNow);
+  const Length N = PageAgeHistograms::kLargeSize;
   for (auto i = Length(1); i <= N; ++i) {
     ages.RecordRange(i, false, WhenForAge(i.raw_num() * 3));
   }
@@ -264,4 +264,5 @@ TEST(ClockTest, ClockTicks) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc

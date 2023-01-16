@@ -21,7 +21,6 @@
 #define TCMALLOC_LIBC_OVERRIDE_GCC_AND_WEAK_INL_H_
 
 #include <stddef.h>
-#include <sys/cdefs.h>
 
 #include <new>
 
@@ -103,8 +102,10 @@ int posix_memalign(void** r, size_t a, size_t s) noexcept
 void malloc_stats(void) noexcept TCMALLOC_ALIAS(TCMallocInternalMallocStats);
 int mallopt(int cmd, int value) noexcept
     TCMALLOC_ALIAS(TCMallocInternalMallOpt);
+#ifdef TCMALLOC_HAVE_STRUCT_MALLINFO
 struct mallinfo mallinfo(void) noexcept
     TCMALLOC_ALIAS(TCMallocInternalMallocInfo);
+#endif
 size_t malloc_size(void* p) noexcept TCMALLOC_ALIAS(TCMallocInternalMallocSize);
 size_t malloc_usable_size(void* p) noexcept
     TCMALLOC_ALIAS(TCMallocInternalMallocSize);

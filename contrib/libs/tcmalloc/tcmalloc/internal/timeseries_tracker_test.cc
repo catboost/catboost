@@ -20,6 +20,7 @@
 using ::testing::ElementsAre;
 
 namespace tcmalloc {
+namespace tcmalloc_internal {
 namespace {
 
 class TimeSeriesTrackerTest : public testing::Test {
@@ -41,7 +42,7 @@ class TimeSeriesTrackerTest : public testing::Test {
 
   static constexpr absl::Duration kDuration = absl::Seconds(2);
 
-  tcmalloc::TimeSeriesTracker<TestEntry, int, 8> tracker_{
+  TimeSeriesTracker<TestEntry, int, 8> tracker_{
       Clock{.now = FakeClock, .freq = GetFakeClockFrequency}, kDuration};
 
  private:
@@ -58,10 +59,10 @@ int64_t TimeSeriesTrackerTest::clock_{0};
 
 // Test that frequency conversion in the cycle clock works correctly
 TEST(TimeSeriesTest, CycleClock) {
-  tcmalloc::TimeSeriesTracker<TimeSeriesTrackerTest::TestEntry, int, 100>
-      tracker{Clock{absl::base_internal::CycleClock::Now,
-                    absl::base_internal::CycleClock::Frequency},
-              absl::Seconds(10)};  // 100ms epochs
+  TimeSeriesTracker<TimeSeriesTrackerTest::TestEntry, int, 100> tracker{
+      Clock{absl::base_internal::CycleClock::Now,
+            absl::base_internal::CycleClock::Frequency},
+      absl::Seconds(10)};  // 100ms epochs
 
   tracker.Report(1);
   absl::SleepFor(absl::Milliseconds(100));
@@ -186,4 +187,5 @@ TEST_F(TimeSeriesTrackerTest, Works) {
 }
 
 }  // namespace
+}  // namespace tcmalloc_internal
 }  // namespace tcmalloc
