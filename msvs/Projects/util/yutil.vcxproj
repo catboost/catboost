@@ -106,10 +106,7 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_system_2.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_thread.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_util.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\util\system\compiler.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-fno-lto %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-fno-lto %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\util\system\compiler.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util
