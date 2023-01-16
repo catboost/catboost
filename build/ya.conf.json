@@ -5708,7 +5708,7 @@
             },
             "env": {
                 "TERMINFO": [
-                    "$(ROOT)/lib/terminfo"
+                    "$(ROOT)/share/terminfo"
                 ]
             },
             "platforms": [
@@ -9148,8 +9148,7 @@
         "tmux": {
             "formula": {
                 "sandbox_id": [
-                    1069513022,
-                    38325494
+                    1105659071
                 ],
                 "match": "tmux"
             },
