@@ -4,10 +4,18 @@ import json
 import os
 import re
 import shutil
+import sys
 import tempfile
 
 import subprocess
+
 import yaml
+
+
+def setup_script(args):
+    global tidy_config_validation
+    sys.path.append(os.path.dirname(args.config_validation_script))
+    import tidy_config_validation
 
 
 def parse_args():
@@ -88,63 +96,17 @@ def generate_outputs(output_json):
     open(output_json, "w").close()
 
 
-def split_strip(s):
-    return [x.strip() for x in s.split(',')]
-
-
-def merge_tidy_configs(base_config_path, additional_config_path, result_config_path):
-    """
-    config has next format:
-    {
-        "Checks": "check1, check2, ...",
-        "CheckOptions": [{"key": "option1_name", "value": "option1_value"}, {"key": "option2_name", "value": "option2_value"}, ...]
-    }
-    """
-    def prepare_checks(base_checks, additional_checks):
-        base_checks = base_checks.strip(",\n")
-        base_checks = split_strip(base_checks)
-        if '-*' in base_checks:
-            base_checks.remove('-*')
-
-        additional_checks = additional_checks.strip(",\n")
-        additional_checks = split_strip(additional_checks)
-        return base_checks, additional_checks
-
-    def merge_checks(base_checks, additional_checks):
-        base_checks, additional_checks = prepare_checks(base_checks, additional_checks)
-        result_checks = ['-*']
-        result_checks += additional_checks
-        for check in base_checks:
-            result_checks.append(check)
-        return ", ".join(result_checks)
-
-    def merge_options(base_options, additional_options):
-        result_options = {}
-        for opt in base_options:
-            result_options[opt["key"]] = opt["value"]
-        for opt in additional_options:
-            result_options[opt["key"]] = opt["value"]
-        result_opions_list = []
-        for k, v in result_options.items():
-            result_opions_list.append({"key": k, "value": v})
-        return result_opions_list
-
-    with open(base_config_path, 'r') as afile:
-        base_config = yaml.safe_load(afile)
-    with open(additional_config_path, 'r') as afile:
-        additional_config = yaml.safe_load(afile)
-
-    result_config = {
-        "Checks": merge_checks(base_config["Checks"], additional_config["Checks"]),
-        "CheckOptions": merge_options(base_config["CheckOptions"], additional_config["CheckOptions"])
-    }
-    with open(result_config_path, 'w') as afile:
+def filter_configs(result_config, filtered_config):
+    with open(result_config, 'r') as afile:
+        input_config = yaml.safe_load(afile)
+    result_config = tidy_config_validation.filter_config(input_config)
+    with open(filtered_config, 'w') as afile:
         yaml.safe_dump(result_config, afile)
-    return result_config_path
 
 
 def main():
     args, clang_cmd = parse_args()
+    setup_script(args)
     clang_tidy_bin = args.clang_tidy_bin
     output_json = args.tidy_json
     generate_outputs(output_json)
@@ -160,8 +122,8 @@ def main():
         if args.project_config_file != args.default_config_file:
             result_config = os.path.join(config_dir, "result_tidy_config.yaml")
             filtered_config = os.path.join(config_dir, "filtered_tidy_config.yaml")
-            subprocess.check_call([args.ymake_python, args.config_validation_script, "--input-config-path", args.project_config_file, "--result-config-path", filtered_config])
-            result_config_file = merge_tidy_configs(base_config_path=args.default_config_file, additional_config_path=filtered_config, result_config_path=result_config)
+            filter_configs(args.project_config_file, filtered_config)
+            result_config_file = tidy_config_validation.merge_tidy_configs(base_config_path=args.default_config_file, additional_config_path=filtered_config, result_config_path=result_config)
         compile_command_path = generate_compilation_database(clang_cmd, args.source_root, args.testing_src, db_tmpdir)
         cmd = [
             clang_tidy_bin,
