@@ -80,7 +80,13 @@ public:
   GetSystemTimeAsFileTimePtr fp;
 };
 
+#ifndef _LIBCPP_COMPILER_MSVC
+# 83 "chrono.cpp" 1 3
+#endif
 GetSystemTimeInit GetSystemTimeAsFileTimeFunc _LIBCPP_INIT_PRIORITY_MAX;
+#ifndef _LIBCPP_COMPILER_MSVC
+# 85 "chrono.cpp" 2
+#endif
 } // namespace
 
 #endif

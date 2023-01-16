@@ -117,7 +117,16 @@ __asm__("?wclog@" _LIBCPP_ABI_NAMESPACE_STR "@std@@3V?$basic_ostream@_WU?$char_t
 ;
 #endif
 
+// Hacky way to make the compiler believe that we're inside a system header so
+// it doesn't flag the use of the init_priority attribute with a value that's
+// reserved for the implementation (we're the implementation).
+#ifndef _LIBCPP_COMPILER_MSVC
+# 80 "iostream.cpp" 1 3
+#endif
 _LIBCPP_HIDDEN ios_base::Init __start_std_streams _LIBCPP_INIT_PRIORITY_MAX;
+#ifndef _LIBCPP_COMPILER_MSVC
+# 82 "iostream.cpp" 2
+#endif
 
 // On Windows the TLS storage for locales needs to be initialized before we create
 // the standard streams, otherwise it may not be alive during program termination

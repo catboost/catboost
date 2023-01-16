@@ -617,28 +617,14 @@ operator+(const basic_string<_CharT, _Traits, _Allocator>& __x, _CharT __y);
 _LIBCPP_EXTERN_TEMPLATE(_LIBCPP_FUNC_VIS string operator+<char, char_traits<char>, allocator<char> >(char const*, string const&))
 
 template <bool>
-class _LIBCPP_TEMPLATE_VIS __basic_string_common
-{
-protected:
-    _LIBCPP_NORETURN void __throw_length_error() const;
-    _LIBCPP_NORETURN void __throw_out_of_range() const;
+struct __basic_string_common;
+
+template <>
+struct __basic_string_common<true> {
+    // Both are defined in string.cpp
+    _LIBCPP_NORETURN _LIBCPP_EXPORTED_FROM_ABI void __throw_length_error() const;
+    _LIBCPP_NORETURN _LIBCPP_EXPORTED_FROM_ABI void __throw_out_of_range() const;
 };
-
-template <bool __b>
-void
-__basic_string_common<__b>::__throw_length_error() const
-{
-    _VSTD::__throw_length_error("basic_string");
-}
-
-template <bool __b>
-void
-__basic_string_common<__b>::__throw_out_of_range() const
-{
-    _VSTD::__throw_out_of_range("basic_string");
-}
-
-_LIBCPP_EXTERN_TEMPLATE(class _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS __basic_string_common<true>)
 
 template <class _Iter>
 struct __string_is_trivial_iterator : public false_type {};
@@ -692,7 +678,7 @@ class
     _LIBCPP_PREFERRED_NAME(u32string)
 #endif
     basic_string
-    : private __basic_string_common<true>
+    : private __basic_string_common<true> // This base class is historical, but it needs to remain for ABI compatibility
 {
 	static_assert(sizeof(_CharT) <= 4, "libc++ implementation of std::basic_string does not support extra-wide character types");
 public:
@@ -1438,28 +1424,28 @@ public:
 
 //WARN: disabled std guards in order to allow using these options without switching to new std
 //#if _LIBCPP_STD_VER > 17
-    _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
-    bool starts_with(__self_view __sv) const _NOEXCEPT
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool starts_with(__self_view __sv) const noexcept
     { return __self_view(data(), size()).starts_with(__sv); }
 
-    _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
-    bool starts_with(value_type __c) const _NOEXCEPT
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool starts_with(value_type __c) const noexcept
     { return !empty() && _Traits::eq(front(), __c); }
 
-    _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
-    bool starts_with(const value_type* __s) const _NOEXCEPT
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool starts_with(const value_type* __s) const noexcept
     { return starts_with(__self_view(__s)); }
 
-    _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
-    bool ends_with(__self_view __sv) const _NOEXCEPT
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool ends_with(__self_view __sv) const noexcept
     { return __self_view(data(), size()).ends_with( __sv); }
 
-    _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
-    bool ends_with(value_type __c) const _NOEXCEPT
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool ends_with(value_type __c) const noexcept
     { return !empty() && _Traits::eq(back(), __c); }
 
-    _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
-    bool ends_with(const value_type* __s) const _NOEXCEPT
+    constexpr _LIBCPP_INLINE_VISIBILITY
+    bool ends_with(const value_type* __s) const noexcept
     { return ends_with(__self_view(__s)); }
 //#endif
 
