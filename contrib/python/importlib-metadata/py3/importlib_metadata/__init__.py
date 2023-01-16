@@ -664,7 +664,7 @@ class Distribution:
 
     def _read_egg_info_reqs(self):
         source = self.read_text('requires.txt')
-        return source and self._deps_from_requires_text(source)
+        return pass_none(self._deps_from_requires_text)(source)
 
     @classmethod
     def _deps_from_requires_text(cls, source):
