@@ -11,28 +11,31 @@ from typing import Mapping
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
+from typing import TYPE_CHECKING
 from typing import Union
 
 import py
 
-from _pytest.compat import TYPE_CHECKING
+import _pytest._io
+from _pytest.compat import final
 from _pytest.config.exceptions import UsageError
 
 if TYPE_CHECKING:
     from typing import NoReturn
-    from typing_extensions import Literal  # noqa: F401
+    from typing_extensions import Literal
 
 FILE_OR_DIR = "file_or_dir"
 
 
+@final
 class Parser:
-    """ Parser for command line arguments and ini-file values.
+    """Parser for command line arguments and ini-file values.
 
-    :ivar extra_info: dict of generic param -> value to display in case
+    :ivar extra_info: Dict of generic param -> value to display in case
         there's an error processing the command line arguments.
     """
 
-    prog = None  # type: Optional[str]
+    prog: Optional[str] = None
 
     def __init__(
         self,
@@ -40,12 +43,12 @@ class Parser:
         processopt: Optional[Callable[["Argument"], None]] = None,
     ) -> None:
         self._anonymous = OptionGroup("custom options", parser=self)
-        self._groups = []  # type: List[OptionGroup]
+        self._groups: List[OptionGroup] = []
         self._processopt = processopt
         self._usage = usage
-        self._inidict = {}  # type: Dict[str, Tuple[str, Optional[str], Any]]
-        self._ininames = []  # type: List[str]
-        self.extra_info = {}  # type: Dict[str, Any]
+        self._inidict: Dict[str, Tuple[str, Optional[str], Any]] = {}
+        self._ininames: List[str] = []
+        self.extra_info: Dict[str, Any] = {}
 
     def processoption(self, option: "Argument") -> None:
         if self._processopt:
@@ -55,11 +58,11 @@ class Parser:
     def getgroup(
         self, name: str, description: str = "", after: Optional[str] = None
     ) -> "OptionGroup":
-        """ get (or create) a named option Group.
+        """Get (or create) a named option Group.
 
-        :name: name of the option group.
-        :description: long description for --help output.
-        :after: name of other group, used for ordering --help output.
+        :name: Name of the option group.
+        :description: Long description for --help output.
+        :after: Name of another group, used for ordering --help output.
 
         The returned group object has an ``addoption`` method with the same
         signature as :py:func:`parser.addoption
@@ -78,15 +81,14 @@ class Parser:
         return group
 
     def addoption(self, *opts: str, **attrs: Any) -> None:
-        """ register a command line option.
+        """Register a command line option.
 
-        :opts: option names, can be short or long options.
-        :attrs: same attributes which the ``add_argument()`` function of the
-           `argparse library
-           <https://docs.python.org/library/argparse.html>`_
+        :opts: Option names, can be short or long options.
+        :attrs: Same attributes which the ``add_argument()`` function of the
+           `argparse library <https://docs.python.org/library/argparse.html>`_
            accepts.
 
-        After command line parsing options are available on the pytest config
+        After command line parsing, options are available on the pytest config
         object via ``config.option.NAME`` where ``NAME`` is usually set
         by passing a ``dest`` attribute, for example
         ``addoption("--long", dest="NAME", ...)``.
@@ -140,9 +142,7 @@ class Parser:
         args: Sequence[Union[str, py.path.local]],
         namespace: Optional[argparse.Namespace] = None,
     ) -> argparse.Namespace:
-        """parses and returns a namespace object with known arguments at this
-        point.
-        """
+        """Parse and return a namespace object with known arguments at this point."""
         return self.parse_known_and_unknown_args(args, namespace=namespace)[0]
 
     def parse_known_and_unknown_args(
@@ -150,9 +150,8 @@ class Parser:
         args: Sequence[Union[str, py.path.local]],
         namespace: Optional[argparse.Namespace] = None,
     ) -> Tuple[argparse.Namespace, List[str]]:
-        """parses and returns a namespace object with known arguments, and
-        the remaining arguments unknown at this point.
-        """
+        """Parse and return a namespace object with known arguments, and
+        the remaining arguments unknown at this point."""
         optparser = self._getparser()
         strargs = [str(x) if isinstance(x, py.path.local) else x for x in args]
         return optparser.parse_known_args(strargs, namespace=namespace)
@@ -161,29 +160,30 @@ class Parser:
         self,
         name: str,
         help: str,
-        type: Optional["Literal['pathlist', 'args', 'linelist', 'bool']"] = None,
+        type: Optional[
+            "Literal['string', 'pathlist', 'args', 'linelist', 'bool']"
+        ] = None,
         default=None,
     ) -> None:
-        """ register an ini-file option.
+        """Register an ini-file option.
 
-        :name: name of the ini-variable
-        :type: type of the variable, can be ``pathlist``, ``args``, ``linelist``
-               or ``bool``.
-        :default: default value if no ini-file option exists but is queried.
+        :name: Name of the ini-variable.
+        :type: Type of the variable, can be ``string``, ``pathlist``, ``args``,
+               ``linelist`` or ``bool``.  Defaults to ``string`` if ``None`` or
+               not passed.
+        :default: Default value if no ini-file option exists but is queried.
 
         The value of ini-variables can be retrieved via a call to
         :py:func:`config.getini(name) <_pytest.config.Config.getini>`.
         """
-        assert type in (None, "pathlist", "args", "linelist", "bool")
+        assert type in (None, "string", "pathlist", "args", "linelist", "bool")
         self._inidict[name] = (help, type, default)
         self._ininames.append(name)
 
 
 class ArgumentError(Exception):
-    """
-    Raised if an Argument instance is created with invalid or
-    inconsistent arguments.
-    """
+    """Raised if an Argument instance is created with invalid or
+    inconsistent arguments."""
 
     def __init__(self, msg: str, option: Union["Argument", str]) -> None:
         self.msg = msg
@@ -191,26 +191,27 @@ class ArgumentError(Exception):
 
     def __str__(self) -> str:
         if self.option_id:
-            return "option {}: {}".format(self.option_id, self.msg)
+            return f"option {self.option_id}: {self.msg}"
         else:
             return self.msg
 
 
 class Argument:
-    """class that mimics the necessary behaviour of optparse.Option
+    """Class that mimics the necessary behaviour of optparse.Option.
 
-    it's currently a least effort implementation
-    and ignoring choices and integer prefixes
+    It's currently a least effort implementation and ignoring choices
+    and integer prefixes.
+
     https://docs.python.org/3/library/optparse.html#optparse-standard-option-types
     """
 
     _typ_map = {"int": int, "string": str, "float": float, "complex": complex}
 
     def __init__(self, *names: str, **attrs: Any) -> None:
-        """store parms in private vars for use in add_argument"""
+        """Store parms in private vars for use in add_argument."""
         self._attrs = attrs
-        self._short_opts = []  # type: List[str]
-        self._long_opts = []  # type: List[str]
+        self._short_opts: List[str] = []
+        self._long_opts: List[str] = []
         if "%default" in (attrs.get("help") or ""):
             warnings.warn(
                 'pytest now uses argparse. "%default" should be'
@@ -223,7 +224,7 @@ class Argument:
         except KeyError:
             pass
         else:
-            # this might raise a keyerror as well, don't want to catch that
+            # This might raise a keyerror as well, don't want to catch that.
             if isinstance(typ, str):
                 if typ == "choice":
                     warnings.warn(
@@ -246,17 +247,17 @@ class Argument:
                         stacklevel=4,
                     )
                     attrs["type"] = Argument._typ_map[typ]
-                # used in test_parseopt -> test_parse_defaultgetter
+                # Used in test_parseopt -> test_parse_defaultgetter.
                 self.type = attrs["type"]
             else:
                 self.type = typ
         try:
-            # attribute existence is tested in Config._processopt
+            # Attribute existence is tested in Config._processopt.
             self.default = attrs["default"]
         except KeyError:
             pass
         self._set_opt_strings(names)
-        dest = attrs.get("dest")  # type: Optional[str]
+        dest: Optional[str] = attrs.get("dest")
         if dest:
             self.dest = dest
         elif self._long_opts:
@@ -264,15 +265,15 @@ class Argument:
         else:
             try:
                 self.dest = self._short_opts[0][1:]
-            except IndexError:
+            except IndexError as e:
                 self.dest = "???"  # Needed for the error repr.
-                raise ArgumentError("need a long or short option", self)
+                raise ArgumentError("need a long or short option", self) from e
 
     def names(self) -> List[str]:
         return self._short_opts + self._long_opts
 
     def attrs(self) -> Mapping[str, Any]:
-        # update any attributes set by processopt
+        # Update any attributes set by processopt.
         attrs = "default dest help".split()
         attrs.append(self.dest)
         for attr in attrs:
@@ -288,9 +289,10 @@ class Argument:
         return self._attrs
 
     def _set_opt_strings(self, opts: Sequence[str]) -> None:
-        """directly from optparse
+        """Directly from optparse.
 
-        might not be necessary as this is passed to argparse later on"""
+        Might not be necessary as this is passed to argparse later on.
+        """
         for opt in opts:
             if len(opt) < 2:
                 raise ArgumentError(
@@ -316,7 +318,7 @@ class Argument:
                 self._long_opts.append(opt)
 
     def __repr__(self) -> str:
-        args = []  # type: List[str]
+        args: List[str] = []
         if self._short_opts:
             args += ["_short_opts: " + repr(self._short_opts)]
         if self._long_opts:
@@ -335,16 +337,16 @@ class OptionGroup:
     ) -> None:
         self.name = name
         self.description = description
-        self.options = []  # type: List[Argument]
+        self.options: List[Argument] = []
         self.parser = parser
 
     def addoption(self, *optnames: str, **attrs: Any) -> None:
-        """ add an option to this group.
+        """Add an option to this group.
 
-        if a shortened version of a long option is specified it will
+        If a shortened version of a long option is specified, it will
         be suppressed in the help. addoption('--twowords', '--two-words')
         results in help showing '--two-words' only, but --twowords gets
-        accepted **and** the automatic destination is in args.twowords
+        accepted **and** the automatic destination is in args.twowords.
         """
         conflict = set(optnames).intersection(
             name for opt in self.options for name in opt.names()
@@ -385,16 +387,16 @@ class MyOptionParser(argparse.ArgumentParser):
             allow_abbrev=False,
         )
         # extra_info is a dict of (param -> value) to display if there's
-        # an usage error to provide more contextual information to the user
+        # an usage error to provide more contextual information to the user.
         self.extra_info = extra_info if extra_info else {}
 
     def error(self, message: str) -> "NoReturn":
         """Transform argparse error message into UsageError."""
-        msg = "{}: error: {}".format(self.prog, message)
+        msg = f"{self.prog}: error: {message}"
 
         if hasattr(self._parser, "_config_source_hint"):
             # Type ignored because the attribute is set dynamically.
-            msg = "{} ({})".format(msg, self._parser._config_source_hint)  # type: ignore
+            msg = f"{msg} ({self._parser._config_source_hint})"  # type: ignore
 
         raise UsageError(self.format_usage() + msg)
 
@@ -404,14 +406,14 @@ class MyOptionParser(argparse.ArgumentParser):
         args: Optional[Sequence[str]] = None,
         namespace: Optional[argparse.Namespace] = None,
     ) -> argparse.Namespace:
-        """allow splitting of positional arguments"""
+        """Allow splitting of positional arguments."""
         parsed, unrecognized = self.parse_known_args(args, namespace)
         if unrecognized:
             for arg in unrecognized:
                 if arg and arg[0] == "-":
                     lines = ["unrecognized arguments: %s" % (" ".join(unrecognized))]
                     for k, v in sorted(self.extra_info.items()):
-                        lines.append("  {}: {}".format(k, v))
+                        lines.append(f"  {k}: {v}")
                     self.error("\n".join(lines))
             getattr(parsed, FILE_OR_DIR).extend(unrecognized)
         return parsed
@@ -456,26 +458,24 @@ class MyOptionParser(argparse.ArgumentParser):
 
 
 class DropShorterLongHelpFormatter(argparse.HelpFormatter):
-    """shorten help for long options that differ only in extra hyphens
+    """Shorten help for long options that differ only in extra hyphens.
 
-    - collapse **long** options that are the same except for extra hyphens
-    - shortcut if there are only two options and one of them is a short one
-    - cache result on action object as this is called at least 2 times
+    - Collapse **long** options that are the same except for extra hyphens.
+    - Shortcut if there are only two options and one of them is a short one.
+    - Cache result on the action object as this is called at least 2 times.
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Use more accurate terminal width via pylib."""
+        # Use more accurate terminal width.
         if "width" not in kwargs:
-            kwargs["width"] = py.io.get_terminal_width()
+            kwargs["width"] = _pytest._io.get_terminal_width()
         super().__init__(*args, **kwargs)
 
     def _format_action_invocation(self, action: argparse.Action) -> str:
         orgstr = argparse.HelpFormatter._format_action_invocation(self, action)
         if orgstr and orgstr[0] != "-":  # only optional arguments
             return orgstr
-        res = getattr(
-            action, "_formatted_action_invocation", None
-        )  # type: Optional[str]
+        res: Optional[str] = getattr(action, "_formatted_action_invocation", None)
         if res:
             return res
         options = orgstr.split(", ")
@@ -484,7 +484,7 @@ class DropShorterLongHelpFormatter(argparse.HelpFormatter):
             action._formatted_action_invocation = orgstr  # type: ignore
             return orgstr
         return_list = []
-        short_long = {}  # type: Dict[str, str]
+        short_long: Dict[str, str] = {}
         for option in options:
             if len(option) == 2 or option[2] == " ":
                 continue
@@ -508,3 +508,15 @@ class DropShorterLongHelpFormatter(argparse.HelpFormatter):
         formatted_action_invocation = ", ".join(return_list)
         action._formatted_action_invocation = formatted_action_invocation  # type: ignore
         return formatted_action_invocation
+
+    def _split_lines(self, text, width):
+        """Wrap lines after splitting on original newlines.
+
+        This allows to have explicit line breaks in the help text.
+        """
+        import textwrap
+
+        lines = []
+        for line in text.splitlines():
+            lines.extend(textwrap.wrap(line.strip(), width))
+        return lines

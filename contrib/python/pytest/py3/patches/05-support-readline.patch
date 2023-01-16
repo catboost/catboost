@@ -1,15 +1,15 @@
 --- contrib/python/pytest/py3/_pytest/debugging.py	(index)
 +++ contrib/python/pytest/py3/_pytest/debugging.py	(working tree)
 @@ -1,6 +1,7 @@ from __future__ import absolute_import
- """ interactive debugging with PDB, the Python Debugger. """
+ """Interactive debugging with PDB, the Python Debugger."""
  import argparse
  import functools
 +import os
  import sys
- 
- from _pytest import outcomes
-@@ -9,6 +10,42 @@ from _pytest import outcomes
- from _pytest.config.exceptions import UsageError
+ import types
+ from typing import Any
+@@ -29,6 +30,42 @@ from _pytest import outcomes
+     from _pytest.runner import CallInfo
  
  
 +def import_readline():
@@ -48,10 +48,10 @@
 +        sys.path = old_sys_path
 +
 +
- def _validate_usepdb_cls(value):
+ def _validate_usepdb_cls(value: str) -> Tuple[str, str]:
      """Validate syntax of --pdbcls option."""
      try:
-@@ -250,6 +287,7 @@ class pytestPDB(object):
+@@ -277,6 +314,7 @@ class pytestPDB(object):
      @classmethod
      def set_trace(cls, *args, **kwargs) -> None:
          """Invoke debugging via ``Pdb.set_trace``, dropping any IO capturing."""
@@ -64,6 +64,6 @@
              sys.stdout.write(out)
              sys.stdout.write(err)
 +        tty()
+         assert call.excinfo is not None
          _enter_pdb(node, call.excinfo, report)
  
-      def pytest_internalerror(self, excrepr, excinfo):

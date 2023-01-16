@@ -1,4 +1,4 @@
-"""Utilities for assertion debugging"""
+"""Utilities for assertion debugging."""
 import collections.abc
 import pprint
 from typing import AbstractSet
@@ -9,28 +9,26 @@ from typing import List
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
-from typing import Tuple
 
 import _pytest._code
 from _pytest import outcomes
 from _pytest._io.saferepr import _pformat_dispatch
 from _pytest._io.saferepr import safeformat
 from _pytest._io.saferepr import saferepr
-from _pytest.compat import ATTRS_EQ_FIELD
 
 # The _reprcompare attribute on the util module is used by the new assertion
 # interpretation code and assertion rewriter to detect this plugin was
 # loaded and in turn call the hooks defined here as part of the
 # DebugInterpreter.
-_reprcompare = None  # type: Optional[Callable[[str, object, object], Optional[str]]]
+_reprcompare: Optional[Callable[[str, object, object], Optional[str]]] = None
 
 # Works similarly as _reprcompare attribute. Is populated with the hook call
 # when pytest_runtest_setup is called.
-_assertion_pass = None  # type: Optional[Callable[[int, str, str], None]]
+_assertion_pass: Optional[Callable[[int, str, str], None]] = None
 
 
 def format_explanation(explanation: str) -> str:
-    """This formats an explanation
+    r"""Format an explanation.
 
     Normally all embedded newlines are escaped, however there are
     three exceptions: \n{, \n} and \n~.  The first two are intended
@@ -45,7 +43,7 @@ def format_explanation(explanation: str) -> str:
 
 
 def _split_explanation(explanation: str) -> List[str]:
-    """Return a list of individual lines in the explanation
+    r"""Return a list of individual lines in the explanation.
 
     This will return a list of lines split on '\n{', '\n}' and '\n~'.
     Any other newlines will be escaped and appear in the line as the
@@ -62,11 +60,11 @@ def _split_explanation(explanation: str) -> List[str]:
 
 
 def _format_lines(lines: Sequence[str]) -> List[str]:
-    """Format the individual lines
+    """Format the individual lines.
 
-    This will replace the '{', '}' and '~' characters of our mini
-    formatting language with the proper 'where ...', 'and ...' and ' +
-    ...' text, taking care of indentation along the way.
+    This will replace the '{', '}' and '~' characters of our mini formatting
+    language with the proper 'where ...', 'and ...' and ' + ...' text, taking
+    care of indentation along the way.
 
     Return a list of formatted lines.
     """
@@ -112,6 +110,10 @@ def isset(x: Any) -> bool:
     return isinstance(x, (set, frozenset))
 
 
+def isnamedtuple(obj: Any) -> bool:
+    return isinstance(obj, tuple) and getattr(obj, "_fields", None) is not None
+
+
 def isdatacls(obj: Any) -> bool:
     return getattr(obj, "__dataclass_fields__", None) is not None
 
@@ -129,7 +131,7 @@ def isiterable(obj: Any) -> bool:
 
 
 def assertrepr_compare(config, op: str, left: Any, right: Any) -> Optional[List[str]]:
-    """Return specialised explanations for some operators/operands"""
+    """Return specialised explanations for some operators/operands."""
     verbose = config.getoption("verbose")
     if verbose > 1:
         left_repr = safeformat(left)
@@ -143,31 +145,12 @@ def assertrepr_compare(config, op: str, left: Any, right: Any) -> Optional[List[
         left_repr = saferepr(left, maxsize=maxsize)
         right_repr = saferepr(right, maxsize=maxsize)
 
-    summary = "{} {} {}".format(left_repr, op, right_repr)
+    summary = f"{left_repr} {op} {right_repr}"
 
     explanation = None
     try:
         if op == "==":
-            if istext(left) and istext(right):
-                explanation = _diff_text(left, right, verbose)
-            else:
-                if issequence(left) and issequence(right):
-                    explanation = _compare_eq_sequence(left, right, verbose)
-                elif isset(left) and isset(right):
-                    explanation = _compare_eq_set(left, right, verbose)
-                elif isdict(left) and isdict(right):
-                    explanation = _compare_eq_dict(left, right, verbose)
-                elif type(left) == type(right) and (isdatacls(left) or isattrs(left)):
-                    type_fn = (isdatacls, isattrs)
-                    explanation = _compare_eq_cls(left, right, verbose, type_fn)
-                elif verbose > 0:
-                    explanation = _compare_eq_verbose(left, right)
-                if isiterable(left) and isiterable(right):
-                    expl = _compare_eq_iterable(left, right, verbose)
-                    if explanation is not None:
-                        explanation.extend(expl)
-                    else:
-                        explanation = expl
+            explanation = _compare_eq_any(left, right, verbose)
         elif op == "not in":
             if istext(left) and istext(right):
                 explanation = _notin_text(left, right, verbose)
@@ -187,6 +170,33 @@ def assertrepr_compare(config, op: str, left: Any, right: Any) -> Optional[List[
     return [summary] + explanation
 
 
+def _compare_eq_any(left: Any, right: Any, verbose: int = 0) -> List[str]:
+    explanation = []
+    if istext(left) and istext(right):
+        explanation = _diff_text(left, right, verbose)
+    else:
+        if type(left) == type(right) and (
+            isdatacls(left) or isattrs(left) or isnamedtuple(left)
+        ):
+            # Note: unlike dataclasses/attrs, namedtuples compare only the
+            # field values, not the type or field names. But this branch
+            # intentionally only handles the same-type case, which was often
+            # used in older code bases before dataclasses/attrs were available.
+            explanation = _compare_eq_cls(left, right, verbose)
+        elif issequence(left) and issequence(right):
+            explanation = _compare_eq_sequence(left, right, verbose)
+        elif isset(left) and isset(right):
+            explanation = _compare_eq_set(left, right, verbose)
+        elif isdict(left) and isdict(right):
+            explanation = _compare_eq_dict(left, right, verbose)
+        elif verbose > 0:
+            explanation = _compare_eq_verbose(left, right)
+        if isiterable(left) and isiterable(right):
+            expl = _compare_eq_iterable(left, right, verbose)
+            explanation.extend(expl)
+    return explanation
+
+
 def _diff_text(left: str, right: str, verbose: int = 0) -> List[str]:
     """Return the explanation for the diff between text.
 
@@ -195,7 +205,7 @@ def _diff_text(left: str, right: str, verbose: int = 0) -> List[str]:
     """
     from difflib import ndiff
 
-    explanation = []  # type: List[str]
+    explanation: List[str] = []
 
     if verbose < 1:
         i = 0  # just in case left or right has zero length
@@ -240,7 +250,7 @@ def _compare_eq_verbose(left: Any, right: Any) -> List[str]:
     left_lines = repr(left).splitlines(keepends)
     right_lines = repr(right).splitlines(keepends)
 
-    explanation = []  # type: List[str]
+    explanation: List[str] = []
     explanation += ["+" + line for line in left_lines]
     explanation += ["-" + line for line in right_lines]
 
@@ -294,7 +304,7 @@ def _compare_eq_sequence(
     left: Sequence[Any], right: Sequence[Any], verbose: int = 0
 ) -> List[str]:
     comparing_bytes = isinstance(left, bytes) and isinstance(right, bytes)
-    explanation = []  # type: List[str]
+    explanation: List[str] = []
     len_left = len(left)
     len_right = len(right)
     for i in range(min(len_left, len_right)):
@@ -314,9 +324,7 @@ def _compare_eq_sequence(
                 left_value = left[i]
                 right_value = right[i]
 
-            explanation += [
-                "At index {} diff: {!r} != {!r}".format(i, left_value, right_value)
-            ]
+            explanation += [f"At index {i} diff: {left_value!r} != {right_value!r}"]
             break
 
     if comparing_bytes:
@@ -336,9 +344,7 @@ def _compare_eq_sequence(
             extra = saferepr(right[len_left])
 
         if len_diff == 1:
-            explanation += [
-                "{} contains one more item: {}".format(dir_with_more, extra)
-            ]
+            explanation += [f"{dir_with_more} contains one more item: {extra}"]
         else:
             explanation += [
                 "%s contains %d more items, first extra item: %s"
@@ -367,7 +373,7 @@ def _compare_eq_set(
 def _compare_eq_dict(
     left: Mapping[Any, Any], right: Mapping[Any, Any], verbose: int = 0
 ) -> List[str]:
-    explanation = []  # type: List[str]
+    explanation: List[str] = []
     set_left = set(left)
     set_right = set(right)
     common = set_left.intersection(set_right)
@@ -405,22 +411,19 @@ def _compare_eq_dict(
     return explanation
 
 
-def _compare_eq_cls(
-    left: Any,
-    right: Any,
-    verbose: int,
-    type_fns: Tuple[Callable[[Any], bool], Callable[[Any], bool]],
-) -> List[str]:
-    isdatacls, isattrs = type_fns
+def _compare_eq_cls(left: Any, right: Any, verbose: int) -> List[str]:
     if isdatacls(left):
         all_fields = left.__dataclass_fields__
         fields_to_check = [field for field, info in all_fields.items() if info.compare]
     elif isattrs(left):
         all_fields = left.__attrs_attrs__
-        fields_to_check = [
-            field.name for field in all_fields if getattr(field, ATTRS_EQ_FIELD)
-        ]
+        fields_to_check = [field.name for field in all_fields if getattr(field, "eq")]
+    elif isnamedtuple(left):
+        fields_to_check = left._fields
+    else:
+        assert False
 
+    indent = "  "
     same = []
     diff = []
     for field in fields_to_check:
@@ -430,6 +433,8 @@ def _compare_eq_cls(
             diff.append(field)
 
     explanation = []
+    if same or diff:
+        explanation += [""]
     if same and verbose < 2:
         explanation.append("Omitting %s identical items, use -vv to show" % len(same))
     elif same:
@@ -437,9 +442,18 @@ def _compare_eq_cls(
         explanation += pprint.pformat(same).splitlines()
     if diff:
         explanation += ["Differing attributes:"]
+        explanation += pprint.pformat(diff).splitlines()
         for field in diff:
+            field_left = getattr(left, field)
+            field_right = getattr(right, field)
             explanation += [
-                ("%s: %r != %r") % (field, getattr(left, field), getattr(right, field))
+                "",
+                "Drill down into differing attribute %s:" % field,
+                ("%s%s: %r != %r") % (indent, field, field_left, field_right),
+            ]
+            explanation += [
+                indent + line
+                for line in _compare_eq_any(field_left, field_right, verbose)
             ]
     return explanation
 

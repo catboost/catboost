@@ -2,17 +2,17 @@ PY3_LIBRARY()
 
 
 
-VERSION(5.4.3)
+VERSION(6.2.5)
 
 LICENSE(MIT)
 
 PEERDIR(
     contrib/python/attrs
-    contrib/python/more-itertools
+    contrib/python/iniconfig
     contrib/python/packaging
     contrib/python/pluggy
     contrib/python/py
-    contrib/python/wcwidth
+    contrib/python/toml
 )
 
 IF (OS_WINDOWS)
@@ -37,6 +37,8 @@ PY_SRCS(
     _pytest/_code/source.py
     _pytest/_io/__init__.py
     _pytest/_io/saferepr.py
+    _pytest/_io/terminalwriter.py
+    _pytest/_io/wcwidth.py
     _pytest/_version.py
     _pytest/assertion/__init__.py
     _pytest/assertion/rewrite.py
@@ -61,8 +63,7 @@ PY_SRCS(
     _pytest/logging.py
     _pytest/main.py
     _pytest/mark/__init__.py
-    _pytest/mark/evaluate.py
-    _pytest/mark/legacy.py
+    _pytest/mark/expression.py
     _pytest/mark/structures.py
     _pytest/monkeypatch.py
     _pytest/nodes.py
@@ -71,11 +72,11 @@ PY_SRCS(
     _pytest/pastebin.py
     _pytest/pathlib.py
     _pytest/pytester.py
+    _pytest/pytester_assertions.py
     _pytest/python.py
     _pytest/python_api.py
     _pytest/recwarn.py
     _pytest/reports.py
-    _pytest/resultlog.py
     _pytest/runner.py
     _pytest/setuponly.py
     _pytest/setupplan.py
@@ -83,12 +84,16 @@ PY_SRCS(
     _pytest/stepwise.py
     _pytest/store.py
     _pytest/terminal.py
+    _pytest/threadexception.py
+    _pytest/timing.py
     _pytest/tmpdir.py
     _pytest/unittest.py
+    _pytest/unraisableexception.py
     _pytest/warning_types.py
     _pytest/warnings.py
     pytest/__init__.py
     pytest/__main__.py
+    pytest/collect.py
 )
 
 RESOURCE_FILES(
@@ -96,6 +101,8 @@ RESOURCE_FILES(
     .dist-info/METADATA
     .dist-info/entry_points.txt
     .dist-info/top_level.txt
+    _pytest/py.typed
+    pytest/py.typed
 )
 
 END()
