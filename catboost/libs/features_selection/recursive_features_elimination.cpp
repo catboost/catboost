@@ -201,7 +201,7 @@ namespace NCB {
                         approx[dimensionIdx][docIdx] -= shapValues[docIdx][dimensionIdx][featureIdx];
                     }
                 }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
-                featureToLossValueChange[featureIdx] = calcLoss(approx) - currentLossValue;
+                featureToLossValueChange[featureIdx] = calcLoss(approx, model) - currentLossValue;
                 executor->ExecRange([&](ui32 docIdx) {
                     for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
                         approx[dimensionIdx][docIdx] += shapValues[docIdx][dimensionIdx][featureIdx];
@@ -345,7 +345,7 @@ namespace NCB {
         const TOutputFilesOptions& initialOutputFileOptions,
         const TFeaturesSelectOptions& featuresSelectOptions,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        const NCB::TDataProviders& pools,
+        const TDataProviderPtr fstrPool,
         const TLabelConverter& labelConverter,
         TTrainingDataProviders trainingData,
         TFullModel* dstModel,
@@ -405,8 +405,6 @@ namespace NCB {
         );
         const THolder<IMetric> loss = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
 
-        const auto& testPool = pools.Test.empty() ? pools.Learn : pools.Test[0];
-        const auto fstrPool = GetSubsetForFstrCalc(testPool, executor);
         const TTargetDataProviderPtr testTarget = trainingData.Test.empty()
             ? trainingData.Learn->TargetData
             : trainingData.Test[0]->TargetData;
@@ -426,10 +424,20 @@ namespace NCB {
             );
         };
 
-        const auto calcLoss = [&] (const auto& approx) {
+        const auto calcLoss = [&] (const auto& approx, const TFullModel& model) {
+            TRestorableFastRng64 rand(0);
+            const auto fstrTarget = CreateModelCompatibleProcessedDataProvider(
+                *fstrPool,
+                { catBoostOptions.MetricOptions->ObjectiveMetric.Get() },
+                model,
+                GetMonopolisticFreeCpuRam(),
+                &rand,
+                executor
+            ).TargetData;
+
             return CalcMetric(
                 *loss.Get(),
-                testTarget,
+                fstrTarget,
                 approx,
                 executor
             );
@@ -438,12 +446,12 @@ namespace NCB {
         const auto applyModel = [&] (const TFullModel& model) {
             return ApplyModelMulti(
                 model,
-                *testPool->ObjectsData.Get(),
+                *fstrPool->ObjectsData.Get(),
                 EPredictionType::RawFormulaVal,
                 0,
                 0,
                 executor,
-                testPool->RawTargetData.GetBaseline()
+                fstrPool->RawTargetData.GetBaseline()
             );
         };
 
@@ -456,7 +464,7 @@ namespace NCB {
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-" + ToString(step));
             const TFullModel model = trainModel(/*isFinal*/ false);
             TVector<TVector<double>> approx = applyModel(model);
-            double currentLossValue = calcLoss(approx);
+            double currentLossValue = calcLoss(approx, model);
 
             lossGraphBuilder.AddPrecisePoint(summary.EliminatedFeatures.size(), currentLossValue);
 
@@ -510,7 +518,7 @@ namespace NCB {
             CATBOOST_NOTICE_LOG << "Train final model" << Endl;
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-final");
             const TFullModel finalModel = trainModel(/*isFinal*/ true);
-            const double lossValue = calcLoss(applyModel(finalModel));
+            const double lossValue = calcLoss(applyModel(finalModel), finalModel);
 
             lossGraphBuilder.AddPrecisePoint(summary.EliminatedFeatures.size(), lossValue);
 

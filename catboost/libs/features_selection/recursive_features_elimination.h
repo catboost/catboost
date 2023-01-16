@@ -17,7 +17,7 @@ namespace NCB {
         const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
         const NCatboostOptions::TFeaturesSelectOptions& featuresSelectOptions,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        const TDataProviders& pools,
+        const TDataProviderPtr fstrPool,
         const TLabelConverter& labelConverter,
         TTrainingDataProviders trainingData,
         TFullModel* dstModel,
