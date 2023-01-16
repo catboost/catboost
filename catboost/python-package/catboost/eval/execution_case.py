@@ -1,8 +1,8 @@
 import json
 
-from catboost import CatBoostError
-from catboost.eval.factor_utils import FactorUtils
-from catboost.core import _NumpyAwareEncoder
+from .. import CatBoostError
+from ..eval.factor_utils import FactorUtils
+from ..core import _NumpyAwareEncoder
 
 
 class ExecutionCase:
