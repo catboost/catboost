@@ -4690,7 +4690,7 @@ cdef class _CatBoost:
             verbose
         )
         indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
-        scores = _2d_vector_of_double_to_np_array(ostr.Scores)
+        scores = [[float(value) for value in ostr.Scores[i]] for i in range(ostr.Scores.size())]
         if to_arcadia_string(ostr_type) == to_arcadia_string('Average'):
             indices = indices[0]
             scores = scores[0]
