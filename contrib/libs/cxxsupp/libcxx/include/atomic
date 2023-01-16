@@ -1033,12 +1033,20 @@ _Tp __cxx_atomic_exchange(__cxx_atomic_base_impl<_Tp> * __a, _Tp __value, memory
     return __c11_atomic_exchange(&__a->__a_value, __value, static_cast<__memory_order_underlying_t>(__order));
 }
 
+// Disable double inline warning
+#ifdef _LIBCPP_COMPILER_MSVC
+#pragma warning ( push )
+#pragma warning ( disable : 4141 )
+#endif
 _LIBCPP_INLINE_VISIBILITY inline _LIBCPP_CONSTEXPR memory_order __to_failure_order(memory_order __order) {
   // Avoid switch statement to make this a constexpr.
   return __order == memory_order_release ? memory_order_relaxed:
          (__order == memory_order_acq_rel ? memory_order_acquire:
              __order);
 }
+#ifdef _LIBCPP_COMPILER_MSVC
+#pragma warning ( pop )
+#endif
 
 template<class _Tp>
 _LIBCPP_INLINE_VISIBILITY
