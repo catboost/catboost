@@ -467,17 +467,17 @@ migrations:
     - orgvisits/library/python/yt_jobs/tests
     - orgvisits/metrics/ugc_feedback/ctr
     - passport/backend/adm_api/views/meltingpot
-    - passport/python/core
-    - passport/python/core/builders/frodo
-    - passport/python/core/builders/yasms
-    - passport/python/core/conf
-    - passport/python/core/cookies/utils
-    - passport/python/core/cookies/utils/werkzeug_ports
-    - passport/python/core/db
-    - passport/python/core/grants/tests
-    - passport/python/core/historydb/tests
-    - passport/python/core/suggest
-    - passport/python/core/types
+    - passport/backend/core
+    - passport/backend/core/builders/frodo
+    - passport/backend/core/builders/yasms
+    - passport/backend/core/conf
+    - passport/backend/core/cookies/utils
+    - passport/backend/core/cookies/utils/werkzeug_ports
+    - passport/backend/core/db
+    - passport/backend/core/grants/tests
+    - passport/backend/core/historydb/tests
+    - passport/backend/core/suggest
+    - passport/backend/core/types
     - portal/tools/morda-release/server
     - quality/ab_testing/abt_resources_lib/loaders/tests/long_metrics
     - quality/ab_testing/cofe/bin/cofe_ctl
@@ -2207,6 +2207,7 @@ migrations:
     - passport/backend/adm_api/common
     - passport/backend/adm_api/settings
     - passport/backend/adm_api/tests/views
+    - passport/backend/core/yasms/test
     - passport/backend/library/historydbloader
     - passport/backend/meltingpot/core/meltingpot
     - passport/python/api
@@ -2221,7 +2222,6 @@ migrations:
     - passport/python/contrib/py-radix
     - passport/python/contrib/py2casefold
     - passport/python/contrib/pyisemail
-    - passport/python/core/yasms/test
     - passport/python/logbroker_client/core
     - passport/python/tools/rm_attrs
     - payplatform/balance_support_dev/dev_kpi_counter
