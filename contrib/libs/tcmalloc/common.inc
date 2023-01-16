@@ -1,4 +1,4 @@
-SRCS(
+GLOBAL_SRCS(
     # TCMalloc
     tcmalloc/tcmalloc.cc
 
