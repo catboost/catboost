@@ -479,3 +479,11 @@ Class | Method | Description
 [CatBoostRegressor](python-reference_catboostregressor.md) | [randomized_search](python-reference_catboostregressor_randomized_search.md) | A simple randomized search on hyperparameters. |
 
 {% endcut %}
+
+## Methods for hyperparameter search by optuna
+
+Optuna is a famous hyperparameter optimization framework.
+Optuna enables efficient hyperparameter optimization by adopting state-of-the-art algorithms for sampling hyperparameters and pruning efficiently unpromising trials.  
+Catboost supports to stop unpromising trial of hyperparameter by callbacking after iteration functionality. [Pull Request](https://github.com/catboost/catboost/pull/1697/files#diff-ccca44461ac6b094190f29fec157a227996e226ea483213680dd0a152cd412eaR9679)
+
+The following is an optuna example that demonstrates a pruner for CatBoost. [Example](https://github.com/optuna/optuna-examples/blob/main/catboost/catboost_pruning.py)
