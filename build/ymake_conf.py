@@ -1743,48 +1743,8 @@ class Linker(object):
         self._print_linker_selector()
 
     def _print_linker_selector(self):
-        if self.type and self.tc.is_clang:
-            # GCC does not support -fuse-ld with an executable path, only
-            # -fuse-ld=bfd or -fuse-ld=gold (or -fuse-ld=lld in later versions).
-            emit_big('''
-                macro _USE_LINKER() {
-                    DEFAULT(_LINKER_ID %(default_linker)s)
-
-                    when ($NEED_PLATFORM_PEERDIRS == "yes") {
-                        when ($_LINKER_ID == "bfd") {
-                            PEERDIR+=build/platform/bfd
-                        }
-                        when ($_LINKER_ID == "gold") {
-                            PEERDIR+=build/platform/gold
-                        }
-                        when ($_LINKER_ID == "lld") {
-                            PEERDIR+=build/platform/lld
-                        }
-                    }
-                }''' % {'default_linker': self.type})
-
-        else:
-            emit_big('''
-                macro _USE_LINKER() {
-                    SET(_LINKER_ID %(default_linker)s)
-                }''' % {'default_linker': self.type})
-
-        emit_big('''
-            ### @usage: USE_LINKER_BFD()
-            ### Use bfd linker for a program. This doesn't work in libraries
-            macro USE_LINKER_BFD() {
-                SET(_LINKER_ID bfd)
-            }
-            ### @usage: USE_LINKER_GOLD()
-            ### Use gold linker for a program. This doesn't work in libraries
-            macro USE_LINKER_GOLD() {
-                SET(_LINKER_ID gold)
-            }
-            ### @usage: USE_LINKER_LLD()
-            ### Use lld linker for a program. This doesn't work in libraries
-            macro USE_LINKER_LLD() {
-                SET(_LINKER_ID lld)
-            }''')
+        # if self.type is None then _DEFAULT_LINKER is set to empty string value
+        emit('_DEFAULT_LINKER_ID', self.type)
 
 
 class LD(Linker):
