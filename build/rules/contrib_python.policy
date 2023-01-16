@@ -344,7 +344,7 @@ ALLOW cloud/support/mdb-support-bot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/fastapi-utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/graphene-sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW contrib/python/graphene-sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
