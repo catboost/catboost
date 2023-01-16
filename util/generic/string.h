@@ -388,11 +388,7 @@ public:
 
     template <typename T, typename A>
     explicit inline TBasicString(const std::basic_string<TCharType, T, A>& s)
-#ifdef TSTRING_IS_STD_STRING
-        : Storage_(s)
-#else
-        : S_(Construct(s))
-#endif
+        : TBasicString(s.data(), s.size())
     {
     }
 
@@ -401,7 +397,7 @@ public:
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(std::move(s))
 #else
-        : S_(Construct(std::move(s)))
+        : S_(s.empty() ? Construct() : Construct(std::move(s)))
 #endif
     {
     }
@@ -410,7 +406,7 @@ public:
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(s.Storage_, pos, n)
 #else
-        : S_(Construct(s, pos, n))
+        : S_(n ? Construct(s, pos, n) : Construct())
 #endif
     {
     }
