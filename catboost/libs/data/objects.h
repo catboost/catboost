@@ -139,7 +139,7 @@ namespace NCB {
         SAVELOAD(Data, StoreStringColumns);
 
     private:
-        TVariant<TMaybeData<TVector<TId>>, TMaybeData<TVector<TString>>> Data;
+        std::variant<TMaybeData<TVector<TId>>, TMaybeData<TVector<TString>>> Data;
         bool StoreStringColumns = false;
     };
 

@@ -94,7 +94,7 @@ struct TLearnProgress {
 
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
 
-    TVector<TVariant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
+    TVector<std::variant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
     TVector<TTreeStats> TreeStats;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
     /* Vector of multipliers that were applied to approxes at each iteration.

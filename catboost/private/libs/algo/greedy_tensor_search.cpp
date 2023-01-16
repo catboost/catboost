@@ -1703,7 +1703,7 @@ void GreedyTensorSearch(
     TProfileInfo& profile,
     TFold* fold,
     TLearnContext* ctx,
-    TVariant<TSplitTree, TNonSymmetricTreeStructure>* resTreeStructure) {
+    std::variant<TSplitTree, TNonSymmetricTreeStructure>* resTreeStructure) {
 
     TrimOnlineCTRcache({fold});
 

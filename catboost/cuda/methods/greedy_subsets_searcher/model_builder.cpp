@@ -185,7 +185,7 @@ namespace NCatboostCuda {
                 return HoldsAlternative<TLeaf>(Value);
             };
 
-            TVariant<TLeaf, TBinarySplit> Value;
+            std::variant<TLeaf, TBinarySplit> Value;
         };
 
         using TNodePtr = TSimpleSharedPtr<TNode>;

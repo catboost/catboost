@@ -582,7 +582,7 @@ static TVector<const TOnlineCtrBase*> GetOnlineCtrs(
 
 static TVector<const TOnlineCtrBase*> GetOnlineCtrs(
     const TFold& fold,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
 
     if (HoldsAlternative<TSplitTree>(tree)) {
         return GetOnlineCtrs(fold, Get<TSplitTree>(tree));
@@ -619,7 +619,7 @@ static void BuildIndicesForDataset(
 }
 
 static void BuildIndicesForDataset(
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& treeVariant,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& treeVariant,
     const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
@@ -650,7 +650,7 @@ static void BuildIndicesForDataset(
 
 TVector<TIndexType> BuildIndices(
     const TFold& fold,
-    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     const TTrainingDataProviders& trainingData,
     EBuildIndicesDataParts dataParts,
     NPar::ILocalExecutor* localExecutor) {
