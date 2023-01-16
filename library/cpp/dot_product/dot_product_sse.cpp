@@ -1,10 +1,8 @@
 #include "dot_product_sse.h"
-#include "dot_product_simple.h"
 
 #include <library/cpp/sse/sse.h>
 #include <util/system/platform.h>
 #include <util/system/compiler.h>
-#include <util/generic/utility.h>
 
 #ifdef ARCADIA_SSE
 i32 DotProductSse(const i8* lhs, const i8* rhs, size_t length) noexcept {
@@ -102,6 +100,7 @@ i64 DotProductSse(const i32* lhs, const i32* rhs, size_t length) noexcept {
 }
 
 #else
+#include "dot_product_simple.h"
 
 i64 DotProductSse(const i32* lhs, const i32* rhs, size_t length) noexcept {
     return DotProductSimple(lhs, rhs, length);
