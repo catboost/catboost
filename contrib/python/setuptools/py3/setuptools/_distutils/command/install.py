@@ -29,16 +29,16 @@ WINDOWS_SCHEME = {
 
 INSTALL_SCHEMES = {
     'unix_prefix': {
-        'purelib': '$base/lib/python$py_version_short/site-packages',
-        'platlib': '$platbase/$platlibdir/python$py_version_short/site-packages',
-        'headers': '$base/include/python$py_version_short$abiflags/$dist_name',
+        'purelib': '$base/lib/$implementation_lower$py_version_short/site-packages',
+        'platlib': '$platbase/$platlibdir/$implementation_lower$py_version_short/site-packages',
+        'headers': '$base/include/$implementation_lower$py_version_short$abiflags/$dist_name',
         'scripts': '$base/bin',
         'data'   : '$base',
         },
     'unix_home': {
-        'purelib': '$base/lib/python',
-        'platlib': '$base/$platlibdir/python',
-        'headers': '$base/include/python/$dist_name',
+        'purelib': '$base/lib/$implementation_lower',
+        'platlib': '$base/$platlibdir/$implementation_lower',
+        'headers': '$base/include/$implementation_lower/$dist_name',
         'scripts': '$base/bin',
         'data'   : '$base',
         },
@@ -64,8 +64,8 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '$usersite',
         'platlib': '$usersite',
-        'headers': '$userbase/Python$py_version_nodot/Include/$dist_name',
-        'scripts': '$userbase/Python$py_version_nodot/Scripts',
+        'headers': '$userbase/$implementation$py_version_nodot/Include/$dist_name',
+        'scripts': '$userbase/$implementation$py_version_nodot/Scripts',
         'data'   : '$userbase',
         }
 
@@ -73,7 +73,7 @@ if HAS_USER_SITE:
         'purelib': '$usersite',
         'platlib': '$usersite',
         'headers':
-            '$userbase/include/python$py_version_short$abiflags/$dist_name',
+            '$userbase/include/$implementation_lower$py_version_short$abiflags/$dist_name',
         'scripts': '$userbase/bin',
         'data'   : '$userbase',
         }
@@ -82,6 +82,12 @@ if HAS_USER_SITE:
 # installed, be sure to add an entry to every installation scheme above,
 # and to SCHEME_KEYS here.
 SCHEME_KEYS = ('purelib', 'platlib', 'headers', 'scripts', 'data')
+
+def _get_implementation():
+    if hasattr(sys, 'pypy_version_info'):
+        return 'PyPy'
+    else:
+        return 'Python'
 
 
 class install(Command):
@@ -313,6 +319,8 @@ class install(Command):
                             'exec_prefix': exec_prefix,
                             'abiflags': abiflags,
                             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+                            'implementation_lower': _get_implementation().lower(),
+                            'implementation': _get_implementation(),
                            }
 
         if HAS_USER_SITE:

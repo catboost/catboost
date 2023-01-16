@@ -621,10 +621,11 @@ class manifest_maker(sdist):
         if hasattr(build_py, 'get_data_files_without_manifest'):
             return build_py.get_data_files_without_manifest()
 
-        log.warn(
+        warnings.warn(
             "Custom 'build_py' does not implement "
             "'get_data_files_without_manifest'.\nPlease extend command classes"
-            " from setuptools instead of distutils."
+            " from setuptools instead of distutils.",
+            SetuptoolsDeprecationWarning
         )
         return build_py.get_data_files()
 

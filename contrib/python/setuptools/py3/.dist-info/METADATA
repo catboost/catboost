@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 58.5.3
+Version: 59.1.1
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -44,12 +44,17 @@ Requires-Dist: pytest-virtualenv (>=1.2.7) ; extra == 'testing'
 Requires-Dist: wheel ; extra == 'testing'
 Requires-Dist: paver ; extra == 'testing'
 Requires-Dist: pip (>=19.1) ; extra == 'testing'
-Requires-Dist: jaraco.envs ; extra == 'testing'
+Requires-Dist: jaraco.envs (>=2.2) ; extra == 'testing'
 Requires-Dist: pytest-xdist ; extra == 'testing'
 Requires-Dist: sphinx ; extra == 'testing'
 Requires-Dist: jaraco.path (>=3.2.0) ; extra == 'testing'
 Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-mypy ; (platform_python_implementation != "PyPy") and extra == 'testing'
+
+.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
+   :align: center
+
+|
 
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: `PyPI link`_

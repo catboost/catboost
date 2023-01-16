@@ -3,11 +3,13 @@ import os
 import subprocess
 import sys
 import tempfile
+import warnings
 from distutils import log
 from distutils.errors import DistutilsError
 
 import pkg_resources
 from setuptools.wheel import Wheel
+from ._deprecation_warning import SetuptoolsDeprecationWarning
 
 
 def _fixup_find_links(find_links):
@@ -22,6 +24,11 @@ def fetch_build_egg(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
     """Fetch an egg needed for building.
 
     Use pip/wheel to fetch/build a wheel."""
+    warnings.warn(
+        "setuptools.installer is deprecated. Requirements should "
+        "be satisfied by a PEP 517 installer.",
+        SetuptoolsDeprecationWarning,
+    )
     # Warn if wheel is not available
     try:
         pkg_resources.get_distribution('wheel')

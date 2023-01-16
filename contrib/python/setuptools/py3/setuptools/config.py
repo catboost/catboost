@@ -13,7 +13,7 @@ from glob import iglob
 import contextlib
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.extern.packaging.version import LegacyVersion, parse
+from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
 
 
@@ -585,7 +585,9 @@ class ConfigMetadataHandler(ConfigHandler):
             version = version.strip()
             # Be strict about versions loaded from file because it's easy to
             # accidentally include newlines and other unintended content
-            if isinstance(parse(version), LegacyVersion):
+            try:
+                Version(version)
+            except InvalidVersion:
                 tmpl = (
                     'Version loaded from {value} does not '
                     'comply with PEP 440: {version}'
