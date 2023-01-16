@@ -18,7 +18,6 @@ NO_UTIL()
 
 CFLAGS(
     -D__TBB_BUILD
-    -D__TBB_USE_ITT_NOTIFY
 )
 
 SRCS(
@@ -78,6 +77,7 @@ ENDIF()
 
 IF (NOT ARCH_ARM64)
     CFLAGS(
+        -D__TBB_USE_ITT_NOTIFY
         -DDO_ITT_NOTIFY
     )
 
