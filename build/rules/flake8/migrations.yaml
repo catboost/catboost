@@ -939,7 +939,6 @@ migrations:
     - yweb/antiporno/site_reachability/lib/reachability_common
     - yweb/antiporno/top_queries_cleanup/yql/test
     - yweb/antispam/adblock/viewer
-    - yweb/antispam/cid/backend/miner
     - yweb/antispam/clean_web/tools/run_cm_targets
     - yweb/antispam/mascot/features/test
     - yweb/antispam/mascot/scripts/tcinet
@@ -2426,7 +2425,6 @@ migrations:
     - mds/mastermind/stat_reporter/lib
     - mds/mastermind/state_builder
     - mds/nscfg/lib
-    - metrika/admin/python/clickhouse_backups/frontend/base
     - metrika/admin/python/cms/frontend/base
     - metrika/admin/python/duty/frontend/base
     - metrika/core/programs/mobile_startup_admin/base
@@ -3529,7 +3527,6 @@ migrations:
     - infra/nanny/sepelib/tests
     - infra/qyp/vmctl/tests
     - infra/wall-e/checks/tests
-    - intranet/audit/tests
     - intranet/dogma/dogma_tests
     - intranet/hidereferer/tests
     - intranet/magiclinks/tests
@@ -3790,7 +3787,6 @@ migrations:
     - yabs/rmp/backend/tests/lib/zora
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
-    - yabs/server/test/ft/BSSERVER-2185
     - yabs/server/test/ft/BSSERVER-2656
     - yabs/server/test/ft/lua/page_1
     - yabs/server/test/ft/lua/page_1037
