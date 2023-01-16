@@ -355,6 +355,54 @@ Y_UNIT_TEST_SUITE(TCacheTest) {
         s.Insert(3, "789");
         UNIT_ASSERT(s.Find(1) != s.End()); // Key 2 should have been deleted
     }
+
+    class TMoveOnlyInt {
+    public:
+        ui32 Value = 0;
+
+        explicit TMoveOnlyInt(ui32 value = 0) : Value(value) {}
+        TMoveOnlyInt(TMoveOnlyInt&&) = default;
+        TMoveOnlyInt& operator=(TMoveOnlyInt&&) = default;
+
+        TMoveOnlyInt(const TMoveOnlyInt&) = delete;
+        TMoveOnlyInt& operator=(const TMoveOnlyInt&) = delete;
+
+        bool operator==(const TMoveOnlyInt& rhs) const {
+            return Value == rhs.Value;
+        }
+
+        explicit operator size_t() const {
+            return Value;
+        }
+    };
+
+    Y_UNIT_TEST(MoveOnlySimpleTest) {
+        typedef TLRUCache<TMoveOnlyInt, TMoveOnlyInt> TCache;
+        TCache s(2); // size 2
+        s.Insert(TMoveOnlyInt(1), TMoveOnlyInt(0x11111111));
+        TMoveOnlyInt lookup1(1), lookup2(2), lookup3(3);
+        UNIT_ASSERT(s.Find(lookup1) != s.End());
+        UNIT_ASSERT_EQUAL(s.Find(lookup1)->Value, 0x11111111);
+        s.Insert(TMoveOnlyInt(2), TMoveOnlyInt(0x22222222));
+        UNIT_ASSERT(s.GetOldest().Value == 0x11111111);
+        s.Insert(TMoveOnlyInt(3), TMoveOnlyInt(0x33333333));
+        UNIT_ASSERT(s.GetOldest().Value == 0x22222222);
+        // key 1 will be deleted
+        UNIT_ASSERT(s.Find(lookup1) == s.End());
+        UNIT_ASSERT(s.Find(lookup2) != s.End());
+        UNIT_ASSERT(s.Find(lookup2)->Value == 0x22222222);
+        UNIT_ASSERT(s.Find(lookup3) != s.End());
+        UNIT_ASSERT(s.Find(lookup3)->Value == 0x33333333);
+
+        UNIT_ASSERT(!s.Insert(TMoveOnlyInt(3), TMoveOnlyInt(0x11111111)));
+        UNIT_ASSERT(s.Find(lookup3)->Value == 0x33333333);
+        s.Update(TMoveOnlyInt(3), TMoveOnlyInt(0x11111111));
+        UNIT_ASSERT(s.Find(lookup3)->Value == 0x11111111);
+
+        TCache::TIterator it = s.Find(lookup3);
+        s.Erase(it);
+        UNIT_ASSERT(s.Find(lookup3) == s.End());
+    }
 }
 
 Y_UNIT_TEST_SUITE(TThreadSafeCacheTest) {

@@ -30,19 +30,31 @@ public:
 public:
     struct TItem: public TIntrusiveListItem<TItem> {
         typedef TIntrusiveListItem<TItem> TBase;
-        TItem(const TKey& key, const TValue& value = TValue())
+        // universal reference for TKey here prevents TItem(TItem&) from compiling,
+        // so explicitly specify const TKey& and TKey&&
+        TItem(const TKey& key)
             : TBase()
             , Key(key)
-            , Value(value)
+            , Value()
+        {
+        }
+        TItem(TKey&& key)
+            : TBase()
+            , Key(std::move(key))
+            , Value()
         {
         }
 
-        TItem(const TItem& rhs)
+        template<typename TKeyRef, typename TValueRef>
+        TItem(TKeyRef&& key, TValueRef&& value)
             : TBase()
-            , Key(rhs.Key)
-            , Value(rhs.Value)
+            , Key(std::forward<TKeyRef>(key))
+            , Value(std::forward<TValueRef>(value))
         {
         }
+
+        TItem(const TItem&) = default;
+        TItem(TItem&&) = default;
 
         bool operator<(const TItem& rhs) const {
             return Key < rhs.Key;
@@ -58,6 +70,21 @@ public:
         struct THash {
             size_t operator()(const TItem& item) const {
                 return ::THash<TKey>()(item.Key);
+            }
+            size_t operator()(const TKey& key) const {
+                return ::THash<TKey>()(key);
+            }
+        };
+
+        struct TEqualTo {
+            bool operator()(const TItem& lhs, const TItem& rhs) const {
+                return lhs.Key == rhs.Key;
+            }
+            bool operator()(const TItem& lhs, const TKey& rhs) const {
+                return lhs.Key == rhs;
+            }
+            bool operator()(const TKey& lhs, const TItem& rhs) const {
+                return lhs == rhs.Key;
             }
         };
     };
@@ -136,21 +163,32 @@ public:
 
     struct TItem: public TIntrusiveListItem<TItem> {
         typedef TIntrusiveListItem<TItem> TBase;
-        TItem(const TKey& key, const TValue& value = TValue())
+        explicit TItem(const TKey& key)
             : TBase()
             , Key(key)
-            , Value(value)
+            , Value()
+            , Counter(0)
+        {
+        }
+        explicit TItem(TKey&& key)
+            : TBase()
+            , Key(std::move(key))
+            , Value()
             , Counter(0)
         {
         }
 
-        TItem(const TItem& rhs)
+        template<typename TKeyRef, typename TValueRef>
+        TItem(TKeyRef&& key, TValueRef&& value)
             : TBase()
-            , Key(rhs.Key)
-            , Value(rhs.Value)
-            , Counter(rhs.Counter)
+            , Key(std::forward<TKeyRef>(key))
+            , Value(std::forward<TValueRef>(value))
+            , Counter(0)
         {
         }
+
+        TItem(const TItem&) = default;
+        TItem(TItem&&) = default;
 
         bool operator<(const TItem& rhs) const {
             return Key < rhs.Key;
@@ -167,6 +205,21 @@ public:
         struct THash {
             size_t operator()(const TItem& item) const {
                 return ::THash<TKey>()(item.Key);
+            }
+            size_t operator()(const TKey& key) const {
+                return ::THash<TKey>()(key);
+            }
+        };
+
+        struct TEqualTo {
+            bool operator()(const TItem& lhs, const TItem& rhs) const {
+                return lhs.Key == rhs.Key;
+            }
+            bool operator()(const TItem& lhs, const TKey& rhs) const {
+                return lhs.Key == rhs;
+            }
+            bool operator()(const TKey& lhs, const TItem& rhs) const {
+                return lhs == rhs.Key;
             }
         };
     };
@@ -242,19 +295,29 @@ public:
     }
 
     struct TItem {
-        TItem(const TKey& key, const TValue& value = TValue())
+        TItem(const TKey& key)
             : Key(key)
-            , Value(value)
-            , Weight(TWeighter::Weight(value))
+            , Value()
+            , Weight(TWeighter::Weight(Value))
+        {
+        }
+        TItem(TKey&& key)
+            : Key(std::move(key))
+            , Value()
+            , Weight(TWeighter::Weight(Value))
         {
         }
 
-        TItem(const TItem& rhs)
-            : Key(rhs.Key)
-            , Value(rhs.Value)
-            , Weight(rhs.Weight)
+        template<typename TKeyRef, typename TValueRef>
+        TItem(TKeyRef&& key, TValueRef&& value)
+            : Key(std::forward<TKeyRef>(key))
+            , Value(std::forward<TValueRef>(value))
+            , Weight(TWeighter::Weight(Value))
         {
         }
+
+        TItem(const TItem&) = default;
+        TItem(TItem&&) = default;
 
         bool operator<(const TItem& rhs) const {
             return Key < rhs.Key;
@@ -271,6 +334,21 @@ public:
         struct THash {
             size_t operator()(const TItem& item) const {
                 return ::THash<TKey>()(item.Key);
+            }
+            size_t operator()(const TKey& key) const {
+                return ::THash<TKey>()(key);
+            }
+        };
+
+        struct TEqualTo {
+            bool operator()(const TItem& lhs, const TItem& rhs) const {
+                return lhs.Key == rhs.Key;
+            }
+            bool operator()(const TItem& lhs, const TKey& rhs) const {
+                return lhs.Key == rhs;
+            }
+            bool operator()(const TKey& lhs, const TItem& rhs) const {
+                return lhs == rhs.Key;
             }
         };
     };
@@ -377,7 +455,7 @@ template <typename TKey, typename TValue, typename TListType, typename TDeleter>
 class TCache {
     typedef typename TListType::TItem TItem;
     typedef typename TItem::THash THash;
-    typedef THashMultiSet<TItem, THash> TIndex;
+    typedef THashMultiSet<TItem, THash, typename TItem::TEqualTo> TIndex;
     typedef typename TIndex::iterator TIndexIterator;
     typedef typename TIndex::const_iterator TIndexConstIterator;
 
@@ -448,23 +526,23 @@ public:
     }
 
     TIterator Find(const TKey& key) {
-        TIndexIterator it = Index.find(TItem(key));
+        TIndexIterator it = Index.find(key);
         if (it != Index.end())
             List.Promote(const_cast<TItem*>(&*it));
         return TIterator(it);
     }
 
     TIterator FindWithoutPromote(const TKey& key) const {
-        return TIterator(Index.find(TItem(key)));
+        return TIterator(Index.find(key));
     }
 
     // note: it shouldn't touch 'value' if it returns false.
     bool PickOut(const TKey& key, TValue* value) {
         Y_ASSERT(value);
-        TIndexIterator it = Index.find(TItem(key));
+        TIndexIterator it = Index.find(key);
         if (it == Index.end())
             return false;
-        *value = it->Value;
+        *value = std::move(it->Value);
         List.Erase(const_cast<TItem*>(&*it));
         Index.erase(it);
         Y_ASSERT(Index.size() == List.GetSize());
@@ -475,11 +553,11 @@ public:
         return Insert(p.first, p.second);
     }
 
-    bool Insert(const TKey& key, const TValue& value) {
-        TItem tmpItem(key, value);
-        if (!MultiValue && Index.find(tmpItem) != Index.end())
+    template<typename TKeyRef, typename TValueRef>
+    bool InsertImpl(TKeyRef&& key, TValueRef&& value) {
+        if (!MultiValue && Index.find(key) != Index.end())
             return false;
-        TIndexIterator it = Index.insert(tmpItem);
+        TIndexIterator it = Index.emplace(std::forward<TKeyRef>(key), std::forward<TValueRef>(value));
 
         TItem* insertedItem = const_cast<TItem*>(&*it);
         auto removedItem = List.Insert(insertedItem);
@@ -496,16 +574,45 @@ public:
         return !insertedWasRemoved;
     }
 
-    void Update(const TKey& key, const TValue& value) {
+    // a lot of code calls Insert(key, {arguments for TValue constructor})
+    // template version InsertImpl can not process this
+    bool Insert(const TKey& key, const TValue& value) {
+        return InsertImpl(key, value);
+    }
+    bool Insert(const TKey& key, TValue&& value) {
+        return InsertImpl(key, std::move(value));
+    }
+    bool Insert(TKey&& key, const TValue& value) {
+        return InsertImpl(std::move(key), value);
+    }
+    bool Insert(TKey&& key, TValue&& value) {
+        return InsertImpl(std::move(key), std::move(value));
+    }
+
+    template<typename TKeyRef, typename TValueRef>
+    void UpdateImpl(TKeyRef&& key, TValueRef&& value) {
         if (MultiValue)
             ythrow yexception() << "TCache: can't \"Update\" in multicache";
         TIterator it = Find(key);
         if (it != End()) {
             Erase(it);
         }
-        Insert(key, value);
+        InsertImpl(std::forward<TKeyRef>(key), std::forward<TValueRef>(value));
 
         Y_ASSERT(Index.size() == List.GetSize());
+    }
+
+    void Update(const TKey& key, const TValue& value) {
+        UpdateImpl(key, value);
+    }
+    void Update(const TKey& key, TValue&& value) {
+        UpdateImpl(key, std::move(value));
+    }
+    void Update(TKey&& key, const TValue& value) {
+        UpdateImpl(std::move(key), value);
+    }
+    void Update(TKey&& key, TValue&& value) {
+        UpdateImpl(std::move(key), std::move(value));
     }
 
     void Erase(TIterator it) {
