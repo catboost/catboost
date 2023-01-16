@@ -18,21 +18,6 @@
 using namespace NCB;
 
 
-const TQuantizedObjectsDataProvider& GetLearnObjectsData(
-    const TSplitCandidate& splitCandidate,
-    const TTrainingDataProviders& data,
-    const TFold& fold
-) {
-    if (splitCandidate.Type == ESplitType::EstimatedFeature) {
-        if (splitCandidate.IsOnlineEstimatedFeature) {
-            return *(fold.GetOnlineEstimatedFeatures().Learn);
-        }
-        return *(data.EstimatedObjectsData.Learn);
-    }
-    return *(data.Learn->ObjectsData);
-}
-
-
 TSplit TCandidateInfo::GetBestSplit(
     const TTrainingDataProviders& data,
     const TFold& fold,
