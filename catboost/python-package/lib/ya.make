@@ -43,7 +43,7 @@ IF(PYTHON2)
     )
 ENDIF()
 
-IF(NOT CATBOOST_OPENSOURCE)
+IF(NOT OPENSOURCE)
     PEERDIR(
         catboost//private/libs/for_python_package
         contrib/python/matplotlib

@@ -75,7 +75,7 @@ IF (USE_SYSTEM_JDK)
         CFLAGS(-I${JAVA_HOME}/include/win32)
     ENDIF()
 ELSE()
-    IF (NOT CATBOOST_OPENSOURCE OR AUTOCHECK)
+    IF (NOT OPENSOURCE OR AUTOCHECK)
         PEERDIR(contrib/libs/jdk)
     ELSE()
         # warning instead of an error to enable configure w/o specifying JAVA_HOME

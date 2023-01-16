@@ -104,7 +104,7 @@ PEERDIR(
     library/cpp/threading/local_executor
 )
 
-IF (NOT CATBOOST_OPENSOURCE)
+IF (NOT OPENSOURCE)
     CFLAGS(GLOBAL -DUSE_CUSOLVER)
     SRC(kernel/linear_cusolver.cu)
     PEERDIR(contrib/libs/nvidia/cusolver)
