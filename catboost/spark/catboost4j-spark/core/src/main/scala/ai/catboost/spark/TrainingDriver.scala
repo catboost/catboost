@@ -149,7 +149,8 @@ private[spark] class UpdatableWorkersInfo (
   
   def shutdownRemainingWorkers(
     connectTimeout: java.time.Duration,
-    workerShutdownTimeout: java.time.Duration
+    workerShutdownOptimisticTimeout: java.time.Duration,
+    workerShutdownPessimisticTimeout: java.time.Duration
   ) = {
     log.info("Shutdown remaining workers: start")
 
@@ -173,13 +174,16 @@ private[spark] class UpdatableWorkersInfo (
   
       val shutdownWorkersAppProcess = RunClassInNewProcess(
         ShutdownWorkersApp.getClass,
-        args = Some(Array(hostsFilePath.toString, workerShutdownTimeout.getSeconds.toString))
+        args = Some(Array(hostsFilePath.toString, workerShutdownPessimisticTimeout.getSeconds.toString))
       )
   
       val returnValue = shutdownWorkersAppProcess.waitFor
       if (returnValue != 0) {
         throw new CatBoostError(s"Shutdown workers process failed: exited with code $returnValue")
       }
+
+      // wait to ensure that workers have exited
+      Thread.sleep(workerShutdownOptimisticTimeout.toMillis)
     }
 
     log.info("Shutdown remaining workers: finish")
@@ -286,7 +290,11 @@ private[spark] class TrainingDriver (
            (assuming CatBoost master has been able to issue 'stop' command to workers)
         */
         Thread.sleep(workerShutdownOptimisticTimeout.toMillis)
-        updatableWorkersInfo.shutdownRemainingWorkers(connectTimeout, workerShutdownPessimisticTimeout)
+        updatableWorkersInfo.shutdownRemainingWorkers(
+          connectTimeout,
+          workerShutdownOptimisticTimeout,
+          workerShutdownPessimisticTimeout
+        )
       }
       log.info("finished")
     }
