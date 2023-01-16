@@ -37,7 +37,7 @@ class PoolLoadingTest {
         params = new PoolLoadParams()
       )
 
-      val featureNames = Array[String]("_f0", "_f1")
+      val featureNames = Array[String]("0", "1")
 
       PoolTestHelpers.comparePoolWithExpectedData(
         pool,
@@ -278,7 +278,7 @@ class PoolLoadingTest {
         //params = new PoolLoadParams()
       //)
 
-      val featureNames = Array[String]("_f0", "_f1", "_f2", "_f3", "_f4", "_f5", "_f6", "_f7")
+      val featureNames = Array[String]("0", "1", "2", "3", "4", "5", "6", "7")
 
       PoolTestHelpers.comparePoolWithExpectedData(
         pool,
