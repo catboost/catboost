@@ -275,7 +275,10 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     }
     const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
             && SystemOptions->IsSingleHost()
-            && (TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty());
+            && (
+                (TaskType == ETaskType::GPU && BoostingOptions->BoostingType == EBoostingType::Plain)
+                || (TaskType == ETaskType::CPU && !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty())
+            );
 
     if (useExact) {
         defaultEstimationMethod = ELeavesEstimation::Exact;
