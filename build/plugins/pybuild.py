@@ -490,7 +490,7 @@ def onpy_srcs(unit, *args):
     google_lib = os.path.join(proto_path_pref, GOOGLE_LIB)
 
     if protos:
-        if not upath.startswith((google_lib, os.path.join(proto_path_pref, BUILTIN_PROTO))):
+        if not upath.startswith((google_lib, '/'.join([proto_path_pref, BUILTIN_PROTO]))):
             unit.onpeerdir([google_lib])
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
