@@ -3499,7 +3499,7 @@ cdef class _PoolBase:
         if isinstance(label[0][0], numbers.Number):
             self.__target_data_holders = []
             for target_idx in range(target_count):
-                if isinstance(label, np.ndarray):
+                if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
                     target_array = np.ascontiguousarray(label[:, target_idx])
                 else:
                     target_array = np.empty(object_count, dtype=np.float32)
