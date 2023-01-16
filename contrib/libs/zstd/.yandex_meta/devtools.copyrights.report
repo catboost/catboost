@@ -58,6 +58,7 @@ BELONGS ya.make
         lib/common/portability_macros.h [2:3]
         lib/common/zstd_deps.h [2:3]
         lib/common/zstd_trace.h [2:3]
+        lib/decompress/huf_decompress_amd64.S [2:3]
         lib/dictBuilder/cover.h [2:3]
         lib/dictBuilder/fastcover.c [2:3]
         programs/zstdcli_trace.c [2:3]
@@ -213,7 +214,7 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        CHANGELOG [530:533]
+        CHANGELOG [535:538]
 
 KEEP     COPYRIGHT_SERVICE_LABEL f2757a06c2b7cab0410e36b6ed9d6545
 BELONGS ya.make
