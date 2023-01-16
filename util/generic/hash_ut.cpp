@@ -783,7 +783,6 @@ class TCountingAllocator: public std::allocator<T> {
     using base_type = std::allocator<T>;
 
 public:
-    using pointer = typename base_type::pointer;
     using size_type = typename base_type::size_type;
 
     template <class Other>
@@ -808,18 +807,18 @@ public:
     {
     }
 
-    pointer allocate(size_type n, const void* hint = nullptr) {
-        pointer result = base_type::allocate(n, hint);
+    T* allocate(size_type n) {
+        auto result = base_type::allocate(n);
 
         if (Counters_) {
             ++Counters_->Allocations;
-            Counters_->Chunks.insert(std::make_pair(result, n * sizeof(T)));
+            Counters_->Chunks.emplace(result, n * sizeof(T));
         }
 
         return result;
     }
 
-    void deallocate(pointer p, size_type n) {
+    void deallocate(T* p, size_type n) {
         if (Counters_) {
             ++Counters_->Deallocations;
             Counters_->Chunks.erase(std::make_pair(p, n * sizeof(T)));

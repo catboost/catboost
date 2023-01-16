@@ -495,8 +495,8 @@ private:
     public:
         using TBase = std::allocator<T>;
 
-        typename TBase::pointer allocate(typename TBase::size_type n, std::allocator<void>::const_pointer hint = nullptr) {
-            typename TBase::pointer p = TBase::allocate(n, hint);
+        T* allocate(typename TBase::size_type n) {
+            auto p = TBase::allocate(n);
             for (size_t i = 0; i < n; ++i) {
                 memset(p + i, 0xab, sizeof(T));
             }
