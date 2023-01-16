@@ -107,6 +107,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\device_id.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\device_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\devices_list.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\devices_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\fwd.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\gpu_single_worker.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\hwloc_wrapper.cpp"/>
