@@ -36,11 +36,7 @@ namespace NPrivate {
     public:
         typedef TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, Alloc> TSelf;
 
-        using typename Alloc::const_pointer;
-        using typename Alloc::const_reference;
         using typename Alloc::difference_type;
-        using typename Alloc::pointer;
-        using typename Alloc::reference;
         using typename Alloc::size_type;
         using typename Alloc::value_type;
 
@@ -49,23 +45,22 @@ namespace NPrivate {
         };
 
     public:
-        pointer allocate(size_type n, std::allocator<void>::const_pointer hint = nullptr) {
+        T* allocate(size_type n) {
             if (!IsStorageUsed && CountOnStack >= n) {
                 IsStorageUsed = true;
-                return reinterpret_cast<pointer>(&StackBasedStorage[0]);
+                return reinterpret_cast<T*>(&StackBasedStorage[0]);
             } else {
                 if constexpr (!UseFallbackAlloc) {
                     Y_FAIL(
                             "Stack storage overflow. Capacity: %d, requested: %d", (int)CountOnStack, int(n));
                 }
-                return FallbackAllocator().allocate(n, hint);
+                return FallbackAllocator().allocate(n);
             }
         }
 
-
-        void deallocate(pointer p, size_type n) {
-            if (p >= reinterpret_cast<pointer>(&StackBasedStorage[0]) &&
-                    p < reinterpret_cast<pointer>(&StackBasedStorage[CountOnStack])) {
+        void deallocate(T* p, size_type n) {
+            if (p >= reinterpret_cast<T*>(&StackBasedStorage[0]) &&
+                    p < reinterpret_cast<T*>(&StackBasedStorage[CountOnStack])) {
                 Y_VERIFY(IsStorageUsed);
                 IsStorageUsed = false;
             } else {
@@ -86,10 +81,10 @@ namespace NPrivate {
 
 template <typename T, size_t CountOnStack, bool UseFallbackAlloc, class Alloc>
 class TStackVec: public TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>> {
-public:
-    typedef TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>> TBase;
-    typedef TStackVec<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>> TSelf;
+private:
+    using TBase = TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>>;
 
+public:
     using typename TBase::const_iterator;
     using typename TBase::const_reverse_iterator;
     using typename TBase::iterator;
@@ -99,7 +94,6 @@ public:
 
 public:
     TStackVec()
-        : TBase()
     {
         TBase::reserve(CountOnStack);
     }
@@ -122,7 +116,7 @@ public:
         TBase::assign(count, val);
     }
 
-    TStackVec(const TSelf& src)
+    TStackVec(const TStackVec& src)
         : TStackVec(src.begin(), src.end())
     {
     }
@@ -158,21 +152,21 @@ public:
     }
 
 public:
-    void swap(TSelf&) = delete;
+    void swap(TStackVec&) = delete;
     void shrink_to_fit() = delete;
 
-    TSelf& operator=(const TSelf& src) {
+    TStackVec& operator=(const TStackVec& src) {
         TBase::assign(src.begin(), src.end());
         return *this;
     }
 
     template <class A>
-    TSelf& operator=(const TVector<T, A>& src) {
+    TStackVec& operator=(const TVector<T, A>& src) {
         TBase::assign(src.begin(), src.end());
         return *this;
     }
 
-    TSelf& operator=(std::initializer_list<T> il) {
+    TStackVec& operator=(std::initializer_list<T> il) {
         TBase::assign(il.begin(), il.end());
         return *this;
     }

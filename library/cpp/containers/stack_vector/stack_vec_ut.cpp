@@ -37,10 +37,12 @@ Y_UNIT_TEST_SUITE(TStackBasedVectorTest) {
     }
 
     Y_UNIT_TEST(TestReallyOnStack) {
-        TStackVec<int> ints(5);
-        // Depends on libc++ std::vector layout, which is now __begin__, then __end__,
-        // then __end_cap_ which is a __compressed_pair<pointer, allocator_type>
-        UNIT_ASSERT_EQUAL((const char*)ints.data(), ((const char*)&ints) + 3 * sizeof(TStackVec<int>::pointer));
+        const TStackVec<int> vec(5);
+
+        UNIT_ASSERT(
+            (const char*)&vec <= (const char*)&vec[0] &&
+            (const char*)&vec[0] <= (const char*)&vec + sizeof(vec)
+        );
     }
 
     Y_UNIT_TEST(TestFallback) {
