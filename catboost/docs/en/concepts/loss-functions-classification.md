@@ -162,7 +162,7 @@ The sum is calculated on all pairs of objects $(i,j)$ such that:
 - $t_{j} = 1$
 - $I(x, y) = \begin{cases} 0 { , } & x < y \\ 0.5 { , } & x=y \\ 1 { , } & x>y \end{cases}$
 
-Refer to the [Wikipedia article]({{ wikipedia_under-the-curve }) for details.
+Refer to the [Wikipedia article]({{ wikipedia_under-the-curve }}) for details.
 
 If the target type is not binary, then every object with target value $t$ and weight $w$ is replaced with two objects for the metric calculation:
 
@@ -219,7 +219,7 @@ The sum is calculated on all pairs of objects $(i,j)$ such that:
 - $t_{j} = 1$
 - $I(x, y) = \begin{cases} 0 { , } & x < y \\ 0.5 { , } & x=y \\ 1 { , } & x>y \end{cases}$
 
-Refer to the [Wikipedia article]({{ wikipedia_under-the-curve }) for details.
+Refer to the [Wikipedia article]({{ wikipedia_under-the-curve }}) for details.
 
 If the target type is not binary, then every object with target value $t$ and weight $w$ is replaced with two objects for the metric calculation:
 

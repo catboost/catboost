@@ -2450,11 +2450,11 @@ Possible values:
 
 - {{ fit__model-format_CatboostBinary }}.
 - {{ fit__model-format_applecoreml }}(only datasets without categorical features are currently supported).
-- {{ fit__model-format_json }} (multiclassification models are not currently supported). Refer to the [CatBoost JSON model tutorial]({{ catboost-repo__json-tutorial }) for format details.
+- {{ fit__model-format_json }} (multiclassification models are not currently supported). Refer to the [CatBoost JSON model tutorial]({{ catboost-repo__json-tutorial }}) for format details.
 - {{ fit__model-format_python }} (multiclassification models are not currently supported).See the [Python](../../../concepts/python-reference_apply_catboost_model.md) section for details on applying the resulting model.
 - {{ fit__model-format_cpp }} (multiclassification models are not currently supported). See the [C++](../../../concepts/c-plus-plus-api_applycatboostmodel.md) section for details on applying the resulting model.
 - {{ fitpython__model-format_onnx }} — ONNX-ML format (only datasets without categorical features are currently supported). Refer to [https://onnx.ai/](https://onnx.ai/) for details. See the [ONNX](../../../concepts/apply-onnx-ml.md) section for details on applying the resulting model.
-- {{ fitpython__model-format_pmml }} — [PMML version {{ pmml-supported-version }}]({{ pmml-v4point3 }) format. Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset. See the [PMML](../../../concepts/apply-pmml.md) section for details on applying the resulting model.
+- {{ fitpython__model-format_pmml }} — [PMML version {{ pmml-supported-version }}]({{ pmml-v4point3 }}) format. Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset. See the [PMML](../../../concepts/apply-pmml.md) section for details on applying the resulting model.
 
 
 

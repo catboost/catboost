@@ -292,21 +292,16 @@ void Train(
         foldContext->FullModel->Save(&modelFile);
     }
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
-    size_t trainMetricsSize = 0;
-    for (auto isSkipOnTrain : skipMetricOnTrain) {
-        if (!isSkipOnTrain) {
-            ++trainMetricsSize;
-        }
-    }
     for (const auto& trainMetrics : metricsAndTimeHistory.LearnMetricsHistory) {
-        if (trainMetrics.size() == trainMetricsSize) {
             foldContext->MetricValuesOnTrain.emplace_back(GetMetricValues(metrics, skipMetricOnTrain, trainMetrics));
-        }
     }
     for (const auto& testMetrics : metricsAndTimeHistory.TestMetricsHistory) {
         CB_ENSURE(testMetrics.size() <= 1, "Expect only one test dataset");
         if (!testMetrics.empty()) {
             foldContext->MetricValuesOnTest.emplace_back(GetMetricValues(metrics, /*skipMetric*/{}, testMetrics[0]));
+        } else {
+            foldContext->MetricValuesOnTest.emplace_back(TVector<double>(metrics.size(),
+                                                         std::numeric_limits<double>::quiet_NaN()));
         }
     }
 }
@@ -487,7 +482,7 @@ void CrossValidate(
             modelTrainerHolder.Get(),
             localExecutor
         );
-        for (auto iteration : xrange(foldContext.MetricValuesOnTrain.ysize())) {
+        for (auto iteration : xrange(foldContext.MetricValuesOnTrain.size())) {
             trainData[foldIdx].push_back(foldContext.MetricValuesOnTrain[iteration]);
             testData[foldIdx].push_back(foldContext.MetricValuesOnTest[iteration]);
         }
@@ -501,30 +496,29 @@ void CrossValidate(
         }
         if (cvParams.IsCalledFromSearchHyperparameters) {
             const int lastIteration = foldContext.MetricValuesOnTrain.size() - 1;
-            for (auto metricIdx : xrange(metrics.ysize())) {
+            for (auto metricIdx : xrange(metrics.size())) {
                 (*results)[metricIdx].LastTrainEvalMetric.push_back(foldContext.MetricValuesOnTrain[lastIteration][metricIdx]);
-                (*results)[metricIdx].LastTestEvalMetric.push_back(foldContext.MetricValuesOnTest[lastIteration][metricIdx]);;
+                (*results)[metricIdx].LastTestEvalMetric.push_back(foldContext.MetricValuesOnTest[lastIteration][metricIdx]);
             }
         }
     }
     TVector<double> trainFoldsMetric(cvParams.FoldCount), testFoldsMetric(cvParams.FoldCount);
     size_t lastRow = 0;
-    for (auto foldIdx : xrange((size_t)cvParams.FoldCount)) {
+    for (auto foldIdx : xrange(cvParams.FoldCount)) {
         lastRow = Max(lastRow, testData[foldIdx].size());
     }
-    for (auto metricIdx : xrange(metrics.ysize())) {
-        for (auto rowIdx : xrange(lastRow)) {
-            for (auto foldIdx : xrange((size_t)cvParams.FoldCount)) {
+    for (auto metricIdx : xrange(metrics.size())) {
+        size_t rowIdx = 0;
+        while (rowIdx < lastRow) {
+            for (auto foldIdx : xrange(cvParams.FoldCount)) {
                 if (rowIdx < trainData[foldIdx].size()) {
                     trainFoldsMetric[foldIdx] = trainData[foldIdx][rowIdx][metricIdx];
                     testFoldsMetric[foldIdx] = testData[foldIdx][rowIdx][metricIdx];
-                } else {
-                    trainFoldsMetric[foldIdx] = trainData[foldIdx].back()[metricIdx];
-                    testFoldsMetric[foldIdx] = testData[foldIdx].back()[metricIdx];
                 }
             }
             TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, cvParams.FoldCount, skipMetricOnTrain[metricIdx]);
-            (*results)[metricIdx].AppendOneIterationResults(rowIdx * metricPeriod, cvResults);
+            (*results)[metricIdx].AppendOneIterationResults(rowIdx, cvResults);
+            rowIdx = Max(rowIdx + 1, Min(rowIdx + metricPeriod, lastRow - 1u));
         }
     }
 

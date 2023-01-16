@@ -16,7 +16,7 @@ To apply a previously trained {{ product }} model in Java:
     </dependency>
     ```
 
-    `source_version` should be set to one of the [main {{ product }} releases]({{ releases-page }). Available versions can also be checked on the [Maven repository site](https://h.yandex-team.ru/?https%3A%2F%2Fmvnrepository.com%2Fartifact%2Fai.catboost%2Fcatboost-prediction).
+    `source_version` should be set to one of the [main {{ product }} releases]({{ releases-page }}). Available versions can also be checked on the [Maven repository site](https://h.yandex-team.ru/?https%3A%2F%2Fmvnrepository.com%2Fartifact%2Fai.catboost%2Fcatboost-prediction).
 
 1. Load the trained model:
 
