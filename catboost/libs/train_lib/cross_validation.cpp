@@ -502,10 +502,11 @@ void UpdatePermutationBlockSize(
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TLabelConverter& labelConverter,
-    NCB::TTrainingDataProviderPtr trainingData,
+    TLabelConverter& labelConverter,
+    NCB::TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     NPar::ILocalExecutor* localExecutor,
     TVector<TCVResult>* results,
@@ -515,15 +516,15 @@ void CrossValidate(
 
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
-    ConvertIgnoredFeaturesFromStringToIndices(trainingData.Get()->MetaInfo, &plainJsonParams);
+    ConvertIgnoredFeaturesFromStringToIndices(data.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
-    ConvertParamsToCanonicalFormat(trainingData.Get()->MetaInfo, &jsonParams);
+    ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &jsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     if (catBoostOptions.DataProcessingOptions->ClassLabels->empty()) {
-        catBoostOptions.DataProcessingOptions->ClassLabels = trainingData->MetaInfo.ClassLabels;
+        catBoostOptions.DataProcessingOptions->ClassLabels = data->MetaInfo.ClassLabels;
     } else {
         CB_ENSURE(
-            catBoostOptions.DataProcessingOptions->ClassLabels.Get() == trainingData->MetaInfo.ClassLabels,
+            catBoostOptions.DataProcessingOptions->ClassLabels.Get() == data->MetaInfo.ClassLabels,
             "ClassLabels in dataprocessing options and in training data must match");
     }
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
@@ -540,14 +541,14 @@ void CrossValidate(
         "Cross-validation on GPU relies on writing files, so it must be allowed"
     );
 
-    const ui32 allDataObjectCount = trainingData->ObjectsData->GetObjectCount();
+    const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
 
     CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
     CB_ENSURE(allDataObjectCount > cvParams.FoldCount, "Pool is too small to be split into folds");
 
     // TODO(akhropov): implement ordered split. MLTOOLS-2486.
     CB_ENSURE(
-        trainingData->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
+        data->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
         "Cross-validation for Ordered objects data is not yet implemented"
     );
 
@@ -557,11 +558,12 @@ void CrossValidate(
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
     if (cvParams.Shuffle && !isAlreadyShuffled) {
-        auto objectsGroupingSubset = NCB::Shuffle(trainingData->ObjectsGrouping, 1, &rand);
-        trainingData = trainingData->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, localExecutor);
+        auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
+        data = data->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, localExecutor);
     }
 
-    UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+    UpdateYetiRankEvalMetric(data->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+
     UpdateSampleRateOption(allDataObjectCount, &catBoostOptions);
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
@@ -591,14 +593,13 @@ void CrossValidate(
 
     TSetLogging inThisScope(loggingLevel);
 
-    ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter, trainingData->TargetData->GetTargetDimension());
-
+    ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter, data->RawTargetData.GetTargetDimension());
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
         approxDimension,
-        trainingData->MetaInfo.HasWeights
+        data->MetaInfo.HasWeights
     );
     CheckMetrics(metrics, catBoostOptions.LossFunctionDescription.Get().GetLossFunction());
 
@@ -615,15 +616,38 @@ void CrossValidate(
         CB_ENSURE(!cvParams.Stratified, "Stratified split is incompatible with groupwise metrics");
     }
 
-
-    TVector<TTrainingDataProviders> foldsData = PrepareCvFolds<TTrainingDataProviders>(
-        std::move(trainingData),
+    TVector<TDataProviders> foldsRawData = PrepareCvFolds<TDataProviders>(
+        std::move(data),
         cvParams,
         Nothing(),
         /* oldCvStyleSplit */ false,
         cpuUsedRamLimit,
         localExecutor);
 
+    TVector<TTrainingDataProviders> foldsData;
+
+    TString tmpDir;
+    if (outputFileOptions.AllowWriteFiles()) {
+        NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
+    }
+
+    for (const auto& rawData : foldsRawData) {
+        foldsData.push_back(
+            GetTrainingData(
+                std::move(rawData),
+                Nothing(),
+                /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
+                /*unloadCatFeaturePerfectHashFromRam*/ outputFileOptions.AllowWriteFiles(),
+                tmpDir,
+                quantizedFeaturesInfo,
+                &catBoostOptions,
+                &labelConverter,
+                localExecutor,
+                &rand,
+                Nothing()
+            )
+        );
+    }
     /* ensure that all folds have the same permutation block size because some of them might be consecutive
        and some might not
     */
@@ -640,7 +664,6 @@ void CrossValidate(
             catBoostOptions.RandomSeed,
             cvParams.ReturnModels);
     }
-
 
     EMetricBestValue bestValueType;
     float bestPossibleValue;
@@ -922,34 +945,19 @@ void CrossValidate(
     }
 
     TLabelConverter labelConverter;
-    TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
 
     TString tmpDir;
     if (outputFileOptions.AllowWriteFiles()) {
         NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
     }
 
-    TTrainingDataProviderPtr trainingData = GetTrainingData(
-        std::move(data),
-        /*isLearnData*/ true,
-        TStringBuf(),
-        Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
-        /*unloadCatFeaturePerfectHashFromRam*/ outputFileOptions.AllowWriteFiles(),
-        /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
-        tmpDir,
-        quantizedFeaturesInfo,
-        &catBoostOptions,
-        &labelConverter,
-        &targetBorder,
-        &localExecutor,
-        &rand);
-
     CrossValidate(
         plainJsonParams,
+        quantizedFeaturesInfo,
         objectiveDescriptor,
         evalMetricDescriptor,
         labelConverter,
-        trainingData,
+        data,
         cvParams,
         &localExecutor,
         results,
@@ -983,6 +991,7 @@ TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
     );
 
     switch (dataProvider.RawTargetData.GetTargetType()) {
+        case ERawTargetType::Integer:
         case ERawTargetType::Float: {
             TVector<float> rawTargetData;
             rawTargetData.yresize(dataProvider.GetObjectCount());
