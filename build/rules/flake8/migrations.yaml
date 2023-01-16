@@ -833,7 +833,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-73064
     - yabs/server/test/ft/BSSERVER-11503
     - yabs/server/test/ft/BSSERVER-12167
-    - yabs/server/test/ft/BSSERVER-1332
     - yabs/server/test/ft/BSSERVER-13621
     - yabs/server/test/ft/BSSERVER-14195
     - yabs/server/test/ft/BSSERVER-2122
@@ -1169,7 +1168,6 @@ migrations:
     - sandbox/projects/geoadv/ReleasePrices
     - sandbox/projects/geosearch/snippets
     - sandbox/projects/geosearch/snippets/AddrsSnippetsTask
-    - sandbox/projects/geosuggest/GeosuggestIndexPostprocessing
     - sandbox/projects/hollywood
     - sandbox/projects/hollywood/fast_data/BuildAndDeployHollywoodFastData
     - sandbox/projects/logbroker/tasks/BuildSeveralResources
@@ -1255,7 +1253,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
     - yabs/server/test/ft/BSSERVER-14049
-    - yabs/server/test/ft/BSSERVER-15684
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
@@ -3532,7 +3529,6 @@ migrations:
     - quality/pers/rerank_service/tests/service-test
     - quality/pers/user_buckets/tests
     - quality/pers/user_history/geo_requests/tests
-    - quality/pers/user_history/suggest_maps/tests
     - quality/pers/user_profiles/tests/local_mr
     - quality/pers/user_profiles/tests/rtmr
     - quality/relev_tools/fml_mr_utils/pool_sampler/test
@@ -3588,7 +3584,6 @@ migrations:
     - rtmapreduce/mrtasks/sbapi_split/tests
     - rtmapreduce/mrtasks/sessions2detector/tests
     - rtmapreduce/mrtasks/sessions2trender/tests
-    - rtmapreduce/mrtasks/sp_count/tests
     - rtmapreduce/mrtasks/video_player_errors/tests
     - rtmapreduce/tests/pusher-test/tests
     - saas/rtyserver_test/tests/cluster
