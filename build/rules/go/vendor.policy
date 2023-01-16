@@ -970,6 +970,9 @@ ALLOW .* -> vendor/github.com/jarcoal/httpmock
 # CONTRIB-2337 Cloud GPU migration: validator for structs and fields
 ALLOW cloud/compute/go-common/pkg/validation -> vendor/github.com/go-playground/validator/v10
 
+# CONTRIB-2363 JSON Schema
+ALLOW .* -> vendor/github.com/santhosh-tekuri/jsonschema
+
 # CONTRIB-1645 JSON Schema
 # Project is stale and considered deprecated by committee
 ALLOW bunker/worker-go/internal/tanker -> vendor/github.com/xeipuuv/gojsonschema
