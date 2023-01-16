@@ -971,7 +971,11 @@ class ToolchainOptions(object):
 
     @property
     def is_clang(self):
-        return self.type == 'clang'
+        return self.type in ('clang', 'xcode')
+
+    @property
+    def is_xcode(self):
+        return self.type == 'xcode'
 
     @property
     def is_from_arcadia(self):
@@ -1054,6 +1058,8 @@ class Compiler(object):
         # CLANG and CLANG_VER variables
         emit(self.compiler_variable, 'yes')
         emit('{}_VER'.format(self.compiler_variable), self.tc.compiler_version)
+        if self.tc.is_xcode:
+            emit('XCODE', 'yes')
 
 
 class GnuToolchain(Toolchain):
@@ -1192,8 +1198,10 @@ class GnuToolchain(Toolchain):
                 if target.is_apple:
                     if target.is_ios:
                         self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
                     if target.is_macos:
                         self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
 
                     if not self.tc.inplace_tools:
                         self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
@@ -2777,6 +2785,7 @@ class MSVCLinker(MSVC, Linker):
 Compilers = {
     'gnu': (GnuToolchain, GnuCompiler, LD),
     'clang': (GnuToolchain, GnuCompiler, LD),
+    'xcode': (GnuToolchain, GnuCompiler, LD),
     'msvc': (MSVCToolchain, MSVCCompiler, MSVCLinker),
 }
 

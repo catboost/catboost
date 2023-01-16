@@ -3912,7 +3912,7 @@
                 }
             ],
             "params": {
-                "type": "clang",
+                "type": "xcode",
                 "match_root": "CLANG",
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/usr/bin/clang",
@@ -4005,7 +4005,7 @@
                 }
             ],
             "params": {
-                "type": "clang",
+                "type": "xcode",
                 "match_root": "CLANG",
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/usr/bin/clang",
@@ -4109,7 +4109,7 @@
                 }
             ],
             "params": {
-                "type": "clang",
+                "type": "xcode",
                 "match_root": "CLANG",
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/usr/bin/clang",
