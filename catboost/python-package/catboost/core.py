@@ -118,9 +118,11 @@ def _get_stream_like_object(obj):
 
 @contextmanager
 def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
-    _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
-    yield
-    _reset_logger()
+    try:
+        _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
+        yield
+    finally:
+        _reset_logger()
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
