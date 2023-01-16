@@ -3727,6 +3727,100 @@
                 }
             }
         },
+        "xcode_12_5": {
+            "tools": {
+                "c++": {
+                    "bottle": "xcode_12_5",
+                    "executable": "c++"
+                },
+                "cc": {
+                    "bottle": "xcode_12_5",
+                    "executable": "cc"
+                },
+                "llvm-cov": {
+                    "bottle": "xcode_12_5",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "xcode_12_5",
+                    "executable": "llvm-profdata"
+                },
+                "nm": {
+                    "bottle": "xcode_12_5",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "xcode_12_5",
+                    "executable": "strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "i386"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "armv7"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/usr/bin/clang",
+                "cxx_compiler": "$(CLANG)/usr/bin/clang++",
+                "cxx_std": "c++17",
+                "ar": "$(CLANG)/usr/bin/libtool",
+                "inplace_tools": true,
+                "gcc_version": "8.0",
+                "dwarf_tool": {
+                    "DARWIN": "$(CLANG)/usr/bin/dsymutil -flat"
+                }
+            }
+        },
         "android-ndk-r21": {
             "name": "clang9",
             "tools": {
@@ -7961,6 +8055,46 @@
             "formula": {
                 "sandbox_id": [
                     816448826
+                ],
+                "match": "toolchain"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "clang++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "clang"
+                ],
+                "llvm-cov": [
+                    "usr",
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "usr",
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-nm": [
+                    "usr",
+                    "bin",
+                    "llvm-nm"
+                ],
+                "strip": [
+                    "usr",
+                    "bin",
+                    "strip"
+                ]
+            }
+        },
+        "xcode_12_5": {
+            "formula": {
+                "sandbox_id": [
+                    1047943010
                 ],
                 "match": "toolchain"
             },
