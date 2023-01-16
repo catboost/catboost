@@ -92,9 +92,10 @@ def test_warning_calls_filters(warning_calls):
     # There is still one simplefilter occurrence in optimize.py that could be removed.
     bad_filters = [item for item in bad_filters
                    if 'optimize.py' not in item]
-    # The filterwarnings call in sparse/__init__.py is needed.
+    # The filterwarnings calls in sparse are needed.
     bad_filters = [item for item in bad_filters
-                   if os.path.join('sparse', '__init__.py') not in item]
+                   if os.path.join('sparse', '__init__.py') not in item
+                   and os.path.join('sparse', 'sputils.py') not in item]
 
     if bad_filters:
         raise AssertionError(

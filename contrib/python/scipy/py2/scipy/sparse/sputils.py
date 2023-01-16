@@ -481,3 +481,26 @@ class IndexMixin(object):
             raise IndexError("Index dimension must be <= 2")
 
         return i, j
+
+###############################################################################
+# Wrappers for NumPy types that are deprecated
+
+def matrix(*args, **kwargs):
+    with warnings.catch_warnings(record=True):
+        warnings.filterwarnings(
+            'ignore', '.*the matrix subclass is not the recommended way.*')
+        return np.matrix(*args, **kwargs)
+
+
+def asmatrix(*args, **kwargs):
+    with warnings.catch_warnings(record=True):
+        warnings.filterwarnings(
+            'ignore', '.*the matrix subclass is not the recommended way.*')
+        return np.asmatrix(*args, **kwargs)
+
+
+def bmat(*args, **kwargs):
+    with warnings.catch_warnings(record=True):
+        warnings.filterwarnings(
+            'ignore', '.*the matrix subclass is not the recommended way.*')
+        return np.bmat(*args, **kwargs)

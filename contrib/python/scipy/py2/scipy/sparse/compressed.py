@@ -16,7 +16,8 @@ from .dia import dia_matrix
 from . import _sparsetools
 from .sputils import (upcast, upcast_char, to_native, isdense, isshape,
                       getdtype, isscalarlike, IndexMixin, get_index_dtype,
-                      downcast_intp_index, get_sum_dtype, check_shape)
+                      downcast_intp_index, get_sum_dtype, check_shape,
+                      matrix, asmatrix)
 
 
 class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
@@ -344,7 +345,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
         M, N = self._swap(self.shape)
         y = result if result.flags.c_contiguous else result.T
         _sparsetools.csr_todense(M, N, self.indptr, self.indices, self.data, y)
-        return np.matrix(result, copy=False)
+        return matrix(result, copy=False)
 
     def _add_sparse(self, other):
         return self._binopt(other, '_plus_')
@@ -592,7 +593,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
 
             major_index, value = self._minor_reduce(np.add)
             ret[major_index] = value
-            ret = np.asmatrix(ret)
+            ret = asmatrix(ret)
             if axis % 2 == 1:
                 ret = ret.T
 
@@ -1198,7 +1199,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
             out[row, col] = 0
             r = r.tocoo()
             out[r.row, r.col] = r.data
-            out = np.matrix(out)
+            out = matrix(out)
         else:
             # integers types go with nan <-> 0
             out = r

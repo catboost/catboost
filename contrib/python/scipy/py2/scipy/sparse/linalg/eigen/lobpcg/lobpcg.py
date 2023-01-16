@@ -16,6 +16,7 @@ from numpy.testing import assert_allclose
 from scipy._lib.six import xrange
 from scipy.linalg import inv, eigh, cho_factor, cho_solve, cholesky
 from scipy.sparse.linalg import aslinearoperator, LinearOperator
+from scipy.sparse.sputils import bmat
 
 __all__ = ['lobpcg']
 
@@ -483,17 +484,17 @@ def lobpcg(A, X,
             xbp = np.dot(blockVectorX.T.conj(), activeBlockVectorBP)
             wbp = np.dot(activeBlockVectorR.T.conj(), activeBlockVectorBP)
 
-            gramA = np.bmat([[np.diag(_lambda), xaw, xap],
+            gramA = bmat([[np.diag(_lambda), xaw, xap],
                               [xaw.T.conj(), waw, wap],
                               [xap.T.conj(), wap.T.conj(), pap]])
 
-            gramB = np.bmat([[ident0, xbw, xbp],
+            gramB = bmat([[ident0, xbw, xbp],
                               [xbw.T.conj(), ident, wbp],
                               [xbp.T.conj(), wbp.T.conj(), ident]])
         else:
-            gramA = np.bmat([[np.diag(_lambda), xaw],
+            gramA = bmat([[np.diag(_lambda), xaw],
                               [xaw.T.conj(), waw]])
-            gramB = np.bmat([[ident0, xbw],
+            gramB = bmat([[ident0, xbw],
                               [xbw.T.conj(), ident]])
 
         if verbosityLevel > 0:
