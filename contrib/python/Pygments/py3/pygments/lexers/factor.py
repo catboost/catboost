@@ -11,7 +11,8 @@
 import re
 
 from pygments.lexer import RegexLexer, bygroups, default, words
-from pygments.token import Text, Comment, Keyword, Name, String, Number
+from pygments.token import Text, Comment, Keyword, Name, String, Number, \
+        Whitespace, Punctuation
 
 __all__ = ['FactorLexer']
 
@@ -43,7 +44,7 @@ class FactorLexer(RegexLexer):
         'pick', 'prepose', 'retainstack', 'rot', 'same?', 'swap', 'swapd', 'throw',
         'tri', 'tri-curry', 'tri-curry@', 'tri-curry*', 'tri@', 'tri*', 'tuple',
         'tuple?', 'unless', 'unless*', 'until', 'when', 'when*', 'while', 'with',
-        'wrapper', 'wrapper?', 'xor'), suffix=r'\s')
+        'wrapper', 'wrapper?', 'xor'), suffix=r'(\s+)')
 
     builtin_assocs = words((
         '2cache', '<enum>', '>alist', '?at', '?of', 'assoc', 'assoc-all?',
@@ -57,7 +58,7 @@ class FactorLexer(RegexLexer):
         'clear-assoc', 'delete-at', 'delete-at*', 'enum', 'enum?', 'extract-keys',
         'inc-at', 'key?', 'keys', 'map>assoc', 'maybe-set-at', 'new-assoc', 'of',
         'push-at', 'rename-at', 'set-at', 'sift-keys', 'sift-values', 'substitute',
-        'unzip', 'value-at', 'value-at*', 'value?', 'values', 'zip'), suffix=r'\s')
+        'unzip', 'value-at', 'value-at*', 'value?', 'values', 'zip'), suffix=r'(\s+)')
 
     builtin_combinators = words((
         '2cleave', '2cleave>quot', '3cleave', '3cleave>quot', '4cleave',
@@ -65,7 +66,7 @@ class FactorLexer(RegexLexer):
         'case>quot', 'cleave', 'cleave>quot', 'cond', 'cond>quot', 'deep-spread>quot',
         'execute-effect', 'linear-case-quot', 'no-case', 'no-case?', 'no-cond',
         'no-cond?', 'recursive-hashcode', 'shallow-spread>quot', 'spread',
-        'to-fixed-point', 'wrong-values', 'wrong-values?'), suffix=r'\s')
+        'to-fixed-point', 'wrong-values', 'wrong-values?'), suffix=r'(\s+)')
 
     builtin_math = words((
         '-', '/', '/f', '/i', '/mod', '2/', '2^', '<', '<=', '<fp-nan>', '>',
@@ -85,7 +86,7 @@ class FactorLexer(RegexLexer):
         'prev-float', 'ratio', 'ratio?', 'rational', 'rational?', 'real',
         'real-part', 'real?', 'recip', 'rem', 'sgn', 'shift', 'sq', 'times',
         'u<', 'u<=', 'u>', 'u>=', 'unless-zero', 'unordered?', 'when-zero',
-        'zero?'), suffix=r'\s')
+        'zero?'), suffix=r'(\s+)')
 
     builtin_sequences = words((
         '1sequence', '2all?', '2each', '2map', '2map-as', '2map-reduce', '2reduce',
@@ -129,18 +130,18 @@ class FactorLexer(RegexLexer):
         'trim-head', 'trim-head-slice', 'trim-slice', 'trim-tail', 'trim-tail-slice',
         'unclip', 'unclip-last', 'unclip-last-slice', 'unclip-slice', 'unless-empty',
         'virtual-exemplar', 'virtual-sequence', 'virtual-sequence?', 'virtual@',
-        'when-empty'), suffix=r'\s')
+        'when-empty'), suffix=r'(\s+)')
 
     builtin_namespaces = words((
         '+@', 'change', 'change-global', 'counter', 'dec', 'get', 'get-global',
         'global', 'inc', 'init-namespaces', 'initialize', 'is-global', 'make-assoc',
         'namespace', 'namestack', 'off', 'on', 'set', 'set-global', 'set-namestack',
         'toggle', 'with-global', 'with-scope', 'with-variable', 'with-variables'),
-        suffix=r'\s')
+        suffix=r'(\s+)')
 
     builtin_arrays = words((
         '1array', '2array', '3array', '4array', '<array>', '>array', 'array',
-        'array?', 'pair', 'pair?', 'resize-array'), suffix=r'\s')
+        'array?', 'pair', 'pair?', 'resize-array'), suffix=r'(\s+)')
 
     builtin_io = words((
         '(each-stream-block-slice)', '(each-stream-block)',
@@ -170,15 +171,15 @@ class FactorLexer(RegexLexer):
         'with-input-stream*', 'with-output-stream', 'with-output-stream*',
         'with-output>error', 'with-output+error-stream',
         'with-output+error-stream*', 'with-streams', 'with-streams*',
-        'write', 'write1'), suffix=r'\s')
+        'write', 'write1'), suffix=r'(\s+)')
 
     builtin_strings = words((
         '1string', '<string>', '>string', 'resize-string', 'string',
-        'string?'), suffix=r'\s')
+        'string?'), suffix=r'(\s+)')
 
     builtin_vectors = words((
         '1vector', '<vector>', '>vector', '?push', 'vector', 'vector?'),
-        suffix=r'\s')
+        suffix=r'(\s+)')
 
     builtin_continuations = words((
         '<condition>', '<continuation>', '<restart>', 'attempt-all',
@@ -190,7 +191,7 @@ class FactorLexer(RegexLexer):
         'ifcc', 'ignore-errors', 'in-callback?', 'original-error', 'recover',
         'restart', 'restart?', 'restarts', 'rethrow', 'rethrow-restarts',
         'return', 'return-continuation', 'thread-error-hook', 'throw-continue',
-        'throw-restarts', 'with-datastack', 'with-return'), suffix=r'\s')
+        'throw-restarts', 'with-datastack', 'with-return'), suffix=r'(\s+)')
 
     tokens = {
         'root': [
@@ -199,83 +200,105 @@ class FactorLexer(RegexLexer):
             default('base'),
         ],
         'base': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # defining words
             (r'((?:MACRO|MEMO|TYPED)?:[:]?)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Function)),
+             bygroups(Keyword, Whitespace, Name.Function)),
             (r'(M:[:]?)(\s+)(\S+)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Class, Text, Name.Function)),
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace,
+                 Name.Function)),
             (r'(C:)(\s+)(\S+)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Function, Text, Name.Class)),
+             bygroups(Keyword, Whitespace, Name.Function, Whitespace,
+                 Name.Class)),
             (r'(GENERIC:)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Function)),
+             bygroups(Keyword, Whitespace, Name.Function)),
             (r'(HOOK:|GENERIC#)(\s+)(\S+)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Function, Text, Name.Function)),
-            (r'\(\s', Name.Function, 'stackeffect'),
-            (r';\s', Keyword),
+             bygroups(Keyword, Whitespace, Name.Function, Whitespace,
+                 Name.Function)),
+            (r'(\()(\s)', bygroups(Name.Function, Whitespace), 'stackeffect'),
+            (r'(;)(\s)', bygroups(Keyword, Whitespace)),
 
             # imports and namespaces
             (r'(USING:)(\s+)',
-             bygroups(Keyword.Namespace, Text), 'vocabs'),
+             bygroups(Keyword.Namespace, Whitespace), 'vocabs'),
             (r'(USE:|UNUSE:|IN:|QUALIFIED:)(\s+)(\S+)',
-             bygroups(Keyword.Namespace, Text, Name.Namespace)),
+             bygroups(Keyword.Namespace, Whitespace, Name.Namespace)),
             (r'(QUALIFIED-WITH:)(\s+)(\S+)(\s+)(\S+)',
-             bygroups(Keyword.Namespace, Text, Name.Namespace, Text, Name.Namespace)),
+             bygroups(Keyword.Namespace, Whitespace, Name.Namespace,
+                 Whitespace, Name.Namespace)),
             (r'(FROM:|EXCLUDE:)(\s+)(\S+)(\s+=>\s)',
-             bygroups(Keyword.Namespace, Text, Name.Namespace, Text), 'words'),
-            (r'(RENAME:)(\s+)(\S+)(\s+)(\S+)(\s+=>\s+)(\S+)',
-             bygroups(Keyword.Namespace, Text, Name.Function, Text, Name.Namespace, Text, Name.Function)),
+             bygroups(Keyword.Namespace, Whitespace, Name.Namespace,
+                 Whitespace), 'words'),
+            (r'(RENAME:)(\s+)(\S+)(\s+)(\S+)(\s+)(=>)(\s+)(\S+)',
+             bygroups(Keyword.Namespace, Whitespace, Name.Function, Whitespace,
+                 Name.Namespace, Whitespace, Punctuation, Whitespace,
+                 Name.Function)),
             (r'(ALIAS:|TYPEDEF:)(\s+)(\S+)(\s+)(\S+)',
-             bygroups(Keyword.Namespace, Text, Name.Function, Text, Name.Function)),
+             bygroups(Keyword.Namespace, Whitespace, Name.Function, Whitespace,
+                 Name.Function)),
             (r'(DEFER:|FORGET:|POSTPONE:)(\s+)(\S+)',
-             bygroups(Keyword.Namespace, Text, Name.Function)),
+             bygroups(Keyword.Namespace, Whitespace, Name.Function)),
 
             # tuples and classes
-            (r'(TUPLE:|ERROR:)(\s+)(\S+)(\s+<\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Class, Text, Name.Class), 'slots'),
+            (r'(TUPLE:|ERROR:)(\s+)(\S+)(\s+)(<)(\s+)(\S+)',
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace, Punctuation,
+                 Whitespace, Name.Class), 'slots'),
             (r'(TUPLE:|ERROR:|BUILTIN:)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Class), 'slots'),
+             bygroups(Keyword, Whitespace, Name.Class), 'slots'),
             (r'(MIXIN:|UNION:|INTERSECTION:)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Class)),
-            (r'(PREDICATE:)(\s+)(\S+)(\s+<\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Class, Text, Name.Class)),
+             bygroups(Keyword, Whitespace, Name.Class)),
+            (r'(PREDICATE:)(\s+)(\S+)(\s+)(<)(\s+)(\S+)',
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace,
+                 Punctuation, Whitespace, Name.Class)),
             (r'(C:)(\s+)(\S+)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Function, Text, Name.Class)),
+             bygroups(Keyword, Whitespace, Name.Function, Whitespace, Name.Class)),
             (r'(INSTANCE:)(\s+)(\S+)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Class, Text, Name.Class)),
-            (r'(SLOT:)(\s+)(\S+)', bygroups(Keyword, Text, Name.Function)),
-            (r'(SINGLETON:)(\s+)(\S+)', bygroups(Keyword, Text, Name.Class)),
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace, Name.Class)),
+            (r'(SLOT:)(\s+)(\S+)', bygroups(Keyword, Whitespace, Name.Function)),
+            (r'(SINGLETON:)(\s+)(\S+)', bygroups(Keyword, Whitespace, Name.Class)),
             (r'SINGLETONS:', Keyword, 'classes'),
 
             # other syntax
             (r'(CONSTANT:|SYMBOL:|MAIN:|HELP:)(\s+)(\S+)',
-             bygroups(Keyword, Text, Name.Function)),
-            (r'SYMBOLS:\s', Keyword, 'words'),
-            (r'SYNTAX:\s', Keyword),
-            (r'ALIEN:\s', Keyword),
-            (r'(STRUCT:)(\s+)(\S+)', bygroups(Keyword, Text, Name.Class)),
-            (r'(FUNCTION:)(\s+\S+\s+)(\S+)(\s+\(\s+[^)]+\)\s)',
-             bygroups(Keyword.Namespace, Text, Name.Function, Text)),
-            (r'(FUNCTION-ALIAS:)(\s+)(\S+)(\s+\S+\s+)(\S+)(\s+\(\s+[^)]+\)\s)',
-             bygroups(Keyword.Namespace, Text, Name.Function, Text, Name.Function, Text)),
+             bygroups(Keyword, Whitespace, Name.Function)),
+            (r'(SYMBOLS:)(\s+)', bygroups(Keyword, Whitespace), 'words'),
+            (r'(SYNTAX:)(\s+)', bygroups(Keyword, Whitespace)),
+            (r'(ALIEN:)(\s+)', bygroups(Keyword, Whitespace)),
+            (r'(STRUCT:)(\s+)(\S+)', bygroups(Keyword, Whitespace, Name.Class)),
+            (r'(FUNCTION:)(\s+)'
+                r'(\S+)(\s+)(\S+)(\s+)'
+                r'(\()(\s+)([^)]+)(\))(\s)',
+             bygroups(Keyword.Namespace, Whitespace,
+                 Text, Whitespace, Name.Function, Whitespace,
+                 Punctuation, Whitespace, Text, Punctuation, Whitespace)),
+            (r'(FUNCTION-ALIAS:)(\s+)'
+                r'(\S+)(\s+)(\S+)(\s+)'
+                r'(\S+)(\s+)'
+                r'(\()(\s+)([^)]+)(\))(\s)',
+             bygroups(Keyword.Namespace, Whitespace,
+                 Text, Whitespace, Name.Function, Whitespace,
+                 Name.Function, Whitespace,
+                 Punctuation, Whitespace, Text, Punctuation, Whitespace)),
 
             # vocab.private
-            (r'(?:<PRIVATE|PRIVATE>)\s', Keyword.Namespace),
+            (r'(<PRIVATE|PRIVATE>)(\s)', bygroups(Keyword.Namespace, Whitespace)),
 
             # strings
             (r'"""\s(?:.|\n)*?\s"""', String),
             (r'"(?:\\\\|\\"|[^"])*"', String),
-            (r'\S+"\s+(?:\\\\|\\"|[^"])*"', String),
-            (r'CHAR:\s+(?:\\[\\abfnrstv]|[^\\]\S*)\s', String.Char),
+            (r'(\S+")(\s+)((?:\\\\|\\"|[^"])*")',
+                bygroups(String, Whitespace, String)),
+            (r'(CHAR:)(\s+)(\\[\\abfnrstv]|[^\\]\S*)(\s)',
+                bygroups(String.Char, Whitespace, String.Char, Whitespace)),
 
             # comments
             (r'!\s+.*$', Comment),
             (r'#!\s+.*$', Comment),
-            (r'/\*\s+(?:.|\n)*?\s\*/\s', Comment),
+            (r'/\*\s+(?:.|\n)*?\s\*/', Comment),
 
             # boolean constants
-            (r'[tf]\s', Name.Constant),
+            (r'[tf]\b', Name.Constant),
 
             # symbols and literals
             (r'[\\$]\s+\S+', Name.Constant),
@@ -296,48 +319,49 @@ class FactorLexer(RegexLexer):
              Keyword),
 
             # builtins
-            (builtin_kernel, Name.Builtin),
-            (builtin_assocs, Name.Builtin),
-            (builtin_combinators, Name.Builtin),
-            (builtin_math, Name.Builtin),
-            (builtin_sequences, Name.Builtin),
-            (builtin_namespaces, Name.Builtin),
-            (builtin_arrays, Name.Builtin),
-            (builtin_io, Name.Builtin),
-            (builtin_strings, Name.Builtin),
-            (builtin_vectors, Name.Builtin),
-            (builtin_continuations, Name.Builtin),
+            (builtin_kernel, bygroups(Name.Builtin, Whitespace)),
+            (builtin_assocs, bygroups(Name.Builtin, Whitespace)),
+            (builtin_combinators, bygroups(Name.Builtin, Whitespace)),
+            (builtin_math, bygroups(Name.Builtin, Whitespace)),
+            (builtin_sequences, bygroups(Name.Builtin, Whitespace)),
+            (builtin_namespaces, bygroups(Name.Builtin, Whitespace)),
+            (builtin_arrays, bygroups(Name.Builtin, Whitespace)),
+            (builtin_io, bygroups(Name.Builtin, Whitespace)),
+            (builtin_strings, bygroups(Name.Builtin, Whitespace)),
+            (builtin_vectors, bygroups(Name.Builtin, Whitespace)),
+            (builtin_continuations, bygroups(Name.Builtin, Whitespace)),
 
             # everything else is text
             (r'\S+', Text),
         ],
         'stackeffect': [
-            (r'\s+', Text),
-            (r'\(\s+', Name.Function, 'stackeffect'),
-            (r'\)\s', Name.Function, '#pop'),
-            (r'--\s', Name.Function),
+            (r'\s+', Whitespace),
+            (r'(\()(\s+)', bygroups(Name.Function, Whitespace), 'stackeffect'),
+            (r'(\))(\s+)', bygroups(Name.Function, Whitespace), '#pop'),
+            (r'(--)(\s+)', bygroups(Name.Function, Whitespace)),
             (r'\S+', Name.Variable),
         ],
         'slots': [
-            (r'\s+', Text),
-            (r';\s', Keyword, '#pop'),
-            (r'(\{\s+)(\S+)(\s[^}]+\s\}\s)',
-             bygroups(Text, Name.Variable, Text)),
+            (r'\s+', Whitespace),
+            (r'(;)(\s+)', bygroups(Keyword, Whitespace), '#pop'),
+            (r'(\{)(\s+)(\S+)(\s+)([^}]+)(\s+)(\})(\s+)',
+             bygroups(Text, Whitespace, Name.Variable, Whitespace,
+                 Text, Whitespace, Text, Whitespace)),
             (r'\S+', Name.Variable),
         ],
         'vocabs': [
-            (r'\s+', Text),
-            (r';\s', Keyword, '#pop'),
+            (r'\s+', Whitespace),
+            (r'(;)(\s+)', bygroups(Keyword, Whitespace), '#pop'),
             (r'\S+', Name.Namespace),
         ],
         'classes': [
-            (r'\s+', Text),
-            (r';\s', Keyword, '#pop'),
+            (r'\s+', Whitespace),
+            (r'(;)(\s+)', bygroups(Keyword, Whitespace), '#pop'),
             (r'\S+', Name.Class),
         ],
         'words': [
-            (r'\s+', Text),
-            (r';\s', Keyword, '#pop'),
+            (r'\s+', Whitespace),
+            (r'(;)(\s+)', bygroups(Keyword, Whitespace), '#pop'),
             (r'\S+', Name.Function),
         ],
     }

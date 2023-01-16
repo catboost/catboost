@@ -13,7 +13,7 @@ import re
 from pygments.lexer import RegexLexer, ExtendedRegexLexer, include, default, \
     words
 from pygments.token import Name, Comment, String, Error, Number, Text, \
-    Keyword, Punctuation
+    Keyword, Punctuation, Whitespace
 
 __all__ = ['BibTeXLexer', 'BSTLexer']
 
@@ -55,7 +55,7 @@ class BibTeXLexer(ExtendedRegexLexer):
     tokens = {
         'root': [
             include('whitespace'),
-            ('@comment', Comment),
+            (r'@comment(?!ary)', Comment),
             ('@preamble', Name.Class, ('closing-brace', 'value', 'opening-brace')),
             ('@string', Name.Class, ('closing-brace', 'field', 'opening-brace')),
             ('@' + IDENTIFIER, Name.Class,
@@ -108,7 +108,7 @@ class BibTeXLexer(ExtendedRegexLexer):
             (r'[^\{\}]+', String),
         ],
         'whitespace': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
     }
 
@@ -153,7 +153,7 @@ class BSTLexer(RegexLexer):
             default('#pop'),
         ],
         'whitespace': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             ('%.*?$', Comment.Single),
         ],
     }

@@ -11,7 +11,7 @@
 from pygments.lexer import RegexLexer, words, include, bygroups, using, \
     this, default
 from pygments.token import Text, Comment, Operator, Keyword, Name, \
-    Number, Punctuation, String
+    Number, Punctuation, String, Whitespace
 
 __all__ = ['GLShaderLexer', 'PostScriptLexer', 'AsymptoteLexer', 'GnuplotLexer',
            'PovrayLexer', 'HLSLShaderLexer']
@@ -30,8 +30,8 @@ class GLShaderLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^#.*', Comment.Preproc),
-            (r'//.*', Comment.Single),
+            (r'^#.*$', Comment.Preproc),
+            (r'//.*$', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'\+|-|~|!=?|\*|/|%|<<|>>|<=?|>=?|==?|&&?|\^|\|\|?',
              Operator),
@@ -143,7 +143,7 @@ class GLShaderLexer(RegexLexer):
             (r'gl_\w*', Name.Builtin),
             (r'[a-zA-Z_]\w*', Name),
             (r'\.', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
     }
 
@@ -161,8 +161,8 @@ class HLSLShaderLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^#.*', Comment.Preproc),
-            (r'//.*', Comment.Single),
+            (r'^#.*$', Comment.Preproc),
+            (r'//.*$', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'\+|-|~|!=?|\*|/|%|<<|>>|<=?|>=?|==?|&&?|\^|\|\|?',
              Operator),
@@ -289,7 +289,7 @@ class HLSLShaderLexer(RegexLexer):
              Name.Decorator),   # attributes
             (r'[a-zA-Z_]\w*', Name),
             (r'\\$', Comment.Preproc),  # backslash at end of line -- usually macro continuation
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
         'string': [
             (r'"', String, '#pop'),
@@ -326,10 +326,10 @@ class PostScriptLexer(RegexLexer):
     tokens = {
         'root': [
             # All comment types
-            (r'^%!.+\n', Comment.Preproc),
-            (r'%%.*\n', Comment.Special),
+            (r'^%!.+$', Comment.Preproc),
+            (r'%%.*$', Comment.Special),
             (r'(^%.*\n){2,}', Comment.Multiline),
-            (r'%.*\n', Comment.Single),
+            (r'%.*$', Comment.Single),
 
             # String literals are awkward; enter separate state.
             (r'\(', String, 'stringliteral'),
@@ -383,7 +383,7 @@ class PostScriptLexer(RegexLexer):
                 'undefinedfilename', 'undefinedresult'), suffix=delimiter_end),
              Name.Builtin),
 
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
 
         'stringliteral': [
@@ -416,9 +416,9 @@ class AsymptoteLexer(RegexLexer):
 
     tokens = {
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),  # line continuation
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
+            (r'(\\)(\n)', bygroups(Text, Whitespace)),  # line continuation
             (r'//(\n|(.|\n)*?[^\\]\n)', Comment),
             (r'/(\\\n)?\*(.|\n)*?\*(\\\n)?/', Comment),
         ],
@@ -562,9 +562,9 @@ class GnuplotLexer(RegexLexer):
                              'she$ll', 'test$'),
              Keyword, 'noargs'),
             (r'([a-zA-Z_]\w*)(\s*)(=)',
-             bygroups(Name.Variable, Text, Operator), 'genericargs'),
+             bygroups(Name.Variable, Whitespace, Operator), 'genericargs'),
             (r'([a-zA-Z_]\w*)(\s*\(.*?\)\s*)(=)',
-             bygroups(Name.Function, Text, Operator), 'genericargs'),
+             bygroups(Name.Function, Whitespace, Operator), 'genericargs'),
             (r'@[a-zA-Z_]\w*', Name.Constant),  # macros
             (r';', Keyword),
         ],
@@ -577,13 +577,13 @@ class GnuplotLexer(RegexLexer):
         ],
         'whitespace': [
             ('#', Comment, 'comment'),
-            (r'[ \t\v\f]+', Text),
+            (r'[ \t\v\f]+', Whitespace),
         ],
         'noargs': [
             include('whitespace'),
             # semicolon and newline end the argument list
             (r';', Punctuation, '#pop'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'dqstring': [
             (r'"', String, '#pop'),
@@ -591,7 +591,7 @@ class GnuplotLexer(RegexLexer):
             (r'[^\\"\n]+', String),   # all other characters
             (r'\\\n', String),        # line continuation
             (r'\\', String),          # stray backslash
-            (r'\n', String, '#pop'),  # newline ends the string too
+            (r'\n', Whitespace, '#pop'),  # newline ends the string too
         ],
         'sqstring': [
             (r"''", String),          # escaped single quote
@@ -599,7 +599,7 @@ class GnuplotLexer(RegexLexer):
             (r"[^\\'\n]+", String),   # all other characters
             (r'\\\n', String),        # line continuation
             (r'\\', String),          # normal backslash
-            (r'\n', String, '#pop'),  # newline ends the string too
+            (r'\n', Whitespace, '#pop'),  # newline ends the string too
         ],
         'genericargs': [
             include('noargs'),
@@ -615,7 +615,7 @@ class GnuplotLexer(RegexLexer):
              bygroups(Name.Function, Text, Punctuation)),
             (r'[a-zA-Z_]\w*', Name),
             (r'@[a-zA-Z_]\w*', Name.Constant),  # macros
-            (r'\\\n', Text),
+            (r'(\\)(\n)', bygroups(Text, Whitespace)),
         ],
         'optionarg': [
             include('whitespace'),
@@ -700,7 +700,7 @@ class PovrayLexer(RegexLexer):
     tokens = {
         'root': [
             (r'/\*[\w\W]*?\*/', Comment.Multiline),
-            (r'//.*\n', Comment.Single),
+            (r'//.*$', Comment.Single),
             (r'(?s)"(?:\\.|[^"\\])+"', String.Double),
             (words((
                 'break', 'case', 'debug', 'declare', 'default', 'define', 'else',
@@ -775,7 +775,7 @@ class PovrayLexer(RegexLexer):
             (r'\.[0-9]+', Number.Float),
             (r'[0-9]+', Number.Integer),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ]
     }
 

@@ -9,7 +9,7 @@
 """
 
 from pygments.style import Style
-from pygments.token import Comment, Name, Keyword, String
+from pygments.token import Token, Comment, Name, Keyword, String
 
 
 class RrtStyle(Style):
@@ -21,6 +21,7 @@ class RrtStyle(Style):
     highlight_color = '#0000ff'
 
     styles = {
+        Token:              '#dddddd',
         Comment:            '#00ff00',
         Name.Function:      '#ffff00',
         Name.Variable:      '#eedd82',

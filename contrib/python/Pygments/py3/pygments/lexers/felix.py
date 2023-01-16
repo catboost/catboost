@@ -11,7 +11,7 @@
 from pygments.lexer import RegexLexer, include, bygroups, default, words, \
     combined
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['FelixLexer']
 
@@ -157,13 +157,14 @@ class FelixLexer(RegexLexer):
             (r'[a-zA-Z_]\w*', Name),
         ],
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             include('comment'),
 
             # Preprocessor
-            (r'#\s*if\s+0', Comment.Preproc, 'if0'),
+            (r'(#)(\s*)(if)(\s+)(0)',
+                bygroups(Comment.Preproc, Whitespace, Comment.Preproc,
+                    Whitespace, Comment.Preproc), 'if0'),
             (r'#', Comment.Preproc, 'macro'),
         ],
         'operators': [
@@ -171,7 +172,7 @@ class FelixLexer(RegexLexer):
             (r'!=|==|<<|>>|\|\||&&|[-~+/*%=<>&^|.$]', Operator),
         ],
         'comment': [
-            (r'//(.*?)\n', Comment.Single),
+            (r'//(.*?)$', Comment.Single),
             (r'/[*]', Comment.Multiline, 'comment2'),
         ],
         'comment2': [
@@ -181,24 +182,26 @@ class FelixLexer(RegexLexer):
             (r'[/*]', Comment.Multiline),
         ],
         'if0': [
-            (r'^\s*#if.*?(?<!\\)\n', Comment, '#push'),
-            (r'^\s*#endif.*?(?<!\\)\n', Comment, '#pop'),
-            (r'.*?\n', Comment),
+            (r'^(\s*)(#if.*?(?<!\\))(\n)',
+                bygroups(Whitespace, Comment, Whitespace), '#push'),
+            (r'^(\s*)(#endif.*?(?<!\\))(\n)',
+                bygroups(Whitespace, Comment, Whitespace), '#pop'),
+            (r'(.*?)(\n)', bygroups(Comment, Whitespace)),
         ],
         'macro': [
             include('comment'),
             (r'(import|include)(\s+)(<[^>]*?>)',
-             bygroups(Comment.Preproc, Text, String), '#pop'),
+             bygroups(Comment.Preproc, Whitespace, String), '#pop'),
             (r'(import|include)(\s+)("[^"]*?")',
-             bygroups(Comment.Preproc, Text, String), '#pop'),
+             bygroups(Comment.Preproc, Whitespace, String), '#pop'),
             (r"(import|include)(\s+)('[^']*?')",
-             bygroups(Comment.Preproc, Text, String), '#pop'),
+             bygroups(Comment.Preproc, Whitespace, String), '#pop'),
             (r'[^/\n]+', Comment.Preproc),
             # (r'/[*](.|\n)*?[*]/', Comment),
             # (r'//.*?\n', Comment, '#pop'),
             (r'/', Comment.Preproc),
             (r'(?<=\\)\n', Comment.Preproc),
-            (r'\n', Comment.Preproc, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'funcname': [
             include('whitespace'),

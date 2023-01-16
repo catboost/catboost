@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.kuin
     ~~~~~~~~~~~~~~~~~~~~
 
     Lexers for the Kuin language.
+
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, include, using, inherit, this, bygroups, words
+from pygments.lexer import RegexLexer, include, using, this, bygroups, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
 
 __all__ = ['KuinLexer']

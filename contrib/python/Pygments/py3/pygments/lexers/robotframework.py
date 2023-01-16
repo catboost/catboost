@@ -99,7 +99,7 @@ class VariableTokenizer:
         yield var.identifier + '{', SYNTAX
         yield from self.tokenize(var.base, VARIABLE)
         yield '}', SYNTAX
-        if var.index:
+        if var.index is not None:
             yield '[', SYNTAX
             yield from self.tokenize(var.index, VARIABLE)
             yield ']', SYNTAX

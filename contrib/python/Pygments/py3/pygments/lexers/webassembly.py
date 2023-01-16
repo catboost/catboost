@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.webassembly
-    ~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Lexers for the WebAssembly text format.
 
@@ -14,7 +13,7 @@
 """
 
 from pygments.lexer import RegexLexer, words, bygroups, default
-from pygments.token import Text, Comment, Operator, Keyword, String, Number, Punctuation, Literal, Error, Name
+from pygments.token import Text, Comment, Operator, Keyword, String, Number, Punctuation, Name
 
 __all__ = ['WatLexer']
 

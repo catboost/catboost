@@ -8,9 +8,9 @@
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, include, words
+from pygments.lexer import RegexLexer, include, words, bygroups
 from pygments.token import Text, Comment, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['DLexer', 'CrocLexer', 'MiniDLexer']
 
@@ -28,11 +28,11 @@ class DLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             # (r'\\\n', Text), # line continuations
             # Comments
-            (r'//(.*?)\n', Comment.Single),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'/\+', Comment.Multiline, 'nested_comment'),
             # Keywords
@@ -122,7 +122,8 @@ class DLexer(RegexLexer):
             # Identifier
             (r'[a-zA-Z_]\w*', Name),
             # Line
-            (r'#line\s.*\n', Comment.Special),
+            (r'(#line)(\s)(.*)(\n)', bygroups(Comment.Special, Whitespace,
+                Comment.Special, Whitespace)),
         ],
         'nested_comment': [
             (r'[^+/]+', Comment.Multiline),
@@ -194,10 +195,10 @@ class CrocLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             # Comments
-            (r'//(.*?)\n', Comment.Single),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*', Comment.Multiline, 'nestedcomment'),
             # Keywords
             (words((

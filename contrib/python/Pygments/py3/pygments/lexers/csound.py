@@ -26,10 +26,10 @@ newline = (r'((?:(?:;|//).*)*)(\n)', bygroups(Comment.Single, Text))
 class CsoundLexer(RegexLexer):
     tokens = {
         'whitespace': [
-            (r'[ \t]+', Text),
+            (r'[ \t]+', Whitespace),
             (r'/[*](?:.|\n)*?[*]/', Comment.Multiline),
             (r'(?:;|//).*$', Comment.Single),
-            (r'(\\)(\n)', bygroups(Whitespace, Text))
+            (r'(\\)(\n)', bygroups(Text, Whitespace))
         ],
 
         'preprocessor directives': [
@@ -50,7 +50,7 @@ class CsoundLexer(RegexLexer):
         ],
 
         'define directive': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
             include('whitespace'),
             (r'([A-Z_a-z]\w*)(\()', bygroups(Comment.Preproc, Punctuation),
              ('#pop', 'macro parameter name list')),
@@ -63,7 +63,7 @@ class CsoundLexer(RegexLexer):
             (r'\)', Punctuation, ('#pop', 'before macro body'))
         ],
         'before macro body': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
             include('whitespace'),
             (r'#', Punctuation, ('#pop', 'macro body'))
         ],
@@ -144,7 +144,7 @@ class CsoundScoreLexer(CsoundLexer):
 
     tokens = {
         'root': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
             include('whitespace and macro uses'),
             include('preprocessor directives'),
 
@@ -172,7 +172,7 @@ class CsoundScoreLexer(CsoundLexer):
         'mark statement': [
             include('whitespace and macro uses'),
             (r'[A-Z_a-z]\w*', Name.Label),
-            (r'\n', Text, '#pop')
+            (r'\n', Whitespace, '#pop')
         ],
 
         'loop after left brace': [
@@ -238,9 +238,9 @@ class CsoundOrchestraLexer(CsoundLexer):
 
     tokens = {
         'root': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
 
-            (r'^([ \t]*)(\w+)(:)([ \t]+|$)', bygroups(Text, Name.Label, Punctuation, Text)),
+            (r'^([ \t]*)(\w+)(:)([ \t]+|$)', bygroups(Whitespace, Name.Label, Punctuation, Whitespace)),
 
             include('whitespace and macro uses'),
             include('preprocessor directives'),
@@ -291,13 +291,13 @@ class CsoundOrchestraLexer(CsoundLexer):
             include('whitespace and macro uses'),
             (r'\d+|[A-Z_a-z]\w*', Name.Function),
             (r'[+,]', Punctuation),
-            (r'\n', Text, '#pop')
+            (r'\n', Whitespace, '#pop')
         ],
 
         'after opcode keyword': [
             include('whitespace and macro uses'),
             (r'[A-Z_a-z]\w*', opcode_name_callback, ('#pop', 'opcode type signatures')),
-            (r'\n', Text, '#pop')
+            (r'\n', Whitespace, '#pop')
         ],
         'opcode type signatures': [
             include('whitespace and macro uses'),
@@ -306,7 +306,7 @@ class CsoundOrchestraLexer(CsoundLexer):
             (r'0|[afijkKoOpPStV\[\]]+', Keyword.Type),
 
             (r',', Punctuation),
-            (r'\n', Text, '#pop')
+            (r'\n', Whitespace, '#pop')
         ],
 
         'quoted string': [
@@ -376,7 +376,7 @@ class CsoundOrchestraLexer(CsoundLexer):
             include('whitespace and macro uses'),
             (r'"', String, 'quoted string'),
             (r'\{\{', String, 'Csound score'),
-            (r'\n', Text, '#pop')
+            (r'\n', Whitespace, '#pop')
         ],
         'Csound score': [
             (r'\}\}', String, '#pop'),
@@ -387,7 +387,7 @@ class CsoundOrchestraLexer(CsoundLexer):
             include('whitespace and macro uses'),
             (r'"', String, 'quoted string'),
             (r'\{\{', String, 'Python'),
-            (r'\n', Text, '#pop')
+            (r'\n', Whitespace, '#pop')
         ],
         'Python': [
             (r'\}\}', String, '#pop'),
@@ -398,7 +398,7 @@ class CsoundOrchestraLexer(CsoundLexer):
             include('whitespace and macro uses'),
             (r'"', String, 'quoted string'),
             (r'\{\{', String, 'Lua'),
-            (r'\n', Text, '#pop')
+            (r'\n', Whitespace, '#pop')
         ],
         'Lua': [
             (r'\}\}', String, '#pop'),
@@ -453,12 +453,12 @@ class CsoundDocumentLexer(RegexLexer):
         ],
 
         'tag': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[\w.:-]+\s*=', Name.Attribute, 'attr'),
             (r'/?\s*>', Name.Tag, '#pop')
         ],
         'attr': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'".*?"', String, '#pop'),
             (r"'.*?'", String, '#pop'),
             (r'[^\s>]+', String, '#pop')

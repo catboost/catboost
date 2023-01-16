@@ -11,7 +11,7 @@
 import re
 
 from pygments.lexer import RegexLexer, words, bygroups
-from pygments.token import Text, Comment, Keyword, Name, Literal
+from pygments.token import Text, Comment, Keyword, Name, Literal, Whitespace
 
 __all__ = ['BareLexer']
 
@@ -53,29 +53,29 @@ class BareLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'(type)(\s+)([A-Z][a-zA-Z0-9]+)(\s+\{)',
-             bygroups(Keyword, Text, Name.Class, Text), 'struct'),
-            (r'(type)(\s+)([A-Z][a-zA-Z0-9]+)(\s+\()',
-             bygroups(Keyword, Text, Name.Class, Text), 'union'),
+            (r'(type)(\s+)([A-Z][a-zA-Z0-9]+)(\s+)(\{)',
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace, Text), 'struct'),
+            (r'(type)(\s+)([A-Z][a-zA-Z0-9]+)(\s+)(\()',
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace, Text), 'union'),
             (r'(type)(\s+)([A-Z][a-zA-Z0-9]+)(\s+)',
-             bygroups(Keyword, Text, Name, Text), 'typedef'),
+             bygroups(Keyword, Whitespace, Name, Whitespace), 'typedef'),
             (r'(enum)(\s+)([A-Z][a-zA-Z0-9]+)(\s+\{)',
-             bygroups(Keyword, Text, Name.Class, Text), 'enum'),
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace), 'enum'),
             (r'#.*?$', Comment),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
         'struct': [
             (r'\{', Text, '#push'),
             (r'\}', Text, '#pop'),
-            (r'([a-zA-Z0-9]+)(:\s*)', bygroups(Name.Attribute, Text), 'typedef'),
-            (r'\s+', Text),
+            (r'([a-zA-Z0-9]+)(:)(\s*)', bygroups(Name.Attribute, Text, Whitespace), 'typedef'),
+            (r'\s+', Whitespace),
         ],
         'union': [
             (r'\)', Text, '#pop'),
-            (r'\s*\|\s*', Text),
+            (r'(\s*)(\|)(\s*)', bygroups(Whitespace, Text, Whitespace)),
             (r'[A-Z][a-zA-Z0-9]+', Name.Class),
             (words(keywords), Keyword),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
         'typedef': [
             (r'\[\]', Text),
@@ -89,7 +89,7 @@ class BareLexer(RegexLexer):
             (words(keywords), Keyword),
             (r'\n', Text, '#pop'),
             (r'\{', Text, 'struct'),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'\d+', Literal),
         ],
         'enum': [
@@ -98,6 +98,6 @@ class BareLexer(RegexLexer):
             (r'([A-Z][A-Z0-9_]*)(\s*=\s*)(\d+)', bygroups(Name.Attribute, Text, Literal)),
             (r'([A-Z][A-Z0-9_]*)', bygroups(Name.Attribute)),
             (r'#.*?$', Comment),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
     }

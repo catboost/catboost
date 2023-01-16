@@ -44,7 +44,7 @@ class PrologLexer(RegexLexer):
             (r'[\[\](){}|.,;!]', Punctuation),
             (r':-|-->', Punctuation),
             (r'"(?:\\x[0-9a-fA-F]+\\|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}|'
-             r'\\[0-7]+\\|\\["\nabcefnrstv]|[^\\"])*"', String.Double),
+             r'\\[0-7]+\\|\\["\\abcefnrstv]|[^\\"])*"', String.Double),
             (r"'(?:''|[^'])*'", String.Atom),  # quoted atom
             # Needs to not be followed by an atom.
             # (r'=(?=\s|[a-zA-Z\[])', Operator),

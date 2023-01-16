@@ -10,7 +10,7 @@
 
 import re
 
-from pygments.lexers.html import HtmlLexer, XmlLexer
+from pygments.lexers.html import XmlLexer
 from pygments.lexers.javascript import JavascriptLexer
 from pygments.lexers.css import CssLexer
 
@@ -339,7 +339,7 @@ class GroffLexer(RegexLexer):
 
     name = 'Groff'
     aliases = ['groff', 'nroff', 'man']
-    filenames = ['*.[1234567]', '*.man']
+    filenames = ['*.[1-9]', '*.man', '*.1p', '*.3pm']
     mimetypes = ['application/x-troff', 'text/troff']
 
     tokens = {

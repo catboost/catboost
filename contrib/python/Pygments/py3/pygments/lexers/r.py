@@ -10,7 +10,7 @@
 
 import re
 
-from pygments.lexer import Lexer, RegexLexer, include, do_insertions, bygroups
+from pygments.lexer import Lexer, RegexLexer, include, do_insertions
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Generic
 

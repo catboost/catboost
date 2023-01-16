@@ -1,3 +1,13 @@
+"""
+    pygments.lexers._julia_builtins
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Julia builtins.
+
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :license: BSD, see LICENSE for details.
+"""
+
 # operators
 #   see https://github.com/JuliaLang/julia/blob/master/src/julia-parser.scm
 # Julia v1.6.0-rc1

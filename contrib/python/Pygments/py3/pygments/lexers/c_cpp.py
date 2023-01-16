@@ -25,9 +25,6 @@ class CFamilyLexer(RegexLexer):
     definitions.
     """
 
-    #: optional Comment or Whitespace
-    _ws = r'(?:\s|//.*?\n|/[*].*?[*]/)+'
-
     # The trailing ?, rather than *, avoids a geometric performance drop here.
     #: only one /* */ style comment
     _ws1 = r'\s*(?:/[*].*?[*]/\s*)?'
@@ -42,8 +39,8 @@ class CFamilyLexer(RegexLexer):
     _intsuffix = r'(([uU][lL]{0,2})|[lL]{1,2}[uU]?)?'
 
     # Identifier regex with C and C++ Universal Character Name (UCN) support.
-    _ident = r'(?:[a-zA-Z_$]|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})(?:[\w$]|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})*'
-    _namespaced_ident = r'(?:[a-zA-Z_$]|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})(?:[\w$]|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}|::)*'
+    _ident = r'(?!\d)(?:[\w$]|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})+'
+    _namespaced_ident = r'(?!\d)(?:[\w$]|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}|::)+'
 
     tokens = {
         'whitespace': [
@@ -55,6 +52,8 @@ class CFamilyLexer(RegexLexer):
              bygroups(using(this), Comment.Preproc), 'if0'),
             ('^(' + _ws1 + ')(#)',
              bygroups(using(this), Comment.Preproc), 'macro'),
+            (r'(^[ \t]*)(?!(?:public|private|protected|default)\b)(case\b\s+)?(' + _ident + r')(\s*)(:)(?!:)',
+             bygroups(Whitespace, using(this), Name.Label, Whitespace, Punctuation)),
             (r'\n', Whitespace),
             (r'[^\S\n]+', Whitespace),
             (r'\\\n', Text),  # line continuation
@@ -82,7 +81,6 @@ class CFamilyLexer(RegexLexer):
             (r'[~!%^&*+=|?:<>/-]', Operator),
             (r'[()\[\],.]', Punctuation),
             (r'(true|false|NULL)\b', Name.Builtin),
-            (r'(' + _ident + r')(\s*)(:)(?!:)', bygroups(Name.Label, Text, Punctuation)),
             (_ident, Name)
         ],
         'types': [
@@ -92,7 +90,7 @@ class CFamilyLexer(RegexLexer):
                     'unsigned', 'signed', 'void'), suffix=r'\b'), Keyword.Type)
         ],
         'keywords': [
-            (r'(struct|union)(\s+)', bygroups(Keyword, Text), 'classname'),
+            (r'(struct|union)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             (words(('asm', 'auto', 'break', 'case', 'const', 'continue',
                     'default', 'do', 'else', 'enum', 'extern', 'for', 'goto',
                     'if', 'register', 'restricted', 'return', 'sizeof', 'struct',
@@ -117,7 +115,7 @@ class CFamilyLexer(RegexLexer):
             # functions
             (r'(' + _namespaced_ident + r'(?:[&*\s])+)'  # return arguments
              r'(' + _namespaced_ident + r')'             # method name
-             r'(\s*\([^;]*?\))'            # signature
+             r'(\s*\([^;]*?\))'                          # signature
              r'([^;{]*)(\{)',
              bygroups(using(this), Name.Function, using(this), using(this),
                       Punctuation),
@@ -125,10 +123,11 @@ class CFamilyLexer(RegexLexer):
             # function declarations
             (r'(' + _namespaced_ident + r'(?:[&*\s])+)'  # return arguments
              r'(' + _namespaced_ident + r')'             # method name
-             r'(\s*\([^;]*?\))'            # signature
+             r'(\s*\([^;]*?\))'                          # signature
              r'([^;]*)(;)',
              bygroups(using(this), Name.Function, using(this), using(this),
                       Punctuation)),
+            include('types'),
             default('statement'),
         ],
         'statement': [
@@ -252,8 +251,8 @@ class CLexer(CFamilyLexer):
     """
     name = 'C'
     aliases = ['c']
-    filenames = ['*.c', '*.h', '*.idc']
-    mimetypes = ['text/x-chdr', 'text/x-csrc']
+    filenames = ['*.c', '*.h', '*.idc', '*.x[bp]m']
+    mimetypes = ['text/x-chdr', 'text/x-csrc', 'image/x-xbitmap', 'image/x-xpixmap']
     priority = 0.1
 
     tokens = {
@@ -335,7 +334,7 @@ class CppLexer(CFamilyLexer):
             default('#pop')
         ],
         'keywords': [
-            (r'(class|concept|typename)(\s+)', bygroups(Keyword, Text), 'classname'),
+            (r'(class|concept|typename)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             (words((
                 'catch', 'const_cast', 'delete', 'dynamic_cast', 'explicit',
                 'export', 'friend', 'mutable', 'new', 'operator',
@@ -347,7 +346,7 @@ class CppLexer(CFamilyLexer):
                 'typename'),
                suffix=r'\b'), Keyword),
             (r'namespace\b', Keyword, 'namespace'),
-            (r'(enum)(\s+)', bygroups(Keyword, Text), 'enumname'),
+            (r'(enum)(\s+)', bygroups(Keyword, Whitespace), 'enumname'),
             inherit
         ],
         'types': [

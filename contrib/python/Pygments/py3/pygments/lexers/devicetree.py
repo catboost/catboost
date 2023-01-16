@@ -10,7 +10,7 @@
 
 from pygments.lexer import RegexLexer, bygroups, include, default, words
 from pygments.token import Comment, Keyword, Name, Number, Operator, \
-    Punctuation, String, Text
+    Punctuation, String, Text, Whitespace
 
 __all__ = ['DevicetreeLexer']
 
@@ -46,8 +46,8 @@ class DevicetreeLexer(RegexLexer):
              bygroups(Comment.Preproc, Comment.Multiline, Comment.Preproc, Punctuation)),
         ],
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             (r'\\\n', Text),  # line continuation
             (r'//(\n|[\w\W]*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?[*][\w\W]*?[*](\\\n)?/', Comment.Multiline),
@@ -73,7 +73,7 @@ class DevicetreeLexer(RegexLexer):
             include('macro'),
 
             # Nodes
-            (r'([^/*@\s&]+|/)(@?)([0-9a-fA-F,]*)(' + _ws + r')(\{)',
+            (r'([^/*@\s&]+|/)(@?)((?:0x)?[0-9a-fA-F,]*)(' + _ws + r')(\{)',
              bygroups(Name.Function, Operator, Number.Integer,
                       Comment.Multiline, Punctuation), 'node'),
 
@@ -88,7 +88,7 @@ class DevicetreeLexer(RegexLexer):
             include('whitespace'),
             include('macro'),
 
-            (r'([^/*@\s&]+|/)(@?)([0-9a-fA-F,]*)(' + _ws + r')(\{)',
+            (r'([^/*@\s&]+|/)(@?)((?:0x)?[0-9a-fA-F,]*)(' + _ws + r')(\{)',
              bygroups(Name.Function, Operator, Number.Integer,
                       Comment.Multiline, Punctuation), '#push'),
 

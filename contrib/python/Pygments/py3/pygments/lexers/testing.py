@@ -129,6 +129,9 @@ class GherkinLexer(RegexLexer):
         ]
     }
 
+    def analyse_text(self, text):
+        return
+
 
 class TAPLexer(RegexLexer):
     """

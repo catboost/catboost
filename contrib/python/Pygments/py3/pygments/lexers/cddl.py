@@ -27,6 +27,7 @@ from pygments.token import (
     Punctuation,
     String,
     Text,
+    Whitespace,
 )
 
 
@@ -103,7 +104,8 @@ class CddlLexer(RegexLexer):
 
     _re_id = (
         r"[$@A-Z_a-z]"
-        r"(?:[\-\.]*[$@0-9A-Z_a-z]|[$@0-9A-Z_a-z])*"
+        r"(?:[\-\.]+(?=[$@0-9A-Z_a-z])|[$@0-9A-Z_a-z])*"
+
     )
 
     # While the spec reads more like "an int must not start with 0" we use a
@@ -115,7 +117,7 @@ class CddlLexer(RegexLexer):
     flags = re.UNICODE | re.MULTILINE
 
     tokens = {
-        "commentsandwhitespace": [(r"\s+", Text), (r";.+$", Comment.Single)],
+        "commentsandwhitespace": [(r"\s+", Whitespace), (r";.+$", Comment.Single)],
         "root": [
             include("commentsandwhitespace"),
             # tag types
@@ -144,7 +146,7 @@ class CddlLexer(RegexLexer):
             # Token type is String as barewords are always interpreted as such.
             (
                 r"({bareword})(\s*)(:)".format(bareword=_re_id),
-                bygroups(String, Text, Punctuation),
+                bygroups(String, Whitespace, Punctuation),
             ),
             # predefined types
             (
@@ -185,6 +187,6 @@ class CddlLexer(RegexLexer):
         "bstr": [
             (r"'", String.Single, "#pop"),
             (r"\\.", String.Escape),
-            (r"[^']", String.Single),
+            (r"[^'\\]+", String.Single),
         ],
     }
