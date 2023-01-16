@@ -211,16 +211,7 @@ private:
     }
 
     inline void TestError() {
-        try {
-            TDirIterator d("./notexistingfilename");
-
-            UNIT_ASSERT(false);
-        } catch (const TDirIterator::TError&) {
-        } catch (...) {
-            UNIT_ASSERT(false);
-        }
-
-        UNIT_ASSERT(true);
+        UNIT_ASSERT_EXCEPTION(TDirIterator("./notexistingfilename"), TDirIterator::TError);
     }
 };
 
