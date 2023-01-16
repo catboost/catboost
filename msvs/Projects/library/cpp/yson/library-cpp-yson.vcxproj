@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\library\cpp\yson\consumer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yson\lexer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yson\parser.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yson\string.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yson\token.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yson\tokenizer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yson\varint.cpp"/>
@@ -93,6 +94,8 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\yson\parser.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yson\parser_detail.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yson\public.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yson\string-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yson\string.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yson\token.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yson\tokenizer.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yson\varint.h"/>
