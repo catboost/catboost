@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: importlib-metadata
-Version: 2.1.2
+Version: 2.1.3
 Summary: Read metadata from Python packages
 Home-page: http://importlib-metadata.readthedocs.io/
 Author: Jason R. Coombs
