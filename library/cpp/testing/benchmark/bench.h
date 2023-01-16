@@ -84,9 +84,9 @@ namespace NBench {
     int Main(int argc, char** argv);
 }
 
-#define Y_CPU_BENCHMARK(name, cnt)                        \
-    namespace N_bench_##name {                            \
-        static void Run(::NBench::NCpu::TParams&);        \
-        ::NBench::NCpu::TRegistar benchmark(#name, &Run); \
-    }                                                     \
+#define Y_CPU_BENCHMARK(name, cnt)                              \
+    namespace N_bench_##name {                                  \
+        static void Run(::NBench::NCpu::TParams&);              \
+        const ::NBench::NCpu::TRegistar benchmark(#name, &Run); \
+    }                                                           \
     static void N_bench_##name::Run(::NBench::NCpu::TParams& cnt)
