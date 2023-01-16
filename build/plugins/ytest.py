@@ -381,11 +381,17 @@ def onadd_ytest(unit, *args):
         return
     elif flat_args[1] == "no.test":
         return
+    test_size = ''.join(spec_args.get('SIZE', [])) or unit.get('TEST_SIZE_NAME') or ''
+    test_tags = serialize_list(_get_test_tags(unit, spec_args))
+    test_timeout = ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or ''
 
     if flat_args[1] != "clang_tidy" and unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
         if flat_args[1] in ("unittest.py", "gunittest", "g_benchmark"):
             flat_args[1] = "clang_tidy"
+            test_size = 'SMALL'
+            test_tags = ''
+            test_timeout = "60"
         else:
             return
 
@@ -414,11 +420,11 @@ def onadd_ytest(unit, *args):
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
         'TEST-DATA': serialize_list(test_data),
-        'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
+        'TEST-TIMEOUT': test_timeout,
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
-        'SIZE': ''.join(spec_args.get('SIZE', [])) or unit.get('TEST_SIZE_NAME') or '',
-        'TAG': serialize_list(_get_test_tags(unit, spec_args)),
+        'SIZE': test_size,
+        'TAG': test_tags,
         'REQUIREMENTS': serialize_list(spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
         'TEST-CWD': unit.get('TEST_CWD_VALUE') or '',
         'FUZZ-DICTS': serialize_list(spec_args.get('FUZZ_DICTS', []) + get_unit_list_variable(unit, 'FUZZ_DICTS_VALUE')),
