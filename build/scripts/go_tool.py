@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import threading
 import six
@@ -74,6 +75,16 @@ def preprocess_args(args):
     args.module_map = {}
     if args.cgo_peers:
         args.cgo_peers = [x for x in args.cgo_peers if not x.endswith('.fake.pkg')]
+
+    srcs = []
+    for f in args.srcs:
+        if f.endswith('.gosrc'):
+            with tarfile.open(f, 'r') as tar:
+                srcs.extend(os.path.join(args.output_root, src) for src in tar.getnames())
+                tar.extractall(path=args.output_root)
+        else:
+            srcs.append(f)
+    args.srcs = srcs
 
     assert args.mode == 'test' or args.test_srcs is None and args.xtest_srcs is None
     # add lexical oreder by basename for go sources
