@@ -3684,7 +3684,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/other
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/patch
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/samovar
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/search
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/series
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/shares
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/source_types
@@ -3709,11 +3708,9 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/object_tags
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/organizations
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/pages
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/recipes
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/shares
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/stats
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/subscriptions
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/suggest
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/tasks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/toloka
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ugcdb
