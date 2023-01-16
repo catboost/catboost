@@ -99,6 +99,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ====================COPYRIGHT====================
+ * Copyright (c) 2000, 2002 Todd C. Miller <millert@openbsd.org>
+
+
+====================COPYRIGHT====================
+ * Copyright (c) 2000-2002, 2007, 2010
+ *    Todd C. Miller <millert@openbsd.org>
+
+
+====================COPYRIGHT====================
  * Copyright (c) 2007 Todd C. Miller <millert@openbsd.org>
 
 
