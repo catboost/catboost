@@ -12,7 +12,6 @@ PEERDIR(
     util
     library/cpp/yt/assert
     library/cpp/yt/misc
-    library/cpp/ytalloc/core
     library/cpp/ytalloc/api
 )
 
