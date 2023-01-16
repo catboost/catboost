@@ -799,13 +799,13 @@ ALLOW .* -> vendor/inet.af/netaddr
 ALLOW .* -> vendor/github.com/tc-hib/winres
 
 # CONTRIB-2346: repatriate ydb-go-sdk
-ALLOW .* -> vendor/github.com/yandex-cloud/go-genproto
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-genproto
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk/v3
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-metrics
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-prometheus
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-zap
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-zerolog
-ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-yc
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-opentracing
 
 # CONTRIB-2099
 ALLOW .* -> vendor/github.com/haivision/srtgo
