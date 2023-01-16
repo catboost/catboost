@@ -215,7 +215,7 @@ ALLOW passport/backend/core/tvm/faker -> library/python/deprecated/ticket_parser
 ALLOW passport/backend/core/tvm/tests -> library/python/deprecated/ticket_parser2
 ALLOW passport/backend/core/tvm -> library/python/deprecated/ticket_parser2
 ALLOW passport/backend/tasks_nirvana/antifraud -> library/python/deprecated/ticket_parser2
-ALLOW passport/python/vault/api -> library/python/deprecated/ticket_parser2
+ALLOW passport/backend/vault/api -> library/python/deprecated/ticket_parser2
 ALLOW payplatform/nirvana/lib -> library/python/deprecated/ticket_parser2
 ALLOW plus/analytics/tools/bb_user_info -> library/python/deprecated/ticket_parser2
 ALLOW plus/cobra/project -> library/python/deprecated/ticket_parser2
