@@ -1,27 +1,28 @@
 #pragma once
 
+#include <library/cpp/ytalloc/core/misc/enum.h>
 #include <util/generic/yexception.h>
 
 namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     //! The data format.
-    enum EYsonFormat {
+    DEFINE_ENUM(EYsonFormat,
         // Binary.
         // Most compact but not human-readable.
-        YF_BINARY,
+        (Binary)
 
         // Text.
         // Not so compact but human-readable.
         // Does not use indentation.
         // Uses escaping for non-text characters.
-        YF_TEXT,
+        (Text)
 
         // Text with indentation.
         // Extremely verbose but human-readable.
         // Uses escaping for non-text characters.
-        YF_PRETTY
-    };
+        (Pretty)
+    );
 
     enum EYsonType {
         YT_NODE,
@@ -48,9 +49,6 @@ namespace NYT {
 
 // Temporary for backward compatibility
 using ::NYson::EYsonFormat;
-using ::NYson::EYsonFormat::YF_BINARY;
-using ::NYson::EYsonFormat::YF_TEXT;
-using ::NYson::EYsonFormat::YF_PRETTY;
 
 using ::NYson::EYsonType;
 using ::NYson::EYsonType::YT_NODE;

@@ -860,7 +860,7 @@ void TNode::CreateAttributes()
 
 void TNode::Save(IOutputStream* out) const
 {
-    NodeToYsonStream(*this, out, YF_BINARY);
+    NodeToYsonStream(*this, out, NYson::EYsonFormat::Binary);
 }
 
 void TNode::Load(IInputStream* in)

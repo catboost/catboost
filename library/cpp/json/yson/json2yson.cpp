@@ -53,7 +53,7 @@ namespace NJson2Yson {
     }
 
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream) {
-        NYson::TYsonWriter ysonWriter(outputStream, NYT::YF_BINARY, NYT::YT_NODE, false);
+        NYson::TYsonWriter ysonWriter(outputStream, NYson::EYsonFormat::Binary, NYT::YT_NODE, false);
         SerializeJsonValueAsYson(inputValue, &ysonWriter);
     }
 

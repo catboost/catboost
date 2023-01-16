@@ -27,7 +27,7 @@ namespace NYson {
     public:
         TYsonWriter(
             IOutputStream* stream,
-            EYsonFormat format = YF_BINARY,
+            EYsonFormat format = EYsonFormat::Binary,
             EYsonType type = YT_NODE,
             bool enableRaw = false);
 
@@ -81,7 +81,7 @@ namespace NYson {
     void ReformatYsonStream(
         IInputStream* input,
         IOutputStream* output,
-        EYsonFormat format = YF_BINARY,
+        EYsonFormat format = EYsonFormat::Binary,
         EYsonType type = YT_NODE);
 
     ////////////////////////////////////////////////////////////////////////////////
