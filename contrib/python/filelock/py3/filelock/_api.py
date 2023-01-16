@@ -1,9 +1,10 @@
 import logging
+import os
 import time
 from abc import ABC, abstractmethod
 from threading import Lock
 from types import TracebackType
-from typing import Optional, Type, Union
+from typing import Any, Optional, Type, Union
 
 from ._error import Timeout
 
@@ -34,7 +35,7 @@ class AcquireReturnProxy:
 class BaseFileLock(ABC):
     """Abstract base class for a file lock object."""
 
-    def __init__(self, lock_file: str, timeout: float = -1) -> None:
+    def __init__(self, lock_file: Union[str, "os.PathLike[Any]"], timeout: float = -1) -> None:
         """
         Create a new lock object.
 
@@ -44,7 +45,7 @@ class BaseFileLock(ABC):
          A timeout of 0 means, that there is exactly one attempt to acquire the file lock.
         """
         # The path to the lock file.
-        self._lock_file: str = lock_file
+        self._lock_file: str = os.fspath(lock_file)
 
         # The file descriptor for the *_lock_file* as it is returned by the os.open() function.
         # This file lock is only NOT None, if the object currently holds the lock.
