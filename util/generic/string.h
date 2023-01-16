@@ -1047,85 +1047,43 @@ public:
 
     // ~~~ replacement ~~~ : FAMILY2(TBasicString&, replace, size_t pos, size_t n);
     TBasicString& replace(size_t pos, size_t n, const TBasicString& s) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.replace(pos, n, s.Storage_);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s.ConstRef());
-        }
-#endif
+        MutRef().replace(pos, n, s.ConstRef());
 
         return *this;
     }
 
     TBasicString& replace(size_t pos, size_t n, const TBasicString& s, size_t pos1, size_t n1) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.replace(pos, n, s.Storage_, pos1, n1);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s.ConstRef(), pos1, n1);
-        }
-#endif
+        MutRef().replace(pos, n, s.ConstRef(), pos1, n1);
 
         return *this;
     }
 
     TBasicString& replace(size_t pos, size_t n, const TCharType* pc) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.replace(pos, n, pc);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, pc);
-        }
-#endif
+        MutRef().replace(pos, n, pc);
 
         return *this;
     }
 
     TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t len) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.replace(pos, n, s, len);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s, len);
-        }
-#endif
+        MutRef().replace(pos, n, s, len);
 
         return *this;
     }
 
     TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t spos, size_t sn) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.replace(pos, n, s + spos, sn - spos);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s + spos, sn - spos);
-        }
-#endif
+        MutRef().replace(pos, n, s + spos, sn - spos);
 
         return *this;
     }
 
     TBasicString& replace(size_t pos, size_t n1, size_t n2, TCharType c) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.replace(pos, n1, n2, c);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n1, n2, c);
-        }
-#endif
+        MutRef().replace(pos, n1, n2, c);
 
         return *this;
     }
 
     TBasicString& replace(size_t pos, size_t n, const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) Y_NOEXCEPT {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.replace(pos, n, s, spos, sn);
-#else
-        if (pos <= length()) {
-            MutRef().replace(pos, n, s, spos, sn);
-        }
-#endif
+        MutRef().replace(pos, n, s, spos, sn);
 
         return *this;
     }
@@ -1249,4 +1207,13 @@ inline S LegacySubstr(const S& s, size_t pos, size_t n = S::npos) {
     n = Min(n, len - pos);
 
     return S(s, pos, n);
+}
+
+template <typename S, typename... Args>
+inline S&& LegacyReplace(S&& s, size_t pos, Args&&... args) {
+    if (pos <= s.length()) {
+        s.replace(pos, std::forward<Args>(args)...);
+    }
+
+    return s;
 }
