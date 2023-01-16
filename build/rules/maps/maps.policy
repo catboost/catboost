@@ -44,6 +44,7 @@ ALLOW .* -> maps/doc/proto
 # These libraries are allowed for general use
 ALLOW .* -> maps/libs/common
 ALLOW .* -> maps/libs/csv
+ALLOW .* -> maps/libs/enum_io
 ALLOW .* -> maps/libs/geolib
 ALLOW .* -> maps/libs/http
 ALLOW .* -> maps/libs/json
