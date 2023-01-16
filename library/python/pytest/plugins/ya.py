@@ -201,6 +201,10 @@ def pytest_configure(config):
         "flags": config.option.flags,
         "sanitize": config.option.sanitize,
     }
+
+    if config.option.collectonly:
+        config.option.mode = yatest_lib.ya.RunMode.List
+
     config.ya = yatest_lib.ya.Ya(
         config.option.mode,
         config.option.source_root,
