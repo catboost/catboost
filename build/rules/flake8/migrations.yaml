@@ -1215,7 +1215,6 @@ migrations:
     - yabs/server/cs/pylibs/settings
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-14014
-    - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
@@ -1380,7 +1379,6 @@ migrations:
     - infra/yasm/zoom/python/tests
     - infra/yp_quota_distributor/lib
     - intranet/table_flow/tests
-    - lbs/research/LBS381_choosing_gsm_over_wifi/calc_stats
     - lbs/research_tools/find_keys_causing_losses
     - library/python/async_clients
     - logbroker/tools/deploy_consistency_test
@@ -2120,7 +2118,6 @@ migrations:
     - library/python/intrasearch_fetcher
     - library/python/metrics_framework
     - library/python/oauth/example
-    - library/python/pyscopg2
     - library/python/pytest
     - library/python/python-django-yauth
     - library/python/refsclient
