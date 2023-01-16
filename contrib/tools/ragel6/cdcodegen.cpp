@@ -50,15 +50,6 @@ extern bool noLineDirectives;
 
 void cdLineDirective( ostream &out, const char *fileName, int line )
 {
-	/*
-	 * Ragel uses goto instructions inside switch statements.
-	 * Which is not compatible with compiler warning wimplicit-fallthrough.
-	 * So explicitly disabled this diagnostic for generated cpp-sources.
-	 */
-	if (hostLang == &hostLangC && line == 1) {
-		out << "\n#pragma GCC diagnostic ignored \"-Wimplicit-fallthrough\"\n";
-	}
-
 	if ( noLineDirectives )
 		out << "/* ";
 

@@ -1678,6 +1678,7 @@ class GnuCompiler(Compiler):
             '$COMPILER_TIME_TRACE_FLAGS',
             '$EXTRA_OUTPUT',
             '$SRCFLAGS',
+            '$_LANG_CFLAGS_VALUE',
             '${input:SRC}',
             '$TOOLCHAIN_ENV',
             '$YNDEXER_OUTPUT',
