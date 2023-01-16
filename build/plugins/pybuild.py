@@ -497,7 +497,7 @@ def onpy_srcs(unit, *args):
         unit.onpeerdir(unit.get('_PY_FBS_DEPS').split())
         pysrc_base_name = listid(fbss)
         unit.onfbs_to_pysrc([pysrc_base_name] + [path for path, _ in fbss])
-        unit.onsrcs(['GLOBAL', '{}.pysrc'.format(pysrc_base_name)])
+        unit.onsrcs(['GLOBAL', '{}.fbs.pysrc'.format(pysrc_base_name)])
 
 
 def _check_test_srcs(*args):
