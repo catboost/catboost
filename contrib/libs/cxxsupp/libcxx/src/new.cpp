@@ -16,7 +16,7 @@
 #   endif
 #elif defined(LIBCXX_BUILDING_LIBCXXABI)
 #   include <cxxabi.h>
-#elif defined(LIBCXXRT)
+#elif defined(LIBCXX_BUILDING_LIBCXXRT)
 #   include <cxxabi.h>
 #   include "support/runtime/new_handler_fallback.ipp"
 #elif defined(__GLIBCXX__)
