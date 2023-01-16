@@ -525,6 +525,9 @@
     "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=uint8]": {
         "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=uint8_/predictions.txt"
     },
+    "test.test_fit_predict_baseline[CPU]": {
+        "uri": "file://test.test_fit_predict_baseline_CPU_/predictions.npy"
+    },
     "test.test_full_history[CPU]": {
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
