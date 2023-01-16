@@ -30,7 +30,7 @@ namespace NKernel {
         const float w = pairWeights && (i < pairCount) ? pairWeights[i] : 1.0f;
         const float diff = i < pairCount ? __ldg(point + pair.x) - __ldg(point + pair.y) : 0;
         const float expDiff = __expf(diff);
-        const float p = max(min(isfinite(expDiff) ? expDiff / (1.0f + expDiff) : 1.0f, 1.0f - 1e-40f), 1e-40f);
+        const float p = max(min(isfinite(1.0f + expDiff) ? expDiff / (1.0f + expDiff) : 1.0f, 1.0f - 1e-40f), 1e-40f);
 
         const float direction = (1.0f - p);
 
@@ -49,7 +49,7 @@ namespace NKernel {
         }
 
         if (functionValue) {
-            const float logExpValPlusOne = isfinite(expDiff) ? __logf(1.0f + expDiff) : diff;
+            const float logExpValPlusOne = isfinite(1.0f + expDiff) ? __logf(1.0f + expDiff) : diff;
             tmpScores[threadIdx.x] = (i < pairCount) ? w * (diff - logExpValPlusOne) : 0;
 
             __syncthreads();

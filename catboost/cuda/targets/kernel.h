@@ -487,7 +487,7 @@ namespace NKernelHost {
 
     public:
         using TKernelContext = NKernel::TPairLogitContext;
-        Y_SAVELOAD_DEFINE(Pairs, PairWeights, Predictions, Indices, FunctionValue, Der, Der2);
+        Y_SAVELOAD_DEFINE(Pairs, PairWeights, QueryOffsetsBias, Predictions, Indices, FunctionValue, Der, Der2);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
