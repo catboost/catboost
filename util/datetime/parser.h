@@ -53,6 +53,8 @@ struct TDateTimeFields {
         if (Minute > 59)
             return false;
 
+        // handle leap second which is explicitly allowed by ISO 8601:2004(E) $2.2.2
+        // https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
         if (Second > 60)
             return false;
 
