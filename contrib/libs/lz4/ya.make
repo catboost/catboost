@@ -19,7 +19,9 @@ PEERDIR(
     contrib/libs/xxhash
 )
 
-ADDINCL(contrib/libs/xxhash)
+ADDINCL(
+    contrib/libs/xxhash
+)
 
 NO_RUNTIME()
 
