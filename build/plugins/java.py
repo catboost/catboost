@@ -384,3 +384,11 @@ def parse_words(words):
 def on_ymake_generate_script(unit, *args):
     for out, tmpl, props in parse_words(list(args)):
         unit.on_add_gen_java_script([out, tmpl] + list(props))
+
+def on_jdk_version_macro_check(unit, *args):
+    if len(args) != 1:
+        unit.message(["error", "Invalid syntax. Single argument required."])
+    jdk_version = args[0]
+    availible_versions = ('10', '11', '12', '13', '14', '15', '16', '17',)
+    if jdk_version not in availible_versions:
+        unit.message(["error", "Invalid jdk version: {}. {} are availible".format(jdk_version, availible_versions)])
