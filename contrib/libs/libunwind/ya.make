@@ -19,7 +19,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 DISABLE(USE_LTO)
 
-ADDINCL(contrib/libs/libunwind/include)
+ADDINCL(
+    contrib/libs/libunwind/include
+)
 
 NO_RUNTIME()
 
@@ -38,7 +40,9 @@ CFLAGS(
 )
 
 IF (SANITIZER_TYPE == memory)
-    CFLAGS(-fPIC)
+    CFLAGS(
+        -fPIC
+    )
 ENDIF()
 
 SRCS(
@@ -60,4 +64,6 @@ ENDIF()
 
 END()
 
-RECURSE_FOR_TESTS(ut)
+RECURSE_FOR_TESTS(
+    ut
+)
