@@ -93,7 +93,6 @@ TYsonString::TYsonString(const TYsonStringBuf& ysonStringBuf)
         Size_ = 0;
         Type_ = EYsonType::Node; // fake
     }
-
 }
 
 TYsonString::TYsonString(
