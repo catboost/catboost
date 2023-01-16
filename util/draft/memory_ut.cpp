@@ -3,20 +3,20 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #pragma pack(1)
-struct _packed TSampleStruct1 {
+struct Y_PACKED TSampleStruct1 {
     ui8 A;
     ui8 B;
 };
 
 #pragma pack(1)
-struct _packed TSampleStruct2 {
+struct Y_PACKED TSampleStruct2 {
     ui8 A;
     ui16 B;
     i32 C;
 };
 
 #pragma pack(1)
-struct _packed TSampleStruct3 {
+struct Y_PACKED TSampleStruct3 {
     TSampleStruct2 A;
     ui64 B;
 };

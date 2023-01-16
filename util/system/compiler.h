@@ -158,9 +158,9 @@
 #endif
 
 #ifdef __GNUC__
-    #define _packed __attribute__((packed))
+    #define Y_PACKED __attribute__((packed))
 #else
-    #define _packed
+    #define Y_PACKED
 #endif
 
 #if defined(__GNUC__)
