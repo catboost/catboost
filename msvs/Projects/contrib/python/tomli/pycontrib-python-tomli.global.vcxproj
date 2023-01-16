@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{207CEDF5-6653-40AA-914B-9772ADED3FD4}</ProjectGUID>
+    <ProjectGUID>{70890371-9EE9-6276-10EC-6B93A7DBFB6C}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3contrib-python-toml.global</ProjectName>
+    <ProjectName>pycontrib-python-tomli.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3contrib-python-toml.global</TargetName>
+    <TargetName>pycontrib-python-tomli.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\toml\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\207CEDF5-6653-40AA-914B-9772ADED3FD4\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\tomli\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\70890371-9EE9-6276-10EC-6B93A7DBFB6C\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,22 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\toml\2cf0c7652c87736f371d12ff02.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\toml\57d10fa65178e58bc1657c7b5a.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\toml\7a05c1409d2f6a1f40c7b01a63.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\tomli\22d885c2412d1b8edfb9642e4c.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\tomli\7f3396a31375d343965394e04d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\tomli\f9238fb7c456c55cd9438946ae.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tomli
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/2cf0c7652c87736f371d12ff02.cpp" "_8c5c3bb8c539c689c86f546bcf=resfs/src/resfs/file/py/toml/__init__.py" "_3056d53a46c87baadb1c71316d=resfs/file/py/toml/__init__.py" "_71c899bed882c337cf4eec4448=resfs/src/resfs/file/py/toml/__init__.py.yapyc3" "_0f2f73c680ce5bed21432943e5=resfs/file/py/toml/__init__.py.yapyc3" "_3c431846b71c07055cb6d2dad4=resfs/src/resfs/file/py/toml/decoder.py" "_f59fd31d799f3737b09687550a=resfs/file/py/toml/decoder.py" "_b27127005c3b7ef1137d40234a=resfs/src/resfs/file/py/toml/decoder.py.yapyc3" "_0638de02c495fd6c5f0da8a42b=resfs/file/py/toml/decoder.py.yapyc3" "_708e596aae6a713bc0d963da02=resfs/src/resfs/file/py/toml/encoder.py" "_d3546a2d4c52e60ca17bf8be36=resfs/file/py/toml/encoder.py" "_6c9ba873cec894f73521aea601=resfs/src/resfs/file/py/toml/encoder.py.yapyc3" "_fc48b83619925432fec570f9fe=resfs/file/py/toml/encoder.py.yapyc3" "_374dd49e2691555a3d43fa190f=resfs/src/resfs/file/py/toml/ordered.py" "_ec2594e886244fa25f9ba45ddb=resfs/file/py/toml/ordered.py" "_a5c3e0a26d47bd6158ce2d5070=resfs/src/resfs/file/py/toml/ordered.py.yapyc3" "_8f37571553150c31e6d5f86e76=resfs/file/py/toml/ordered.py.yapyc3" "_0796631548f6d3144a21359155=resfs/src/resfs/file/py/toml/tz.py" "_2dfb03fc57f8b48bd705b44c29=resfs/file/py/toml/tz.py" "_797218a092692a98dc668e3c9d=resfs/src/resfs/file/py/toml/tz.py.yapyc3" "_4097ae6f1bdf3d624be90c88e1=resfs/file/py/toml/tz.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/tomli/22d885c2412d1b8edfb9642e4c.cpp" "_287d6c145c5545f755352fffc2=py/namespace/b1e10d99873d9538e0fc71a2e2fad170/contrib/python/tomli"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tomli
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/57d10fa65178e58bc1657c7b5a.cpp" "_92a99a501459db034ab3697cce=resfs/src/resfs/file/contrib/python/toml/.dist-info/METADATA" "_5d5c5476e2f9966ced99fc9d1d=resfs/file/contrib/python/toml/.dist-info/METADATA" "_1b04d97b4f1c23c341c54ed014=resfs/src/resfs/file/contrib/python/toml/.dist-info/top_level.txt" "_fcd79ef608625109f04f2e16d0=resfs/file/contrib/python/toml/.dist-info/top_level.txt" "_fa041785cfaeb714c8deeef6db=resfs/src/resfs/file/contrib/python/toml/toml/__init__.pyi" "_73641e3c9933e02050f5a3fa2a=resfs/file/contrib/python/toml/toml/__init__.pyi" "_59fd5b0a4ba9850ed599a0a9a9=resfs/src/resfs/file/contrib/python/toml/toml/decoder.pyi" "_a1d76fee3dce8a67c5b71bcdd8=resfs/file/contrib/python/toml/toml/decoder.pyi" "_b3f42802b980b1ca3f72cf05ab=resfs/src/resfs/file/contrib/python/toml/toml/encoder.pyi" "_ac3a6a645380fc44a7553312f6=resfs/file/contrib/python/toml/toml/encoder.pyi" "_a0f77c2b93edaef0149f298e17=resfs/src/resfs/file/contrib/python/toml/toml/ordered.pyi" "_e692b78b232fbecb142e9d05c0=resfs/file/contrib/python/toml/toml/ordered.pyi" "_a9bfc9abb7dd8e434e15d524e6=resfs/src/resfs/file/contrib/python/toml/toml/tz.pyi" "_d05c08bf83e0e9b23a5ba122de=resfs/file/contrib/python/toml/toml/tz.pyi"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/tomli/7f3396a31375d343965394e04d.cpp" "_47f3927536acb5eb44988d7980=resfs/src/resfs/file/contrib/python/tomli/.dist-info/METADATA" "_f3d2d32819dccef932ec5a270e=resfs/file/contrib/python/tomli/.dist-info/METADATA" "_ad967a6b8cd4bc51eecf32b8e5=resfs/src/resfs/file/contrib/python/tomli/.dist-info/top_level.txt" "_b24c537a458a134c0981964b3c=resfs/file/contrib/python/tomli/.dist-info/top_level.txt" "_42bcfd9066d7faaf4a5c73a525=resfs/src/resfs/file/contrib/python/tomli/tomli/py.typed" "_64d00bcf7120904b03784c8139=resfs/file/contrib/python/tomli/tomli/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tomli
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/7a05c1409d2f6a1f40c7b01a63.cpp" "_db3e4aaa4d8b18b7e1101ec9fb=py/namespace/350e38703087450ad667fde40e299808/contrib/python/toml"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/tomli/f9238fb7c456c55cd9438946ae.cpp" "_7765b1cef986b64c7950e9297c=resfs/src/resfs/file/py/tomli/__init__.py" "_38151e92416dee342c21b9e236=resfs/file/py/tomli/__init__.py" "_ca07e2dc6c04fd296f772de2ab=resfs/src/resfs/file/py/tomli/__init__.py.yapyc3" "_01ae21ad92d2433a430e6c8dca=resfs/file/py/tomli/__init__.py.yapyc3" "_3258edbdf5e01e7de2e6b368fb=resfs/src/resfs/file/py/tomli/_parser.py" "_b0e8798291c0adfb2e08abe0e8=resfs/file/py/tomli/_parser.py" "_0395a0521a706ed92944d9a475=resfs/src/resfs/file/py/tomli/_parser.py.yapyc3" "_fe653909ee657a5811ddba83e7=resfs/file/py/tomli/_parser.py.yapyc3" "_ff3564366e028e147997f3ad18=resfs/src/resfs/file/py/tomli/_re.py" "_6aeeff57f67b7743930f9f4e57=resfs/file/py/tomli/_re.py" "_51e410ed8581972631ec79a419=resfs/src/resfs/file/py/tomli/_re.py.yapyc3" "_0de602d056e88cf2dfdcae13c5=resfs/file/py/tomli/_re.py.yapyc3" "_c2fbd22a9680db06865650f179=resfs/src/resfs/file/py/tomli/_types.py" "_bbae09c98818992ec2a46f84d4=resfs/file/py/tomli/_types.py" "_60120b5f3f1901d61748deb197=resfs/src/resfs/file/py/tomli/_types.py.yapyc3" "_40ba97d383ddd67cece42c4c1a=resfs/file/py/tomli/_types.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,17 +102,17 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tomli
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/2cf0c7652c87736f371d12ff02.cpp" "_8c5c3bb8c539c689c86f546bcf=resfs/src/resfs/file/py/toml/__init__.py" "_3056d53a46c87baadb1c71316d=resfs/file/py/toml/__init__.py" "_71c899bed882c337cf4eec4448=resfs/src/resfs/file/py/toml/__init__.py.yapyc3" "_0f2f73c680ce5bed21432943e5=resfs/file/py/toml/__init__.py.yapyc3" "_3c431846b71c07055cb6d2dad4=resfs/src/resfs/file/py/toml/decoder.py" "_f59fd31d799f3737b09687550a=resfs/file/py/toml/decoder.py" "_b27127005c3b7ef1137d40234a=resfs/src/resfs/file/py/toml/decoder.py.yapyc3" "_0638de02c495fd6c5f0da8a42b=resfs/file/py/toml/decoder.py.yapyc3" "_708e596aae6a713bc0d963da02=resfs/src/resfs/file/py/toml/encoder.py" "_d3546a2d4c52e60ca17bf8be36=resfs/file/py/toml/encoder.py" "_6c9ba873cec894f73521aea601=resfs/src/resfs/file/py/toml/encoder.py.yapyc3" "_fc48b83619925432fec570f9fe=resfs/file/py/toml/encoder.py.yapyc3" "_374dd49e2691555a3d43fa190f=resfs/src/resfs/file/py/toml/ordered.py" "_ec2594e886244fa25f9ba45ddb=resfs/file/py/toml/ordered.py" "_a5c3e0a26d47bd6158ce2d5070=resfs/src/resfs/file/py/toml/ordered.py.yapyc3" "_8f37571553150c31e6d5f86e76=resfs/file/py/toml/ordered.py.yapyc3" "_0796631548f6d3144a21359155=resfs/src/resfs/file/py/toml/tz.py" "_2dfb03fc57f8b48bd705b44c29=resfs/file/py/toml/tz.py" "_797218a092692a98dc668e3c9d=resfs/src/resfs/file/py/toml/tz.py.yapyc3" "_4097ae6f1bdf3d624be90c88e1=resfs/file/py/toml/tz.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/tomli/22d885c2412d1b8edfb9642e4c.cpp" "_287d6c145c5545f755352fffc2=py/namespace/b1e10d99873d9538e0fc71a2e2fad170/contrib/python/tomli"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tomli
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/57d10fa65178e58bc1657c7b5a.cpp" "_92a99a501459db034ab3697cce=resfs/src/resfs/file/contrib/python/toml/.dist-info/METADATA" "_5d5c5476e2f9966ced99fc9d1d=resfs/file/contrib/python/toml/.dist-info/METADATA" "_1b04d97b4f1c23c341c54ed014=resfs/src/resfs/file/contrib/python/toml/.dist-info/top_level.txt" "_fcd79ef608625109f04f2e16d0=resfs/file/contrib/python/toml/.dist-info/top_level.txt" "_fa041785cfaeb714c8deeef6db=resfs/src/resfs/file/contrib/python/toml/toml/__init__.pyi" "_73641e3c9933e02050f5a3fa2a=resfs/file/contrib/python/toml/toml/__init__.pyi" "_59fd5b0a4ba9850ed599a0a9a9=resfs/src/resfs/file/contrib/python/toml/toml/decoder.pyi" "_a1d76fee3dce8a67c5b71bcdd8=resfs/file/contrib/python/toml/toml/decoder.pyi" "_b3f42802b980b1ca3f72cf05ab=resfs/src/resfs/file/contrib/python/toml/toml/encoder.pyi" "_ac3a6a645380fc44a7553312f6=resfs/file/contrib/python/toml/toml/encoder.pyi" "_a0f77c2b93edaef0149f298e17=resfs/src/resfs/file/contrib/python/toml/toml/ordered.pyi" "_e692b78b232fbecb142e9d05c0=resfs/file/contrib/python/toml/toml/ordered.pyi" "_a9bfc9abb7dd8e434e15d524e6=resfs/src/resfs/file/contrib/python/toml/toml/tz.pyi" "_d05c08bf83e0e9b23a5ba122de=resfs/file/contrib/python/toml/toml/tz.pyi"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/tomli/7f3396a31375d343965394e04d.cpp" "_47f3927536acb5eb44988d7980=resfs/src/resfs/file/contrib/python/tomli/.dist-info/METADATA" "_f3d2d32819dccef932ec5a270e=resfs/file/contrib/python/tomli/.dist-info/METADATA" "_ad967a6b8cd4bc51eecf32b8e5=resfs/src/resfs/file/contrib/python/tomli/.dist-info/top_level.txt" "_b24c537a458a134c0981964b3c=resfs/file/contrib/python/tomli/.dist-info/top_level.txt" "_42bcfd9066d7faaf4a5c73a525=resfs/src/resfs/file/contrib/python/tomli/tomli/py.typed" "_64d00bcf7120904b03784c8139=resfs/file/contrib/python/tomli/tomli/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
+cd /d $(SolutionDir)$(Configuration)\contrib\python\tomli
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/7a05c1409d2f6a1f40c7b01a63.cpp" "_db3e4aaa4d8b18b7e1101ec9fb=py/namespace/350e38703087450ad667fde40e299808/contrib/python/toml"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/tomli/f9238fb7c456c55cd9438946ae.cpp" "_7765b1cef986b64c7950e9297c=resfs/src/resfs/file/py/tomli/__init__.py" "_38151e92416dee342c21b9e236=resfs/file/py/tomli/__init__.py" "_ca07e2dc6c04fd296f772de2ab=resfs/src/resfs/file/py/tomli/__init__.py.yapyc3" "_01ae21ad92d2433a430e6c8dca=resfs/file/py/tomli/__init__.py.yapyc3" "_3258edbdf5e01e7de2e6b368fb=resfs/src/resfs/file/py/tomli/_parser.py" "_b0e8798291c0adfb2e08abe0e8=resfs/file/py/tomli/_parser.py" "_0395a0521a706ed92944d9a475=resfs/src/resfs/file/py/tomli/_parser.py.yapyc3" "_fe653909ee657a5811ddba83e7=resfs/file/py/tomli/_parser.py.yapyc3" "_ff3564366e028e147997f3ad18=resfs/src/resfs/file/py/tomli/_re.py" "_6aeeff57f67b7743930f9f4e57=resfs/file/py/tomli/_re.py" "_51e410ed8581972631ec79a419=resfs/src/resfs/file/py/tomli/_re.py.yapyc3" "_0de602d056e88cf2dfdcae13c5=resfs/file/py/tomli/_re.py.yapyc3" "_c2fbd22a9680db06865650f179=resfs/src/resfs/file/py/tomli/_types.py" "_bbae09c98818992ec2a46f84d4=resfs/file/py/tomli/_types.py" "_60120b5f3f1901d61748deb197=resfs/src/resfs/file/py/tomli/_types.py.yapyc3" "_40ba97d383ddd67cece42c4c1a=resfs/file/py/tomli/_types.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/toml/2cf0c7652c87736f371d12ff02.cpp	$B/contrib/python/toml/57d10fa65178e58bc1657c7b5a.cpp	$B/contrib/python/toml/7a05c1409d2f6a1f40c7b01a63.cpp	</Message>
+      <Message>$B/contrib/python/tomli/22d885c2412d1b8edfb9642e4c.cpp	$B/contrib/python/tomli/7f3396a31375d343965394e04d.cpp	$B/contrib/python/tomli/f9238fb7c456c55cd9438946ae.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\2cf0c7652c87736f371d12ff02.cpp;$(SolutionDir)$(Configuration)\contrib\python\toml\57d10fa65178e58bc1657c7b5a.cpp;$(SolutionDir)$(Configuration)\contrib\python\toml\7a05c1409d2f6a1f40c7b01a63.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tomli\22d885c2412d1b8edfb9642e4c.cpp;$(SolutionDir)$(Configuration)\contrib\python\tomli\7f3396a31375d343965394e04d.cpp;$(SolutionDir)$(Configuration)\contrib\python\tomli\f9238fb7c456c55cd9438946ae.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

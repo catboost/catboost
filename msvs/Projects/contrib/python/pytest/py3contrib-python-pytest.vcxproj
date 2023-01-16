@@ -165,8 +165,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\py3\pypython-pytest-py3.vcxproj">
       <Project>{485E0231-8B3A-5964-A8BA-D3CB456E69BD}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\toml\py3contrib-python-toml.vcxproj">
-      <Project>{8385DDE2-4ADD-BCFC-9D2D-EE9978D8D792}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tomli\pycontrib-python-tomli.vcxproj">
+      <Project>{BE272238-D287-002A-62FD-C916BC09F948}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
