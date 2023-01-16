@@ -1,16 +1,11 @@
-# -*- coding: utf-8 -*-
 """ interactive debugging with PDB, the Python Debugger. """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-import os
 import argparse
-import pdb
+import functools
+import os
 import sys
-from doctest import UnexpectedException
 
 from _pytest import outcomes
+from _pytest.config import ConftestImportFailure
 from _pytest.config import hookimpl
 from _pytest.config.exceptions import UsageError
 
@@ -87,6 +82,8 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    import pdb
+
     if config.getvalue("trace"):
         config.pluginmanager.register(PdbTrace(), "pdbtrace")
     if config.getvalue("usepdb"):
@@ -111,12 +108,12 @@ def pytest_configure(config):
     config._cleanup.append(fin)
 
 
-class pytestPDB(object):
+class pytestPDB:
     """ Pseudo PDB that defers to the real pdb. """
 
     _pluginmanager = None
     _config = None
-    _saved = []
+    _saved = []  # type: list
     _recursive_debug = 0
     _wrapped_pdb_cls = None
 
@@ -129,6 +126,8 @@ class pytestPDB(object):
     @classmethod
     def _import_pdb_cls(cls, capman):
         if not cls._config:
+            import pdb
+
             # Happens when using pytest.set_trace outside of a test.
             return pdb.Pdb
 
@@ -155,6 +154,8 @@ class pytestPDB(object):
                     "--pdbcls: could not import {!r}: {}".format(value, exc)
                 )
         else:
+            import pdb
+
             pdb_cls = pdb.Pdb
 
         wrapped_cls = cls._get_pdb_wrapper_class(pdb_cls, capman)
@@ -165,18 +166,18 @@ class pytestPDB(object):
     def _get_pdb_wrapper_class(cls, pdb_cls, capman):
         import _pytest.config
 
-        class PytestPdbWrapper(pdb_cls, object):
+        class PytestPdbWrapper(pdb_cls):
             _pytest_capman = capman
             _continued = False
 
             def do_debug(self, arg):
                 cls._recursive_debug += 1
-                ret = super(PytestPdbWrapper, self).do_debug(arg)
+                ret = super().do_debug(arg)
                 cls._recursive_debug -= 1
                 return ret
 
             def do_continue(self, arg):
-                ret = super(PytestPdbWrapper, self).do_continue(arg)
+                ret = super().do_continue(arg)
                 if cls._recursive_debug == 0:
                     tw = _pytest.config.create_terminal_writer(cls._config)
                     tw.line()
@@ -208,7 +209,7 @@ class pytestPDB(object):
                 could be handled, but this would require to wrap the
                 whole pytest run, and adjust the report etc.
                 """
-                ret = super(PytestPdbWrapper, self).do_quit(arg)
+                ret = super().do_quit(arg)
 
                 if cls._recursive_debug == 0:
                     outcomes.exit("Quitting debugger")
@@ -224,7 +225,7 @@ class pytestPDB(object):
                 Needed after do_continue resumed, and entering another
                 breakpoint again.
                 """
-                ret = super(PytestPdbWrapper, self).setup(f, tb)
+                ret = super().setup(f, tb)
                 if not ret and self._continued:
                     # pdb.setup() returns True if the command wants to exit
                     # from the interaction: do not suspend capturing then.
@@ -233,7 +234,7 @@ class pytestPDB(object):
                 return ret
 
             def get_stack(self, f, t):
-                stack, i = super(PytestPdbWrapper, self).get_stack(f, t)
+                stack, i = super().get_stack(f, t)
                 if f is None:
                     # Find last non-hidden frame.
                     i = max(0, len(stack) - 1)
@@ -267,7 +268,7 @@ class pytestPDB(object):
                 else:
                     capturing = cls._is_capturing(capman)
                     if capturing == "global":
-                        tw.sep(">", "PDB %s (IO-capturing turned off)" % (method,))
+                        tw.sep(">", "PDB {} (IO-capturing turned off)".format(method))
                     elif capturing:
                         tw.sep(
                             ">",
@@ -275,7 +276,7 @@ class pytestPDB(object):
                             % (method, capturing),
                         )
                     else:
-                        tw.sep(">", "PDB %s" % (method,))
+                        tw.sep(">", "PDB {}".format(method))
 
         _pdb = cls._import_pdb_cls(capman)(**kwargs)
 
@@ -292,7 +293,7 @@ class pytestPDB(object):
         _pdb.set_trace(frame)
 
 
-class PdbInvoke(object):
+class PdbInvoke:
     def pytest_exception_interact(self, node, call, report):
         capman = node.config.pluginmanager.getplugin("capturemanager")
         if capman:
@@ -308,23 +309,37 @@ class PdbInvoke(object):
         post_mortem(tb)
 
 
-class PdbTrace(object):
+class PdbTrace:
     @hookimpl(hookwrapper=True)
     def pytest_pyfunc_call(self, pyfuncitem):
-        _test_pytest_function(pyfuncitem)
+        wrap_pytest_function_for_tracing(pyfuncitem)
         yield
 
 
-def _test_pytest_function(pyfuncitem):
+def wrap_pytest_function_for_tracing(pyfuncitem):
+    """Changes the python function object of the given Function item by a wrapper which actually
+    enters pdb before calling the python function itself, effectively leaving the user
+    in the pdb prompt in the first statement of the function.
+    """
     _pdb = pytestPDB._init_pdb("runcall")
     testfunction = pyfuncitem.obj
-    pyfuncitem.obj = _pdb.runcall
-    if "func" in pyfuncitem._fixtureinfo.argnames:  # pragma: no branch
-        raise ValueError("--trace can't be used with a fixture named func!")
-    pyfuncitem.funcargs["func"] = testfunction
-    new_list = list(pyfuncitem._fixtureinfo.argnames)
-    new_list.append("func")
-    pyfuncitem._fixtureinfo.argnames = tuple(new_list)
+
+    # we can't just return `partial(pdb.runcall, testfunction)` because (on
+    # python < 3.7.4) runcall's first param is `func`, which means we'd get
+    # an exception if one of the kwargs to testfunction was called `func`
+    @functools.wraps(testfunction)
+    def wrapper(*args, **kwargs):
+        func = functools.partial(testfunction, *args, **kwargs)
+        _pdb.runcall(func)
+
+    pyfuncitem.obj = wrapper
+
+
+def maybe_wrap_pytest_function_for_tracing(pyfuncitem):
+    """Wrap the given pytestfunct item for tracing support if --trace was given in
+    the command line"""
+    if pyfuncitem.config.getvalue("trace"):
+        wrap_pytest_function_for_tracing(pyfuncitem)
 
 
 def _enter_pdb(node, excinfo, rep):
@@ -357,10 +372,16 @@ def _enter_pdb(node, excinfo, rep):
 
 
 def _postmortem_traceback(excinfo):
+    from doctest import UnexpectedException
+
     if isinstance(excinfo.value, UnexpectedException):
         # A doctest.UnexpectedException is not useful for post_mortem.
         # Use the underlying exception instead:
         return excinfo.value.exc_info[2]
+    elif isinstance(excinfo.value, ConftestImportFailure):
+        # A config.ConftestImportFailure is not useful for post_mortem.
+        # Use the underlying exception instead:
+        return excinfo.value.excinfo[2]
     else:
         return excinfo._excinfo[2]
 

@@ -1,18 +1,21 @@
-# -*- coding: utf-8 -*-
 """
 support for presenting detailed information in failing assertions.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import sys
-
-import six
+from typing import Any
+from typing import List
+from typing import Optional
 
 from _pytest.assertion import rewrite
 from _pytest.assertion import truncate
 from _pytest.assertion import util
+from _pytest.assertion.rewrite import assertstate_key
+from _pytest.compat import TYPE_CHECKING
+from _pytest.config import Config
+from _pytest.config import hookimpl
+
+if TYPE_CHECKING:
+    from _pytest.main import Session
 
 
 def pytest_addoption(parser):
@@ -30,9 +33,16 @@ def pytest_addoption(parser):
                             test modules on import to provide assert
                             expression information.""",
     )
+    parser.addini(
+        "enable_assertion_pass_hook",
+        type="bool",
+        default=False,
+        help="Enables the pytest_assertion_pass hook."
+        "Make sure to delete any previously generated pyc cache files.",
+    )
 
 
-def register_assert_rewrite(*names):
+def register_assert_rewrite(*names) -> None:
     """Register one or more module names to be rewritten on import.
 
     This function will make sure that this module or all modules inside
@@ -52,39 +62,37 @@ def register_assert_rewrite(*names):
             importhook = hook
             break
     else:
-        importhook = DummyRewriteHook()
+        # TODO(typing): Add a protocol for mark_rewrite() and use it
+        # for importhook and for PytestPluginManager.rewrite_hook.
+        importhook = DummyRewriteHook()  # type: ignore
     importhook.mark_rewrite(*names)
 
 
-class DummyRewriteHook(object):
+class DummyRewriteHook:
     """A no-op import hook for when rewriting is disabled."""
 
     def mark_rewrite(self, *names):
         pass
 
 
-class AssertionState(object):
+class AssertionState:
     """State for the assertion plugin."""
 
     def __init__(self, config, mode):
         self.mode = mode
         self.trace = config.trace.root.get("assertion")
-        self.hook = None
+        self.hook = None  # type: Optional[rewrite.AssertionRewritingHook]
 
 
 def install_importhook(config):
     """Try to install the rewrite hook, raise SystemError if it fails."""
-    # Jython has an AST bug that make the assertion rewriting hook malfunction.
-    if sys.platform.startswith("java"):
-        raise SystemError("rewrite not supported")
-
-    config._assertstate = AssertionState(config, "rewrite")
-    config._assertstate.hook = hook = rewrite.AssertionRewritingHook(config)
+    config._store[assertstate_key] = AssertionState(config, "rewrite")
+    config._store[assertstate_key].hook = hook = rewrite.AssertionRewritingHook(config)
     sys.meta_path.insert(0, hook)
-    config._assertstate.trace("installed rewrite import hook")
+    config._store[assertstate_key].trace("installed rewrite import hook")
 
     def undo():
-        hook = config._assertstate.hook
+        hook = config._store[assertstate_key].hook
         if hook is not None and hook in sys.meta_path:
             sys.meta_path.remove(hook)
 
@@ -92,18 +100,19 @@ def install_importhook(config):
     return hook
 
 
-def pytest_collection(session):
+def pytest_collection(session: "Session") -> None:
     # this hook is only called when test modules are collected
     # so for example not in the master process of pytest-xdist
     # (which does not collect test modules)
-    assertstate = getattr(session.config, "_assertstate", None)
+    assertstate = session.config._store.get(assertstate_key, None)
     if assertstate:
         if assertstate.hook is not None:
             assertstate.hook.set_session(session)
 
 
-def pytest_runtest_setup(item):
-    """Setup the pytest_assertrepr_compare hook
+@hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_protocol(item):
+    """Setup the pytest_assertrepr_compare and pytest_assertion_pass hooks
 
     The newinterpret and rewrite modules will use util._reprcompare if
     it exists to use custom reporting via the
@@ -112,6 +121,7 @@ def pytest_runtest_setup(item):
     """
 
     def callbinrepr(op, left, right):
+        # type: (str, object, object) -> Optional[str]
         """Call the pytest_assertrepr_compare hook and prepare the result
 
         This uses the first result from the hook and then ensures the
@@ -133,24 +143,37 @@ def pytest_runtest_setup(item):
             if new_expl:
                 new_expl = truncate.truncate_if_required(new_expl, item)
                 new_expl = [line.replace("\n", "\\n") for line in new_expl]
-                res = six.text_type("\n~").join(new_expl)
+                res = "\n~".join(new_expl)
                 if item.config.getvalue("assertmode") == "rewrite":
                     res = res.replace("%", "%%")
                 return res
+        return None
 
+    saved_assert_hooks = util._reprcompare, util._assertion_pass
     util._reprcompare = callbinrepr
 
+    if item.ihook.pytest_assertion_pass.get_hookimpls():
 
-def pytest_runtest_teardown(item):
-    util._reprcompare = None
+        def call_assertion_pass_hook(lineno, orig, expl):
+            item.ihook.pytest_assertion_pass(
+                item=item, lineno=lineno, orig=orig, expl=expl
+            )
+
+        util._assertion_pass = call_assertion_pass_hook
+
+    yield
+
+    util._reprcompare, util._assertion_pass = saved_assert_hooks
 
 
 def pytest_sessionfinish(session):
-    assertstate = getattr(session.config, "_assertstate", None)
+    assertstate = session.config._store.get(assertstate_key, None)
     if assertstate:
         if assertstate.hook is not None:
             assertstate.hook.set_session(None)
 
 
-# Expose this plugin's implementation for the pytest_assertrepr_compare hook
-pytest_assertrepr_compare = util.assertrepr_compare
+def pytest_assertrepr_compare(
+    config: Config, op: str, left: Any, right: Any
+) -> Optional[List[str]]:
+    return util.assertrepr_compare(config=config, op=op, left=left, right=right)

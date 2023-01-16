@@ -1,18 +1,20 @@
-# -*- coding: utf-8 -*-
 """ Access and control log capturing. """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import logging
 import re
 from contextlib import contextmanager
-
-import py
-import six
+from io import StringIO
+from typing import AbstractSet
+from typing import Dict
+from typing import Generator
+from typing import List
+from typing import Mapping
+from typing import Optional
 
 import pytest
-from _pytest.compat import dummy_context_manager
+from _pytest import nodes
+from _pytest.compat import nullcontext
+from _pytest.config import _strtobool
+from _pytest.config import Config
 from _pytest.config import create_terminal_writer
 from _pytest.pathlib import Path
 
@@ -38,17 +40,15 @@ class ColoredLevelFormatter(logging.Formatter):
         logging.INFO: {"green"},
         logging.DEBUG: {"purple"},
         logging.NOTSET: set(),
-    }
-    LEVELNAME_FMT_REGEX = re.compile(r"%\(levelname\)([+-]?\d*s)")
+    }  # type: Mapping[int, AbstractSet[str]]
+    LEVELNAME_FMT_REGEX = re.compile(r"%\(levelname\)([+-.]?\d*s)")
 
-    def __init__(self, terminalwriter, *args, **kwargs):
-        super(ColoredLevelFormatter, self).__init__(*args, **kwargs)
-        if six.PY2:
-            self._original_fmt = self._fmt
-        else:
-            self._original_fmt = self._style._fmt
-        self._level_to_fmt_mapping = {}
+    def __init__(self, terminalwriter, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._original_fmt = self._style._fmt
+        self._level_to_fmt_mapping = {}  # type: Dict[int, str]
 
+        assert self._fmt is not None
         levelname_fmt_match = self.LEVELNAME_FMT_REGEX.search(self._fmt)
         if not levelname_fmt_match:
             return
@@ -70,41 +70,98 @@ class ColoredLevelFormatter(logging.Formatter):
 
     def format(self, record):
         fmt = self._level_to_fmt_mapping.get(record.levelno, self._original_fmt)
-        if six.PY2:
-            self._fmt = fmt
-        else:
-            self._style._fmt = fmt
-        return super(ColoredLevelFormatter, self).format(record)
+        self._style._fmt = fmt
+        return super().format(record)
 
 
-if not six.PY2:
-    # Formatter classes don't support format styles in PY2
+class PercentStyleMultiline(logging.PercentStyle):
+    """A logging style with special support for multiline messages.
 
-    class PercentStyleMultiline(logging.PercentStyle):
-        """A logging style with special support for multiline messages.
+    If the message of a record consists of multiple lines, this style
+    formats the message as if each line were logged separately.
+    """
 
-        If the message of a record consists of multiple lines, this style
-        formats the message as if each line were logged separately.
+    def __init__(self, fmt, auto_indent):
+        super().__init__(fmt)
+        self._auto_indent = self._get_auto_indent(auto_indent)
+
+    @staticmethod
+    def _update_message(record_dict, message):
+        tmp = record_dict.copy()
+        tmp["message"] = message
+        return tmp
+
+    @staticmethod
+    def _get_auto_indent(auto_indent_option) -> int:
+        """Determines the current auto indentation setting
+
+        Specify auto indent behavior (on/off/fixed) by passing in
+        extra={"auto_indent": [value]} to the call to logging.log() or
+        using a --log-auto-indent [value] command line or the
+        log_auto_indent [value] config option.
+
+        Default behavior is auto-indent off.
+
+        Using the string "True" or "on" or the boolean True as the value
+        turns auto indent on, using the string "False" or "off" or the
+        boolean False or the int 0 turns it off, and specifying a
+        positive integer fixes the indentation position to the value
+        specified.
+
+        Any other values for the option are invalid, and will silently be
+        converted to the default.
+
+        :param any auto_indent_option: User specified option for indentation
+            from command line, config or extra kwarg. Accepts int, bool or str.
+            str option accepts the same range of values as boolean config options,
+            as well as positive integers represented in str form.
+
+        :returns: indentation value, which can be
+            -1 (automatically determine indentation) or
+            0 (auto-indent turned off) or
+            >0 (explicitly set indentation position).
         """
 
-        @staticmethod
-        def _update_message(record_dict, message):
-            tmp = record_dict.copy()
-            tmp["message"] = message
-            return tmp
+        if type(auto_indent_option) is int:
+            return int(auto_indent_option)
+        elif type(auto_indent_option) is str:
+            try:
+                return int(auto_indent_option)
+            except ValueError:
+                pass
+            try:
+                if _strtobool(auto_indent_option):
+                    return -1
+            except ValueError:
+                return 0
+        elif type(auto_indent_option) is bool:
+            if auto_indent_option:
+                return -1
 
-        def format(self, record):
-            if "\n" in record.message:
+        return 0
+
+    def format(self, record):
+        if "\n" in record.message:
+            if hasattr(record, "auto_indent"):
+                # passed in from the "extra={}" kwarg on the call to logging.log()
+                auto_indent = self._get_auto_indent(record.auto_indent)
+            else:
+                auto_indent = self._auto_indent
+
+            if auto_indent:
                 lines = record.message.splitlines()
                 formatted = self._fmt % self._update_message(record.__dict__, lines[0])
-                # TODO optimize this by introducing an option that tells the
-                # logging framework that the indentation doesn't
-                # change. This allows to compute the indentation only once.
-                indentation = _remove_ansi_escape_sequences(formatted).find(lines[0])
+
+                if auto_indent < 0:
+                    indentation = _remove_ansi_escape_sequences(formatted).find(
+                        lines[0]
+                    )
+                else:
+                    # optimizes logging by allowing a fixed indentation
+                    indentation = auto_indent
                 lines[0] = formatted
                 return ("\n" + " " * indentation).join(lines)
-            else:
-                return self._fmt % record.__dict__
+        return self._fmt % record.__dict__
 
 
 def get_option_ini(config, *names):
@@ -139,7 +196,12 @@ def pytest_addoption(parser):
         "--log-level",
         dest="log_level",
         default=None,
-        help="logging level used by the logging module",
+        metavar="LEVEL",
+        help=(
+            "level of messages to catch/display.\n"
+            "Not set by default, so it depends on the root/parent log handler's"
+            ' effective level, where it is "WARNING" by default.'
+        ),
     )
     add_option_ini(
         "--log-format",
@@ -198,6 +260,12 @@ def pytest_addoption(parser):
         default=DEFAULT_LOG_DATE_FORMAT,
         help="log date format as used by the logging module.",
     )
+    add_option_ini(
+        "--log-auto-indent",
+        dest="log_auto_indent",
+        default=None,
+        help="Auto-indent multiline messages passed to the logging module. Accepts true|on, false|off or an integer.",
+    )
 
 
 @contextmanager
@@ -231,31 +299,31 @@ def catching_logs(handler, formatter=None, level=None):
 class LogCaptureHandler(logging.StreamHandler):
     """A logging handler that stores log records and the log text."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new log handler."""
-        logging.StreamHandler.__init__(self, py.io.TextIO())
-        self.records = []
+        logging.StreamHandler.__init__(self, StringIO())
+        self.records = []  # type: List[logging.LogRecord]
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         """Keep the log records in a list in addition to the log text."""
         self.records.append(record)
         logging.StreamHandler.emit(self, record)
 
-    def reset(self):
+    def reset(self) -> None:
         self.records = []
-        self.stream = py.io.TextIO()
+        self.stream = StringIO()
 
 
-class LogCaptureFixture(object):
+class LogCaptureFixture:
     """Provides access and control of log capturing."""
 
-    def __init__(self, item):
+    def __init__(self, item) -> None:
         """Creates a new funcarg."""
         self._item = item
         # dict of log name -> log level
-        self._initial_log_levels = {}  # Dict[str, int]
+        self._initial_log_levels = {}  # type: Dict[str, int]
 
-    def _finalize(self):
+    def _finalize(self) -> None:
         """Finalizes the fixture.
 
         This restores the log levels changed by :meth:`set_level`.
@@ -266,13 +334,13 @@ class LogCaptureFixture(object):
             logger.setLevel(level)
 
     @property
-    def handler(self):
+    def handler(self) -> LogCaptureHandler:
         """
         :rtype: LogCaptureHandler
         """
-        return self._item.catch_log_handler
+        return self._item.catch_log_handler  # type: ignore[no-any-return]  # noqa: F723
 
-    def get_records(self, when):
+    def get_records(self, when: str) -> List[logging.LogRecord]:
         """
         Get the logging records for one of the possible test phases.
 
@@ -286,7 +354,7 @@ class LogCaptureFixture(object):
         """
         handler = self._item.catch_log_handlers.get(when)
         if handler:
-            return handler.records
+            return handler.records  # type: ignore[no-any-return]  # noqa: F723
         else:
             return []
 
@@ -371,6 +439,7 @@ def caplog(request):
 
     Captured logs are available through the following properties/methods::
 
+    * caplog.messages        -> list of format-interpolated log messages
     * caplog.text            -> string containing formatted log output
     * caplog.records         -> list of logging.LogRecord instances
     * caplog.record_tuples   -> list of (logger_name, level, message) tuples
@@ -381,9 +450,7 @@ def caplog(request):
     result._finalize()
 
 
-def get_actual_log_level(config, *setting_names):
-    """Return the actual logging level."""
-
+def get_log_level_for_setting(config: Config, *setting_names: str) -> Optional[int]:
     for setting_name in setting_names:
         log_level = config.getoption(setting_name)
         if log_level is None:
@@ -391,9 +458,9 @@ def get_actual_log_level(config, *setting_names):
         if log_level:
             break
     else:
-        return
+        return None
 
-    if isinstance(log_level, six.string_types):
+    if isinstance(log_level, str):
         log_level = log_level.upper()
     try:
         return int(getattr(logging, log_level, log_level))
@@ -412,11 +479,11 @@ def pytest_configure(config):
     config.pluginmanager.register(LoggingPlugin(config), "logging-plugin")
 
 
-class LoggingPlugin(object):
+class LoggingPlugin:
     """Attaches to the logging module and captures log messages for each test.
     """
 
-    def __init__(self, config):
+    def __init__(self, config: Config) -> None:
         """Creates a new plugin to capture log messages.
 
         The formatter can be safely shared across all handlers so
@@ -425,13 +492,20 @@ class LoggingPlugin(object):
         self._config = config
 
         self.print_logs = get_option_ini(config, "log_print")
+        if not self.print_logs:
+            from _pytest.warnings import _issue_warning_captured
+            from _pytest.deprecated import NO_PRINT_LOGS
+
+            _issue_warning_captured(NO_PRINT_LOGS, self._config.hook, stacklevel=2)
+
         self.formatter = self._create_formatter(
             get_option_ini(config, "log_format"),
             get_option_ini(config, "log_date_format"),
+            get_option_ini(config, "log_auto_indent"),
         )
-        self.log_level = get_actual_log_level(config, "log_level")
+        self.log_level = get_log_level_for_setting(config, "log_level")
 
-        self.log_file_level = get_actual_log_level(config, "log_file_level")
+        self.log_file_level = get_log_level_for_setting(config, "log_file_level")
         self.log_file_format = get_option_ini(config, "log_file_format", "log_format")
         self.log_file_date_format = get_option_ini(
             config, "log_file_date_format", "log_date_format"
@@ -444,14 +518,14 @@ class LoggingPlugin(object):
         if log_file:
             self.log_file_handler = logging.FileHandler(
                 log_file, mode="w", encoding="UTF-8"
-            )
+            )  # type: Optional[logging.FileHandler]
             self.log_file_handler.setFormatter(self.log_file_formatter)
         else:
             self.log_file_handler = None
 
         self.log_cli_handler = None
 
-        self.live_logs_context = lambda: dummy_context_manager()
+        self.live_logs_context = lambda: nullcontext()
         # Note that the lambda for the live_logs_context is needed because
         # live_logs_context can otherwise not be entered multiple times due
         # to limitations of contextlib.contextmanager.
@@ -459,7 +533,7 @@ class LoggingPlugin(object):
         if self._log_cli_enabled():
             self._setup_cli_logging()
 
-    def _create_formatter(self, log_format, log_date_format):
+    def _create_formatter(self, log_format, log_date_format, auto_indent):
         # color option doesn't exist if terminal plugin is disabled
         color = getattr(self._config.option, "color", "no")
         if color != "no" and ColoredLevelFormatter.LEVELNAME_FMT_REGEX.search(
@@ -467,12 +541,14 @@ class LoggingPlugin(object):
         ):
             formatter = ColoredLevelFormatter(
                 create_terminal_writer(self._config), log_format, log_date_format
-            )
+            )  # type: logging.Formatter
         else:
             formatter = logging.Formatter(log_format, log_date_format)
 
-        if not six.PY2:
-            formatter._style = PercentStyleMultiline(formatter._style._fmt)
+        formatter._style = PercentStyleMultiline(
+            formatter._style._fmt, auto_indent=auto_indent
+        )
+
         return formatter
 
     def _setup_cli_logging(self):
@@ -489,9 +565,10 @@ class LoggingPlugin(object):
         log_cli_formatter = self._create_formatter(
             get_option_ini(config, "log_cli_format", "log_format"),
             get_option_ini(config, "log_cli_date_format", "log_date_format"),
+            get_option_ini(config, "log_auto_indent"),
         )
 
-        log_cli_level = get_actual_log_level(config, "log_cli_level", "log_level")
+        log_cli_level = get_log_level_for_setting(config, "log_cli_level", "log_level")
         self.log_cli_handler = log_cli_handler
         self.live_logs_context = lambda: catching_logs(
             log_cli_handler, formatter=log_cli_formatter, level=log_cli_level
@@ -527,7 +604,7 @@ class LoggingPlugin(object):
         ) is not None or self._config.getini("log_cli")
 
     @pytest.hookimpl(hookwrapper=True, tryfirst=True)
-    def pytest_collection(self):
+    def pytest_collection(self) -> Generator[None, None, None]:
         with self.live_logs_context():
             if self.log_cli_handler:
                 self.log_cli_handler.set_when("collection")
@@ -548,7 +625,9 @@ class LoggingPlugin(object):
                 yield
 
     @contextmanager
-    def _runtest_for_main(self, item, when):
+    def _runtest_for_main(
+        self, item: nodes.Item, when: str
+    ) -> Generator[None, None, None]:
         """Implements the internals of pytest_runtest_xxx() hook."""
         with catching_logs(
             LogCaptureHandler(), formatter=self.formatter, level=self.log_level
@@ -561,15 +640,15 @@ class LoggingPlugin(object):
                 return
 
             if not hasattr(item, "catch_log_handlers"):
-                item.catch_log_handlers = {}
-            item.catch_log_handlers[when] = log_handler
-            item.catch_log_handler = log_handler
+                item.catch_log_handlers = {}  # type: ignore[attr-defined]  # noqa: F821
+            item.catch_log_handlers[when] = log_handler  # type: ignore[attr-defined]  # noqa: F821
+            item.catch_log_handler = log_handler  # type: ignore[attr-defined]  # noqa: F821
             try:
                 yield  # run test
             finally:
                 if when == "teardown":
-                    del item.catch_log_handler
-                    del item.catch_log_handlers
+                    del item.catch_log_handler  # type: ignore[attr-defined]  # noqa: F821
+                    del item.catch_log_handlers  # type: ignore[attr-defined]  # noqa: F821
 
             if self.print_logs:
                 # Add a captured log section to the report.
@@ -692,7 +771,7 @@ class _LiveLoggingStreamHandler(logging.StreamHandler):
         ctx_manager = (
             self.capture_manager.global_and_fixture_disabled()
             if self.capture_manager
-            else dummy_context_manager()
+            else nullcontext()
         )
         with ctx_manager:
             if not self._first_record_emitted:

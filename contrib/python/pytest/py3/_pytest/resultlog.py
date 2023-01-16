@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 """ log machine-parseable test session result information in a plain
 text file.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
 
 import py
+
+from _pytest.store import StoreKey
+
+
+resultlog_key = StoreKey["ResultLog"]()
 
 
 def pytest_addoption(parser):
@@ -31,8 +31,8 @@ def pytest_configure(config):
         if not os.path.isdir(dirname):
             os.makedirs(dirname)
         logfile = open(resultlog, "w", 1)  # line buffered
-        config._resultlog = ResultLog(config, logfile)
-        config.pluginmanager.register(config._resultlog)
+        config._store[resultlog_key] = ResultLog(config, logfile)
+        config.pluginmanager.register(config._store[resultlog_key])
 
         from _pytest.deprecated import RESULT_LOG
         from _pytest.warnings import _issue_warning_captured
@@ -41,20 +41,20 @@ def pytest_configure(config):
 
 
 def pytest_unconfigure(config):
-    resultlog = getattr(config, "_resultlog", None)
+    resultlog = config._store.get(resultlog_key, None)
     if resultlog:
         resultlog.logfile.close()
-        del config._resultlog
+        del config._store[resultlog_key]
         config.pluginmanager.unregister(resultlog)
 
 
-class ResultLog(object):
+class ResultLog:
     def __init__(self, config, logfile):
         self.config = config
         self.logfile = logfile  # preferably line buffered
 
     def write_log_entry(self, testpath, lettercode, longrepr):
-        print("%s %s" % (lettercode, testpath), file=self.logfile)
+        print("{} {}".format(lettercode, testpath), file=self.logfile)
         for line in longrepr.splitlines():
             print(" %s" % line, file=self.logfile)
 
@@ -77,10 +77,10 @@ class ResultLog(object):
             longrepr = ""
         elif report.passed:
             longrepr = ""
-        elif report.failed:
-            longrepr = str(report.longrepr)
         elif report.skipped:
             longrepr = str(report.longrepr[2])
+        else:
+            longrepr = str(report.longrepr)
         self.log_outcome(report, code, longrepr)
 
     def pytest_collectreport(self, report):

@@ -1,16 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import sys
 import warnings
 from contextlib import contextmanager
+from typing import Generator
 
 import pytest
-from _pytest import compat
-
-SHOW_PYTEST_WARNINGS_ARG = "-Walways::pytest.RemovedInPytest4Warning"
+from _pytest.main import Session
 
 
 def _setoption(wmod, arg):
@@ -19,7 +13,7 @@ def _setoption(wmod, arg):
     """
     parts = arg.split(":")
     if len(parts) > 5:
-        raise wmod._OptionError("too many fields (max 5): %r" % (arg,))
+        raise wmod._OptionError("too many fields (max 5): {!r}".format(arg))
     while len(parts) < 5:
         parts.append("")
     action, message, category, module, lineno = [s.strip() for s in parts]
@@ -31,7 +25,7 @@ def _setoption(wmod, arg):
             if lineno < 0:
                 raise ValueError
         except (ValueError, OverflowError):
-            raise wmod._OptionError("invalid lineno %r" % (lineno,))
+            raise wmod._OptionError("invalid lineno {!r}".format(lineno))
     else:
         lineno = 0
     wmod.filterwarnings(action, message, category, module, lineno)
@@ -50,7 +44,7 @@ def pytest_addoption(parser):
         type="linelist",
         help="Each line specifies a pattern for "
         "warnings.filterwarnings. "
-        "Processed after -W and --pythonwarnings.",
+        "Processed after -W/--pythonwarnings.",
     )
 
 
@@ -74,13 +68,13 @@ def catch_warnings_for_item(config, ihook, when, item):
     cmdline_filters = config.getoption("pythonwarnings") or []
     inifilters = config.getini("filterwarnings")
     with warnings.catch_warnings(record=True) as log:
+        # mypy can't infer that record=True means log is not None; help it.
+        assert log is not None
 
         if not sys.warnoptions:
             # if user is not explicitly configuring warning filters, show deprecation warnings by default (#2908)
             warnings.filterwarnings("always", category=DeprecationWarning)
             warnings.filterwarnings("always", category=PendingDeprecationWarning)
-
-        warnings.filterwarnings("error", category=pytest.RemovedInPytest4Warning)
 
         # filters should have this precedence: mark, cmdline options, ini
         # filters should be applied in the inverse order of precedence
@@ -104,22 +98,8 @@ def catch_warnings_for_item(config, ihook, when, item):
 
 
 def warning_record_to_str(warning_message):
-    """Convert a warnings.WarningMessage to a string.
-
-    This takes lot of unicode shenaningans into account for Python 2.
-    When Python 2 support is dropped this function can be greatly simplified.
-    """
+    """Convert a warnings.WarningMessage to a string."""
     warn_msg = warning_message.message
-    unicode_warning = False
-    if compat._PY2 and any(isinstance(m, compat.UNICODE_TYPES) for m in warn_msg.args):
-        new_args = []
-        for m in warn_msg.args:
-            new_args.append(
-                compat.ascii_escaped(m) if isinstance(m, compat.UNICODE_TYPES) else m
-            )
-        unicode_warning = list(warn_msg.args) != new_args
-        warn_msg.args = new_args
-
     msg = warnings.formatwarning(
         warn_msg,
         warning_message.category,
@@ -127,12 +107,6 @@ def warning_record_to_str(warning_message):
         warning_message.lineno,
         warning_message.line,
     )
-    if unicode_warning:
-        warnings.warn(
-            "Warning is using unicode non convertible to ascii, "
-            "converting to a safe representation:\n  {!r}".format(compat.safe_str(msg)),
-            UnicodeWarning,
-        )
     return msg
 
 
@@ -145,7 +119,7 @@ def pytest_runtest_protocol(item):
 
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
-def pytest_collection(session):
+def pytest_collection(session: Session) -> Generator[None, None, None]:
     config = session.config
     with catch_warnings_for_item(
         config=config, ihook=config.hook, when="collect", item=None
@@ -162,11 +136,20 @@ def pytest_terminal_summary(terminalreporter):
         yield
 
 
+@pytest.hookimpl(hookwrapper=True)
+def pytest_sessionfinish(session):
+    config = session.config
+    with catch_warnings_for_item(
+        config=config, ihook=config.hook, when="config", item=None
+    ):
+        yield
+
+
 def _issue_warning_captured(warning, hook, stacklevel):
     """
     This function should be used instead of calling ``warnings.warn`` directly when we are in the "configure" stage:
     at this point the actual options might not have been set, so we manually trigger the pytest_warning_captured
-    hook so we can display this warnings in the terminal. This is a hack until we can sort out #2891.
+    hook so we can display these warnings in the terminal. This is a hack until we can sort out #2891.
 
     :param warning: the warning instance.
     :param hook: the hook caller
@@ -175,6 +158,12 @@ def _issue_warning_captured(warning, hook, stacklevel):
     with warnings.catch_warnings(record=True) as records:
         warnings.simplefilter("always", type(warning))
         warnings.warn(warning, stacklevel=stacklevel)
+    # Mypy can't infer that record=True means records is not None; help it.
+    assert records is not None
+    frame = sys._getframe(stacklevel - 1)
+    location = frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name
     hook.pytest_warning_captured.call_historic(
-        kwargs=dict(warning_message=records[0], when="config", item=None)
+        kwargs=dict(
+            warning_message=records[0], when="config", item=None, location=location
+        )
     )

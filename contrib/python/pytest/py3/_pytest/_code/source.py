@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import ast
 import inspect
 import linecache
@@ -10,31 +5,45 @@ import sys
 import textwrap
 import tokenize
 import warnings
-from ast import PyCF_ONLY_AST as _AST_FLAG
 from bisect import bisect_right
+from types import CodeType
+from types import FrameType
+from typing import Any
+from typing import Iterator
+from typing import List
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import Union
 
 import py
-import six
+
+from _pytest.compat import get_real_func
+from _pytest.compat import overload
+from _pytest.compat import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 
-class Source(object):
+class Source:
     """ an immutable object holding a source code fragment,
         possibly deindenting it.
     """
 
     _compilecounter = 0
 
-    def __init__(self, *parts, **kwargs):
-        self.lines = lines = []
+    def __init__(self, *parts, **kwargs) -> None:
+        self.lines = lines = []  # type: List[str]
         de = kwargs.get("deindent", True)
         for part in parts:
             if not part:
-                partlines = []
+                partlines = []  # type: List[str]
             elif isinstance(part, Source):
                 partlines = part.lines
             elif isinstance(part, (tuple, list)):
                 partlines = [x.rstrip("\n") for x in part]
-            elif isinstance(part, six.string_types):
+            elif isinstance(part, str):
                 partlines = part.split("\n")
             else:
                 partlines = getsource(part, deindent=de).lines
@@ -50,9 +59,18 @@ class Source(object):
                 return str(self) == other
             return False
 
-    __hash__ = None
+    # Ignore type because of https://github.com/python/mypy/issues/4266.
+    __hash__ = None  # type: ignore
 
-    def __getitem__(self, key):
+    @overload
+    def __getitem__(self, key: int) -> str:
+        raise NotImplementedError()
+
+    @overload  # noqa: F811
+    def __getitem__(self, key: slice) -> "Source":  # noqa: F811
+        raise NotImplementedError()
+
+    def __getitem__(self, key: Union[int, slice]) -> Union[str, "Source"]:  # noqa: F811
         if isinstance(key, int):
             return self.lines[key]
         else:
@@ -62,10 +80,13 @@ class Source(object):
             newsource.lines = self.lines[key.start : key.stop]
             return newsource
 
-    def __len__(self):
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.lines)
+
+    def __len__(self) -> int:
         return len(self.lines)
 
-    def strip(self):
+    def strip(self) -> "Source":
         """ return new source object with trailing
             and leading blank lines removed.
         """
@@ -78,18 +99,20 @@ class Source(object):
         source.lines[:] = self.lines[start:end]
         return source
 
-    def putaround(self, before="", after="", indent=" " * 4):
+    def putaround(
+        self, before: str = "", after: str = "", indent: str = " " * 4
+    ) -> "Source":
         """ return a copy of the source object with
             'before' and 'after' wrapped around it.
         """
-        before = Source(before)
-        after = Source(after)
+        beforesource = Source(before)
+        aftersource = Source(after)
         newsource = Source()
         lines = [(indent + line) for line in self.lines]
-        newsource.lines = before.lines + lines + after.lines
+        newsource.lines = beforesource.lines + lines + aftersource.lines
         return newsource
 
-    def indent(self, indent=" " * 4):
+    def indent(self, indent: str = " " * 4) -> "Source":
         """ return a copy of the source object with
             all lines indented by the given indent-string.
         """
@@ -97,14 +120,14 @@ class Source(object):
         newsource.lines = [(indent + line) for line in self.lines]
         return newsource
 
-    def getstatement(self, lineno):
+    def getstatement(self, lineno: int) -> "Source":
         """ return Source statement which contains the
             given linenumber (counted from 0).
         """
         start, end = self.getstatementrange(lineno)
         return self[start:end]
 
-    def getstatementrange(self, lineno):
+    def getstatementrange(self, lineno: int) -> Tuple[int, int]:
         """ return (start, end) tuple which spans the minimal
             statement region which containing the given lineno.
         """
@@ -113,13 +136,13 @@ class Source(object):
         ast, start, end = getstatementrange_ast(lineno, self)
         return start, end
 
-    def deindent(self):
+    def deindent(self) -> "Source":
         """return a new source object deindented."""
         newsource = Source()
         newsource.lines[:] = deindent(self.lines)
         return newsource
 
-    def isparseable(self, deindent=True):
+    def isparseable(self, deindent: bool = True) -> bool:
         """ return True if source is parseable, heuristically
             deindenting it by default.
         """
@@ -134,12 +157,39 @@ class Source(object):
         else:
             return True
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "\n".join(self.lines)
 
+    @overload
     def compile(
-        self, filename=None, mode="exec", flag=0, dont_inherit=0, _genframe=None
-    ):
+        self,
+        filename: Optional[str] = ...,
+        mode: str = ...,
+        flag: "Literal[0]" = ...,
+        dont_inherit: int = ...,
+        _genframe: Optional[FrameType] = ...,
+    ) -> CodeType:
+        raise NotImplementedError()
+
+    @overload  # noqa: F811
+    def compile(  # noqa: F811
+        self,
+        filename: Optional[str] = ...,
+        mode: str = ...,
+        flag: int = ...,
+        dont_inherit: int = ...,
+        _genframe: Optional[FrameType] = ...,
+    ) -> Union[CodeType, ast.AST]:
+        raise NotImplementedError()
+
+    def compile(  # noqa: F811
+        self,
+        filename: Optional[str] = None,
+        mode: str = "exec",
+        flag: int = 0,
+        dont_inherit: int = 0,
+        _genframe: Optional[FrameType] = None,
+    ) -> Union[CodeType, ast.AST]:
         """ return compiled code object. if filename is None
             invent an artificial filename which displays
             the source/line position of the caller frame.
@@ -157,8 +207,7 @@ class Source(object):
         source = "\n".join(self.lines) + "\n"
         try:
             co = compile(source, filename, mode, flag)
-        except SyntaxError:
-            ex = sys.exc_info()[1]
+        except SyntaxError as ex:
             # re-represent syntax errors from parsing python strings
             msglines = self.lines[: ex.lineno]
             if ex.offset:
@@ -170,10 +219,13 @@ class Source(object):
             newex.text = ex.text
             raise newex
         else:
-            if flag & _AST_FLAG:
+            if flag & ast.PyCF_ONLY_AST:
+                assert isinstance(co, ast.AST)
                 return co
+            assert isinstance(co, CodeType)
             lines = [(x + "\n") for x in self.lines]
-            linecache.cache[filename] = (1, None, lines, filename)
+            # Type ignored because linecache.cache is private.
+            linecache.cache[filename] = (1, None, lines, filename)  # type: ignore
             return co
 
 
@@ -182,7 +234,35 @@ class Source(object):
 #
 
 
-def compile_(source, filename=None, mode="exec", flags=0, dont_inherit=0):
+@overload
+def compile_(
+    source: Union[str, bytes, ast.mod, ast.AST],
+    filename: Optional[str] = ...,
+    mode: str = ...,
+    flags: "Literal[0]" = ...,
+    dont_inherit: int = ...,
+) -> CodeType:
+    raise NotImplementedError()
+
+
+@overload  # noqa: F811
+def compile_(  # noqa: F811
+    source: Union[str, bytes, ast.mod, ast.AST],
+    filename: Optional[str] = ...,
+    mode: str = ...,
+    flags: int = ...,
+    dont_inherit: int = ...,
+) -> Union[CodeType, ast.AST]:
+    raise NotImplementedError()
+
+
+def compile_(  # noqa: F811
+    source: Union[str, bytes, ast.mod, ast.AST],
+    filename: Optional[str] = None,
+    mode: str = "exec",
+    flags: int = 0,
+    dont_inherit: int = 0,
+) -> Union[CodeType, ast.AST]:
     """ compile the given source to a raw code object,
         and maintain an internal cache which allows later
         retrieval of the source code for the code object
@@ -190,20 +270,29 @@ def compile_(source, filename=None, mode="exec", flags=0, dont_inherit=0):
     """
     if isinstance(source, ast.AST):
         # XXX should Source support having AST?
-        return compile(source, filename, mode, flags, dont_inherit)
+        assert filename is not None
+        co = compile(source, filename, mode, flags, dont_inherit)
+        assert isinstance(co, (CodeType, ast.AST))
+        return co
     _genframe = sys._getframe(1)  # the caller
     s = Source(source)
-    co = s.compile(filename, mode, flags, _genframe=_genframe)
-    return co
+    return s.compile(filename, mode, flags, _genframe=_genframe)
 
 
-def getfslineno(obj):
+def getfslineno(obj: Any) -> Tuple[Union[str, py.path.local], int]:
     """ Return source location (path, lineno) for the given object.
     If the source cannot be determined return ("", -1).
 
     The line number is 0-based.
     """
     from .code import Code
+
+    # xxx let decorators etc specify a sane ordering
+    # NOTE: this used to be done in _pytest.compat.getfslineno, initially added
+    #       in 6ec13a2b9.  It ("place_as") appears to be something very custom.
+    obj = get_real_func(obj)
+    if hasattr(obj, "place_as"):
+        obj = obj.place_as
 
     try:
         code = Code(obj)
@@ -213,18 +302,16 @@ def getfslineno(obj):
         except TypeError:
             return "", -1
 
-        fspath = fn and py.path.local(fn) or None
+        fspath = fn and py.path.local(fn) or ""
         lineno = -1
         if fspath:
             try:
                 _, lineno = findsource(obj)
             except IOError:
                 pass
+        return fspath, lineno
     else:
-        fspath = code.path
-        lineno = code.firstlineno
-    assert isinstance(lineno, int)
-    return fspath, lineno
+        return code.path, code.firstlineno
 
 
 #
@@ -232,7 +319,7 @@ def getfslineno(obj):
 #
 
 
-def findsource(obj):
+def findsource(obj) -> Tuple[Optional[Source], int]:
     try:
         sourcelines, lineno = inspect.findsource(obj)
     except Exception:
@@ -242,7 +329,7 @@ def findsource(obj):
     return source, lineno
 
 
-def getsource(obj, **kwargs):
+def getsource(obj, **kwargs) -> Source:
     from .code import getrawcode
 
     obj = getrawcode(obj)
@@ -254,21 +341,21 @@ def getsource(obj, **kwargs):
     return Source(strsrc, **kwargs)
 
 
-def deindent(lines):
+def deindent(lines: Sequence[str]) -> List[str]:
     return textwrap.dedent("\n".join(lines)).splitlines()
 
 
-def get_statement_startend2(lineno, node):
+def get_statement_startend2(lineno: int, node: ast.AST) -> Tuple[int, Optional[int]]:
     import ast
 
     # flatten all statements and except handlers into one lineno-list
     # AST's line numbers start indexing at 1
-    values = []
+    values = []  # type: List[int]
     for x in ast.walk(node):
         if isinstance(x, (ast.stmt, ast.ExceptHandler)):
             values.append(x.lineno - 1)
             for name in ("finalbody", "orelse"):
-                val = getattr(x, name, None)
+                val = getattr(x, name, None)  # type: Optional[List[ast.stmt]]
                 if val:
                     # treat the finally/orelse part as its own statement
                     values.append(val[0].lineno - 1 - 1)
@@ -282,14 +369,19 @@ def get_statement_startend2(lineno, node):
     return start, end
 
 
-def getstatementrange_ast(lineno, source, assertion=False, astnode=None):
+def getstatementrange_ast(
+    lineno: int,
+    source: Source,
+    assertion: bool = False,
+    astnode: Optional[ast.AST] = None,
+) -> Tuple[ast.AST, int, int]:
     if astnode is None:
         content = str(source)
         # See #4260:
         # don't produce duplicate warnings when compiling source to find ast
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            astnode = compile(content, "source", "exec", _AST_FLAG)
+            astnode = ast.parse(content, "source", "exec")
 
     start, end = get_statement_startend2(lineno, astnode)
     # we need to correct the end:

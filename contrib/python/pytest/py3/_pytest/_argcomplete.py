@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """allow bash-completion for argparse with argcomplete if installed
 needs argcomplete>=0.5.6 for python 3.2/3.3 (older versions fail
 to find the magic string, so _ARGCOMPLETE env. var is never set, and
@@ -54,22 +53,22 @@ If things do not work right away:
   which should throw a KeyError: 'COMPLINE' (which is properly set by the
   global argcomplete script).
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
+import argparse
 import os
 import sys
 from glob import glob
+from typing import Any
+from typing import List
+from typing import Optional
 
 
-class FastFilesCompleter(object):
+class FastFilesCompleter:
     "Fast file completer class"
 
-    def __init__(self, directories=True):
+    def __init__(self, directories: bool = True) -> None:
         self.directories = directories
 
-    def __call__(self, prefix, **kwargs):
+    def __call__(self, prefix: str, **kwargs: Any) -> List[str]:
         """only called on non option completions"""
         if os.path.sep in prefix[1:]:
             prefix_dir = len(os.path.dirname(prefix) + os.path.sep)
@@ -96,15 +95,15 @@ if os.environ.get("_ARGCOMPLETE"):
         import argcomplete.completers
     except ImportError:
         sys.exit(-1)
-    filescompleter = FastFilesCompleter()
+    filescompleter = FastFilesCompleter()  # type: Optional[FastFilesCompleter]
 
-    def try_argcomplete(parser):
+    def try_argcomplete(parser: argparse.ArgumentParser) -> None:
         argcomplete.autocomplete(parser, always_complete_options=False)
 
 
 else:
 
-    def try_argcomplete(parser):
+    def try_argcomplete(parser: argparse.ArgumentParser) -> None:
         pass
 
     filescompleter = None

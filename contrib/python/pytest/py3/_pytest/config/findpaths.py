@@ -1,10 +1,18 @@
-# -*- coding: utf-8 -*-
 import os
+from typing import Any
+from typing import Iterable
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 import py
 
 from .exceptions import UsageError
+from _pytest.compat import TYPE_CHECKING
 from _pytest.outcomes import fail
+
+if TYPE_CHECKING:
+    from . import Config  # noqa: F401
 
 
 def exists(path, ignore=EnvironmentError):
@@ -21,8 +29,6 @@ def getcfg(args, config=None):
 
     note: config is optional and used only to issue warnings explicitly (#2891).
     """
-    from _pytest.deprecated import CFG_PYTEST_SECTION
-
     inibasenames = ["pytest.ini", "tox.ini", "setup.cfg"]
     args = [x for x in args if not str(x).startswith("-")]
     if not args:
@@ -57,7 +63,7 @@ def getcfg(args, config=None):
     return None, None, None
 
 
-def get_common_ancestor(paths):
+def get_common_ancestor(paths: Iterable[py.path.local]) -> py.path.local:
     common_ancestor = None
     for path in paths:
         if not path.exists():
@@ -102,7 +108,15 @@ def get_dirs_from_args(args):
     return [get_dir_from_path(path) for path in possible_paths if path.exists()]
 
 
-def determine_setup(inifile, args, rootdir_cmd_arg=None, config=None):
+CFG_PYTEST_SECTION = "[pytest] section in {filename} files is no longer supported, change to [tool:pytest] instead."
+
+
+def determine_setup(
+    inifile: Optional[str],
+    args: List[str],
+    rootdir_cmd_arg: Optional[str] = None,
+    config: Optional["Config"] = None,
+) -> Tuple[py.path.local, Optional[str], Any]:
     dirs = get_dirs_from_args(args)
     if inifile:
         iniconfig = py.iniconfig.IniConfig(inifile)
@@ -110,10 +124,10 @@ def determine_setup(inifile, args, rootdir_cmd_arg=None, config=None):
         sections = ["tool:pytest", "pytest"] if is_cfg_file else ["pytest"]
         for section in sections:
             try:
-                inicfg = iniconfig[section]
+                inicfg = iniconfig[
+                    section
+                ]  # type: Optional[py.iniconfig._SectionWrapper]
                 if is_cfg_file and section == "pytest" and config is not None:
-                    from _pytest.deprecated import CFG_PYTEST_SECTION
-
                     fail(
                         CFG_PYTEST_SECTION.format(filename=str(inifile)), pytrace=False
                     )

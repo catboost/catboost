@@ -1,29 +1,33 @@
-# -*- coding: utf-8 -*-
 import os
 import platform
 import sys
 import traceback
-
-import six
+from typing import Any
+from typing import Dict
 
 from ..outcomes import fail
 from ..outcomes import TEST_OUTCOME
+from _pytest.config import Config
+from _pytest.store import StoreKey
 
 
-def cached_eval(config, expr, d):
-    if not hasattr(config, "_evalcache"):
-        config._evalcache = {}
+evalcache_key = StoreKey[Dict[str, Any]]()
+
+
+def cached_eval(config: Config, expr: str, d: Dict[str, object]) -> Any:
+    default = {}  # type: Dict[str, object]
+    evalcache = config._store.setdefault(evalcache_key, default)
     try:
-        return config._evalcache[expr]
+        return evalcache[expr]
     except KeyError:
         import _pytest._code
 
         exprcode = _pytest._code.compile(expr, mode="eval")
-        config._evalcache[expr] = x = eval(exprcode, d)
+        evalcache[expr] = x = eval(exprcode, d)
         return x
 
 
-class MarkEvaluator(object):
+class MarkEvaluator:
     def __init__(self, item, name):
         self.item = item
         self._marks = None
@@ -31,7 +35,7 @@ class MarkEvaluator(object):
         self._mark_name = name
 
     def __bool__(self):
-        # dont cache here to prevent staleness
+        # don't cache here to prevent staleness
         return bool(self._get_marks())
 
     __nonzero__ = __bool__
@@ -54,6 +58,8 @@ class MarkEvaluator(object):
         except TEST_OUTCOME:
             self.exc = sys.exc_info()
             if isinstance(self.exc[1], SyntaxError):
+                # TODO: Investigate why SyntaxError.offset is Optional, and if it can be None here.
+                assert self.exc[1].offset is not None
                 msg = [" " * (self.exc[1].offset + 4) + "^"]
                 msg.append("SyntaxError: invalid syntax")
             else:
@@ -87,7 +93,7 @@ class MarkEvaluator(object):
 
                 for expr in args:
                     self.expr = expr
-                    if isinstance(expr, six.string_types):
+                    if isinstance(expr, str):
                         d = self._getglobals()
                         result = cached_eval(self.item.config, expr, d)
                     else:

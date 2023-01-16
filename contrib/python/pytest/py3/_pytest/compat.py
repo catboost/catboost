@@ -1,125 +1,142 @@
-# -*- coding: utf-8 -*-
 """
 python version compatibility code
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-import codecs
 import functools
 import inspect
+import io
+import os
 import re
 import sys
 from contextlib import contextmanager
+from inspect import Parameter
+from inspect import signature
+from typing import Any
+from typing import Callable
+from typing import Generic
+from typing import IO
+from typing import Optional
+from typing import overload
+from typing import Tuple
+from typing import TypeVar
+from typing import Union
 
 import attr
 import py
-import six
-from six import text_type
 
-import _pytest
 from _pytest._io.saferepr import saferepr
 from _pytest.outcomes import fail
 from _pytest.outcomes import TEST_OUTCOME
 
-try:
-    import enum
-except ImportError:  # pragma: no cover
-    # Only available in Python 3.4+ or as a backport
-    enum = None
-
-_PY3 = sys.version_info > (3, 0)
-_PY2 = not _PY3
-
-
-if _PY3:
-    from inspect import signature, Parameter as Parameter
+if sys.version_info < (3, 5, 2):
+    TYPE_CHECKING = False  # type: bool
 else:
-    from funcsigs import signature, Parameter as Parameter
+    from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from typing import Type  # noqa: F401 (used in type string)
+
+
+_T = TypeVar("_T")
+_S = TypeVar("_S")
+
 
 NOTSET = object()
 
-PY35 = sys.version_info[:2] >= (3, 5)
-PY36 = sys.version_info[:2] >= (3, 6)
-MODULE_NOT_FOUND_ERROR = "ModuleNotFoundError" if PY36 else "ImportError"
-
-
-if _PY3:
-    from collections.abc import MutableMapping as MappingMixin
-    from collections.abc import Iterable, Mapping, Sequence, Sized
-else:
-    # those raise DeprecationWarnings in Python >=3.7
-    from collections import MutableMapping as MappingMixin  # noqa
-    from collections import Iterable, Mapping, Sequence, Sized  # noqa
-
-
-if sys.version_info >= (3, 4):
-    from importlib.util import spec_from_file_location
-else:
-
-    def spec_from_file_location(*_, **__):
-        return None
+MODULE_NOT_FOUND_ERROR = (
+    "ModuleNotFoundError" if sys.version_info[:2] >= (3, 6) else "ImportError"
+)
 
 
 if sys.version_info >= (3, 8):
-    from importlib import metadata as importlib_metadata  # noqa
+    from importlib import metadata as importlib_metadata
 else:
-    import importlib_metadata  # noqa
+    import importlib_metadata  # noqa: F401
 
 
-def _format_args(func):
+def _format_args(func: Callable[..., Any]) -> str:
     return str(signature(func))
 
 
-isfunction = inspect.isfunction
-isclass = inspect.isclass
-# used to work around a python2 exception info leak
-exc_clear = getattr(sys, "exc_clear", lambda: None)
 # The type of re.compile objects is not exposed in Python.
 REGEX_TYPE = type(re.compile(""))
 
 
-def is_generator(func):
+if sys.version_info < (3, 6):
+
+    def fspath(p):
+        """os.fspath replacement, useful to point out when we should replace it by the
+        real function once we drop py35.
+        """
+        return str(p)
+
+
+else:
+    fspath = os.fspath
+
+
+def is_generator(func: object) -> bool:
     genfunc = inspect.isgeneratorfunction(func)
     return genfunc and not iscoroutinefunction(func)
 
 
-def iscoroutinefunction(func):
-    """Return True if func is a decorated coroutine function.
-
-    Note: copied and modified from Python 3.5's builtin couroutines.py to avoid import asyncio directly,
-    which in turns also initializes the "logging" module as side-effect (see issue #8).
+def iscoroutinefunction(func: object) -> bool:
     """
-    return getattr(func, "_is_coroutine", False) or (
-        hasattr(inspect, "iscoroutinefunction") and inspect.iscoroutinefunction(func)
+    Return True if func is a coroutine function (a function defined with async
+    def syntax, and doesn't contain yield), or a function decorated with
+    @asyncio.coroutine.
+
+    Note: copied and modified from Python 3.5's builtin couroutines.py to avoid
+    importing asyncio directly, which in turns also initializes the "logging"
+    module as a side-effect (see issue #8).
+    """
+    return inspect.iscoroutinefunction(func) or getattr(func, "_is_coroutine", False)
+
+
+def is_async_function(func: object) -> bool:
+    """Return True if the given function seems to be an async function or async generator"""
+    return iscoroutinefunction(func) or (
+        sys.version_info >= (3, 6) and inspect.isasyncgenfunction(func)
     )
 
 
-def getlocation(function, curdir):
+def getlocation(function, curdir=None) -> str:
     function = get_real_func(function)
     fn = py.path.local(inspect.getfile(function))
     lineno = function.__code__.co_firstlineno
-    if fn.relto(curdir):
-        fn = fn.relto(curdir)
+    if curdir is not None:
+        relfn = fn.relto(curdir)
+        if relfn:
+            return "%s:%d" % (relfn, lineno + 1)
     return "%s:%d" % (fn, lineno + 1)
 
 
-def num_mock_patch_args(function):
+def num_mock_patch_args(function) -> int:
     """ return number of arguments used up by mock arguments (if any) """
     patchings = getattr(function, "patchings", None)
     if not patchings:
         return 0
-    mock_modules = [sys.modules.get("mock"), sys.modules.get("unittest.mock")]
-    if any(mock_modules):
-        sentinels = [m.DEFAULT for m in mock_modules if m is not None]
-        return len(
-            [p for p in patchings if not p.attribute_name and p.new in sentinels]
-        )
-    return len(patchings)
+
+    mock_sentinel = getattr(sys.modules.get("mock"), "DEFAULT", object())
+    ut_mock_sentinel = getattr(sys.modules.get("unittest.mock"), "DEFAULT", object())
+
+    return len(
+        [
+            p
+            for p in patchings
+            if not p.attribute_name
+            and (p.new is mock_sentinel or p.new is ut_mock_sentinel)
+        ]
+    )
 
 
-def getfuncargnames(function, is_method=False, cls=None):
+def getfuncargnames(
+    function: Callable[..., Any],
+    *,
+    name: str = "",
+    is_method: bool = False,
+    cls: Optional[type] = None
+) -> Tuple[str, ...]:
     """Returns the names of a function's mandatory arguments.
 
     This should return the names of all function arguments that:
@@ -132,12 +149,13 @@ def getfuncargnames(function, is_method=False, cls=None):
     be treated as a bound method even though it's not unless, only in
     the case of cls, the function is a static method.
 
-    @RonnyPfannschmidt: This function should be refactored when we
-    revisit fixtures. The fixture mechanism should ask the node for
-    the fixture names, and not try to obtain directly from the
-    function object well after collection has occurred.
-
+    The name parameter should be the original name in which the function was collected.
     """
+    # TODO(RonnyPfannschmidt): This function should be refactored when we
+    # revisit fixtures. The fixture mechanism should ask the node for
+    # the fixture names, and not try to obtain directly from the
+    # function object well after collection has occurred.
+
     # The parameters attribute of a Signature object contains an
     # ordered mapping of parameter names to Parameter instances.  This
     # creates a tuple of the names of the parameters that don't have
@@ -159,11 +177,14 @@ def getfuncargnames(function, is_method=False, cls=None):
         )
         and p.default is Parameter.empty
     )
+    if not name:
+        name = function.__name__
+
     # If this function should be treated as a bound method even though
     # it's passed as an unbound method or function, remove the first
     # parameter name.
     if is_method or (
-        cls and not isinstance(cls.__dict__.get(function.__name__, None), staticmethod)
+        cls and not isinstance(cls.__dict__.get(name, None), staticmethod)
     ):
         arg_names = arg_names[1:]
     # Remove any names that will be replaced with mocks.
@@ -172,14 +193,18 @@ def getfuncargnames(function, is_method=False, cls=None):
     return arg_names
 
 
-@contextmanager
-def dummy_context_manager():
-    """Context manager that does nothing, useful in situations where you might need an actual context manager or not
-    depending on some condition. Using this allow to keep the same code"""
-    yield
+if sys.version_info < (3, 7):
+
+    @contextmanager
+    def nullcontext():
+        yield
 
 
-def get_default_arg_names(function):
+else:
+    from contextlib import nullcontext  # noqa
+
+
+def get_default_arg_names(function: Callable[..., Any]) -> Tuple[str, ...]:
     # Note: this code intentionally mirrors the code at the beginning of getfuncargnames,
     # to get the arguments which were excluded from its result because they had default values
     return tuple(
@@ -191,86 +216,51 @@ def get_default_arg_names(function):
 
 
 _non_printable_ascii_translate_table = {
-    i: u"\\x{:02x}".format(i) for i in range(128) if i not in range(32, 127)
+    i: "\\x{:02x}".format(i) for i in range(128) if i not in range(32, 127)
 }
 _non_printable_ascii_translate_table.update(
-    {ord("\t"): u"\\t", ord("\r"): u"\\r", ord("\n"): u"\\n"}
+    {ord("\t"): "\\t", ord("\r"): "\\r", ord("\n"): "\\n"}
 )
 
 
-def _translate_non_printable(s):
+def _translate_non_printable(s: str) -> str:
     return s.translate(_non_printable_ascii_translate_table)
 
 
-if _PY3:
-    STRING_TYPES = bytes, str
-    UNICODE_TYPES = six.text_type
+STRING_TYPES = bytes, str
 
-    if PY35:
 
-        def _bytes_to_ascii(val):
-            return val.decode("ascii", "backslashreplace")
+def _bytes_to_ascii(val: bytes) -> str:
+    return val.decode("ascii", "backslashreplace")
 
+
+def ascii_escaped(val: Union[bytes, str]) -> str:
+    """If val is pure ascii, returns it as a str().  Otherwise, escapes
+    bytes objects into a sequence of escaped bytes:
+
+    b'\xc3\xb4\xc5\xd6' -> '\\xc3\\xb4\\xc5\\xd6'
+
+    and escapes unicode objects into a sequence of escaped unicode
+    ids, e.g.:
+
+    '4\\nV\\U00043efa\\x0eMXWB\\x1e\\u3028\\u15fd\\xcd\\U0007d944'
+
+    note:
+       the obvious "v.decode('unicode-escape')" will return
+       valid utf-8 unicode if it finds them in bytes, but we
+       want to return escaped bytes for any byte, even if they match
+       a utf-8 string.
+
+    """
+    if isinstance(val, bytes):
+        ret = _bytes_to_ascii(val)
     else:
-
-        def _bytes_to_ascii(val):
-            if val:
-                # source: http://goo.gl/bGsnwC
-                encoded_bytes, _ = codecs.escape_encode(val)
-                return encoded_bytes.decode("ascii")
-            else:
-                # empty bytes crashes codecs.escape_encode (#1087)
-                return ""
-
-    def ascii_escaped(val):
-        """If val is pure ascii, returns it as a str().  Otherwise, escapes
-        bytes objects into a sequence of escaped bytes:
-
-        b'\xc3\xb4\xc5\xd6' -> u'\\xc3\\xb4\\xc5\\xd6'
-
-        and escapes unicode objects into a sequence of escaped unicode
-        ids, e.g.:
-
-        '4\\nV\\U00043efa\\x0eMXWB\\x1e\\u3028\\u15fd\\xcd\\U0007d944'
-
-        note:
-           the obvious "v.decode('unicode-escape')" will return
-           valid utf-8 unicode if it finds them in bytes, but we
-           want to return escaped bytes for any byte, even if they match
-           a utf-8 string.
-
-        """
-        if isinstance(val, bytes):
-            ret = _bytes_to_ascii(val)
-        else:
-            ret = val
-        return ret
+        ret = val
+    return ret
 
 
-else:
-    STRING_TYPES = six.string_types
-    UNICODE_TYPES = six.text_type
-
-    def ascii_escaped(val):
-        """In py2 bytes and str are the same type, so return if it's a bytes
-        object, return it unchanged if it is a full ascii string,
-        otherwise escape it into its binary form.
-
-        If it's a unicode string, change the unicode characters into
-        unicode escapes.
-
-        """
-        if isinstance(val, bytes):
-            try:
-                ret = val.decode("utf-8")
-            except UnicodeDecodeError:
-                ret = val.decode("utf-8", "ignore")
-        else:
-            ret = val.encode("utf-8", "replace").decode("utf-8")
-        return ret
-
-
-class _PytestWrapper(object):
+@attr.s
+class _PytestWrapper:
     """Dummy wrapper around a function object for internal use only.
 
     Used to correctly unwrap the underlying function object
@@ -278,8 +268,7 @@ class _PytestWrapper(object):
     to issue warnings when the fixture function is called directly.
     """
 
-    def __init__(self, obj):
-        self.obj = obj
+    obj = attr.ib()
 
 
 def get_real_func(obj):
@@ -318,21 +307,11 @@ def get_real_method(obj, holder):
     try:
         is_method = hasattr(obj, "__func__")
         obj = get_real_func(obj)
-    except Exception:
+    except Exception:  # pragma: no cover
         return obj
     if is_method and hasattr(obj, "__get__") and callable(obj.__get__):
         obj = obj.__get__(holder)
     return obj
-
-
-def getfslineno(obj):
-    # xxx let decorators etc specify a sane ordering
-    obj = get_real_func(obj)
-    if hasattr(obj, "place_as"):
-        obj = obj.place_as
-    fslineno = _pytest._code.getfslineno(obj)
-    assert isinstance(fslineno[1], int), obj
-    return fslineno
 
 
 def getimfunc(func):
@@ -342,7 +321,7 @@ def getimfunc(func):
         return func
 
 
-def safe_getattr(object, name, default):
+def safe_getattr(object: Any, name: str, default: Any) -> Any:
     """ Like getattr but return default upon any Exception or any OutcomeException.
 
     Attribute access can potentially fail for 'evil' Python objects.
@@ -356,45 +335,12 @@ def safe_getattr(object, name, default):
         return default
 
 
-def safe_isclass(obj):
+def safe_isclass(obj: object) -> bool:
     """Ignore any exception via isinstance on Python 3."""
     try:
-        return isclass(obj)
+        return inspect.isclass(obj)
     except Exception:
         return False
-
-
-def _is_unittest_unexpected_success_a_failure():
-    """Return if the test suite should fail if an @expectedFailure unittest test PASSES.
-
-    From https://docs.python.org/3/library/unittest.html?highlight=unittest#unittest.TestResult.wasSuccessful:
-        Changed in version 3.4: Returns False if there were any
-        unexpectedSuccesses from tests marked with the expectedFailure() decorator.
-    """
-    return sys.version_info >= (3, 4)
-
-
-if _PY3:
-
-    def safe_str(v):
-        """returns v as string"""
-        try:
-            return str(v)
-        except UnicodeEncodeError:
-            return str(v, encoding="utf-8")
-
-
-else:
-
-    def safe_str(v):
-        """returns v as string, converting to utf-8 if necessary"""
-        try:
-            return str(v)
-        except UnicodeError:
-            if not isinstance(v, text_type):
-                v = text_type(v)
-            errors = "replace"
-            return v.encode("utf-8", errors)
 
 
 COLLECT_FAKEMODULE_ATTRIBUTES = (
@@ -410,64 +356,73 @@ COLLECT_FAKEMODULE_ATTRIBUTES = (
 )
 
 
-def _setup_collect_fakemodule():
+def _setup_collect_fakemodule() -> None:
     from types import ModuleType
     import pytest
 
-    pytest.collect = ModuleType("pytest.collect")
-    pytest.collect.__all__ = []  # used for setns
-    for attribute in COLLECT_FAKEMODULE_ATTRIBUTES:
-        setattr(pytest.collect, attribute, getattr(pytest, attribute))
+    # Types ignored because the module is created dynamically.
+    pytest.collect = ModuleType("pytest.collect")  # type: ignore
+    pytest.collect.__all__ = []  # type: ignore  # used for setns
+    for attr_name in COLLECT_FAKEMODULE_ATTRIBUTES:
+        setattr(pytest.collect, attr_name, getattr(pytest, attr_name))  # type: ignore
 
 
-if _PY2:
-    # Without this the test_dupfile_on_textio will fail, otherwise CaptureIO could directly inherit from StringIO.
-    from py.io import TextIO
+class CaptureIO(io.TextIOWrapper):
+    def __init__(self) -> None:
+        super().__init__(io.BytesIO(), encoding="UTF-8", newline="", write_through=True)
 
-    class CaptureIO(TextIO):
-        @property
-        def encoding(self):
-            return getattr(self, "_encoding", "UTF-8")
-
-
-else:
-    import io
-
-    class CaptureIO(io.TextIOWrapper):
-        def __init__(self):
-            super(CaptureIO, self).__init__(
-                io.BytesIO(), encoding="UTF-8", newline="", write_through=True
-            )
-
-        def getvalue(self):
-            return self.buffer.getvalue().decode("UTF-8")
+    def getvalue(self) -> str:
+        assert isinstance(self.buffer, io.BytesIO)
+        return self.buffer.getvalue().decode("UTF-8")
 
 
-class FuncargnamesCompatAttr(object):
-    """ helper class so that Metafunc, Function and FixtureRequest
-    don't need to each define the "funcargnames" compatibility attribute.
-    """
+class CaptureAndPassthroughIO(CaptureIO):
+    def __init__(self, other: IO) -> None:
+        self._other = other
+        super().__init__()
 
-    @property
-    def funcargnames(self):
-        """ alias attribute for ``fixturenames`` for pre-2.3 compatibility"""
-        return self.fixturenames
-
-
-if six.PY2:
-
-    def lru_cache(*_, **__):
-        def dec(fn):
-            return fn
-
-        return dec
+    def write(self, s) -> int:
+        super().write(s)
+        return self._other.write(s)
 
 
-else:
-    from functools import lru_cache  # noqa: F401
+if sys.version_info < (3, 5, 2):
+
+    def overload(f):  # noqa: F811
+        return f
 
 
 if getattr(attr, "__version_info__", ()) >= (19, 2):
     ATTRS_EQ_FIELD = "eq"
 else:
     ATTRS_EQ_FIELD = "cmp"
+
+
+if sys.version_info >= (3, 8):
+    from functools import cached_property
+else:
+
+    class cached_property(Generic[_S, _T]):
+        __slots__ = ("func", "__doc__")
+
+        def __init__(self, func: Callable[[_S], _T]) -> None:
+            self.func = func
+            self.__doc__ = func.__doc__
+
+        @overload
+        def __get__(
+            self, instance: None, owner: Optional["Type[_S]"] = ...
+        ) -> "cached_property[_S, _T]":
+            raise NotImplementedError()
+
+        @overload  # noqa: F811
+        def __get__(  # noqa: F811
+            self, instance: _S, owner: Optional["Type[_S]"] = ...
+        ) -> _T:
+            raise NotImplementedError()
+
+        def __get__(self, instance, owner=None):  # noqa: F811
+            if instance is None:
+                return self
+            value = instance.__dict__[self.func.__name__] = self.func(instance)
+            return value

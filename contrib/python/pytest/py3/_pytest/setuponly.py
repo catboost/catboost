@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-import sys
-
 import pytest
 
 
@@ -27,8 +20,7 @@ def pytest_addoption(parser):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_fixture_setup(fixturedef, request):
     yield
-    config = request.config
-    if config.option.setupshow:
+    if request.config.option.setupshow:
         if hasattr(request, "param"):
             # Save the fixture parameter so ._show_fixture_action() can
             # display it now and during the teardown (in .finish()).
@@ -42,8 +34,8 @@ def pytest_fixture_setup(fixturedef, request):
         _show_fixture_action(fixturedef, "SETUP")
 
 
-def pytest_fixture_post_finalizer(fixturedef):
-    if hasattr(fixturedef, "cached_result"):
+def pytest_fixture_post_finalizer(fixturedef) -> None:
+    if fixturedef.cached_result is not None:
         config = fixturedef._fixturemanager.config
         if config.option.setupshow:
             _show_fixture_action(fixturedef, "TEARDOWN")
@@ -56,7 +48,6 @@ def _show_fixture_action(fixturedef, msg):
     capman = config.pluginmanager.getplugin("capturemanager")
     if capman:
         capman.suspend_global_capture()
-        out, err = capman.read_global_capture()
 
     tw = config.get_terminal_writer()
     tw.line()
@@ -79,8 +70,6 @@ def _show_fixture_action(fixturedef, msg):
 
     if capman:
         capman.resume_global_capture()
-        sys.stdout.write(out)
-        sys.stderr.write(err)
 
 
 @pytest.hookimpl(tryfirst=True)
