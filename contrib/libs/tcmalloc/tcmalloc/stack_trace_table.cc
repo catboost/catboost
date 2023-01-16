@@ -73,6 +73,7 @@ StackTraceTable::~StackTraceTable() {
       Bucket* b = table_[i];
       while (b != nullptr) {
         Bucket* next = b->next;
+        Static::DestroySampleUserData(b->trace.user_data);
         Static::bucket_allocator().Delete(b);
         b = next;
       }
@@ -104,6 +105,7 @@ void StackTraceTable::AddTrace(double count, const StackTrace& t) {
     b = Static::bucket_allocator().New();
     b->hash = h;
     b->trace = t;
+    b->trace.user_data = Static::CopySampleUserData(t.user_data);
     b->count = count;
     b->total_weight = t.weight * count;
     b->next = table_[idx];
@@ -134,6 +136,8 @@ void StackTraceTable::Iterate(
       e.requested_size = requested_size;
       e.requested_alignment = b->trace.requested_alignment;
       e.allocated_size = allocated_size;
+
+      e.user_data = b->trace.user_data;
 
       e.depth = b->trace.depth;
       static_assert(kMaxStackDepth <= Profile::Sample::kMaxStackDepth,
