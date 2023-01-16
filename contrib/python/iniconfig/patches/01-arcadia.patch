@@ -8,7 +8,7 @@
  __all__ = ['IniConfig', 'ParseError']
  
  COMMENTCHARS = "#;"
-@@ -49,7 +50,14 @@ class IniConfig(object):
+@@ -49,7 +50,15 @@ class IniConfig(object):
      def __init__(self, path, data=None):
          self.path = str(path)  # convenience
          if data is None:
