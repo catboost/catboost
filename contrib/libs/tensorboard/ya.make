@@ -4,6 +4,10 @@ LICENSE(Apache-2.0)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
+VERSION(0.12.1)
+
+ORIGINAL_SOURCE(https://github.com/tensorflow/tensorflow)
+
 
 
 SRCS(
