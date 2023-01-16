@@ -2469,7 +2469,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-macro-redefined',
                 '-Wno-parentheses',
                 '-Wno-pragma-pack',
-                '-Wno-tautological-constant-out-of-range-compare',
                 '-Wno-unknown-argument',
                 '-Wno-unknown-warning-option',
             ))

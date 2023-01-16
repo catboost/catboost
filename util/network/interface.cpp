@@ -1,5 +1,7 @@
 #include "interface.h"
 
+#include <util/string/ascii.h>
+
 #if defined(_unix_)
     #include <ifaddrs.h>
 #endif
@@ -44,10 +46,10 @@ namespace NAddr {
                         TNetworkInterface networkInterface;
 
                         // Not very efficient but straightforward
-                        for (size_t i = 0; ptr->FriendlyName[i] != 0; i++) {
-                            CHAR w = ptr->FriendlyName[i];
-                            char c = (w < 0x80) ? char(w) : '?';
-                            networkInterface.Name.append(1, c);
+                        wchar_t* it = ptr->FriendlyName;
+                        while (*it != '\0') {
+                            networkInterface.Name += IsAscii(*it) ? static_cast<char>(*it) : '?';
+                            ++it;
                         }
 
                         networkInterface.Address = new TOpaqueAddr(a);
