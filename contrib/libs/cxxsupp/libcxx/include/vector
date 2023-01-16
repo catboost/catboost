@@ -489,8 +489,8 @@ public:
     typedef typename __base::pointer                 iterator;
     typedef typename __base::const_pointer           const_iterator;
 #else
-    typedef __wrap_iter<pointer>                      iterator;
-    typedef __wrap_iter<const_pointer>                const_iterator;
+    typedef __wrap_iter<pointer>                     iterator;
+    typedef __wrap_iter<const_pointer>               const_iterator;
 #endif
     typedef _VSTD::reverse_iterator<iterator>         reverse_iterator;
     typedef _VSTD::reverse_iterator<const_iterator>   const_reverse_iterator;
@@ -888,7 +888,6 @@ private:
     void __annotate_contiguous_container(const void*, const void*, const void*,
                                          const void*) const _NOEXCEPT {}
 #endif
-
     _LIBCPP_INLINE_VISIBILITY
     void __annotate_new(size_type __current_size) const _NOEXCEPT {
       __annotate_contiguous_container(data(), data() + capacity(),
@@ -917,7 +916,7 @@ private:
 
   struct _ConstructTransaction {
     explicit _ConstructTransaction(vector &__v, size_type __n)
-      : __v_(__v), __pos_(__v.__end_), __new_end_(__v.__end_ + __n) {
+      : __v_(__v),  __pos_(__v.__end_), __new_end_(__v.__end_ + __n) {
 #ifndef _LIBCPP_HAS_NO_ASAN
       __v_.__annotate_increase(__n);
 #endif
@@ -934,6 +933,7 @@ private:
     vector &__v_;
     pointer __pos_;
     const_pointer const __new_end_;
+
   private:
     _ConstructTransaction(_ConstructTransaction const&) = delete;
     _ConstructTransaction& operator=(_ConstructTransaction const&) = delete;
@@ -1080,7 +1080,7 @@ vector<_Tp, _Allocator>::__construct_at_end(size_type __n, const_reference __x)
     _ConstructTransaction __tx(*this, __n);
     const_pointer __new_end = __tx.__new_end_;
     for (pointer __pos = __tx.__pos_; __pos != __new_end; ++__pos, __tx.__pos_ = __pos) {
-      __alloc_traits::construct(this->__alloc(), _VSTD::__to_address(__pos), __x);
+        __alloc_traits::construct(this->__alloc(), _VSTD::__to_address(__pos), __x);
     }
 }
 

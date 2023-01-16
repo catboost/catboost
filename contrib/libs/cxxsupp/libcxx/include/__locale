@@ -28,7 +28,7 @@
 #elif defined(_AIX) || defined(__MVS__)
 # include <support/ibm/xlocale.h>
 #elif defined(__ANDROID__)
-#  include <support/android/locale_bionic.h>
+# include <support/android/locale_bionic.h>
 #elif defined(__sun__)
 # include <xlocale.h>
 # include <support/solaris/xlocale.h>
@@ -96,7 +96,7 @@ struct __libcpp_locale_guard {
         __setlocale(__locale_all);
         free(__locale_all);
       }
-        _configthreadlocale(__status);
+      _configthreadlocale(__status);
     }
     static const char* __setlocale(const char* __locale) {
       const char* __new_locale = setlocale(LC_ALL, __locale);

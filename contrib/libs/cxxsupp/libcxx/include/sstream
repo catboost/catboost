@@ -242,7 +242,7 @@ protected:
     virtual pos_type seekpos(pos_type __sp,
                              ios_base::openmode __wch = ios_base::in | ios_base::out) {
         return seekoff(__sp, ios_base::beg, __wch);
-}
+    }
 };
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -639,31 +639,31 @@ public:
     basic_istringstream(basic_istringstream&& __rhs)
         : basic_istream<_CharT, _Traits>(_VSTD::move(__rhs))
         , __sb_(_VSTD::move(__rhs.__sb_))
-{
-    basic_istream<_CharT, _Traits>::set_rdbuf(&__sb_);
-}
+    {
+        basic_istream<_CharT, _Traits>::set_rdbuf(&__sb_);
+    }
 
     // 27.8.2.2 Assign and swap:
     basic_istringstream& operator=(basic_istringstream&& __rhs) {
-    basic_istream<char_type, traits_type>::operator=(_VSTD::move(__rhs));
-    __sb_ = _VSTD::move(__rhs.__sb_);
-    return *this;
-}
+        basic_istream<char_type, traits_type>::operator=(_VSTD::move(__rhs));
+        __sb_ = _VSTD::move(__rhs.__sb_);
+        return *this;
+    }
     _LIBCPP_INLINE_VISIBILITY
     void swap(basic_istringstream& __rhs) {
-    basic_istream<char_type, traits_type>::swap(__rhs);
-    __sb_.swap(__rhs.__sb_);
-}
+        basic_istream<char_type, traits_type>::swap(__rhs);
+        __sb_.swap(__rhs.__sb_);
+    }
 
     // 27.8.2.3 Members:
     _LIBCPP_INLINE_VISIBILITY
     basic_stringbuf<char_type, traits_type, allocator_type>* rdbuf() const {
-    return const_cast<basic_stringbuf<char_type, traits_type, allocator_type>*>(&__sb_);
-}
+        return const_cast<basic_stringbuf<char_type, traits_type, allocator_type>*>(&__sb_);
+    }
     _LIBCPP_INLINE_VISIBILITY
     string_type str() const {
-    return __sb_.str();
-}
+        return __sb_.str();
+    }
     _LIBCPP_INLINE_VISIBILITY
     void str(const string_type& __s) {
         __sb_.str(__s);
@@ -717,32 +717,32 @@ public:
     basic_ostringstream(basic_ostringstream&& __rhs)
         : basic_ostream<_CharT, _Traits>(_VSTD::move(__rhs))
         , __sb_(_VSTD::move(__rhs.__sb_))
-{
-    basic_ostream<_CharT, _Traits>::set_rdbuf(&__sb_);
-}
+    {
+        basic_ostream<_CharT, _Traits>::set_rdbuf(&__sb_);
+    }
 
     // 27.8.2.2 Assign and swap:
     basic_ostringstream& operator=(basic_ostringstream&& __rhs) {
-    basic_ostream<char_type, traits_type>::operator=(_VSTD::move(__rhs));
-    __sb_ = _VSTD::move(__rhs.__sb_);
-    return *this;
-}
+        basic_ostream<char_type, traits_type>::operator=(_VSTD::move(__rhs));
+        __sb_ = _VSTD::move(__rhs.__sb_);
+        return *this;
+    }
 
     _LIBCPP_INLINE_VISIBILITY
     void swap(basic_ostringstream& __rhs) {
-    basic_ostream<char_type, traits_type>::swap(__rhs);
-    __sb_.swap(__rhs.__sb_);
-}
+        basic_ostream<char_type, traits_type>::swap(__rhs);
+        __sb_.swap(__rhs.__sb_);
+    }
 
     // 27.8.2.3 Members:
     _LIBCPP_INLINE_VISIBILITY
     basic_stringbuf<char_type, traits_type, allocator_type>* rdbuf() const {
-    return const_cast<basic_stringbuf<char_type, traits_type, allocator_type>*>(&__sb_);
-}
+        return const_cast<basic_stringbuf<char_type, traits_type, allocator_type>*>(&__sb_);
+    }
     _LIBCPP_INLINE_VISIBILITY
     string_type str() const {
-    return __sb_.str();
-}
+        return __sb_.str();
+    }
     _LIBCPP_INLINE_VISIBILITY
     void str(const string_type& __s) {
         __sb_.str(__s);
@@ -796,31 +796,31 @@ public:
     basic_stringstream(basic_stringstream&& __rhs)
         : basic_iostream<_CharT, _Traits>(_VSTD::move(__rhs))
         , __sb_(_VSTD::move(__rhs.__sb_))
-{
-    basic_istream<_CharT, _Traits>::set_rdbuf(&__sb_);
-}
+    {
+        basic_istream<_CharT, _Traits>::set_rdbuf(&__sb_);
+    }
 
     // 27.8.2.2 Assign and swap:
     basic_stringstream& operator=(basic_stringstream&& __rhs) {
-    basic_iostream<char_type, traits_type>::operator=(_VSTD::move(__rhs));
-    __sb_ = _VSTD::move(__rhs.__sb_);
-    return *this;
-}
+        basic_iostream<char_type, traits_type>::operator=(_VSTD::move(__rhs));
+        __sb_ = _VSTD::move(__rhs.__sb_);
+        return *this;
+    }
     _LIBCPP_INLINE_VISIBILITY
     void swap(basic_stringstream& __rhs) {
-    basic_iostream<char_type, traits_type>::swap(__rhs);
-    __sb_.swap(__rhs.__sb_);
-}
+        basic_iostream<char_type, traits_type>::swap(__rhs);
+        __sb_.swap(__rhs.__sb_);
+    }
 
     // 27.8.2.3 Members:
     _LIBCPP_INLINE_VISIBILITY
     basic_stringbuf<char_type, traits_type, allocator_type>* rdbuf() const {
-    return const_cast<basic_stringbuf<char_type, traits_type, allocator_type>*>(&__sb_);
-}
+        return const_cast<basic_stringbuf<char_type, traits_type, allocator_type>*>(&__sb_);
+    }
     _LIBCPP_INLINE_VISIBILITY
     string_type str() const {
-    return __sb_.str();
-}
+        return __sb_.str();
+    }
     _LIBCPP_INLINE_VISIBILITY
     void str(const string_type& __s) {
         __sb_.str(__s);

@@ -38,7 +38,7 @@ template <class _Tp>
 struct __is_hash_value_type_imp : false_type {};
 
 template <class _Key, class _Value>
-struct __is_hash_value_type_imp<__hash_value_type<_Key, _Value>> : true_type {};
+struct __is_hash_value_type_imp<__hash_value_type<_Key, _Value> > : true_type {};
 
 template <class ..._Args>
 struct __is_hash_value_type : false_type {};

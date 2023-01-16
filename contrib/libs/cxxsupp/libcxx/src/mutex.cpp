@@ -204,10 +204,10 @@ _LIBCPP_SAFE_STATIC static __libcpp_condvar_t cv = _LIBCPP_CONDVAR_INITIALIZER;
 
 #ifdef _LIBCPP_ABI_MICROSOFT
 void __call_once(volatile std::atomic<once_flag::_State_type>& flag, void* arg,
-                 void(*func)(void*))
+                 void (*func)(void*))
 #else
 void __call_once(volatile once_flag::_State_type& flag, void* arg,
-                 void(*func)(void*))
+                 void (*func)(void*))
 #endif
 {
 #if defined(_LIBCPP_HAS_NO_THREADS)

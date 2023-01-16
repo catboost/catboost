@@ -22,18 +22,18 @@
 # define NOMINMAX
 # include <windows.h>
 #else
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/statvfs.h>
+# include <unistd.h>
+# include <sys/stat.h>
+# include <sys/statvfs.h>
 #endif
 #include <time.h>
 #include <fcntl.h> /* values for fchmodat */
 
 #if __has_include(<sys/sendfile.h>)
-#include <sys/sendfile.h>
+# include <sys/sendfile.h>
 # define _LIBCPP_FILESYSTEM_USE_SENDFILE
 #elif defined(__APPLE__) || __has_include(<copyfile.h>)
-#include <copyfile.h>
+# include <copyfile.h>
 # define _LIBCPP_FILESYSTEM_USE_COPYFILE
 #else
 # include "fstream"
@@ -41,11 +41,11 @@
 #endif
 
 #if !defined(CLOCK_REALTIME)
-#include <sys/time.h> // for gettimeofday and timeval
+# include <sys/time.h> // for gettimeofday and timeval
 #endif
 
 #if defined(__ELF__) && defined(_LIBCPP_LINK_RT_LIB)
-#pragma comment(lib, "rt")
+# pragma comment(lib, "rt")
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM

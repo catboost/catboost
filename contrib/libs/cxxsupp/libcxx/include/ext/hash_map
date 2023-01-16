@@ -46,10 +46,10 @@ public:
     template <class InputIterator>
     hash_map(InputIterator f, InputIterator l);
     template <class InputIterator>
-        hash_map(InputIterator f, InputIterator l,
+    hash_map(InputIterator f, InputIterator l,
                 size_type n, const hasher& hf = hasher(),
-                      const key_equal& eql = key_equal(),
-                      const allocator_type& a = allocator_type());
+                const key_equal& eql = key_equal(),
+                const allocator_type& a = allocator_type());
     hash_map(const hash_map&);
     ~hash_map();
     hash_map& operator=(const hash_map&);

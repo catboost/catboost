@@ -874,7 +874,7 @@ num_get<_CharT, _InputIterator>::do_get(iter_type __b, iter_type __e,
     typedef typename numpunct<_CharT>::string_type string_type;
     const string_type __names[2] = {__np.truename(), __np.falsename()};
     const string_type* __i = _VSTD::__scan_keyword(__b, __e, __names, __names+2,
-                                            __ct, __err);
+                                                   __ct, __err);
     __v = __i == __names;
     return __b;
 }

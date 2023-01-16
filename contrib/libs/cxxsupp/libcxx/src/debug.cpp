@@ -200,7 +200,7 @@ __libcpp_db::__insert_c(void* __c, __libcpp_db::_InsertConstruct *__fn)
     __c_node* p = __cbeg_[hc];
     void *buf = malloc(sizeof(__c_node));
     if (buf == nullptr)
-        __throw_bad_alloc();
+      __throw_bad_alloc();
     __cbeg_[hc] = __fn(buf, __c, p);
 
     ++__csz_;

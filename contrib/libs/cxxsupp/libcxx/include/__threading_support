@@ -81,7 +81,7 @@ typedef pthread_cond_t __libcpp_condvar_t;
 #ifndef _LIBCPP_NO_NATIVE_SEMAPHORES
 // Semaphore
 typedef sem_t __libcpp_semaphore_t;
-#define _LIBCPP_SEMAPHORE_MAX SEM_VALUE_MAX
+# define _LIBCPP_SEMAPHORE_MAX SEM_VALUE_MAX
 #endif
 
 // Execute once
@@ -92,7 +92,7 @@ typedef pthread_once_t __libcpp_exec_once_flag;
 #if defined(__MVS__)
   typedef unsigned long long __libcpp_thread_id;
 #else
-typedef pthread_t __libcpp_thread_id;
+  typedef pthread_t __libcpp_thread_id;
 #endif
 
 // Thread

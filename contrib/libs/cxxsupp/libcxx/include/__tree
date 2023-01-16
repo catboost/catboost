@@ -537,7 +537,7 @@ template <class _Tp>
 struct __is_tree_value_type_imp : false_type {};
 
 template <class _Key, class _Value>
-struct __is_tree_value_type_imp<__value_type<_Key, _Value>> : true_type {};
+struct __is_tree_value_type_imp<__value_type<_Key, _Value> > : true_type {};
 
 template <class ..._Args>
 struct __is_tree_value_type : false_type {};
@@ -1636,7 +1636,7 @@ __tree<_Tp, _Compare, _Allocator>::__assign_unique(_ForwardIterator __first, _Fo
           for (; __cache.__get() != nullptr && __first != __last; ++__first) {
               if (__node_assign_unique(*__first, __cache.__get()).second)
                   __cache.__advance();
-        }
+            }
     }
     for (; __first != __last; ++__first)
         __insert_unique(*__first);
@@ -2249,7 +2249,7 @@ __tree<_Tp, _Compare, _Allocator>::__remove_node_pointer(__node_pointer __ptr) _
         __begin_node() = __r.__ptr_;
     --size();
     _VSTD::__tree_remove(__end_node()->__left_,
-                  static_cast<__node_base_pointer>(__ptr));
+                         static_cast<__node_base_pointer>(__ptr));
     return __r;
 }
 
@@ -2725,7 +2725,7 @@ __tree<_Tp, _Compare, _Allocator>::remove(const_iterator __p) _NOEXCEPT
     }
     --size();
     _VSTD::__tree_remove(__end_node()->__left_,
-                  static_cast<__node_base_pointer>(__np));
+                         static_cast<__node_base_pointer>(__np));
     return __node_holder(__np, _Dp(__node_alloc(), true));
 }
 
