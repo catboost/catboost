@@ -18,7 +18,6 @@
 #include <util/stream/output.h>
 #include <util/stream/zlib.h>
 #include <util/system/condvar.h>
-#include <util/system/error.h>
 #include <util/system/mutex.h>
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>
@@ -2101,4 +2100,3 @@ namespace NNeh {
 
     }
 }
-

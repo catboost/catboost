@@ -25,8 +25,6 @@
 #include <util/generic/cast.h>
 #include <util/generic/list.h>
 #include <util/generic/utility.h>
-#include <util/network/address.h>
-#include <util/network/ip.h>
 #include <util/network/socket.h>
 #include <util/stream/str.h>
 #include <util/stream/zlib.h>

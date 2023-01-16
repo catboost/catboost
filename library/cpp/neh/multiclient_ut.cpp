@@ -4,7 +4,6 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
-#include <util/generic/list.h>
 #include <util/stream/str.h>
 #include <util/thread/factory.h>
 #include <util/system/mutex.h>
