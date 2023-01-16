@@ -16,8 +16,8 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T>
-TIntrusivePtr<T> LeakyRefCountedSingleton()
+template <class T, class... TArgs>
+TIntrusivePtr<T> LeakyRefCountedSingleton(TArgs&&... args)
 {
     static std::atomic<T*> Ptr;
     auto* ptr = Ptr.load(std::memory_order_acquire);
@@ -26,8 +26,8 @@ TIntrusivePtr<T> LeakyRefCountedSingleton()
     }
 
     static std::once_flag Initialized;
-    std::call_once(Initialized, [] {
-        auto ptr = New<T>();
+    std::call_once(Initialized, [&] {
+        auto ptr = New<T>(std::forward<TArgs>(args)...);
         Ref(ptr.Get());
         Ptr.store(ptr.Get());
 #if defined(_asan_enabled_)
