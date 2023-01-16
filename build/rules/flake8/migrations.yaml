@@ -3630,7 +3630,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt
     - balancer/test/functional/rfc_http
     - balancer/test/functional/dynamic
-    - balancer/test/functional/antirobot
     - balancer/test/functional/h100
     - balancer/test/functional/errordocument
     - balancer/test/functional/rendezvous_hashing
