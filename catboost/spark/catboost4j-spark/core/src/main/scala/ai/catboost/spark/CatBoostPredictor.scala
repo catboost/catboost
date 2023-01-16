@@ -151,13 +151,30 @@ trait CatBoostPredictorTrait[
         quantizedEvalPools
       )
 
-    this.logInfo("fit. persist preprocessedTrainPool: start")
-    preprocessedTrainPool.persist(StorageLevel.MEMORY_ONLY)
-    this.logInfo("fit. persist preprocessedTrainPool: finish")
-
     val partitionCount = get(sparkPartitionCount).getOrElse(SparkHelpers.getWorkerCount(spark))
     this.logInfo(s"fit. partitionCount=${partitionCount}")
-    
+
+    this.logInfo("fit. train.prepareDatasetForTraining: start")
+    val preparedTrainDataset = DataHelpers.prepareDatasetForTraining(
+      preprocessedTrainPool, 
+      datasetIdx=0.toByte,
+      workerCount=partitionCount
+    )
+    this.logInfo("fit. train.prepareDatasetForTraining: finish")
+
+    val preparedEvalDatasets = preprocessedEvalPools.zipWithIndex.map {
+      case (evalPool, evalIdx) => {
+        this.logInfo(s"fit. eval #${evalIdx}.prepareDatasetForTraining: start")
+        val preparedEvalDataset = DataHelpers.prepareDatasetForTraining(
+          evalPool, 
+          datasetIdx=(evalIdx + 1).toByte,
+          workerCount=partitionCount
+        )
+        this.logInfo(s"fit. eval #${evalIdx}.prepareDatasetForTraining: finish")
+        preparedEvalDataset
+      }
+    }
+
     val precomputedOnlineCtrMetaDataAsJsonString = if (ctrsContext != null) {
       ctrsContext.precomputedOnlineCtrMetaDataAsJsonString
     } else {
@@ -165,8 +182,8 @@ trait CatBoostPredictorTrait[
     }
 
     val master = impl.CatBoostMasterWrapper(
-      preprocessedTrainPool,
-      preprocessedEvalPools,
+      preparedTrainDataset,
+      preparedEvalDatasets,
       compact(catBoostJsonParams),
       precomputedOnlineCtrMetaDataAsJsonString
     )
@@ -191,8 +208,8 @@ trait CatBoostPredictorTrait[
       spark,
       partitionCount,
       listeningPort,
-      preprocessedTrainPool,
-      preprocessedEvalPools,
+      preparedTrainDataset,
+      preparedEvalDatasets,
       catBoostJsonParams,
       precomputedOnlineCtrMetaDataAsJsonString,
       master.savedPoolsFuture
