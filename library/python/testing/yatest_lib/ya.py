@@ -89,6 +89,8 @@ class Ya(object):
         self._context["project_path"] = context_runtime.get("project_path")
         self._context["modulo"] = context_runtime.get("split_count", 1)
         self._context["modulo_index"] = context_runtime.get("split_index", 0)
+        self._context["work_path"] = context_runtime.get("work_path")
+
         self._context["sanitize"] = context_build.get("sanitizer")
         self._context["ya_trace_path"] = context_internal.get("trace_file")
 
