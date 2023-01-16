@@ -371,11 +371,11 @@ def parse_words(words):
         if not p:
             ymake.report_configure_error('Empty CUSTOM_PROPERTY')
             continue
-        props.append('-D')
+        props.append('-B')
         if len(p) > 1:
-            props.append("'{}={}'".format(p[0], ' '.join(p[1:])))
+            props.append(base64.b64encode("'{}={}'".format(p[0], ' '.join(p[1:]))))
         else:
-            props.append("'{}'".format(p[0]))
+            props.append(base64.b64encode("'{}'".format(p[0])))
     for i, o in enumerate(outputs):
         yield o, tepmlates[min(i, len(tepmlates) - 1)], props
 
