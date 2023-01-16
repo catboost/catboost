@@ -359,6 +359,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\chunk_queue\cpp-threading-chunk_queue.vcxproj">
       <Project>{8E921F98-5854-56F7-2AFB-4C06B80B46CD}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\future\cpp-threading-future.vcxproj">
+      <Project>{3606F768-0467-35B5-0130-059536BE13C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\hot_swap\cpp-threading-hot_swap.vcxproj">
       <Project>{F2F7163F-2213-4906-A41E-82393C15A6DA}</Project>
     </ProjectReference>
