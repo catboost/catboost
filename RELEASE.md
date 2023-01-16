@@ -1,4 +1,23 @@
+# Release 1.0.2
+
+## CatBoost for Apache Spark
+* PySpark: Fix python -> JVM `datetime.timedelta` conversion.
+* Fix: proper handling of constant categorical features. #1867
+* Fix SIGSEGV for for Multiclassification with Ctrs. #1886
+
+## New features.
+* Add `is_min_optimal`, `is_max_optimal` for `BuiltinMetrics`. #1890
+
+## R package
+* Use `libcatboostr-darwin.dylib` instead of `libcatboostr-darwin.so` on macOS. #1834
+
+## Bugfixes
+* Fix `CatBoostError: (No such file or directory) bad new file name` when using `grid_search`. #1893
+
+
 # Release 1.0.1
+
+> :warning: **PySpark support is broken in this release.**: Please use release 1.0.2 instead.
 
 ## CatBoost for Apache Spark
 * More robust handling of CatBoost Master and Workers failures, avoid freezes.
