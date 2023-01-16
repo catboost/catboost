@@ -229,7 +229,7 @@ namespace NCB {
         }
 
         bool IsFullSubset() const {
-            return HoldsAlternative<TFullSubset<TSize>>(*this);
+            return std::holds_alternative<TFullSubset<TSize>>(*this);
         }
 
         TSize Size() const {
@@ -869,7 +869,7 @@ namespace NCB {
         const TArraySubsetIndexing<TSize>& indexing,
         NPar::ILocalExecutor* localExecutor
     ) {
-        if (HoldsAlternative<TFullSubset<TSize>>(indexing)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(indexing)) {
             return indexing;
         } else {
             TVector<TSize> indices;
@@ -1287,10 +1287,10 @@ namespace NCB {
             src.GetSize() >= srcSubset.GetSrcSize(),
             "srcSubset has source mapping size greater than src's size"
         );
-        if (HoldsAlternative<TFullSubset<TSize>>(src)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(src)) {
             return std::move(srcSubset);
         }
-        if (HoldsAlternative<TFullSubset<TSize>>(srcSubset)) {
+        if (std::holds_alternative<TFullSubset<TSize>>(srcSubset)) {
             return src;
         }
 

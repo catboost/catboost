@@ -272,7 +272,7 @@ namespace NCB {
 
         TVector<TQueryInfo> result(groupsBounds.begin(), groupsBounds.end());
 
-        bool hasUngroupedPairs = !pairs.Empty() && HoldsAlternative<TConstArrayRef<TPair>>(*pairs);
+        bool hasUngroupedPairs = !pairs.Empty() && std::holds_alternative<TConstArrayRef<TPair>>(*pairs);
 
         TVector<ui32> objectToGroupIdxMap; // [objectIdx]->groupIdx  initialized only for ungrouped pairs
         if (hasUngroupedPairs) {

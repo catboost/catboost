@@ -46,7 +46,7 @@ namespace NCB {
         bool hasDenseData,
         NPar::ILocalExecutor* localExecutor
     ) {
-        if (hasDenseData && !HoldsAlternative<TFullSubset<ui32>>(srcSubsetIndexing)) {
+        if (hasDenseData && !std::holds_alternative<TFullSubset<ui32>>(srcSubsetIndexing)) {
             TVector<ui32> srcIndices;
             srcIndices.yresize(srcSubsetIndexing.Size());
             TArrayRef<ui32> srcIndicesRef = srcIndices;

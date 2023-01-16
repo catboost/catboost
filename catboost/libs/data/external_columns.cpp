@@ -116,7 +116,7 @@ namespace NCB {
         ESparseArrayIndexingType sparseArrayIndexingType,
         ui32 dstBitsPerKey
     ) {
-        if (HoldsAlternative<TFullSubset<ui32>>(subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<ui32>>(subsetInvertedIndexing)) {
             return 0; // just clone
         }
 
@@ -225,7 +225,7 @@ namespace NCB {
             *this
         );
 
-        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
             // just clone
             return MakeHolder<TExternalFloatSparseValuesHolder>(
                 this->GetId(),
@@ -294,7 +294,7 @@ namespace NCB {
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
         );
-        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+        if (std::holds_alternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
             // just clone
             return MakeHolder<TExternalCatSparseValuesHolder>(
                 this->GetId(),

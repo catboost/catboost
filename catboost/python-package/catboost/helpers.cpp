@@ -207,7 +207,7 @@ TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider) 
     const NCB::TMaybeData<NCB::TRawPairsData>& maybePairsData = dataProvider.RawTargetData.GetPairs();
     if (maybePairsData) {
         CB_ENSURE(
-            HoldsAlternative<TFlatPairsInfo>(*maybePairsData),
+            std::holds_alternative<TFlatPairsInfo>(*maybePairsData),
             "Cannot get ungrouped pairs: pairs data is grouped"
         );
         result = Get<TFlatPairsInfo>(*maybePairsData);

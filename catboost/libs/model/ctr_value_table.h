@@ -52,7 +52,7 @@ public:
 
     template <typename T>
     TConstArrayRef<T> GetTypedArrayRefForBlobData() const {
-        if (HoldsAlternative<TSolidTable>(Impl)) {
+        if (std::holds_alternative<TSolidTable>(Impl)) {
             auto& solid = Get<TSolidTable>(Impl);
             return MakeArrayRef(
                 reinterpret_cast<const T*>(solid.CTRBlob.data()),
@@ -79,7 +79,7 @@ public:
     }
 
     NCatboost::TDenseIndexHashView GetIndexHashViewer() const {
-        if (HoldsAlternative<TSolidTable>(Impl)) {
+        if (std::holds_alternative<TSolidTable>(Impl)) {
             auto& solid = Get<TSolidTable>(Impl);
             return NCatboost::TDenseIndexHashView(solid.IndexBuckets);
         } else {

@@ -182,7 +182,7 @@ namespace NCatboostCuda {
             }
 
             bool IsTerminal() const {
-                return HoldsAlternative<TLeaf>(Value);
+                return std::holds_alternative<TLeaf>(Value);
             };
 
             std::variant<TLeaf, TBinarySplit> Value;
