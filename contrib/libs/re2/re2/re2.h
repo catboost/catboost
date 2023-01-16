@@ -607,7 +607,7 @@ class RE2 {
   bool CheckRewriteString(const StringPiece& rewrite,
                           std::string* error) const;
 
-  bool CheckRewriteString(const StringPiece& rewrite, nullptr_t error) const {
+  bool CheckRewriteString(const StringPiece& rewrite, std::nullptr_t error) const {
     return CheckRewriteString(rewrite, static_cast<std::string*>(error));
   }
 
