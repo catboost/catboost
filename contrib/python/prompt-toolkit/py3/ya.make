@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(3.0.22)
+VERSION(3.0.23)
 
 LICENSE(BSD-3-Clause)
 

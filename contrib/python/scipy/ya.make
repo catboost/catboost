@@ -12,12 +12,6 @@ PEERDIR(
     contrib/libs/libf2c
     contrib/libs/qhull
     contrib/python/numpy
-
-    contrib/python/scipy/scipy/_build_utils/src
-    contrib/python/scipy/scipy/ndimage
-    contrib/python/scipy/scipy/odr
-    contrib/python/scipy/scipy/_lib
-    contrib/python/scipy/scipy/linalg
 )
 
 CFLAGS(
@@ -38,6 +32,7 @@ ADDINCL(
     contrib/python/scipy/scipy/cluster
     contrib/python/scipy/scipy/interpolate
     contrib/python/scipy/scipy/io/matlab
+    contrib/python/scipy/scipy/linalg
     contrib/python/scipy/scipy/spatial
     contrib/python/scipy/scipy/spatial/ckdtree/src
     contrib/python/scipy/scipy/special
@@ -54,6 +49,14 @@ NO_CHECK_IMPORTS(
 )
 
 SRCS(
+    # scipy/_build_utils/src/apple_sgemv_fix.c
+    scipy/_build_utils/src/wrap_accelerate_c.c
+    scipy/_build_utils/src/wrap_accelerate_f.f
+    # scipy/_build_utils/src/wrap_dummy_accelerate.f
+    # scipy/_build_utils/src/wrap_dummy_g77_abi.f
+    scipy/_build_utils/src/wrap_g77_abi_c.c
+    scipy/_build_utils/src/wrap_g77_abi_f.f
+
     scipy/fftpack/convolvemodule.c
     scipy/fftpack/_fftpackmodule.c
     scipy/fftpack/src/dst.c
@@ -265,6 +268,208 @@ SRCS(
     scipy/interpolate/src/_interpolate.cpp
     scipy/interpolate/src/dfitpackmodule.c
     scipy/interpolate/src/dfitpack-f2pywrappers.f
+
+    scipy/linalg/_fblasmodule.c
+    scipy/linalg/_flapackmodule.c
+    scipy/linalg/_calc_lworkmodule.c
+    scipy/linalg/_flinalgmodule.c
+    scipy/linalg/_interpolativemodule.c
+    scipy/linalg/_blas_subroutine_wrappers.f
+    scipy/linalg/_lapack_subroutine_wrappers.f
+    scipy/linalg/_fblas-f2pywrappers.f
+    scipy/linalg/_flapack-f2pywrappers.f
+
+    scipy/linalg/src/calc_lwork.f
+    scipy/linalg/src/det.f
+    scipy/linalg/src/lu.f
+
+    # scipy/linalg/src/id_dist/src/dfft_subr_*.f in fftpack
+    scipy/linalg/src/id_dist/src/idd_frm_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_3.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_4.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_5.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_6.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_7.f
+    scipy/linalg/src/id_dist/src/idd_frm_subr_8.f
+    scipy/linalg/src/id_dist/src/idd_house_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_house_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_house_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_id2svd_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_id2svd_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_id2svd_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_id2svd_subr_3.f
+    scipy/linalg/src/id_dist/src/idd_id2svd_subr_4.f
+    scipy/linalg/src/id_dist/src/idd_id2svd_subr_5.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_3.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_4.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_5.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_6.f
+    scipy/linalg/src/id_dist/src/idd_id_subr_7.f
+    scipy/linalg/src/id_dist/src/iddp_aid_subr_0.f
+    scipy/linalg/src/id_dist/src/iddp_aid_subr_1.f
+    scipy/linalg/src/id_dist/src/iddp_aid_subr_2.f
+    scipy/linalg/src/id_dist/src/iddp_aid_subr_3.f
+    scipy/linalg/src/id_dist/src/iddp_aid_subr_4.f
+    scipy/linalg/src/id_dist/src/iddp_aid_subr_5.f
+    scipy/linalg/src/id_dist/src/iddp_asvd_subr_0.f
+    scipy/linalg/src/id_dist/src/iddp_asvd_subr_1.f
+    scipy/linalg/src/id_dist/src/iddp_rid_subr_0.f
+    scipy/linalg/src/id_dist/src/iddp_rid_subr_1.f
+    scipy/linalg/src/id_dist/src/iddp_rid_subr_2.f
+    scipy/linalg/src/id_dist/src/iddp_rid_subr_3.f
+    scipy/linalg/src/id_dist/src/iddp_rid_subr_4.f
+    scipy/linalg/src/id_dist/src/iddp_rsvd_subr_0.f
+    scipy/linalg/src/id_dist/src/iddp_rsvd_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_qrpiv_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_qrpiv_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_qrpiv_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_qrpiv_subr_3.f
+    scipy/linalg/src/id_dist/src/idd_qrpiv_subr_4.f
+    scipy/linalg/src/id_dist/src/idd_qrpiv_subr_5.f
+    scipy/linalg/src/id_dist/src/iddr_aid_subr_0.f
+    scipy/linalg/src/id_dist/src/iddr_aid_subr_1.f
+    scipy/linalg/src/id_dist/src/iddr_aid_subr_2.f
+    scipy/linalg/src/id_dist/src/iddr_aid_subr_3.f
+    scipy/linalg/src/id_dist/src/iddr_asvd_subr_0.f
+    scipy/linalg/src/id_dist/src/iddr_asvd_subr_1.f
+    scipy/linalg/src/id_dist/src/iddr_rid_subr_0.f
+    scipy/linalg/src/id_dist/src/iddr_rid_subr_1.f
+    scipy/linalg/src/id_dist/src/iddr_rsvd_subr_0.f
+    scipy/linalg/src/id_dist/src/iddr_rsvd_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_sfft_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_sfft_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_sfft_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_sfft_subr_3.f
+    scipy/linalg/src/id_dist/src/idd_sfft_subr_4.f
+    scipy/linalg/src/id_dist/src/idd_sfft_subr_5.f
+    scipy/linalg/src/id_dist/src/idd_sfft_subr_6.f
+    scipy/linalg/src/id_dist/src/idd_snorm_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_snorm_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_snorm_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_snorm_subr_3.f
+    scipy/linalg/src/id_dist/src/idd_svd_subr_0.f
+    scipy/linalg/src/id_dist/src/idd_svd_subr_1.f
+    scipy/linalg/src/id_dist/src/idd_svd_subr_2.f
+    scipy/linalg/src/id_dist/src/idd_svd_subr_3.f
+    scipy/linalg/src/id_dist/src/idd_svd_subr_4.f
+    scipy/linalg/src/id_dist/src/id_rand_subr_0.f
+    scipy/linalg/src/id_dist/src/id_rand_subr_1.f
+    scipy/linalg/src/id_dist/src/id_rand_subr_2.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_0.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_10.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_11.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_12.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_13.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_14.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_15.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_16.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_17.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_1.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_2.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_3.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_4.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_5.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_6.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_7.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_8.f
+    scipy/linalg/src/id_dist/src/id_rtrans_subr_9.f
+    scipy/linalg/src/id_dist/src/idz_frm_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_frm_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_frm_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_frm_subr_3.f
+    scipy/linalg/src/id_dist/src/idz_frm_subr_4.f
+    scipy/linalg/src/id_dist/src/idz_frm_subr_5.f
+    scipy/linalg/src/id_dist/src/idz_frm_subr_6.f
+    scipy/linalg/src/id_dist/src/idz_house_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_house_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_house_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_id2svd_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_id2svd_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_id2svd_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_id2svd_subr_3.f
+    scipy/linalg/src/id_dist/src/idz_id2svd_subr_4.f
+    scipy/linalg/src/id_dist/src/idz_id2svd_subr_5.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_3.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_4.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_5.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_6.f
+    scipy/linalg/src/id_dist/src/idz_id_subr_7.f
+    scipy/linalg/src/id_dist/src/idzp_aid_subr_0.f
+    scipy/linalg/src/id_dist/src/idzp_aid_subr_1.f
+    scipy/linalg/src/id_dist/src/idzp_aid_subr_2.f
+    scipy/linalg/src/id_dist/src/idzp_aid_subr_3.f
+    scipy/linalg/src/id_dist/src/idzp_aid_subr_4.f
+    scipy/linalg/src/id_dist/src/idzp_aid_subr_5.f
+    scipy/linalg/src/id_dist/src/idzp_asvd_subr_0.f
+    scipy/linalg/src/id_dist/src/idzp_asvd_subr_1.f
+    scipy/linalg/src/id_dist/src/idzp_asvd_subr_2.f
+    scipy/linalg/src/id_dist/src/idzp_rid_subr_0.f
+    scipy/linalg/src/id_dist/src/idzp_rid_subr_1.f
+    scipy/linalg/src/id_dist/src/idzp_rid_subr_2.f
+    scipy/linalg/src/id_dist/src/idzp_rid_subr_3.f
+    scipy/linalg/src/id_dist/src/idzp_rid_subr_4.f
+    scipy/linalg/src/id_dist/src/idzp_rsvd_subr_0.f
+    scipy/linalg/src/id_dist/src/idzp_rsvd_subr_1.f
+    scipy/linalg/src/id_dist/src/idzp_rsvd_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_qrpiv_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_qrpiv_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_qrpiv_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_qrpiv_subr_3.f
+    scipy/linalg/src/id_dist/src/idz_qrpiv_subr_4.f
+    scipy/linalg/src/id_dist/src/idz_qrpiv_subr_5.f
+    scipy/linalg/src/id_dist/src/idzr_aid_subr_0.f
+    scipy/linalg/src/id_dist/src/idzr_aid_subr_1.f
+    scipy/linalg/src/id_dist/src/idzr_aid_subr_2.f
+    scipy/linalg/src/id_dist/src/idzr_aid_subr_3.f
+    scipy/linalg/src/id_dist/src/idzr_asvd_subr_0.f
+    scipy/linalg/src/id_dist/src/idzr_asvd_subr_1.f
+    scipy/linalg/src/id_dist/src/idzr_rid_subr_0.f
+    scipy/linalg/src/id_dist/src/idzr_rid_subr_1.f
+    scipy/linalg/src/id_dist/src/idzr_rsvd_subr_0.f
+    scipy/linalg/src/id_dist/src/idzr_rsvd_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_sfft_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_sfft_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_sfft_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_snorm_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_snorm_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_snorm_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_snorm_subr_3.f
+    scipy/linalg/src/id_dist/src/idz_svd_subr_0.f
+    scipy/linalg/src/id_dist/src/idz_svd_subr_1.f
+    scipy/linalg/src/id_dist/src/idz_svd_subr_2.f
+    scipy/linalg/src/id_dist/src/idz_svd_subr_3.f
+    scipy/linalg/src/id_dist/src/idz_svd_subr_4.f
+    scipy/linalg/src/id_dist/src/idz_svd_subr_5.f
+    scipy/linalg/src/id_dist/src/prini_subr_0.f
+    scipy/linalg/src/id_dist/src/prini_subr_1.f
+    scipy/linalg/src/id_dist/src/prini_subr_2.f
+    scipy/linalg/src/id_dist/src/prini_subr_3.f
+    scipy/linalg/src/id_dist/src/prini_subr_4.f
+    scipy/linalg/src/id_dist/src/prini_subr_5.f
+    scipy/linalg/src/id_dist/src/prini_subr_6.f
+
+    scipy/ndimage/src/_ctest.c
+    scipy/ndimage/src/nd_image.c
+    scipy/ndimage/src/ni_filters.c
+    scipy/ndimage/src/ni_fourier.c
+    scipy/ndimage/src/ni_interpolation.c
+    scipy/ndimage/src/ni_measure.c
+    scipy/ndimage/src/ni_morphology.c
+    scipy/ndimage/src/ni_support.c
+
+    scipy/odr/__odrpack.c
+    scipy/odr/odrpack/d_odr.f
+    scipy/odr/odrpack/d_mprec.f
+    scipy/odr/odrpack/dlunoc.f
+    scipy/odr/odrpack/d_lpk.f
 
     scipy/optimize/_minpackmodule.c
     scipy/optimize/zeros.c
@@ -897,10 +1102,67 @@ PY_SRCS(
     scipy/io/matlab/mio_utils.pyx
     scipy/io/matlab/streams.pyx
 
+    scipy/linalg/__init__.py
+    scipy/linalg/basic.py
+    scipy/linalg/blas.py
+    scipy/linalg/calc_lwork.py
+    scipy/linalg/decomp_cholesky.py
+    scipy/linalg/decomp_lu.py
+    scipy/linalg/_decomp_polar.py
+    scipy/linalg/decomp.py
+    scipy/linalg/decomp_qr.py
+    scipy/linalg/_decomp_qz.py
+    scipy/linalg/decomp_schur.py
+    scipy/linalg/decomp_svd.py
+    scipy/linalg/_expm_frechet.py
+    scipy/linalg/flinalg.py
+    scipy/linalg/_interpolative_backend.py
+    scipy/linalg/interpolative.py
+    scipy/linalg/lapack.py
+    scipy/linalg/linalg_version.py
+    scipy/linalg/_matfuncs_inv_ssq.py
+    scipy/linalg/matfuncs.py
+    scipy/linalg/_matfuncs_sqrtm.py
+    scipy/linalg/misc.py
+    scipy/linalg/_procrustes.py
+    scipy/linalg/_solvers.py
+    scipy/linalg/special_matrices.py
+
+    CYTHON_C
+    scipy/linalg/_solve_toeplitz.pyx
+    scipy/linalg/cython_lapack.pyx
+    scipy/linalg/cython_blas.pyx
+    scipy/linalg/_decomp_update.pyx
+
+    scipy/_lib/__init__.py
+    scipy/_lib/_gcutils.py
+    scipy/_lib/_numpy_compat.py
+    # scipy/_lib/_testutils.py
+    scipy/_lib/_threadsafety.py
+    scipy/_lib/_tmpdirs.py
+    scipy/_lib/_util.py
+    scipy/_lib/_version.py
+    scipy/_lib/decorator.py
+    scipy/_lib/six.py
+
     scipy/misc/__init__.py
     scipy/misc/common.py
     scipy/misc/doccer.py
     scipy/misc/pilutil.py
+
+    scipy/ndimage/__init__.py
+    scipy/ndimage/filters.py
+    scipy/ndimage/fourier.py
+    scipy/ndimage/interpolation.py
+    scipy/ndimage/io.py
+    scipy/ndimage/measurements.py
+    scipy/ndimage/morphology.py
+    scipy/ndimage/_ni_support.py
+
+    scipy/odr/add_newdocs.py
+    scipy/odr/__init__.py
+    scipy/odr/models.py
+    scipy/odr/odrpack.py
 
     scipy/optimize/__init__.py
     scipy/optimize/_basinhopping.py
@@ -1095,6 +1357,16 @@ PY_REGISTER(
     scipy.interpolate.dfitpack
     scipy.interpolate._interpolate
 
+    scipy.linalg._fblas
+    scipy.linalg._flapack
+    scipy.linalg._calc_lwork
+    scipy.linalg._flinalg
+    scipy.linalg._interpolative
+
+    scipy.ndimage._nd_image
+
+    scipy.odr.__odrpack
+
     scipy.optimize._cobyla
     scipy.optimize._lbfgsb
     scipy.optimize._minpack
@@ -1122,7 +1394,28 @@ PY_REGISTER(
     # scipy.stats.mvn
 )
 
+# _cytest.pyx and _ni_label.pyx are expected to be importable as scipy.ndimage._cytest and scipy.ndimage._ni_label correspondingly,
+# yet the source files are placed into src subdirectory.
+#
+# Workaround this by manual SRCDIR and NAMESPACE management.
+
+SRCDIR(
+    contrib/python/scipy/scipy/ndimage/src
+)
+
+PY_SRCS(
+    NAMESPACE scipy.ndimage
+
+    CYTHON_CPP
+    _cytest.pyx
+    _ni_label.pyx
+)
+
 END()
+
+RECURSE(
+    scipy/linalg/src/lapack_deprecations
+)
 
 RECURSE_FOR_TESTS(
     scipy/_build_utils/tests
