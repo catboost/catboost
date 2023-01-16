@@ -1,4 +1,3 @@
-#include "mktemp.h"
 #include "tempfile.h"
 
 TTempFileHandle::TTempFileHandle()

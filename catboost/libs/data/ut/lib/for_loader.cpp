@@ -6,7 +6,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/stream/file.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 
 
 namespace NCB {

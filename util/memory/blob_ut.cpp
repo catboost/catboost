@@ -2,7 +2,7 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 #include <util/folder/path.h>
 #include <util/stream/output.h>
 #include <util/stream/file.h>

@@ -13,7 +13,7 @@
 
 #include <util/generic/cast.h>
 #include <util/stream/input.h>
-#include <util/system/mktemp.h>
+#include <util/system/tempfile.h>
 
 
 using namespace NCB;
