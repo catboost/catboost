@@ -4,8 +4,6 @@
 
 #include <library/cpp/binsaver/mem_io.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
-
 namespace NPar {
     class TUserContext: public IUserContext {
         TIntrusivePtr<TRemoteQueryProcessor> QueryProc;
