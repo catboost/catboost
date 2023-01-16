@@ -25,6 +25,11 @@ def main():
     if FORCE_EXIT_TESTSFAILED_ENV in os.environ:
         del os.environ[FORCE_EXIT_TESTSFAILED_ENV]
 
+    if "Y_PYTHON_CLEAR_ENTRY_POINT" in os.environ:
+        if "Y_PYTHON_ENTRY_POINT" in os.environ:
+            del os.environ["Y_PYTHON_ENTRY_POINT"]
+        del os.environ["Y_PYTHON_CLEAR_ENTRY_POINT"]
+
     listing_mode = '--collect-only' in sys.argv
     yatest_runner = os.environ.get('YA_TEST_RUNNER') == '1'
 
