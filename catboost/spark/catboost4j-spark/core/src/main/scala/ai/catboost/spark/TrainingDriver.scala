@@ -219,7 +219,8 @@ private[spark] class TrainingDriver (
   val workerInitializationTimeout: java.time.Duration,
   val workerShutdownOptimisticTimeout: java.time.Duration,
   val workerShutdownPessimisticTimeout: java.time.Duration,
-  val startMasterCallback: Array[WorkerInfo] => Unit
+  val startMasterCallback: Array[WorkerInfo] => Unit,
+  var closed: Boolean
 ) extends Runnable with Logging {
 
   /**
@@ -248,7 +249,8 @@ private[spark] class TrainingDriver (
     workerInitializationTimeout = workerInitializationTimeout,
     workerShutdownOptimisticTimeout = workerShutdownOptimisticTimeout,
     workerShutdownPessimisticTimeout = workerShutdownPessimisticTimeout,
-    startMasterCallback = startMasterCallback
+    startMasterCallback = startMasterCallback,
+    closed = false
   )
 
   def getListeningPort : Int = this.updatableWorkersInfo.serverSocket.getLocalPort
@@ -278,19 +280,33 @@ private[spark] class TrainingDriver (
         }
       }
     } finally {
-      updatableWorkersInfo.close
-      if (!success) {
-        /* wait for CatBoost workers to shut down after CatBoost master failed
-           (assuming CatBoost master has been able to issue 'stop' command to workers)
-        */
-        Thread.sleep(workerShutdownOptimisticTimeout.toMillis)
-        updatableWorkersInfo.shutdownRemainingWorkers(
-          connectTimeout,
-          workerShutdownOptimisticTimeout,
-          workerShutdownPessimisticTimeout
-        )
-      }
+      /* wait for CatBoost workers to shut down after CatBoost master failed
+         (assuming CatBoost master has been able to issue 'stop' command to workers)
+      */
+      this.close(tryToShutdownWorkers = !success, waitToShutdownWorkers = true)
       log.info("finished")
+    }
+  }
+  
+  def close(tryToShutdownWorkers:Boolean, waitToShutdownWorkers:Boolean) = {
+    this.synchronized {
+      if (!closed) {
+        log.info("close updatableWorkersInfo")
+        updatableWorkersInfo.close
+        if (tryToShutdownWorkers) {
+          if (waitToShutdownWorkers) {
+            log.info(s"wait for workers to finish by themselves for $workerShutdownOptimisticTimeout")
+            Thread.sleep(workerShutdownOptimisticTimeout.toMillis)
+          }
+          updatableWorkersInfo.shutdownRemainingWorkers(
+            connectTimeout,
+            workerShutdownOptimisticTimeout,
+            workerShutdownPessimisticTimeout
+          )
+        }
+        closed = true
+        log.info("closed")
+      }
     }
   }
 }
