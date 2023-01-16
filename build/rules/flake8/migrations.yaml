@@ -480,7 +480,6 @@ migrations:
     - quality/ab_testing/cofe/projects/geo/geoadv
     - quality/ab_testing/scripts/kati
     - quality/ab_testing/scripts/kati/lib
-    - quality/antifraud/scripts/prod/suggest_metrics
     - quality/antifraud/scripts/prod/traffic_chains
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/settings
@@ -1497,7 +1496,6 @@ migrations:
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordToYT-Via-Simple-IudYtOneshot
     - yabs/qa/oneshots/serval/BSSERVER-14292/first_json_option_new
     - yabs/sbyt/ytstatcollector/advmachine/tests
-    - yabs/sbyt/ytstatcollector/moderation/tests
     - yabs/server/cs/pylibs/advmachine_export
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
@@ -1708,7 +1706,6 @@ migrations:
     - april/web/bas/qa/migrations
     - april/web/bas/rd/migrations
     - april/web/bas/tq/migrations
-    - aurora/aurora/core/pb
     - aurora/library/Pyro4
     - aurora/library/serpent
     - balancer/production/x/yasm_errors_collector
@@ -1800,7 +1797,6 @@ migrations:
     - dict/mt/make/modules/filter
     - dict/mt/make/modules/lang_detector
     - dict/mt/make/modules/parallel_classifier
-    - dict/mt/make/modules/py3dl
     - dict/mt/make/modules/search_suggest
     - dict/mt/make/modules/sentence_breaker
     - dict/mt/make/modules/tfnn
@@ -2040,8 +2036,6 @@ migrations:
     - library/python/yandex_tracker_client
     - library/python/ylog
     - library/python/yt
-    - library/recipes/tvmapi
-    - library/recipes/tvmtool
     - logbroker/admin
     - logbroker/mops
     - logbroker/tools/lb-cm
@@ -2075,7 +2069,6 @@ migrations:
     - maps/streetview/backoffice/tools/pano_snippets_updater
     - maps/streetview/backoffice/tools/set_not_uploaded
     - maps/streetview/backoffice/tools/source_validator
-    - maps/wikimap/mapspro/services/mrc/long_tasks/toloka_manager_cron_jobs/lib/tests/test_server
     - maps/wikimap/mapspro/services/tasks/fastcgi/bin
     - maps/wikimap/mapspro/services/tasks/fastcgi/lib
     - maps/wikimap/mapspro/services/tasks/fastcgi/modules
@@ -3241,7 +3234,6 @@ migrations:
     - passport/backend/vault/cli/yav/tests
     - quality/ab_testing/scripts/exp_veles/exp_mr_server/scripts/ut
     - quality/ab_testing/tools/postgres_local/tests
-    - quality/antifraud/scripts/prod/tests/large_yql_scripts_tests
     - quality/click_machine/tests
     - quality/functionality/chats/common/feedback_client/tests
     - quality/functionality/content_plugins/runner/tests
@@ -3553,10 +3545,8 @@ migrations:
     - yweb/webscripts/video/fastrecrawl/fresh_deltas/tests
     - yweb/webscripts/video/redirects_unwind
     - yweb/yasap/pdb/pdb-backend/tests/lib/commands/set_market_merchant_data
-    - yweb/yasap/pdb/pdb-backend/tests/lib/detected_objects
     - yweb/yasap/pdb/pdb-backend/tests/lib/its
     - yweb/yasap/pdb/pdb-backend/tests/lib/mds
-    - yweb/yasap/pdb/pdb-backend/tests/lib/monit
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/avatars
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/boards/resources
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/ban
@@ -3582,7 +3572,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/wish
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/celery
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/clicks
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/comments
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/common
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/complaints
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/components
@@ -3606,7 +3595,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ydb
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/actions/tasks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/boards
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/comments
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/complaints
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/contents
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/e2e
