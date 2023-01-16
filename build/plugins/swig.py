@@ -70,9 +70,9 @@ class Swig(iw.CustomCommand):
             if (not unit.get('USE_SYSTEM_JDK')) and (unit.get('OS_ANDROID') != "yes"):
                 unit.onpeerdir(['contrib/libs/jdk'])
 
+        self._package = 'ru.yandex.' + os.path.dirname(self._path).replace('$S/', '').replace('$B/', '').replace('/', '.').replace('-', '_')
         if self._swig_lang in ['jni_java', 'java']:
             self._out_name = os.path.splitext(os.path.basename(self._path))[0] + '.jsrc'
-            self._package = 'ru.yandex.' + os.path.dirname(self._path).replace('$S/', '').replace('$B/', '').replace('/', '.').replace('-', '_')
         elif self._swig_lang != 'jni_cpp':
             self._flags.append('-' + self._swig_lang)
 
@@ -134,7 +134,7 @@ class Swig(iw.CustomCommand):
                 flags += ['-module', os.path.splitext(os.path.basename(src))[0]]
 
         if self._swig_lang == 'jni_cpp':
-            self.call([binary, '-c++', '-o', self._main_out, '-java'] + flags + [src])
+            self.call([binary, '-c++', '-o', self._main_out, '-java', '-package', self._package] + flags + [src])
         elif self._swig_lang == 'jni_java':
             self.call([binary, '-c++', '-o', os.path.join(outdir, 'unused.cpp'), '-outdir', java_srcs_dir, '-java', '-package', self._package] + flags + [src])
         elif self._swig_lang == 'java':
