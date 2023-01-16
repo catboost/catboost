@@ -288,6 +288,8 @@ class DeprecatedList(list):
     1
     """
 
+    __slots__ = ()
+
     _warn = functools.partial(
         warnings.warn,
         "EntryPoints list interface is deprecated. Cast to list if needed.",
@@ -300,21 +302,15 @@ class DeprecatedList(list):
             self._warn()
             return getattr(super(), method_name)(*args, **kwargs)
 
-        return wrapped
+        return method_name, wrapped
 
-    for method_name in [
-        '__setitem__',
-        '__delitem__',
-        'append',
-        'reverse',
-        'extend',
-        'pop',
-        'remove',
-        '__iadd__',
-        'insert',
-        'sort',
-    ]:
-        locals()[method_name] = _wrap_deprecated_method(method_name)
+    locals().update(
+        map(
+            _wrap_deprecated_method,
+            '__setitem__ __delitem__ append reverse extend pop remove '
+            '__iadd__ insert sort'.split(),
+        )
+    )
 
     def __add__(self, other):
         if not isinstance(other, tuple):
