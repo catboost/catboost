@@ -612,7 +612,7 @@ static int DoUsage(const char* progname) {
          << "Options:\n"
          << "  -h, --help            print this help message\n"
          << "  -l, --list            print a list of available tests\n"
-         << "  --list-verbose        print a list of available subtests\n"
+         << "  -A --list-verbose        print a list of available subtests\n"
          << "  --print-before-test   print each test name before running it\n"
          << "  --print-before-suite  print each test suite name before running it\n"
          << "  --show-fails          print a list of all failed tests at the end\n"
@@ -683,7 +683,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     return DoUsage(argv[0]);
                 } else if (strcmp(name, "--list") == 0 || strcmp(name, "-l") == 0) {
                     listTests = LIST;
-                } else if (strcmp(name, "--list-verbose") == 0) {
+                } else if (strcmp(name, "--list-verbose") == 0 || strcmp(name, "-A") == 0) {
                     listTests = LIST_VERBOSE;
                 } else if (strcmp(name, "--print-before-suite=false") == 0) {
                     processor.SetPrintBeforeSuite(false);
