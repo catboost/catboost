@@ -1330,8 +1330,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\py3contrib-python-pytz.vcxproj">
       <Project>{5257C446-B594-693C-C2C7-E97834CB951E}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3\py3python-scipy-py3.vcxproj">
-      <Project>{A0CE430A-E274-032F-70F7-1E0ED20052E0}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3\pypython-scipy-py3.vcxproj">
+      <Project>{2F803647-7866-D771-2297-860C24B205B1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3contrib-python-scipy.vcxproj">
       <Project>{A57F658E-50AA-391E-E485-F24502684666}</Project>

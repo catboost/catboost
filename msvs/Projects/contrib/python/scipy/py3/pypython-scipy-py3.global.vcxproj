@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{FAB75B93-B4F5-5E02-F4CA-EE1D3A76DF86}</ProjectGUID>
+    <ProjectGUID>{AD428720-FAAE-13AE-4552-33E4A951BCCA}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3python-scipy-py3.global</ProjectName>
+    <ProjectName>pypython-scipy-py3.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3python-scipy-py3.global</TargetName>
+    <TargetName>pypython-scipy-py3.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FAB75B93-B4F5-5E02-F4CA-EE1D3A76DF86\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\AD428720-FAAE-13AE-4552-33E4A951BCCA\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/qhull;$(SolutionDir)../contrib/python/scipy/py2/scipy/_lib;$(SolutionDir)../contrib/python/scipy/py2/scipy/_lib/src;$(SolutionDir)../contrib/python/scipy/py2/scipy/cluster;$(SolutionDir)../contrib/python/scipy/py2/scipy/interpolate;$(SolutionDir)../contrib/python/scipy/py2/scipy/io/matlab;$(SolutionDir)../contrib/python/scipy/py2/scipy/linalg;$(SolutionDir)../contrib/python/scipy/py2/scipy/optimize/_trlib;$(SolutionDir)../contrib/python/scipy/py2/scipy/spatial;$(SolutionDir)../contrib/python/scipy/py2/scipy/spatial/ckdtree/src;$(SolutionDir)../contrib/python/scipy/py2/scipy/special;$(SolutionDir)../contrib/python/scipy/py2/scipy/special/c_misc;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/qhull;$(SolutionDir)../contrib/python/scipy/py3/scipy/_lib;$(SolutionDir)../contrib/python/scipy/py3/scipy/_lib/src;$(SolutionDir)../contrib/python/scipy/py3/scipy/cluster;$(SolutionDir)../contrib/python/scipy/py3/scipy/interpolate;$(SolutionDir)../contrib/python/scipy/py3/scipy/io/matlab;$(SolutionDir)../contrib/python/scipy/py3/scipy/linalg;$(SolutionDir)../contrib/python/scipy/py3/scipy/optimize/_trlib;$(SolutionDir)../contrib/python/scipy/py3/scipy/spatial;$(SolutionDir)../contrib/python/scipy/py3/scipy/spatial/ckdtree/src;$(SolutionDir)../contrib/python/scipy/py3/scipy/special;$(SolutionDir)../contrib/python/scipy/py3/scipy/special/c_misc;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -161,7 +161,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -172,7 +172,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -180,9 +180,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.py3.obj	</Message>
+      <Message>$B/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\join_41a198b009e4c45bea33076f60.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\join_41a198b009e4c45bea33076f60.py3.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\join_41a198b009e4c45bea33076f60.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\scipy\_lib\__init__.py.2ao3.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

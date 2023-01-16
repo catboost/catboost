@@ -1215,11 +1215,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py2\pypython-scipy-py2.vcxproj">
       <Project>22647110-A475-E35C-0024-18B466CBB8B6</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3\py3python-scipy-py3.global.vcxproj">
-      <Project>FAB75B93-B4F5-5E02-F4CA-EE1D3A76DF86</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3\pypython-scipy-py3.global.vcxproj">
+      <Project>AD428720-FAAE-13AE-4552-33E4A951BCCA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3\py3python-scipy-py3.vcxproj">
-      <Project>A0CE430A-E274-032F-70F7-1E0ED20052E0</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3\pypython-scipy-py3.vcxproj">
+      <Project>2F803647-7866-D771-2297-860C24B205B1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3contrib-python-scipy.vcxproj">
       <Project>A57F658E-50AA-391E-E485-F24502684666</Project>
