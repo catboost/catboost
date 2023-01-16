@@ -518,6 +518,11 @@ ALLOW ofd/notifier/tests/test_unit/libconftest -> contrib/python/sqlalchemy/sqla
 ALLOW ofd/notifier/tests/test_unit/test_sender/test_channels -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ofd/notifier/tests/test_unit/test_sender/test_event_types -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ofd/notifier/tests/test_unit/test_sender/test_notification_types -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/library/errors -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/proxy2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/db/faker -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/dbmanager -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/db/read_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -526,12 +531,7 @@ ALLOW passport/python/core/serializers/domain -> contrib/python/sqlalchemy/sqlal
 ALLOW passport/python/core/serializers/domain/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core/serializers/eav/query -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/core -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/library/errors -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/qa/test_user_service/tus_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/backend/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/backend/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/backend/social/proxy2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/backend/social/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/takeout/celery/celery_tasks -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests/commands -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests/common -> contrib/python/sqlalchemy/sqlalchemy-1.2

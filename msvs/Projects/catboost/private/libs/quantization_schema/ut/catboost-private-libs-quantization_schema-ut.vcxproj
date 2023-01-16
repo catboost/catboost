@@ -194,12 +194,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.global.vcxproj">
-      <Project>{26C8000B-0B0B-9AF4-6BFD-1DE027799348}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.global.vcxproj">
-      <Project>{0B6E2A73-8501-B4C0-0AE1-E0B56499F0FE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
     </ProjectReference>
@@ -376,6 +370,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py3\pypython-prompt-toolkit-py3.global.vcxproj">
       <Project>{5880C7EA-46DF-EAE8-B9B2-3F3ABA57BB49}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py2\pypython-protobuf-py2.global.vcxproj">
+      <Project>{27578D7E-E0AA-D8FF-02AC-5CF7630F4B35}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.global.vcxproj">
+      <Project>{EDCD8B7B-7FD1-A35B-0E2C-CEC73756FF8B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\py3contrib-python-py.global.vcxproj">
       <Project>{364FEC92-377E-1941-F20C-DD358F828BD7}</Project>

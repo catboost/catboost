@@ -600,18 +600,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>18399176-5408-8102-7C5F-8DA029B8F78E</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.global.vcxproj">
-      <Project>26C8000B-0B0B-9AF4-6BFD-1DE027799348</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.vcxproj">
-      <Project>EBFCFEB6-7F53-5434-3E5A-016929A7E62D</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.global.vcxproj">
-      <Project>0B6E2A73-8501-B4C0-0AE1-E0B56499F0FE</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.vcxproj">
-      <Project>1529DFE3-5177-2C02-3975-17E5F54C498D</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protoc\contrib-libs-protoc.vcxproj">
       <Project>BB73A48B-0928-DD07-1DE1-A5B5AD5335E3</Project>
     </ProjectReference>
@@ -1094,6 +1082,24 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\pycontrib-python-prompt-toolkit.vcxproj">
       <Project>047EB5F9-148B-0639-CD34-387A52108769</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py2\pypython-protobuf-py2.global.vcxproj">
+      <Project>27578D7E-E0AA-D8FF-02AC-5CF7630F4B35</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py2\pypython-protobuf-py2.vcxproj">
+      <Project>7AF17974-8933-E480-AE29-42644E3B1B5A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.global.vcxproj">
+      <Project>EDCD8B7B-7FD1-A35B-0E2C-CEC73756FF8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.vcxproj">
+      <Project>BC3B1922-65C9-FCC5-22AF-D5DB13CB02AB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3contrib-python-protobuf.vcxproj">
+      <Project>3BC67343-9A22-4450-A847-E1332EFC5D5B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\pycontrib-python-protobuf.vcxproj">
+      <Project>06E973E3-C111-9CCB-53CE-3A1B74AE74BE</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\py3contrib-python-py.global.vcxproj">
       <Project>364FEC92-377E-1941-F20C-DD358F828BD7</Project>
