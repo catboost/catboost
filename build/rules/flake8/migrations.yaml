@@ -809,7 +809,6 @@ migrations:
     - yabs/stat/infra/clickhouse/repair_master_report
     - yabs/utils/autosupbs/pylibs/tasks_generator
     - yabs/utils/autosupbs/tests/tasks_generator
-    - yabs/utils/yabs-duty-scheduler
     - yabs/utils/yabs-mysql-binlog-audit/lib
     - yabs/vh/cms-pgaas/cms_common
     - yabs/vh/cms-pgaas/cms_common/biz
@@ -2101,7 +2100,6 @@ migrations:
     - maps/streetview/backoffice/tools/pano_snippets_updater
     - maps/streetview/backoffice/tools/set_not_uploaded
     - maps/streetview/backoffice/tools/source_validator
-    - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tests
     - maps/wikimap/mapspro/services/mrc/long_tasks/toloka_manager_cron_jobs/lib/tests/test_server
     - maps/wikimap/mapspro/services/tasks/fastcgi/bin
     - maps/wikimap/mapspro/services/tasks/fastcgi/lib
