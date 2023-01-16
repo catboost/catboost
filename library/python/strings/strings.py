@@ -88,7 +88,7 @@ def stringize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
     return _convert_deep(x, enc, to_str, relaxed)
 
 
-@library.python.func.memoize(thread_safe=True)
+@library.python.func.memoize()
 def locale_encoding():
     try:
         loc = locale.getdefaultlocale()[1]
@@ -112,7 +112,7 @@ def guess_default_encoding():
     return enc if enc else DEFAULT_ENCODING
 
 
-@library.python.func.memoize(thread_safe=True)
+@library.python.func.memoize()
 def get_stream_encoding(stream):
     if stream.encoding:
         try:

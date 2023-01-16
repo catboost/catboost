@@ -26,27 +26,27 @@ def test_memoize():
             Counter._qty = getattr(Counter, '_qty', 0) + 1
             return Counter._qty
 
-    @func.memoize(thread_safe=True)
+    @func.memoize()
     def t1(a):
         return a, Counter.inc()
 
-    @func.memoize(thread_safe=False)
+    @func.memoize()
     def t2(a):
         return a, Counter.inc()
 
-    @func.memoize(thread_safe=False)
+    @func.memoize()
     def t3(a):
         return a, Counter.inc()
 
-    @func.memoize(thread_safe=False)
+    @func.memoize()
     def t4(a):
         return a, Counter.inc()
 
-    @func.memoize(thread_safe=False)
+    @func.memoize()
     def t5(a, b, c):
         return a + b + c, Counter.inc()
 
-    @func.memoize(thread_safe=False)
+    @func.memoize()
     def t6():
         return Counter.inc()
 
