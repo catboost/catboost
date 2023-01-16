@@ -254,6 +254,7 @@ ALLOW .* -> vendor/github.com/jmoiron/sqlx
 ALLOW .* -> vendor/gorm.io/gorm
 ALLOW .* -> vendor/gorm.io/driver/sqlite
 ALLOW .* -> vendor/gorm.io/driver/postgres
+ALLOW .* -> vendor/gorm.io/plugin/dbresolver
 
 # clock mock for tests
 ALLOW .* -> vendor/github.com/jonboulle/clockwork
