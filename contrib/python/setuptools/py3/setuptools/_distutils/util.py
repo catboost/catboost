@@ -134,14 +134,14 @@ def get_macosx_target_ver():
     """Return the version of macOS for which we are building.
 
     The target version defaults to the version in sysconfig latched at time
-    the Python interpreter was built, unless overriden by an environment
+    the Python interpreter was built, unless overridden by an environment
     variable. If neither source has a value, then None is returned"""
 
     syscfg_ver = get_macosx_target_ver_from_syscfg()
     env_ver = os.environ.get(MACOSX_VERSION_VAR)
 
     if env_ver:
-        # Validate overriden version against sysconfig version, if have both.
+        # Validate overridden version against sysconfig version, if have both.
         # Ensure that the deployment target of the build process is not less
         # than 10.3 if the interpreter was built for 10.3 or later.  This
         # ensures extension modules are built with correct compatibility

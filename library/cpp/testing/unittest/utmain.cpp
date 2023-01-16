@@ -492,7 +492,7 @@ private:
                 // test could fail with zero status if it calls exit(0) in the middle.
                 if (ForkExitedCorrectly)
                     break;
-                // fallthrough
+                [[fallthrough]];
             }
             case TShellCommand::SHELL_ERROR: {
                 ythrow yexception() << "Forked test failed";
