@@ -1017,7 +1017,6 @@ migrations:
     - maps/infra/apiteka/config_uploader/tests
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
-    - maps/search/metrics/pipeline/geo/geocoder/lib
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
     - market/mobile_validator/mt/env
@@ -1485,7 +1484,6 @@ migrations:
     - travel/avia/avia_api
     - travel/avia/library/python/iata_correction
     - travel/avia/shared_flights/data_importer
-    - travel/avia/shared_flights/tasks/sirena_parser
     - travel/library/python/sender
     - vcs/svn/migrations
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
@@ -2106,7 +2104,6 @@ migrations:
     - maps/streetview/backoffice/tools/pano_snippets_updater
     - maps/streetview/backoffice/tools/set_not_uploaded
     - maps/streetview/backoffice/tools/source_validator
-    - maps/tools/chains_generator
     - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tests
     - maps/wikimap/mapspro/services/mrc/long_tasks/toloka_manager_cron_jobs/lib/tests/test_server
     - maps/wikimap/mapspro/services/tasks/fastcgi/bin
@@ -2196,7 +2193,6 @@ migrations:
     - mssngr/geobot/kikimr_client
     - mssngr/geobot/postgresql
     - mssngr/geobot/server
-    - mssngr/tasks/dump_tables
     - mssngr/tools/console_client
     - mssngr/tools/pyamb
     - mssngr/tools/stress/uniproxy
