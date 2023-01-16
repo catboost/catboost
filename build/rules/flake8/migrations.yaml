@@ -1774,7 +1774,6 @@ migrations:
     - billing/snout/yb_snout_proxy
     - billing/statreports
     - catboost/python-package/catboost
-    - cloud/ai/dataforge/lib
     - cloud/ai/datasphere/lib/stt/metrics/python_package/stt_metrics
     - cloud/ai/datasphere/lib/stt/deployment/python_package/stt_deployment
     - cloud/ai/speechkit/stt/bin/data_pipeline/select_records_split_for_markup
