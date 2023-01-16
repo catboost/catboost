@@ -4,11 +4,13 @@ LIBRARY()
 
 
 
-VERSION(3.8.0)
+VERSION(13.0.1)
 
-ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-3.8.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-13.0.1.tar.gz)
 
 LICENSE(
+    Apache-2.0 AND
+    Apache-2.0 WITH LLVM-exception AND
     Intel-LLVM-SGA AND
     MIT AND
     NCSA
@@ -18,12 +20,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     GLOBAL contrib/libs/cxxsupp/openmp
-    contrib/libs/cxxsupp/openmp/thirdparty/ittnotify
 )
 
 NO_COMPILER_WARNINGS()
-
-NO_PLATFORM()
 
 NO_UTIL()
 
@@ -31,9 +30,8 @@ NO_LTO()
 
 CFLAGS(
     -fno-exceptions
+    -DKMP_USE_MONITOR=1
 )
-
-COMPILE_C_AS_CXX()
 
 IF (SANITIZER_TYPE == thread)
     NO_SANITIZE()
@@ -50,38 +48,37 @@ IF (SANITIZER_TYPE == memory)
 ENDIF()
 
 SRCS(
-    asm.S
     kmp_affinity.cpp
-    kmp_alloc.c
-    kmp_atomic.c
+    kmp_alloc.cpp
+    kmp_atomic.cpp
     kmp_barrier.cpp
     kmp_cancel.cpp
-    kmp_csupport.c
-    kmp_debug.c
+    kmp_csupport.cpp
+    kmp_debug.cpp
     kmp_dispatch.cpp
-    kmp_environment.c
-    kmp_error.c
-    kmp_ftn_cdecl.c
-    kmp_ftn_extra.c
-    kmp_global.c
-    kmp_gsupport.c
-    kmp_i18n.c
-    kmp_io.c
-    kmp_itt.c
+    kmp_environment.cpp
+    kmp_error.cpp
+    kmp_ftn_cdecl.cpp
+    kmp_ftn_extra.cpp
+    kmp_global.cpp
+    kmp_gsupport.cpp
+    kmp_i18n.cpp
+    kmp_io.cpp
+    kmp_itt.cpp
     kmp_lock.cpp
-    kmp_runtime.c
+    kmp_runtime.cpp
     kmp_sched.cpp
-    kmp_settings.c
-    kmp_str.c
+    kmp_settings.cpp
+    kmp_str.cpp
     kmp_taskdeps.cpp
-    kmp_tasking.c
-    kmp_taskq.c
-    kmp_threadprivate.c
-    kmp_utility.c
-    kmp_version.c
+    kmp_tasking.cpp
+    kmp_threadprivate.cpp
+    kmp_utility.cpp
+    kmp_version.cpp
     kmp_wait_release.cpp
-    thirdparty/ittnotify/ittnotify_static.c
-    z_Linux_util.c
+    ompt-general.cpp
+    z_Linux_asm.S
+    z_Linux_util.cpp
 )
 
 END()
