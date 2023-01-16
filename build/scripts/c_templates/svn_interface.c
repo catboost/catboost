@@ -74,6 +74,15 @@ int GetProgramSvnRevision() {
 #endif
 }
 
+const char* GetVCSDirty()
+{
+#if defined(DIRTY)
+    return DIRTY;
+#else
+    return 0;
+#endif
+}
+
 const char* GetProgramHash() {
 #if defined(ARCADIA_SOURCE_HG_HASH)
     return ARCADIA_SOURCE_HG_HASH;
