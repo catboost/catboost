@@ -1,6 +1,6 @@
 # Common parameters
 
-### loss_function {#loss_function}
+## loss_function {#loss_function}
 
 Command-line: `--loss-function`
 
@@ -71,9 +71,11 @@ RMSE
 
  {{ cpu-gpu }}
 
-### custom_metric {#custom_metric}
+## custom_metric {#custom_metric}
 
 Command-line: `--custom-metric`
+
+#### Description
 
 {% include [reusage-custom-loss--basic](../../_includes/work_src/reusage/custom-loss--basic.md) %}
 
@@ -140,7 +142,7 @@ None (do not output additional metric values)
  {{ cpu-gpu }}
 
 
-### eval_metric {#eval_metric}
+## eval_metric {#eval_metric}
 
 Command-line: `--eval-metric`
 
@@ -169,7 +171,7 @@ A user-defined function can also be set as the value (see an [example](../../co
 
  {{ cpu-gpu }}
 
-### iterations {#iterations}
+## iterations {#iterations}
 
 Command-line: `-i`, `--iterations`
 
@@ -193,7 +195,7 @@ When using other parameters that limit the number of iterations, the final numbe
 
  {{ cpu-gpu }}
 
-### learning_rate {#learning_rate}
+## learning_rate {#learning_rate}
 
 Command-line: `-w`, `--learning-rate`
 
@@ -219,7 +221,7 @@ In other cases, the default value is 0.03.
 
  {{ cpu-gpu }}
 
-### random_seed {#random_seed}
+## random_seed {#random_seed}
 
 Command-line: `-r`, `--random-seed`
 
@@ -251,7 +253,7 @@ None ({{ fit--random_seed }})
 
  {{ cpu-gpu }}
 
-### l2_leaf_reg {#l2_leaf_reg}
+## l2_leaf_reg {#l2_leaf_reg}
 
 Command-line: `--l2-leaf-reg`, `l2-leaf-regularizer`
 
@@ -276,7 +278,7 @@ Any positive value is allowed.
  {{ cpu-gpu }}
 
 
-### bootstrap_type {#bootstrap_type}
+## bootstrap_type {#bootstrap_type}
 
 Command-line: `--bootstrap-type`
 
@@ -310,7 +312,7 @@ The default value depends on `objective`, `task_type`, `bagging_temperature` and
  {{ cpu-gpu }}
 
 
-### bagging_temperature {#bagging_temperature}
+## bagging_temperature {#bagging_temperature}
 
 Command-line: `--bagging-temperature`
 
@@ -338,7 +340,7 @@ This parameter can be used if the selected bootstrap type is {{ fit__bootstrap-t
 
  {{ cpu-gpu }}
 
-### subsample {#subsample}
+## subsample {#subsample}
 
 Command-line: `--subsample`
 
@@ -364,7 +366,7 @@ This parameter can be used if one of the following bootstrap types is selected:
 
  {{ cpu-gpu }}
 
-### sampling_frequency {#sampling_frequency}
+## sampling_frequency {#sampling_frequency}
 
 Command-line: `--sampling-frequency`
 
@@ -390,7 +392,7 @@ Supported values:
  {{ calcer_type__cpu }}
 
 
-### sampling_unit {#sampling_unit}
+## sampling_unit {#sampling_unit}
 
 Command-line: `--sampling-unit`
 
@@ -416,7 +418,7 @@ Possible values:
  {{ cpu-gpu }}
 
 
-### mvs_reg {#mvs_reg}
+## mvs_reg {#mvs_reg}
 
 Command-line: `--mvs-reg`
 
@@ -442,7 +444,7 @@ This parameter is supported only for the {{ fit__bootstrap-type__MVS }} sampling
 
  {{ calcer_type__cpu }}
 
-### random_strength {#random_strength}
+## random_strength {#random_strength}
 
 Command-line: `--random-strength`
 
@@ -476,7 +478,7 @@ This parameter is not supported for the following loss functions:
 
  {{ calcer_type__cpu }}
 
-### use_best_model {#use_best_model}
+## use_best_model {#use_best_model}
 
 Command-line: `--use-best-model`
 
@@ -502,7 +504,7 @@ True if a validation set is input (the eval_set parameter is defined) and at lea
 
  {{ cpu-gpu }}
 
-### best_model_min_trees {#best_model_min_trees}
+## best_model_min_trees {#best_model_min_trees}
 
 Command-line: `--best-model-min-trees`
 
@@ -534,7 +536,7 @@ The minimal number of trees for the best model is not set
 
  {{ cpu-gpu }}
 
-### depth {#depth}
+## depth {#depth}
 
 Command-line: `-n`, `--depth`
 
@@ -562,7 +564,7 @@ The range of supported values depends on the processing unit type and the type o
 
  {{ cpu-gpu }}
 
-### grow_policy {#grow_policy}
+## grow_policy {#grow_policy}
 
 Command-line: `--grow-policy`
 
@@ -596,7 +598,7 @@ Possible values:
 
  {{ cpu-gpu }}
 
-### min_data_in_leaf {#min_data_in_leaf}
+## min_data_in_leaf {#min_data_in_leaf}
 
 Command-line: `--min-data-in-leaf`
 
@@ -620,7 +622,7 @@ Can be used only with the {{ growing_policy__Lossguide }} and {{ growing_policy_
  {{ cpu-gpu }}
 
 
-### max_leaves {#max_leaves}
+## max_leaves {#max_leaves}
 
 Command-line: `--max-leaves`
 
@@ -648,7 +650,7 @@ It is not recommended to use values greater than 64, since it can significantly 
 
 {{ cpu-gpu }}
 
-### ignored_features {#ignored_features}
+## ignored_features {#ignored_features}
 
 Command-line: `-I`, `--ignore-features`
 
@@ -702,7 +704,7 @@ Feature indices to exclude from the training.
 
 {{ cpu-gpu }}
 
-### one_hot_max_size {#one_hot_max_size}
+## one_hot_max_size {#one_hot_max_size}
 
 Command-line: `--one-hot-max-size`
 
@@ -725,7 +727,7 @@ See [details](../../features/categorical-features.md).
  {{ cpu-gpu }}
 
 
-### has_time {#has_time}
+## has_time {#has_time}
 
 Command-line: `--has-time`
 
@@ -747,7 +749,7 @@ The {{ cd-file__col-type__Timestamp }} column type is used to determine the ord
 
 {{ cpu-gpu }}
 
-### rsm {#rsm}
+## rsm {#rsm}
 
 Command-line: `--rsm`
 
@@ -772,7 +774,7 @@ None (set to 1)
 {{ calcer_type__cpu }}
 
 
-### nan_mode {#nan_mode}
+## nan_mode {#nan_mode}
 
 Command-line: `--nan-mode`
 
@@ -795,7 +797,7 @@ The method for  [processing missing values](../../concepts/algorithm-missing-va
  {{ cpu-gpu }}
 
 
-### input_borders {#input_borders}
+## input_borders {#input_borders}
 
 Command-line: `--input-borders-file`
 
@@ -828,7 +830,7 @@ The file is not loaded, the values are generated
  {{ cpu-gpu }}
 
 
-### output_borders {#output_borders}
+## output_borders {#output_borders}
 
 Command-line: `--output-borders-file`
 
@@ -861,7 +863,7 @@ The file is not saved
  {{ cpu-gpu }}
 
 
-### fold_permutation_block {#fold_permutation_block}
+## fold_permutation_block {#fold_permutation_block}
 
 Command-line: `--fold-permutation-block`
 
@@ -892,7 +894,7 @@ Default value differs depending on the dataset size and ranges from 1 to 256 inc
 
  {{ cpu-gpu }}
 
-### leaf_estimation_method {#leaf_estimation_method}
+## leaf_estimation_method {#leaf_estimation_method}
 
 Command-line: `--leaf-estimation-method`
 
@@ -924,7 +926,7 @@ Depends on the mode and the selected loss function:
 - All other methods are available on both {{ calcer_type__cpu }} and {{ calcer_type__gpu }}
 
 
-### leaf_estimation_iterations {#leaf_estimation_iterations}
+## leaf_estimation_iterations {#leaf_estimation_iterations}
 
 Command-line: `--leaf-estimation-iterations`
 
@@ -957,7 +959,7 @@ None ({{ fit--gradient_iterations }})
 {{ cpu-gpu }}
 
 
-### leaf_estimation_backtracking {#leaf_estimation_backtracking}
+## leaf_estimation_backtracking {#leaf_estimation_backtracking}
 
 Command-line: `--leaf-estimation-backtracking`
 
@@ -991,7 +993,7 @@ Possible values:
 
  Depends on the selected value
 
-### fold_len_multiplier {#fold_len_multiplier}
+## fold_len_multiplier {#fold_len_multiplier}
 
 Command-line: `--fold-len-multiplier`
 
@@ -1015,7 +1017,7 @@ With values close to 1 (for example, $1+\epsilon$), each iteration takes a quadr
 
 {{ cpu-gpu }}
 
-### approx_on_full_history {#approx_on_full_history}
+## approx_on_full_history {#approx_on_full_history}
 
 Command-line:`--approx-on-full-history`
 
@@ -1051,7 +1053,7 @@ True
  {{ calcer_type__cpu }}
 
 
-### class_weights {#class_weights}
+## class_weights {#class_weights}
 
 Command-line: `--class-weights`
 
@@ -1152,7 +1154,7 @@ Do not use this parameter with auto_class_weights.
  {{ cpu-gpu }}
 
 
-### class_names {#class_names}
+## class_names {#class_names}
 
 #### Description
 
@@ -1191,7 +1193,7 @@ smartphone,touchphone,tablet
 
  {{ cpu-gpu }}
 
-### auto_class_weights {#auto_class_weights}
+## auto_class_weights {#auto_class_weights}
 
 Command-line: `--auto-class-weights`
 
@@ -1218,7 +1220,7 @@ Do not use this parameter with `class_weights` and `scale_pos_weight`.
 
  {{ cpu-gpu }}
 
-### scale_pos_weight {#scale_pos_weight}
+## scale_pos_weight {#scale_pos_weight}
 
 #### Description
 
@@ -1249,7 +1251,7 @@ Do not use this parameter with `auto_class_weights` and `class_weights`.
 
  {{ cpu-gpu }}
 
-### boosting_type {#boosting_type}
+## boosting_type {#boosting_type}
 
 Command-line: `--boosting-type`
 
@@ -1289,7 +1291,7 @@ Possible values:
 Only the {{ fit__boosting-type__plain }} mode is supported for the {{ error-function--MultiClass }} loss on GPU
 
 
-### boost_from_average {#boost_from_average}
+## boost_from_average {#boost_from_average}
 
 Command-line: `--boost-from-average`
 
@@ -1318,7 +1320,7 @@ Available for the following loss functions:
 
  {{ cpu-gpu }}
 
-### langevin {#langevin}
+## langevin {#langevin}
 
 Command-line: `--langevin`
 
@@ -1341,7 +1343,7 @@ Refer to the [SGLB: Stochastic Gradient Langevin Boosting]({{ stochastic-gradien
 
  {{ calcer_type__cpu }}
 
-### diffusion_temperature {#diffusion_temperature}
+## diffusion_temperature {#diffusion_temperature}
 
 Command-line: `--diffusion-temperature`
 
@@ -1364,7 +1366,7 @@ Only non-negative values are supported.
 
  {{ calcer_type__cpu }}
 
-### posterior_sampling {#posterior_sampling}
+## posterior_sampling {#posterior_sampling}
 
 Command-line: `--posterior-sampling	`
 
@@ -1390,7 +1392,7 @@ bool
 
  CPU only
 
-### allow_const_label {#allow_const_label}
+## allow_const_label {#allow_const_label}
 
 Command-line: `--allow-const-label`
 
@@ -1411,7 +1413,7 @@ Use it to train models with datasets that have equal label values for all object
 
  {{ cpu-gpu }}
 
-### score_function {#score_function}
+## score_function {#score_function}
 
 Command-line: `--score-function`
 
@@ -1444,7 +1446,7 @@ The supported score functions vary depending on the processing unit type:
 - {{ calcer_type__cpu }} — {{ scorefunction__Correlation }}, {{ scorefunction__L2 }}
 
 
-### monotone_constraints {#monotone_constraints}
+## monotone_constraints {#monotone_constraints}
 
 Command-line: `--monotone-constraints`
 
@@ -1523,7 +1525,7 @@ Ommited
 
  {{ calcer_type__cpu }}
 
-### feature_weights {#feature_weights}
+## feature_weights {#feature_weights}
 
 Command-line: `--feature-weights`
 
@@ -1602,7 +1604,7 @@ Command-line: `--feature-weights`
 
  {{ calcer_type__cpu }}
 
-### first_feature_use_penalties {#first_feature_use_penalties}
+## first_feature_use_penalties {#first_feature_use_penalties}
 
 Command-line: `--first-feature-use-penalties`
 
@@ -1628,7 +1630,7 @@ Command-line: `--first-feature-use-penalties`
 
  {{ calcer_type__cpu }}
 
-### penalties_coefficient {#penalties_coefficient}
+## penalties_coefficient {#penalties_coefficient}
 
 Command-line: `--penalties-coefficient`
 
@@ -1651,7 +1653,7 @@ Non-negative values are supported.
 
  {{ calcer_type__cpu }}
 
-### per_object_feature_penalties {#per_object_feature_penalties}
+## per_object_feature_penalties {#per_object_feature_penalties}
 
 Command-line: `--per-object-feature-penalties`
 
@@ -1687,7 +1689,7 @@ Command-line: `--per-object-feature-penalties`
 
  {{ calcer_type__cpu }}
 
-### model_shrink_rate {#model_shrink_rate}
+## model_shrink_rate {#model_shrink_rate}
 
 Command-line: `--model-shrink-rate`
 
@@ -1713,7 +1715,7 @@ The default value depends on the values of the following parameters:
 
  {{ calcer_type__cpu }}
 
-### model_shrink_mode {#model_shrink_mode}
+## model_shrink_mode {#model_shrink_mode}
 
 Command-line: `model_shrink_mode`
 

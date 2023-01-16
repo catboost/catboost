@@ -1,6 +1,6 @@
 # Performance settings
 
-### thread_count {#thread_count}
+## thread_count {#thread_count}
 
 Command-line: `-T`, `--thread-count`
 
@@ -31,15 +31,15 @@ Optimizes the speed of execution. This parameter doesn't affect results.
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__thread_count__wrappers }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
-### used_ram_limit {#used_ram_limit}
+## used_ram_limit {#used_ram_limit}
 
 Command-line: `--used-ram-limit`
 
@@ -76,11 +76,11 @@ For example:
 
 {{ fit__used-ram-limit }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
 
-### gpu_ram_part {#gpu_ram_part}
+## gpu_ram_part {#gpu_ram_part}
 
 Command-line: `--gpu-ram-part`
 
@@ -92,15 +92,15 @@ How much of the GPU RAM to use for training.
 
 {{ python-type--float }}
 
-**Default value** 
+**Default value**
 
 {{ fit__gpu__gpu-ram-part }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
 
-### pinned_memory_size {#pinned_memory_size}
+## pinned_memory_size {#pinned_memory_size}
 
 Command-line: `--pinned-memory-size`
 
@@ -128,15 +128,15 @@ For example:
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__gpu__pinned-memory-size }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
 
-### gpu_cat_features_storage {#gpu_cat_features_storage}
+## gpu_cat_features_storage {#gpu_cat_features_storage}
 
 Command-line: `--gpu-cat-features-storage`
 
@@ -172,11 +172,11 @@ None (set to {{ fit__gpu__use-cpu-ram-for-catfeatures }})
 
 {% endcut %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
 
-### data_partition {#data_partition}
+## data_partition {#data_partition}
 
 Command-line: `--data-partition`
 
@@ -202,10 +202,10 @@ Possible values:
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ fit__gpu__data-partition }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}

@@ -2,7 +2,7 @@
 
 These parameters are only for Command-line.
 
-### -f, --learn-set {#-f}
+## -f, --learn-set {#-f}
 
 #### Description
 
@@ -18,7 +18,7 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 {{ cpu-gpu }}
 
-### -t, --test-set {#-t}
+## -t, --test-set {#-t}
 
 #### Description
 
@@ -46,7 +46,7 @@ Only a single validation dataset can be input if the training is performed on GP
 
 {% endnote %}
 
-### --cd, --column-description {#--cd}
+## --cd, --column-description {#--cd}
 
 #### Description
 
@@ -66,7 +66,7 @@ If omitted, it is assumed that the first column in the file with the dataset des
 
 {{ cpu-gpu }}
 
-### --learn-pairs {#--learn-pairs}
+## --learn-pairs {#--learn-pairs}
 
 #### Description
 
@@ -84,7 +84,7 @@ Omitted.
 
 {{ cpu-gpu }}
 
-### --test-pairs {#--test-pairs}
+## --test-pairs {#--test-pairs}
 
 #### Description
 
@@ -102,7 +102,7 @@ Omitted.
 
 {{ cpu-gpu }}
 
-### --learn-group-weights {#--learn-group-weights}
+## --learn-group-weights {#--learn-group-weights}
 
 #### Description
 
@@ -120,7 +120,7 @@ Omitted (group weights are either read from the dataset description or set to 1 
 
 {{ cpu-gpu }}
 
-### --test-group-weights {#--test-group-weights}
+## --test-group-weights {#--test-group-weights}
 
 #### Description
 
@@ -138,7 +138,7 @@ Omitted (group weights are either read from the dataset description or set to 1 
 
 {{ cpu-gpu }}
 
-### --learn-baseline {#--learn-baseline}
+## --learn-baseline {#--learn-baseline}
 
 #### Description
 
@@ -152,7 +152,7 @@ Omitted
 
 {{ cpu-gpu }}
 
-### --test-baseline {#--test-baseline}
+## --test-baseline {#--test-baseline}
 
 #### Description
 
@@ -166,7 +166,7 @@ Omitted
 
 {{ cpu-gpu }}
 
-### --delimiter {#--delimiter}
+## --delimiter {#--delimiter}
 
 #### Description
 
@@ -184,7 +184,7 @@ Only single char delimiters are supported. If the specified value contains more 
 
 {{ cpu-gpu }}
 
-### --has-header {#--has-header}
+## --has-header {#--has-header}
 
 #### Description
 
@@ -201,7 +201,7 @@ False (the first line is supposed to have the same data as the rest of them)
 {{ cpu-gpu }}
 
 
-### --params-file {#--params-files}
+## --params-file {#--params-files}
 
 #### Description
 
@@ -227,7 +227,7 @@ Omitted
 {{ cpu-gpu }}
 
 
-### --nan-mode {#--nan-mode}
+## --nan-mode {#--nan-mode}
 
 #### Description
 

@@ -1,6 +1,6 @@
 # Output settings
 
-### logging_level {#logging_level}
+## logging_level {#logging_level}
 
 Command line: `--logging-level`
 
@@ -39,11 +39,11 @@ Verbose
 
 {% endcut %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
-### metric_period {#metric_period}
+## metric_period {#metric_period}
 
 Command line: `--metric-period`
 
@@ -75,7 +75,7 @@ It is recommended to increase the value of this parameter to maintain training s
 
 {{ cpu-gpu }}
 
-### verbose {#verbose}
+## verbose {#verbose}
 
 Command line: `--verbose`
 
@@ -119,11 +119,11 @@ Do not use this parameter with the `--logging-level` parameter.
 
 {{ train_verbose_fr-of-iterations-to-output__default }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
-### train_dir {#train_dir}
+## train_dir {#train_dir}
 
 Command line: `--train-dir`
 
@@ -153,7 +153,7 @@ Current directory
 
 {{ cpu-gpu }}
 
-### model_size_reg {#model_size_reg}
+## model_size_reg {#model_size_reg}
 
 Command line: `--model-size-reg`
 
@@ -187,7 +187,7 @@ None ({{ fit__model_size_reg }})
 
 **Supported processing units** {{ cpu-gpu }}
 
-### allow_writing_files {#allow_writing_files}
+## allow_writing_files {#allow_writing_files}
 
 #### Description
 
@@ -207,7 +207,7 @@ If set to <q>False</q>, the [snapshot](../../features/snapshots.md) and [data vi
 
 {{ cpu-gpu }}
 
-### save_snapshot {#save_snapshot}
+## save_snapshot {#save_snapshot}
 
 #### Description
 
@@ -227,7 +227,7 @@ Enable snapshotting for [restoring the training progress after an interruption]
 
 {{ cpu-gpu }}
 
-### snapshot_file {#snapshot_file}
+## snapshot_file {#snapshot_file}
 
 #### Description
 
@@ -253,7 +253,7 @@ The name of the file to save the training progress information in. This file is 
 
 {{ cpu-gpu }}
 
-### snapshot_interval {#snapshot_interval}
+## snapshot_interval {#snapshot_interval}
 
 #### Description
 
@@ -275,7 +275,7 @@ The first snapshot is taken after the specified number of seconds since the star
 
 {{ cpu-gpu }}
 
-### roc_file {#roc_file}
+## roc_file {#roc_file}
 
 #### Description
 

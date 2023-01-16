@@ -1,6 +1,6 @@
 # Quantization settings
 
-### target_border {#target_border}
+## target_border {#target_border}
 
 Command-line: `--target-border`
 
@@ -31,11 +31,11 @@ The value is not set
 
 {% endcut %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
-### border_count {#border_count}
+## border_count {#border_count}
 
 Command-line: `-x`, `--border-count`
 
@@ -53,11 +53,11 @@ The number of splits for numerical features. Allowed values are integers from 1 
 
 {% include [reusage-default-values-border_count](../../_includes/work_src/reusage-default-values/border_count.md) %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 
-### feature_border_type {#feature_border_type}
+## feature_border_type {#feature_border_type}
 
 Command-line: `--feature-border-type`
 
@@ -85,7 +85,7 @@ Possible values:
 
 {{ cpu-gpu }}
 
-### per_float_feature_quantization {#per_float_feature_quantization}
+## per_float_feature_quantization {#per_float_feature_quantization}
 
 Command-line: `--per-float-feature-quantization`
 
@@ -131,6 +131,6 @@ Ommited
 
 {% endcut %}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}

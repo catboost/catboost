@@ -1,6 +1,6 @@
 # Multiclassification: objectives and metrics
 
-### {{ error-function--MultiClass }}
+### {{ error-function--MultiClass }} {#MMultiClass}
 
 
   $\displaystyle\frac{\sum\limits_{i=1}^{N}w_{i}\log\left(\displaystyle\frac{e^{a_{it_{i}}}}{ \sum\limits_{j=0}^{M - 1}e^{a_{ij}}} \right)}{\sum\limits_{i=1}^{N}w_{i}} { ,}$
@@ -15,9 +15,7 @@
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function--MultiClassOneVsAll }}
+### {{ error-function--MultiClassOneVsAll }} {#MultiClassOneVsAll}
 
 $\displaystyle\frac{\frac{1}{M}\sum\limits_{i = 1}^N w_i \sum\limits_{j = 0}^{M - 1} [j = t_i] \log(p_{ij}) + [j \neq t_i] \log(1 - p_{ij})}{\sum\limits_{i = 1}^N w_i} { ,}$
 
@@ -30,8 +28,7 @@ $t \in \{0, ..., M - 1\}$
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-### {{ error-function--Precision }}
+### {{ error-function--Precision }} {#Precision}
 
 $\frac{TP}{TP + FP}$
 
@@ -43,12 +40,9 @@ $\frac{TP}{TP + FP}$
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function--Recall }}
+### {{ error-function--Recall }} {#Recall}
 
 {% include [reusage-loss-function__for-multiclass](../_includes/work_src/reusage/loss-function__for-multiclass.md) %}
-
 
 
 $\frac{TP}{TP+FN}$
@@ -62,9 +56,7 @@ $\frac{TP}{TP+FN}$
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function--F1 }}
+### {{ error-function--F1 }} {#F1}
 
 {% include [reusage-loss-function__for-multiclass](../_includes/work_src/reusage/loss-function__for-multiclass.md) %}
 
@@ -80,8 +72,7 @@ $2 \frac{Precision * Recall}{Precision + Recall}$
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-### {{ error-function--totalF1 }}
+### {{ error-function--totalF1 }} {#totalF1}
 
 The formula depends on the value of the {{ loss-functions__params__average__name }} parameter:
 
@@ -92,8 +83,11 @@ $\frac{\sum\limits_{i=1}^{M} w_{k} F1_{i}}{w_{k}} {, where}$
 $w_{k}$ is the sum of the weights of the documents which correspond to the k class. If document weights are not specified $w_{k}$ stands for the number of times the k class, which corresponds to the i-th object, is found among the label values.
 
 #### {{ loss-functions__params__average__Macro }}
+
 $\displaystyle\frac{\sum\limits_{i=1}^{M} w_{k} F1_{i}}{M}$
+
 #### {{ loss-functions__params__average__Micro }}
+
 $TotalF1 = \displaystyle\frac{2 \cdot TP}{2 \cdot TP + FP + FN} {, where}$
 - $TP = \sum\limits_{i=1}^{M} TP_{i}$
 - $FP = \sum\limits_{i=1}^{M} FP_{i}$
@@ -124,6 +118,7 @@ $w_{k}$ is the sum of the weights of the documents which correspond to the k cla
 $\displaystyle\frac{\sum\limits_{i=1}^{M} w_{k} F1_{i}}{M}$
 
 #### {{ loss-functions__params__average__Micro }}
+
 $TotalF1 = \displaystyle\frac{2 \cdot TP}{2 \cdot TP + FP + FN} {, where}$
 - $TP = \sum\limits_{i=1}^{M} TP_{i}$
 - $FP = \sum\limits_{i=1}^{M} FP_{i}$
@@ -133,10 +128,7 @@ $TotalF1 = \displaystyle\frac{2 \cdot TP}{2 \cdot TP + FP + FN} {, where}$
 _Default:_  {{ loss-functions__params__average__Weighted }}
 
 
-
-
-
-### {{ error-function--MCC }}
+### {{ error-function--MCC }} {#MCC}
 
 This functions is defined in terms of a $k \times k$ confusion matrix $C$ (where k is the number of classes):
 
@@ -151,9 +143,7 @@ See the [Wikipedia article](https://en.wikipedia.org/wiki/Matthews_correlation_c
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function--Accuracy }}
+### {{ error-function--Accuracy }} {#Accuracy}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N}w_{i}[argmax_{j=0,...,M - 1}(a_{ij})==t_{i}]}{\sum\limits_{i=1}^{N}w_{i}} { , }$
 
@@ -166,9 +156,7 @@ $t \in \{0, ..., M - 1\}$
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function__HingeLoss }}
+### {{ error-function__HingeLoss }} {#HingeLoss}
 
 See the [Wikipedia article](https://en.wikipedia.org/wiki/Hinge_loss).
 
@@ -179,8 +167,7 @@ See the [Wikipedia article](https://en.wikipedia.org/wiki/Hinge_loss).
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-### {{ error-function__HammingLoss }}
+### {{ error-function__HammingLoss }} {#HammingLoss}
 
 $\displaystyle\frac{\sum\limits_{i = 1}^{N} w_{i} [argmax_{j=0,...,M - 1}(a_{ij})\neq t_{i}]}{\sum\limits_{i = 1}^{N} w_{i}}$
 
@@ -191,9 +178,7 @@ $\displaystyle\frac{\sum\limits_{i = 1}^{N} w_{i} [argmax_{j=0,...,M - 1}(a_{ij}
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function__ZeroOneLoss }}
+### {{ error-function__ZeroOneLoss }} {#ZeroOneLoss}
 
 $1 - Accuracy$
 
@@ -204,9 +189,7 @@ $1 - Accuracy$
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function__Kappa }}
+### {{ error-function__Kappa }} {#Kappa}
 
 $1 - \displaystyle\frac{1 - Accuracy}{1 - RAccuracy}$
 
@@ -223,9 +206,7 @@ $k_{t}$ is the weighted number of times class k is set as the label for input o
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-
-### {{ error-function__WKappa }}
+### {{ error-function__WKappa }} {#WKappa}
 
 See the formula on page 3 of the [A note on the linearly weighted kappa coefficient for ordinal scales](https://orbi.uliege.be/bitstream/2268/2262/1/STATMED-174.pdf) paper.
 
@@ -238,8 +219,7 @@ See the formula on page 3 of the [A note on the linearly weighted kappa coeffic
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-
-### {{ error-function--AUC }}
+### {{ error-function--AUC }} {#AUC}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 

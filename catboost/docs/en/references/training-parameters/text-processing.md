@@ -2,7 +2,7 @@
 
 These parameters are only for Python package and Command-line.
 
-### tokenizers {#tokenizers}
+## tokenizers {#tokenizers}
 
 Command-line: `--tokenizers`
 
@@ -57,7 +57,7 @@ tokenizers = [{
 {{ calcer_type__cpu }}
 
 
-### dictionaries {#dictionaries}
+## dictionaries {#dictionaries}
 
 Command-line: `--dictionaries`
 
@@ -113,7 +113,7 @@ dictionaries = [{
 {{ calcer_type__cpu }}
 
 
-### feature_calcers {#feature_calcers}
+## feature_calcers {#feature_calcers}
 
 Command-line: `--feature-calcers`
 
@@ -154,15 +154,15 @@ feature_calcers = [
 Type
  {{ python-type--list-of-strings }}
 
-**Default value** 
+**Default value**
 
 –
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ calcer_type__cpu }}
 
-### text_processing {#text_processing}
+## text_processing {#text_processing}
 
 Command-line: `--text-processing`
 
