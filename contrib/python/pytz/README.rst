@@ -201,8 +201,8 @@ during DST transition ambiguous periods to resolve that ambiguity.
 
 >>> print(tz.utcoffset(normal, is_dst=False))
 -1 day, 21:30:00
->>> tz.dst(normal, is_dst=False)
-datetime.timedelta(0, 3600)
+>>> tz.dst(normal, is_dst=False).seconds
+3600
 >>> tz.tzname(normal, is_dst=False)
 'NDT'
 
