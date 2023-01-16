@@ -273,7 +273,6 @@ migrations:
     - dict/ontodb/utils/string_utils
     - dict/ontodb/utils/support_words
     - dict/ontodb/utils/update_links
-    - dict/ontodb/utils/update_standard_ontoid_map
     - dict/ontodb/wikicommon
     - dict/ontodb/wikicommon/get_defin
     - dict/ontodb/wikicommon/infobox
@@ -587,7 +586,6 @@ migrations:
     - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/deploy/deploy
     - rt-research/multik/tasks/labeling/catalogia_candidates
-    - rtmapreduce/mrtasks/create_sessions/diff_tool
     - saas/tools/devops/fban
     - saas/tools/devops/lib
     - saas/tools/devops/lib23/tests/py2
@@ -2121,7 +2119,6 @@ migrations:
     - library/python/ids
     - library/python/intrasearch_fetcher
     - library/python/metrics_framework
-    - library/python/murmurhash
     - library/python/oauth/example
     - library/python/pyscopg2
     - library/python/pytest
