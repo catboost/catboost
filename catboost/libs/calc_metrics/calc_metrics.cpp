@@ -105,7 +105,7 @@ namespace NCB {
             return MakeGroupInfos(
                 *targetData.GetObjectsGrouping(),
                 DataProvider->ObjectsData->GetSubgroupIds(),
-                targetData.GetWeights(),
+                targetData.GetGroupWeights(),
                 /* pairs */ Nothing()
             );
         }
