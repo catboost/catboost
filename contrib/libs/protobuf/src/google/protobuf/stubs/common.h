@@ -58,11 +58,7 @@
 #endif
 #endif
 
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(maybe_unused)
-  #define Y_PROTOBUF_SUPPRESS_NODISCARD [[maybe_unused]] bool Y_GENERATE_UNIQUE_ID(pb_checker)=
-#else
-  #define Y_PROTOBUF_SUPPRESS_NODISCARD
-#endif
+#define Y_PROTOBUF_SUPPRESS_NODISCARD [[maybe_unused]] bool Y_GENERATE_UNIQUE_ID(pb_checker)=
 
 #if PROTOBUF_USE_EXCEPTIONS
 #include <exception>
