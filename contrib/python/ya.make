@@ -18,7 +18,7 @@ RECURSE(
     importlib-metadata
     ipdb
     ipython
-    ipython_genutils
+    ipython-genutils
     jedi
     Jinja2
     joblib
