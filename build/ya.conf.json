@@ -297,10 +297,10 @@
             "description": "Run news team tools"
         },
         "go": {
-            "description": "Run go tool (1.17.6)"
+            "description": "Run go tool (1.17.7)"
         },
         "gofmt": {
-            "description": "Run gofmt tool (1.17.6)"
+            "description": "Run gofmt tool (1.17.7)"
         },
         "go_1.18beta2": {
             "description": "Run go tool (1.18beta2)"
@@ -4778,18 +4778,18 @@
                 }
             ]
         },
-        "golang_1_17_6": {
+        "golang_1_17_7": {
             "tools": {
                 "golang": {
-                    "bottle": "golang_1.17.6",
+                    "bottle": "golang_1.17.7",
                     "executable": "golang"
                 },
                 "go": {
-                    "bottle": "golang_1.17.6",
+                    "bottle": "golang_1.17.7",
                     "executable": "go"
                 },
                 "gofmt": {
-                    "bottle": "golang_1.17.6",
+                    "bottle": "golang_1.17.7",
                     "executable": "gofmt"
                 }
             },
@@ -4822,7 +4822,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.17.6"
+                "version": "1.17.7"
             }
         },
         "golang_1_18beta2": {
@@ -7376,13 +7376,13 @@
                 ]
             }
         },
-        "golang_1.17.6": {
+        "golang_1.17.7": {
             "formula": {
                 "sandbox_id": [
-                    1178356987,
-                    1178357306,
-                    1178357717,
-                    1178358055
+                    1217046835,
+                    1217047391,
+                    1217047830,
+                    1217048395
                 ],
                 "match": "GOLANG"
             },
