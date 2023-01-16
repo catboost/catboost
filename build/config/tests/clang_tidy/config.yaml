@@ -5,6 +5,12 @@ Checks: >
 CheckOptions:
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
+  - key: readability-identifier-naming.PublicMemberCase
+    value: CamelCase
+  - key: readability-identifier-naming.ProtectedMemberCase
+    value: CamelCase
+  - key: readability-identifier-naming.ProtectedMemberSuffix
+    value: _
   - key: readability-identifier-naming.PrivateMemberCase
     value: CamelCase
   # FIXME cpp-com@ / thegeorg@:
