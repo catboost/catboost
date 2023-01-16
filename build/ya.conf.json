@@ -454,7 +454,7 @@
         "skotty": {
             "description": "Skotty (SSH-agent) launcher"
         },
-        "devtools_license_analyzer": {
+        "license_analyzer": {
             "description": "Run devtools license analyzer"
         }
     },
@@ -6915,9 +6915,9 @@
         },
         "devtools_license_analyzer_bundle": {
             "tools": {
-                "devtools_license_analyzer": {
+                "license_analyzer": {
                     "bottle": "devtools_license_analyzer_bundle",
-                    "executable": "devtools_license_analyzer"
+                    "executable": "license_analyzer"
                 }
             },
             "platforms": [
@@ -9626,12 +9626,12 @@
         "devtools_license_analyzer_bundle": {
             "formula": {
                 "sandbox_id": [
-                    1041989594
+                    1042667929
                 ],
                 "match": "license_analyzer"
             },
             "executable": {
-                "devtools_license_analyzer": [
+                "license_analyzer": [
                     "license_analyzer"
                 ]
             }
