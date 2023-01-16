@@ -6,6 +6,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/vector.h>
 #include <util/generic/deque.h>
+#include <util/generic/utility.h>
 #include <util/generic/yexception.h>
 
 namespace NJson {
@@ -204,6 +205,7 @@ namespace NJson {
             TArray* Array;
 
             TValueUnion() noexcept {
+                Zero(*this);
             }
             ~TValueUnion() noexcept {
             }
