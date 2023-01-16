@@ -18,7 +18,6 @@ fi
 
 function python_version {
     case `$1 --version 2>&1` in
-        Python*2.7*) echo 2.7 ;;
         Python*3.5*) echo 3.5 ;;
         Python*3.6*) echo 3.6 ;;
         Python*3.7*) echo 3.7 ;;
@@ -66,11 +65,6 @@ mkdir -p catboost/inst/libs
 tar -cvzf catboost-R-$(uname).tgz catboost
 
 cd ../python-package
-
-PY27=2.7.14
-pyenv install -s $PY27
-pyenv shell $PY27
-python mk_wheel.py --build-widget=no $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config 
 
 PY35=3.5.5
 pyenv install -s $PY35
