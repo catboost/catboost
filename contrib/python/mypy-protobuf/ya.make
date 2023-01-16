@@ -1,12 +1,32 @@
+PY3_LIBRARY()
 
 
-IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/python/mypy-protobuf/ya.make.prebuilt)
-ENDIF()
 
-IF (NOT PREBUILT)
-    INCLUDE(${ARCADIA_ROOT}/contrib/python/mypy-protobuf/bin/ya.make)
-ENDIF()
+VERSION(2.9)
+
+LICENSE(Apache-2.0)
+
+PEERDIR(
+    contrib/libs/protobuf/python/google_lib
+)
+
+PY_SRCS(
+    TOP_LEVEL
+    mypy_protobuf/__init__.py
+    mypy_protobuf/extensions_pb2.py
+    mypy_protobuf/main.py
+)
+
+NO_LINT()
+
+RESOURCE_FILES(
+    PREFIX contrib/python/mypy-protobuf/
+    .dist-info/METADATA
+    .dist-info/entry_points.txt
+    .dist-info/top_level.txt
+)
+
+END()
 
 RECURSE(
     bin
