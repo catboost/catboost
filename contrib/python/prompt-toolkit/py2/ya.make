@@ -1,37 +1,37 @@
 PY2_LIBRARY()
 
-LICENSE(BSD-3-Clause)
+
 
 VERSION(1.0.18)
 
-
+LICENSE(BSD-3-Clause)
 
 PEERDIR(
-    contrib/python/wcwidth
     contrib/python/six
+    contrib/python/wcwidth
 )
+
+NO_LINT()
 
 NO_CHECK_IMPORTS(
     prompt_toolkit.clipboard.pyperclip
+    prompt_toolkit.contrib.telnet.*
     prompt_toolkit.eventloop.asyncio_posix
     prompt_toolkit.eventloop.asyncio_win32
     prompt_toolkit.eventloop.posix
     prompt_toolkit.eventloop.win32
-    prompt_toolkit.terminal.conemu_output
-    prompt_toolkit.win32_types
-    prompt_toolkit.terminal.vt100_input
-    prompt_toolkit.terminal.vt100_output
-    prompt_toolkit.terminal.win32_input
-    prompt_toolkit.terminal.win32_output
     prompt_toolkit.input.win32
     prompt_toolkit.input.win32_pipe
     prompt_toolkit.output.conemu
     prompt_toolkit.output.win32
     prompt_toolkit.output.windows10
-    prompt_toolkit.contrib.telnet.*
+    prompt_toolkit.terminal.conemu_output
+    prompt_toolkit.terminal.vt100_input
+    prompt_toolkit.terminal.vt100_output
+    prompt_toolkit.terminal.win32_input
+    prompt_toolkit.terminal.win32_output
+    prompt_toolkit.win32_types
 )
-
-NO_LINT()
 
 PY_SRCS(
     TOP_LEVEL

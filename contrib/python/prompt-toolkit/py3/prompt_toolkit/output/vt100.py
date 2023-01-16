@@ -25,6 +25,7 @@ from typing import (
     Set,
     TextIO,
     Tuple,
+    cast,
 )
 
 from prompt_toolkit.data_structures import Size
@@ -269,7 +270,8 @@ _256_colors = _256ColorCache()
 class _EscapeCodeCache(Dict[Attrs, str]):
     """
     Cache for VT100 escape codes. It maps
-    (fgcolor, bgcolor, bold, underline, reverse) tuples to VT100 escape sequences.
+    (fgcolor, bgcolor, bold, underline, strike, reverse) tuples to VT100
+    escape sequences.
 
     :param true_color: When True, use 24bit colors instead of 256 colors.
     """
@@ -278,7 +280,17 @@ class _EscapeCodeCache(Dict[Attrs, str]):
         self.color_depth = color_depth
 
     def __missing__(self, attrs: Attrs) -> str:
-        fgcolor, bgcolor, bold, underline, italic, blink, reverse, hidden = attrs
+        (
+            fgcolor,
+            bgcolor,
+            bold,
+            underline,
+            strike,
+            italic,
+            blink,
+            reverse,
+            hidden,
+        ) = attrs
         parts: List[str] = []
 
         parts.extend(self._colors_to_code(fgcolor or "", bgcolor or ""))
@@ -295,6 +307,8 @@ class _EscapeCodeCache(Dict[Attrs, str]):
             parts.append("7")
         if hidden:
             parts.append("8")
+        if strike:
+            parts.append("9")
 
         if parts:
             result = "\x1b[0;" + ";".join(parts) + "m"
@@ -666,12 +680,14 @@ class Vt100_Output(Output):
                 # UnicodeEncodeError crashes. E.g. u'\xb7' does not appear in 'ascii'.)
                 # My Arch Linux installation of july 2015 reported 'ANSI_X3.4-1968'
                 # for sys.stdout.encoding in xterm.
-                out: IO
+                out: IO[bytes]
                 if self.write_binary:
                     if hasattr(self.stdout, "buffer"):
-                        out = self.stdout.buffer  # Py3.
+                        out = self.stdout.buffer
                     else:
-                        out = self.stdout
+                        # IO[bytes] was given to begin with.
+                        # (Used in the unit tests, for instance.)
+                        out = cast(IO[bytes], self.stdout)
                     out.write(data.encode(self.stdout.encoding or "utf-8", "replace"))
                 else:
                     self.stdout.write(data)
