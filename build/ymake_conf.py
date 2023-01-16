@@ -1330,7 +1330,8 @@ class GnuCompiler(Compiler):
 
         self.c_warnings = ['-W', '-Wall', '-Wno-parentheses']
         self.cxx_warnings = [
-            '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
+            '-Woverloaded-virtual',
+            '-Wno-invalid-offsetof',
         ]
 
         self.c_defines = ['-DFAKEID=$CPP_FAKEID']
