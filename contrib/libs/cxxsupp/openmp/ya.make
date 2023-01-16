@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(5.0)
+VERSION(3.8.0)
 
-ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/f9cc9d7392adeffc52a4cdf3f93d42f2a18b68f9.tar.gz)
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-3.8.0.tar.gz)
 
 LICENSE(
     Intel-LLVM-SGA AND
