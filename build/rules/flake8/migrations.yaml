@@ -1045,9 +1045,9 @@ migrations:
     - mssngr/botfarm/src/bot
     - music/analytics/jam-sox/music_lib/financial_reports/tests/unit
     - music/tools/download-info
-    - passport/python/library/distprim
-    - passport/python/library/distprim/threading
-    - passport/python/meltingpot/utils
+    - passport/backend/library/distprim
+    - passport/backend/library/distprim/threading
+    - passport/backend/meltingpot/utils
     - plus/gift/gift
     - plus/gift/gift/admin
     - quality/ab_testing/cofe/projects/zalogin
@@ -2207,6 +2207,8 @@ migrations:
     - passport/backend/adm_api/common
     - passport/backend/adm_api/settings
     - passport/backend/adm_api/tests/views
+    - passport/backend/library/historydbloader
+    - passport/backend/meltingpot/core/meltingpot
     - passport/python/api
     - passport/python/configs/golovan
     - passport/python/contrib/cassandra
@@ -2220,9 +2222,7 @@ migrations:
     - passport/python/contrib/py2casefold
     - passport/python/contrib/pyisemail
     - passport/python/core/yasms/test
-    - passport/python/library/historydbloader
     - passport/python/logbroker_client/core
-    - passport/python/meltingpot/core/meltingpot
     - passport/python/tools/rm_attrs
     - payplatform/balance_support_dev/dev_kpi_counter
     - payplatform/balance_support_dev/support_kpi_counter
