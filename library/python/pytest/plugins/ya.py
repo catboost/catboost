@@ -184,6 +184,7 @@ def from_ya_test():
     return "YA_TEST_RUNNER" in os.environ
 
 
+@pytest.hookimpl(tryfirst=True)
 def pytest_configure(config):
     global pytest_config
     pytest_config = config
