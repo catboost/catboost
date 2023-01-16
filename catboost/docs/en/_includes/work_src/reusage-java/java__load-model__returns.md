@@ -1,0 +1,2 @@
+
+{{ product }} model.

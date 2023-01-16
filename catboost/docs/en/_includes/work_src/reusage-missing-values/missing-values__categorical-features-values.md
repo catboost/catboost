@@ -1,0 +1,1 @@
+{{ product }} does not process categorical features in any specific way.

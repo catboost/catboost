@@ -1,0 +1,2 @@
+
+The system compiler must be compatible with CUDA Toolkit if GPU support is required. Refer to the [Supported Host Compilers](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/#supported-host-compilers) section of the [NVIDIA CUDA Compiler Driver NVCC](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html) documentation for more details. The required steps to change the system compiler depend on the OS.

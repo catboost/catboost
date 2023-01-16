@@ -13,6 +13,7 @@ RECURSE(
     python-package
     spark
     tools
+    docs
 )
 
 IF (NOT CATBOOST_OPENSOURCE)
