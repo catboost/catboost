@@ -150,7 +150,7 @@ void AddColumn(
 
 TQuantizedRowAssembler::TQuantizedRowAssembler(
     TQuantizedObjectsDataProviderPtr objectsData
-) throw (yexception) {
+) throw (yexception) : ObjectsData(objectsData) {
     const auto& quantizedFeaturesInfo = *(objectsData->GetQuantizedFeaturesInfo());
     const auto& featuresLayout = *(quantizedFeaturesInfo.GetFeaturesLayout());
 

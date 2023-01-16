@@ -39,6 +39,8 @@ public:
     void AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buffer) throw (yexception);
 
 private:
+    NCB::TQuantizedObjectsDataProviderPtr ObjectsData;
+
     size_t BlocksStartOffset = 0;
     size_t BlocksSize = 0;
 
