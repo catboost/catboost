@@ -469,7 +469,7 @@ migrations:
     - orgvisits/library/python/text_tools
     - orgvisits/library/python/yt_jobs/tests
     - orgvisits/metrics/ugc_feedback/ctr
-    - passport/python/adm_api/views/meltingpot
+    - passport/backend/adm_api/views/meltingpot
     - passport/python/core
     - passport/python/core/builders/frodo
     - passport/python/core/builders/yasms
@@ -2216,9 +2216,9 @@ migrations:
     - orgvisits/metrics/toloka/preparations
     - orgvisits/toloka/taskuploader
     - orgvisits/viewers/geotrack/backend
-    - passport/python/adm_api/common
-    - passport/python/adm_api/settings
-    - passport/python/adm_api/tests/views
+    - passport/backend/adm_api/common
+    - passport/backend/adm_api/settings
+    - passport/backend/adm_api/tests/views
     - passport/python/api
     - passport/python/configs/golovan
     - passport/python/contrib/cassandra
