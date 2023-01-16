@@ -96,7 +96,8 @@ class Platform(object):
         self.is_macos_x86_64 = self.is_macos and self.is_x86_64
         self.is_macos_arm64 = self.is_macos and self.is_arm64
         self.is_ios = self.os == 'ios'
-        self.is_apple = self.is_macos or self.is_ios
+        self.is_iossim = self.os == 'iossim' or (self.is_ios and self.is_intel)
+        self.is_apple = self.is_macos or self.is_ios or self.is_iossim
 
         self.is_windows = self.os == 'windows'
         self.is_windows_x86_64 = self.is_windows and self.is_x86_64
@@ -1104,8 +1105,9 @@ class GnuToolchain(Toolchain):
                 self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
 
         swift_target = select(default=None, selectors=[
-            (target.is_ios and target.is_x86_64, 'x86_64-apple-ios9-simulator'),
-            (target.is_ios and target.is_x86, 'i386-apple-ios9-simulator'),
+            (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios10-simulator'),
+            (target.is_iossim and target.is_x86, 'i386-apple-ios10-simulator'),
+            (target.is_iossim and target.is_armv8, 'arm64-apple-ios10-simulator'),
             (target.is_ios and target.is_armv8, 'arm64-apple-ios9'),
             (target.is_ios and target.is_armv7, 'armv7-apple-ios9'),
         ])
@@ -1114,7 +1116,7 @@ class GnuToolchain(Toolchain):
 
         if self.tc.is_from_arcadia:
             self.swift_lib_path = select(default=None, selectors=[
-                (host.is_macos and target.is_ios and (target.is_x86_64 or target.is_x86), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphonesimulator'),
+                (host.is_macos and target.is_iossim, '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphonesimulator'),
                 (host.is_macos and target.is_ios and (target.is_armv8 or target.is_armv7), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphoneos'),
             ])
 
@@ -1127,6 +1129,7 @@ class GnuToolchain(Toolchain):
                     (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'hard', 'arm-linux-gnueabihf'),
                     (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'softfp', 'arm-linux-gnueabi'),
                     (target.is_linux and target.is_powerpc, 'powerpc64le-linux-gnu'),
+                    (target.is_iossim and target.is_arm64, 'arm64-apple-ios10.0-simulator'),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_macos_arm64, 'arm64-apple-macos11'),
@@ -1186,8 +1189,8 @@ class GnuToolchain(Toolchain):
                 (target.is_linux and target.is_armv8, ['-march=armv8a']),
                 (target.is_macos_arm64, ['-mmacosx-version-min=11.0']),
                 (target.is_macos, ['-mmacosx-version-min=10.11']),
-                (target.is_ios and not target.is_intel, ['-mios-version-min=9.0']),
-                (target.is_ios and target.is_intel, ['-mios-simulator-version-min=10.0']),
+                (target.is_ios and not target.is_iossim, ['-mios-version-min=9.0']),
+                (target.is_iossim, ['-mios-simulator-version-min=10.0']),
                 (target.is_android and target.is_armv7, ['-march=armv7-a', '-mfloat-abi=softfp']),
                 (target.is_android and target.is_armv8, ['-march=armv8-a']),
                 (target.is_yocto and target.is_armv7, ['-march=armv7-a', '-mfpu=neon', '-mfloat-abi=hard', '-mcpu=cortex-a9', '-O1'])
@@ -1201,7 +1204,7 @@ class GnuToolchain(Toolchain):
 
             if self.tc.is_from_arcadia:
                 if target.is_apple:
-                    if target.is_ios:
+                    if target.is_ios or target.is_iossim:
                         self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
                     if target.is_macos:
                         self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
