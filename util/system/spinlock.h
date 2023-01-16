@@ -27,8 +27,13 @@ protected:
 };
 
 static inline void SpinLockPause() {
-#if defined(__GNUC__) && (defined(_i386_) || defined(_x86_64_))
+#if defined(__GNUC__)
+    #if defined(_i386_) || defined(_x86_64_)
     __asm __volatile("pause");
+    #elif defined(_arm64_)
+    __asm __volatile("yield" ::
+                         : "memory");
+    #endif
 #endif
 }
 
