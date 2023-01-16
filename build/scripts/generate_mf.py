@@ -90,7 +90,10 @@ def generate_mf():
                 data = json.loads(src.read())
                 texts = data.get('license_texts')
                 if texts:
-                    final_credits.append(generate_header(data) + '\n' + texts)
+                    candidate_text = generate_header(data) + '\n' + texts
+                    if isinstance(candidate_text, unicode):
+                        candidate_text = candidate_text.encode('utf-8')
+                    final_credits.append(candidate_text)
 
         with io.open(options.credits_output, 'w', encoding='utf-8') as f:
             data = '\n\n'.join(final_credits)
