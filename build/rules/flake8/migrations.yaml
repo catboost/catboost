@@ -36,12 +36,9 @@ migrations:
     - ads/nirvana/online_learning/pipeline_launcher/task_utils/lib
     - ads/nirvana/sequential_learning
     - ads/nirvana/tools/apc_check
-    - ads/quality/apc/bm/prod/sdXX
     - ads/quality/apc/gmg/generate_workflow
     - ads/quality/apc/gmg/make_lm_pool
     - ads/quality/apc/gmg/make_lm_pool/lib
-    - ads/quality/apc/prgmg/nirvana/make_mxnet_features
-    - ads/quality/apc/prgmg/nirvana/make_raw_pool
     - ads/quality/apc/prgmgv3/workflow_constructor/lib
     - ads/quality/bid_correction/lib
     - ads/quality/dssm/lib
@@ -1179,8 +1176,6 @@ migrations:
     - statbox/statkey/jam/jobs/cubes/superapp/bi_turboappweb_turbo_counter/v2
     - statbox/statkey/jam/jobs/cubes/superapp/cohorts_daily/v2
     - strm/generate/lib/generate
-    - strm/pult/backend/lib
-    - strm/pult/backend/lib/cache
     - taxi/graph/packages/mds-downloader
     - taxi/graph/packages/taxigraphd
     - testenv/core/tools
@@ -1198,7 +1193,6 @@ migrations:
     - voicetech/asr/tools/run_normalizer/prepare_data_for_mt_normalizer
     - voicetech/infra/uniproxy/tests/session
     - voicetech/infra/voice_ext_mon/bin
-    - voicetech/spotter/score/lib/test
     - voicetech/spotter/selection_for_annotation/bin
     - voicetech/spotter/train/lib
     - weather/workers/warnings/push
@@ -1228,7 +1222,6 @@ migrations:
     - yabs/stat/dropstat2/api
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
-    - ydo/server/extract_backend_request_source/lib
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
     - yweb/antispam/cid/analytics/pushes/push_sender/args
     - yweb/antispam/cid/analytics/pushes/push_sender/cli
@@ -1336,7 +1329,6 @@ migrations:
     - alice/boltalka/generative/training/data/nn/filtered_twitter
     - alice/hollywood/library/scenarios/tr_navi/handcrafted/it
     - alice/nlu/py_libs/tokenizer
-    - alice/nlu/tools/lstm_classifier_trainer
     - alice/uniproxy/bin/send-digest
     - alice/uniproxy/tools/perf_results_parser
     - antirobot/tools/prepare_requests_cbb
@@ -1369,7 +1361,6 @@ migrations:
     - entity/ugc/robot/tools/installed_apps_sites_activity_loader/lib
     - ether/top/check_docs
     - ether/top/specevent/meta
-    - extsearch/audio/generative/py/uploader
     - extsearch/geo/recommender/tools/build_static_user_profile/lib
     - extsearch/geo/recommender/tools/quality_metric/convert_tradoff_4_plot
     - extsearch/geo/recommender/tools/quality_metric/tradeoff/generate_features
@@ -1543,8 +1534,6 @@ migrations:
     - statbox/statkey/jam/jobs/key_reports/desktop_retention
     - statbox/statkey/jam/jobs/tech_report/event_money_stat
     - statbox/statkey/jam/libs
-    - strm/pult/backend/bin/prod_channels_generator
-    - strm/pult/backend/tests/unit
     - tools/mkdocs_builder/lib
     - tools/releaser/src
     - travel/avia/avia_api
