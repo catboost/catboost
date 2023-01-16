@@ -27,7 +27,7 @@ def onnode_modules(unit):
     pm = _create_pm(unit)
     unit.onpeerdir(pm.get_peer_paths_from_package_json())
     ins, outs = pm.calc_node_modules_inouts()
-    unit.on_node_modules(["IN"] + ins + ["OUT"] + outs)
+    unit.on_node_modules(["IN"] + sorted(ins) + ["OUT"] + sorted(outs))
 
 
 def on_ts_configure(unit, tsconfig_path):
