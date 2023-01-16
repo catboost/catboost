@@ -710,7 +710,7 @@ namespace NCB {
             return MakeMaybeData<const TEmbeddingValuesHolder>(Data.EmbeddingFeatures[embeddingFeatureIdx]);
         }
 
-        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const {
+        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const override {
             return Data.QuantizedFeaturesInfo;
         }
 
