@@ -3,6 +3,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/deque.h>
+#include <util/generic/yexception.h>
 
 Y_UNIT_TEST_SUITE(TestContext) {
     template <class F>
@@ -32,10 +33,10 @@ Y_UNIT_TEST_SUITE(TestContext) {
         TExceptionSafeContext main;
         TExceptionSafeContext* volatile nextPtr = nullptr;
 
-        bool uncaught = true;
+        bool hasUncaught = true;
 
-        auto func = [&main, &nextPtr, &uncaught]() {
-            uncaught = std::uncaught_exception();
+        auto func = [&]() {
+            hasUncaught = UncaughtException();
             nextPtr->SwitchTo(&main);
         };
 
@@ -65,6 +66,6 @@ Y_UNIT_TEST_SUITE(TestContext) {
         }
 
         UNIT_ASSERT(throwed);
-        UNIT_ASSERT(!uncaught);
+        UNIT_ASSERT(!hasUncaught);
     }
 }

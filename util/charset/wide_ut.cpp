@@ -909,7 +909,7 @@ public:
 
         TVector<wchar32> buffer(WideStringTestData[0], WideStringTestData[0] + CaseTestDataSize);
         std::reverse(buffer.begin(), buffer.end());
-        const TUtf16String reversed = UTF32ToWide(buffer.begin(), buffer.size());
+        const TUtf16String reversed = UTF32ToWide(buffer.data(), buffer.size());
 
         temp = original;
         ReverseInPlace(temp);
