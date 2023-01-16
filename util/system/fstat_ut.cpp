@@ -62,11 +62,53 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT(fs.CTime == 0);
     }
 
+#ifdef _win_
+    // Symlinks require additional privileges on windows.
+    // Skip test if we are not allowed to create one.
+    // Wine returns true from NFs::SymLink, but actually does nothing
+    #define SAFE_SYMLINK(target, link)                                                \
+        do {                                                                          \
+            auto res = NFs::SymLink(target, link);                                    \
+            if (!res) {                                                               \
+                auto err = LastSystemError();                                         \
+                Cerr << "can't create symlink: " << LastSystemErrorText(err) << Endl; \
+                UNIT_ASSERT(err == ERROR_PRIVILEGE_NOT_HELD);                         \
+                return;                                                               \
+            }                                                                         \
+            if (!NFs::Exists(link) && IsWine()) {                                     \
+                Cerr << "wine does not support symlinks" << Endl;                     \
+                return;                                                               \
+            }                                                                         \
+        } while (false)
+
+    bool IsWine() {
+        HKEY subKey = nullptr;
+        LONG result = RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Wine", 0, KEY_READ, &subKey);
+        if (result == ERROR_SUCCESS) {
+            return true;
+        }
+        result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Wine", 0, KEY_READ, &subKey);
+        if (result == ERROR_SUCCESS) {
+            return true;
+        }
+
+        HMODULE hntdll = GetModuleHandle("ntdll.dll");
+        if (!hntdll) {
+            return false;
+        }
+
+        auto func = GetProcAddress(hntdll, "wine_get_version");
+        return func != nullptr;
+    }
+#else
+    #define SAFE_SYMLINK(target, link) UNIT_ASSERT(NFs::SymLink(target, link))
+#endif
+
     Y_UNIT_TEST(SymlinkToExistingFileTest) {
         const auto path = GetOutputPath() / "file_1";
         const auto link = GetOutputPath() / "symlink_1";
         TFile(path, EOpenModeFlag::CreateNew | EOpenModeFlag::RdWr);
-        UNIT_ASSERT(NFs::SymLink(path, link));
+        SAFE_SYMLINK(path, link);
 
         const TFileStat statNoFollow(link, false);
         UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsNull(), ToString(statNoFollow.Mode));
@@ -84,7 +126,7 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
     Y_UNIT_TEST(SymlinkToNonExistingFileTest) {
         const auto path = GetOutputPath() / "file_2";
         const auto link = GetOutputPath() / "symlink_2";
-        UNIT_ASSERT(NFs::SymLink(path, link));
+        SAFE_SYMLINK(path, link);
 
         const TFileStat statNoFollow(link, false);
         UNIT_ASSERT_VALUES_EQUAL_C(true, statNoFollow.IsNull(), ToString(statNoFollow.Mode));
@@ -102,7 +144,7 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
     Y_UNIT_TEST(SymlinkToFileThatCantExistTest) {
         const auto path = TFsPath("/path") / "that" / "does" / "not" / "exists";
         const auto link = GetOutputPath() / "symlink_3";
-        UNIT_ASSERT(NFs::SymLink(path, link));
+        SAFE_SYMLINK(path, link);
 
         const TFileStat statNoFollow(link, false);
         UNIT_ASSERT_VALUES_EQUAL_C(true, statNoFollow.IsNull(), ToString(statNoFollow.Mode));
@@ -154,4 +196,33 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT(unlink(fileName.c_str()) == 0);
     }
 
+#ifdef _win_
+    Y_UNIT_TEST(WinArchiveDirectoryTest) {
+        TFsPath dir = "archive_dir";
+        dir.MkDirs();
+
+        SetFileAttributesA(dir.c_str(), FILE_ATTRIBUTE_ARCHIVE);
+
+        const TFileStat stat(dir);
+        UNIT_ASSERT(stat.IsDir());
+        UNIT_ASSERT(!stat.IsSymlink());
+        UNIT_ASSERT(!stat.IsFile());
+        UNIT_ASSERT(!stat.IsNull());
+    }
+
+    Y_UNIT_TEST(WinArchiveFileTest) {
+        TFsPath filename = "archive_file";
+        TFile file(filename, OpenAlways | WrOnly);
+        file.Write("1", 1);
+        file.Close();
+
+        SetFileAttributesA(filename.c_str(), FILE_ATTRIBUTE_ARCHIVE);
+
+        const TFileStat stat(filename);
+        UNIT_ASSERT(!stat.IsDir());
+        UNIT_ASSERT(!stat.IsSymlink());
+        UNIT_ASSERT(stat.IsFile());
+        UNIT_ASSERT(!stat.IsNull());
+    }
+#endif
 }

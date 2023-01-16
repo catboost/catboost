@@ -15,20 +15,43 @@
     #endif
     #define _S_IFLNK 0x80000000
 
-ui32 GetFileMode(DWORD fileAttributes) {
+// See https://docs.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
+// for possible flag values
+static ui32 GetWinFileType(DWORD fileAttributes, ULONG reparseTag) {
+    // I'm not really sure, why it is done like this. MSDN tells that
+    // FILE_ATTRIBUTE_DEVICE is reserved for system use. Some more info is
+    // available at https://stackoverflow.com/questions/3419527/setting-file-attribute-device-in-visual-studio
+    // We should probably replace this with GetFileType call and check for
+    // FILE_TYPE_CHAR and FILE_TYPE_PIPE return values.
+    if (fileAttributes & FILE_ATTRIBUTE_DEVICE) {
+        return _S_IFCHR;
+    }
+
+    if (fileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+        // We consider IO_REPARSE_TAG_SYMLINK and IO_REPARSE_TAG_MOUNT_POINT
+        // both to be symlinks to align with current WinReadLink behaviour.
+        if (reparseTag == IO_REPARSE_TAG_SYMLINK || reparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
+            return _S_IFLNK;
+        }
+    }
+
+    if (fileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        return _S_IFDIR;
+    }
+
+    return _S_IFREG;
+}
+
+static ui32 GetFileMode(DWORD fileAttributes, ULONG reparseTag) {
     ui32 mode = 0;
     if (fileAttributes == 0xFFFFFFFF)
         return mode;
-    if (fileAttributes & FILE_ATTRIBUTE_DEVICE)
-        mode |= _S_IFCHR;
-    if (fileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-        mode |= _S_IFLNK; // todo: was undefined by the moment of writing this code
-    if (fileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        mode |= _S_IFDIR;
-    if (fileAttributes & (FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_ARCHIVE))
-        mode |= _S_IFREG;
-    if ((fileAttributes & FILE_ATTRIBUTE_READONLY) == 0)
+
+    mode |= GetWinFileType(fileAttributes, reparseTag);
+
+    if ((fileAttributes & FILE_ATTRIBUTE_READONLY) == 0) {
         mode |= _S_IWRITE;
+    }
     return mode;
 }
 
@@ -36,7 +59,9 @@ ui32 GetFileMode(DWORD fileAttributes) {
     #define S_ISREG(st_mode) (st_mode & _S_IFREG)
     #define S_ISLNK(st_mode) (st_mode & _S_IFLNK)
 
-using TSystemFStat = BY_HANDLE_FILE_INFORMATION;
+struct TSystemFStat: public BY_HANDLE_FILE_INFORMATION {
+    ULONG ReparseTag = 0;
+};
 
 #else
 
@@ -65,7 +90,7 @@ static void MakeStat(TFileStat& st, const TSystemFStat& fs) {
     FileTimeToTimeval(&fs.ftLastWriteTime, &tv);
     st.MTime = tv.tv_sec;
     st.NLinks = fs.nNumberOfLinks;
-    st.Mode = GetFileMode(fs.dwFileAttributes);
+    st.Mode = GetFileMode(fs.dwFileAttributes, fs.ReparseTag);
     st.Uid = 0;
     st.Gid = 0;
     st.Size = ((ui64)fs.nFileSizeHigh << 32) | fs.nFileSizeLow;
@@ -76,7 +101,13 @@ static void MakeStat(TFileStat& st, const TSystemFStat& fs) {
 
 static bool GetStatByHandle(TSystemFStat& fs, FHANDLE f) {
 #ifdef _win_
-    return GetFileInformationByHandle(f, &fs);
+    if (!GetFileInformationByHandle(f, &fs)) {
+        return false;
+    }
+    if (fs.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+        fs.ReparseTag = NFsPrivate::WinReadReparseTag(f);
+    }
+    return true;
 #else
     return !fstat(f, &fs);
 #endif
