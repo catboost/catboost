@@ -116,7 +116,7 @@ class OrderedStringMapParam[V](
             val jValue = kv._2 match {
               case s : String => JString(s)
               case num: Double => JDouble(num)
-              case num: Long => JLong(num)
+              case num: Long => JInt(BigInt(num))
               case value: Boolean => JBool(value)
               case _ => throw new RuntimeException("Unsupported map value type")
             }
@@ -134,7 +134,7 @@ class OrderedStringMapParam[V](
       jValue match {
         case JString(s) =>  result.put(key, s.asInstanceOf[V])
         case JDouble(num) =>  result.put(key, num.asInstanceOf[V])
-        case JLong(num) =>  result.put(key, num.asInstanceOf[V])
+        case JInt(num) =>  result.put(key, num.longValue.asInstanceOf[V])
         case JBool(value) =>  result.put(key, value.asInstanceOf[V])
         case _ => throw new RuntimeException("Unexpected JSON object value type for map")
       }
@@ -299,7 +299,7 @@ private[spark] object Helpers {
         }
         JObject(
           "od_type" -> "Iter",
-          "od_wait" -> JLong(odWait.asInstanceOf[Int])
+          "od_wait" -> JInt(BigInt(odWait.asInstanceOf[Int]))
         )
       }
       case None => {
@@ -323,7 +323,7 @@ private[spark] object Helpers {
   def processSnapshotIntervalParam(params: mutable.HashMap[String, Any]) : JObject = {
     if (params.contains("snapshotInterval")) {
       JObject() ~ (
-        "snapshot_interval" -> JLong(params("snapshotInterval").asInstanceOf[java.time.Duration].getSeconds)
+        "snapshot_interval" -> JInt(BigInt(params("snapshotInterval").asInstanceOf[java.time.Duration].getSeconds))
       )
     } else {
       JObject()
