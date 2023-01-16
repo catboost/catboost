@@ -1038,6 +1038,13 @@ ALLOW .* -> vendor/github.com/dgraph-io/ristretto
 # CONTRIB-2465
 ALLOW .* -> vendor/github.com/go-playground/form
 
+# CONTRIB-2470
+# go-autorest requried to be used for authentication and authorization in Azure sdk
+ALLOW .* -> vendor/github.com/Azure/go-autorest/autorest
+# whole SDK is HUGE (~500MiB commit size) and, for now, we need only network management part
+# new parts of SDK may be added later, as needed
+ALLOW .* -> vendor/github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
