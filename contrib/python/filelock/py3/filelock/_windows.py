@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from abc import ABC
@@ -44,7 +46,6 @@ if sys.platform == "win32":  # pragma: win32 cover
             # Probably another instance of the application hat acquired the file lock.
             except OSError:
                 pass
-
 
 else:  # pragma: win32 no cover
 

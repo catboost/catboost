@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class Timeout(TimeoutError):
     """Raised when the lock could not be acquired in *timeout* seconds."""
 

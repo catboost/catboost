@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import time
@@ -5,7 +7,7 @@ import warnings
 from abc import ABC, abstractmethod
 from threading import Lock
 from types import TracebackType
-from typing import Any, Optional, Type, Union
+from typing import Any
 
 from ._error import Timeout
 
@@ -18,17 +20,17 @@ _LOGGER = logging.getLogger("filelock")
 class AcquireReturnProxy:
     """A context aware object that will release the lock file when exiting."""
 
-    def __init__(self, lock: "BaseFileLock") -> None:
+    def __init__(self, lock: BaseFileLock) -> None:
         self.lock = lock
 
-    def __enter__(self) -> "BaseFileLock":
+    def __enter__(self) -> BaseFileLock:
         return self.lock
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],  # noqa: U100
-        exc_value: Optional[BaseException],  # noqa: U100
-        traceback: Optional[TracebackType],  # noqa: U100
+        exc_type: type[BaseException] | None,  # noqa: U100
+        exc_value: BaseException | None,  # noqa: U100
+        traceback: TracebackType | None,  # noqa: U100
     ) -> None:
         self.lock.release()
 
@@ -36,7 +38,7 @@ class AcquireReturnProxy:
 class BaseFileLock(ABC):
     """Abstract base class for a file lock object."""
 
-    def __init__(self, lock_file: Union[str, "os.PathLike[Any]"], timeout: float = -1) -> None:
+    def __init__(self, lock_file: str | os.PathLike[Any], timeout: float = -1) -> None:
         """
         Create a new lock object.
 
@@ -50,7 +52,7 @@ class BaseFileLock(ABC):
 
         # The file descriptor for the *_lock_file* as it is returned by the os.open() function.
         # This file lock is only NOT None, if the object currently holds the lock.
-        self._lock_file_fd: Optional[int] = None
+        self._lock_file_fd: int | None = None
 
         # The default timeout value.
         self.timeout: float = timeout
@@ -77,7 +79,7 @@ class BaseFileLock(ABC):
         return self._timeout
 
     @timeout.setter
-    def timeout(self, value: Union[float, str]) -> None:
+    def timeout(self, value: float | str) -> None:
         """
         Change the default timeout value.
 
@@ -109,9 +111,10 @@ class BaseFileLock(ABC):
 
     def acquire(
         self,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         poll_interval: float = 0.05,
-        poll_intervall: Optional[float] = None,
+        *,
+        poll_intervall: float | None = None,
     ) -> AcquireReturnProxy:
         """
         Try to acquire the file lock.
@@ -138,8 +141,8 @@ class BaseFileLock(ABC):
 
         .. versionchanged:: 2.0.0
 
-            This method returns now a *proxy* object instead of *self*, so that it can be used in a with statement \
-            without side effects.
+            This method returns now a *proxy* object instead of *self*,
+            so that it can be used in a with statement without side effects.
 
         """
         # Use the default timeout, if no timeout is provided.
@@ -148,7 +151,7 @@ class BaseFileLock(ABC):
 
         if poll_intervall is not None:
             msg = "use poll_interval instead of poll_intervall"
-            warnings.warn(msg, DeprecationWarning)
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
             poll_interval = poll_intervall
 
         # Increment the number right at the beginning. We can still undo it, if something fails.
@@ -201,7 +204,7 @@ class BaseFileLock(ABC):
                     self._lock_counter = 0
                     _LOGGER.debug("Lock %s released on %s", lock_id, lock_filename)
 
-    def __enter__(self) -> "BaseFileLock":
+    def __enter__(self) -> BaseFileLock:
         """
         Acquire the lock.
 
@@ -212,9 +215,9 @@ class BaseFileLock(ABC):
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],  # noqa: U100
-        exc_value: Optional[BaseException],  # noqa: U100
-        traceback: Optional[TracebackType],  # noqa: U100
+        exc_type: type[BaseException] | None,  # noqa: U100
+        exc_value: BaseException | None,  # noqa: U100
+        traceback: TracebackType | None,  # noqa: U100
     ) -> None:
         """
         Release the lock.
