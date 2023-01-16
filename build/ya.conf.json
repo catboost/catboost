@@ -2536,7 +2536,7 @@
             }
         },
         "android-ndk-r24": {
-            "name": "clang13",
+            "name": "ndk24",
             "tools": {
                 "cc": {
                     "bottle": "android-ndk-r24",
@@ -2676,8 +2676,153 @@
                 "objcopy": "$(NDK)/llvm-toolchain/bin/llvm-objcopy",
                 "strip": "$(NDK)/llvm-toolchain/bin/llvm-strip",
                 "werror_mode": "all",
-                "gcc_version": "13.0",
+                "gcc_version": "14.0",
                 "android_ndk_version": 24
+            }
+        },
+        "android-ndk-r25": {
+            "name": "ndk25",
+            "tools": {
+                "cc": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "llvm-cov"
+                },
+                "strip": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "strip"
+                },
+                "objcopy": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "objcopy"
+                },
+                "nm": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "nm"
+                },
+                "llvm-cov": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "android-ndk-r25",
+                    "executable": "llvm-symbolizer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "i686"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "x86_64"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a_neon"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "i686"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "x86_64"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a_neon"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "NDK",
+                "ar": "$(NDK)/llvm-toolchain/bin/llvm-ar",
+                "c_compiler": "$(NDK)/llvm-toolchain/bin/clang",
+                "cxx_compiler": "$(NDK)/llvm-toolchain/bin/clang++",
+                "objcopy": "$(NDK)/llvm-toolchain/bin/llvm-objcopy",
+                "strip": "$(NDK)/llvm-toolchain/bin/llvm-strip",
+                "werror_mode": "all",
+                "gcc_version": "14.0",
+                "android_ndk_version": 25
             }
         },
         "bloat": {
@@ -6379,8 +6524,64 @@
         "android-ndk-r24": {
             "formula": {
                 "sandbox_id": [
-                    1125138634,
-                    1125141078
+                    1225117305,
+                    1225117356
+                ],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang++"
+                ],
+                "cc": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang"
+                ],
+                "strip": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-strip"
+                ],
+                "c++filt": [
+                    "llvm-toolchain",
+                    "bin",
+                    "i686-linux-android-c++filt"
+                ],
+                "llvm-cov": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-symbolizer": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-symbolizer"
+                ],
+                "nm": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-nm"
+                ],
+                "objcopy": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-objcopy"
+                ]
+            }
+        },
+        "android-ndk-r25": {
+            "formula": {
+                "sandbox_id": [
+                    1225179951,
+                    1225180393
                 ],
                 "match": "NDK"
             },
