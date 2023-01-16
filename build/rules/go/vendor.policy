@@ -79,8 +79,8 @@ ALLOW .* -> vendor/go.temporal.io/api
 # CONTRIB-2353
 ALLOW vendor -> vendor/github.com/aromanovich/thrift
 ALLOW .* -> vendor/go.temporal.io/server
-ALLOW infra/temporal/server -> vendor/github.com/urfave/cli
-ALLOW infra/temporal/tctl -> vendor/github.com/urfave/cli
+ALLOW infra/temporal/swat/server -> vendor/github.com/urfave/cli
+ALLOW infra/temporal/swat/tctl -> vendor/github.com/urfave/cli
 
 # CONTRIB-2116
 ALLOW .* -> vendor/github.com/google/licensecheck
