@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{1C1BE43D-FE75-D006-9839-1B851BF67411}</ProjectGUID>
+    <ProjectGUID>{1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-backports-shutil_get_terminal_size</ProjectName>
+    <ProjectName>pycontrib-python-backports.shutil-get-terminal-size</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-backports-shutil_get_terminal_size</TargetName>
+    <TargetName>pycontrib-python-backports.shutil-get-terminal-size</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\1C1BE43D-FE75-D006-9839-1B851BF67411\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\1BA1D8D1-7C10-2111-CF29-66D0ABC3AFDB\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_5cc3833fcd206ee0261c7a2f34.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_65fb1a4f52374d779f7f12c79a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,9 +91,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,19 +101,46 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_5cc3833fcd206ee0261c7a2f34.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_5cc3833fcd206ee0261c7a2f34.obj;</Outputs>
+      <Message>$B/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_65fb1a4f52374d779f7f12c79a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_65fb1a4f52374d779f7f12c79a.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_ec2354581ed0816dec46d996d8.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_ec2354581ed0816dec46d996d8.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_ec2354581ed0816dec46d996d8.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py-" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py-" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py-" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py-" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,13 +149,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py-" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py-" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py-" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py-" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -136,15 +163,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc	$B/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\__init__.py;$(SolutionDir)..\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\get_terminal_size.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\__init__.py.exjb.yapyc;$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\get_terminal_size.py.5obk.yapyc;</Outputs>
+      <Message>$B/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc	$B/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\__init__.py;$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\get_terminal_size.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\__init__.py.exjb.yapyc;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\get_terminal_size.py.5obk.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.yasm" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_425392d335e9cb1d429e8dc1c9.rodata" "-" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py" "_cf2b00d2ea3c8ec893cec35db5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_93820c2ed414dad3607fcc4d30.rodata" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_7809b7b53f565406c8bfed1bed.rodata" "-" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py" "_535c4a81469d9c0b74079f2503.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_b14508265505faf3ec5dc61429.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.yasm" "-" "contrib/python/backports.shutil-get-terminal-size/.dist-info/METADATA" "_bc3e6f246151062d84cee94ef7.rodata" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_093877200a814960ab52e8cb1b.rodata" "-" "contrib/python/backports.shutil-get-terminal-size/.dist-info/top_level.txt" "_452c23742e7b94a5ca77f5ce03.rodata" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_5fc7008e198b2598f8875f3668.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -153,9 +180,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.yasm" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_425392d335e9cb1d429e8dc1c9.rodata" "-" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py" "_cf2b00d2ea3c8ec893cec35db5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_93820c2ed414dad3607fcc4d30.rodata" "$(SolutionDir)../contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_7809b7b53f565406c8bfed1bed.rodata" "-" "contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py" "_535c4a81469d9c0b74079f2503.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports-shutil_get_terminal_size/_b14508265505faf3ec5dc61429.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.yasm" "-" "contrib/python/backports.shutil-get-terminal-size/.dist-info/METADATA" "_bc3e6f246151062d84cee94ef7.rodata" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_093877200a814960ab52e8cb1b.rodata" "-" "contrib/python/backports.shutil-get-terminal-size/.dist-info/top_level.txt" "_452c23742e7b94a5ca77f5ce03.rodata" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_5fc7008e198b2598f8875f3668.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -163,9 +190,36 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports-shutil_get_terminal_size/_5cc3833fcd206ee0261c7a2f34.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\__init__.py.exjb.yapyc;$(SolutionDir)..\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\get_terminal_size.py;$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\backports\shutil_get_terminal_size\get_terminal_size.py.5obk.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_5cc3833fcd206ee0261c7a2f34.yasm;$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_425392d335e9cb1d429e8dc1c9.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_93820c2ed414dad3607fcc4d30.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_7809b7b53f565406c8bfed1bed.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports-shutil_get_terminal_size\_b14508265505faf3ec5dc61429.rodata;</Outputs>
+      <Message>$B/contrib/python/backports.shutil-get-terminal-size/_ec2354581ed0816dec46d996d8.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\.dist-info\METADATA;$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_ec2354581ed0816dec46d996d8.yasm;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_093877200a814960ab52e8cb1b.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_5fc7008e198b2598f8875f3668.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.yasm" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_f09a4f1658061c6d47958c3ce8.rodata" "-" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py" "_754ba21220cc06b1eb0e9f649c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_003d1427ffb5f75dc040230c00.rodata" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_f6a7a8aa377309e8e952ad9ac1.rodata" "-" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py" "_8624831fce25d9069e8724f330.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_c759f0fec2521856ce0170d2b9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.yasm" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_f09a4f1658061c6d47958c3ce8.rodata" "-" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py" "_754ba21220cc06b1eb0e9f649c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/__init__.py.exjb.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_003d1427ffb5f75dc040230c00.rodata" "$(SolutionDir)../contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_f6a7a8aa377309e8e952ad9ac1.rodata" "-" "contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py" "_8624831fce25d9069e8724f330.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/backports/shutil_get_terminal_size/get_terminal_size.py.5obk.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports.shutil-get-terminal-size/_c759f0fec2521856ce0170d2b9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/backports.shutil-get-terminal-size/_65fb1a4f52374d779f7f12c79a.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\__init__.py.exjb.yapyc;$(SolutionDir)..\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\get_terminal_size.py;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\backports\shutil_get_terminal_size\get_terminal_size.py.5obk.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_65fb1a4f52374d779f7f12c79a.yasm;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_f09a4f1658061c6d47958c3ce8.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_003d1427ffb5f75dc040230c00.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_f6a7a8aa377309e8e952ad9ac1.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports.shutil-get-terminal-size\_c759f0fec2521856ce0170d2b9.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
