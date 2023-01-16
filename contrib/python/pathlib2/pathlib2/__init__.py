@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2017 Matthias C. M. Troffaes
+# Copyright (c) 2014-2021 Matthias C. M. Troffaes and contributors
 # Copyright (c) 2012-2014 Antoine Pitrou and contributors
 # Distributed under the terms of the MIT License.
 
@@ -10,6 +10,10 @@ import ntpath
 import os
 import posixpath
 import re
+from typing import (
+    TypeVar, Type, Union, Text, Tuple, List, Any, Callable, Iterable, Optional
+)
+
 import six
 import sys
 
@@ -19,16 +23,17 @@ from operator import attrgetter
 from stat import (
     S_ISDIR, S_ISLNK, S_ISREG, S_ISSOCK, S_ISBLK, S_ISCHR, S_ISFIFO)
 
-try:
-    from collections.abc import Sequence  # type: ignore
-except ImportError:
+if six.PY2:
     from collections import Sequence
+else:
+    from collections.abc import Sequence
 
-try:
-    from urllib import quote as urlquote_from_bytes  # type: ignore
-except ImportError:
-    from urllib.parse \
-        import quote_from_bytes as urlquote_from_bytes  # type: ignore
+if six.PY2:
+    import urllib
+    urlquote_from_bytes = urllib.quote  # type: Callable[[bytes], str]
+else:
+    import urllib.parse
+    urlquote_from_bytes = urllib.parse.quote_from_bytes
 
 
 try:
@@ -41,7 +46,8 @@ if os.name == 'nt':
     import nt  # type: ignore
     if sys.getwindowsversion().major >= 6 \
             and sys.version_info >= (3, 2):  # type: ignore
-        from nt import _getfinalpathname
+        from nt import _getfinalpathname as _gfpn
+        _getfinalpathname = _gfpn  # type: Optional[Callable[[str], str]]
     else:
         supports_symlinks = False
         _getfinalpathname = None
@@ -71,18 +77,30 @@ _IGNORED_WINERRORS = (
 
 
 def _ignore_error(exception):
+    # type: (BaseException) -> bool
     return (getattr(exception, 'errno', None) in _IGNORED_ERROS or
             getattr(exception, 'winerror', None) in _IGNORED_WINERRORS)
 
 
-def _py2_fsencode(parts):
-    # py2 => minimal unicode support
-    assert six.PY2
-    return [part.encode(sys.getfilesystemencoding() or 'ascii')
-            if isinstance(part, six.text_type) else part for part in parts]
+def _py2_fsencode(part):
+    # type: (Text) -> str
+    if six.PY2 and isinstance(part, six.text_type):
+        # py2 => minimal unicode support
+        # note: in rare circumstances, on Python < 3.2,
+        # getfilesystemencoding can return None, in that
+        # case fall back to ascii
+        return part.encode(sys.getfilesystemencoding() or 'ascii')
+    else:
+        assert isinstance(part, str)
+        return part
 
 
-def _try_except_fileexistserror(try_func, except_func, else_func=None):
+def _try_except_fileexistserror(
+        try_func,  # type: Callable[[], None]
+        except_func,  # type: Callable[[BaseException], None]
+        else_func=None,  # type: Callable[[], None]
+        ):
+    # type: (...) -> None
     if sys.version_info >= (3, 3):
         try:
             try_func()
@@ -104,7 +122,11 @@ def _try_except_fileexistserror(try_func, except_func, else_func=None):
                 else_func()
 
 
-def _try_except_filenotfounderror(try_func, except_func):
+def _try_except_filenotfounderror(
+        try_func,  # type: Callable[[], None]
+        except_func,  # type: Callable[[BaseException], None]
+        ):
+    # type: (...) -> None
     if sys.version_info >= (3, 3):
         try:
             try_func()
@@ -136,7 +158,14 @@ def _try_except_filenotfounderror(try_func, except_func):
                 except_func(exc)
 
 
-def _try_except_permissionerror_iter(try_iter, except_iter):
+_T = TypeVar("_T")
+
+
+def _try_except_permissionerror_iter(
+        try_iter,  # type: Callable[[], Iterable[_T]]
+        except_iter,  # type: Callable[[BaseException], Iterable[_T]]
+        ):
+    # type: (...) -> Iterable[_T]
     if sys.version_info >= (3, 3):
         try:
             for x in try_iter():
@@ -157,6 +186,7 @@ def _try_except_permissionerror_iter(try_iter, except_iter):
 
 
 def _win32_get_unique_path_id(path):
+    # type: (Text) -> Tuple[int, int, int]
     # get file information, needed for samefile on older Python versions
     # see http://timgolden.me.uk/python/win32_how_do_i/
     # see_if_two_files_are_the_same_file.html
@@ -203,7 +233,7 @@ def _win32_get_unique_path_id(path):
         flags = 0
     hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ,
                        None, OPEN_EXISTING, flags, None)
-    if hfile == 0xffffffff:
+    if hfile in [0xffffffff, 0xffffffffffffffff]:
         if sys.version_info >= (3, 3):
             raise FileNotFoundError(path)  # noqa: F821
         else:
@@ -219,6 +249,7 @@ def _win32_get_unique_path_id(path):
 
 
 def _is_wildcard_pattern(pat):
+    # type: (Text) -> bool
     # Whether this pattern needs actual matching using fnmatch, or can
     # be looked up directly as a file.
     return "*" in pat or "?" in pat or "[" in pat
@@ -229,17 +260,37 @@ class _Flavour(object):
     """A flavour implements a particular (platform-specific) set of path
     semantics."""
 
+    sep = None  # type: str
+    altsep = None  # type: str
+    is_supported = False  # type: bool
+
     def __init__(self):
         self.join = self.sep.join
 
+    def casefold(self, s):
+        # type: (str) -> str
+        raise NotImplementedError
+
+    def casefold_parts(self, parts):
+        # type: (List[str]) -> List[str]
+        raise NotImplementedError
+
+    def gethomedir(self, username):
+        # type: (Optional[Text]) -> Text
+        raise NotImplementedError
+
+    def splitroot(self, part, sep=sep):
+        # type: (str, str) -> Tuple[str, str, str]
+        raise NotImplementedError
+
     def parse_parts(self, parts):
-        if six.PY2:
-            parts = _py2_fsencode(parts)
-        parsed = []
+        # type: (Sequence[Text]) -> Tuple[str, str, List[str]]
+        parts2 = list(map(_py2_fsencode, parts))  # type: List[str]
+        parsed = []  # type: List[str]
         sep = self.sep
         altsep = self.altsep
         drv = root = ''
-        it = reversed(parts)
+        it = reversed(parts2)
         for part in it:
             if not part:
                 continue
@@ -258,12 +309,12 @@ class _Flavour(object):
                     # If no drive is present, try to find one in the previous
                     # parts. This makes the result of parsing e.g.
                     # ("C:", "/", "a") reasonably intuitive.
-                    for part in it:
-                        if not part:
+                    for part2 in it:
+                        if not part2:
                             continue
                         if altsep:
-                            part = part.replace(altsep, sep)
-                        drv = self.splitroot(part)[0]
+                            part2 = part2.replace(altsep, sep)
+                        drv = self.splitroot(part2)[0]
                         if drv:
                             break
                 break
@@ -272,7 +323,16 @@ class _Flavour(object):
         parsed.reverse()
         return drv, root, parsed
 
-    def join_parsed_parts(self, drv, root, parts, drv2, root2, parts2):
+    def join_parsed_parts(
+            self,
+            drv,  # type: str
+            root,  # type: str
+            parts,  # type: List[str]
+            drv2,  # type: str
+            root2,  # type: str
+            parts2,  # type: List[str]
+            ):
+        # type: (...) -> Tuple[str, str, List[str]]
         """
         Join the two paths represented by the respective
         (drive, root, parts) tuples.  Return a new (drive, root, parts) tuple.
@@ -319,7 +379,7 @@ class _WindowsFlavour(_Flavour):
     def splitroot(self, part, sep=sep):
         first = part[0:1]
         second = part[1:2]
-        if (second == sep and first == sep):
+        if second == sep and first == sep:
             # XXX extended paths should also disable the collapsing of "."
             # components (according to MSDN docs).
             prefix, part = self._split_extended_path(part)
@@ -328,7 +388,7 @@ class _WindowsFlavour(_Flavour):
         else:
             prefix = ''
         third = part[2:3]
-        if (second == sep and first == sep and third != sep):
+        if second == sep and first == sep and third != sep:
             # is a UNC path:
             # vvvvvvvvvvvvvvvvvvvvv root
             # \\machine\mountpoint\directory\etc\...
@@ -365,13 +425,12 @@ class _WindowsFlavour(_Flavour):
         s = str(path)
         if not s:
             return os.getcwd()
-        previous_s = None
         if _getfinalpathname is not None:
             if strict:
                 return self._ext_to_normal(_getfinalpathname(s))
             else:
                 # End of the path after the first one not found
-                tail_parts = []
+                tail_parts = []  # type: List[str]
 
                 def _try_func():
                     result[0] = self._ext_to_normal(_getfinalpathname(s))
@@ -382,11 +441,11 @@ class _WindowsFlavour(_Flavour):
                     pass
 
                 while True:
-                    result = [None, 1]
+                    result = ['', 1]
                     _try_except_filenotfounderror(_try_func, _exc_func)
                     if result[1] == 1:  # file not found exception raised
                         previous_s = s
-                        s, tail = os.path.split(s)
+                        s, tail = os.path.split(s)  # type: str
                         tail_parts.append(tail)
                         if previous_s == s:
                             return path
@@ -397,6 +456,7 @@ class _WindowsFlavour(_Flavour):
         return None
 
     def _split_extended_path(self, s, ext_prefix=ext_namespace_prefix):
+        # type: (str, str) -> Tuple[str, str]
         prefix = ''
         if s.startswith(ext_prefix):
             prefix = s[:4]
@@ -407,6 +467,7 @@ class _WindowsFlavour(_Flavour):
         return prefix, s
 
     def _ext_to_normal(self, s):
+        # type: (str) -> str
         # Turn back an extended path into a normal DOS-like path
         return self._split_extended_path(s)[1]
 
@@ -608,7 +669,7 @@ class _NormalAccessor(_Accessor):
     chmod = _wrap_strfunc(os.chmod)
 
     if hasattr(os, "lchmod"):
-        lchmod = _wrap_strfunc(os.lchmod)
+        lchmod = _wrap_strfunc(os.lchmod)  # type: ignore
     else:
         def lchmod(self, pathobj, mode):
             raise NotImplementedError("lchmod() not available on this system")
@@ -718,8 +779,7 @@ class _PreciseSelector(_Selector):
                     yield p
 
         def except_iter(exc):
-            return
-            yield
+            return iter([])
 
         for x in _try_except_permissionerror_iter(try_iter, except_iter):
             yield x
@@ -746,8 +806,7 @@ class _WildcardSelector(_Selector):
                             yield p
 
         def except_iter(exc):
-            return
-            yield
+            return iter([])
 
         for x in _try_except_permissionerror_iter(try_iter, except_iter):
             yield x
@@ -776,8 +835,7 @@ class _RecursiveWildcardSelector(_Selector):
                         yield p
 
         def except_iter(exc):
-            return
-            yield
+            return iter([])
 
         for x in _try_except_permissionerror_iter(try_iter, except_iter):
             yield x
@@ -798,8 +856,7 @@ class _RecursiveWildcardSelector(_Selector):
                 yielded.clear()
 
         def except_iter(exc):
-            return
-            yield
+            return iter([])
 
         for x in _try_except_permissionerror_iter(try_iter, except_iter):
             yield x
@@ -838,6 +895,9 @@ class _PathParents(Sequence):
         return "<{0}.parents>".format(self._pathcls.__name__)
 
 
+_P = TypeVar("_P", bound="PurePath")
+
+
 class PurePath(object):
 
     """PurePath represents a filesystem path and offers operations which
@@ -851,7 +911,18 @@ class PurePath(object):
         '_str', '_hash', '_pparts', '_cached_cparts',
     )
 
+    _flavour = None  # type: _Flavour
+
+    def __type_hints__(self, drv, root, parts, str_, hash_):
+        # type: (str, str, List[str], str, int) -> None
+        self._drv = drv
+        self._root = root
+        self._parts = parts
+        self._str = str_
+        self._hash = hash_
+
     def __new__(cls, *args):
+        # type: (Type[PurePath], *Union[Text, PurePath]) -> PurePath
         """Construct a PurePath from one or several strings and or existing
         PurePath objects.  The strings and path objects are combined so as
         to yield a canonicalized path, which is incorporated into the
@@ -864,13 +935,17 @@ class PurePath(object):
     def __reduce__(self):
         # Using the parts tuple helps share interned path parts
         # when pickling related paths.
-        return (self.__class__, tuple(self._parts))
+        return self.__class__, tuple(self._parts)
 
     @classmethod
-    def _parse_args(cls, args):
+    def _parse_args(
+            cls,  # type: Type[_P]
+            args,  # type: Sequence[Union[Text, PurePath]]
+            ):
+        # type: (...) -> Tuple[str, str, List[str]]
         # This is useful when you don't want to create an instance, just
         # canonicalize some constructor arguments.
-        parts = []
+        parts = []  # type: List[str]
         for a in args:
             if isinstance(a, PurePath):
                 parts += a._parts
@@ -879,19 +954,14 @@ class PurePath(object):
                     a = os.fspath(a)
                 else:
                     # duck typing for older Python versions
-                    if hasattr(a, "__fspath__"):
-                        a = a.__fspath__()
+                    a = getattr(a, "__fspath__", lambda: a)()
                 if isinstance(a, str):
                     # Force-cast str subclasses to str (issue #21127)
                     parts.append(str(a))
                 # also handle unicode for PY2 (six.text_type = unicode)
                 elif six.PY2 and isinstance(a, six.text_type):
                     # cast to str using filesystem encoding
-                    # note: in rare circumstances, on Python < 3.2,
-                    # getfilesystemencoding can return None, in that
-                    # case fall back to ascii
-                    parts.append(a.encode(
-                        sys.getfilesystemencoding() or "ascii"))
+                    parts.append(_py2_fsencode(a))
                 else:
                     raise TypeError(
                         "argument should be a str object or an os.PathLike "
@@ -901,6 +971,7 @@ class PurePath(object):
 
     @classmethod
     def _from_parts(cls, args, init=True):
+        # type: (Type[_P], Sequence[Union[Text, PurePath]], bool) -> _P
         # We need to call _parse_args on the instance, so as to get the
         # right flavour.
         self = object.__new__(cls)
@@ -914,6 +985,7 @@ class PurePath(object):
 
     @classmethod
     def _from_parsed_parts(cls, drv, root, parts, init=True):
+        # type: (str, str, List[str], bool) -> _P
         self = object.__new__(cls)
         self._drv = drv
         self._root = root
@@ -924,6 +996,7 @@ class PurePath(object):
 
     @classmethod
     def _format_parsed_parts(cls, drv, root, parts):
+        # type: (str, str, List[str]) -> str
         if drv or root:
             return drv + root + cls._flavour.join(parts[1:])
         else:
@@ -934,12 +1007,14 @@ class PurePath(object):
         pass
 
     def _make_child(self, args):
+        # type: (Sequence[Union[Text, PurePath]]) -> str
         drv, root, parts = self._parse_args(args)
         drv, root, parts = self._flavour.join_parsed_parts(
             self._drv, self._root, self._parts, drv, root, parts)
         return self._from_parsed_parts(drv, root, parts)
 
     def __str__(self):
+        # type: () -> str
         """Return the string representation of the path, suitable for
         passing to system calls."""
         try:
@@ -994,6 +1069,7 @@ class PurePath(object):
         return not self == other
 
     def __hash__(self):
+        # type: () -> int
         try:
             return self._hash
         except AttributeError:
@@ -1074,17 +1150,19 @@ class PurePath(object):
             return name
 
     def with_name(self, name):
+        # type: (Text) -> _P
         """Return a new path with the file name changed."""
         if not self.name:
             raise ValueError("%r has an empty name" % (self,))
         drv, root, parts = self._flavour.parse_parts((name,))
         if (not name or name[-1] in [self._flavour.sep, self._flavour.altsep]
                 or drv or root or len(parts) != 1):
-            raise ValueError("Invalid name %r" % (name))
+            raise ValueError("Invalid name %r" % name)
         return self._from_parsed_parts(self._drv, self._root,
                                        self._parts[:-1] + parts[-1:])
 
     def with_suffix(self, suffix):
+        # type: (Text) -> _P
         """Return a new path with the file suffix changed.  If the path
         has no suffix, add given suffix.  If the given suffix is an empty
         string, remove the suffix from the path.
@@ -1092,14 +1170,11 @@ class PurePath(object):
         # XXX if suffix is None, should the current suffix be removed?
         f = self._flavour
         if f.sep in suffix or f.altsep and f.altsep in suffix:
-            raise ValueError("Invalid suffix %r" % (suffix))
+            raise ValueError("Invalid suffix %r" % suffix)
         if suffix and not suffix.startswith('.') or suffix == '.':
-            raise ValueError("Invalid suffix %r" % (suffix))
+            raise ValueError("Invalid suffix %r" % suffix)
 
-        if (six.PY2 and not isinstance(suffix, str)
-                and isinstance(suffix, six.text_type)):
-            # see _parse_args() above
-            suffix = suffix.encode(sys.getfilesystemencoding() or "ascii")
+        suffix = _py2_fsencode(suffix)
 
         name = self.name
         if not name:
@@ -1266,6 +1341,7 @@ class Path(PurePath):
     )
 
     def __new__(cls, *args, **kwargs):
+        # type: (Type[Path], *Union[Text, PurePath], **Any) -> Path
         if cls is Path:
             cls = WindowsPath if os.name == 'nt' else PosixPath
         self = cls._from_parts(args, init=False)
@@ -1501,7 +1577,7 @@ class Path(PurePath):
         with self.open(mode='wb') as f:
             return f.write(data)
 
-    def write_text(self, data, encoding=None, errors=None):
+    def write_text(self, data, encoding=None, errors=None, newline=None):
         """
         Open the file in text mode, write to it, and close the file.
         """
@@ -1509,7 +1585,7 @@ class Path(PurePath):
             raise TypeError(
                 'data must be %s, not %s' %
                 (six.text_type.__name__, data.__class__.__name__))
-        with self.open(mode='w', encoding=encoding, errors=errors) as f:
+        with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
             return f.write(data)
 
     def touch(self, mode=0o666, exist_ok=True):

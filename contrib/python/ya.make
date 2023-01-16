@@ -56,6 +56,7 @@ RECURSE(
     tomli
     tornado
     traitlets
+    typing
     wcwidth
 )
 
