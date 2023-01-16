@@ -1094,7 +1094,6 @@ void FileGenerator::GenerateForwardDeclarations(io::Printer* printer) {
     }
   }
 
-
   if (options_.proto_h) {  // proto.h needs extra forward declarations.
     // All classes / enums referred to as field members
     for (int i = 0; i < fields.size(); i++) {
