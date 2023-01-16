@@ -1333,7 +1333,6 @@ migrations:
     - ads/quality/ltp/action_tasks/visit_goals
     - ads/quality/phf/direct_api
     - ads/quality/simulate_auction_py/lib/inject_modules
-    - ads/sandbox_scripts/truncate_hitfactors/lib
     - ads/sandbox_scripts/zc_corrector
     - ads/tools/mx_feature_remapper/lib
     - ads/watchman/contrib/flask-marshmallow-patched
@@ -3408,7 +3407,6 @@ migrations:
     - modadvert/libs/algorithms/ut
     - modadvert/programs/catalogia_flags_diff/ut
     - modadvert/programs/minus_regions/ut
-    - mssngr/tools/pytests/setup/external
     - mssngr/tools/pytests/setup/local
     - nirvana/libs/comparable_dumped_workflow/ut
     - nirvana/valhalla/tests
@@ -3891,7 +3889,6 @@ migrations:
     - balancer/test/functional/pingerprocess
     - balancer/test/functional/unistat
     - ads/sandbox_scripts/visibility_stats/fat
-    - ads/sandbox_scripts/truncate_hitfactors/tests
     - ads/pytorch/lib/preprocess/medium_ut
     - ads/pytorch/lib/online_learning/production/model_folder/medium_ut
     - ads/pytorch/ads_pytorch_integration_test
