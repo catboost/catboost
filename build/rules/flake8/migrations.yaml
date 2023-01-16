@@ -3406,7 +3406,6 @@ migrations:
     - rtmapreduce/mrtasks/create_market_requests/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
-    - rtmapreduce/mrtasks/org_load/tests
     - rtmapreduce/mrtasks/orgvisits/tests
     - rtmapreduce/mrtasks/parselib_errors/tests
     - rtmapreduce/mrtasks/postprocess_sessions/tests
