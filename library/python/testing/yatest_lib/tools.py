@@ -9,8 +9,8 @@ def to_utf8(value):
     :return:
     """
     if sys.version_info[0] < 3:
-        if not isinstance(value, basestring):
-            value = unicode(value)
+        if not isinstance(value, basestring):  # noqa
+            value = unicode(value)  # noqa
         if type(value) == str:
             value = value.decode("utf-8", errors="ignore")
         return value.encode('utf-8', 'ignore')
@@ -56,3 +56,9 @@ def _trim_unicode_string(s, max_bytes):
         result.append(ch)
 
     return ''.join(result)
+
+
+def to_str(s):
+    if six.PY2 and isinstance(s, six.text_type):
+        return s.encode('utf8')
+    return s
