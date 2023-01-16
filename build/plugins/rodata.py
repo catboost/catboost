@@ -21,13 +21,13 @@ class ROData(iw.CustomCommand):
         if flags:
             self.parse_flags(path, unit, collections.deque(flags.split(' ')))
 
-        if unit.enabled('darwin') or unit.enabled('ios'):
+        if unit.enabled('DARWIN') or unit.enabled('IOS'):
             self._platform = ['DARWIN', 'UNIX']
             self._fmt = 'macho'
-        elif unit.enabled('win64') or unit.enabled('cygwin'):
+        elif unit.enabled('WIN64') or unit.enabled('CYGWIN'):
             self._platform = ['WIN64']
             self._fmt = 'win'
-        elif unit.enabled('win32'):
+        elif unit.enabled('WIN32'):
             self._platform = ['WIN32']
             self._fmt = 'win'
         else:
@@ -37,10 +37,10 @@ class ROData(iw.CustomCommand):
         if 'elf' in self._fmt:
             self._flags += ['-g', 'dwarf2']
 
-        self._fmt += unit.get('hardware_arch')
-        self._type = unit.get('hardware_type')
+        self._fmt += unit.get('HARDWARE_ARCH')
+        self._type = unit.get('HARDWARE_TYPE')
 
-        if unit.enabled('darwin') or unit.enabled('ios') or (unit.enabled('windows') and unit.enabled('arch_type_32')):
+        if unit.enabled('DARWIN') or unit.enabled('IOS') or (unit.enabled('WINDOWS') and unit.enabled('ARCH_TYPE_32')):
             self._prefix = '_'
         else:
             self._prefix = ''
