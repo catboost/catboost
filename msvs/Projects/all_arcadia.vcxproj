@@ -822,8 +822,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\pycontrib-python-graphviz.vcxproj">
       <Project>F7A1107D-8D70-ACE8-DC3B-C262EC7A87FA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\pycontrib-python-importlib-metadata.global.vcxproj">
-      <Project>4F8714BF-E4F1-08CA-ACDA-A2CFAB9C6033</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.global.vcxproj">
+      <Project>77241000-E28E-793C-88B4-56C641DEE900</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.vcxproj">
+      <Project>7CA8D33B-5425-5BF9-E98C-202C0225D987</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\pycontrib-python-importlib-metadata.vcxproj">
       <Project>7F463C70-BAD7-7EF0-2E4C-848242C99C7E</Project>
