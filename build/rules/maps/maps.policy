@@ -167,5 +167,8 @@ ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/revision
 ALLOW ydo/libs/dispatch -> maps/libs/pbstream
 ALLOW ydo/libs/dispatch -> maps/libs/kdtree
 
+# use of privacy_detector
+ALLOW toloka -> maps/wikimap/mapspro/services/mrc/libs/
+
 # Do not allow PEERDIRs into maps unless such PEERDIRs have be explicitly allowed above
 DENY .* -> maps/
