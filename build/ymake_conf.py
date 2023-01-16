@@ -3069,12 +3069,8 @@ class Cuda(object):
         else:
             cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} ${pre=-I:_C__INCLUDE} $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'  # noqa E501
 
-        emit_big('''
-            macro _SRC("cu", SRC, SRCFLAGS...) {
-                .CMD=%s
-                .PEERDIR=%s
-            }
-        ''' % (cmd, ' '.join(sorted(self.peerdirs))))
+        emit('_SRC_CU_CMD', cmd)
+        emit('_SRC_CU_PEERDIR', ' '.join(sorted(self.peerdirs)))
 
     def have_cuda_in_arcadia(self):
         host, target = self.build.host_target
