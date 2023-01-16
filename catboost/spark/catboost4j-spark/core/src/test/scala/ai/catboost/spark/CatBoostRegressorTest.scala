@@ -1263,6 +1263,84 @@ class CatBoostRegressorTest {
       }
     }
   }
+  
+  @Test 
+  @throws(classOf[Exception])
+  def testConstantAndCtrCatFeatures() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+    
+    val featureNames = Array[String]("c1", "c2", "c3")
+    val catFeaturesNumValues = Map("c1" -> 1, "c2" -> 4, "c3" -> 6)
+
+    val srcSchemaData = Seq(
+      ("features", SQLDataTypes.VectorType),
+      ("label", StringType),
+      ("groupId", LongType),
+      ("subgroupId", IntegerType),
+      ("weight", FloatType)
+    )
+    val srcData = Seq(
+      Row(Vectors.dense(0, 0, 0), "0.34", 0x86F1B93B695F9E6L, 0x23D794E, 1.0f),
+      Row(Vectors.dense(0, 1, 0), "0.12", 0xB337C6FEFE2E2F7L, 0x034BFBD, 0.12f),
+      Row(Vectors.dense(0, 2, 1), "0.22", 0xB337C6FEFE2E2F7L, 0x19CE5B0, 0.18f),
+      Row(Vectors.dense(0, 2, 2), "0.01", 0xD9DBDD3199D6518L, 0x19CE5B0, 1.0f),
+      Row(Vectors.dense(0, 0, 3), "0.0", 0xD9DBDD3199D6518L, 0x1FA606F, 2.0f),
+      Row(Vectors.dense(0, 0, 4), "0.42", 0xD9DBDD3199D6518L, 0x22772D1, 0.45f),
+      Row(Vectors.dense(0, 3, 5), "0.1", 0xEFFAAEA87558887L, 0x034BFBD, 1.0f)
+    )
+
+    val pool = PoolTestHelpers.createRawPool(
+        TestHelpers.getCurrentMethodName,
+        PoolTestHelpers.createSchema(
+          srcSchemaData,
+          featureNames,
+          /*addFeatureNamesMetadata*/ true,
+          catFeaturesNumValues = catFeaturesNumValues
+        ),
+        srcData,
+        Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
+    )
+    
+    val expectedPrediction = Seq(
+      0.00032436494635064477,
+      0.0013906723810840284,
+      0.16534510663726826,
+      0.16534510663726826,
+      0.00032436494635064477,
+      0.00032436494635064477,
+      0.10160782777876766
+    )
+    val expectedPredictionsData = mutable.Seq.concat(srcData)
+    for (i <- 0 until srcData.length) {
+      expectedPredictionsData(i) = TestHelpers.appendToRow(
+        expectedPredictionsData(i),
+        expectedPrediction(i)
+      )
+    }
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      srcSchemaData :+ ("prediction", DoubleType),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ Seq("prediction"),
+      catFeaturesNumValues = catFeaturesNumValues
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    val regressor = new CatBoostRegressor()
+      .setIterations(20)
+      .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+      .setHasTime(true)
+      .setRandomStrength(0)
+      .setBootstrapType(EBootstrapType.No)
+      .setLearningRate(0.3f)
+    val model = regressor.fit(pool)
+    val predictions = model.transform(pool.data)
+    
+    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+  }
 
 
   @Test 

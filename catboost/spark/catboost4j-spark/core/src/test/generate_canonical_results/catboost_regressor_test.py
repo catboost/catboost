@@ -512,6 +512,65 @@ def num_and_one_hot_cat_features_with_eval_sets():
         [os.remove(eval_set_path) for eval_set_path in eval_sets_paths]
         os.remove(cd_path)
 
+def constant_and_ctr_cat_features():
+    learn_set_path = tempfile.mkstemp(prefix='catboost_learn_set_')[1]
+    cd_path = tempfile.mkstemp(prefix='catboost_cd_')[1]
+
+    try:
+        utils.object_list_to_tsv(
+            [
+                (0, 0, 0, "0.34", "query1", "Site9", 1.0),
+                (0, 1, 0, "0.12", "query0", "site1", 0.12),
+                (0, 2, 1, "0.22", "query0", "site22", 0.18),
+                (0, 2, 2, "0.01", "Query 2", "site22", 1.0),
+                (0, 0, 3, "0.0", "Query 2", "Site45", 2.0),
+                (0, 0, 4, "0.42", "Query 2", "site12", 0.45),
+                (0, 3, 5, "0.1", "Query 3", "site1", 1.0)
+            ],
+            learn_set_path
+        )
+        with open(cd_path, 'w') as cd:
+            cd.write(
+                "0\tCateg\tc1\n"
+                + "1\tCateg\tc2\n"
+                + "2\tCateg\tc3\n"
+                + "3\tTarget\n"
+                + "4\tGroupId\n"
+                + "5\tSubgroupId\n"
+                + "6\tWeight\n"
+            )
+
+        model = utils.run_local_train(
+            ['--iterations', '20',
+             '--loss-function', 'RMSE',
+             '--dev-efb-max-buckets', '0',
+             '--max-ctr-complexity', '1',
+             '--has-time',
+             '--random-strength', '0',
+             '--bootstrap-type', 'No',
+             '--boosting-type', 'Plain',
+             '--learning-rate', '0.3',
+             '--boost-from-average', '0',
+             '--learn-set', learn_set_path,
+             '--cd', cd_path,
+            ],
+            model_class=cb.CatBoostRegressor
+        )
+        train_pool = cb.Pool(learn_set_path, column_description=cd_path)
+
+        result = {'prediction': model.predict(train_pool).tolist()}
+
+        json.dump(
+            result,
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_constant_and_ctr_cat_features.json'), 'w'),
+            allow_nan=True,
+            indent=2
+        )
+
+    finally:
+        os.remove(learn_set_path)
+        os.remove(cd_path)
+
 
 def with_pairs():
     data_path = os.path.join(CATBOOST_TEST_DATA_DIR, "querywise")
@@ -590,5 +649,6 @@ def main():
     one_hot_cat_features()
     num_and_one_hot_cat_features()
     num_and_one_hot_cat_features_with_eval_sets()
+    constant_and_ctr_cat_features()
     with_pairs()
     with_pairs_with_eval_set()
