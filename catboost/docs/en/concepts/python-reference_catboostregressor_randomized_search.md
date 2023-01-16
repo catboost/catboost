@@ -95,7 +95,7 @@ The input training dataset in the form of a two-dimensional feature matrix.
 
 {% note info %}
 
-Do not use this parameter if the input training dataset (specified in the¬†`X` parameter) type is {{ python-type--pool }}.
+Do not use this parameter if the input training dataset (specified in the `X` parameter) type is {{ python-type--pool }}.
 
 {% endnote %}
 
@@ -118,8 +118,8 @@ Do not use this parameter if the input training dataset (specified in the¬†`X
 The cross-validation splitting strategy.
 
 The interpretation of this parameter depends on the input data type:
-- None¬†вАФ Use the default three-fold cross-validation.
-- {{ python-type--int }}¬†вАФ The number of folds in a (Stratified)KFold
+- None —  Use the default three-fold cross-validation.
+- {{ python-type--int }} —  The number of folds in a (Stratified)KFold
 - {% include [reusage-python-object-scikitlearn](../_includes/work_src/reusage-python/object-scikitlearn.md) %}
 
 - An iterable yielding train and test splits as arrays of indices.
@@ -197,7 +197,7 @@ True
 
 Estimate the quality by using cross-validation with the best of the found parameters. The model is fitted using these parameters.
 
-This option can be enabled if the `search_by_train_test_split` parameter is set to¬†True.
+This option can be enabled if the `search_by_train_test_split` parameter is set to True.
 
 **Possible types**
 
@@ -277,8 +277,8 @@ Possible values are in the range [0;1].
 {% include [sections-with-methods-desc-python__feature-importances__verbose__short-description__list-intro](../_includes/work_src/reusage/python__feature-importances__verbose__short-description__list-intro.md) %}
 
 
-- {{ python-type--int }}¬†вАФ The frequency of iterations to print the information to stdout.
-- {{ python-type--bool }}¬†вАФ Print the information to stdout on every iteration (if set to <q>True</q>) or disable any logging (if set to <q>False</q>).
+- {{ python-type--int }} —  The frequency of iterations to print the information to stdout.
+- {{ python-type--bool }} —  Print the information to stdout on every iteration (if set to <q>True</q>) or disable any logging (if set to <q>False</q>).
 
 **Possible types**
 
