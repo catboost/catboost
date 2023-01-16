@@ -268,18 +268,6 @@ TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector()
 { }
 
 template <class E, class T, E Min, E Max>
-TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector(const TEnumIndexedVector& other)
-{
-    *this = other;
-}
-
-template <class E, class T, E Min, E Max>
-TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector(TEnumIndexedVector&& other)
-{
-    *this = std::move(other);
-}
-
-template <class E, class T, E Min, E Max>
 TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector(std::initializer_list<T> elements)
     : Items_{}
 {
@@ -288,20 +276,6 @@ TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector(std::initializer_list<T> 
     for (const auto& element : elements) {
         Items_[index++] = element;
     }
-}
-
-template <class E, class T, E Min, E Max>
-TEnumIndexedVector<E, T, Min, Max>& TEnumIndexedVector<E, T, Min, Max>::operator=(const TEnumIndexedVector& other)
-{
-    std::copy(other.Items_.begin(), other.Items_.end(), Items_.begin());
-    return *this;
-}
-
-template <class E, class T, E Min, E Max>
-TEnumIndexedVector<E, T, Min, Max>& TEnumIndexedVector<E, T, Min, Max>::operator=(TEnumIndexedVector&& other)
-{
-    std::move(other.Items_.begin(), other.Items_.end(), Items_.begin());
-    return *this;
 }
 
 template <class E, class T, E Min, E Max>

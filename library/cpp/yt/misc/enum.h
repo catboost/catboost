@@ -205,12 +205,7 @@ public:
     using TValue = T;
 
     TEnumIndexedVector();
-    TEnumIndexedVector(const TEnumIndexedVector& other);
-    TEnumIndexedVector(TEnumIndexedVector&& other);
     TEnumIndexedVector(std::initializer_list<T> elements);
-
-    TEnumIndexedVector& operator=(const TEnumIndexedVector& other);
-    TEnumIndexedVector& operator=(TEnumIndexedVector&& other);
 
     T& operator[] (E index);
     const T& operator[] (E index) const;
