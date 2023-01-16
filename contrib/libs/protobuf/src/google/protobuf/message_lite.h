@@ -297,7 +297,7 @@ class PROTOBUF_EXPORT MessageLite {
       io::ZeroCopyInputStream* input);
   // Parse a protocol buffer from a file descriptor.  If successful, the entire
   // input will be consumed.
-  PROTOBUF_ATTRIBUTE_REINITIALIZES bool ParseFromFileDescriptor(
+  PROTOBUF_ATTRIBUTE_REINITIALIZES PROTOBUF_MUST_USE_RESULT bool ParseFromFileDescriptor(
       int file_descriptor);
   // Like ParseFromFileDescriptor(), but accepts messages that are missing
   // required fields.
