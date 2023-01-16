@@ -581,7 +581,21 @@ class Build(object):
     def _get_toolchain_options(self):
         type_ = self.params['params']['type']
 
-        if type_ == 'system_cxx':
+        if self.params['params'].get('local'):
+            detector = CompilerDetector()
+            version = subprocess.check_output(['xcodebuild', '-version']).split()[1]
+            if version != self.params['params']['gcc_version']:
+                logger.warn('Unsupported version of Xcode installed. To install supported version:')
+                logger.warn('1. Download supported version from https://xcodereleases.com/.')
+                logger.warn('2. Select supported version with `sudo xcode-select <path-to-xcode-dir>/Contents/Developer`')
+                raise ConfigureError('Unsupported Xcode version')
+            c_compiler = subprocess.check_output(['xcrun', '--find', 'clang']).strip()
+            cxx_compiler = subprocess.check_output(['xcrun', '--find', 'clang++']).strip()
+            detector.detect(c_compiler, cxx_compiler)
+            emit('LOCAL_XCODE_TOOLS', 'yes')
+            emit('ACTOOL_PATH', subprocess.check_output(['xcrun', '--find', 'actool']).strip())
+            emit('IBTOOL_PATH', subprocess.check_output(['xcrun', '--find', 'ibtool']).strip())
+        elif type_ == 'system_cxx':
             detector = CompilerDetector()
             detector.detect(self.params['params'].get('c_compiler'), self.params['params'].get('cxx_compiler'))
             type_ = detector.type
@@ -981,6 +995,10 @@ class ToolchainOptions(object):
     def is_from_arcadia(self):
         return self.from_arcadia
 
+    @property
+    def is_local(self):
+        return self.params.get('local')
+
     def get_env(self, convert_list=None):
         convert_list = convert_list or (lambda x: x)
         r = {}
@@ -1007,6 +1025,10 @@ class GnuToolchainOptions(ToolchainOptions):
         self.isystem = self.params.get('isystem')
 
         self.dwarf_tool = self.target.find_in_dict(self.params.get('dwarf_tool'))
+        if self.is_local:
+            self.ar = subprocess.check_output(['xcrun', '--find', 'ar']).strip()
+            self.strip = subprocess.check_output(['xcrun', '--find', 'strip']).strip()
+            self.dwarf_tool = subprocess.check_output(['xcrun', '--find', 'dsymutil']).strip() + ' -flat'
 
         # TODO(somov): Унифицировать формат sys_lib
         self.sys_lib = self.params.get('sys_lib', {})
@@ -1237,6 +1259,14 @@ class GnuToolchain(Toolchain):
 
                 if target.is_yocto:
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
+            elif self.tc.is_local:
+                if target.is_apple:
+                    if target.is_ios:
+                        self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
+                    if target.is_macos:
+                        self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
