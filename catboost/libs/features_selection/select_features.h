@@ -17,6 +17,7 @@ namespace NCB {
         NCatboostOptions::TOutputFilesOptions outputFileOptions,
         const NCatboostOptions::TPoolLoadParams* poolLoadParams, // can be nullptr
         const NCatboostOptions::TFeaturesSelectOptions& featuresSelectOptions,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TDataProviders& pools,
         TFullModel* dstModel, // can be nullptr
         const TVector<TEvalResult*>& evalResultPtrs, // can be nullptr
@@ -26,6 +27,7 @@ namespace NCB {
 
     NJson::TJsonValue SelectFeatures(
         const NJson::TJsonValue& plainJsonParams,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TDataProviders& pools,
         TFullModel* dstModel,
         const TVector<TEvalResult*>& testApproxes,
