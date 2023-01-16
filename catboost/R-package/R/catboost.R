@@ -1965,20 +1965,16 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' @seealso \url{https://catboost.ai/docs/concepts/python-reference_virtual_ensembles_predict.html?lang=en}
 catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, prediction_type = "VirtEnsembles",
                                     ntree_end = 0L, virtual_ensembles_count = 10, thread_count = -1) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
+    catboost.restore_handle(model)
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
         stop("Pool object is invalid.")
 
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    prediction <- .Call("CatBoostPredictVirtualEnsembles_R", model$handle, pool,
+    prediction <- .Call("CatBoostPredictVirtualEnsembles_R", model$cpp_obj$handle, pool,
                         verbose, prediction_type, ntree_end, virtual_ensembles_count, thread_count)
-
     objects_count <- nrow(pool)
-    if (prediction_type == "VirtEnsembles"){
+    if (prediction_type == "VirtEnsembles") {
         document_predict_size <- length(prediction) / virtual_ensembles_count / objects_count
         prediction <- aperm(
                             array(prediction,
@@ -2326,8 +2322,7 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
   train_dir <- params[['train_dir']]
   if (is.null(params[['train_dir']]))
     train_dir <- 'catboost_info'
-
-  result <- .Call("CatBoostEvalMetrics_R", model$handle, pool, metrics,
+  result <- .Call("CatBoostEvalMetrics_R", model$cpp_obj$handle, pool, metrics,
                   ntree_start, ntree_end, eval_period,
                   thread_count, tmp_dir, train_dir)
 
