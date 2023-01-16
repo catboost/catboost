@@ -11,11 +11,11 @@
 
 namespace NMaybe {
     struct TPolicyUndefinedExcept {
-        [[noreturn]] static void OnEmpty();
+        [[noreturn]] static void OnEmpty(const std::type_info& valueTypeInfo);
     };
 
     struct TPolicyUndefinedFail {
-        [[noreturn]] static void OnEmpty();
+        [[noreturn]] static void OnEmpty(const std::type_info& valueTypeInfo);
     };
 }
 
@@ -301,7 +301,7 @@ public:
 
     void CheckDefined() const {
         if (Y_UNLIKELY(!Defined())) {
-            Policy::OnEmpty();
+            Policy::OnEmpty(typeid(TValueType));
         }
     }
 

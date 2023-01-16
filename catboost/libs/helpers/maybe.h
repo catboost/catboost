@@ -7,7 +7,7 @@
 
 namespace NCB {
     struct TPolicyUnavailableData {
-        static void OnEmpty() {
+        static void OnEmpty(const std::type_info&) {
             CB_ENSURE_INTERNAL(false, "Attempt to access unavailable data");
         }
     };

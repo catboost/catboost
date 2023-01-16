@@ -998,4 +998,9 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m.Defined());
         UNIT_ASSERT(m->FromMaybeConstructorApplied);
     }
+
+    Y_UNIT_TEST(TestOnEmptyException) {
+        TMaybe<TStringBuf> v;
+        UNIT_ASSERT_EXCEPTION_CONTAINS(v.GetRef(), yexception, "StringBuf");
+    }
 }
