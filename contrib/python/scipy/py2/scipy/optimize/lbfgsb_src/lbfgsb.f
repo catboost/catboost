@@ -1134,11 +1134,11 @@ c     info is an integer variable.
 c       On entry info is unspecified.
 c       On exit info = 0       for normal return,
 c                    = nonzero for abnormal return when the system
-c                                to be solved by dtrsl is singular.
+c                                to be solved by dtrsl2 is singular.
 c
 c     Subprograms called:
 c
-c       Linpack ... dtrsl.
+c       Linpack ... dtrsl2.
 c
 c
 c                           *  *  *
@@ -1172,7 +1172,7 @@ c       solve Jp2=v2+LD^(-1)v1.
          p(i2) = v(i2) + sum
   20  continue  
 c     Solve the triangular system
-      call dtrsl(wt,m,col,p(col+1),11,info)
+      call dtrsl2(wt,m,col,p(col+1),11,info)
       if (info .ne. 0) return
  
 c       solve D^(1/2)p1=v1.
@@ -1184,7 +1184,7 @@ c     PART II: solve [ -D^(1/2)   D^(-1/2)*L'  ] [ p1 ] = [ p1 ]
 c                    [  0         J'           ] [ p2 ]   [ p2 ]. 
  
 c       solve J^Tp2=p2. 
-      call dtrsl(wt,m,col,p(col+1),01,info)
+      call dtrsl2(wt,m,col,p(col+1),01,info)
       if (info .ne. 0) return
  
 c       compute p1=-D^(-1/2)(p1-D^(-1/2)L'p2)
@@ -1936,7 +1936,7 @@ c                    = -2 when the 2st Cholesky factorization failed.
 c
 c     Subprograms called:
 c
-c       Linpack ... dcopy, dpofa, dtrsl.
+c       Linpack ... dcopy, dpofa, dtrsl2.
 c
 c
 c     References:
@@ -2129,7 +2129,7 @@ c                          with L' stored in the upper triangle of wn.
 c        then form L^-1(-L_a'+R_z') in the (1,2) block.
       col2 = 2*col
       do 71 js = col+1 ,col2
-         call dtrsl(wn,m2,col,wn(1,js),11,info)
+         call dtrsl2(wn,m2,col,wn(1,js),11,info)
   71  continue
 
 c     Form S'AA'S*theta + (L^-1(-L_a'+R_z'))'L^-1(-L_a'+R_z') in the
@@ -2452,15 +2452,15 @@ c     **********
 c
 c     Subroutine lnsrlb
 c
-c     This subroutine calls subroutine dcsrch from the Minpack2 library
+c     This subroutine calls subroutine dcsrch2 from the Minpack2 library
 c       to perform the line search.  Subroutine dscrch is safeguarded so
 c       that all trial points lie within the feasible region.
 c
 c     Subprograms called:
 c
-c       Minpack2 Library ... dcsrch.
+c       Minpack2 Library ... dcsrch2.
 c
-c       Linpack ... dtrsl, ddot.
+c       Linpack ... dtrsl2, ddot.
 c
 c
 c                           *  *  *
@@ -2544,7 +2544,7 @@ c                               Line search is impossible.
          endif
       endif
 
-      call dcsrch(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
+      call dcsrch2(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
 
       xstep = stp*dnorm
       if (csave(1:4) .ne. 'CONV' .and. csave(1:4) .ne. 'WARN') then
@@ -3121,7 +3121,7 @@ c                                  when the matrix K is ill-conditioned.
 c
 c     Subprograms called:
 c
-c       Linpack dtrsl.
+c       Linpack dtrsl2.
 c
 c
 c     References:
@@ -3174,12 +3174,12 @@ c     Compute wv:=K^(-1)wv.
 
       m2 = 2*m
       col2 = 2*col
-      call dtrsl(wn,m2,col2,wv,11,info)
+      call dtrsl2(wn,m2,col2,wv,11,info)
       if (info .ne. 0) return
       do 25 i = 1, col
          wv(i) = -wv(i)
   25     continue
-      call dtrsl(wn,m2,col2,wv,01,info)
+      call dtrsl2(wn,m2,col2,wv,01,info)
       if (info .ne. 0) return
  
 c     Compute d = (1/theta)d + (1/theta**2)Z'W wv.
@@ -3312,7 +3312,7 @@ cccccc
       end
 c====================== The end of subsm ===============================
 
-      subroutine dcsrch(f,g,stp,ftol,gtol,xtol,stpmin,stpmax,
+      subroutine dcsrch2(f,g,stp,ftol,gtol,xtol,stpmin,stpmax,
      +                  task,isave,dsave)
       character*(*) task
       integer isave(2)
@@ -3320,7 +3320,7 @@ c====================== The end of subsm ===============================
       double precision dsave(13)
 c     **********
 c
-c     Subroutine dcsrch
+c     Subroutine dcsrch2
 c
 c     This subroutine finds a step that satisfies a sufficient
 c     decrease condition and a curvature condition.
@@ -3351,11 +3351,11 @@ c     If no step can be found that satisfies both conditions, then
 c     the algorithm stops with a warning. In this case stp only 
 c     satisfies the sufficient decrease condition.
 c
-c     A typical invocation of dcsrch has the following outline:
+c     A typical invocation of dcsrch2 has the following outline:
 c
 c     task = 'START'
 c  10 continue
-c        call dcsrch( ... )
+c        call dcsrch2( ... )
 c        if (task .eq. 'FG') then
 c           Evaluate the function and the gradient at stp 
 c           goto 10
@@ -3365,7 +3365,7 @@ c     NOTE: The user must no alter work arrays between calls.
 c
 c     The subroutine statement is
 c
-c        subroutine dcsrch(f,g,stp,ftol,gtol,xtol,stpmin,stpmax,
+c        subroutine dcsrch2(f,g,stp,ftol,gtol,xtol,stpmin,stpmax,
 c                          task,isave,dsave)
 c     where
 c
@@ -3419,7 +3419,7 @@ c         On initial entry task must be set to 'START'.
 c         On exit task indicates the required action:
 c
 c            If task(1:2) = 'FG' then evaluate the function and 
-c            derivative at stp and call dcsrch again.
+c            derivative at stp and call dcsrch2 again.
 c
 c            If task(1:4) = 'CONV' then the search is successful.
 c
@@ -3439,7 +3439,7 @@ c       dsave is a double precision work array of dimension 13.
 c
 c     Subprograms called
 c
-c       MINPACK-2 ... dcstep
+c       MINPACK-2 ... dcstep2
 c
 c     MINPACK-1 Project. June 1983.
 c     Argonne National Laboratory. 
@@ -3576,9 +3576,9 @@ c        Define the modified function and derivative values.
          gxm = gx - gtest
          gym = gy - gtest
 
-c        Call dcstep to update stx, sty, and to compute the new step.
+c        Call dcstep2 to update stx, sty, and to compute the new step.
 
-         call dcstep(stx,fxm,gxm,sty,fym,gym,stp,fm,gm,
+         call dcstep2(stx,fxm,gxm,sty,fym,gym,stp,fm,gm,
      +               brackt,stmin,stmax)
 
 c        Reset the function and derivative values for f.
@@ -3590,9 +3590,9 @@ c        Reset the function and derivative values for f.
 
       else
 
-c       Call dcstep to update stx, sty, and to compute the new step.
+c       Call dcstep2 to update stx, sty, and to compute the new step.
 
-        call dcstep(stx,fx,gx,sty,fy,gy,stp,f,g,
+        call dcstep2(stx,fx,gx,sty,fy,gy,stp,f,g,
      +              brackt,stmin,stmax)
 
       endif
@@ -3657,15 +3657,15 @@ c     Save local variables.
       return
       end
       
-c====================== The end of dcsrch ==============================
+c====================== The end of dcsrch2 ==============================
 
-      subroutine dcstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
+      subroutine dcstep2(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
      +                  stpmin,stpmax)
       logical brackt
       double precision stx,fx,dx,sty,fy,dy,stp,fp,dp,stpmin,stpmax
 c     **********
 c
-c     Subroutine dcstep
+c     Subroutine dcstep2
 c
 c     This subroutine computes a safeguarded step for a search
 c     procedure and updates an interval that contains a step that
@@ -3684,7 +3684,7 @@ c     of the step.
 c
 c     The subroutine statement is
 c
-c       subroutine dcstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
+c       subroutine dcstep2(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
 c                         stpmin,stpmax)
 c
 c     where

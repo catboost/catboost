@@ -952,10 +952,10 @@ c  dgbtrf and dgbtrs   are routines from lapack for solving banded
 c           linear systems.
 c  daxpy, dscal, idamax, and ddot   are basic linear algebra modules
 c           (blas) used by the above linpack routines.
-c  d1mach   computes the unit roundoff in a machine-independent manner.
+c  d1machode   computes the unit roundoff in a machine-independent manner.
 c  xerrwv, xsetun, and xsetf   handle the printing of all error
 c           messages and warnings.  xerrwv is machine-dependent.
-c note..  vmnorm, fnorm, bnorm, idamax, ddot, and d1mach are function
+c note..  vmnorm, fnorm, bnorm, idamax, ddot, and d1machode are function
 c routines.  all the others are subroutines.
 c
 c the intrinsic and external routines used by lsoda are..
@@ -983,7 +983,7 @@ c-----------------------------------------------------------------------
       double precision tsw, rowns2, pdnorm
       double precision atoli, ayi, big, ewti, h0, hmax, hmx, rh, rtoli,
      1   tcrit, tdist, tnext, tol, tolsf, tp, size, sum, w0,
-     2   d1mach, vmnorm
+     2   d1machode, vmnorm
       dimension mord(2)
       logical ihit
 c-----------------------------------------------------------------------
@@ -1184,7 +1184,7 @@ c it contains all remaining initializations, the initial call to f,
 c and the calculation of the initial step size.
 c the error weights in ewt are inverted after being loaded.
 c-----------------------------------------------------------------------
- 100  uround = d1mach(4)
+ 100  uround = d1machode(4)
       tn = t
       tsw = t
       maxord = mxordn

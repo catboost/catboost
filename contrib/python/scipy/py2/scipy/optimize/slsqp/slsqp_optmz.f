@@ -1092,7 +1092,7 @@ C  END OF SUBROUTINE LDP
    50                               END
 
 
-      SUBROUTINE nnls (a, mda, m, n, b, x, rnorm, w, z, INDEX, mode)
+c     SUBROUTINE nnls (a, mda, m, n, b, x, rnorm, w, z, INDEX, mode)
 
 C     C.L.LAWSON AND R.J.HANSON, JET PROPULSION LABORATORY:
 C     'SOLVING LEAST SQUARES PROBLEMS'. PRENTICE-HALL.1974
@@ -1135,153 +1135,153 @@ C            2    THE DIMENSIONS OF THE PROBLEM ARE WRONG,
 C                 EITHER M <= 0 OR N <= 0.
 C            3    ITERATION COUNT EXCEEDED, MORE THAN 3*N ITERATIONS.
 
-      INTEGER          i,ii,ip,iter,itmax,iz,izmax,iz1,iz2,j,jj,jz,
-     *                 k,l,m,mda,mode,n,npp1,nsetp,INDEX(n)
+c     INTEGER          i,ii,ip,iter,itmax,iz,izmax,iz1,iz2,j,jj,jz,
+c    *                 k,l,m,mda,mode,n,npp1,nsetp,INDEX(n)
 
-      DOUBLE PRECISION a(mda,n),b(m),x(n),w(n),z(m),asave,diff,
-     *                 factor,ddot_sl,ZERO,one,wmax,alpha,
-     *                 c,s,t,u,v,up,rnorm,unorm,dnrm2_
+c     DOUBLE PRECISION a(mda,n),b(m),x(n),w(n),z(m),asave,diff,
+c    *                 factor,ddot_sl,ZERO,one,wmax,alpha,
+c    *                 c,s,t,u,v,up,rnorm,unorm,dnrm2_
 
-      diff(u,v)=       u-v
+c     diff(u,v)=       u-v
 
-      DATA             ZERO,one,factor/0.0d0,1.0d0,1.0d-2/
+c     DATA             ZERO,one,factor/0.0d0,1.0d0,1.0d-2/
 
 c     revised          Dieter Kraft, March 1983
 
-      mode=2
-      IF(m.LE.0.OR.n.LE.0)            GOTO 290
-      mode=1
-      iter=0
-      itmax=3*n
+c     mode=2
+c     IF(m.LE.0.OR.n.LE.0)            GOTO 290
+c     mode=1
+c     iter=0
+c     itmax=3*n
 
 C STEP ONE (INITIALIZE)
 
-      DO 100 i=1,n
-  100    INDEX(i)=i
-      iz1=1
-      iz2=n
-      nsetp=0
-      npp1=1
-      x(1)=ZERO
-      CALL dcopy_(n,x(1),0,x,1)
+c     DO 100 i=1,n
+c 100    INDEX(i)=i
+c     iz1=1
+c     iz2=n
+c     nsetp=0
+c     npp1=1
+c     x(1)=ZERO
+c     CALL dcopy_(n,x(1),0,x,1)
 
 C STEP TWO (COMPUTE DUAL VARIABLES)
 C .....ENTRY LOOP A
 
-  110 IF(iz1.GT.iz2.OR.nsetp.GE.m)    GOTO 280
-      DO 120 iz=iz1,iz2
-         j=INDEX(iz)
-  120    w(j)=ddot_sl(m-nsetp,a(npp1,j),1,b(npp1),1)
+c 110 IF(iz1.GT.iz2.OR.nsetp.GE.m)    GOTO 280
+c     DO 120 iz=iz1,iz2
+c        j=INDEX(iz)
+c 120    w(j)=ddot_sl(m-nsetp,a(npp1,j),1,b(npp1),1)
 
 C STEP THREE (TEST DUAL VARIABLES)
 
-  130 wmax=ZERO
-      DO 140 iz=iz1,iz2
-      j=INDEX(iz)
-         IF(w(j).LE.wmax)             GOTO 140
-         wmax=w(j)
-         izmax=iz
-  140 CONTINUE
+c 130 wmax=ZERO
+c     DO 140 iz=iz1,iz2
+c     j=INDEX(iz)
+c        IF(w(j).LE.wmax)             GOTO 140
+c        wmax=w(j)
+c        izmax=iz
+c 140 CONTINUE
 
 C .....EXIT LOOP A
 
-      IF(wmax.LE.ZERO)                GOTO 280
-      iz=izmax
-      j=INDEX(iz)
+c     IF(wmax.LE.ZERO)                GOTO 280
+c     iz=izmax
+c     j=INDEX(iz)
 
 C STEP FOUR (TEST INDEX J FOR LINEAR DEPENDENCY)
 
-      asave=a(npp1,j)
-      CALL h12(1,npp1,npp1+1,m,a(1,j),1,up,z,1,1,0)
-      unorm=dnrm2_(nsetp,a(1,j),1)
-      t=factor*ABS(a(npp1,j))
-      IF(diff(unorm+t,unorm).LE.ZERO) GOTO 150
-      CALL dcopy_(m,b,1,z,1)
-      CALL h12(2,npp1,npp1+1,m,a(1,j),1,up,z,1,1,1)
-      IF(z(npp1)/a(npp1,j).GT.ZERO)   GOTO 160
-  150 a(npp1,j)=asave
-      w(j)=ZERO
-                                      GOTO 130
+c     asave=a(npp1,j)
+c     CALL h12(1,npp1,npp1+1,m,a(1,j),1,up,z,1,1,0)
+c     unorm=dnrm2_(nsetp,a(1,j),1)
+c     t=factor*ABS(a(npp1,j))
+c     IF(diff(unorm+t,unorm).LE.ZERO) GOTO 150
+c     CALL dcopy_(m,b,1,z,1)
+c     CALL h12(2,npp1,npp1+1,m,a(1,j),1,up,z,1,1,1)
+c     IF(z(npp1)/a(npp1,j).GT.ZERO)   GOTO 160
+c 150 a(npp1,j)=asave
+c     w(j)=ZERO
+c                                     GOTO 130
 C STEP FIVE (ADD COLUMN)
 
-  160 CALL dcopy_(m,z,1,b,1)
-      INDEX(iz)=INDEX(iz1)
-      INDEX(iz1)=j
-      iz1=iz1+1
-      nsetp=npp1
-      npp1=npp1+1
-      DO 170 jz=iz1,iz2
-         jj=INDEX(jz)
-  170    CALL h12(2,nsetp,npp1,m,a(1,j),1,up,a(1,jj),1,mda,1)
-      k=MIN(npp1,mda)
-      w(j)=ZERO
-      CALL dcopy_(m-nsetp,w(j),0,a(k,j),1)
+c 160 CALL dcopy_(m,z,1,b,1)
+c     INDEX(iz)=INDEX(iz1)
+c     INDEX(iz1)=j
+c     iz1=iz1+1
+c     nsetp=npp1
+c     npp1=npp1+1
+c     DO 170 jz=iz1,iz2
+c        jj=INDEX(jz)
+c 170    CALL h12(2,nsetp,npp1,m,a(1,j),1,up,a(1,jj),1,mda,1)
+c     k=MIN(npp1,mda)
+c     w(j)=ZERO
+c     CALL dcopy_(m-nsetp,w(j),0,a(k,j),1)
 
 C STEP SIX (SOLVE LEAST SQUARES SUB-PROBLEM)
 C .....ENTRY LOOP B
 
-  180 DO 200 ip=nsetp,1,-1
-         IF(ip.EQ.nsetp)              GOTO 190
-         CALL daxpy_sl(ip,-z(ip+1),a(1,jj),1,z,1)
-  190    jj=INDEX(ip)
-  200    z(ip)=z(ip)/a(ip,jj)
-      iter=iter+1
-      IF(iter.LE.itmax)               GOTO 220
-  210 mode=3
-                                      GOTO 280
+c 180 DO 200 ip=nsetp,1,-1
+c        IF(ip.EQ.nsetp)              GOTO 190
+c        CALL daxpy_sl(ip,-z(ip+1),a(1,jj),1,z,1)
+c 190    jj=INDEX(ip)
+c 200    z(ip)=z(ip)/a(ip,jj)
+c     iter=iter+1
+c     IF(iter.LE.itmax)               GOTO 220
+c 210 mode=3
+c                                     GOTO 280
 C STEP SEVEN TO TEN (STEP LENGTH ALGORITHM)
 
-  220 alpha=one
-      jj=0
-      DO 230 ip=1,nsetp
-         IF(z(ip).GT.ZERO)            GOTO 230
-         l=INDEX(ip)
-         t=-x(l)/(z(ip)-x(l))
-         IF(alpha.LT.t)               GOTO 230
-         alpha=t
-         jj=ip
-  230 CONTINUE
-      DO 240 ip=1,nsetp
-         l=INDEX(ip)
-  240    x(l)=(one-alpha)*x(l) + alpha*z(ip)
+c 220 alpha=one
+c     jj=0
+c     DO 230 ip=1,nsetp
+c        IF(z(ip).GT.ZERO)            GOTO 230
+c        l=INDEX(ip)
+c        t=-x(l)/(z(ip)-x(l))
+c        IF(alpha.LT.t)               GOTO 230
+c        alpha=t
+c        jj=ip
+c 230 CONTINUE
+c     DO 240 ip=1,nsetp
+c        l=INDEX(ip)
+c 240    x(l)=(one-alpha)*x(l) + alpha*z(ip)
 
 C .....EXIT LOOP B
 
-      IF(jj.EQ.0)                     GOTO 110
+c     IF(jj.EQ.0)                     GOTO 110
 
 C STEP ELEVEN (DELETE COLUMN)
 
-      i=INDEX(jj)
-  250 x(i)=ZERO
-      jj=jj+1
-      DO 260 j=jj,nsetp
-         ii=INDEX(j)
-         INDEX(j-1)=ii
-         CALL dsrotg(a(j-1,ii),a(j,ii),c,s)
-         t=a(j-1,ii)
-         CALL dsrot(n,a(j-1,1),mda,a(j,1),mda,c,s)
-         a(j-1,ii)=t
-         a(j,ii)=ZERO
-  260    CALL dsrot(1,b(j-1),1,b(j),1,c,s)
-      npp1=nsetp
-      nsetp=nsetp-1
-      iz1=iz1-1
-      INDEX(iz1)=i
-      IF(nsetp.LE.0)                  GOTO 210
-      DO 270 jj=1,nsetp
-         i=INDEX(jj)
-         IF(x(i).LE.ZERO)             GOTO 250
-  270 CONTINUE
-      CALL dcopy_(m,b,1,z,1)
-                                      GOTO 180
+c     i=INDEX(jj)
+c 250 x(i)=ZERO
+c     jj=jj+1
+c     DO 260 j=jj,nsetp
+c        ii=INDEX(j)
+c        INDEX(j-1)=ii
+c        CALL dsrotg(a(j-1,ii),a(j,ii),c,s)
+c        t=a(j-1,ii)
+c        CALL dsrot(n,a(j-1,1),mda,a(j,1),mda,c,s)
+c        a(j-1,ii)=t
+c        a(j,ii)=ZERO
+c 260    CALL dsrot(1,b(j-1),1,b(j),1,c,s)
+c     npp1=nsetp
+c     nsetp=nsetp-1
+c     iz1=iz1-1
+c     INDEX(iz1)=i
+c     IF(nsetp.LE.0)                  GOTO 210
+c     DO 270 jj=1,nsetp
+c        i=INDEX(jj)
+c        IF(x(i).LE.ZERO)             GOTO 250
+c 270 CONTINUE
+c     CALL dcopy_(m,b,1,z,1)
+c                                     GOTO 180
 C STEP TWELVE (SOLUTION)
 
-  280 k=MIN(npp1,m)
-      rnorm=dnrm2_(m-nsetp,b(k),1)
-      IF(npp1.GT.m) THEN
-         w(1)=ZERO
-         CALL dcopy_(n,w(1),0,w,1)
-      ENDIF
+c 280 k=MIN(npp1,m)
+c     rnorm=dnrm2_(m-nsetp,b(k),1)
+c     IF(npp1.GT.m) THEN
+c        w(1)=ZERO
+c        CALL dcopy_(n,w(1),0,w,1)
+c     ENDIF
 
 C END OF SUBROUTINE NNLS
 
@@ -1415,7 +1415,7 @@ C   REORDER SOLUTION ACCORDING TO PREVIOUS COLUMN INTERCHANGES
   270 krank=k
       END
 
-      SUBROUTINE h12 (mode,lpivot,l1,m,u,iue,up,c,ice,icv,ncv)
+c     SUBROUTINE h12 (mode,lpivot,l1,m,u,iue,up,c,ice,icv,ncv)
 
 C     C.L.LAWSON AND R.J.HANSON, JET PROPULSION LABORATORY, 1973 JUN 12
 C     TO APPEAR IN 'SOLVING LEAST SQUARES PROBLEMS', PRENTICE-HALL, 1974
@@ -1445,56 +1445,56 @@ C     ICV    STORAGE INCREMENT BETWEEN VECTORS IN C().
 C     NCV    NUMBER OF VECTORS IN C() TO BE TRANSFORMED.
 C            IF NCV <= 0 NO OPERATIONS WILL BE DONE ON C().
 
-      INTEGER          incr, ice, icv, iue, lpivot, l1, mode, ncv
-      INTEGER          i, i2, i3, i4, j, m
-      DOUBLE PRECISION u,up,c,cl,clinv,b,sm,one,ZERO
-      DIMENSION        u(iue,*), c(*)
-      DATA             one/1.0d+00/, ZERO/0.0d+00/
+c     INTEGER          incr, ice, icv, iue, lpivot, l1, mode, ncv
+c     INTEGER          i, i2, i3, i4, j, m
+c     DOUBLE PRECISION u,up,c,cl,clinv,b,sm,one,ZERO
+c     DIMENSION        u(iue,*), c(*)
+c     DATA             one/1.0d+00/, ZERO/0.0d+00/
 
-      IF (0.GE.lpivot.OR.lpivot.GE.l1.OR.l1.GT.m) GOTO 80
-      cl=ABS(u(1,lpivot))
-      IF (mode.EQ.2)                              GOTO 30
+c     IF (0.GE.lpivot.OR.lpivot.GE.l1.OR.l1.GT.m) GOTO 80
+c     cl=ABS(u(1,lpivot))
+c     IF (mode.EQ.2)                              GOTO 30
 
 C     ****** CONSTRUCT THE TRANSFORMATION ******
 
-          DO 10 j=l1,m
-             sm=ABS(u(1,j))
-   10     cl=MAX(sm,cl)
-      IF (cl.LE.ZERO)                             GOTO 80
-      clinv=one/cl
-      sm=(u(1,lpivot)*clinv)**2
-          DO 20 j=l1,m
-   20     sm=sm+(u(1,j)*clinv)**2
-      cl=cl*SQRT(sm)
-      IF (u(1,lpivot).GT.ZERO) cl=-cl
-      up=u(1,lpivot)-cl
-      u(1,lpivot)=cl
-                                                  GOTO 40
+c         DO 10 j=l1,m
+c            sm=ABS(u(1,j))
+c  10     cl=MAX(sm,cl)
+c     IF (cl.LE.ZERO)                             GOTO 80
+c     clinv=one/cl
+c     sm=(u(1,lpivot)*clinv)**2
+c         DO 20 j=l1,m
+c  20     sm=sm+(u(1,j)*clinv)**2
+c     cl=cl*SQRT(sm)
+c     IF (u(1,lpivot).GT.ZERO) cl=-cl
+c     up=u(1,lpivot)-cl
+c     u(1,lpivot)=cl
+c                                                 GOTO 40
 C     ****** APPLY THE TRANSFORMATION  I+U*(U**T)/B  TO C ******
 
-   30 IF (cl.LE.ZERO)                             GOTO 80
-   40 IF (ncv.LE.0)                               GOTO 80
-      b=up*u(1,lpivot)
-      IF (b.GE.ZERO)                              GOTO 80
-      b=one/b
-      i2=1-icv+ice*(lpivot-1)
-      incr=ice*(l1-lpivot)
-          DO 70 j=1,ncv
-          i2=i2+icv
-          i3=i2+incr
-          i4=i3
-          sm=c(i2)*up
-              DO 50 i=l1,m
-              sm=sm+c(i3)*u(1,i)
-   50         i3=i3+ice
-          IF (sm.EQ.ZERO)                         GOTO 70
-          sm=sm*b
-          c(i2)=c(i2)+sm*up
-              DO 60 i=l1,m
-              c(i4)=c(i4)+sm*u(1,i)
-   60         i4=i4+ice
-   70     CONTINUE
-   80                                             END
+c  30 IF (cl.LE.ZERO)                             GOTO 80
+c  40 IF (ncv.LE.0)                               GOTO 80
+c     b=up*u(1,lpivot)
+c     IF (b.GE.ZERO)                              GOTO 80
+c     b=one/b
+c     i2=1-icv+ice*(lpivot-1)
+c     incr=ice*(l1-lpivot)
+c         DO 70 j=1,ncv
+c         i2=i2+icv
+c         i3=i2+incr
+c         i4=i3
+c         sm=c(i2)*up
+c             DO 50 i=l1,m
+c             sm=sm+c(i3)*u(1,i)
+c  50         i3=i3+ice
+c         IF (sm.EQ.ZERO)                         GOTO 70
+c         sm=sm*b
+c         c(i2)=c(i2)+sm*up
+c             DO 60 i=l1,m
+c             c(i4)=c(i4)+sm*u(1,i)
+c  60         i4=i4+ice
+c  70     CONTINUE
+c  80                                             END
 
       SUBROUTINE ldl (n,a,z,sigma,w)
 C   LDL     LDL' - RANK-ONE - UPDATE

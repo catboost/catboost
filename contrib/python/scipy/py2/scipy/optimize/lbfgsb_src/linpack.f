@@ -74,12 +74,12 @@ c     ......exit
       
 c====================== The end of dpofa ===============================
 
-      subroutine dtrsl(t,ldt,n,b,job,info)
+      subroutine dtrsl2(t,ldt,n,b,job,info)
       integer ldt,n,job,info
       double precision t(ldt,*),b(*)
 c
 c
-c     dtrsl solves systems of the form
+c     dtrsl2 solves systems of the form
 c
 c                   t * x = b
 c     or
@@ -209,6 +209,6 @@ c
       return
       end
       
-c====================== The end of dtrsl ===============================
+c====================== The end of dtrsl2 ===============================
 
 

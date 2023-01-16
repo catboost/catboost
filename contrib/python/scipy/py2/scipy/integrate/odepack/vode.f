@@ -1022,10 +1022,10 @@ C            systems of linear algebraic equations.
 C  DGBTRF and DGBTRS   are routines from LAPACK for solving banded
 C            linear systems.
 C  DAXPY, DSCAL, and DCOPY are basic linear algebra modules (BLAS).
-C  D1MACH    sets the unit roundoff of the machine.
+C  D1MACHODE    sets the unit roundoff of the machine.
 C  XERRWD, XSETUN, XSETF, and IXSAV handle the printing of all
 C            error messages and warnings.  XERRWD is machine-dependent.
-C Note..  DVNORM, D1MACH, and IXSAV are function routines.
+C Note..  DVNORM, D1MACHODE, and IXSAV are function routines.
 C All the others are subroutines.
 C
 C The intrinsic and external routines used by the DVODE package are..
@@ -1062,7 +1062,7 @@ C
 C
 C Type declaration for function subroutines called ---------------------
 C
-      DOUBLE PRECISION D1MACH, DVNORM
+      DOUBLE PRECISION D1MACHODE, DVNORM
 C
       DIMENSION MORD(2)
 C-----------------------------------------------------------------------
@@ -1310,7 +1310,7 @@ C It contains all remaining initializations, the initial call to F,
 C and the calculation of the initial step size.
 C The error weights in EWT are inverted after being loaded.
 C-----------------------------------------------------------------------
- 100  UROUND = D1MACH(4)
+ 100  UROUND = D1MACHODE(4)
       TN = T
       IF (ITASK .NE. 4 .AND. ITASK .NE. 5) GO TO 110
       TCRIT = RWORK(1)
@@ -3496,24 +3496,24 @@ C
       RETURN
 C----------------------- End of Function DVNORM ------------------------
       END
-*DECK D1MACH
-      DOUBLE PRECISION FUNCTION D1MACH (IDUM)
+*DECK D1MACHODE
+      DOUBLE PRECISION FUNCTION D1MACHODE (IDUM)
       INTEGER IDUM
 C-----------------------------------------------------------------------
 C This routine computes the unit roundoff of the machine.
 C This is defined as the smallest positive machine number
 C u such that  1.0 + u .ne. 1.0
 C
-C Subroutines/functions called by D1MACH.. None
+C Subroutines/functions called by D1MACHODE.. None
 C-----------------------------------------------------------------------
       DOUBLE PRECISION U, COMP
       U = 1.0D0
  10   U = U*0.5D0
       COMP = 1.0D0 + U
       IF (COMP .NE. 1.0D0) GO TO 10
-      D1MACH = U*2.0D0
+      D1MACHODE = U*2.0D0
       RETURN
-C----------------------- End of Function D1MACH ------------------------
+C----------------------- End of Function D1MACHODE ------------------------
       END
 *DECK XERRWD
       SUBROUTINE XERRWD (MSG, NMES, NERR, LEVEL, NI, I1, I2, NR, R1, R2)
