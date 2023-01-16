@@ -97,9 +97,7 @@ suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT
 
 namedexpr_test: test [':=' test]
 test: or_test ['if' or_test 'else' test] | lambdef
-test_nocond: or_test | lambdef_nocond
 lambdef: 'lambda' [varargslist] ':' test
-lambdef_nocond: 'lambda' [varargslist] ':' test_nocond
 or_test: and_test ('or' and_test)*
 and_test: not_test ('and' not_test)*
 not_test: 'not' not_test | comparison
@@ -155,7 +153,7 @@ argument: ( test [comp_for] |
 comp_iter: comp_for | comp_if
 sync_comp_for: 'for' exprlist 'in' or_test [comp_iter]
 comp_for: ['async'] sync_comp_for
-comp_if: 'if' test_nocond [comp_iter]
+comp_if: 'if' or_test [comp_iter]
 
 # not used in grammar, but may appear in "node" passed from Parser to Compiler
 encoding_decl: NAME

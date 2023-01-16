@@ -19,6 +19,7 @@ unicode_bom = BOM_UTF8.decode('utf-8')
     (' \f ', ['\f', ' ']),
     (' \f ', ['\f', ' ']),
     (' \r\n', ['\r\n', '']),
+    (' \r', ['\r', '']),
     ('\\\n', ['\\\n', '']),
     ('\\\r\n', ['\\\r\n', '']),
     ('\t\t\n\t', ['\n', '\t']),
@@ -34,7 +35,7 @@ def test_simple_prefix_splitting(string, tokens):
         assert pt.value == expected
 
         # Calculate the estimated end_pos
-        if expected.endswith('\n'):
+        if expected.endswith('\n') or expected.endswith('\r'):
             end_pos = start_pos[0] + 1, 0
         else:
             end_pos = start_pos[0], start_pos[1] + len(expected) + len(pt.spacing)

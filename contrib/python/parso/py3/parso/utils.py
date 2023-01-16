@@ -92,7 +92,7 @@ def python_bytes_to_unicode(
             # UTF-8 byte-order mark
             return 'utf-8'
 
-        first_two_lines = re.match(br'(?:[^\n]*\n){0,2}', source).group(0)
+        first_two_lines = re.match(br'(?:[^\r\n]*(?:\r\n|\r|\n)){0,2}', source).group(0)
         possible_encoding = re.search(br"coding[=:]\s*([-\w.]+)",
                                       first_two_lines)
         if possible_encoding:

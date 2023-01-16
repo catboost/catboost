@@ -1,5 +1,5 @@
---- a/parso/cache.py	(working tree)
-+++ b/parso/cache.py	(index)
+--- contrib/python/parso/py3/parso/cache.py	(working tree)
++++ contrib/python/parso/py3/parso/cache.py	(index)
 @@ -142,6 +142,8 @@
  def _load_from_file_system(hashed_grammar, path, p_time, cache_path=None):
      cache_path = _get_hashed_path(hashed_grammar, path, cache_path=cache_path)
@@ -9,8 +9,8 @@
          try:
              if p_time > os.path.getmtime(cache_path):
                  # Cache is outdated
---- a/parso/file_io.py	(working tree)
-+++ b/parso/file_io.py	(index)
+--- contrib/python/parso/py3/parso/file_io.py	(working tree)
++++ contrib/python/parso/py3/parso/file_io.py	(index)
 @@ -1,6 +1,8 @@
  import os
  from parso._compatibility import FileNotFoundError
@@ -30,8 +30,8 @@
          with open(self.path, 'rb') as f:
              return f.read()
  
---- a/parso/grammar.py	(working tree)
-+++ b/parso/grammar.py	(index)
+--- contrib/python/parso/py3/parso/grammar.py	(working tree)
++++ contrib/python/parso/py3/parso/grammar.py	(index)
 @@ -1,5 +1,7 @@
  import hashlib
  import os
@@ -59,8 +59,8 @@
                      message = "Python version %s.%s is currently not supported." % (version_info.major, version_info.minor)
                      raise NotImplementedError(message)
          else:
---- a/tests/conftest.py	(working tree)
-+++ b/tests/conftest.py	(index)
+--- contrib/python/parso/py3/tests/conftest.py	(working tree)
++++ contrib/python/parso/py3/tests/conftest.py	(index)
 @@ -6,6 +6,7 @@
  import os
  
@@ -78,8 +78,8 @@
  
          cases = list(colllect_normalizer_tests(base_dir))
          metafunc.parametrize(
---- a/tests/test_cache.py	(working tree)
-+++ b/tests/test_cache.py	(index)
+--- contrib/python/parso/py3/tests/test_cache.py	(working tree)
++++ contrib/python/parso/py3/tests/test_cache.py	(index)
 @@ -36,6 +36,7 @@
      return cache_path
  

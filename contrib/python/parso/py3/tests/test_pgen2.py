@@ -339,7 +339,7 @@ def test_left_recursion():
 @pytest.mark.parametrize(
     'grammar, error_match', [
         ['foo: bar | baz\nbar: NAME\nbaz: NAME\n',
-         r"foo is ambiguous.*given a PythonTokenTypes\.NAME.*bar or baz"],
+         r"foo is ambiguous.*given a (PythonTokenTypes\.)?NAME.*bar or baz"],
         ['''foo: bar | baz\nbar: 'x'\nbaz: "x"\n''',
          r"foo is ambiguous.*given a ReservedString\(x\).*bar or baz"],
         ['''foo: bar | 'x'\nbar: 'x'\n''',
