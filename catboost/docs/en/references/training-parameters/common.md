@@ -552,7 +552,7 @@ The range of supported values depends on the processing unit type and the type o
 
 - CPU — Any integer up to  {{ fit--maxtree }}.
 
-- GPU — Any integer up to {{ fit__maxtree__pairwise }}pairwise modes ({{ error-function__YetiRank }}, {{ error-function__PairLogitPairwise }} and {{ error-function__QueryCrossEntropy }}) and up to   {{ fit--maxtree }} for all other loss functions.
+- GPU — Any integer up to {{ fit__maxtree__pairwise }} for pairwise modes ({{ error-function__YetiRank }}, {{ error-function__PairLogitPairwise }}, and {{ error-function__QueryCrossEntropy }}), and up to {{ fit--maxtree }} for all other loss functions.
 
 **Type**
 
