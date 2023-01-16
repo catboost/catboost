@@ -311,7 +311,7 @@ namespace NCB {
             TargetType = targetType;
 
             TVector<float> result;
-            Visit(
+            std::visit(
                 [&] (const auto& value) {
                     result = ProcessMakeClassLabelsImpl(value, localExecutor);
                 },
