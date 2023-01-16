@@ -2,6 +2,7 @@ RECURSE(
     assert
     misc
     string
+    yson
     yson_string
 )
 
