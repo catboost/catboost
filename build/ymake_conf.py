@@ -1765,7 +1765,7 @@ class Linker(object):
         self.type = self._get_default_linker_type()
 
     def _get_default_linker_type(self):
-        if not self.tc.is_from_arcadia:
+        if not self.tc.is_from_arcadia or is_positive('EXPORT_CMAKE'):
             # External (e.g. system) toolchain: disable linker selection logic
             return None
 
