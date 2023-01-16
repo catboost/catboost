@@ -1,6 +1,7 @@
 #pragma once
 
 #include "feature_str.h"
+#include "loss_change_fstr.h"
 
 #include <catboost/private/libs/algo/split.h>
 #include <catboost/libs/data/data_provider.h>
@@ -17,10 +18,6 @@
 #include <util/system/yassert.h>
 
 #include <utility>
-
-
-struct TShapPreparedTrees;
-struct IMetric;
 
 
 struct TRegularFeature {
@@ -77,40 +74,6 @@ public:
         , SecondFeature(secondFeature)
     {}
 };
-
-
-struct TCombinationClassFeatures : public TVector<TFeature> {};
-
-TCombinationClassFeatures GetCombinationClassFeatures(const TFullModel& model);
-
-
-const NCB::TDataProviderPtr GetSubsetForFstrCalc(
-    const NCB::TDataProviderPtr dataset,
-    NPar::ILocalExecutor* localExecutor
-);
-
-void CreateMetricAndLossDescriptionForLossChange(
-    const TFullModel& model,
-    NCatboostOptions::TLossDescription* metricDescription,
-    NCatboostOptions::TLossDescription* lossDescription,
-    bool* needYetiRankPairs,
-    THolder<IMetric>* metric
-);
-
-TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
-    const TFullModel& model,
-    const int featuresCount,
-    const TShapPreparedTrees& preparedTrees,
-    const NCB::TDataProviderPtr dataset,
-    ECalcTypeShapValues calcType,
-    NPar::ILocalExecutor* localExecutor
-);
-
-TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChangeFromScores(
-    const TCombinationClassFeatures& combinationClassFeatures,
-    const IMetric& metric,
-    const TVector<TMetricHolder>& scores
-);
 
 TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     const TFullModel& model,
@@ -200,5 +163,3 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset // can be nullptr
 );
-
-i64 GetMaxObjectCountForFstrCalc(i64 objectCount, i32 featureCount);

@@ -947,7 +947,7 @@ _Tp __cxx_atomic_fetch_xor(__cxx_atomic_base_impl<_Tp>* __a, _Tp __pattern,
 
 #if defined(_LIBCPP_COMPILER_MSVC)
 _LIBCPP_END_NAMESPACE_STD
-#include <support/win32/atomic_win32.h>
+#include <__support/win32/atomic_win32.h>
 _LIBCPP_BEGIN_NAMESPACE_STD
 #endif
 
@@ -1698,16 +1698,10 @@ struct __atomic_base  // false
 #endif
 #ifndef _LIBCPP_CXX03_LANG
     __atomic_base(const __atomic_base&) = delete;
-    __atomic_base& operator=(const __atomic_base&) = delete;
-    __atomic_base& operator=(const __atomic_base&) volatile = delete;
 #else
 private:
     _LIBCPP_INLINE_VISIBILITY
     __atomic_base(const __atomic_base&);
-    _LIBCPP_INLINE_VISIBILITY
-    __atomic_base& operator=(const __atomic_base&);
-    _LIBCPP_INLINE_VISIBILITY
-    __atomic_base& operator=(const __atomic_base&) volatile;
 #endif
 #ifdef _LIBCPP_COMPILER_MSVC
 #pragma warning ( pop )
@@ -1820,6 +1814,9 @@ struct atomic
     _LIBCPP_INLINE_VISIBILITY
     _Tp operator=(_Tp __d) _NOEXCEPT
         {__base::store(__d); return __d;}
+
+    atomic& operator=(const atomic&) = delete;
+    atomic& operator=(const atomic&) volatile = delete;
 };
 
 // atomic<T*>
@@ -1882,6 +1879,9 @@ struct atomic<_Tp*>
     _Tp* operator-=(ptrdiff_t __op) volatile _NOEXCEPT {return fetch_sub(__op) - __op;}
     _LIBCPP_INLINE_VISIBILITY
     _Tp* operator-=(ptrdiff_t __op) _NOEXCEPT          {return fetch_sub(__op) - __op;}
+
+    atomic& operator=(const atomic&) = delete;
+    atomic& operator=(const atomic&) volatile = delete;
 };
 
 // atomic_is_lock_free

@@ -22,17 +22,3 @@ namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYson
-
-
-namespace NYT {
-
-// Temporary for backward compatibility
-using ::NYson::WriteVarUInt64;
-using ::NYson::WriteVarInt32;
-using ::NYson::WriteVarInt64;
-
-using ::NYson::ReadVarUInt64;
-using ::NYson::ReadVarInt32;
-using ::NYson::ReadVarInt64;
-
-} // namespace NYT

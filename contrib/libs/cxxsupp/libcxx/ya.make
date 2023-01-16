@@ -168,6 +168,7 @@ SRCS(
     src/condition_variable_destructor.cpp
     src/debug.cpp
     src/exception.cpp
+    src/format.cpp
     src/functional.cpp
     src/future.cpp
     src/hash.cpp

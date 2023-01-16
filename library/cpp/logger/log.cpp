@@ -45,7 +45,7 @@ THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priorit
 }
 
 THolder<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
-    return MakeHolder<TFilteredLogBackend>(CreateOwningThreadedLogBackend(fname, queueLen).Release(), priority);
+    return MakeHolder<TFilteredLogBackend>(CreateOwningThreadedLogBackend(fname, queueLen), priority);
 }
 
 THolder<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen) {

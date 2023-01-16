@@ -595,15 +595,15 @@ cdef extern from "catboost/libs/metrics/metric.h":
         void* CustomData
 
         ctypedef TMetricHolder (*TEvalFuncPtr)(
-            const TVector[TVector[double]]& approx,
-            const TConstArrayRef[float] target,
-            const TConstArrayRef[float] weight,
+            TConstArrayRef[TConstArrayRef[double]]& approx,
+            TConstArrayRef[float] target,
+            TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
         ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
-            const TConstArrayRef[TVector[double]] approx,
-            const TConstArrayRef[TConstArrayRef[float]] target,
-            const TConstArrayRef[float] weight,
+            TConstArrayRef[TConstArrayRef[double]] approx,
+            TConstArrayRef[TConstArrayRef[float]] target,
+            TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
         TMaybe[TEvalFuncPtr] EvalFunc
@@ -1281,7 +1281,7 @@ cdef np.ndarray _CreateNumpyUI64ArrayView(const ui64* array, int count):
     return np.PyArray_SimpleNewFromData(1, dims, np.NPY_UINT64, <void*>array)
 
 
-cdef _ToPythonObjArrayOfArraysOfDoubles(const TVector[double]* values, int size, int begin, int end):
+cdef _ToPythonObjArrayOfArraysOfDoubles(const TConstArrayRef[double]* values, int size, int begin, int end):
     # https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
     # numba doesn't like python lists, so using tuple instead
     return tuple(_CreateNumpyDoubleArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
@@ -1291,7 +1291,7 @@ cdef _ToPythonObjArrayOfArraysOfFloats(const TConstArrayRef[float]* values, int 
     return tuple(_CreateNumpyFloatArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
 
 cdef TMetricHolder _MetricEval(
-    const TVector[TVector[double]]& approx,
+    TConstArrayRef[TConstArrayRef[double]]& approx,
     TConstArrayRef[float] target,
     TConstArrayRef[float] weight,
     int begin,
@@ -1323,7 +1323,7 @@ cdef TMetricHolder _MetricEval(
     return holder
 
 cdef TMetricHolder _MultiTargetMetricEval(
-    TConstArrayRef[TVector[double]] approx,
+    TConstArrayRef[TConstArrayRef[double]] approx,
     TConstArrayRef[TConstArrayRef[float]] target,
     TConstArrayRef[float] weight,
     int begin,

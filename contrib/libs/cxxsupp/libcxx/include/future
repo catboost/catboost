@@ -501,9 +501,7 @@ class _LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_FUTURE_ERROR future_error
     error_code __ec_;
 public:
     future_error(error_code __ec);
-#if _LIBCPP_STD_VERS > 14
-    explicit future_error(future_errc _Ev) : logic_error(), __ec_(make_error_code(_Ev)) {}
-#endif
+
     _LIBCPP_INLINE_VISIBILITY
     const error_code& code() const _NOEXCEPT {return __ec_;}
 
@@ -2126,10 +2124,10 @@ packaged_task<void(_ArgTypes...)>::reset()
     __p_ = promise<result_type>();
 }
 
-template <class _Callable>
+template <class _Rp, class... _ArgTypes>
 inline _LIBCPP_INLINE_VISIBILITY
 void
-swap(packaged_task<_Callable>& __x, packaged_task<_Callable>& __y) _NOEXCEPT
+swap(packaged_task<_Rp(_ArgTypes...)>& __x, packaged_task<_Rp(_ArgTypes...)>& __y) _NOEXCEPT
 {
     __x.swap(__y);
 }

@@ -95,6 +95,7 @@ TVector<double> CalcFeatureEffectLossChangeMetricStatsWrapper(
         preparedTrees,
         dataset,
         calcType,
+        /* randomSeed */0,
         localExecutor
     );
     TVector<double> result;

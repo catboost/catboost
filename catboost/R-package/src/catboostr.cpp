@@ -20,6 +20,7 @@
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/cast.h>
@@ -406,6 +407,15 @@ EXPORT_FUNCTION CatBoostIsOblivious_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     result = ScalarLogical(static_cast<int>(model->IsOblivious()));
+    R_API_END();
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostIsGroupwiseMetric_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    result = ScalarLogical(static_cast<int>(IsGroupwiseMetric(model->GetLossFunctionName())));
     R_API_END();
     return result;
 }

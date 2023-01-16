@@ -13,9 +13,9 @@ Y_UNIT_TEST_SUITE(TweedieMetricTest) {
             TVector<float> weight{1, 1, 1, 1};
 
             NPar::TLocalExecutor executor;
-            const auto metric = std::move(CreateMetric(ELossFunction::Tweedie,
-                                                       TLossParams::FromVector({{"variance_power", "1.5"}}),
-                                                       /*approxDimension=*/1)[0]);
+            const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::Tweedie,
+                                                                   TLossParams::FromVector({{"variance_power", "1.5"}}),
+                                                                   /*approxDimension=*/1)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 10.38992204811516, 1e-5);

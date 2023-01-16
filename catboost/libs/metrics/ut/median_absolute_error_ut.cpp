@@ -11,7 +11,7 @@ Y_UNIT_TEST(MedianAbsoluteErrorTest) {
         TVector<float> weight{1, 1, 1, 1};
         NPar::TLocalExecutor executor;
 
-        const auto metric = std::move(CreateMetric(ELossFunction::MedianAbsoluteError, TLossParams(),
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MedianAbsoluteError, TLossParams(),
                                                    /*approxDimensions=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -23,7 +23,7 @@ Y_UNIT_TEST(MedianAbsoluteErrorTest) {
         TVector<float> weight{1, 1, 1};
         NPar::TLocalExecutor executor;
 
-        const auto metric = std::move(CreateMetric(ELossFunction::MedianAbsoluteError, TLossParams(),
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MedianAbsoluteError, TLossParams(),
                                                    /*approxDimensions=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -35,7 +35,7 @@ Y_UNIT_TEST(MedianAbsoluteErrorTest) {
         TVector<float> weight{1, 1};
         NPar::TLocalExecutor executor;
 
-        const auto metric = std::move(CreateMetric(ELossFunction::MedianAbsoluteError, TLossParams(),
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::MedianAbsoluteError, TLossParams(),
                                                    /*approxDimensions=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 

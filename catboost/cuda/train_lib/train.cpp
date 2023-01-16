@@ -347,11 +347,16 @@ namespace NCatboostCuda {
                     trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().end()
                 );
             }
+            ui32 objectsCount = trainingData.Learn->GetObjectCount();
+            if (!trainingData.Test.empty()) {
+                objectsCount += trainingData.Test[0]->GetObjectCount();
+            }
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       trainingData.FeatureEstimators,
                                                       *trainingData.Learn->MetaInfo.FeaturesLayout,
                                                       exclusiveBundlesCopy,
                                                       quantizedFeaturesInfo,
+                                                      objectsCount,
                                                       /*enableShuffling*/internalOptions.HaveLearnFeatureInMemory);
 
 
@@ -517,11 +522,13 @@ namespace NCatboostCuda {
                 trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().begin(),
                 trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().end()
             );*/
+            ui32 objectsCount = trainingData.Learn->GetObjectCount() + trainingData.Test[0]->GetObjectCount();
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       estimators,
                                                       *trainingData.Learn->MetaInfo.FeaturesLayout,
                                                       exclusiveBundlesCopy,
-                                                      quantizedFeaturesInfo);
+                                                      quantizedFeaturesInfo,
+                                                      objectsCount);
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,

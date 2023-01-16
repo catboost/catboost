@@ -468,7 +468,7 @@ namespace NCatboostCuda {
                                            const TVector<float>& weight,
                                            const TVector<TQueryInfo>& queriesInfo,
                                            NPar::ILocalExecutor* localExecutor) const {
-        const IMetric& metric = GetCpuMetric();
+        const TSingleTargetMetric& metric = dynamic_cast<const TSingleTargetMetric&>(GetCpuMetric());
         const int start = 0;
         const int end = static_cast<const int>(metric.GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
         CB_ENSURE(approx.size() >= 1);

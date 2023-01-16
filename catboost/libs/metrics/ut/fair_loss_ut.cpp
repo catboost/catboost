@@ -13,7 +13,7 @@ Y_UNIT_TEST(FairLossTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::FairLoss, TLossParams::FromVector({{"smoothness", "1.0"}}), /*approxDimension=*/1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::FairLoss, TLossParams::FromVector({{"smoothness", "1.0"}}), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-6);
@@ -25,7 +25,7 @@ Y_UNIT_TEST(FairLossTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::FairLoss, TLossParams::FromVector({{"smoothness", "1.0"}}), /*approxDimension=*/1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::FairLoss, TLossParams::FromVector({{"smoothness", "1.0"}}), /*approxDimension=*/1)[0]);
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
@@ -38,7 +38,7 @@ Y_UNIT_TEST(FairLossTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::FairLoss, TLossParams::FromVector({{"smoothness", "10.0"}}), /*approxDimension=*/1)[0]);
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::FairLoss, TLossParams::FromVector({{"smoothness", "10.0"}}), /*approxDimension=*/1)[0]);
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 

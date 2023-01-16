@@ -12,7 +12,7 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+        auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BalancedAccuracy,
                                              TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -24,7 +24,7 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+        auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BalancedAccuracy,
                                              TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);;
 
@@ -36,7 +36,7 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+        auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BalancedAccuracy,
                                              TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -48,7 +48,7 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+        auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BalancedAccuracy,
                                              TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 1, target.size(), executor);
 
@@ -60,7 +60,7 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+        auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BalancedAccuracy,
                                              TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 1, target.size(), executor);
 

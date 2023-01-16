@@ -20,6 +20,7 @@ Default value: Required argument}
 \item{pool}{The input dataset.
 
 The feature importance for the training dataset is calculated if this argument is not specified.
+Models with ranking metrics require pool argument to calculate feature importance.
 
 Default value: NULL}
 

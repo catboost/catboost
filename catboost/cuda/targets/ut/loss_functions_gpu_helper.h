@@ -56,9 +56,9 @@ static inline CpuResult CalculateLossAndDerivativesOnCpu(TVector<float>& targets
                                                          double param,
                                                          TString paramName) {
 
-    const auto metric = std::move(CreateMetric(lossFunction,
-                                               TLossParams::FromVector({{paramName, ToString(param)}}),
-                                               /*approxDimension=*/1)[0]);
+    const auto metric = std::move(CreateSingleTargetMetric(lossFunction,
+                                                           TLossParams::FromVector({{paramName, ToString(param)}}),
+                                                           /*approxDimension=*/1)[0]);
     NPar::TLocalExecutor executor;
 
     TVector<TVector<double>> approxes(1, TVector<double>(cursor[0].size()));

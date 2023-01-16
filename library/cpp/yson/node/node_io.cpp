@@ -88,14 +88,14 @@ TNode NodeFromYsonString(const TStringBuf input, EYsonType type)
     return NodeFromYsonStream(&stream, type);
 }
 
-TString NodeToYsonString(const TNode& node, EYsonFormat format)
+TString NodeToYsonString(const TNode& node, NYson::EYsonFormat format)
 {
     TStringStream stream;
     NodeToYsonStream(node, &stream, format);
     return stream.Str();
 }
 
-TString NodeToCanonicalYsonString(const TNode& node, EYsonFormat format)
+TString NodeToCanonicalYsonString(const TNode& node, NYson::EYsonFormat format)
 {
     TStringStream stream;
     NodeToCanonicalYsonStream(node, &stream, format);
@@ -112,14 +112,14 @@ TNode NodeFromYsonStream(IInputStream* input, EYsonType type)
     return result;
 }
 
-void NodeToYsonStream(const TNode& node, IOutputStream* output, EYsonFormat format)
+void NodeToYsonStream(const TNode& node, IOutputStream* output, NYson::EYsonFormat format)
 {
     NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer);
     visitor.Visit(node);
 }
 
-void NodeToCanonicalYsonStream(const TNode& node, IOutputStream* output, EYsonFormat format)
+void NodeToCanonicalYsonStream(const TNode& node, IOutputStream* output, NYson::EYsonFormat format)
 {
     NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer, /*sortMapKeys*/ true);

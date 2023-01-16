@@ -75,8 +75,7 @@ int __libcpp_ctz(unsigned long __x) {
 inline _LIBCPP_INLINE_VISIBILITY
 int __libcpp_ctz(unsigned long long __x) {
     unsigned long __where;
-#if defined(_LIBCPP_HAS_BITSCAN64) && \
-    (defined(_M_AMD64) || defined(__x86_64__))
+#if defined(_LIBCPP_HAS_BITSCAN64)
   if (_BitScanForward64(&__where, __x))
     return static_cast<int>(__where);
 #else

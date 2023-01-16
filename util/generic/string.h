@@ -438,8 +438,7 @@ public:
 #endif
     {
     }
-    // TODO thegeorg@: uncomment and fix clients
-    // TBasicString(std::nullptr_t, size_t) = delete;
+    TBasicString(std::nullptr_t, size_t) = delete;
 
     TBasicString(const TCharType* pc, size_t pos, size_t n)
         : TBasicString(pc + pos, n)

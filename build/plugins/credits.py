@@ -9,4 +9,4 @@ def oncheck_contrib_credits(unit, *args):
     module_path = rootrel_arc_src(unit.path(), unit)
     for arg in args:
         if module_path.startswith(arg) and not unit.get('CREDITS_TEXTS_FILE') and not unit.get('NO_CREDITS_TEXTS_FILE'):
-            unit.message(["error", "License texts not found. See http://link.to/ticket/or/announce"])
+            unit.message(["error", "License texts not found. See https://st.yandex-team.ru/DTCC-324"])

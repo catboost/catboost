@@ -28,7 +28,7 @@ namespace {
 
 using namespace NChromiumTrace;
 
-TYsonTraceConsumer::TYsonTraceConsumer(IOutputStream* stream, NYT::EYsonFormat format)
+TYsonTraceConsumer::TYsonTraceConsumer(IOutputStream* stream, NYson::EYsonFormat format)
     : Yson(stream, format, NYT::YT_LIST_FRAGMENT)
     , JobId(GetCurrentJobId())
 {
