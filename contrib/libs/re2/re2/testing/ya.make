@@ -12,7 +12,9 @@ PEERDIR(
     contrib/libs/re2
 )
 
-ADDINCL(contrib/libs/re2)
+ADDINCL(
+    contrib/libs/re2
+)
 
 NO_COMPILER_WARNINGS()
 
