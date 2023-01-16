@@ -2126,6 +2126,8 @@
                 "c_compiler": "$(CLANG)/usr/bin/clang",
                 "cxx_compiler": "$(CLANG)/usr/bin/clang++",
                 "ar": "$(CLANG)/usr/bin/libtool",
+                "simctl": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/SystemRoot/PrivateFrameworks/CoreSimulator.framework/Resources/bin/simctl",
+                "profiles": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles",
                 "inplace_tools": true,
                 "gcc_version": "8.0",
                 "dwarf_tool": {
@@ -2220,6 +2222,8 @@
                 "cxx_compiler": "$(CLANG)/usr/bin/clang++",
                 "cxx_std": "c++17",
                 "ar": "$(CLANG)/usr/bin/libtool",
+                "simctl": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/SystemRoot/PrivateFrameworks/CoreSimulator.framework/Resources/bin/simctl",
+                "profiles": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles",
                 "inplace_tools": true,
                 "gcc_version": "8.0",
                 "dwarf_tool": {
@@ -2324,6 +2328,8 @@
                 "cxx_compiler": "$(CLANG)/usr/bin/clang++",
                 "cxx_std": "c++17",
                 "ar": "$(CLANG)/usr/bin/libtool",
+                "simctl": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/SystemRoot/PrivateFrameworks/CoreSimulator.framework/Resources/bin/simctl",
+                "profiles": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles",
                 "inplace_tools": true,
                 "gcc_version": "8.0",
                 "dwarf_tool": {
