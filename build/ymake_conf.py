@@ -141,6 +141,7 @@ class Platform(object):
         if self.is_iossim:
             yield 'IOS'
             yield 'OS_IOS'
+            yield 'OS_IOSSIM'
 
     @property
     def arch_variables(self):
