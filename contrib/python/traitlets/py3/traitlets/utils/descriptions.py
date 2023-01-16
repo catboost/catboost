@@ -137,6 +137,8 @@ def add_article(name, definite=False, capital=False):
 
     Parameters
     ----------
+    name : str
+        Name to which to prepend an article
     definite : bool (default: False)
         Whether the article is definite or not.
         Indefinite articles being 'a' and 'an',

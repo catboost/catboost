@@ -439,7 +439,9 @@ class TraitType(BaseDescriptor):
         If *allow_none* is True, None is a valid value in addition to any
         values that are normally valid. The default is up to the subclass.
         For most trait types, the default value for ``allow_none`` is False.
-
+        
+        If *read_only* is True, attempts to directly modify a trait attribute raises a TraitError.
+        
         Extra metadata can be associated with the traitlet using the .tag() convenience method
         or by using the traitlet instance's .metadata dictionary.
         """
@@ -828,7 +830,7 @@ class MetaHasTraits(MetaHasDescriptors):
         super(MetaHasTraits, cls).setup_class(classdict)
 
 
-def observe(*names, **kwargs):
+def observe(*names, type="change"):
     """A decorator which can be used to observe Traits on a class.
 
     The handler passed to the decorator will be called with one ``change``
@@ -855,7 +857,7 @@ def observe(*names, **kwargs):
     for name in names:
         if name is not All and not isinstance(name, str):
             raise TypeError("trait names to observe must be strings or All, not %r" % name)
-    return ObserveHandler(names, type=kwargs.get('type', 'change'))
+    return ObserveHandler(names, type=type)
 
 
 def observe_compat(func):
@@ -902,7 +904,7 @@ def validate(*names):
 
     Parameters
     ----------
-    names
+    *names
         The str names of the Traits to validate.
 
     Notes
@@ -1718,6 +1720,8 @@ class Type(ClassBasedTraitType):
             :class:`HasTraits` class is instantiated.
         allow_none : bool [ default False ]
             Indicates whether None is allowed as an assignable value.
+        **kwargs
+            extra kwargs passed to `ClassBasedTraitType`
         """
         if default_value is Undefined:
             new_default_value = object if (klass is None) else klass
@@ -1811,6 +1815,8 @@ class Instance(ClassBasedTraitType):
             Keyword arguments for generating the default value.
         allow_none : bool [ default False ]
             Indicates whether None is allowed as a value.
+        **kwargs
+            Extra kwargs passed to `ClassBasedTraitType`
 
         Notes
         -----
@@ -2194,8 +2200,8 @@ class Unicode(TraitType):
                     old_s = s
                     s = s[1:-1]
                     warn(
-                        "Supporting extra quotes around Unicode is deprecated in traitlets 5.0. "
-                        "Use %r instead of %r – or use CUnicode." % (s, old_s),
+                        "Supporting extra quotes around strings is deprecated in traitlets 5.0. "
+                        "You can use %r instead of %r if you require traitlets >=5." % (s, old_s),
                         FutureWarning)
         return s
 
@@ -2638,6 +2644,12 @@ class List(Container):
 
         return super(List, self).validate_elements(obj, value)
 
+    def set(self, obj, value):
+        if isinstance(value, str):
+            return super().set(obj, [value])
+        else:
+            return super().set(obj, value)
+
 
 class Set(List):
     """An instance of a Python set."""
@@ -2715,7 +2727,7 @@ class Tuple(Container):
 
         Parameters
         ----------
-        `*traits` : TraitTypes [ optional ]
+        *traits : TraitTypes [ optional ]
             the types for restricting the contents of the Tuple.  If unspecified,
             types are not checked. If specified, then each positional argument
             corresponds to an element of the tuple.  Tuples defined with traits
@@ -2724,6 +2736,8 @@ class Tuple(Container):
             The default value for the Tuple.  Must be list/tuple/set, and
             will be cast to a tuple. If ``traits`` are specified,
             ``default_value`` must conform to the shape and type they specify.
+        **kwargs
+            Other kwargs passed to `Container`
         """
         default_value = kwargs.pop("default_value", Undefined)
         # allow Tuple((values,)):

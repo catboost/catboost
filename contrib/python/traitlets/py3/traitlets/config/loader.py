@@ -11,10 +11,8 @@ import sys
 import json
 import warnings
 
-from ..utils import cast_unicode
+from ..utils import cast_unicode, filefind
 
-from ipython_genutils.path import filefind
-from ipython_genutils.encoding import DEFAULT_ENCODING
 from traitlets.traitlets import (
     HasTraits, Container, List, Dict, Any, Undefined,
 )
@@ -787,12 +785,18 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         argv : optional, list
             If given, used to read command-line arguments from, otherwise
             sys.argv[1:] is used.
-        parser_args : tuple
+        *parser_args : tuple
             A tuple of positional arguments that will be passed to the
             constructor of :class:`argparse.ArgumentParser`.
-        parser_kw : dict
+        **parser_kw : dict
             A tuple of keyword arguments that will be passed to the
             constructor of :class:`argparse.ArgumentParser`.
+        aliases : dict of str to str
+            Dict of aliases to full traitlests names for CLI parsing
+        flags : dict of str to str
+            Dict of flags to full traitlests names for CLI parsing
+        log
+            Passed to `ConfigLoader`
 
         Returns
         -------
@@ -863,9 +867,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _parse_args(self, args):
         """self.parser->self.parsed_data"""
-        # decode sys.argv to support unicode command-line options
-        enc = DEFAULT_ENCODING
-        uargs = [cast_unicode(a, enc) for a in args]
+        uargs = [cast_unicode(a) for a in args]
 
         unpacked_aliases = {}
         if self.aliases:

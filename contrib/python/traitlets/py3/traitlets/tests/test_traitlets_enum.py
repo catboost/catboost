@@ -5,6 +5,7 @@ Test the trait-type ``UseEnum``.
 
 import unittest
 import enum
+import sys
 from traitlets import HasTraits, TraitError, Enum, UseEnum, CaselessStrEnum, FuzzyEnum
 
 
@@ -87,7 +88,10 @@ class TestUseEnum(unittest.TestCase):
             example = self.Example()
             example.color = value
             self.assertIsInstance(example.color, Color)
-            self.assertEqual(str(example.color), value)
+            if sys.version_info < (3, 10):
+                self.assertEqual(str(example.color), value)
+            else:
+                self.assertEqual(repr(example.color), value)
 
     def test_assign_bad_enum_value_name__raises_error(self):
         # -- CONVERT: string => Enum value (item)
