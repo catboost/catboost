@@ -1,9 +1,9 @@
 --- contrib/python/importlib-metadata/py2/.dist-info/METADATA	(index)
 +++ contrib/python/importlib-metadata/py2/.dist-info/METADATA	(working tree)
-@@ -14,7 +14,6 @@ Classifier: Topic :: Software Development :: Libraries
- Classifier: Programming Language :: Python :: 3
+@@ -15,7 +15,6 @@ Classifier: Topic :: Software Development :: Libraries
  Classifier: Programming Language :: Python :: 2
  Requires-Python: !=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7
+ License-File: LICENSE
 -Requires-Dist: zipp (>=0.5)
  Requires-Dist: pathlib2 ; python_version < "3"
  Requires-Dist: contextlib2 ; python_version < "3"
