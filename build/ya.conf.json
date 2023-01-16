@@ -68,6 +68,9 @@
         "ninja": {
             "description": "Run ninja"
         },
+        "pprof": {
+            "description": "Run pprof"
+        },
         "ytexec": {
             "description": "Run ytexec"
         },
@@ -4601,6 +4604,28 @@
                 }
             ]
         },
+        "pprof": {
+            "tools": {
+                "pprof": {
+                    "bottle": "pprof",
+                    "executable": "pprof"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "ytexec": {
             "tools": {
                 "ytexec": {
@@ -8987,6 +9012,18 @@
                     "gdb",
                     "bin",
                     "gdbserver"
+                ]
+            }
+        },
+        "pprof": {
+            "formula": {
+                "sandbox_id": 1115456319,
+                "match": "pprof"
+            },
+            "executable": {
+                "pprof": [
+                    "pprof",
+                    "pprof"
                 ]
             }
         },
