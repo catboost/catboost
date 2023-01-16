@@ -400,6 +400,7 @@ namespace NCB {
             switch (column.Type) {
                 case EColumn::Categ:
                     catFeatures->push_back(columnIdx - featuresStartColumn);
+                    [[fallthrough]];
                 case EColumn::Num:
                     featureNames->push_back(column.Id);
                     break;
