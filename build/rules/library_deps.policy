@@ -41,4 +41,6 @@ ALLOW library/cpp/digest/benchmark -> yabs/server/util
 ALLOW library/cpp/eventlog/rt/tool -> search/idl
 ALLOW library/cpp/dolbilo/planner -> search/idl
 ALLOW library/cpp/vowpalwabbit/tools/vw_ops -> ml/differential_evolution
+# Temponary while kikimr/public/sdk/go/ydb migrating to github.com
+ALLOW library/go/yandex/ydb/auth -> kikimr/public/sdk/go/ydb
 DENY library -> .*
