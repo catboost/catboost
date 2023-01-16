@@ -25,8 +25,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "bignum.h"
-#include "utils.h"
+#include <double-conversion/bignum.h>
+#include <double-conversion/utils.h>
 
 namespace double_conversion {
 

@@ -8,6 +8,7 @@ RECURSE(
     crcutil
     cxxsupp/libcxx
     cxxsupp/libcxxabi-parts
+    double-conversion
     expat
     farmhash
     farmhash/ut
