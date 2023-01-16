@@ -35,8 +35,6 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme LearnSetPath;
         TVector<NCB::TPathWithScheme> TestSetPaths;
 
-        TVector<NCB::TPathWithScheme> TestPrecomputedSetPaths;
-
         NCB::TPathWithScheme PairsFilePath;
         NCB::TPathWithScheme TestPairsFilePath;
 
@@ -67,7 +65,7 @@ namespace NCatboostOptions {
         void ValidateLearn() const;
 
         SAVELOAD(
-            CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths, TestPrecomputedSetPaths,
+            CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
             PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
             TimestampsFilePath, TestTimestampsFilePath, BaselineFilePath, TestBaselineFilePath,
             ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath, PoolMetaInfoPath,

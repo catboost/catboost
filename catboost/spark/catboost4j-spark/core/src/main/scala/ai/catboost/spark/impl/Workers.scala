@@ -15,8 +15,10 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonDSL._
 
 import org.apache.spark.internal.Logging
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.functions.typedLit
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{Row,SparkSession}
+import org.apache.spark.sql.{DataFrame,Row,SparkSession}
 import org.apache.spark.TaskContext
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
@@ -39,8 +41,8 @@ private[spark] class CatBoostWorker extends Logging {
     precomputedOnlineCtrMetaDataAsJsonString: String,
     threadCount: Int,
     
-    // returns (quantizedDataProvider, estimatedQuantizedDataProvider, dstRows) can return null
-    getDataProvidersCallback : (TLocalExecutor) => (TDataProviderPtr, TDataProviderPtr, mutable.ArrayBuffer[Array[Any]])
+    // returns (quantizedDataProviders, estimatedQuantizedDataProviders, dstRows) can return null
+    getDataProvidersCallback : (TLocalExecutor) => (TVector_TDataProviderPtr, TVector_TDataProviderPtr, Array[mutable.ArrayBuffer[Array[Any]]])
   ) = {
     if (!CatBoostWorker.usedInCurrentProcess.compareAndSet(false, true)) {
       throw new CatBoostError("An active CatBoost worker is already present in the current process")
@@ -57,11 +59,11 @@ private[spark] class CatBoostWorker extends Logging {
       
       log.info("processPartition: get data providers: start")
 
-      var (quantizedDataProvider, estimatedQuantizedDataProvider, _) = getDataProvidersCallback(localExecutor)
+      var (quantizedDataProviders, estimatedQuantizedDataProviders, _) = getDataProvidersCallback(localExecutor)
 
       log.info("processPartition: get data providers: finish")
       
-      val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
+      val partitionSize = if (quantizedDataProviders != null) native_impl.GetPartitionTotalObjectCount(quantizedDataProviders).toInt else 0
 
       if (partitionSize != 0) {
         log.info("processPartition: CreateTrainingDataForWorker: start")
@@ -69,13 +71,9 @@ private[spark] class CatBoostWorker extends Logging {
           partitionId,
           threadCount,
           catBoostJsonParamsString,
-          quantizedDataProvider,
+          quantizedDataProviders,
           quantizedFeaturesInfo,
-          if (estimatedQuantizedDataProvider != null) {
-            estimatedQuantizedDataProvider
-          } else {
-            new TDataProviderPtr
-          },
+          estimatedQuantizedDataProviders,
           if (precomputedOnlineCtrMetaDataAsJsonString != null) {
             precomputedOnlineCtrMetaDataAsJsonString
           } else {
@@ -138,6 +136,7 @@ private[spark] class CatBoostWorkers(
   val workerCount: Int,
   val trainingDriverListeningPort: Int,
   val preprocessedTrainPool: Pool,
+  val preprocessedEvalPools: Array[Pool],
   val catBoostJsonParams: JObject,
   val precomputedOnlineCtrMetaDataAsJsonString: String,
   
@@ -160,6 +159,18 @@ private[spark] class CatBoostWorkers(
           includeSampleId = (preprocessedTrainPool.pairsData != null),
           includeEstimatedFeatures = true
         )
+    val evalDataForWorkers = preprocessedEvalPools.map {
+      evalPool => {
+        val (evalDatasetForWorkers, _, _) 
+          = DataHelpers.selectColumnsForTrainingAndReturnIndex(
+              evalPool,
+              includeFeatures = true,
+              includeSampleId = (evalPool.pairsData != null),
+              includeEstimatedFeatures = true
+            )
+        evalDatasetForWorkers
+      }
+    }
 
     val threadCount = SparkHelpers.getThreadCountForTask(spark)
 
@@ -178,12 +189,14 @@ private[spark] class CatBoostWorkers(
 
     // copy needed because Spark will try to capture the whole CatBoostWorkers class and fail
     val precomputedOnlineCtrMetaDataAsJsonStringCopy = precomputedOnlineCtrMetaDataAsJsonString
+    val totalDatasetCount = 1 + preprocessedEvalPools.size
     
     if (preprocessedTrainPool.pairsData != null) {
-      val cogroupedTrainData = DataHelpers.getCogroupedMainAndPairsRDD(
+      val cogroupedTrainData = getCogroupedMainAndPairsRDDForAllDatasets(
         trainDataForWorkers, 
-        columnIndexMapForWorkers("groupId"), 
-        preprocessedTrainPool.pairsData
+        preprocessedTrainPool.pairsData,
+        evalDataForWorkers,
+        preprocessedEvalPools.map(evalPool => evalPool.pairsData)
       ).repartition(workerCount).cache()
       
       // Force cache before starting worker processes
@@ -195,7 +208,7 @@ private[spark] class CatBoostWorkers(
       val pairsSchema = preprocessedTrainPool.pairsData.schema
 
       cogroupedTrainData.foreachPartition {
-        groups : Iterator[(Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
+        groups : Iterator[((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
           new CatBoostWorker().processPartition(
             trainingDriverListeningAddress,
             catBoostJsonParamsForWorkersString,
@@ -205,6 +218,7 @@ private[spark] class CatBoostWorkers(
             (localExecutor: TLocalExecutor) => {
               if (groups.hasNext) {
                 DataHelpers.loadQuantizedDatasetsWithPairs(
+                  totalDatasetCount,
                   quantizedFeaturesInfo,
                   columnIndexMapForWorkers,
                   dataMetaInfo,
@@ -215,22 +229,27 @@ private[spark] class CatBoostWorkers(
                   groups
                 )
               } else {
-                null
+                (null, null, null)
               }
            }
           )
         }
       }
     } else {
-      val repartitionedTrainDataForWorkers = trainDataForWorkers.repartition(workerCount).cache()
-      
+      val mergedTrainData = getMergedDataFrameForAllDatasets(
+        trainDataForWorkers,
+        evalDataForWorkers
+      ).repartition(workerCount).cache()
+
+      columnIndexMapForWorkers += ("_datasetIdx" -> columnIndexMapForWorkers.size)
+
       // Force cache before starting worker processes
-      repartitionedTrainDataForWorkers.count()
+      mergedTrainData.count()
       
       // make sure CatBoost master downloaded all the necessary data from cluster before starting worker processes
       Await.result(masterSavedPoolsFuture, Duration.Inf)
       
-      repartitionedTrainDataForWorkers.foreachPartition {
+      mergedTrainData.foreachPartition {
         rows : Iterator[Row] => {
           new CatBoostWorker().processPartition(
             trainingDriverListeningAddress,
@@ -241,6 +260,7 @@ private[spark] class CatBoostWorkers(
             (localExecutor: TLocalExecutor) => {
               if (rows.hasNext) {
                 DataHelpers.loadQuantizedDatasets(
+                  totalDatasetCount,
                   quantizedFeaturesInfo,
                   columnIndexMapForWorkers,
                   dataMetaInfo,
@@ -250,12 +270,64 @@ private[spark] class CatBoostWorkers(
                   rows
                 )
               } else {
-                null
+                (null, null, null)
               }
             }
           )
         }
       }
     }
+  }
+
+
+  private def getMergedDataFrameForAllDatasets(
+    trainDataForWorkers: DataFrame,
+    evalDataForWorkers: Seq[DataFrame]
+  ) : DataFrame = {
+    var mergedDataForWorkers = trainDataForWorkers.withColumn("_datasetIdx", typedLit(0.toByte))
+    evalDataForWorkers.zipWithIndex.foreach {
+      case (evalDataset, evalIdx) => {
+        mergedDataForWorkers = mergedDataForWorkers.union(
+          evalDataset.withColumn("_datasetIdx", typedLit((evalIdx + 1).toByte))
+        )
+      }
+    }
+    mergedDataForWorkers
+  }
+
+  private def getCogroupedMainAndPairsRDDForAllDatasets(
+    trainDataForWorkers: DataFrame,
+    trainPairsData: DataFrame,
+    evalDataForWorkers: Seq[DataFrame],
+    evalPairsData: Seq[DataFrame]
+  ) : RDD[((Byte, Long), (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] = {
+      val mainDataGroupIdIdx = trainDataForWorkers.schema.fieldIndex("groupId")
+      val pairsGroupIdIdx = trainPairsData.schema.fieldIndex("groupId")
+
+      val datasetIdx = 0.toByte
+      var mergedMainDataRDD = trainDataForWorkers.rdd.groupBy(
+        row => (datasetIdx, row.getLong(mainDataGroupIdIdx))
+      )
+      var mergedPairsDataRDD = trainPairsData.rdd.groupBy(
+        row => (datasetIdx, row.getLong(pairsGroupIdIdx))
+      )
+
+      evalDataForWorkers.zip(evalPairsData).zipWithIndex.foreach {
+        case ((mainData, pairsData), evalIdx) => {
+          val datasetIdx = (evalIdx + 1).toByte
+          mergedMainDataRDD = mergedMainDataRDD.union(
+            mainData.rdd.groupBy(
+              row => (datasetIdx, row.getLong(mainDataGroupIdIdx))
+            )
+          )
+          mergedPairsDataRDD = mergedPairsDataRDD.union(
+            pairsData.rdd.groupBy(
+              row => (datasetIdx, row.getLong(pairsGroupIdIdx))
+            )
+          )
+        }
+      }
+      
+      mergedMainDataRDD.cogroup(mergedPairsDataRDD)
   }
 }

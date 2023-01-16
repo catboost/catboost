@@ -51,18 +51,18 @@ private[spark] object CatBoostMasterWrapper {
         dataPartName="Learn Dataset",
         log=result.log
       )
-      val testMainAndEstimatedPoolsAsFiles = preprocessedEvalPools.zipWithIndex.map {
+      val testPoolsFiles = preprocessedEvalPools.zipWithIndex.map {
         case (testPool, idx) => DataHelpers.downloadQuantizedPoolToTempFiles(
           testPool,
-          includeFeatures=true,
-          includeEstimatedFeatures=true,
+          includeFeatures=false,
+          includeEstimatedFeatures=false,
           localExecutor=localExecutor,
           dataPartName=s"Eval Dataset #${idx}",
           log=result.log
         )
       }
 
-      (trainPoolFiles, testMainAndEstimatedPoolsAsFiles)
+      (trainPoolFiles, testPoolsFiles)
     }
 
     result
@@ -134,7 +134,7 @@ private[spark] class CatBoostMasterWrapper (
     
     log.info("Wait until Dataset data parts are ready.")
 
-    val (savedTrainPool, savedEvalMainAndEstimatedPools) = Await.result(savedPoolsFuture, Duration.Inf)
+    val (savedTrainPool, savedEvalPools) = Await.result(savedPoolsFuture, Duration.Inf)
 
     log.info("Dataset data parts are ready. Start CatBoost Master process.")
 
@@ -142,26 +142,18 @@ private[spark] class CatBoostMasterWrapper (
     if (savedTrainPool.pairsData.isDefined) {
       args += ("--learn-pairs", "dsv-grouped-with-idx://" + savedTrainPool.pairsData.get.toString)
     }
-    if (!savedEvalMainAndEstimatedPools.isEmpty) {
+    if (!savedEvalPools.isEmpty) {
       args += (
         "--test-set",
-        savedEvalMainAndEstimatedPools.map(
+        savedEvalPools.map(
             poolFilesPaths => "spark-quantized://master-part:" + poolFilesPaths.mainData
         ).mkString(",")
       )
       if (savedTrainPool.pairsData.isDefined) { // if train pool has pairs so do test pools
         args += (
           "--test-pairs",
-          savedEvalMainAndEstimatedPools.map(
+          savedEvalPools.map(
               poolFilesPaths => "dsv-grouped-with-idx://" + poolFilesPaths.pairsData.get.toString
-          ).mkString(",")
-        )
-      }
-      if (precomputedOnlineCtrMetaDataAsJsonString != null) {
-        args += (
-          "--test-precomputed-set",
-          savedEvalMainAndEstimatedPools.map(
-            poolFilesPaths => "spark-quantized://master-part:" + poolFilesPaths.estimatedCtrData.get.toString
           ).mkString(",")
         )
       }

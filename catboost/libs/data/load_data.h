@@ -90,11 +90,8 @@ namespace NCB {
         TProfileInfo* profile
     );
 
-    TPrecomputedOnlineCtrData ReadPrecomputedOnlineCtrData(
-        TMaybe<ETaskType> taskType,
-        const NCatboostOptions::TPoolLoadParams& loadOptions,
-        NPar::ILocalExecutor* executor,
-        TProfileInfo* profile
+    TPrecomputedOnlineCtrData ReadPrecomputedOnlineCtrMetaData(
+        const NCatboostOptions::TPoolLoadParams& loadOptions
     );
 
 }

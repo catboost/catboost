@@ -8,13 +8,15 @@
 #include <util/system/types.h>
 
 
+i64 GetPartitionTotalObjectCount(const TVector<NCB::TDataProviderPtr>& trainDataProviders) throw (yexception);
+
 void CreateTrainingDataForWorker(
     i32 hostId,
     i32 numThreads,
     const TString& plainJsonParamsAsString,
-    NCB::TDataProviderPtr trainDataProvider,
+    const TVector<NCB::TDataProviderPtr>& trainDataProviders,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-    NCB::TDataProviderPtr trainEstimatedDataProvider, // can be nullptr
+    const TVector<NCB::TDataProviderPtr>& trainEstimatedDataProviders, // can be empty
     const TString& precomputedOnlineCtrMetaDataAsJsonString
 ) throw (yexception);
 
