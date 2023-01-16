@@ -161,7 +161,12 @@
   includes:
     - port.h:        contrib/libs/glog/missing_includes/port.h
 
+- source_filter: "^contrib/libs/postgresql"
+  includes:
+    - port.h:        contrib/libs/postgresql/src/include/port.h
+
 - source_filter: "^contrib/(deprecated/onednn|libs/intel/onednn)"
+
   includes:
     - mkl_cblas.h: contrib/libs/intel/mkl/include/mkl_cblas.h
     - mkl_version.h: contrib/libs/intel/mkl/include/mkl_version.h
