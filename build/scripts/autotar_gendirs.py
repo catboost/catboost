@@ -42,13 +42,16 @@ def main(args):
     parser.add_argument('--pack', action='store_true', default=False)
     parser.add_argument('--unpack', action='store_true', default=False)
     parser.add_argument('--ext')
+    parser.add_argument('--outs', nargs='*', default=[])
     parser.add_argument('dirs', nargs='*')
     args = parser.parse_args(args)
 
     if args.pack:
-        for d in args.dirs:
-            dest = d + args.ext
-            pack_dir(d, dest)
+        if len(args.dirs) != len(args.outs):
+            print("Number and oder of dirs to pack must match to the number and order of outs", file=sys.stderr)
+            return 1
+        for dir, dest in zip(args.dirs, args.outs):
+            pack_dir(dir, dest)
     elif args.unpack:
         for tared_dir in args.dirs:
             if not tared_dir.endswith(args.ext):
