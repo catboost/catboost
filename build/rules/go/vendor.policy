@@ -804,6 +804,7 @@ ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-zap
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-zerolog
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-opentracing
 ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-sdk-opentracing/internal/cmd/bench
+ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-yc-metadata
 
 # CONTRIB-2099
 ALLOW .* -> vendor/github.com/haivision/srtgo
