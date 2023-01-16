@@ -120,8 +120,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\core\cpp-ytalloc-core.vcxproj">
-      <Project>{48CA1C7E-9FF3-8299-9D74-DB9A77F55630}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\misc\cpp-yt-misc.vcxproj">
+      <Project>{C6F036AA-9EA5-68E2-EAF2-CDEFE55C0DD5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
