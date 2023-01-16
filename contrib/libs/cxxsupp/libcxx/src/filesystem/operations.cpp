@@ -640,73 +640,75 @@ namespace {
 
 #if defined(_LIBCPP_FILESYSTEM_USE_SENDFILE)
   bool copy_file_impl(FileDescriptor& read_fd, FileDescriptor& write_fd, error_code& ec) {
-  size_t count = read_fd.get_stat().st_size;
-  do {
-    ssize_t res;
-    if ((res = ::sendfile(write_fd.fd, read_fd.fd, nullptr, count)) == -1) {
+    size_t count = read_fd.get_stat().st_size;
+    do {
+      ssize_t res;
+      if ((res = ::sendfile(write_fd.fd, read_fd.fd, nullptr, count)) == -1) {
+        ec = capture_errno();
+        return false;
+      }
+      count -= res;
+    } while (count > 0);
+
+    ec.clear();
+
+    return true;
+  }
+#elif defined(_LIBCPP_FILESYSTEM_USE_COPYFILE)
+  bool copy_file_impl(FileDescriptor& read_fd, FileDescriptor& write_fd, error_code& ec) {
+    struct CopyFileState {
+      copyfile_state_t state;
+      CopyFileState() { state = copyfile_state_alloc(); }
+      ~CopyFileState() { copyfile_state_free(state); }
+
+    private:
+      CopyFileState(CopyFileState const&) = delete;
+      CopyFileState& operator=(CopyFileState const&) = delete;
+    };
+
+    CopyFileState cfs;
+    if (fcopyfile(read_fd.fd, write_fd.fd, cfs.state, COPYFILE_DATA) < 0) {
       ec = capture_errno();
       return false;
     }
-    count -= res;
-  } while (count > 0);
 
-  ec.clear();
-
-  return true;
-}
-#elif defined(_LIBCPP_FILESYSTEM_USE_COPYFILE)
-  bool copy_file_impl(FileDescriptor& read_fd, FileDescriptor& write_fd, error_code& ec) {
-  struct CopyFileState {
-    copyfile_state_t state;
-    CopyFileState() { state = copyfile_state_alloc(); }
-    ~CopyFileState() { copyfile_state_free(state); }
-
-  private:
-    CopyFileState(CopyFileState const&) = delete;
-    CopyFileState& operator=(CopyFileState const&) = delete;
-  };
-
-  CopyFileState cfs;
-  if (fcopyfile(read_fd.fd, write_fd.fd, cfs.state, COPYFILE_DATA) < 0) {
-    ec = capture_errno();
-    return false;
+    ec.clear();
+    return true;
   }
-
-  ec.clear();
-  return true;
-}
 #elif defined(_LIBCPP_FILESYSTEM_USE_FSTREAM)
   bool copy_file_impl(FileDescriptor& read_fd, FileDescriptor& write_fd, error_code& ec) {
-  ifstream in;
-  in.__open(read_fd.fd, ios::binary);
-  if (!in.is_open()) {
-    // This assumes that __open didn't reset the error code.
-    ec = capture_errno();
-    return false;
-  }
-  ofstream out;
-  out.__open(write_fd.fd, ios::binary);
-  if (!out.is_open()) {
-    ec = capture_errno();
-    return false;
-  }
+    ifstream in;
+    in.__open(read_fd.fd, ios::binary);
+    if (!in.is_open()) {
+      // This assumes that __open didn't reset the error code.
+      ec = capture_errno();
+      return false;
+    }
+    read_fd.fd = -1;
+    ofstream out;
+    out.__open(write_fd.fd, ios::binary);
+    if (!out.is_open()) {
+      ec = capture_errno();
+      return false;
+    }
+    write_fd.fd = -1;
 
-  if (in.good() && out.good()) {
-    using InIt = istreambuf_iterator<char>;
-    using OutIt = ostreambuf_iterator<char>;
-    InIt bin(in);
-    InIt ein;
-    OutIt bout(out);
-    copy(bin, ein, bout);
-  }
-  if (out.fail() || in.fail()) {
-    ec = make_error_code(errc::io_error);
-    return false;
-  }
+    if (in.good() && out.good()) {
+      using InIt = istreambuf_iterator<char>;
+      using OutIt = ostreambuf_iterator<char>;
+      InIt bin(in);
+      InIt ein;
+      OutIt bout(out);
+      copy(bin, ein, bout);
+    }
+    if (out.fail() || in.fail()) {
+      ec = make_error_code(errc::io_error);
+      return false;
+    }
 
-  ec.clear();
-  return true;
-}
+    ec.clear();
+    return true;
+  }
 #else
 # error "Unknown implementation for copy_file_impl"
 #endif // copy_file_impl implementation
