@@ -1,4 +1,5 @@
 #include "dot_product.h"
+#include "dot_product_simple.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -11,26 +12,26 @@
 Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
     const double EPSILON = 0.00001;
     template <class Num>
-    void FillWithRandomNumbers(Num * dst, int seed, ui32 length) {
+    void FillWithRandomNumbers(Num * dst, int seed, size_t length) {
         TReallyFastRng32 Rnd(seed);
         Num maxNum = ~Num(0);
-        for (ui32 i = 0; i < length; ++i) {
+        for (size_t i = 0; i < length; ++i) {
             dst[i] = Rnd.Uniform(maxNum);
         }
     }
 
     template <class Num>
-    void FillWithRandomFloats(Num * dst, int seed, ui32 length) {
+    void FillWithRandomFloats(Num * dst, int seed, size_t length) {
         TReallyFastRng32 Rnd(seed);
-        for (ui32 i = 0; i < length; ++i) {
+        for (size_t i = 0; i < length; ++i) {
             dst[i] = Rnd.GenRandReal1();
         }
     }
 
     template <class Res, class Int>
-    Res SimpleDotProduct(const Int* lhs, const Int* rhs, ui32 length) {
+    Res SimpleDotProduct(const Int* lhs, const Int* rhs, size_t length) {
         Res sum = 0;
-        for (ui32 i = 0; i < length; ++i) {
+        for (size_t i = 0; i < length; ++i) {
             sum += static_cast<Res>(lhs[i]) * static_cast<Res>(rhs[i]);
         }
         return sum;
@@ -42,10 +43,10 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         TVector<i8> b(100);
         FillWithRandomNumbers(b.data(), 239, 100);
 
-        for (ui32 i = 0; i < 30; ++i) {
-            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
                 UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), (SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length)));
-                UNIT_ASSERT_EQUAL(DotProductSlow(a.data() + i, b.data() + i, length), (SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length)));
+                UNIT_ASSERT_EQUAL(DotProductSimple(a.data() + i, b.data() + i, length), (SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length)));
             }
         }
     }
@@ -56,10 +57,10 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         TVector<ui8> b(100);
         FillWithRandomNumbers(b.data(), 239, 100);
 
-        for (ui32 i = 0; i < 30; ++i) {
-            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
                 UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), (SimpleDotProduct<ui32, ui8>(a.data() + i, b.data() + i, length)));
-                UNIT_ASSERT_EQUAL(DotProductSlow(a.data() + i, b.data() + i, length), (SimpleDotProduct<ui32, ui8>(a.data() + i, b.data() + i, length)));
+                UNIT_ASSERT_EQUAL(DotProductSimple(a.data() + i, b.data() + i, length), (SimpleDotProduct<ui32, ui8>(a.data() + i, b.data() + i, length)));
             }
         }
     }
@@ -70,10 +71,10 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         TVector<i32> b(100);
         FillWithRandomNumbers(b.data(), 239, 100);
 
-        for (ui32 i = 0; i < 30; ++i) {
-            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
                 UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), (SimpleDotProduct<i64, i32>(a.data() + i, b.data() + i, length)));
-                UNIT_ASSERT_EQUAL(DotProductSlow(a.data() + i, b.data() + i, length), (SimpleDotProduct<i64, i32>(a.data() + i, b.data() + i, length)));
+                UNIT_ASSERT_EQUAL(DotProductSimple(a.data() + i, b.data() + i, length), (SimpleDotProduct<i64, i32>(a.data() + i, b.data() + i, length)));
             }
         }
     }
@@ -84,10 +85,10 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         TVector<float> b(100);
         FillWithRandomFloats(b.data(), 239, 100);
 
-        for (ui32 i = 0; i < 30; ++i) {
-            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
                 UNIT_ASSERT(std::fabs(DotProduct(a.data() + i, b.data() + i, length) - (SimpleDotProduct<float, float>(a.data() + i, b.data() + i, length))) < EPSILON);
-                UNIT_ASSERT(std::fabs(DotProductSlow(a.data() + i, b.data() + i, length) - (SimpleDotProduct<float, float>(a.data() + i, b.data() + i, length))) < EPSILON);
+                UNIT_ASSERT(std::fabs(DotProductSimple(a.data() + i, b.data() + i, length) - (SimpleDotProduct<float, float>(a.data() + i, b.data() + i, length))) < EPSILON);
             }
         }
     }
@@ -98,10 +99,10 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         TVector<float> b(100);
         FillWithRandomFloats(b.data(), 239, 100);
 
-        for (ui32 i = 0; i < 30; ++i) {
-            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
-                UNIT_ASSERT(std::fabs(L2NormSquared(a.data() + i, length) - DotProductSlow(a.data() + i, a.data() + i, length)) < EPSILON);
-                UNIT_ASSERT(std::fabs(L2NormSquared(b.data() + i, length) - DotProductSlow(b.data() + i, b.data() + i, length)) < EPSILON);
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
+                UNIT_ASSERT(std::fabs(L2NormSquared(a.data() + i, length) - DotProductSimple(a.data() + i, a.data() + i, length)) < EPSILON);
+                UNIT_ASSERT(std::fabs(L2NormSquared(b.data() + i, length) - DotProductSimple(b.data() + i, b.data() + i, length)) < EPSILON);
             }
         }
     }
@@ -112,10 +113,10 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         TVector<double> b(100);
         FillWithRandomFloats(b.data(), 239, 100);
 
-        for (ui32 i = 0; i < 30; ++i) {
-            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
                 UNIT_ASSERT(std::fabs(DotProduct(a.data() + i, b.data() + i, length) - (SimpleDotProduct<double, double>(a.data() + i, b.data() + i, length))) < EPSILON);
-                UNIT_ASSERT(std::fabs(DotProductSlow(a.data() + i, b.data() + i, length) - (SimpleDotProduct<double, double>(a.data() + i, b.data() + i, length))) < EPSILON);
+                UNIT_ASSERT(std::fabs(DotProductSimple(a.data() + i, b.data() + i, length) - (SimpleDotProduct<double, double>(a.data() + i, b.data() + i, length))) < EPSILON);
             }
         }
     }
@@ -126,7 +127,7 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         TVector<float> b(100);
         FillWithRandomFloats(b.data(), 239, 100);
 
-        auto simple3WayProduct = [](const float* l, const float* r, ui32 length) -> TTriWayDotProduct<float> {
+        auto simple3WayProduct = [](const float* l, const float* r, size_t length) -> TTriWayDotProduct<float> {
             return {
                 SimpleDotProduct<float, float>(l, l, length),
                 SimpleDotProduct<float, float>(l, r, length),
@@ -137,8 +138,8 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
             return p.LR / sqrt(p.LL * p.RR);
         };
 
-        for (ui32 i = 0; i < 30; ++i) {
-            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
                 const TString testCaseExpl = TStringBuilder() << "i = " << i << "; length = " << length;
                 {
                     const float c1 = cosine(TriWayDotProduct(a.data() + i, b.data() + i, length));
@@ -173,11 +174,11 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i32*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT(std::abs(DotProduct(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
         UNIT_ASSERT(std::abs(DotProduct(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
-        UNIT_ASSERT_EQUAL(DotProductSlow(static_cast<const i8*>(nullptr), nullptr, 0), 0);
-        UNIT_ASSERT_EQUAL(DotProductSlow(static_cast<const ui8*>(nullptr), nullptr, 0), 0);
-        UNIT_ASSERT_EQUAL(DotProductSlow(static_cast<const i32*>(nullptr), nullptr, 0), 0);
-        UNIT_ASSERT(std::abs(DotProductSlow(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
-        UNIT_ASSERT(std::abs(DotProductSlow(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
+        UNIT_ASSERT_EQUAL(DotProductSimple(static_cast<const i8*>(nullptr), nullptr, 0), 0);
+        UNIT_ASSERT_EQUAL(DotProductSimple(static_cast<const ui8*>(nullptr), nullptr, 0), 0);
+        UNIT_ASSERT_EQUAL(DotProductSimple(static_cast<const i32*>(nullptr), nullptr, 0), 0);
+        UNIT_ASSERT(std::abs(DotProductSimple(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
+        UNIT_ASSERT(std::abs(DotProductSimple(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
     }
 
     Y_UNIT_TEST(TestDotProductFloatStability) {
@@ -188,7 +189,7 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
         float res = DotProduct(a.data(), b.data(), a.size());
 
-        for (ui32 i = 0; i < 30; ++i)
+        for (size_t i = 0; i < 30; ++i)
             UNIT_ASSERT_VALUES_EQUAL(DotProduct(a.data(), b.data(), a.size()), res);
 
 #ifdef ARCADIA_SSE
@@ -204,7 +205,7 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
         double res = DotProduct(a.data(), b.data(), a.size());
 
-        for (ui32 i = 0; i < 30; ++i)
+        for (size_t i = 0; i < 30; ++i)
             UNIT_ASSERT_VALUES_EQUAL(DotProduct(a.data(), b.data(), a.size()), res);
 
 #ifdef ARCADIA_SSE
@@ -220,9 +221,9 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
         ui32 res = DotProduct(a.data(), b.data(), a.size());
 
-        for (ui32 i = 0; i < 30; ++i) {
+        for (size_t i = 0; i < 30; ++i) {
             UNIT_ASSERT_VALUES_EQUAL(DotProduct(a.data(), b.data(), a.size()), res);
-            UNIT_ASSERT_VALUES_EQUAL(DotProductSlow(a.data(), b.data(), a.size()), res);
+            UNIT_ASSERT_VALUES_EQUAL(DotProductSimple(a.data(), b.data(), a.size()), res);
         }
 
         UNIT_ASSERT_VALUES_EQUAL(res, 90928);
@@ -236,9 +237,9 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
         ui32 res = DotProduct(a.data(), b.data(), a.size());
 
-        for (ui32 i = 0; i < 30; ++i) {
+        for (size_t i = 0; i < 30; ++i) {
             UNIT_ASSERT_VALUES_EQUAL(DotProduct(a.data(), b.data(), a.size()), res);
-            UNIT_ASSERT_VALUES_EQUAL(DotProductSlow(a.data(), b.data(), a.size()), res);
+            UNIT_ASSERT_VALUES_EQUAL(DotProductSimple(a.data(), b.data(), a.size()), res);
         }
 
         UNIT_ASSERT_VALUES_EQUAL(res, 16420179);
@@ -247,6 +248,6 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
     Y_UNIT_TEST(TestDotProductUI4Manual) {
         static ui8 a[4] = {1 + (3 << 4), 15 + (8 << 4), 0 + (5 << 4), 3 + (1 << 4)};
         static ui8 b[4] = {2 + (4 << 4), 1 + (8 << 4), 7 + (0 << 4), 1 + (4 << 4)};
-        UNIT_ASSERT_VALUES_EQUAL(DotProductUI4Slow(a, b, 4), 2 + 12 + 15 + 64 + 0 + 0 + 3 + 4);
+        UNIT_ASSERT_VALUES_EQUAL(DotProductUI4Simple(a, b, 4), 2 + 12 + 15 + 64 + 0 + 0 + 3 + 4);
     }
 }
