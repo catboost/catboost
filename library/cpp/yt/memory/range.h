@@ -187,8 +187,7 @@ public:
 
     TRange<T> Slice(size_t startOffset, size_t endOffset) const
     {
-        YT_ASSERT(startOffset <= Size());
-        YT_ASSERT(endOffset >= startOffset && endOffset <= Size());
+        YT_ASSERT(startOffset <= endOffset && endOffset <= Size());
         return TRange<T>(Begin() + startOffset, endOffset - startOffset);
     }
 
@@ -401,6 +400,12 @@ public:
     {
         YT_ASSERT(this->Length_ > 0);
         return Begin()[this->Length_ - 1];
+    }
+
+    TMutableRange<T> Slice(size_t startOffset, size_t endOffset) const
+    {
+        YT_ASSERT(startOffset <= endOffset && endOffset <= this->Size());
+        return TMutableRange<T>(Begin() + startOffset, endOffset - startOffset);
     }
 
     TMutableRange<T> Slice(T* begin, T* end) const

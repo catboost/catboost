@@ -480,6 +480,82 @@ TEST(TIntrusivePtrTest, ObjectAlignment)
     EXPECT_TRUE(reinterpret_cast<uintptr_t>(bar.Get()) % 64 == 0);
 }
 
+TEST(TIntrusivePtrTest, InitStruct)
+{
+    struct TObj1 final
+    {
+        const int A;
+        const int B;
+    };
+
+    New<TObj1>(1, 2);
+
+    struct TExplicitObj final
+    {
+        explicit TExplicitObj(int a = 0)
+            : A(a)
+        { }
+
+        const int A;
+    };
+
+    New<TExplicitObj>();
+    New<TExplicitObj>(1);
+
+    struct TObj2 final
+    {
+        TObj2(i64 a = 0)
+            : A(a)
+        { }
+
+        const i64 A;
+    };
+
+    New<TObj2>(123);
+
+    struct TObj3 final
+    {
+        TObj3(ui64 a = 0)
+            : A(a)
+        { }
+
+        const ui64 A;
+    };
+
+    New<TObj3>(123);
+
+    struct TObj4 final
+    {
+        TObj4(int a, ui64 b = 0)
+            : A(a)
+            , B(b)
+        { }
+
+        int A;
+        const ui64 B;
+    };
+
+    New<TObj4>(123);
+    New<TObj4>(123, 123);
+
+    struct TObj5 final
+    {
+        TExplicitObj E;
+        int B;
+    };
+
+    New<TObj5>();
+
+    struct TObj6 final
+    {
+        TObj2 O;
+        int B;
+    };
+
+    New<TObj6>();
+    New<TObj6>(1, 2);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
