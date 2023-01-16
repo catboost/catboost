@@ -17,7 +17,7 @@ Install and update using `pip`_:
 
     pip install -U MarkupSafe
 
-.. _pip: https://pip.pypa.io/en/stable/quickstart/
+.. _pip: https://pip.pypa.io/en/stable/getting-started/
 
 
 Examples
