@@ -18,7 +18,7 @@
 // cmakedefine MACRO 1 will define MACRO as 1 or leave undefined
 #define DEBUG_BUILD 0
 #define RELWITHDEBINFO_BUILD 0
-#define LIBOMP_USE_ITT_NOTIFY 1
+#define LIBOMP_USE_ITT_NOTIFY 0
 #define USE_ITT_NOTIFY LIBOMP_USE_ITT_NOTIFY
 #if ! LIBOMP_USE_ITT_NOTIFY
 # define INTEL_NO_ITTNOTIFY_API
