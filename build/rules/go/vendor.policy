@@ -773,6 +773,9 @@ ALLOW .* -> vendor/github.com/yourbasic/graph
 # CONTRIB-2328: histogram
 ALLOW .* -> vendor/github.com/HdrHistogram/hdrhistogram-go
 
+# CONTRIB-2348: SDP implementation
+ALLOW .* -> vendor/github.com/pion/sdp/v3
+
 #
 # Tools
 #
