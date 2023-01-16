@@ -1129,7 +1129,7 @@ class GnuToolchain(Toolchain):
             for lib_path in build.host.library_path_variables:
                 self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
 
-        macos_version_min = '10.11'
+        macos_version_min = '10.12'
         macos_arm64_version_min = '11.0'
         ios_version_min = '11.0'
         # min ios simulator version for Metal App is 13.0
