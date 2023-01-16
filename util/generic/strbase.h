@@ -106,8 +106,7 @@ public:
     };
     using const_reverse_iterator = TReverseIteratorBase<const_iterator>;
 
-    _LIBCPP_CONSTEXPR_AFTER_CXX14
-    static inline size_t StrLen(const TCharType* s) noexcept {
+    static constexpr size_t StrLen(const TCharType* s) noexcept {
         if (Y_LIKELY(s)) {
             return TTraits::length(s);
         }
