@@ -118,10 +118,12 @@ ABSL_ATTRIBUTE_COLD ABSL_ATTRIBUTE_NOINLINE void Static::SlowInitIfNecessary() {
     guardedpage_allocator_.Init(/*max_alloced_pages=*/64, /*total_pages=*/128);
     inited_.store(true, std::memory_order_release);
 
+    pageheap_lock.Unlock();
     pthread_atfork(
       TCMallocPreFork,
       TCMallocPostFork,
       TCMallocPostFork);
+    pageheap_lock.Lock();
   }
 }
 
