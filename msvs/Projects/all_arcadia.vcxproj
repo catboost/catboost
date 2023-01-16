@@ -402,6 +402,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.vcxproj">
       <Project>74FA7725-9C3B-5A57-C15F-68FF0BB50A76</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\pycatboost-pytest-lib.global.vcxproj">
+      <Project>3773CB7C-3A64-506B-3BB3-2CADE115A28C</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\pycatboost-pytest-lib.vcxproj">
+      <Project>E0D4C48E-C9C1-1D99-C6E8-014B36784DF1</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\catboost\_catboost.pyd.vcxproj">
       <Project>35A1E8E1-5A55-A227-1CE0-986A245482DA</Project>
     </ProjectReference>
@@ -428,6 +434,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\catboost-python-package-ut-medium-gpu.vcxproj">
       <Project>770FB2B4-21EC-72C1-F55D-867AF0ECD62B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\small\catboost-python-package-ut-small.vcxproj">
+      <Project>7E2F460F-53B0-2475-C4AD-56F8073FE005</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\small\py2_catboost-python-package-ut-small.vcxproj">
+      <Project>5346E47B-0ACD-3B8A-1123-F942AC833A54</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_dsv_diff\limited_precision_dsv_diff.vcxproj">
       <Project>5FF2816F-34FA-81D6-B543-4B882E775E06</Project>
@@ -1262,6 +1274,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py3contrib-python-testpath.vcxproj">
       <Project>377791EF-584E-427C-D498-239AFD58432A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\pycontrib-python-testpath.global.vcxproj">
+      <Project>C64D778F-7C73-8ADC-F7C7-0DBA579BB288</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\pycontrib-python-testpath.vcxproj">
+      <Project>8E9D3E5D-72FC-14BE-D403-F8FC953F8164</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tornado\tornado-6\pypython-tornado-tornado-6.global.vcxproj">
       <Project>CD91984B-90CD-8C91-0031-A3FD437A20AD</Project>
