@@ -20,7 +20,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>EmptyStaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
@@ -77,175 +77,7 @@
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\_4e21f5d43285c4441c4cc25640.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\_4e21f5d43285c4441c4cc25640.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\_4e21f5d43285c4441c4cc25640.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\_a81a113f8533a3a6f4e7bda31d.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\_a81a113f8533a3a6f4e7bda31d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\_a81a113f8533a3a6f4e7bda31d.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/__init__.py-" "$(SolutionDir)../contrib/python/testpath/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/__init__.py.h23w.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/asserts.py-" "$(SolutionDir)../contrib/python/testpath/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/asserts.py.xcwt.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/commands.py-" "$(SolutionDir)../contrib/python/testpath/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/commands.py.tqid.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/env.py-" "$(SolutionDir)../contrib/python/testpath/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/env.py.4xmd.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/tempdir.py-" "$(SolutionDir)../contrib/python/testpath/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/tempdir.py.7t57.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/__init__.py-" "$(SolutionDir)../contrib/python/testpath/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/__init__.py.h23w.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/asserts.py-" "$(SolutionDir)../contrib/python/testpath/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/asserts.py.xcwt.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/commands.py-" "$(SolutionDir)../contrib/python/testpath/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/commands.py.tqid.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/env.py-" "$(SolutionDir)../contrib/python/testpath/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/env.py.4xmd.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/testpath/testpath/tempdir.py-" "$(SolutionDir)../contrib/python/testpath/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/tempdir.py.7t57.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/testpath/__init__.py.h23w.yapyc	$B/contrib/python/testpath/testpath/asserts.py.xcwt.yapyc	$B/contrib/python/testpath/testpath/commands.py.tqid.yapyc	$B/contrib/python/testpath/testpath/env.py.4xmd.yapyc	$B/contrib/python/testpath/testpath/tempdir.py.7t57.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\testpath\testpath\__init__.py;$(SolutionDir)..\contrib\python\testpath\testpath\asserts.py;$(SolutionDir)..\contrib\python\testpath\testpath\commands.py;$(SolutionDir)..\contrib\python\testpath\testpath\env.py;$(SolutionDir)..\contrib\python\testpath\testpath\tempdir.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\__init__.py.h23w.yapyc;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\asserts.py.xcwt.yapyc;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\commands.py.tqid.yapyc;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\env.py.4xmd.yapyc;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\tempdir.py.7t57.yapyc;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\.dist-info\METADATA">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.yasm" "-" "contrib/python/testpath/.dist-info/METADATA" "_617cca38b7caa22ffc38f2599b.rodata" "$(SolutionDir)../contrib/python/testpath/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a60fbacf9464cf2c4d51f860d0.rodata" "-" "contrib/python/testpath/.dist-info/top_level.txt" "_d6f2c771c3bea0ea09fb88dc5a.rodata" "$(SolutionDir)../contrib/python/testpath/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_cd15af38f0409ac9a79b15fddd.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.yasm" "-" "contrib/python/testpath/.dist-info/METADATA" "_617cca38b7caa22ffc38f2599b.rodata" "$(SolutionDir)../contrib/python/testpath/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a60fbacf9464cf2c4d51f860d0.rodata" "-" "contrib/python/testpath/.dist-info/top_level.txt" "_d6f2c771c3bea0ea09fb88dc5a.rodata" "$(SolutionDir)../contrib/python/testpath/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_cd15af38f0409ac9a79b15fddd.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/_4e21f5d43285c4441c4cc25640.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\.dist-info\METADATA;$(SolutionDir)..\contrib\python\testpath\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\_4e21f5d43285c4441c4cc25640.yasm;$(SolutionDir)$(Configuration)\contrib\python\testpath\_a60fbacf9464cf2c4d51f860d0.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_cd15af38f0409ac9a79b15fddd.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\testpath\__init__.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.yasm" "$(SolutionDir)../contrib/python/testpath/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_9ab9bd1b60319b416ebc8fa418.rodata" "-" "contrib/python/testpath/testpath/__init__.py" "_76b598d96780b4ed8753dc94cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/__init__.py.h23w.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_e4f04b86838b89692ae630dbf0.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_2292b55b0b94fc74b95dce02ec.rodata" "-" "contrib/python/testpath/testpath/asserts.py" "_4f6d92e4c4e97cebabbb31ec48.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/asserts.py.xcwt.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_e8b35530bdd855491ec6c99c78.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_cce0cd8daef366887c3736f934.rodata" "-" "contrib/python/testpath/testpath/commands.py" "_7634343ae79b2bec74039c5816.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/commands.py.tqid.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_2ef2200305817a1835f790281a.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_ba5039a022e64ed1c9a83c85dd.rodata" "-" "contrib/python/testpath/testpath/env.py" "_07bc8a904f8032123b1b485209.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/env.py.4xmd.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_44a5861f051c6078eda932a312.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_ebfa783a86e1030418cec85311.rodata" "-" "contrib/python/testpath/testpath/tempdir.py" "_43a7b16eb60f1c072eaec4860d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/tempdir.py.7t57.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_14a857dbc2f6136845822002d9.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.yasm" "$(SolutionDir)../contrib/python/testpath/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_9ab9bd1b60319b416ebc8fa418.rodata" "-" "contrib/python/testpath/testpath/__init__.py" "_76b598d96780b4ed8753dc94cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/__init__.py.h23w.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_e4f04b86838b89692ae630dbf0.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_2292b55b0b94fc74b95dce02ec.rodata" "-" "contrib/python/testpath/testpath/asserts.py" "_4f6d92e4c4e97cebabbb31ec48.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/asserts.py.xcwt.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_e8b35530bdd855491ec6c99c78.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_cce0cd8daef366887c3736f934.rodata" "-" "contrib/python/testpath/testpath/commands.py" "_7634343ae79b2bec74039c5816.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/commands.py.tqid.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_2ef2200305817a1835f790281a.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_ba5039a022e64ed1c9a83c85dd.rodata" "-" "contrib/python/testpath/testpath/env.py" "_07bc8a904f8032123b1b485209.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/env.py.4xmd.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_44a5861f051c6078eda932a312.rodata" "$(SolutionDir)../contrib/python/testpath/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_ebfa783a86e1030418cec85311.rodata" "-" "contrib/python/testpath/testpath/tempdir.py" "_43a7b16eb60f1c072eaec4860d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/testpath/tempdir.py.7t57.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/testpath/_14a857dbc2f6136845822002d9.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/_a81a113f8533a3a6f4e7bda31d.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\testpath\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\__init__.py.h23w.yapyc;$(SolutionDir)..\contrib\python\testpath\testpath\asserts.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\asserts.py.xcwt.yapyc;$(SolutionDir)..\contrib\python\testpath\testpath\commands.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\commands.py.tqid.yapyc;$(SolutionDir)..\contrib\python\testpath\testpath\env.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\env.py.4xmd.yapyc;$(SolutionDir)..\contrib\python\testpath\testpath\tempdir.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\testpath\tempdir.py.7t57.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\_a81a113f8533a3a6f4e7bda31d.yasm;$(SolutionDir)$(Configuration)\contrib\python\testpath\_9ab9bd1b60319b416ebc8fa418.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_e4f04b86838b89692ae630dbf0.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_2292b55b0b94fc74b95dce02ec.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_e8b35530bdd855491ec6c99c78.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_cce0cd8daef366887c3736f934.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_2ef2200305817a1835f790281a.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_ba5039a022e64ed1c9a83c85dd.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_44a5861f051c6078eda932a312.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_ebfa783a86e1030418cec85311.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\_14a857dbc2f6136845822002d9.rodata;</Outputs>
-    </CustomBuild>
-  </ItemGroup>
+  <ItemGroup/>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
@@ -291,6 +123,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py2\pypython-testpath-py2.vcxproj">
+      <Project>{FD7CE518-0A37-DEFA-92AA-187002C1F09B}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -302,9 +137,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
-      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
       <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
@@ -329,12 +161,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
-      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
-      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

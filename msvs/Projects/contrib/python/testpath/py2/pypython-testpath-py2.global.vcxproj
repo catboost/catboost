@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{C64D778F-7C73-8ADC-F7C7-0DBA579BB288}</ProjectGUID>
+    <ProjectGUID>{3201F632-C4DA-6E71-FAFD-E7106D3F6D1B}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-testpath.global</ProjectName>
+    <ProjectName>pypython-testpath-py2.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-testpath.global</TargetName>
+    <TargetName>pypython-testpath-py2.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\testpath\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C64D778F-7C73-8ADC-F7C7-0DBA579BB288\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\testpath\py2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3201F632-C4DA-6E71-FAFD-E7106D3F6D1B\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\4e21f5d43285c4441c4cc25640.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\a81a113f8533a3a6f4e7bda31d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\py2\0bcc4258c9a0be8259216043ba.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\testpath\py2\e088c5f82e2fb49629a8a3bd99.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp" "_617cca38b7caa22ffc38f2599b=resfs/src/resfs/file/contrib/python/testpath/.dist-info/METADATA" "_a60fbacf9464cf2c4d51f860d0=resfs/file/contrib/python/testpath/.dist-info/METADATA" "_d6f2c771c3bea0ea09fb88dc5a=resfs/src/resfs/file/contrib/python/testpath/.dist-info/top_level.txt" "_cd15af38f0409ac9a79b15fddd=resfs/file/contrib/python/testpath/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/0bcc4258c9a0be8259216043ba.cpp" "_d736d11e8cb1eb6c9793e10aca=resfs/src/resfs/file/contrib/python/testpath/py2/.dist-info/METADATA" "_21c5ff7bbb3a4d8fc402d5c3ab=resfs/file/contrib/python/testpath/py2/.dist-info/METADATA" "_482c8a647404d49865701f0237=resfs/src/resfs/file/contrib/python/testpath/py2/.dist-info/top_level.txt" "_d0709586d68bfe57eb805ec452=resfs/file/contrib/python/testpath/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/a81a113f8533a3a6f4e7bda31d.cpp" "_9ab9bd1b60319b416ebc8fa418=/py_modules/testpath.__init__" "_76b598d96780b4ed8753dc94cf=resfs/src//py_modules/testpath.__init__" "_e4f04b86838b89692ae630dbf0=/py_code/testpath.__init__" "_2292b55b0b94fc74b95dce02ec=/py_modules/testpath.asserts" "_4f6d92e4c4e97cebabbb31ec48=resfs/src//py_modules/testpath.asserts" "_e8b35530bdd855491ec6c99c78=/py_code/testpath.asserts" "_cce0cd8daef366887c3736f934=/py_modules/testpath.commands" "_7634343ae79b2bec74039c5816=resfs/src//py_modules/testpath.commands" "_2ef2200305817a1835f790281a=/py_code/testpath.commands" "_ba5039a022e64ed1c9a83c85dd=/py_modules/testpath.env" "_07bc8a904f8032123b1b485209=resfs/src//py_modules/testpath.env" "_44a5861f051c6078eda932a312=/py_code/testpath.env" "_ebfa783a86e1030418cec85311=/py_modules/testpath.tempdir" "_43a7b16eb60f1c072eaec4860d=resfs/src//py_modules/testpath.tempdir" "_14a857dbc2f6136845822002d9=/py_code/testpath.tempdir"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/e088c5f82e2fb49629a8a3bd99.cpp" "_4bc9f1da845a8182e2ed6c7244=/py_modules/testpath.__init__" "_eb3c50f554f1c5a6cbcb432fad=resfs/src//py_modules/testpath.__init__" "_d0c0012a31e3c8c586ec3e5858=/py_code/testpath.__init__" "_8d4895b972bcc7605ae0e62707=/py_modules/testpath.asserts" "_22c55d45e4fd28b8ae1289534a=resfs/src//py_modules/testpath.asserts" "_956272af0d3f2d39ba2fc77126=/py_code/testpath.asserts" "_13a410be33771422d0b631c0dd=/py_modules/testpath.commands" "_46c1c7237a51341a9558ebf5fe=resfs/src//py_modules/testpath.commands" "_f67c31d045329b4bc022b857bf=/py_code/testpath.commands" "_95b55d9a3f514cffcbc0a508cc=/py_modules/testpath.env" "_09f90ff84aa207395352df90c3=resfs/src//py_modules/testpath.env" "_b5b4136bdc2efb82453b21053a=/py_code/testpath.env" "_2ade46be62902cc3e45bd43eb9=/py_modules/testpath.tempdir" "_cb65c50b55977cd79502c09f72=resfs/src//py_modules/testpath.tempdir" "_70a4b675bea0803ea2de95ab1b=/py_code/testpath.tempdir"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp" "_617cca38b7caa22ffc38f2599b=resfs/src/resfs/file/contrib/python/testpath/.dist-info/METADATA" "_a60fbacf9464cf2c4d51f860d0=resfs/file/contrib/python/testpath/.dist-info/METADATA" "_d6f2c771c3bea0ea09fb88dc5a=resfs/src/resfs/file/contrib/python/testpath/.dist-info/top_level.txt" "_cd15af38f0409ac9a79b15fddd=resfs/file/contrib/python/testpath/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/0bcc4258c9a0be8259216043ba.cpp" "_d736d11e8cb1eb6c9793e10aca=resfs/src/resfs/file/contrib/python/testpath/py2/.dist-info/METADATA" "_21c5ff7bbb3a4d8fc402d5c3ab=resfs/file/contrib/python/testpath/py2/.dist-info/METADATA" "_482c8a647404d49865701f0237=resfs/src/resfs/file/contrib/python/testpath/py2/.dist-info/top_level.txt" "_d0709586d68bfe57eb805ec452=resfs/file/contrib/python/testpath/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath
+cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/a81a113f8533a3a6f4e7bda31d.cpp" "_9ab9bd1b60319b416ebc8fa418=/py_modules/testpath.__init__" "_76b598d96780b4ed8753dc94cf=resfs/src//py_modules/testpath.__init__" "_e4f04b86838b89692ae630dbf0=/py_code/testpath.__init__" "_2292b55b0b94fc74b95dce02ec=/py_modules/testpath.asserts" "_4f6d92e4c4e97cebabbb31ec48=resfs/src//py_modules/testpath.asserts" "_e8b35530bdd855491ec6c99c78=/py_code/testpath.asserts" "_cce0cd8daef366887c3736f934=/py_modules/testpath.commands" "_7634343ae79b2bec74039c5816=resfs/src//py_modules/testpath.commands" "_2ef2200305817a1835f790281a=/py_code/testpath.commands" "_ba5039a022e64ed1c9a83c85dd=/py_modules/testpath.env" "_07bc8a904f8032123b1b485209=resfs/src//py_modules/testpath.env" "_44a5861f051c6078eda932a312=/py_code/testpath.env" "_ebfa783a86e1030418cec85311=/py_modules/testpath.tempdir" "_43a7b16eb60f1c072eaec4860d=resfs/src//py_modules/testpath.tempdir" "_14a857dbc2f6136845822002d9=/py_code/testpath.tempdir"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/e088c5f82e2fb49629a8a3bd99.cpp" "_4bc9f1da845a8182e2ed6c7244=/py_modules/testpath.__init__" "_eb3c50f554f1c5a6cbcb432fad=resfs/src//py_modules/testpath.__init__" "_d0c0012a31e3c8c586ec3e5858=/py_code/testpath.__init__" "_8d4895b972bcc7605ae0e62707=/py_modules/testpath.asserts" "_22c55d45e4fd28b8ae1289534a=resfs/src//py_modules/testpath.asserts" "_956272af0d3f2d39ba2fc77126=/py_code/testpath.asserts" "_13a410be33771422d0b631c0dd=/py_modules/testpath.commands" "_46c1c7237a51341a9558ebf5fe=resfs/src//py_modules/testpath.commands" "_f67c31d045329b4bc022b857bf=/py_code/testpath.commands" "_95b55d9a3f514cffcbc0a508cc=/py_modules/testpath.env" "_09f90ff84aa207395352df90c3=resfs/src//py_modules/testpath.env" "_b5b4136bdc2efb82453b21053a=/py_code/testpath.env" "_2ade46be62902cc3e45bd43eb9=/py_modules/testpath.tempdir" "_cb65c50b55977cd79502c09f72=resfs/src//py_modules/testpath.tempdir" "_70a4b675bea0803ea2de95ab1b=/py_code/testpath.tempdir"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/testpath/4e21f5d43285c4441c4cc25640.cpp	$B/contrib/python/testpath/a81a113f8533a3a6f4e7bda31d.cpp	</Message>
+      <Message>$B/contrib/python/testpath/py2/0bcc4258c9a0be8259216043ba.cpp	$B/contrib/python/testpath/py2/e088c5f82e2fb49629a8a3bd99.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\4e21f5d43285c4441c4cc25640.cpp;$(SolutionDir)$(Configuration)\contrib\python\testpath\a81a113f8533a3a6f4e7bda31d.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py2\0bcc4258c9a0be8259216043ba.cpp;$(SolutionDir)$(Configuration)\contrib\python\testpath\py2\e088c5f82e2fb49629a8a3bd99.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
