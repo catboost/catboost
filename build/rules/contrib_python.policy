@@ -333,7 +333,7 @@ ALLOW billing/balance -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/dcsaap/backend/celery_app -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/dcs/dcs -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/dcs/tools/devserver -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW billing/dwh/grocery -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW billing/dwh/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/nirvana_reports/tools/simple_email_report/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/snout/yb_snout_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/snout/yb_snout_proxy -> contrib/python/sqlalchemy/sqlalchemy-1.2
