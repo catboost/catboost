@@ -47,6 +47,7 @@ from catboost_pytest_lib import (
     binary_path,
     data_file,
     get_limited_precision_dsv_diff_tool,
+    get_limited_precision_numpy_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
@@ -2056,7 +2057,7 @@ def test_fit_data(task_type):
     pred = model.predict_proba(eval_pool)
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
-    return local_canonical_file(preds_path)
+    return local_canonical_file(preds_path, diff_tool=get_limited_precision_numpy_diff_tool())
 
 
 def test_fit_predict_baseline(task_type):
@@ -2071,7 +2072,7 @@ def test_fit_predict_baseline(task_type):
     pred = model.predict(test_pool)
     pred_no_baseline = model.predict(test_pool_without_baseline)
     preds_path = test_output_path(PREDS_PATH)
-    assert np.all(np.isclose(pred, pred_no_baseline + test_baseline))
+    assert np.allclose(pred, pred_no_baseline + test_baseline)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
 

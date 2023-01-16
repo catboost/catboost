@@ -220,6 +220,7 @@ TVector<double> GetPredictionDiff(
         }
     }
 
+    // TODO : Support baselines
     TVector<double> predict = ApplyModelMulti(
         model,
         *objectsDataProvider,

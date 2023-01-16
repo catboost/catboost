@@ -145,6 +145,17 @@ def get_limited_precision_json_diff_tool(diff_limit):
     return diff_tool
 
 
+def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
+    diff_tool = [
+        yatest.common.binary_path("catboost/tools/limited_precision_numpy_diff/limited_precision_numpy_diff"),
+    ]
+    if rtol is not None:
+        diff_tool += ['--rtol', str(rtol)]
+    if atol is not None:
+        diff_tool += ['--atol', str(atol)]
+    return diff_tool
+
+
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
 

@@ -539,7 +539,8 @@ void TIndependentTreeShapParams::InitTransformedData(
     switch (ModelOutputType)
     {
         case EExplainableModelOutput::Probability: {
-            TransformedTargetOfDataset = ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor);
+            TransformedTargetOfDataset =
+                ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor, dataset.RawTargetData.GetBaseline());
             break;
         }
         case EExplainableModelOutput::LossFunction : {
