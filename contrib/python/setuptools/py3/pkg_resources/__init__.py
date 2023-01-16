@@ -113,6 +113,11 @@ def parse_version(v):
     try:
         return packaging.version.Version(v)
     except packaging.version.InvalidVersion:
+        warnings.warn(
+            f"{v} is an invalid version and will not be supported in "
+            "a future release",
+            PkgResourcesDeprecationWarning,
+        )
         return packaging.version.LegacyVersion(v)
 
 
