@@ -967,6 +967,13 @@ extern "C" void __cxa_rethrow()
 
 	assert(ex->handlerCount > 0 && "Rethrowing uncaught exception!");
 
+	// `globals->uncaughtExceptions` was decremented by `__cxa_begin_catch`.
+	// It's normally incremented by `throw_exception`, but this path invokes
+	// `_Unwind_Resume_or_Rethrow` directly to rethrow the exception.
+	// This path is only reachable if we're rethrowing a C++ exception -
+	// foreign exceptions don't adjust any of this state.
+	globals->uncaughtExceptions++;
+
 	// ex->handlerCount will be decremented in __cxa_end_catch in enclosing
 	// catch block
 	
