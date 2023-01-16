@@ -370,6 +370,10 @@ template <>
 class TSerializer<TUtf16String>: public TVectorSerializer<TUtf16String> {
 };
 
+template <class TChar>
+class TSerializer<std::basic_string<TChar>>: public TVectorSerializer<std::basic_string<TChar>> {
+};
+
 template <class T, class A>
 class TSerializer<TDeque<T, A>>: public TVectorSerializer<TDeque<T, A>> {
 };
