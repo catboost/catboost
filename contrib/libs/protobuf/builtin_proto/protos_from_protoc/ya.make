@@ -17,7 +17,10 @@ NO_OPTIMIZE_PY_PROTOS()
 
 PY_NAMESPACE(.)
 
-PROTO_NAMESPACE(GLOBAL contrib/libs/protoc/src)
+PROTO_NAMESPACE(
+    GLOBAL
+    contrib/libs/protoc/src
+)
 
 SRCDIR(contrib/libs/protoc/src)
 
