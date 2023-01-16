@@ -56,6 +56,10 @@ namespace re2 {
 // Controls whether the DFA should bail out early if the NFA would be faster.
 static bool dfa_should_bail_when_slow = true;
 
+void Prog::TESTING_ONLY_set_dfa_should_bail_when_slow(bool b) {
+  dfa_should_bail_when_slow = b;
+}
+
 // Changing this to true compiles in prints that trace execution of the DFA.
 // Generates a lot of output -- only useful for debugging.
 static const bool ExtraDebug = false;
@@ -167,6 +171,9 @@ class DFA {
   typedef std::unordered_set<State*, StateHash, StateEqual> StateSet;
 
  private:
+  // Make it easier to swap in a scalable reader-writer mutex.
+  using CacheMutex = Mutex;
+
   enum {
     // Indices into start_ for unanchored searches.
     // Add kStartAnchored for anchored searches.
@@ -331,7 +338,7 @@ class DFA {
   // while holding cache_mutex_ for writing, to avoid interrupting other
   // readers.  Any State* pointers are only valid while cache_mutex_
   // is held.
-  Mutex cache_mutex_;
+  CacheMutex cache_mutex_;
   int64_t mem_budget_;     // Total memory budget for all States.
   int64_t state_budget_;   // Amount of memory remaining for new States.
   StateSet state_cache_;   // All States computed so far.
@@ -1106,7 +1113,7 @@ DFA::State* DFA::RunStateOnByte(State* state, int c) {
 
 class DFA::RWLocker {
  public:
-  explicit RWLocker(Mutex* mu);
+  explicit RWLocker(CacheMutex* mu);
   ~RWLocker();
 
   // If the lock is only held for reading right now,
@@ -1116,14 +1123,14 @@ class DFA::RWLocker {
   void LockForWriting();
 
  private:
-  Mutex* mu_;
+  CacheMutex* mu_;
   bool writing_;
 
   RWLocker(const RWLocker&) = delete;
   RWLocker& operator=(const RWLocker&) = delete;
 };
 
-DFA::RWLocker::RWLocker(Mutex* mu) : mu_(mu), writing_(false) {
+DFA::RWLocker::RWLocker(CacheMutex* mu) : mu_(mu), writing_(false) {
   mu_->ReaderLock();
 }
 
@@ -1961,10 +1968,6 @@ int DFA::BuildAllStates(const Prog::DFAStateCallback& cb) {
 // Build out all states in DFA for kind.  Returns number of states.
 int Prog::BuildEntireDFA(MatchKind kind, const DFAStateCallback& cb) {
   return GetDFA(kind)->BuildAllStates(cb);
-}
-
-void Prog::TEST_dfa_should_bail_when_slow(bool b) {
-  dfa_should_bail_when_slow = b;
 }
 
 // Computes min and max for matching string.

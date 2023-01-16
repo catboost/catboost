@@ -30,8 +30,8 @@ static PrefixTest tests[] = {
 
   // If the regexp immediately goes into
   // something not a literal match, there's no required prefix.
-  { "^(abc)", false },
   { "^a*",  false },
+  { "^(abc)", false },
 
   // Otherwise, it should work.
   { "^abc$", true, "abc", false, "(?-m:$)" },
@@ -84,17 +84,25 @@ static PrefixTest for_accel_tests[] = {
 
   // If the regexp immediately goes into
   // something not a literal match, there's no required prefix.
-  { "(abc)", false },
   { "a*",  false },
 
+  // Unlike RequiredPrefix(), RequiredPrefixForAccel() can "see through"
+  // capturing groups, but doesn't try to glue prefix fragments together.
+  { "(a?)def", false },
+  { "(ab?)def", true, "a", false },
+  { "(abc?)def", true, "ab", false },
+  { "(()a)def", false },
+  { "((a)b)def", true, "a", false },
+  { "((ab)c)def", true, "ab", false },
+
   // Otherwise, it should work.
-  { "abc$", true, "abc", false, },
-  { "abc", true, "abc", false, },
-  { "(?i)abc", true, "abc", true, },
-  { "abcd*", true, "abc", false, },
-  { "[Aa][Bb]cd*", true, "ab", true, },
-  { "ab[Cc]d*", true, "ab", false, },
-  { "☺abc", true, "☺abc", false, },
+  { "abc$", true, "abc", false },
+  { "abc", true, "abc", false },
+  { "(?i)abc", true, "abc", true },
+  { "abcd*", true, "abc", false },
+  { "[Aa][Bb]cd*", true, "ab", true },
+  { "ab[Cc]d*", true, "ab", false },
+  { "☺abc", true, "☺abc", false },
 };
 
 TEST(RequiredPrefixForAccel, SimpleTests) {
@@ -123,23 +131,69 @@ TEST(RequiredPrefixForAccel, SimpleTests) {
   }
 }
 
-TEST(PrefixAccel, BasicTest) {
-  Regexp* re = Regexp::Parse("abc\\d+", Regexp::LikePerl, NULL);
+TEST(RequiredPrefixForAccel, CaseFoldingForKAndS) {
+  Regexp* re;
+  std::string p;
+  bool f;
+
+  // With Latin-1 encoding, `(?i)` prefixes can include 'k' and 's'.
+  re = Regexp::Parse("(?i)KLM", Regexp::LikePerl|Regexp::Latin1, NULL);
   ASSERT_TRUE(re != NULL);
-  Prog* prog = re->CompileToProg(0);
-  ASSERT_TRUE(prog != NULL);
-  for (int i = 0; i < 100; i++) {
-    std::string text(i, 'a');
-    const char* p = reinterpret_cast<const char*>(
-        prog->PrefixAccel(text.data(), text.size()));
-    EXPECT_TRUE(p == NULL);
-    text.append("abc");
-    p = reinterpret_cast<const char*>(
-        prog->PrefixAccel(text.data(), text.size()));
-    EXPECT_EQ(i, p-text.data());
-  }
-  delete prog;
+  ASSERT_TRUE(re->RequiredPrefixForAccel(&p, &f));
+  ASSERT_EQ(p, "klm");
+  ASSERT_EQ(f, true);
   re->Decref();
+
+  re = Regexp::Parse("(?i)STU", Regexp::LikePerl|Regexp::Latin1, NULL);
+  ASSERT_TRUE(re != NULL);
+  ASSERT_TRUE(re->RequiredPrefixForAccel(&p, &f));
+  ASSERT_EQ(p, "stu");
+  ASSERT_EQ(f, true);
+  re->Decref();
+
+  // With UTF-8 encoding, `(?i)` prefixes can't include 'k' and 's'.
+  // This is because they match U+212A and U+017F, respectively, and
+  // so the parser ends up emitting character classes, not literals.
+  re = Regexp::Parse("(?i)KLM", Regexp::LikePerl, NULL);
+  ASSERT_TRUE(re != NULL);
+  ASSERT_FALSE(re->RequiredPrefixForAccel(&p, &f));
+  re->Decref();
+
+  re = Regexp::Parse("(?i)STU", Regexp::LikePerl, NULL);
+  ASSERT_TRUE(re != NULL);
+  ASSERT_FALSE(re->RequiredPrefixForAccel(&p, &f));
+  re->Decref();
+}
+
+static const char* prefix_accel_tests[] = {
+    "aababc\\d+",
+    "(?i)AABABC\\d+",
+};
+
+TEST(PrefixAccel, SimpleTests) {
+  for (size_t i = 0; i < arraysize(prefix_accel_tests); i++) {
+    const char* pattern = prefix_accel_tests[i];
+    Regexp* re = Regexp::Parse(pattern, Regexp::LikePerl, NULL);
+    ASSERT_TRUE(re != NULL);
+    Prog* prog = re->CompileToProg(0);
+    ASSERT_TRUE(prog != NULL);
+    ASSERT_TRUE(prog->can_prefix_accel());
+    for (int j = 0; j < 100; j++) {
+      std::string text(j, 'a');
+      const char* p = reinterpret_cast<const char*>(
+          prog->PrefixAccel(text.data(), text.size()));
+      EXPECT_TRUE(p == NULL);
+      text.append("aababc");
+      for (int k = 0; k < 100; k++) {
+        text.append(k, 'a');
+        p = reinterpret_cast<const char*>(
+            prog->PrefixAccel(text.data(), text.size()));
+        EXPECT_EQ(j, p - text.data());
+      }
+    }
+    delete prog;
+    re->Decref();
+  }
 }
 
 }  // namespace re2

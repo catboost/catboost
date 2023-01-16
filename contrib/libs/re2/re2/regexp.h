@@ -86,6 +86,7 @@
 // form accessible to clients, so that client code can analyze the
 // parsed regular expressions.
 
+#include <stddef.h>
 #include <stdint.h>
 #include <map>
 #include <set>
@@ -259,7 +260,7 @@ class CharClass {
  private:
   CharClass();  // not implemented
   ~CharClass();  // not implemented
-  static CharClass* New(int maxranges);
+  static CharClass* New(size_t maxranges);
 
   friend class CharClassBuilder;
 
@@ -447,6 +448,10 @@ class Regexp {
   // Callers should expect *prefix and *foldcase to be "zeroed"
   // regardless of the return value.
   bool RequiredPrefixForAccel(std::string* prefix, bool* foldcase);
+
+  // Controls the maximum repeat count permitted by the parser.
+  // FOR FUZZING ONLY.
+  static void FUZZING_ONLY_set_maximum_repeat_count(int i);
 
  private:
   // Constructor allocates vectors as appropriate for operator.
