@@ -1,6 +1,6 @@
 
 
-PY3_PROGRAM(pycc)
+PY3_PROGRAM_BIN(pycc)
 
 ENABLE(PYBUILD_NO_PYC)
 

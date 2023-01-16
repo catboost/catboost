@@ -138,6 +138,10 @@ def is_py3(unit):
     return unit.get("PYTHON3") == "yes"
 
 
+def on_py_program(unit, *args):
+    py_program(unit, is_py3(unit))
+
+
 def py_program(unit, py3):
     """
     Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/#modulpyprogramimakrospymain
@@ -181,6 +185,7 @@ def onpy_srcs(unit, *args):
 
     upath = unit.path()[3:]
     py3 = is_py3(unit)
+    py_main_only = unit.get('PROCESS_PY_MAIN_ONLY')
     with_py = not unit.get('PYBUILD_NO_PY')
     with_pyc = not unit.get('PYBUILD_NO_PYC')
     in_proto_library = unit.get('PY_PROTO') or unit.get('PY3_PROTO')
@@ -297,13 +302,16 @@ def onpy_srcs(unit, *args):
                         py_namespaces.setdefault(mod_root_path, set()).add(ns if ns else '.')
                     mod = ns + mod_name
 
-            if py3 and mod == '__main__':
-                ymake.report_configure_error('TOP_LEVEL __main__.py is not allowed in PY3_PROGRAM')
-
             if main_mod:
                 py_main(unit, mod + ":main")
             elif py3 and unit_needs_main and main_py:
                 py_main(unit, mod)
+
+            if py_main_only:
+                continue
+
+            if py3 and mod == '__main__':
+                ymake.report_configure_error('TOP_LEVEL __main__.py is not allowed in PY3_PROGRAM')
 
             pathmod = (path, mod)
 
@@ -556,6 +564,8 @@ def onpy_register(unit, *args):
 
 
 def py_main(unit, arg):
+    if unit.get('IGNORE_PY_MAIN'):
+        return
     unit_needs_main = unit.get('MODULE_TYPE') in ('PROGRAM', 'DLL')
     if unit_needs_main:
         py_program(unit, is_py3(unit))
