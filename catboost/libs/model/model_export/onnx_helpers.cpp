@@ -43,7 +43,8 @@ void NCB::NOnnx::InitMetadata(
     const NJson::TJsonValue& userParameters,
     onnx::ModelProto* onnxModel) {
 
-    onnxModel->set_ir_version(onnx::IR_VERSION);
+    // Versions 4 and above essentially just introduce new types we don't need.
+    onnxModel->set_ir_version(3);
 
     onnx::OperatorSetIdProto* opset = onnxModel->add_opset_import();
     opset->set_domain(onnx::AI_ONNX_ML_DOMAIN);

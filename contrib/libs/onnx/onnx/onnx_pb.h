@@ -1,5 +1,7 @@
-// Copyright (c) Facebook Inc. and Microsoft Corporation.
-// Licensed under the MIT license.
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 
 #ifndef ONNX_ONNX_PB_H
 #define ONNX_ONNX_PB_H
@@ -47,10 +49,9 @@
 #endif
 
 #ifdef ONNX_ML
-#include <contrib/libs/onnx/proto/onnx_ml.pb.h>
+#include "onnx/onnx-ml.pb.h"
 #else
-//#include <contrib/libs/onnx/proto/onnx.pb.h>
-#error "Arcadia supports only ONNX_ML-enabled build"
+#error #include "onnx/onnx.pb.h"
 #endif
 
 #endif // ! ONNX_ONNX_PB_H

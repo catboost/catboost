@@ -1,9 +1,13 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // ATTENTION: The code in this file is highly EXPERIMENTAL.
 // Adventurous users should note that the APIs will probably change.
 
 #include <vector>
 #include <stdint.h>
-#include <string>
+#include <util/generic/string.h>
 #include <unordered_map>
 #include <mutex>
 

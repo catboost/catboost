@@ -1,7 +1,0 @@
-====================COPYRIGHT====================
-// Copyright (c) Facebook Inc. and Microsoft Corporation.
-// Licensed under the MIT license.
-
-
-====================MIT====================
-// Licensed under the MIT license.
