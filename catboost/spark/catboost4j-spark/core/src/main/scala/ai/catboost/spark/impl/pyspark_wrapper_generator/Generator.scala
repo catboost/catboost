@@ -685,7 +685,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         return $modelClassName(java_model)
 
 
-    def transformPool(pool):
+    def transformPool(self, pool):
         "\""
         This function is useful when the dataset has been already quantized but works with any Pool
         "\""
