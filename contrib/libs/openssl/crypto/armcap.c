@@ -234,11 +234,13 @@ void OPENSSL_cpuid_setup(void)
     }
 # endif
 
+    #ifndef ARCADIA_OPENSSL_DISABLE_ARMV7_TICK
     /* Things that getauxval didn't tell us */
     if (sigsetjmp(ill_jmp, 1) == 0) {
         _armv7_tick();
         OPENSSL_armcap_P |= ARMV7_TICK;
     }
+    #endif
 
     sigaction(SIGILL, &ill_oact, NULL);
     sigprocmask(SIG_SETMASK, &oset, NULL);
