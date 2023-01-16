@@ -492,3 +492,10 @@ def commonpath(paths):
             break
 
     return os.path.sep.join(common)
+
+
+def set_execute_bits(filename):
+    stm = os.stat(filename).st_mode
+    exe = stm | 0o111
+    if stm != exe:
+        os.chmod(filename, exe)
