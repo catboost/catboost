@@ -516,6 +516,7 @@ class RE2 {
                       const StringPiece& rewrite,
                       std::string* out);
 
+#if defined(ARCADIA_ROOT)
   static bool Extract(const StringPiece& text,
                       const RE2& pattern,
                       const StringPiece& rewrite,
@@ -525,6 +526,7 @@ class RE2 {
     *out = tmp;
     return res;
   }
+#endif
 
   // Escapes all potentially meaningful regexp characters in
   // 'unquoted'.  The returned string, used as a regular expression,
