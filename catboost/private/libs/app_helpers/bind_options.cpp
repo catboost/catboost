@@ -690,6 +690,26 @@ static void BindFeaturesSelectParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
             (*plainJsonPtr)["num_features_to_select"] = numberOfFeaturesToSelect;
         });
     parser
+        .AddLongOption("features-tags-for-select")
+        .RequiredArgument("TAG,TAG,...")
+        .Help("From which features tags perform selection.")
+        .Handler1T<TString>([plainJsonPtr](const TString& tagNamesLine) {
+            for (const auto& tag : StringSplitter(tagNamesLine).Split(',').SkipEmpty()) {
+                (*plainJsonPtr)["features_tags_for_select"].AppendValue(TStringBuf(tag));
+            }
+            CB_ENSURE(
+                !(*plainJsonPtr)["features_tags_for_select"].GetArray().empty(),
+                "Empty features tags for selection list " << tagNamesLine
+            );
+        });
+    parser
+        .AddLongOption("num-features-tags-to-select")
+        .RequiredArgument("int")
+        .Help("How many features tags to select from features-tags-for-select.")
+        .Handler1T<int>([plainJsonPtr](const int numberOfFeaturesTagsToSelect) {
+            (*plainJsonPtr)["num_features_tags_to_select"] = numberOfFeaturesTagsToSelect;
+        });
+    parser
         .AddLongOption("features-selection-steps")
         .RequiredArgument("int")
         .Help("How many steps to perform during feature selection.")
@@ -717,6 +737,14 @@ static void BindFeaturesSelectParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
             "Should be one of: ", GetEnumAllNames<EFeaturesSelectionAlgorithm>()))
         .Handler1T<EFeaturesSelectionAlgorithm>([plainJsonPtr](const auto algorithm) {
             (*plainJsonPtr)["features_selection_algorithm"] = ToString(algorithm);
+        });
+    parser
+        .AddLongOption("features-selection-grouping")
+        .Help(TString::Join(
+            "Which grouping to use for features selection.\n",
+            "Should be one of: ", GetEnumAllNames<EFeaturesSelectionGrouping>()))
+        .Handler1T<EFeaturesSelectionGrouping>([plainJsonPtr](const auto grouping) {
+            (*plainJsonPtr)["features_selection_grouping"] = ToString(grouping);
         });
     parser
         .AddLongOption("shap-calc-type")

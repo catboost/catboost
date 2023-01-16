@@ -27,10 +27,13 @@ namespace NCatboostOptions {
     public:
         TOption<TVector<ui32>> FeaturesForSelect;
         TOption<int> NumberOfFeaturesToSelect;
+        TOption<TVector<TString>> FeaturesTagsForSelect;
+        TOption<int> NumberOfFeaturesTagsToSelect;
         TOption<int> Steps;
         TOption<bool> TrainFinalModel;
         TOption<TString> ResultPath;
         TOption<NCB::EFeaturesSelectionAlgorithm> Algorithm;
+        TOption<NCB::EFeaturesSelectionGrouping> Grouping;
         TOption<ECalcTypeShapValues> ShapCalcType;
     };
 }

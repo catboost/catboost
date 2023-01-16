@@ -421,4 +421,9 @@ namespace NCB {
         RecursiveByLossFunctionChange,
         RecursiveByShapValues
     };
+
+    enum class EFeaturesSelectionGrouping {
+        Individual,
+        ByTags
+    };
 }

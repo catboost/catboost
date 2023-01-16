@@ -227,6 +227,13 @@ class EFeaturesSelectionAlgorithm(Enum):
     RecursiveByShapValues = "RecursiveByShapValues"
 
 
+class EFeaturesSelectionGrouping(Enum):
+    """Select individual features"""
+    Individual = "Individual"
+    """Select feature groups (marked by tags)"""
+    ByTags = "ByTags"
+
+
 def _get_features_indices(features, feature_names):
     """
         Parameters
@@ -322,7 +329,15 @@ def _update_params_quantize_part(params, ignored_features, per_float_feature_qua
     return params
 
 
-def plot_features_selection_loss_graph(summary):
+def plot_features_selection_loss_graph(
+    title,
+    entities_name,
+    entities_name_in_fields,
+    eliminated_entities_indices,
+    eliminated_entities_names,
+    loss_graph,
+    cost_graph=None
+):
     warn_msg = "To draw plots you should install plotly."
     try:
         import plotly.graph_objs as go
@@ -330,80 +345,143 @@ def plot_features_selection_loss_graph(summary):
         warnings.warn(warn_msg)
         raise ImportError(str(e))
 
-    eliminated_features = summary['eliminated_features']
-    eliminated_features_names = summary['eliminated_features_names']
-    names_present = any(eliminated_features_names)
-    names_or_indices = eliminated_features_names if names_present else list(map(str, eliminated_features))
-    loss_values = summary['loss_graph']['loss_values']
-    removed_features_cnt = summary['loss_graph']['removed_features_count']
-    main_indices = summary['loss_graph']['main_indices']
+    indices_present = any(eliminated_entities_indices)
+    names_present = any(eliminated_entities_names)
+    names_or_indices = eliminated_entities_names if names_present else list(map(str, eliminated_entities_indices))
+    loss_values = loss_graph['loss_values']
+    removed_entities_cnt = loss_graph['removed_' + entities_name_in_fields + '_count']
+    main_indices = loss_graph['main_indices']
 
     fig = go.Figure()
-    color = 'rgb(51,160,44)'
+    fig['layout']['title'] = go.layout.Title(text=title)
+    loss_graph_color = 'rgb(51,160,44)'
     # line with all points
     fig.add_trace(go.Scatter(
-        x=removed_features_cnt,
+        x=removed_entities_cnt,
         y=loss_values,
-        line=go.scatter.Line(color=color),
+        line=go.scatter.Line(color=loss_graph_color),
         mode='lines+markers',
         text=[''] + names_or_indices,
         name=''
     ))
-    # red markers for main points
-    fig.add_trace(go.Scatter(
-        x=[removed_features_cnt[idx] for idx in main_indices],
-        y=[loss_values[idx] for idx in main_indices],
-        mode='markers',
-        marker=go.scatter.Marker(size=10, symbol='square'),
-        text=[names_or_indices[idx - 1] if idx > 0 else '' for idx in main_indices],
-        name=''
-    ))
-    # labels with features indices
-    fig.add_trace(go.Scatter(
-        x=removed_features_cnt,
-        y=loss_values,
-        mode='text',
-        text=[''] + list(map(str, eliminated_features)),
-        textposition='bottom center',
-        textfont=dict(family='sans serif', size=18, color=color),
-        name='',
-        visible=False
-    ))
-    if names_present:
-        # labels with features names
+
+    if len(main_indices) > 0:
+        # red markers for main points
         fig.add_trace(go.Scatter(
-            x=removed_features_cnt,
+            x=[removed_entities_cnt[idx] for idx in main_indices],
+            y=[loss_values[idx] for idx in main_indices],
+            mode='markers',
+            marker=go.scatter.Marker(size=10, symbol='square'),
+            text=[names_or_indices[idx - 1] if idx > 0 else '' for idx in main_indices],
+            name=''
+        ))
+    if indices_present:
+        # labels with entities indices
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
             y=loss_values,
             mode='text',
-            text=[''] + eliminated_features_names,
-            textfont=dict(family='sans serif', size=18, color=color),
+            text=[''] + list(map(str, eliminated_entities_indices)),
+            textposition='bottom center',
+            textfont=dict(family='sans serif', size=18, color=loss_graph_color),
+            name='',
+            visible=False
+        ))
+    if names_present:
+        # labels with entities names
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
+            y=loss_values,
+            mode='text',
+            text=[''] + eliminated_entities_names,
+            textfont=dict(family='sans serif', size=18, color=loss_graph_color),
             textposition='bottom center',
             name='',
+            visible=False
+        ))
+
+    cost_graph_color = 'rgb(160,44,44)'
+    if cost_graph is not None:
+        # line with all points
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
+            y=cost_graph['loss_values'],
+            line=go.scatter.Line(color=cost_graph_color),
+            mode='lines+markers',
+            text=[''] + eliminated_entities_names,
+            name='',
+            yaxis="y2"
+        ))
+
+        # labels with entities names
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
+            y=cost_graph['loss_values'],
+            mode='text',
+            text=[''] + eliminated_entities_names,
+            textfont=dict(family='sans serif', size=18, color=cost_graph_color),
+            textposition='bottom center',
+            name='',
+            yaxis="y2",
             visible=False
         ))
     axis_options = dict(
         gridcolor='rgb(255,255,255)', showgrid=True, showline=False,
         showticklabels=True, tickcolor='rgb(127,127,127)', ticks='outside', zeroline=False
     )
-    fig['layout']['xaxis1'].update(title='number of removed features', **axis_options)
-    fig['layout']['yaxis1'].update(title='loss value', **axis_options)
+    fig.update_layout(
+        xaxis=dict(title='number of removed ' + entities_name, **axis_options),
+        yaxis=dict(
+            title='loss value',
+            titlefont=dict(color=loss_graph_color),
+            tickfont=dict(color=loss_graph_color),
+            **axis_options
+        )
+    )
+    if cost_graph is not None:
+        fig.update_layout(
+            yaxis2=dict(
+                title='cost value',
+                side="right",
+                anchor="x",
+                overlaying="y",
+                titlefont=dict(color=cost_graph_color),
+                tickfont=dict(color=cost_graph_color),
+                **axis_options
+            )
+        )
 
     buttons = []
+
+    def get_visible_arg(show_indices, show_names):
+        visible_arg = [True]
+        if len(main_indices) > 0:
+            visible_arg.append(True)
+        if indices_present:
+            visible_arg.append(show_indices)
+        if names_present:
+            visible_arg.append(show_names)
+        if cost_graph is not None:
+            visible_arg.append(True)
+            visible_arg.append(show_names)
+        return visible_arg
+
     buttons.append(dict(
-        label='Hide features',
+        label='Hide ' + entities_name,
         method='update',
-        args=[{"visible": [True, True, False, False]}]
+        args=[{"visible": get_visible_arg(show_indices=False, show_names=False)}]
     ))
-    buttons.append(dict(
-        label='Show indices',
-        method='update',
-        args=[{"visible": [True, True, True, False]}]
-    ))
+    if indices_present:
+        buttons.append(dict(
+            label='Show indices',
+            method='update',
+            args=[{"visible": get_visible_arg(show_indices=True, show_names=False)}]
+        ))
     if names_present:
         buttons.append(dict(
             label='Show names',
             method='update',
-            args=[{"visible": [True, True, False, True]}]
+            args=[{"visible": get_visible_arg(show_indices=False, show_names=True)}]
         ))
 
     fig.update_layout(
@@ -424,6 +502,29 @@ def plot_features_selection_loss_graph(summary):
     )
 
     return fig
+
+def plot_features_selection_loss_graphs(summary):
+    result = {}
+    result['features'] = plot_features_selection_loss_graph(
+        'Loss by eliminated features',
+        'features',
+        'features',
+        summary['eliminated_features'],
+        summary['eliminated_features_names'],
+        summary['loss_graph']
+    )
+    if 'eliminated_features_tags' in summary:
+        result['features_tags'] = plot_features_selection_loss_graph(
+            'Loss by eliminated features tags',
+            'features tags',
+            'features_tags',
+            [],
+            summary['eliminated_features_tags'],
+            summary['features_tags_loss_graph'],
+            cost_graph=summary['features_tags_cost_graph']
+        )
+
+    return result
 
 
 class Pool(_PoolBase):
@@ -3939,7 +4040,8 @@ class CatBoost(_CatBoostBase):
 
     def select_features(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None,
                         algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None,
-                        logging_level=None, plot=False, log_cout=sys.stdout, log_cerr=sys.stderr):
+                        logging_level=None, plot=False, log_cout=sys.stdout, log_cerr=sys.stderr,
+                        grouping=None, features_tags_for_select=None, num_features_tags_to_select=None):
         """
         Select best features from pool according to loss value.
 
@@ -3956,6 +4058,7 @@ class CatBoost(_CatBoostBase):
             Dataset for evaluation.
 
         features_for_select : str or list of feature indices, names or ranges
+            (for grouping = Individual)
             Which features should participate in the selection.
             Format examples:
                 - [0, 2, 3, 4, 17]
@@ -3964,6 +4067,7 @@ class CatBoost(_CatBoostBase):
                 - ["Name0", "Name2", "Name3", "Name4", "Name20"]
 
         num_features_to_select : positive int
+            (for grouping = Individual)
             How many features to select from features_for_select.
 
         algorithm : EFeaturesSelectionAlgorithm or string, optional (default=RecursiveByShapValues)
@@ -4013,11 +4117,29 @@ class CatBoost(_CatBoostBase):
 
         log_cerr: error stream or callback for logging
 
+        grouping : EFeaturesSelectionGrouping or string, optional (default=Individual)
+            Which grouping to use for features selection.
+            Possible values:
+                - Individual
+                    Select individual features
+                - ByTags
+                    Select feature groups (marked by tags)
+
+        features_tags_for_select : list of strings
+            (for grouping = ByTags)
+            Which features tags should participate in the selection.
+
+        num_features_tags_to_select : positive int
+            (for grouping = ByTags)
+            How many features tags to select from features_tags_for_select.
+
         Returns
         -------
         dict with fields:
             'selected_features': list of selected features indices
             'eliminated_features': list of eliminated features indices
+            'selected_features_tags': list of selected features tags (optional, present if grouping == ByTags)
+            'eliminated_features_tags': list of selected features tags (optional, present if grouping == ByTags)
         """
         if train_final_model and self.is_fitted():
             raise CatBoostError("Model was already fitted. Set train_final_model to False or use not fitted model.")
@@ -4025,21 +4147,48 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("X must not be None")
         if y is None and not isinstance(X, PATH_TYPES + (Pool,)):
             raise CatBoostError("y may be None only when X is an instance of catboost.Pool, str or pathlib.Path.")
-        if isinstance(features_for_select, Iterable) and not isinstance(features_for_select, STRING_TYPES):
-            features_for_select = ",".join(map(str, features_for_select))
-        if features_for_select is None:
-            raise CatBoostError("You should specify features_for_select")
-        if num_features_to_select is None:
-            raise CatBoostError("You should specify num_features_to_select")
 
         train_params = self._prepare_train_params(X=X, y=y, eval_set=eval_set, verbose=verbose, logging_level=logging_level)
         params = train_params["params"]
+
+        if grouping is None:
+            grouping = EFeaturesSelectionGrouping.Individual
+        else:
+            grouping = enum_from_enum_or_str(EFeaturesSelectionGrouping, grouping).value
+            params["features_selection_grouping"] = grouping
+
+        if grouping == EFeaturesSelectionGrouping.Individual:
+            if isinstance(features_for_select, Iterable) and not isinstance(features_for_select, STRING_TYPES):
+                features_for_select = ",".join(map(str, features_for_select))
+            if features_for_select is None:
+                raise CatBoostError("You should specify features_for_select")
+            if features_tags_for_select is not None:
+                raise CatBoostError("You should not specify features_tags_for_select when grouping is Individual")
+            if num_features_to_select is None:
+                raise CatBoostError("You should specify num_features_to_select")
+            if num_features_tags_to_select is not None:
+                raise CatBoostError("You should not specify num_features_tags_to_select when grouping is Individual")
+            params["features_for_select"] = features_for_select
+            params["num_features_to_select"] = num_features_to_select
+        else:  # ByTag
+            if features_tags_for_select is None:
+                raise CatBoostError("You should specify features_tags_for_select")
+            if not isinstance(features_tags_for_select, Sequence):
+                raise CatBoostError("features_tags_for_select must be a list of strings")
+            if features_for_select is not None:
+                raise CatBoostError("You should not specify features_for_select when grouping is ByTags")
+            if num_features_tags_to_select is None:
+                raise CatBoostError("You should specify num_features_tags_to_select")
+            if num_features_to_select is not None:
+                raise CatBoostError("You should not specify num_features_to_select when grouping is ByTags")
+            params["features_tags_for_select"] = features_tags_for_select
+            params["num_features_tags_to_select"] = num_features_tags_to_select
+
         objective = params.get("loss_function")
         is_custom_objective = objective is not None and not isinstance(objective, string_types)
         if is_custom_objective:
             raise CatBoostError("Custom objective is not supported for features selection")
-        params["features_for_select"] = features_for_select
-        params["num_features_to_select"] = num_features_to_select
+
         if algorithm is not None:
             params["features_selection_algorithm"] = enum_from_enum_or_str(EFeaturesSelectionAlgorithm, algorithm).value
         if steps is not None:
@@ -4074,8 +4223,10 @@ class CatBoost(_CatBoostBase):
             self._set_trained_model_attributes()
 
         if plot:
-            fig = plot_features_selection_loss_graph(summary)
-            fig.show()
+            figures = plot_features_selection_loss_graphs(summary)
+            figures['features'].show()
+            if 'features_tags' in figures:
+                figures['features_tags'].show()
 
         return summary
 

@@ -13,9 +13,9 @@ namespace NCB {
     }
 
 
-    static TJsonValue ToJson(const TFeaturesSelectionLossGraph& lossGraph) {
+    static TJsonValue ToJson(const TFeaturesSelectionLossGraph& lossGraph, const TString& entitiesName) {
         TJsonValue lossGraphJson(JSON_MAP);
-        lossGraphJson["removed_features_count"] = ToJsonArray(lossGraph.RemovedFeaturesCount);
+        lossGraphJson["removed_" + entitiesName + "_count"] = ToJsonArray(lossGraph.RemovedEntitiesCount);
         lossGraphJson["loss_values"] = ToJsonArray(lossGraph.LossValues);
         lossGraphJson["main_indices"] = ToJsonArray(lossGraph.MainIndices);
         return lossGraphJson;
@@ -28,7 +28,14 @@ namespace NCB {
         summaryJson["selected_features_names"] = ToJsonArray(summary.SelectedFeaturesNames);
         summaryJson["eliminated_features"] = ToJsonArray(summary.EliminatedFeatures);
         summaryJson["eliminated_features_names"] = ToJsonArray(summary.EliminatedFeaturesNames);
-        summaryJson["loss_graph"] = ToJson(summary.LossGraph);
+        summaryJson["loss_graph"] = ToJson(summary.FeaturesLossGraph, "features");
+        if (!summary.SelectedFeaturesTags.empty()) {
+            summaryJson["selected_features_tags"] = ToJsonArray(summary.SelectedFeaturesTags);
+            summaryJson["eliminated_features_tags"] = ToJsonArray(summary.EliminatedFeaturesTags);
+            summaryJson["features_tags_loss_graph"] = ToJson(summary.FeaturesTagsLossGraph, "features_tags");
+            summaryJson["features_tags_cost_graph"] = ToJson(summary.FeaturesTagsCostGraph, "features_tags");
+        }
+
         return summaryJson;
     }
 }

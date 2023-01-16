@@ -35,17 +35,57 @@ namespace NCB {
                 "Please install latest NVDIA driver and check again");
         }
 
-        const auto& featuresForSelect = featuresSelectOptions.FeaturesForSelect.Get();
-        CB_ENSURE(featuresSelectOptions.NumberOfFeaturesToSelect.IsSet(), "You should specify the number of features to select");
-        CB_ENSURE(featuresSelectOptions.NumberOfFeaturesToSelect.Get() > 0, "Number of features to select should be positive");
-        CB_ENSURE(featuresForSelect.size() > 0, "You should specify features to select from");
-        CB_ENSURE(
-            static_cast<int>(featuresForSelect.size()) >= featuresSelectOptions.NumberOfFeaturesToSelect,
-            "It is impossible to select " << featuresSelectOptions.NumberOfFeaturesToSelect << " features from " << featuresForSelect.size() << " features"
-        );
-        const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
-        for (const ui32 feature : featuresForSelect) {
-            CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
+        auto checkCountConsistency = [] (
+            auto entriesForSelectSize,
+            const TOption<int>& numberOfEntriesToSelect,
+            TStringBuf entriesName
+        ) {
+            CB_ENSURE(
+                numberOfEntriesToSelect.IsSet(),
+                "You should specify the number of " << entriesName << " to select"
+            );
+            CB_ENSURE(
+                numberOfEntriesToSelect.Get() > 0,
+                "Number of " << entriesName << " to select should be positive"
+            );
+            CB_ENSURE(entriesForSelectSize > 0, "You should specify " << entriesName << " to select from");
+            CB_ENSURE(
+                static_cast<int>(entriesForSelectSize) >= numberOfEntriesToSelect.Get(),
+                "It is impossible to select " << numberOfEntriesToSelect.Get() << ' ' << entriesName
+                << " from " << entriesForSelectSize << ' ' << entriesName
+            );
+        };
+
+
+        if (featuresSelectOptions.Grouping.Get() == EFeaturesSelectionGrouping::Individual) {
+            const auto& featuresForSelect = featuresSelectOptions.FeaturesForSelect.Get();
+
+            checkCountConsistency(
+                featuresForSelect.size(),
+                featuresSelectOptions.NumberOfFeaturesToSelect,
+                "features"
+            );
+
+            const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
+            for (const ui32 feature : featuresForSelect) {
+                CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
+            }
+        } else { // ByTags
+            const auto& featuresTagsForSelect = featuresSelectOptions.FeaturesTagsForSelect.Get();
+
+            checkCountConsistency(
+                featuresTagsForSelect.size(),
+                featuresSelectOptions.NumberOfFeaturesTagsToSelect,
+                "features tags"
+            );
+
+            const auto& datasetFeaturesTags = pools.Learn->MetaInfo.FeaturesLayout->GetTagToExternalIndices();
+            for (const auto& featuresTag : featuresTagsForSelect) {
+                CB_ENSURE(
+                    datasetFeaturesTags.contains(featuresTag),
+                    "Tested features tag \"" << featuresTag << "\" is not present in dataset features tags"
+                );
+            }
         }
     }
 
