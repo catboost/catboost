@@ -335,7 +335,7 @@ class PROTOBUF_EXPORT MessageLite {
   PROTOBUF_ATTRIBUTE_REINITIALIZES PROTOBUF_MUST_USE_RESULT bool ParsePartialFromString(
       ConstStringParam data);
   // Parse a protocol buffer contained in an array of bytes.
-  PROTOBUF_ATTRIBUTE_REINITIALIZES bool ParseFromArray(const void* data,
+  PROTOBUF_ATTRIBUTE_REINITIALIZES PROTOBUF_MUST_USE_RESULT bool ParseFromArray(const void* data,
                                                        int size);
   // Like ParseFromArray(), but accepts messages that are missing
   // required fields.
