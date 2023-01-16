@@ -116,6 +116,7 @@ ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/kms
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/ec2
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/route53
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/kinesis
+ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/sts
 
 # TOML parser/encoder with reflection
 ALLOW .* -> vendor/github.com/BurntSushi/toml
