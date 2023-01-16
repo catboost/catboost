@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/equal.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_EQUAL_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/equal.h>
-#include __THRUST_HOST_SYSTEM_EQUAL_HEADER
-#undef __THRUST_HOST_SYSTEM_EQUAL_HEADER
+#include <thrust/system/cpp/detail/equal.h>
 
 #define __THRUST_DEVICE_SYSTEM_EQUAL_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/equal.h>
 #include __THRUST_DEVICE_SYSTEM_EQUAL_HEADER

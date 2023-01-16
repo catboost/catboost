@@ -28,9 +28,7 @@
 //! \cond
 
 // #include the host system's execution_policy header
-#define __THRUST_HOST_SYSTEM_EXECUTION_POLICY_HEADER <__THRUST_HOST_SYSTEM_ROOT/execution_policy.h>
-#include __THRUST_HOST_SYSTEM_EXECUTION_POLICY_HEADER
-#undef __THRUST_HOST_SYSTEM_EXECUTION_POLICY_HEADER
+#include <thrust/system/cpp/execution_policy.h>
 
 // #include the device system's execution_policy.h header
 #define __THRUST_DEVICE_SYSTEM_EXECUTION_POLICY_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/execution_policy.h>
@@ -51,7 +49,7 @@ namespace detail
 {
 
 
-typedef thrust::system::__THRUST_HOST_SYSTEM_NAMESPACE::detail::par_t host_t;
+typedef thrust::system::cpp::detail::par_t host_t;
 
 
 typedef thrust::system::__THRUST_DEVICE_SYSTEM_NAMESPACE::detail::par_t device_t;
@@ -188,7 +186,7 @@ struct execution_policy : thrust::detail::execution_policy_base<DerivedPolicy>
  */
 template<typename DerivedPolicy>
   struct host_execution_policy
-    : thrust::system::__THRUST_HOST_SYSTEM_NAMESPACE::execution_policy<DerivedPolicy>
+    : thrust::system::cpp::execution_policy<DerivedPolicy>
 {};
 
 

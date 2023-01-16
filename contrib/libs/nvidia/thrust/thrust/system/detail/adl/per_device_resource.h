@@ -31,9 +31,7 @@
 #include <thrust/system/tbb/detail/per_device_resource.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_PER_DEVICE_RESOURCE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/per_device_resource.h>
-#include __THRUST_HOST_SYSTEM_PER_DEVICE_RESOURCE_HEADER
-#undef __THRUST_HOST_SYSTEM_PER_DEVICE_RESOURCE_HEADER
+#include <thrust/system/cpp/detail/per_device_resource.h>
 
 #define __THRUST_DEVICE_SYSTEM_PER_DEVICE_RESOURCE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/per_device_resource.h>
 #include __THRUST_DEVICE_SYSTEM_PER_DEVICE_RESOURCE_HEADER

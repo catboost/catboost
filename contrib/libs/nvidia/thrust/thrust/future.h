@@ -128,7 +128,7 @@ using future = unique_eager_future<System, T>;
 ///////////////////////////////////////////////////////////////////////////////
 
 using host_unique_eager_event = unique_eager_event_type_detail::select<
-  thrust::system::__THRUST_HOST_SYSTEM_NAMESPACE::tag
+  thrust::system::cpp::tag
 >;
 using host_event = host_unique_eager_event;
 
@@ -136,7 +136,7 @@ using host_event = host_unique_eager_event;
 
 template <typename T>
 using host_unique_eager_future = unique_eager_future_type_detail::select<
-  thrust::system::__THRUST_HOST_SYSTEM_NAMESPACE::tag, T
+  thrust::system::cpp::tag, T
 >;
 template <typename T>
 using host_future = host_unique_eager_future<T>;

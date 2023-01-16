@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/mismatch.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_MISMATCH_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/mismatch.h>
-#include __THRUST_HOST_SYSTEM_MISMATCH_HEADER
-#undef __THRUST_HOST_SYSTEM_MISMATCH_HEADER
+#include <thrust/system/cpp/detail/mismatch.h>
 
 #define __THRUST_DEVICE_SYSTEM_MISMATCH_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/mismatch.h>
 #include __THRUST_DEVICE_SYSTEM_MISMATCH_HEADER

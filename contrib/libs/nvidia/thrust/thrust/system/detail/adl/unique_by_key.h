@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/unique_by_key.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_UNIQUE_BY_KEY_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/unique_by_key.h>
-#include __THRUST_HOST_SYSTEM_UNIQUE_BY_KEY_HEADER
-#undef __THRUST_HOST_SYSTEM_UNIQUE_BY_KEY_HEADER
+#include <thrust/system/cpp/detail/unique_by_key.h>
 
 #define __THRUST_DEVICE_SYSTEM_UNIQUE_BY_KEY_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/unique_by_key.h>
 #include __THRUST_DEVICE_SYSTEM_UNIQUE_BY_KEY_HEADER

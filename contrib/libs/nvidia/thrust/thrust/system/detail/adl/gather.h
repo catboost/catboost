@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/gather.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_GATHER_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/gather.h>
-#include __THRUST_HOST_SYSTEM_GATHER_HEADER
-#undef __THRUST_HOST_SYSTEM_GATHER_HEADER
+#include <thrust/system/cpp/detail/gather.h>
 
 #define __THRUST_DEVICE_SYSTEM_GATHER_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/gather.h>
 #include __THRUST_DEVICE_SYSTEM_GATHER_HEADER

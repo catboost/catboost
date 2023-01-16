@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/copy_if.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_COPY_IF_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/copy_if.h>
-#include __THRUST_HOST_SYSTEM_COPY_IF_HEADER
-#undef __THRUST_HOST_SYSTEM_COPY_IF_HEADER
+#include <thrust/system/cpp/detail/copy_if.h>
 
 #define __THRUST_DEVICE_SYSTEM_COPY_IF_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/copy_if.h>
 #include __THRUST_DEVICE_SYSTEM_COPY_IF_HEADER

@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/generate.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_GENERATE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/generate.h>
-#include __THRUST_HOST_SYSTEM_GENERATE_HEADER
-#undef __THRUST_HOST_SYSTEM_GENERATE_HEADER
+#include <thrust/system/cpp/detail/generate.h>
 
 #define __THRUST_DEVICE_SYSTEM_GENERATE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/generate.h>
 #include __THRUST_DEVICE_SYSTEM_GENERATE_HEADER

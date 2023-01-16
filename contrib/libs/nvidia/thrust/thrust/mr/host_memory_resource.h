@@ -19,14 +19,12 @@
 #include <thrust/detail/config.h>
 
 // #include the host system's memory_resource header
-#define __THRUST_HOST_SYSTEM_MEMORY_HEADER <__THRUST_HOST_SYSTEM_ROOT/memory_resource.h>
-#include __THRUST_HOST_SYSTEM_MEMORY_HEADER
-#undef __THRUST_HOST_SYSTEM_MEMORY_HEADER
+#include <thrust/system/cpp/memory_resource.h>
 
 namespace thrust
 {
 
-typedef thrust::system::__THRUST_HOST_SYSTEM_NAMESPACE::memory_resource
+typedef thrust::system::cpp::memory_resource
     host_memory_resource;
 
 } // end thrust

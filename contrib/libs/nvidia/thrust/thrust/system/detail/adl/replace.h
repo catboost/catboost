@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/replace.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_REPLACE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/replace.h>
-#include __THRUST_HOST_SYSTEM_REPLACE_HEADER
-#undef __THRUST_HOST_SYSTEM_REPLACE_HEADER
+#include <thrust/system/cpp/detail/replace.h>
 
 #define __THRUST_DEVICE_SYSTEM_REPLACE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/replace.h>
 #include __THRUST_DEVICE_SYSTEM_REPLACE_HEADER

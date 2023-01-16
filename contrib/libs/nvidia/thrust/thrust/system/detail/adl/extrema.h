@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/extrema.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_EXTREMA_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/extrema.h>
-#include __THRUST_HOST_SYSTEM_EXTREMA_HEADER
-#undef __THRUST_HOST_SYSTEM_EXTREMA_HEADER
+#include <thrust/system/cpp/detail/extrema.h>
 
 #define __THRUST_DEVICE_SYSTEM_EXTREMA_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/extrema.h>
 #include __THRUST_DEVICE_SYSTEM_EXTREMA_HEADER

@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/malloc_and_free.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_MALLOC_AND_FREE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/malloc_and_free.h>
-#include __THRUST_HOST_SYSTEM_MALLOC_AND_FREE_HEADER
-#undef __THRUST_HOST_SYSTEM_MALLOC_AND_FREE_HEADER
+#include <thrust/system/cpp/detail/malloc_and_free.h>
 
 #define __THRUST_DEVICE_SYSTEM_MALLOC_AND_FREE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/malloc_and_free.h>
 #include __THRUST_DEVICE_SYSTEM_MALLOC_AND_FREE_HEADER
