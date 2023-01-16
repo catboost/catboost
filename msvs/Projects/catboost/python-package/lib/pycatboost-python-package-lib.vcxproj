@@ -750,6 +750,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
       <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\qhull\contrib-libs-qhull.vcxproj">
+      <Project>{D17CDA35-BBFB-9CB1-7DE2-862989C7B224}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
     </ProjectReference>
@@ -828,29 +831,44 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.vcxproj">
       <Project>{45CA8061-AE16-9692-4CE9-60B4968D9B52}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\pycontrib-python-scipy.vcxproj">
+      <Project>{86704140-3254-1ED6-9603-E3F23CDFD7F6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_build_utils\src\scipy-_build_utils-src.vcxproj">
       <Project>{9AFA0B40-428F-C48C-E67A-74044B678B53}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\pyscipy-scipy-_lib.vcxproj">
       <Project>{52FF49F8-6118-21BB-8A64-3E37DF4AAE7D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\cluster\pyscipy-scipy-cluster.vcxproj">
+      <Project>{3EE75B85-B3F1-3017-A144-A6DCF5124F83}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\constants\pyscipy-scipy-constants.vcxproj">
+      <Project>{655C1A3A-6971-5CE1-2F39-53CB91F65A3C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\fftpack\pyscipy-scipy-fftpack.vcxproj">
+      <Project>{B83B00E5-81E5-8271-12E2-B1E04ED9FC59}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\fftpack\src\scipy-fftpack-src.vcxproj">
       <Project>{98A8BEA7-8353-8B9E-066B-ABEDD2F75121}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\integrate\dop\scipy-integrate-dop.vcxproj">
-      <Project>{5EFFD1DE-EF87-7387-E459-A549CF0C2BED}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\interpolate\fitpack\scipy-interpolate-fitpack.vcxproj">
+      <Project>{6BF6FB72-C62F-818F-17A7-7C0F6C74BF8A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\integrate\mach\scipy-integrate-mach.vcxproj">
-      <Project>{3CF28257-900D-CA4D-DB5B-3C91AAC86CF2}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\interpolate\pyscipy-scipy-interpolate.vcxproj">
+      <Project>{1F189A0C-2983-F9EF-8FB9-D57E41DA0CF2}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\integrate\odepack\scipy-integrate-odepack.vcxproj">
-      <Project>{A5134F90-8B8B-B5D8-38FD-41DD7277E905}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\arff\pyscipy-io-arff.vcxproj">
+      <Project>{146E8210-1426-B73E-53C9-E4E81EF3F119}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\integrate\pyscipy-scipy-integrate.vcxproj">
-      <Project>{0A6D2ACF-0A12-30D5-C896-0924303156E4}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\harwell_boeing\pyscipy-io-harwell_boeing.vcxproj">
+      <Project>{DC41C5C0-770A-77B8-3370-CC8DF9DA6756}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\integrate\quadpack\scipy-integrate-quadpack.vcxproj">
-      <Project>{4E90A0E4-E8CE-5534-7BEA-AA6837DA2F9C}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\matlab\pyscipy-io-matlab.vcxproj">
+      <Project>{08CD931D-5142-B450-CBEA-E99B8BB24A31}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\io\pyscipy-scipy-io.vcxproj">
+      <Project>{ACA0224A-9F22-4803-C394-E1AA01ECA5BD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\pyscipy-scipy-linalg.vcxproj">
       <Project>{ABE47276-0A15-06CD-200C-33DAC2C9BEB2}</Project>
@@ -863,6 +881,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\misc\pyscipy-scipy-misc.vcxproj">
       <Project>{52E987BB-887C-A701-B73B-3B188764BCE4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\pyscipy-scipy-ndimage.vcxproj">
+      <Project>{0FBAFA4F-00E7-B9E8-D80E-E11933F27E21}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\src\pyscipy-ndimage-src.vcxproj">
+      <Project>{92A4E782-3DAE-F24A-A63D-300633A3343B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\odrpack\scipy-odr-odrpack.vcxproj">
+      <Project>{56965D80-A7DF-EFA0-9FD9-E792EA0AF9EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\pyscipy-scipy-odr.vcxproj">
+      <Project>{EAC01E19-67B2-9675-2968-2AE9C0A0E252}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\Zeros\scipy-optimize-Zeros.vcxproj">
       <Project>{E0AEF318-5435-E964-59F1-D7FFDC12237A}</Project>
@@ -893,6 +923,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\optimize\tnc\pyscipy-optimize-tnc.vcxproj">
       <Project>{E0A1A177-1A8F-A125-759C-EEC5C23880CC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\signal\pyscipy-scipy-signal.vcxproj">
+      <Project>{5C6624E3-6EFA-52F3-473F-54918BA5BAC1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\csgraph\pyscipy-sparse-csgraph.vcxproj">
       <Project>{7AE6CDEB-7346-1CAD-9359-2FAF7D105A3B}</Project>
@@ -930,29 +963,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\sparsetools\pyscipy-sparse-sparsetools.vcxproj">
       <Project>{48AEDC4E-2845-5899-3E69-93C62F6AEF63}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\_precompute\pyscipy-special-_precompute.vcxproj">
-      <Project>{FFBEAAE7-7B5B-BAAE-C273-72DDD52BDCA7}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\ckdtree\src\pyspatial-ckdtree-src.vcxproj">
+      <Project>{DEDF135A-ED65-E790-6E86-920B6749228B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\amos\scipy-special-amos.vcxproj">
-      <Project>{0C120EC2-67BE-1FF3-1D71-5270B33FA22A}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\spatial\pyscipy-scipy-spatial.vcxproj">
+      <Project>{4ED7CAC9-9378-F827-BD76-906AF53589F6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\c_misc\pyscipy-special-c_misc.vcxproj">
-      <Project>{EAC1ED3C-BCB3-301D-039B-96284A27A239}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\stats\pyscipy-scipy-stats.vcxproj">
+      <Project>{4D66CD57-A42B-2212-7F41-1F12AACFB237}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\cdflib\scipy-special-cdflib.vcxproj">
-      <Project>{2B797A4E-2B42-A01F-E27D-A766B9C2109C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\cephes\pyscipy-special-cephes.vcxproj">
-      <Project>{58EBEB74-94B9-71BC-0552-61F17AF6F1ED}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\mach\scipy-special-mach.vcxproj">
-      <Project>{AE349B1F-1B09-F166-4846-DFA956B2CB60}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\pyscipy-scipy-special.vcxproj">
-      <Project>{304F89F4-7D2C-06E2-8162-F86D21458B82}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\special\specfun\scipy-special-specfun.vcxproj">
-      <Project>{70BE4F90-CC0B-2070-A442-D64EE570E045}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\stats\statlib\scipy-stats-statlib.vcxproj">
+      <Project>{9BB94D2A-C35F-78A2-2397-326EE6A5A0FD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
       <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
