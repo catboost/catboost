@@ -79,6 +79,7 @@ NO_RUNTIME()
 END()
 
 RECURSE(
+    absl/algorithm
     absl/base
     absl/base/internal/exponential_biased
     absl/base/internal/low_level_alloc
@@ -90,6 +91,7 @@ RECURSE(
     absl/base/internal/throw_delegate
     absl/base/log_severity
     absl/city
+    absl/container
     absl/container/internal/absl_hashtablez_sampler
     absl/container/internal/raw_hash_set
     absl/debugging
@@ -112,6 +114,7 @@ RECURSE(
     absl/flags/reflection
     absl/flags/usage
     absl/flags/usage_config
+    absl/functional
     absl/hash
     absl/hash/internal
     absl/memory
@@ -139,7 +142,9 @@ RECURSE(
     absl/time
     absl/time/civil_time
     absl/time/time_zone
+    absl/types
     absl/types/bad_any_cast
     absl/types/bad_optional_access
     absl/types/bad_variant_access
+    absl/utility
 )
