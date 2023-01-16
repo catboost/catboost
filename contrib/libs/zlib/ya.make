@@ -12,7 +12,9 @@ LICENSE(Zlib)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-ADDINCL(GLOBAL contrib/libs/zlib/include)
+ADDINCL(
+    GLOBAL contrib/libs/zlib/include
+)
 
 NO_COMPILER_WARNINGS()
 
