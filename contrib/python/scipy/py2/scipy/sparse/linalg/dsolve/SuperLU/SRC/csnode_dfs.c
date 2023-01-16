@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file csnode_dfs.c
  * \brief Determines the union of row structures of columns within the relaxed node
@@ -54,7 +64,7 @@ csnode_dfs (
 	   )
 {
 
-    int i, k, ifrom, ito, nextl, new_next;
+    register int i, k, ifrom, ito, nextl, new_next;
     int          nsuper, krow, kmark, mem_error;
     int          *xsup, *supno;
     int          *lsub, *xlsub;

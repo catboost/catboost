@@ -6,10 +6,24 @@ import sys
 import warnings
 import numbers
 from collections import namedtuple
+from multiprocessing import Pool
 import inspect
 
 import numpy as np
 
+def _broadcast_arrays(a, b):
+    """
+    Same as np.broadcast_arrays(a, b) but old writeability rules.
+    Numpy >= 1.17.0 transitions broadcast_arrays to return
+    read-only arrays. Set writeability explicitly to avoid warnings.
+    Retain the old writeability rules, as our Cython code assumes
+    the old behavior.
+    """
+    # backport based on gh-10379
+    x, y = np.broadcast_arrays(a, b)
+    x.flags.writeable = a.flags.writeable
+    y.flags.writeable = b.flags.writeable
+    return x, y
 
 def _valarray(shape, value=np.nan, typecode=None):
     """Return an array of all value.
@@ -123,6 +137,16 @@ def _aligned_zeros(shape, dtype=float, order="C", align=None):
     data = np.ndarray(shape, dtype, buf, order=order)
     data.fill(0)
     return data
+
+
+def _prune_array(array):
+    """Return an array equivalent to the input array. If the input
+    array is a view of a much larger array, copy its contents to a
+    newly allocated array. Otherwise, return the input unchanged.
+    """
+    if array.base is not None and array.size < array.base.size // 2:
+        return array.copy()
+    return array
 
 
 class DeprecatedImport(object):
@@ -327,3 +351,79 @@ except AttributeError:
         if argspec.args[0] == 'self':
             argspec.args.pop(0)
         return argspec
+
+
+class MapWrapper(object):
+    """
+    Parallelisation wrapper for working with map-like callables, such as
+    `multiprocessing.Pool.map`.
+
+    Parameters
+    ----------
+    pool : int or map-like callable
+        If `pool` is an integer, then it specifies the number of threads to
+        use for parallelization. If ``int(pool) == 1``, then no parallel
+        processing is used and the map builtin is used.
+        If ``pool == -1``, then the pool will utilise all available CPUs.
+        If `pool` is a map-like callable that follows the same
+        calling sequence as the built-in map function, then this callable is
+        used for parallelisation.
+    """
+    def __init__(self, pool=1):
+        self.pool = None
+        self._mapfunc = map
+        self._own_pool = False
+
+        if callable(pool):
+            self.pool = pool
+            self._mapfunc = self.pool
+        else:
+            # user supplies a number
+            if int(pool) == -1:
+                # use as many processors as possible
+                self.pool = Pool()
+                self._mapfunc = self.pool.map
+                self._own_pool = True
+            elif int(pool) == 1:
+                pass
+            elif int(pool) > 1:
+                # use the number of processors requested
+                self.pool = Pool(processes=int(pool))
+                self._mapfunc = self.pool.map
+                self._own_pool = True
+            else:
+                raise RuntimeError("Number of workers specified must be -1,"
+                                   " an int >= 1, or an object with a 'map' method")
+
+    def __enter__(self):
+        return self
+
+    def __del__(self):
+        self.close()
+        self.terminate()
+
+    def terminate(self):
+        if self._own_pool:
+            self.pool.terminate()
+
+    def join(self):
+        if self._own_pool:
+            self.pool.join()
+
+    def close(self):
+        if self._own_pool:
+            self.pool.close()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._own_pool:
+            self.pool.close()
+            self.pool.terminate()
+
+    def __call__(self, func, iterable):
+        # only accept one iterable because that's all Pool.map accepts
+        try:
+            return self._mapfunc(func, iterable)
+        except TypeError:
+            # wrong number of arguments
+            raise TypeError("The map-like callable must be of the"
+                            " form f(func, iterable)")

@@ -1,8 +1,8 @@
 /*
   From Multipack project
  */
-#include "quadpack.h"
 #include "__quadpack.h"
+
 static struct PyMethodDef quadpack_module_methods[] = {
 {"_qagse", quadpack_qagse, METH_VARARGS, doc_qagse},
 {"_qagie", quadpack_qagie, METH_VARARGS, doc_qagie},
@@ -35,7 +35,7 @@ PyObject *PyInit__quadpack(void)
     import_array();
     d = PyModule_GetDict(m);
 
-    s = PyUString_FromString(" 1.13 ");
+    s = PyUnicode_FromString(" 1.13 ");
     PyDict_SetItemString(d, "__version__", s);
     quadpack_error = PyErr_NewException ("quadpack.error", NULL, NULL);
     Py_DECREF(s);
@@ -46,13 +46,13 @@ PyObject *PyInit__quadpack(void)
     return m;
 }
 #else
-PyMODINIT_FUNC init5scipy9integrate9_quadpack(void) {
+PyMODINIT_FUNC init_quadpack(void) {
   PyObject *m, *d, *s;
-  m = Py_InitModule("scipy.integrate._quadpack", quadpack_module_methods);
+  m = Py_InitModule("_quadpack", quadpack_module_methods);
   import_array();
   d = PyModule_GetDict(m);
 
-  s = PyUString_FromString(" 1.13 ");
+  s = PyString_FromString(" 1.13 ");
   PyDict_SetItemString(d, "__version__", s);
   quadpack_error = PyErr_NewException ("quadpack.error", NULL, NULL);
   Py_DECREF(s);

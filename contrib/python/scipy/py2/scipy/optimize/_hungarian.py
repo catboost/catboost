@@ -23,7 +23,7 @@ def linear_sum_assignment(cost_matrix):
     assigned to column j. Then the optimal assignment has cost
 
     .. math::
-        \min \sum_i \sum_j C_{i,j} X_{i,j}
+        \\min \\sum_i \\sum_j C_{i,j} X_{i,j}
 
     s.t. each row is assignment to at most one column, and each column to at
     most one row.
@@ -84,6 +84,17 @@ def linear_sum_assignment(cost_matrix):
         raise ValueError("expected a matrix (2-d array), got a %r array"
                          % (cost_matrix.shape,))
 
+    if not (np.issubdtype(cost_matrix.dtype, np.number) or
+            cost_matrix.dtype == np.dtype(np.bool)):
+        raise ValueError("expected a matrix containing numerical entries, got %s"
+                         % (cost_matrix.dtype,))
+
+    if np.any(np.isinf(cost_matrix) | np.isnan(cost_matrix)):
+        raise ValueError("matrix contains invalid numeric entries")
+
+    if cost_matrix.dtype == np.dtype(np.bool):
+        cost_matrix = cost_matrix.astype(np.int)
+
     # The algorithm expects more columns than rows in the cost matrix.
     if cost_matrix.shape[1] < cost_matrix.shape[0]:
         cost_matrix = cost_matrix.T
@@ -104,7 +115,7 @@ def linear_sum_assignment(cost_matrix):
         marked = state.marked.T
     else:
         marked = state.marked
-    return np.where(marked == 1)
+    return np.nonzero(marked == 1)
 
 
 class _Hungary(object):
@@ -145,7 +156,7 @@ def _step1(state):
     # Step 2: Find a zero (Z) in the resulting matrix. If there is no
     # starred zero in its row or column, star Z. Repeat for each element
     # in the matrix.
-    for i, j in zip(*np.where(state.C == 0)):
+    for i, j in zip(*np.nonzero(state.C == 0)):
         if state.col_uncovered[j] and state.row_uncovered[i]:
             state.marked[i, j] = 1
             state.col_uncovered[j] = False

@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file cgstrf.c
  * \brief Computes an LU factorization of a general sparse matrix
@@ -220,10 +230,10 @@ cgstrf (superlu_options_t *options, SuperMatrix *A,
     int       pivrow;   /* pivotal row number in the original matrix A */
     int       nseg1;	/* no of segments in U-column above panel row jcol */
     int       nseg;	/* no of segments in each U-column */
-    int jcol;	
-    int kcol;	/* end column of a relaxed snode */
-    int icol;
-    int i, k, jj, new_next, iinfo;
+    register int jcol;	
+    register int kcol;	/* end column of a relaxed snode */
+    register int icol;
+    register int i, k, jj, new_next, iinfo;
     int       m, n, min_mn, jsupno, fsupc, nextlu, nextu;
     int       w_def;	/* upper bound on panel width */
     int       usepr, iperm_r_allocated = 0;

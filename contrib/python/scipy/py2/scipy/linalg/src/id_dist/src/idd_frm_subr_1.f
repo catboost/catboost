@@ -1,63 +1,56 @@
-        subroutine idd_sfrm(l,m,n,w,x,y)
+        subroutine idd_pairsamps(n,l,ind,l2,ind2,marker)
 c
-c       transforms x into y via a composition
-c       of Rokhlin's random transform, random subselection, and an FFT.
-c       In contrast to routine idd_frm, the present routine works best
-c       when the length l of the transformed vector is known a priori.
+c       calculates the indices of the l2 pairs of integers
+c       to which the l individual integers from ind belong.
+c       The integers in ind may range from 1 to n.
 c
 c       input:
-c       l -- length of y; l must be less than or equal to n
-c       m -- length of x
-c       n -- greatest integer expressible as a positive integer power
-c            of 2 that is less than or equal to m, as obtained
-c            from the routine idd_sfrmi
-c       w -- initialization array constructed by routine idd_sfrmi
-c       x -- vector to be transformed
+c       n -- upper bound on the integers in ind
+c            (the number 1 must be a lower bound);
+c            n must be even
+c       l -- length of ind
+c       ind -- integers selected from 1 to n
 c
 c       output:
-c       y -- transform of x
+c       l2 -- length of ind2
+c       ind2 -- indices in the range from 1 to n/2 of the pairs
+c               of integers to which the entries of ind belong
 c
-c       _N.B._: l must be less than or equal to n.
+c       work:
+c       marker -- must be at least n/2 integer elements long
 c
-c       reference:
-c       Halko, Martinsson, Tropp, "Finding structure with randomness:
-c            probabilistic algorithms for constructing approximate
-c            matrix decompositions," SIAM Review, 53 (2): 217-288,
-c            2011.
+c       _N.B._: n must be even.
 c
         implicit none
-        integer m,iw,n,l,l2
-        real*8 w(27*m+90),x(m),y(l)
+        integer l,n,ind(l),ind2(l),marker(n/2),l2,k
 c
 c
-c       Retrieve the number of pairs of outputs to be calculated
-c       via sfft.
+c       Unmark all pairs.
 c
-        l2 = w(3)
-c
-c
-c       Apply Rokhlin's random transformation to x, obtaining
-c       w(25*m+91 : 26*m+90).
-c
-        iw = w(4+m+l+l2)
-        call idd_random_transf(x,w(25*m+90+1),w(iw))
+        do k = 1,n/2
+          marker(k) = 0
+        enddo ! k
 c
 c
-c       Subselect from  w(25*m+91 : 26*m+90)  to obtain
-c       w(26*m+91 : 26*m+n+90).
+c       Mark the required pairs.
 c
-        call idd_subselect(n,w(4),m,w(25*m+90+1),w(26*m+90+1))
-c
-c
-c       Fourier transform  w(26*m+91 : 26*m+n+90).
-c
-        call idd_sfft(l2,w(4+m+l),n,w(5+m+l+l2),w(26*m+90+1))
+        do k = 1,l
+          marker((ind(k)+1)/2) = marker((ind(k)+1)/2)+1
+        enddo ! k
 c
 c
-c       Copy the desired entries from  w(26*m+91 : 26*m+n+90)
-c       to y.
+c       Record the required pairs in indpair.
 c
-        call idd_subselect(l,w(4+m),n,w(26*m+90+1),y)
+        l2 = 0
+c
+        do k = 1,n/2
+c
+          if(marker(k) .ne. 0) then
+            l2 = l2+1
+            ind2(l2) = k
+          endif
+c
+        enddo ! k
 c
 c
         return

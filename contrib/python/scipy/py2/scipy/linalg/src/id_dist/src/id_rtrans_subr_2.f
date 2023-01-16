@@ -1,32 +1,42 @@
-        subroutine idd_random_transf(x,y,w)
+        subroutine idd_random_transf00_inv(x,y,n,albetas,ixs)
         implicit real *8 (a-h,o-z)
         save
-        dimension x(*),y(*),w(*)
+        dimension x(*),y(*),albetas(2,*),ixs(*)
 c
-c       applies rapidly a random orthogonal matrix
-c       to the user-specified real vector x, 
-c       using the data in array w stored there by a preceding 
-c       call to routine idd_random_transf_init.
-c
-c       input:
-c       x -- the vector of length n to which the random matrix is
-c            to be applied
-c       w -- array containing all initialization data
-c
-c       output:
-c       y -- the result of applying the random matrix to x
+c       implements one step of the random transform required
+c       by routine idd_random_transf0_inv (please see the latter).
 c
 c
-c        . . . allocate memory
+c        implement 2 \times 2 matrices
 c
-        ialbetas=w(1)
-        iixs=w(2)
-        nsteps=w(3)
-        iww=w(4)
-        n=w(5)
+        do 1600 i=1,n
+        y(i)=x(i)
+ 1600 continue
 c
-        call idd_random_transf0(nsteps,x,y,n,w(iww),
-     1      w(ialbetas),w(iixs))
+        do 1800 i=n-1,1,-1
+c
+        alpha=albetas(1,i)
+        beta=albetas(2,i)
+c
+        a=y(i)
+        b=y(i+1)
+c
+        y(i)=alpha*a-beta*b
+        y(i+1)=beta*a+alpha*b
+ 1800 continue
+c
+c        implement the permutation
+c
+        do 2600 i=1,n
+c
+        j=ixs(i)
+        x(j)=y(i)
+ 2600 continue
+c
+        do 2800 i=1,n
+c
+        y(i)=x(i)
+ 2800 continue
 c
         return
         end

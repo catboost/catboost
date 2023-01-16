@@ -7,7 +7,7 @@
 
 /* Copyright 1999 Travis Oliphant
  *
- * Permision to copy and modified this file is granted under
+ * Permission to copy and modified this file is granted under
  * the revised BSD license. No warranty is expressed or IMPLIED
  */
 
@@ -327,7 +327,11 @@ PyObject *PyInit__superlu(void)
     import_array();
 
     if (PyType_Ready(&SuperLUType) < 0) {
-	return NULL;
+        return NULL;
+    }
+
+    if (PyType_Ready(&SuperLUGlobalType) < 0) {
+    	return NULL;
     }
 
     m = PyModule_Create(&moduledef);
@@ -345,7 +349,7 @@ PyObject *PyInit__superlu(void)
 
 #else
 
-PyMODINIT_FUNC init5scipy6sparse6linalg6dsolve8_superlu(void)
+PyMODINIT_FUNC init_superlu(void)
 {
     PyObject *m, *d;
 
@@ -361,7 +365,7 @@ PyMODINIT_FUNC init5scipy6sparse6linalg6dsolve8_superlu(void)
 	return;
     }
 
-    m = Py_InitModule("scipy.sparse.linalg.dsolve._superlu", SuperLU_Methods);
+    m = Py_InitModule("_superlu", SuperLU_Methods);
     d = PyModule_GetDict(m);
 
     Py_INCREF(&PyArrayFlags_Type);

@@ -82,9 +82,9 @@ class PchipInterpolator(BPoly):
     ----------
     .. [1] F. N. Fritsch and R. E. Carlson, Monotone Piecewise Cubic Interpolation,
            SIAM J. Numer. Anal., 17(2), 238 (1980).
-           DOI:10.1137/0717021
+           :doi:`10.1137/0717021`.
     .. [2] see, e.g., C. Moler, Numerical Computing with Matlab, 2004.
-           DOI: http://dx.doi.org/10.1137/1.9780898717952
+           :doi:`10.1137/1.9780898717952`
 
 
     """
@@ -276,7 +276,7 @@ class Akima1DInterpolator(PPoly):
 
     def __init__(self, x, y, axis=0):
         # Original implementation in MATLAB by N. Shamsundar (BSD licensed), see
-        # http://www.mathworks.de/matlabcentral/fileexchange/1814-akima-interpolation
+        # https://www.mathworks.com/matlabcentral/fileexchange/1814-akima-interpolation
         x, y = map(np.asarray, (x, y))
         axis = axis % y.ndim
 
@@ -463,15 +463,15 @@ class CubicSpline(PPoly):
     >>> y = np.sin(x)
     >>> cs = CubicSpline(x, y)
     >>> xs = np.arange(-0.5, 9.6, 0.1)
-    >>> plt.figure(figsize=(6.5, 4))
-    >>> plt.plot(x, y, 'o', label='data')
-    >>> plt.plot(xs, np.sin(xs), label='true')
-    >>> plt.plot(xs, cs(xs), label="S")
-    >>> plt.plot(xs, cs(xs, 1), label="S'")
-    >>> plt.plot(xs, cs(xs, 2), label="S''")
-    >>> plt.plot(xs, cs(xs, 3), label="S'''")
-    >>> plt.xlim(-0.5, 9.5)
-    >>> plt.legend(loc='lower left', ncol=2)
+    >>> fig, ax = plt.subplots(figsize=(6.5, 4))
+    >>> ax.plot(x, y, 'o', label='data')
+    >>> ax.plot(xs, np.sin(xs), label='true')
+    >>> ax.plot(xs, cs(xs), label="S")
+    >>> ax.plot(xs, cs(xs, 1), label="S'")
+    >>> ax.plot(xs, cs(xs, 2), label="S''")
+    >>> ax.plot(xs, cs(xs, 3), label="S'''")
+    >>> ax.set_xlim(-0.5, 9.5)
+    >>> ax.legend(loc='lower left', ncol=2)
     >>> plt.show()
 
     In the second example, the unit circle is interpolated with a spline. A
@@ -486,12 +486,12 @@ class CubicSpline(PPoly):
     >>> print("ds/dx={:.1f} ds/dy={:.1f}".format(cs(0, 1)[0], cs(0, 1)[1]))
     ds/dx=0.0 ds/dy=1.0
     >>> xs = 2 * np.pi * np.linspace(0, 1, 100)
-    >>> plt.figure(figsize=(6.5, 4))
-    >>> plt.plot(y[:, 0], y[:, 1], 'o', label='data')
-    >>> plt.plot(np.cos(xs), np.sin(xs), label='true')
-    >>> plt.plot(cs(xs)[:, 0], cs(xs)[:, 1], label='spline')
-    >>> plt.axes().set_aspect('equal')
-    >>> plt.legend(loc='center')
+    >>> fig, ax = plt.subplots(figsize=(6.5, 4))
+    >>> ax.plot(y[:, 0], y[:, 1], 'o', label='data')
+    >>> ax.plot(np.cos(xs), np.sin(xs), label='true')
+    >>> ax.plot(cs(xs)[:, 0], cs(xs)[:, 1], label='spline')
+    >>> ax.axes.set_aspect('equal')
+    >>> ax.legend(loc='center')
     >>> plt.show()
 
     The third example is the interpolation of a polynomial y = x**3 on the
@@ -620,8 +620,8 @@ class CubicSpline(PPoly):
 
                 # Also, due to the periodicity, the system is not tri-diagonal.
                 # We need to compute a "condensed" matrix of shape (n-2, n-2).
-                # See http://www.cfm.brown.edu/people/gk/chap6/node14.html for
-                # more explanations.
+                # See https://web.archive.org/web/20151220180652/http://www.cfm.brown.edu/people/gk/chap6/node14.html
+                # for more explanations.
                 # The condensed matrix is obtained by removing the last column
                 # and last row of the (n-1, n-1) system matrix. The removed
                 # values are saved in scalar variables with the (n-1, n-1)

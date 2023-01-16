@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file cmemory.c
  * \brief Memory details
@@ -102,7 +112,7 @@ int cQuerySpace(SuperMatrix *L, SuperMatrix *U, mem_usage_t *mem_usage)
 {
     SCformat *Lstore;
     NCformat *Ustore;
-    int n, iword, dword, panel_size = sp_ienv(1);
+    register int n, iword, dword, panel_size = sp_ienv(1);
 
     Lstore = L->Store;
     Ustore = U->Store;
@@ -140,8 +150,8 @@ int ilu_cQuerySpace(SuperMatrix *L, SuperMatrix *U, mem_usage_t *mem_usage)
 {
     SCformat *Lstore;
     NCformat *Ustore;
-    int n, panel_size = sp_ienv(1);
-    float iword, dword;
+    register int n, panel_size = sp_ienv(1);
+    register float iword, dword;
 
     Lstore = L->Store;
     Ustore = U->Store;
@@ -468,7 +478,7 @@ cLUMemXpand(int jcol,
 void
 copy_mem_complex(int howmany, void *old, void *new)
 {
-    int i;
+    register int i;
     complex *dold = old;
     complex *dnew = new;
     for (i = 0; i < howmany; i++) dnew[i] = dold[i];
@@ -600,7 +610,7 @@ void
 void
 cStackCompress(GlobalLU_t *Glu)
 {
-    int iword, dword, ndim;
+    register int iword, dword, ndim;
     char    *last, *fragment;
     int      *ifrom, *ito;
     complex   *dfrom, *dto;
@@ -675,7 +685,7 @@ complex *complexMalloc(int n)
 complex *complexCalloc(int n)
 {
     complex *buf;
-    int i;
+    register int i;
     complex zero = {0.0, 0.0};
     buf = (complex *) SUPERLU_MALLOC((size_t)n * sizeof(complex));
     if ( !buf ) {
@@ -689,7 +699,7 @@ complex *complexCalloc(int n)
 int cmemory_usage(const int nzlmax, const int nzumax, 
 		  const int nzlumax, const int n)
 {
-    int iword, dword;
+    register int iword, dword;
 
     iword   = sizeof(int);
     dword   = sizeof(complex);

@@ -1,64 +1,62 @@
-      SUBROUTINE DZFFT1 (N,WA,IFAC)
+      SUBROUTINE DFFTF1 (N,C,CH,WA,IFAC)
 	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION       WA(*)      ,IFAC(*)    ,NTRYH(4)
-      DATA NTRYH(1),NTRYH(2),NTRYH(3),NTRYH(4)/4,2,3,5/
-     1    ,TPI/6.2831853071795864769252867665590057D0/
-      NL = N
-      NF = 0
-      J = 0
-  101 J = J+1
-      IF (J-4) 102,102,103
-  102 NTRY = NTRYH(J)
-      GO TO 104
-  103 NTRY = NTRY+2
-  104 NQ = NL/NTRY
-      NR = NL-NTRY*NQ
-      IF (NR) 101,105,101
-  105 NF = NF+1
-      IFAC(NF+2) = NTRY
-      NL = NQ
-      IF (NTRY .NE. 2) GO TO 107
-      IF (NF .EQ. 1) GO TO 107
-      DO 106 I=2,NF
-         IB = NF-I+2
-         IFAC(IB+2) = IFAC(IB+1)
-  106 CONTINUE
-      IFAC(3) = 2
-  107 IF (NL .NE. 1) GO TO 104
-      IFAC(1) = N
-      IFAC(2) = NF
-      ARGH = TPI/DBLE(N)
-      IS = 0
-      NFM1 = NF-1
-      L1 = 1
-      IF (NFM1 .EQ. 0) RETURN
-      DO 111 K1=1,NFM1
-         IP = IFAC(K1+2)
-         L2 = L1*IP
+      DIMENSION       CH(*)      ,C(*)       ,WA(*)      ,IFAC(*)
+      NF = IFAC(2)
+      NA = 1
+      L2 = N
+      IW = N
+      DO 111 K1=1,NF
+         KH = NF-K1
+         IP = IFAC(KH+3)
+         L1 = L2/IP
          IDO = N/L2
-         IPM = IP-1
-         ARG1 = DBLE(L1)*ARGH
-         CH1 = 1.0D0
-         SH1 = 0.0D0
-         DCH1 = DCOS(ARG1)
-         DSH1 = DSIN(ARG1)
-         DO 110 J=1,IPM
-            CH1H = DCH1*CH1-DSH1*SH1
-            SH1 = DCH1*SH1+DSH1*CH1
-            CH1 = CH1H
-            I = IS+2
-            WA(I-1) = CH1
-            WA(I) = SH1
-            IF (IDO .LT. 5) GO TO 109
-            DO 108 II=5,IDO,2
-               I = I+2
-               WA(I-1) = CH1*WA(I-3)-SH1*WA(I-2)
-               WA(I) = CH1*WA(I-2)+SH1*WA(I-3)
-  108       CONTINUE
-  109       IS = IS+IDO
-  110    CONTINUE
-         L1 = L2
+         IDL1 = IDO*L1
+         IW = IW-(IP-1)*IDO
+         NA = 1-NA
+         IF (IP .NE. 4) GO TO 102
+         IX2 = IW+IDO
+         IX3 = IX2+IDO
+         IF (NA .NE. 0) GO TO 101
+         CALL DRADF4 (IDO,L1,C,CH,WA(IW),WA(IX2),WA(IX3))
+         GO TO 110
+  101    CALL DRADF4 (IDO,L1,CH,C,WA(IW),WA(IX2),WA(IX3))
+         GO TO 110
+  102    IF (IP .NE. 2) GO TO 104
+         IF (NA .NE. 0) GO TO 103
+         CALL DRADF2 (IDO,L1,C,CH,WA(IW))
+         GO TO 110
+  103    CALL DRADF2 (IDO,L1,CH,C,WA(IW))
+         GO TO 110
+  104    IF (IP .NE. 3) GO TO 106
+         IX2 = IW+IDO
+         IF (NA .NE. 0) GO TO 105
+         CALL DRADF3 (IDO,L1,C,CH,WA(IW),WA(IX2))
+         GO TO 110
+  105    CALL DRADF3 (IDO,L1,CH,C,WA(IW),WA(IX2))
+         GO TO 110
+  106    IF (IP .NE. 5) GO TO 108
+         IX2 = IW+IDO
+         IX3 = IX2+IDO
+         IX4 = IX3+IDO
+         IF (NA .NE. 0) GO TO 107
+         CALL DRADF5 (IDO,L1,C,CH,WA(IW),WA(IX2),WA(IX3),WA(IX4))
+         GO TO 110
+  107    CALL DRADF5 (IDO,L1,CH,C,WA(IW),WA(IX2),WA(IX3),WA(IX4))
+         GO TO 110
+  108    IF (IDO .EQ. 1) NA = 1-NA
+         IF (NA .NE. 0) GO TO 109
+         CALL DRADFG (IDO,IP,L1,IDL1,C,C,C,CH,CH,WA(IW))
+         NA = 1
+         GO TO 110
+  109    CALL DRADFG (IDO,IP,L1,IDL1,CH,CH,CH,C,C,WA(IW))
+         NA = 0
+  110    L2 = L1
   111 CONTINUE
+      IF (NA .EQ. 1) RETURN
+      DO 112 I=1,N
+         C(I) = CH(I)
+  112 CONTINUE
       RETURN
       END
  
+

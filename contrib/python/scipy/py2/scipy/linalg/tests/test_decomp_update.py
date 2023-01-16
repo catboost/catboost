@@ -3,8 +3,8 @@ from __future__ import division, print_function, absolute_import
 import itertools
 
 import numpy as np
-from numpy.testing import (assert_, assert_allclose, assert_raises,
-         assert_equal, run_module_suite)
+from numpy.testing import assert_, assert_allclose, assert_equal
+from pytest import raises as assert_raises
 from scipy import linalg
 import scipy.linalg._decomp_update as _decomp_update
 from scipy.linalg._decomp_update import *
@@ -88,7 +88,7 @@ def make_nonnative(arrs):
     return out
 
 class BaseQRdeltas(object):
-    def __init__(self):
+    def setup_method(self):
         self.rtol = 10.0 ** -(np.finfo(self.dtype).precision-2)
         self.atol = 10 * np.finfo(self.dtype).eps
 
@@ -1617,6 +1617,15 @@ class BaseQRupdate(BaseQRdeltas):
         assert_raises(ValueError, qr_update, q0, r0, u[:,0], v[:,0])
         assert_raises(ValueError, qr_update, q0, r0, u, v)
 
+    def test_u_exactly_in_span_q(self):
+        q = np.array([[0, 0], [0, 0], [1, 0], [0, 1]], self.dtype)
+        r = np.array([[1, 0], [0, 1]], self.dtype)
+        u = np.array([0, 0, 0, -1], self.dtype)
+        v = np.array([1, 2], self.dtype)
+        q1, r1 = qr_update(q, r, u, v)
+        a1 = np.dot(q, r) + np.outer(u, v.conj())
+        check_qr(q1, r1, a1, self.rtol, self.atol, False)
+
 class TestQRupdate_f(BaseQRupdate):
     dtype = np.dtype('f')
 
@@ -1650,10 +1659,10 @@ def test_form_qTu():
     for qo, qs, uo, us, d in \
             itertools.product(q_order, q_shape, u_order, u_shape, dtype):
         if us == 1:
-            yield check_form_qTu, qo, qs, uo, us, 1, d
-            yield check_form_qTu, qo, qs, uo, us, 2, d
+            check_form_qTu(qo, qs, uo, us, 1, d)
+            check_form_qTu(qo, qs, uo, us, 2, d)
         else:
-            yield check_form_qTu, qo, qs, uo, us, 2, d
+            check_form_qTu(qo, qs, uo, us, 2, d)
     
 def check_form_qTu(q_order, q_shape, u_order, u_shape, u_ndim, dtype):
     np.random.seed(47)
@@ -1685,7 +1694,4 @@ def check_form_qTu(q_order, q_shape, u_order, u_shape, u_ndim, dtype):
     res = _decomp_update._form_qTu(q, u)
     assert_allclose(res, expected, rtol=rtol, atol=atol)
 
-
-if __name__ == "__main__":
-    run_module_suite()
  

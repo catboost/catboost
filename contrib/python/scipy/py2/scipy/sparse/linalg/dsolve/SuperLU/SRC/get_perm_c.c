@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 /*! @file get_perm_c.c
  * \brief Matrix permutation operations
  *
@@ -80,7 +90,7 @@ getata(
        int **ata_rowind  /* out - size *atanz */
        )
 {
-    int i, j, k, col, num_nz, ti, trow;
+    register int i, j, k, col, num_nz, ti, trow;
     int *marker, *b_colptr, *b_rowind;
     int *t_colptr, *t_rowind; /* a column oriented form of T = A' */
 
@@ -214,7 +224,7 @@ at_plus_a(
 	  int **b_rowind    /* out - size *bnz */
 	  )
 {
-    int i, j, k, col, num_nz;
+    register int i, j, k, col, num_nz;
     int *t_colptr, *t_rowind; /* a column oriented form of T = A' */
     int *marker;
 

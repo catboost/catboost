@@ -1,27 +1,32 @@
-        subroutine idd_random_transf0_inv(nsteps,x,y,n,w2,albetas,iixs)
+        subroutine idd_random_transf00(x,y,n,albetas,ixs)
         implicit real *8 (a-h,o-z)
         save
-        dimension x(*),y(*),w2(*),albetas(2,n,*),iixs(n,*)
+        dimension x(*),y(*),albetas(2,*),ixs(*)
 c
-c       routine idd_random_transf_inverse serves as a memory wrapper
-c       for the present routine; see routine idd_random_transf_inverse
-c       for documentation.
+c       implements one step of the random transform
+c       required by routine idd_random_transf0 (please see the latter).
 c
-        do 1200 i=1,n
+c        implement the permutation
 c
-        w2(i)=x(i)
- 1200 continue
+        do 1600 i=1,n
 c
-        do 2000 ijk=nsteps,1,-1
+        j=ixs(i)
+        y(i)=x(j)
+ 1600 continue
 c
-        call idd_random_transf00_inv(w2,y,n,albetas(1,1,ijk),
-     1      iixs(1,ijk) )
+c        implement 2 \times 2 matrices
 c
-        do 1400 j=1,n
+        do 1800 i=1,n-1
 c
-        w2(j)=y(j)
- 1400 continue
- 2000 continue
+        alpha=albetas(1,i)
+        beta=albetas(2,i)
+c
+        a=y(i)
+        b=y(i+1)
+c
+        y(i)=alpha*a+beta*b
+        y(i+1)=-beta*a+alpha*b
+ 1800 continue
 c
         return
         end

@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file cmyblas2.c
  * \brief Level 2 Blas operations
@@ -31,7 +41,7 @@ void clsolve ( int ldm, int ncol, complex *M, complex *rhs )
     complex x0, x1, x2, x3, temp;
     complex *M0;
     complex *Mki0, *Mki1, *Mki2, *Mki3;
-    int firstcol = 0;
+    register int firstcol = 0;
 
     M0 = &M[0];
 
@@ -145,7 +155,7 @@ complex *Mxvec;	/* in/out */
     complex vi0, vi1, vi2, vi3;
     complex *M0, temp;
     complex *Mki0, *Mki1, *Mki2, *Mki3;
-    int firstcol = 0;
+    register int firstcol = 0;
     int k;
 
     M0 = &M[0];

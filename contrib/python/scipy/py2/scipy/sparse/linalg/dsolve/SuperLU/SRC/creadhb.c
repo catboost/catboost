@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file creadhb.c
  * \brief Read a matrix stored in Harwell-Boeing format
@@ -82,7 +92,7 @@
 /*! \brief Eat up the rest of the current line */
 int cDumpLine(FILE *fp)
 {
-    int c;
+    register int c;
     while ((c = fgetc(fp)) != '\n') ;
     return 0;
 }
@@ -129,7 +139,7 @@ int cParseFloatFormat(char *buf, int *num, int *size)
 
 static int ReadVector(FILE *fp, int n, int *where, int perline, int persize)
 {
-    int i, j, item;
+    register int i, j, item;
     char tmp, buf[100];
     
     i = 0;
@@ -150,8 +160,8 @@ static int ReadVector(FILE *fp, int n, int *where, int perline, int persize)
 /*! \brief Read complex numbers as pairs of (real, imaginary) */
 int cReadValues(FILE *fp, int n, complex *destination, int perline, int persize)
 {
-    int i, j, k, s, pair;
-    float realpart;
+    register int i, j, k, s, pair;
+    register float realpart;
     char tmp, buf[100];
     
     i = pair = 0;
@@ -190,7 +200,7 @@ int cReadValues(FILE *fp, int n, complex *destination, int perline, int persize)
 static void
 FormFullA(int n, int *nonz, complex **nzval, int **rowind, int **colptr)
 {
-    int i, j, k, col, new_nnz;
+    register int i, j, k, col, new_nnz;
     int *t_rowind, *t_colptr, *al_rowind, *al_colptr, *a_rowind, *a_colptr;
     int *marker;
     complex *t_val, *al_val, *a_val;
@@ -286,7 +296,7 @@ creadhb(FILE *fp, int *nrow, int *ncol, int *nonz,
 	complex **nzval, int **rowind, int **colptr)
 {
 
-    int i, numer_lines = 0, rhscrd = 0;
+    register int i, numer_lines = 0, rhscrd = 0;
     int tmp, colnum, colsize, rownum, rowsize, valnum, valsize;
     char buf[100], type[4], key[10];
     int sym;

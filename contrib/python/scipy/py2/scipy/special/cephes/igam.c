@@ -86,7 +86,7 @@
 /* Sources
  * [1] "The Digital Library of Mathematical Functions", dlmf.nist.gov
  * [2] Maddock et. al., "Incomplete Gamma Functions",
- *     http://www.boost.org/doc/libs/1_61_0/libs/math/doc/html/math_toolkit/sf_gamma/igamma.html
+ *     https://www.boost.org/doc/libs/1_61_0/libs/math/doc/html/math_toolkit/sf_gamma/igamma.html
  */
 
 /* Scipy changes:
@@ -119,18 +119,18 @@ extern double MACHEP, MAXLOG;
 static double big = 4.503599627370496e15;
 static double biginv = 2.22044604925031308085e-16;
 
-double igam(double, double);
-double igamc(double, double);
-double igamc_continued_fraction(double, double);
-double igam_leading_factor(double, double);
-double igam_series(double, double);
-double igamc_series(double, double);
-double asymptotic_series(double, double, int);
+static double igamc_continued_fraction(double, double);
+static double igam_leading_factor(double, double);
+static double igam_series(double, double);
+static double igamc_series(double, double);
+static double asymptotic_series(double, double, int);
 
 
 double igam(a, x)
 double a, x;
 {
+    double absxma_a;
+
     /* Check zero integration limit first */
     if (x == 0)
 	return (0.0);
@@ -141,7 +141,7 @@ double a, x;
     }
 
     /* Asymptotic regime where a ~ x; see [2]. */
-    double absxma_a = fabs(x - a) / a;
+    absxma_a = fabs(x - a) / a;
     if ((a > SMALL) && (a < LARGE) && (absxma_a < SMALLRATIO)) {
 	return asymptotic_series(a, x, IGAM);
     } else if ((a > LARGE) && (absxma_a < LARGERATIO / sqrt(a))) {
@@ -158,6 +158,8 @@ double a, x;
 
 double igamc(double a, double x)
 {
+    double absxma_a;
+
     if ((x < 0) || (a <= 0)) {
 	mtherr("gammaincc", DOMAIN);
 	return (NPY_NAN);
@@ -168,7 +170,7 @@ double igamc(double a, double x)
     }
 
     /* Asymptotic regime where a ~ x; see [2]. */
-    double absxma_a = fabs(x - a) / a;
+    absxma_a = fabs(x - a) / a;
     if ((a > SMALL) && (a < LARGE) && (absxma_a < SMALLRATIO)) {
 	return asymptotic_series(a, x, IGAMC);
     } else if ((a > LARGE) && (absxma_a < LARGERATIO / sqrt(a))) {
@@ -207,8 +209,10 @@ double igamc(double a, double x)
  */
 double igam_fac(double a, double x)
 {
+    double ax, fac, res, num;
+
     if (fabs(a - x) > 0.4 * fabs(a)) {
-	double ax = a * log(x) - x - lgam(a);
+	ax = a * log(x) - x - lgam(a);
 	if (ax < -MAXLOG) {
 	    mtherr("igam", UNDERFLOW);
 	    return 0.0;
@@ -216,13 +220,13 @@ double igam_fac(double a, double x)
 	return exp(ax);
     }
     
-    double fac = a + lanczos_g - 0.5;
-    double res = sqrt(fac / exp(1)) / lanczos_sum_expg_scaled(a);
+    fac = a + lanczos_g - 0.5;
+    res = sqrt(fac / exp(1)) / lanczos_sum_expg_scaled(a);
 
     if ((a < 200) && (x < 200)) {
 	res *= exp(a - x) * pow(x / fac, a);
     } else {
-	double num = x - a - lanczos_g + 0.5;
+	num = x - a - lanczos_g + 0.5;
 	res *= exp(a * log1pmx(num / fac) + x * (0.5 - lanczos_g) / fac);
     }
     
@@ -231,7 +235,7 @@ double igam_fac(double a, double x)
 
 
 /* Compute igamc using DLMF 8.9.2. */
-double igamc_continued_fraction(double a, double x)
+static double igamc_continued_fraction(double a, double x)
 {
     int i;
     double ans, ax, c, yc, r, t, y, z;
@@ -286,7 +290,7 @@ double igamc_continued_fraction(double a, double x)
 
 
 /* Compute igam using DLMF 8.11.4. */
-double igam_series(double a, double x)
+static double igam_series(double a, double x)
 {
     int i;
     double ans, ax, c, r;
@@ -317,7 +321,7 @@ double igam_series(double a, double x)
 /* Compute igamc using DLMF 8.7.3. This is related to the series in
  * igam_series but extra care is taken to avoid cancellation.
  */
-double igamc_series(double a, double x)
+static double igamc_series(double a, double x)
 {
     int n;
     double fac = 1;
@@ -340,7 +344,7 @@ double igamc_series(double a, double x)
 
 
 /* Compute igam/igamc using DLMF 8.12.3/8.12.4. */
-double asymptotic_series(double a, double x, int func)
+static double asymptotic_series(double a, double x, int func)
 {
     int k, n, sgn;
     int maxpow = 0;
