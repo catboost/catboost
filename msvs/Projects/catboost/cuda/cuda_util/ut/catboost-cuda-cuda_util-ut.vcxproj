@@ -411,11 +411,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
       <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3contrib-python-scipy.global.vcxproj">
-      <Project>{1744F707-D784-34F5-3A5A-A6B8E5A726DB}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py2\py3python-scipy-py2.global.vcxproj">
+      <Project>{4F2BA35B-F3C4-C377-F2E9-9F2D4219FE04}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\pycontrib-python-scipy.global.vcxproj">
-      <Project>{59C287F7-F0CC-B68C-8061-76AA1BB6EE1B}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py2\pypython-scipy-py2.global.vcxproj">
+      <Project>{96B2E6E8-DA3F-289E-99C7-150299BE41E2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.global.vcxproj">
       <Project>{3883A5C2-D594-2667-C63C-A665727800A7}</Project>

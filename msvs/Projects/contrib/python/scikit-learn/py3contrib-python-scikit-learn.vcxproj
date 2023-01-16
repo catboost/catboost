@@ -165,6 +165,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scikit-learn\py3\pypython-scikit-learn-py3.vcxproj">
       <Project>{FB8DF43B-8B78-2095-EBAA-C8F545F92A38}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py2\py3python-scipy-py2.vcxproj">
+      <Project>{423A435F-0FC2-7296-7046-F358878AA28E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3contrib-python-scipy.vcxproj">
       <Project>{A57F658E-50AA-391E-E485-F24502684666}</Project>
     </ProjectReference>
