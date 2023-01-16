@@ -409,9 +409,6 @@ ALLOW .* -> vendor/gopkg.in/yaml.v2
 # INI file format
 ALLOW .* -> vendor/gopkg.in/ini.v1
 
-# JSON Schema
-ALLOW .* -> vendor/github.com/xeipuuv/gojsonschema
-
 # JSONPath
 ALLOW .* -> vendor/github.com/PaesslerAG/jsonpath
 
@@ -972,6 +969,19 @@ ALLOW .* -> vendor/github.com/jarcoal/httpmock
 
 # CONTRIB-2337 Cloud GPU migration: validator for structs and fields
 ALLOW cloud/compute/go-common/pkg/validation -> vendor/github.com/go-playground/validator/v10
+
+# CONTRIB-1645 JSON Schema
+# Project is stale and considered deprecated by committee
+ALLOW bunker/worker-go/internal/tanker -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW cloud/mdb/mdb-internal-api/functest -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW infra/walle/server/juggler_api/internal -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW intranet/staff-api/internal/api/schemas -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW market/dev-exp/services/mdc-server/internal/core/actions -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW mds/perekup/internal/searchevents -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW mds/s3/goose/internal/notify/searchevents -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW passport/go/daemons/tirole_internal/internal -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW yt/admin/cms/internal/walle -> vendor/github.com/xeipuuv/gojsonschema
+ALLOW yweb/animals/internal/authserver -> vendor/github.com/xeipuuv/gojsonschema
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
