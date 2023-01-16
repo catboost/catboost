@@ -1330,13 +1330,19 @@ class GnuCompiler(Compiler):
             # See: https://maskray.me/blog/2021-11-07-init-ctors-init-array
             self.c_foptions.append('-fuse-init-array')
 
-        # Set up output colorization
         if self.tc.is_clang:
-            self.c_foptions.append('-fcolor-diagnostics')
+            self.c_foptions += [
+                # Set up output colorization
+                '-fcolor-diagnostics',
+                # Enable aligned allocation
+                '-faligned-allocation',
+            ]
         elif self.tc.is_gcc:
-            self.c_foptions.append('-fdiagnostics-color=always')
-        else:
-            pass
+            self.c_foptions += [
+                # Set up output colorization
+                '-fdiagnostics-color=always',
+                # It looks like there is no way to enable aligned allocation in gcc
+            ]
 
         self.c_warnings = ['-W', '-Wall', '-Wno-parentheses']
         self.cxx_warnings = [
@@ -1371,10 +1377,6 @@ class GnuCompiler(Compiler):
 
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
-            if self.tc.version_at_least(7):
-                self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
-            else:
-                self.c_warnings.append('-Wno-aligned-allocation-unavailable')
             if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
                 self.c_foptions.append('-fembed-bitcode')
 
@@ -1411,8 +1413,6 @@ class GnuCompiler(Compiler):
 
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
-                if not self.target.is_ios:
-                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
 
             if self.tc.version_at_least(8):
                 self.cxx_warnings.extend((
