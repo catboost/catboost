@@ -1148,7 +1148,7 @@ class GnuToolchain(Toolchain):
             self.c_flags_platform.append('-mcpu=cortex-a53')
 
         elif target.is_cortex_m33:
-            self.c_flags_platform.append('-mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard')
+            self.c_flags_platform.append('-mcpu=cortex-m33 -mfpu=fpv5-sp-d16')
 
         elif target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
