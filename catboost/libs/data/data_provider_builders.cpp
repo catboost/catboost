@@ -1619,7 +1619,7 @@ namespace NCB {
         template <class T>
         static void CopyPart(ui32 objectOffset, TUnalignedArrayBuf<T> srcPart, TVector<T>* dstData) {
             CB_ENSURE_INTERNAL(
-                objectOffset < dstData->size(),
+                objectOffset <= dstData->size(),
                 LabeledOutput(objectOffset, srcPart.GetSize(), dstData->size()));
             CB_ENSURE_INTERNAL(
                 objectOffset + srcPart.GetSize() <= dstData->size(),

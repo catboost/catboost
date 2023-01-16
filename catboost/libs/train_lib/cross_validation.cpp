@@ -447,6 +447,7 @@ void CrossValidate(
         )[0];
         TTrainingDataProviders foldData = GetTrainingData(
             std::move(foldRawData),
+            /*trainDataCanByEmpty*/ false,
             Nothing(),
             /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
             /*unloadCatFeaturePerfectHashFromRam*/ outputFileOptions.AllowWriteFiles(),
