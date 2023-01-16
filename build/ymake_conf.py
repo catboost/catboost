@@ -1134,10 +1134,14 @@ class GnuToolchain(Toolchain):
             for lib_path in build.host.library_path_variables:
                 self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
 
+        macos_version_min = '10.11'
+        macos_arm64_version_min = '11.0'
+        ios_version_min = '11.0'
+
         swift_target = select(default=None, selectors=[
-            (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios10-simulator'),
-            (target.is_iossim and target.is_x86, 'i386-apple-ios10-simulator'),
-            (target.is_iossim and target.is_armv8, 'arm64-apple-ios10-simulator'),
+            (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios{}-simulator'.format(ios_version_min)),
+            (target.is_iossim and target.is_x86, 'i386-apple-ios{}-simulator'.format(ios_version_min)),
+            (target.is_iossim and target.is_armv8, 'arm64-apple-ios{}-simulator'.format(ios_version_min)),
             (not target.is_iossim and target.is_ios and target.is_armv8, 'arm64-apple-ios9'),
             (not target.is_iossim and target.is_ios and target.is_armv7, 'armv7-apple-ios9'),
         ])
@@ -1159,7 +1163,7 @@ class GnuToolchain(Toolchain):
                     (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'hard', 'arm-linux-gnueabihf'),
                     (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'softfp', 'arm-linux-gnueabi'),
                     (target.is_linux and target.is_powerpc, 'powerpc64le-linux-gnu'),
-                    (target.is_iossim and target.is_arm64, 'arm64-apple-ios10.0-simulator'),
+                    (target.is_iossim and target.is_arm64, 'arm64-apple-ios{}-simulator'.format(ios_version_min)),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_macos_arm64, 'arm64-apple-macos11'),
@@ -1211,10 +1215,6 @@ class GnuToolchain(Toolchain):
             # On linux, ARM and PPC default to unsigned char
             # However, Arcadia requires char to be signed
             self.c_flags_platform.append('-fsigned-char')
-
-        macos_version_min = '10.11'
-        macos_arm64_version_min = '11.0'
-        ios_version_min = '11.0'
 
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
