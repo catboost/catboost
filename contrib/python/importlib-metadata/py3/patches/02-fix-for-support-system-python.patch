@@ -13,7 +13,7 @@
  
  __all__ = [
      'Distribution',
-@@ -872,7 +878,7 @@ class Prepared:
+@@ -869,7 +875,7 @@ class Prepared:
          return bool(self.name)
  
  
@@ -22,7 +22,7 @@
  class MetadataPathFinder(NullFinder, DistributionFinder):
      """A degenerate finder for distribution packages on the file system.
  
-@@ -960,7 +966,7 @@ class ArcadiaDistribution(Distribution):
+@@ -957,7 +963,7 @@ class ArcadiaDistribution(Distribution):
          return '{}{}'.format(self.prefix, path)
  
  
