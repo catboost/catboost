@@ -6,7 +6,6 @@
 #include <util/stream/output.h>
 #include <util/stream/format.h>
 #include <util/generic/array_ref.h>
-#include <util/generic/singleton.h>
 #include <util/generic/string.h>
 
 #ifdef _win_
@@ -150,6 +149,8 @@ TResolvedSymbol ResolveSymbol(void* sym, char* buf, size_t len) {
     return ret;
 }
 #elif defined(_win_)
+    #include <util/generic/singleton.h>
+
 namespace {
     struct TWinSymbolResolverImpl {
         typedef BOOL(WINAPI* TSymInitializeFunc)(HANDLE, PCSTR, BOOL);
