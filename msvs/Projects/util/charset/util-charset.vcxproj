@@ -80,8 +80,8 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\charset\all_charset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\charset\wide_sse41.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D__SSE4_1__=1 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D__SSE4_1__=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D__SSE4_1__=1 COMPILE_OUT_SUFFIX .sse41 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D__SSE4_1__=1 COMPILE_OUT_SUFFIX .sse41 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

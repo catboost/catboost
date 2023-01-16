@@ -80,12 +80,12 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp_avx2.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 COMPILE_OUT_SUFFIX .avx2 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 COMPILE_OUT_SUFFIX .avx2 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp_sse2.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D__SSE2__=1 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D__SSE2__=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D__SSE2__=1 COMPILE_OUT_SUFFIX .sse2 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D__SSE2__=1 COMPILE_OUT_SUFFIX .sse2 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClInclude Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp.h"/>
   </ItemGroup>
