@@ -257,6 +257,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py3contrib-python-pyparsing.vcxproj">
       <Project>{B24E0792-4271-FE10-2755-0DB1369D0EE3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\py3\pypython-pytest-py3.vcxproj">
+      <Project>{485E0231-8B3A-5964-A8BA-D3CB456E69BD}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\py3contrib-python-pytest.vcxproj">
       <Project>{7FEFD023-BE08-1C5B-9F46-3880C0F69BC4}</Project>
     </ProjectReference>
