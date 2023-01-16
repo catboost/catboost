@@ -185,7 +185,6 @@ migrations:
     - dict/ontodb/onto_lib/sources/transfermarkt
     - dict/ontodb/onto_lib/sources/www
     - dict/ontodb/ontodb_log/ctr
-    - dict/ontodb/pra/lib
     - dict/ontodb/report/common
     - dict/ontodb/report/film_stuff
     - dict/ontodb/schema
@@ -495,7 +494,6 @@ migrations:
     - passport/python/core/serializers/base
     - passport/python/core/suggest
     - passport/python/core/types
-    - passport/python/library/yt_hdb/loader
     - portal/tools/morda-release/server
     - quality/ab_testing/abt_resources_lib/loaders/tests/long_metrics
     - quality/ab_testing/cofe/bin/cofe_ctl
@@ -1885,7 +1883,6 @@ migrations:
     - dict/mt/make/modules/translit
     - dict/mt/make/modules/util
     - dict/mt/make/modules/voc
-    - dict/mt/make/processes/gen_cleanup_graph
     - dict/mt/make/tools/build_prob_dict
     - dict/mt/make/tools/corpus_classifier
     - dict/mt/make/tools/filter_corpus_by_rules
@@ -2286,13 +2283,11 @@ migrations:
     - passport/python/contrib/elementflow
     - passport/python/contrib/formencode
     - passport/python/contrib/gsm0338
-    - passport/python/contrib/happybase
     - passport/python/contrib/nose_parameterized
     - passport/python/contrib/oauthlib
     - passport/python/contrib/py-radix
     - passport/python/contrib/py2casefold
     - passport/python/contrib/pyisemail
-    - passport/python/contrib/thriftpy
     - passport/python/core/yasms/test
     - passport/python/library/historydbloader
     - passport/python/logbroker_client/core
@@ -2995,7 +2990,6 @@ migrations:
     - yabs/umbrella/mapreduce_antifraud/rtb_antifraud_launcher
     - yabs/umbrella/mapreduce_antifraud/serp_no_clicks_users
     - yabs/vh/cms-pgaas/thumb_selector
-    - yandex_io/tests/fluent_bit
     - ydo/tools/spontaneous/feedback_requests
     - yql/cli
     - yql/library/python
