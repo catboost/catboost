@@ -103,6 +103,9 @@ ALLOW .* -> vendor/github.com/digitalocean/go-libvirt
 # CONTRIB-1872 pure ipp proto implementation
 ALLOW .* -> vendor/github.com/phin1x/go-ipp
 
+# CONTRIB-2113 gobreaker
+ALLOW .* -> vendor/github.com/sony/gobreaker
+
 # Validate and define text-based and dynamic configuration
 ALLOW .* -> vendor/cuelang.org/go
 
