@@ -3,6 +3,7 @@ apply-presets: true
 varsPreset: external
 
 docs-viewer:
+  metrika: 44884234
   project-name: catboost
   logo-title: CatBoost
   favicon-src: https://avatars.mds.yandex.net/get-bunker/49769/c4b06f2b169c7596da4143d5f951d925b17c413e/orig
