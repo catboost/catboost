@@ -2481,7 +2481,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-inconsistent-missing-override',
                 '-Wno-undefined-var-template',
                 '-Wno-ambiguous-delete',
-                '-Wno-microsoft-unqualified-friend',
             ]
             if self.tc.version_at_least(2019):
                 flags += ['-fcommon']  # heretic: fix LNK2005 errors in scipy
