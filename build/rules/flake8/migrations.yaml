@@ -107,7 +107,6 @@ migrations:
     - aurora/xpath/api/utils
     - aurora/xpath/applier
     - balancer/test/functional/admin/admin
-    - balancer/test/functional/proxy
     - balancer/test/functional/regexp_host
     - balancer/test/util
     - balancer/test/util/dnsfake
@@ -1141,7 +1140,6 @@ migrations:
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
     - market/forecast/feature_factory/graph_generator
-    - market/library/shiny/external/s3/beam
     - market/mobile_validator/mt/env
     - market/mstat/ch-cache/tests
     - market/sre/services/cema-proxy/lib
