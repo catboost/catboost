@@ -1,4 +1,4 @@
-/* 9ca2a2fedc35bcb13ba9a134ba5e173020bc2ff5f5a311abf742cec7da1ff26a (2.4.3+)
+/* 2e2c8ce5f11a473d65ec313ab20ceee6afefb355f5405afc06e7204e2e41c8c0 (2.4.4+)
                             __  __            _
                          ___\ \/ /_ __   __ _| |_
                         / _ \\  /| '_ \ / _` | __|
@@ -33,6 +33,7 @@
    Copyright (c) 2019-2020 Ben Wagner <bungeman@chromium.org>
    Copyright (c) 2019      Vadim Zeitlin <vadim@zeitlins.org>
    Copyright (c) 2021      Dong-hee Na <donghee.na@python.org>
+   Copyright (c) 2022      Samanta Navarro <ferivoz@riseup.net>
    Licensed under the MIT license:
 
    Permission is  hereby granted,  free of charge,  to any  person obtaining
@@ -974,7 +975,7 @@ parserCreate(const XML_Char *encodingName,
 
   if (memsuite) {
     XML_Memory_Handling_Suite *mtemp;
-    parser = (XML_Parser)memsuite->malloc_fcn(sizeof(struct XML_ParserStruct));
+    parser = memsuite->malloc_fcn(sizeof(struct XML_ParserStruct));
     if (parser != NULL) {
       mtemp = (XML_Memory_Handling_Suite *)&(parser->m_mem);
       mtemp->malloc_fcn = memsuite->malloc_fcn;
@@ -2067,6 +2068,11 @@ XML_GetBuffer(XML_Parser parser, int len) {
     keep = (int)EXPAT_SAFE_PTR_DIFF(parser->m_bufferPtr, parser->m_buffer);
     if (keep > XML_CONTEXT_BYTES)
       keep = XML_CONTEXT_BYTES;
+    /* Detect and prevent integer overflow */
+    if (keep > INT_MAX - neededSize) {
+      parser->m_errorCode = XML_ERROR_NO_MEMORY;
+      return NULL;
+    }
     neededSize += keep;
 #endif /* defined XML_CONTEXT_BYTES */
     if (neededSize
@@ -4092,7 +4098,7 @@ initializeEncoding(XML_Parser parser) {
   const char *s;
 #ifdef XML_UNICODE
   char encodingBuf[128];
-  /* See comments abount `protoclEncodingName` in parserInit() */
+  /* See comments about `protocolEncodingName` in parserInit() */
   if (! parser->m_protocolEncodingName)
     s = NULL;
   else {
@@ -5367,7 +5373,7 @@ doProlog(XML_Parser parser, const ENCODING *enc, const char *s, const char *end,
       if (dtd->in_eldecl) {
         ELEMENT_TYPE *el;
         const XML_Char *name;
-        int nameLen;
+        size_t nameLen;
         const char *nxt
             = (quant == XML_CQUANT_NONE ? next : next - enc->minBytesPerChar);
         int myindex = nextScaffoldPart(parser);
@@ -5383,7 +5389,13 @@ doProlog(XML_Parser parser, const ENCODING *enc, const char *s, const char *end,
         nameLen = 0;
         for (; name[nameLen++];)
           ;
-        dtd->contentStringLen += nameLen;
+
+        /* Detect and prevent integer overflow */
+        if (nameLen > UINT_MAX - dtd->contentStringLen) {
+          return XML_ERROR_NO_MEMORY;
+        }
+
+        dtd->contentStringLen += (unsigned)nameLen;
         if (parser->m_elementDeclHandler)
           handleDefault = XML_FALSE;
       }
@@ -6536,7 +6548,7 @@ normalizePublicId(XML_Char *publicId) {
 
 static DTD *
 dtdCreate(const XML_Memory_Handling_Suite *ms) {
-  DTD *p = (DTD *)ms->malloc_fcn(sizeof(DTD));
+  DTD *p = ms->malloc_fcn(sizeof(DTD));
   if (p == NULL)
     return p;
   poolInit(&(p->pool), ms);
@@ -6709,8 +6721,8 @@ dtdCopy(XML_Parser oldParser, DTD *newDtd, const DTD *oldDtd,
     if (! newE)
       return 0;
     if (oldE->nDefaultAtts) {
-      newE->defaultAtts = (DEFAULT_ATTRIBUTE *)ms->malloc_fcn(
-          oldE->nDefaultAtts * sizeof(DEFAULT_ATTRIBUTE));
+      newE->defaultAtts
+          = ms->malloc_fcn(oldE->nDefaultAtts * sizeof(DEFAULT_ATTRIBUTE));
       if (! newE->defaultAtts) {
         return 0;
       }
@@ -6872,7 +6884,7 @@ lookup(XML_Parser parser, HASH_TABLE *table, KEY name, size_t createSize) {
     /* table->size is a power of 2 */
     table->size = (size_t)1 << INIT_POWER;
     tsize = table->size * sizeof(NAMED *);
-    table->v = (NAMED **)table->mem->malloc_fcn(tsize);
+    table->v = table->mem->malloc_fcn(tsize);
     if (! table->v) {
       table->size = 0;
       return NULL;
@@ -6912,7 +6924,7 @@ lookup(XML_Parser parser, HASH_TABLE *table, KEY name, size_t createSize) {
       }
 
       size_t tsize = newSize * sizeof(NAMED *);
-      NAMED **newV = (NAMED **)table->mem->malloc_fcn(tsize);
+      NAMED **newV = table->mem->malloc_fcn(tsize);
       if (! newV)
         return NULL;
       memset(newV, 0, tsize);
@@ -6941,7 +6953,7 @@ lookup(XML_Parser parser, HASH_TABLE *table, KEY name, size_t createSize) {
       }
     }
   }
-  table->v[i] = (NAMED *)table->mem->malloc_fcn(createSize);
+  table->v[i] = table->mem->malloc_fcn(createSize);
   if (! table->v[i])
     return NULL;
   memset(table->v[i], 0, createSize);
@@ -7229,7 +7241,7 @@ poolGrow(STRING_POOL *pool) {
     if (bytesToAllocate == 0)
       return XML_FALSE;
 
-    tem = (BLOCK *)pool->mem->malloc_fcn(bytesToAllocate);
+    tem = pool->mem->malloc_fcn(bytesToAllocate);
     if (! tem)
       return XML_FALSE;
     tem->size = blockSize;
