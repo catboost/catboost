@@ -4073,7 +4073,6 @@ migrations:
     - balancer/test/functional/consistent_hashing
     - balancer/test/functional/pingerprocess
     - balancer/test/functional/unistat
-    - yabs/autobudget/ml/flatten_visit_log/lib/mt
     - ads/sandbox_scripts/visibility_stats/fat
     - ads/sandbox_scripts/truncate_hitfactors/tests
     - ads/pytorch/lib/preprocess/medium_ut
