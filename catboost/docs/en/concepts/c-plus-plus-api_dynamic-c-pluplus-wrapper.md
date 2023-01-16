@@ -18,7 +18,7 @@ Perform the following steps to build the library:
     - Shared library
 
         ```bash
-        ya make -r catboost/libs/model_interface
+        ./ya make -r catboost/libs/model_interface
         ```
 
         Or (Linux-only):
