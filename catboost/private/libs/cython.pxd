@@ -66,6 +66,7 @@ cdef extern from "catboost/private/libs/options/enum_helpers.h":
     cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsMultiRegressionObjective(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsMultiTargetObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsSurvivalRegressionObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsGroupwiseMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMultiClassCompatibleMetric(const TString& metricName) nogil except +ProcessException

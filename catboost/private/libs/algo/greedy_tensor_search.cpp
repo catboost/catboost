@@ -1412,7 +1412,7 @@ namespace {
                 }
             }
             MaxFeatureValueCount = CalcMaxFeatureValueCount(*fold, *CandidatesContexts);
-            // for MultiClassClassification or MultiRegression multiply by approxDimensionion
+            // for MultiClassClassification or MultiTarget multiply by approxDimensionion
             StatsSize = MaxBucketCount * nFeatures * MaxSplitEnsembles;
         }
         void ParentsQueuePop() {
@@ -1553,7 +1553,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
 
         TVector<TIndexType> splittedLeafs;
         TVector<TIndexType> nextLevelLeafs;
-        const bool isMultiClassOrMultiRegression = fold->GetApproxDimension() != 1;
+        const bool isMultiClassOrMultiTarget = fold->GetApproxDimension() != 1;
 
         TSubtractTrickInfo subTrickInfo(
             &data,
@@ -1592,7 +1592,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 bestSplit = bestSplitNext;
                 bestSplitCandidate = bestSplitCandidateNext;
                 isStatsCalculated = false;
-            } else if (isEvenId && (leafBoundsSize <= nextleafBoundsSize) && isNextLeafConsidered && !isMultiClassOrMultiRegression) {
+            } else if (isEvenId && (leafBoundsSize <= nextleafBoundsSize) && isNextLeafConsidered && !isMultiClassOrMultiTarget) {
                 TVector<TBucketStats> smallStats = CalculateStats(
                     subTrickInfo,
                     curLevelLeafs[id],
@@ -1610,7 +1610,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 ConditionalPushToParentsQueue(gain, bestSplitCandidate, std::move(smallStats), &parentsQueue);
                 ConditionalPushToParentsQueue(nextGain, bestSplitCandidateNext, std::move(largeStats), &parentsQueue);
                 isStatsCalculated = true;
-            } else if (isEvenId && (leafBoundsSize > nextleafBoundsSize) && isNextLeafConsidered && !isMultiClassOrMultiRegression) {
+            } else if (isEvenId && (leafBoundsSize > nextleafBoundsSize) && isNextLeafConsidered && !isMultiClassOrMultiTarget) {
                 TVector<TBucketStats> smallStats = CalculateStats(
                     subTrickInfo,
                     curLevelLeafs[id + 1],

@@ -349,7 +349,7 @@ namespace NCB {
         bool hasClassificationOnlyMetrics = isAnyOfMetrics(IsClassificationOnlyMetric);
         bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
-        bool hasMultiRegressionMetrics = isAnyOfMetrics(IsMultiRegressionMetric);
+        bool hasMultiTargetMetrics = isAnyOfMetrics(IsMultiTargetMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
@@ -385,12 +385,12 @@ namespace NCB {
                 for (const auto& metricDescription : metricDescriptions) {
                     auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
-                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiRegressionMetric(metricLossFunction),
-                        "Non-Multiclassification and Non-Multiregression compatible metric (" << metricLossFunction
+                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiTargetMetric(metricLossFunction),
+                        "Non-Multiclassification and Non-MultiTarget compatible metric (" << metricLossFunction
                         << ") specified for a multidimensional model"
                     );
                 }
-                multiClassTargetData = !hasMultiRegressionMetrics;
+                multiClassTargetData = !hasMultiTargetMetrics;
                 if (multiClassTargetData && !knownClassCount) {
                     // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
@@ -426,11 +426,11 @@ namespace NCB {
             /*IsMultiClass*/ multiClassTargetData,
             /*CreateBinClassTarget*/ (
                 hasBinClassOnlyMetrics
-                || (!hasMultiRegressionMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
+                || (!hasMultiTargetMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
             ),
             /*CreateMultiClassTarget*/ (
                 hasMultiClassOnlyMetrics
-                || (!hasMultiRegressionMetrics && !hasBinClassOnlyMetrics && (multiClassTargetData || classCount > 2))
+                || (!hasMultiTargetMetrics && !hasBinClassOnlyMetrics && (multiClassTargetData || classCount > 2))
             ),
             /*CreateGroups*/ (
                 hasGroupwiseMetrics
@@ -530,8 +530,7 @@ namespace NCB {
 
         if (mainLossFunction) {
             CB_ENSURE(
-                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) ||
-                IsSurvivalRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                IsMultiTargetObjective(mainLossFunction->GetLossFunction()) ||
                 rawData.GetTargetDimension() <= 1,
                 "Currently only multi-regression and survival objectives work with multidimensional target"
             );

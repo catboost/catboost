@@ -152,7 +152,7 @@ cdef public object PyCatboostExceptionType = <object>CatBoostError
 
 
 @cython.embedsignature(True)
-class MultiRegressionCustomMetric:
+class MultiTargetCustomMetric:
     def evaluate(self, approxes, targets, weights):
         """
         Evaluates metric value.
@@ -200,7 +200,7 @@ class MultiRegressionCustomMetric:
 
 
 @cython.embedsignature(True)
-class MultiRegressionCustomObjective:
+class MultiTargetCustomObjective:
     def calc_ders_multi(self, approxes, targets, weights):
         """
         Computes first derivative and Hessian matrix of the loss function with respect to the predicted value for each dimension.
@@ -600,14 +600,14 @@ cdef extern from "catboost/libs/metrics/metric.h":
             const TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
-        ctypedef TMetricHolder (*TEvalMultiregressionFuncPtr)(
+        ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
             const TConstArrayRef[TVector[double]] approx,
             const TConstArrayRef[TConstArrayRef[float]] target,
             const TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
         TMaybe[TEvalFuncPtr] EvalFunc
-        TMaybe[TEvalMultiregressionFuncPtr] EvalMultiregressionFunc
+        TMaybe[TEvalMultiTargetFuncPtr] EvalMultiTargetFunc
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
@@ -638,7 +638,7 @@ cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor
             void* customData
         ) with gil
 
-        void (*CalcDersMultiRegression)(
+        void (*CalcDersMultiTarget)(
             TConstArrayRef[double] approx,
             TConstArrayRef[float] target,
             float weight,
@@ -1322,7 +1322,7 @@ cdef TMetricHolder _MetricEval(
     holder.Stats[1] = weight_
     return holder
 
-cdef TMetricHolder _MultiregressionMetricEval(
+cdef TMetricHolder _MultiTargetMetricEval(
     TConstArrayRef[TVector[double]] approx,
     TConstArrayRef[TConstArrayRef[float]] target,
     TConstArrayRef[float] weight,
@@ -1448,7 +1448,7 @@ cdef void _ObjectiveCalcDersMultiClass(
                 dereference(der2).Data[index] = num
                 index += 1
 
-cdef void _ObjectiveCalcDersMultiRegression(
+cdef void _ObjectiveCalcDersMultiTarget(
     TConstArrayRef[double] approx,
     TConstArrayRef[float] target,
     float weight,
@@ -1567,8 +1567,8 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
     _try_jit_methods(metricObject, custom_metric_methods_to_optimize)
     descriptor.CustomData = <void*>metricObject
-    if (issubclass(metricObject.__class__, MultiRegressionCustomMetric)):
-        descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
+    if (issubclass(metricObject.__class__, MultiTargetCustomMetric)):
+        descriptor.EvalMultiTargetFunc = &_MultiTargetMetricEval
     else:
         descriptor.EvalFunc = &_MetricEval
     descriptor.GetDescriptionFunc = &_MetricGetDescription
@@ -1587,7 +1587,7 @@ cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objective
     _try_jit_methods(objectiveObject, custom_objective_methods_to_optimize)
     descriptor.CustomData = <void*>objectiveObject
     descriptor.CalcDersRange = &_ObjectiveCalcDersRange
-    descriptor.CalcDersMultiRegression = &_ObjectiveCalcDersMultiRegression
+    descriptor.CalcDersMultiTarget = &_ObjectiveCalcDersMultiTarget
     descriptor.CalcDersMultiClass = &_ObjectiveCalcDersMultiClass
     return descriptor
 
@@ -1695,13 +1695,13 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
-            if (issubclass(params["loss_function"].__class__, MultiRegressionCustomObjective)):
-                params_to_json["loss_function"] = "PythonUserDefinedMultiRegression"
+            if (issubclass(params["loss_function"].__class__, MultiTargetCustomObjective)):
+                params_to_json["loss_function"] = "PythonUserDefinedMultiTarget"
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
-            if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):
-                params_to_json["eval_metric"] = "PythonUserDefinedMultiRegression"
+            if (issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)):
+                params_to_json["eval_metric"] = "PythonUserDefinedMultiTarget"
 
         if params_to_json.get("callbacks") == "PythonUserDefinedPerObject":
             self.customCallbackDescriptor = _BuildCustomCallbackDescritor(params["callbacks"])
@@ -5735,6 +5735,10 @@ cpdef is_regression_objective(loss_name):
 
 cpdef is_multiregression_objective(loss_name):
     return IsMultiRegressionObjective(to_arcadia_string(loss_name))
+
+
+cpdef is_multitarget_objective(loss_name):
+    return IsMultiTargetObjective(to_arcadia_string(loss_name))
 
 
 cpdef is_survivalregression_objective(loss_name):

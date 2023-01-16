@@ -404,7 +404,7 @@ void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
     }
 
     CB_ENSURE(
-        IsMultiRegressionMetric(metric) == IsMultiRegressionMetric(modelLoss),
+        IsMultiTargetMetric(metric) == IsMultiTargetMetric(modelLoss),
         "metric [" + ToString(metric) + "] and loss [" + ToString(modelLoss) + "] are incompatible"
     );
 

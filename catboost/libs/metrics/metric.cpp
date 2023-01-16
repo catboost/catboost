@@ -94,9 +94,9 @@ bool TMetric::NeedTarget() const {
 
 
 namespace {
-    struct TAdditiveMultiRegressionMetric: public TMultiRegressionMetric {
-        explicit TAdditiveMultiRegressionMetric(ELossFunction lossFunction, const TLossParams& descriptionParams)
-            : TMultiRegressionMetric(lossFunction, descriptionParams) {}
+    struct TAdditiveMultiTargetMetric: public TMultiTargetMetric {
+        explicit TAdditiveMultiTargetMetric(ELossFunction lossFunction, const TLossParams& descriptionParams)
+            : TMultiTargetMetric(lossFunction, descriptionParams) {}
         TMetricHolder Eval(
             TConstArrayRef<TVector<double>> approx,
             TConstArrayRef<TVector<double>> approxDelta,
@@ -416,9 +416,9 @@ TVector<TParamSet> TCtrFactorMetric::ValidParamSets() {
 
 /* SurvivalAFT */
 namespace {
-    struct TSurvivalAftMetric final: public TAdditiveMultiRegressionMetric {
+    struct TSurvivalAftMetric final: public TAdditiveMultiTargetMetric {
         explicit TSurvivalAftMetric(const TLossParams& params)
-            : TAdditiveMultiRegressionMetric(ELossFunction::SurvivalAft, params) {
+            : TAdditiveMultiTargetMetric(ELossFunction::SurvivalAft, params) {
             }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
@@ -479,9 +479,9 @@ void TSurvivalAftMetric::GetBestValue(EMetricBestValue* valueType, float* /*best
 
 /* MultiRMSE */
 namespace {
-    struct TMultiRMSEMetric final: public TAdditiveMultiRegressionMetric {
+    struct TMultiRMSEMetric final: public TAdditiveMultiTargetMetric {
         explicit TMultiRMSEMetric(const TLossParams& params)
-            : TAdditiveMultiRegressionMetric(ELossFunction::MultiRMSE, params)
+            : TAdditiveMultiTargetMetric(ELossFunction::MultiRMSE, params)
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
@@ -547,9 +547,9 @@ TVector<TParamSet> TMultiRMSEMetric::ValidParamSets() {
 
 /* MultiRMSEWithMissingValues */
 namespace {
-    struct TMultiRMSEWithMissingValues final: public TAdditiveMultiRegressionMetric {
+    struct TMultiRMSEWithMissingValues final: public TAdditiveMultiTargetMetric {
         explicit TMultiRMSEWithMissingValues(const TLossParams& params)
-           : TAdditiveMultiRegressionMetric(ELossFunction::MultiRMSEWithMissingValues, params)
+           : TAdditiveMultiTargetMetric(ELossFunction::MultiRMSEWithMissingValues, params)
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
@@ -625,7 +625,7 @@ TVector<TParamSet> TMultiRMSEWithMissingValues::ValidParamSets() {
 
 /* RMSEWithUncertainty */
 namespace {
-    class TRMSEWithUncertaintyMetric final: public TAdditiveMultiRegressionMetric {
+    class TRMSEWithUncertaintyMetric final: public TAdditiveMultiTargetMetric {
     public:
         explicit TRMSEWithUncertaintyMetric(
             ELossFunction lossFunction,
@@ -651,7 +651,7 @@ namespace {
 TRMSEWithUncertaintyMetric::TRMSEWithUncertaintyMetric(
     ELossFunction lossFunction,
     const TLossParams& descriptionParams)
-    : TAdditiveMultiRegressionMetric(lossFunction, descriptionParams)
+    : TAdditiveMultiTargetMetric(lossFunction, descriptionParams)
 {}
 
 TVector<THolder<IMetric>> TRMSEWithUncertaintyMetric::Create(const TMetricConfig& config) {
@@ -4638,12 +4638,12 @@ void TCustomMetric::AddHint(const TString& key, const TString& value) {
     Hints[key] = value;
 }
 
-/* CustomMultiRegression */
+/* CustomMultiTarget */
 
 namespace {
-    class TMultiRegressionCustomMetric: public TMultiRegressionMetric {
+    class TMultiTargetCustomMetric: public TMultiTargetMetric {
     public:
-        explicit TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor);
+        explicit TMultiTargetCustomMetric(const TCustomMetricDescriptor& descriptor);
 
         TMetricHolder Eval(
             TConstArrayRef<TVector<double>> approx,
@@ -4691,14 +4691,14 @@ namespace {
     };
 }
 
-TMultiRegressionCustomMetric::TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor)
-        : TMultiRegressionMetric(ELossFunction::PythonUserDefinedPerObject, TLossParams())
+TMultiTargetCustomMetric::TMultiTargetCustomMetric(const TCustomMetricDescriptor& descriptor)
+        : TMultiTargetMetric(ELossFunction::PythonUserDefinedPerObject, TLossParams())
         , Descriptor(descriptor)
 {
     UseWeights.SetDefaultValue(true);
 }
 
-TMetricHolder TMultiRegressionCustomMetric::Eval_(
+TMetricHolder TMultiTargetCustomMetric::Eval_(
     TConstArrayRef<TVector<double>> approx,
     TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weightIn,
@@ -4707,7 +4707,7 @@ TMetricHolder TMultiRegressionCustomMetric::Eval_(
     NPar::ILocalExecutor& /*executor*/
 ) const {
     auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
-    TMetricHolder result = (*(Descriptor.EvalMultiregressionFunc))(approx, target, weight, begin, end, Descriptor.CustomData);
+    TMetricHolder result = (*(Descriptor.EvalMultiTargetFunc))(approx, target, weight, begin, end, Descriptor.CustomData);
     CB_ENSURE(
         result.Stats.ysize() == 2,
         "Custom metric evaluate() returned incorrect value."\
@@ -4716,24 +4716,24 @@ TMetricHolder TMultiRegressionCustomMetric::Eval_(
     return result;
 }
 
-TString TMultiRegressionCustomMetric::GetDescription() const {
+TString TMultiTargetCustomMetric::GetDescription() const {
     TString description = Descriptor.GetDescriptionFunc(Descriptor.CustomData);
     return BuildDescription(description, UseWeights);
 }
 
-void TMultiRegressionCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiTargetCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
     *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
 }
 
-double TMultiRegressionCustomMetric::GetFinalError(const TMetricHolder& error) const {
+double TMultiTargetCustomMetric::GetFinalError(const TMetricHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
 }
 
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
-    if (descriptor.IsMultiregressionMetric()) {
-        return MakeHolder<TMultiRegressionCustomMetric>(descriptor);
+    if (descriptor.IsMultiTargetMetric()) {
+        return MakeHolder<TMultiTargetCustomMetric>(descriptor);
     } else {
         return MakeHolder<TCustomMetric>(descriptor);
     }
@@ -6517,7 +6517,7 @@ TMetricHolder EvalErrors(
         const IMetric& error,
         NPar::ILocalExecutor* localExecutor
 ) {
-    if (const auto multiMetric = dynamic_cast<const TMultiRegressionMetric*>(&error)) {
+    if (const auto multiMetric = dynamic_cast<const TMultiTargetMetric*>(&error)) {
         CB_ENSURE(!isExpApprox, "Exponentiated approxes are not supported for multi-regression");
         return multiMetric->Eval(approx, approxDelta, target, weight, /*begin*/0, /*end*/target[0].size(), *localExecutor);
     } else {
