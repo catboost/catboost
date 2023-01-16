@@ -501,9 +501,9 @@ namespace NKernel {
                                                  const int foldCount,
                                                  float* result) {
 
-        const int featuresPerBlock = BLOCK_SIZE / leafCount;
+        const int featuresPerBlock = (BLOCK_SIZE + leafCount - 1) / leafCount;
         const int featureId = blockIdx.x * featuresPerBlock + threadIdx.x / leafCount;
-        const int leafId = threadIdx.x & (leafCount - 1);
+        const int leafId = (threadIdx.x & (leafCount - 1)) + threadIdx.z * BLOCK_SIZE;
 
         const int foldId = blockIdx.y;
         TPointwisePartOffsetsHelper helper(gridDim.y);
@@ -534,10 +534,11 @@ namespace NKernel {
     )
     {
         const int blockSize = 1024;
+        const int leavesInBlock = Min<int>(leafCount, blockSize);
         dim3 numBlocks;
-        numBlocks.x = (binFeatureCount + (blockSize / leafCount) - 1) / (blockSize / leafCount);
+        numBlocks.x = (binFeatureCount + (blockSize / leavesInBlock) - 1) / (blockSize / leavesInBlock);
         numBlocks.y = foldCount;
-        numBlocks.z = 1;
+        numBlocks.z = (leafCount + blockSize - 1) / blockSize;
 
         switch (histCount) {
             case 1: {
