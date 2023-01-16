@@ -732,10 +732,12 @@ public:
     }
 
     TBasicString& AppendNoAlias(const TCharType* pc, size_t len) {
-        auto s = this->size();
+        if (len) {
+            auto s = this->size();
 
-        ReserveAndResize(s + len);
-        memcpy(&*(begin() + s), pc, len * sizeof(*pc));
+            ReserveAndResize(s + len);
+            memcpy(&*(begin() + s), pc, len * sizeof(*pc));
+        }
 
         return *this;
     }
