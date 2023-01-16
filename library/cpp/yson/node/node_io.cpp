@@ -107,7 +107,7 @@ TNode NodeFromYsonStream(IInputStream* input, EYsonType type)
     TNode result = CreateEmptyNodeByType(type);
 
     TNodeBuilder builder(&result);
-    TYsonParser parser(&builder, input, type);
+    NYson::TYsonParser parser(&builder, input, type);
     parser.Parse();
     return result;
 }
