@@ -460,42 +460,45 @@
         "eductl": {
             "description": "eductl is a toolchain of Yandex Education"
         },
-        "bigb-request": {
+        "bigb_request": {
             "description": "utility to get user info"
         },
-        "bigb-hitlog_analyser": {
+        "bigb_hitlog_analyser": {
             "description": "bigb utility"
         },
-        "bigb-bsyeti_experiments": {
+        "bigb_bsyeti_experiments": {
             "description": "bigb utility"
         },
-        "bigb-buzzard_cluster_analyzer": {
+        "bigb_bb_cluster_analyzer": {
             "description": "bigb utility"
         },
-        "bigb-yt_profiles_dumper": {
+        "bigb_yt_profiles_dumper": {
             "description": "bigb utility"
         },
-        "bigb-ab": {
+        "bigb_ab": {
             "description": "bigb utility"
         },
-        "bigrt-cli": {
+        "bigrt_cli": {
             "description": "bigrt utility"
         },
-        "caesar-yt_sync": {
+        "caesar_yt_sync": {
             "description": "caesar utility"
         },
-        "caesar-lookup_profile": {
+        "caesar_lookup_profile": {
             "description": "caesar utility"
         },
-        "caesar-profile_size_analyzer": {
+        "caesar_profile_size_analyzer": {
             "description": "caesar utility"
+        },
+        "exp_stats" : {
+            "description": "bsyeti tool"
         }
     },
     "toolchain": {
-        "bigb-request": {
+        "bigb_request": {
             "tools": {
-                "bigb-request": {
-                    "bottle": "bigb-request",
+                "bigb_request": {
+                    "bottle": "bigb_request",
                     "executable": "bb_requester"
                 }
             },
@@ -514,10 +517,10 @@
                 }
             ]
         },
-        "bigb-hitlog_analyser": {
+        "bigb_hitlog_analyser": {
             "tools": {
-                "bigb-hitlog_analyser": {
-                    "bottle": "bigb-hitlog_analyser",
+                "bigb_hitlog_analyser": {
+                    "bottle": "bigb_hitlog_analyser",
                     "executable": "hitlog_analyser"
                 }
             },
@@ -536,10 +539,10 @@
                 }
             ]
         },
-        "bigb-bsyeti_experiments": {
+        "bigb_bsyeti_experiments": {
             "tools": {
-                "bigb-bsyeti_experiments": {
-                    "bottle": "bigb-bsyeti_experiments",
+                "bigb_bsyeti_experiments": {
+                    "bottle": "bigb_bsyeti_experiments",
                     "executable": "bsyeti_experiments"
                 }
             },
@@ -558,11 +561,11 @@
                 }
             ]
         },
-        "bigb-buzzard_cluster_analyzer": {
+        "bigb_bb_cluster_analyzer": {
             "tools": {
-                "bigb-buzzard_cluster_analyzer": {
-                    "bottle": "bigb-buzzard_cluster_analyzer",
-                    "executable": "buzzard_cluster_analyzer"
+                "bigb_bb_cluster_analyzer": {
+                    "bottle": "bigb_bb_cluster_analyzer",
+                    "executable": "bb_cluster_analyzer"
                 }
             },
             "platforms": [
@@ -580,10 +583,10 @@
                 }
             ]
         },
-        "bigb-yt_profiles_dumper": {
+        "bigb_yt_profiles_dumper": {
             "tools": {
-                "bigb-yt_profiles_dumper": {
-                    "bottle": "bigb-yt_profiles_dumper",
+                "bigb_yt_profiles_dumper": {
+                    "bottle": "bigb_yt_profiles_dumper",
                     "executable": "yt_profiles_dumper"
                 }
             },
@@ -602,10 +605,10 @@
                 }
             ]
         },
-        "bigb-ab": {
+        "bigb_ab": {
             "tools": {
-                "bigb-ab": {
-                    "bottle": "bigb-ab",
+                "bigb_ab": {
+                    "bottle": "bigb_ab",
                     "executable": "ab"
                 }
             },
@@ -624,10 +627,10 @@
                 }
             ]
         },
-        "bigrt-cli": {
+        "bigrt_cli": {
             "tools": {
-                "bigrt-cli": {
-                    "bottle": "bigrt-cli",
+                "bigrt_cli": {
+                    "bottle": "bigrt_cli",
                     "executable": "big_rt_cli"
                 }
             },
@@ -646,10 +649,10 @@
                 }
             ]
         },
-        "caesar-lookup_profile": {
+        "caesar_lookup_profile": {
             "tools": {
-                "caesar-lookup_profile": {
-                    "bottle": "caesar-lookup_profile",
+                "caesar_lookup_profile": {
+                    "bottle": "caesar_lookup_profile",
                     "executable": "lookup_profile"
                 }
             },
@@ -668,10 +671,32 @@
                 }
             ]
         },
-        "caesar-profile_size_analyzer": {
+        "exp_stats": {
             "tools": {
-                "caesar-profile_size_analyzer": {
-                    "bottle": "caesar-profile_size_analyzer",
+                "exp_stats" : {
+                    "bottle": "exp_stats",
+                    "executable": "exp_stats"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "caesar_profile_size_analyzer": {
+            "tools": {
+                "caesar_profile_size_analyzer": {
+                    "bottle": "caesar_profile_size_analyzer",
                     "executable": "profile_size_analyzer"
                 }
             },
@@ -690,10 +715,10 @@
                 }
             ]
         },
-        "caesar-yt_sync": {
+        "caesar_yt_sync": {
             "tools": {
-                "caesar-yt_sync": {
-                    "bottle": "caesar-yt_sync",
+                "caesar_yt_sync": {
+                    "bottle": "caesar_yt_sync",
                     "executable": "yt_sync"
                 }
             },
@@ -10187,7 +10212,7 @@
                 ]
             }
         },
-        "bigb-request": {
+        "bigb_request": {
             "formula": {
                 "sandbox_id": [
                     1060379091
@@ -10200,7 +10225,7 @@
                 ]
             }
         },
-        "bigb-hitlog_analyser": {
+        "bigb_hitlog_analyser": {
             "formula": {
                 "sandbox_id": [
                     1062207871
@@ -10213,7 +10238,7 @@
                 ]
             }
         },
-        "bigb-bsyeti_experiments": {
+        "bigb_bsyeti_experiments": {
             "formula": {
                 "sandbox_id": [
                     1062269140
@@ -10226,20 +10251,20 @@
                 ]
             }
         },
-        "bigb-buzzard_cluster_analyzer": {
+        "bigb_bb_cluster_analyzer": {
             "formula": {
                 "sandbox_id": [
-                    1062269123
+                    1075448381
                 ],
-                "match": "buzzard_cluster_analyzer"
+                "match": "bb_cluster_analyzer"
             },
             "executable": {
-                "buzzard_cluster_analyzer": [
-                    "buzzard_cluster_analyzer"
+                "bb_cluster_analyzer": [
+                    "bb_cluster_analyzer"
                 ]
             }
         },
-        "bigb-yt_profiles_dumper": {
+        "bigb_yt_profiles_dumper": {
             "formula": {
                 "sandbox_id": [
                     1062269098
@@ -10252,7 +10277,7 @@
                 ]
             }
         },
-        "bigb-ab": {
+        "bigb_ab": {
             "formula": {
                 "sandbox_id": [
                     1062269065
@@ -10265,7 +10290,7 @@
                 ]
             }
         },
-        "bigrt-cli": {
+        "bigrt_cli": {
             "formula": {
                 "sandbox_id": [
                     1063136697
@@ -10278,7 +10303,7 @@
                 ]
             }
         },
-        "caesar-yt_sync": {
+        "caesar_yt_sync": {
             "formula": {
                 "sandbox_id": [
                     1062506261
@@ -10291,7 +10316,7 @@
                 ]
             }
         },
-        "caesar-lookup_profile": {
+        "caesar_lookup_profile": {
             "formula": {
                 "sandbox_id": [
                     1062506392
@@ -10304,7 +10329,20 @@
                 ]
             }
         },
-        "caesar-profile_size_analyzer": {
+        "exp_stats": {
+            "formula": {
+                "sandbox_id": [
+                    1075389659
+                ],
+                "match": "exp_stats"
+            },
+            "executable": {
+                "exp_stats": [
+                    "exp_stats"
+                ]
+            }
+        },
+        "caesar_profile_size_analyzer": {
             "formula": {
                 "sandbox_id": [
                     1062506496
