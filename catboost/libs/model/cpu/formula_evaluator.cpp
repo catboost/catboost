@@ -102,7 +102,7 @@ namespace NCB::NModelEvaluation {
                 ExtFeatureLayout = featureLayout;
             }
 
-            size_t GetTreeCount() const {
+            size_t GetTreeCount() const override {
                 return ModelTrees->GetTreeCount();
             }
 
@@ -373,7 +373,7 @@ namespace NCB::NModelEvaluation {
                 size_t treeEnd,
                 TArrayRef<double> results,
                 const TFeatureLayout* featureInfo
-            ) const {
+            ) const override {
                 if (!featureInfo) {
                     featureInfo = ExtFeatureLayout.Get();
                 }
@@ -600,13 +600,13 @@ namespace NCB::NModelEvaluation {
             }
 
             void Quantize(
-		    TConstArrayRef<TConstArrayRef<float>> features,
-		    IQuantizedData* quantizedData
-	    ) const override {
-	        Y_UNUSED(features);
-	        Y_UNUSED(quantizedData);
-	        CB_ENSURE(false, "Unimplemented method called, please contact catboost developers via GitHub issue or in support chat");
-	    }
+            TConstArrayRef<TConstArrayRef<float>> features,
+            IQuantizedData* quantizedData
+        ) const override {
+            Y_UNUSED(features);
+            Y_UNUSED(quantizedData);
+            CB_ENSURE(false, "Unimplemented method called, please contact catboost developers via GitHub issue or in support chat");
+        }
 
         private:
             template <typename TCatFeatureContainer = TConstArrayRef<int>>
