@@ -5625,8 +5625,3 @@ Mellon the rights to redistribute these changes without encumbrance.
 
 ====================Public-Domain====================
  * This file is in the public domain.
-
-
-====================Unknown====================
- * For licensing information, see the file 'LICENCE' in the
- * jffs2 directory.
