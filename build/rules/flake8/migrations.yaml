@@ -63,7 +63,6 @@ migrations:
     - alice/boltalka/generative/training/data/nn/util
     - alice/boltalka/generative/training/data/nn/util/dict
     - alice/boltalka/tools/dssm_preprocessing/preprocessing/lib
-    - alice/hollywood/library/python/perf_testing
     - alice/nlu/py_libs/tokenizer/ut/py2
     - alice/nlu/py_libs/tokenizer/ut/py3
     - alice/nlu/tools/paraphrase_finder
@@ -796,7 +795,6 @@ migrations:
     - yabs/server/libs/py_markdown_strings
     - yabs/server/test/ft/BSDEV-73064
     - yabs/server/test/ft/BSSERVER-11503
-    - yabs/server/test/ft/BSSERVER-13621
     - yabs/server/test/ft/BSSERVER-14195
     - yabs/server/test/ft/BSSERVER-2122
     - yabs/server/test/ft/BSSERVER-2158
@@ -804,10 +802,7 @@ migrations:
     - yabs/server/test/ft/BSSERVER-2976
     - yabs/server/test/ft/BSSERVER-3895
     - yabs/server/test/ft/BSSERVER-4338
-    - yabs/server/test/ft/BSSERVER-5097
-    - yabs/server/test/ft/BSSERVER-5249
     - yabs/server/test/ft/BSSERVER-9233
-    - yabs/server/test/ft/BSSERVER-9278
     - yabs/server/test/ft/NANPU-817
     - yabs/server/test/ft/checks
     - yabs/server/test/pylibs/qxl
@@ -922,7 +917,6 @@ migrations:
     - ads/sandbox_scripts/ggmonitor
     - ads/tools/mr_select/lib
     - alice/analytics/wer/g2p
-    - alice/hollywood/library/python/hollywood_recipe
     - alice/hollywood/tests/perf_test
     - alice/megamind/tests/library
     - alice/paskills/granet_server/tests
@@ -1073,7 +1067,6 @@ migrations:
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
     - quality/functionality/rtx/server/plugin
-    - quality/functionality/snippets/ecom_offers/gemini_test
     - quality/functionality/snippets/rkn_filter
     - quality/functionality/turbo/analytics/quality/cms_report
     - quality/functionality/turbo/analytics/quality/samplers/cms_sampler
@@ -1081,7 +1074,6 @@ migrations:
     - quality/functionality/turbo/tools/pq_delete_docs
     - quality/functionality/turbo/tools/tdm
     - quality/logs/mousetrack_lib/python/tests
-    - quality/nirvana_tools/conveyor_operations/bert/state_to_ynmt
     - quality/relev_tools/choice_screen/create_stove
     - quality/trailer/suggest/toloka_processor/report_yt
     - quality/webfresh/metrics/serpsets/raw_serpset_patcher/tests
@@ -1552,7 +1544,6 @@ migrations:
     - yabs/vh/cms-pgaas/cms_common
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib/lib/sport_client
     - yabs/vh/cms-pgaas/statistics_api
-    - yabs/vh/cms-pgaas/ugc_admin_api
     - yabs/vh/cms-pgaas/ugc_api
     - yabs/vh/cms-pgaas/utils/external_services/sender
     - yabs/vh/frontend/json_templating/streams_generator/pylib
