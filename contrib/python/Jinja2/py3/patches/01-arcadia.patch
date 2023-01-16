@@ -10,7 +10,7 @@
  from .runtime import make_logging_undefined as make_logging_undefined
 --- contrib/python/Jinja2/py3/jinja2/loaders.py	(index)
 +++ contrib/python/Jinja2/py3/jinja2/loaders.py	(working tree)
-@@ -642,3 +642,17 @@ class ModuleLoader(BaseLoader):
+@@ -650,3 +650,17 @@ class ModuleLoader(BaseLoader):
          return environment.template_class.from_module_dict(
              environment, mod.__dict__, globals
          )

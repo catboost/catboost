@@ -26,6 +26,7 @@ from random import randrange, sample, choice
 
 __all__ = [
     'all_equal',
+    'before_and_after',
     'consume',
     'convolve',
     'dotproduct',
@@ -49,9 +50,11 @@ __all__ = [
     'random_product',
     'repeatfunc',
     'roundrobin',
+    'sliding_window',
     'tabulate',
     'tail',
     'take',
+    'triplewise',
     'unique_everseen',
     'unique_justseen',
 ]
@@ -628,3 +631,68 @@ def convolve(signal, kernel):
     for x in chain(signal, repeat(0, n - 1)):
         window.append(x)
         yield sum(map(operator.mul, kernel, window))
+
+
+def before_and_after(predicate, it):
+    """A variant of :func:`takewhile` that allows complete access to the
+    remainder of the iterator.
+
+         >>> it = iter('ABCdEfGhI')
+         >>> all_upper, remainder = before_and_after(str.isupper, it)
+         >>> ''.join(all_upper)
+         'ABC'
+         >>> ''.join(remainder) # takewhile() would lose the 'd'
+         'dEfGhI'
+
+    Note that the first iterator must be fully consumed before the second
+    iterator can generate valid results.
+    """
+    it = iter(it)
+    transition = []
+
+    def true_iterator():
+        for elem in it:
+            if predicate(elem):
+                yield elem
+            else:
+                transition.append(elem)
+                return
+
+    def remainder_iterator():
+        yield from transition
+        yield from it
+
+    return true_iterator(), remainder_iterator()
+
+
+def triplewise(iterable):
+    """Return overlapping triplets from *iterable*.
+
+    >>> list(triplewise('ABCDE'))
+    [('A', 'B', 'C'), ('B', 'C', 'D'), ('C', 'D', 'E')]
+
+    """
+    for (a, _), (b, c) in pairwise(pairwise(iterable)):
+        yield a, b, c
+
+
+def sliding_window(iterable, n):
+    """Return a sliding window of width *n* over *iterable*.
+
+        >>> list(sliding_window(range(6), 4))
+        [(0, 1, 2, 3), (1, 2, 3, 4), (2, 3, 4, 5)]
+
+    If *iterable* has fewer than *n* items, then nothing is yielded:
+
+        >>> list(sliding_window(range(3), 4))
+        []
+
+    For a variant with more features, see :func:`windowed`.
+    """
+    it = iter(iterable)
+    window = deque(islice(it, n), maxlen=n)
+    if len(window) == n:
+        yield tuple(window)
+    for x in it:
+        window.append(x)
+        yield tuple(window)

@@ -38,7 +38,16 @@
      def test_caches_template_based_on_mtime(self):
          filesystem_loader = loaders.FileSystemLoader(self.searchpath)
  
-@@ -315,7 +318,7 @@ def test_package_dir_list(package_dir_loader):
+@@ -316,7 +319,7 @@ def test_package_dir_list(package_dir_loader):
+ @pytest.fixture()
+ def package_file_loader(monkeypatch):
+     monkeypatch.syspath_prepend(Path(__file__).parent / "res")
+-    return PackageLoader("__init__")
++    return PackageLoader("res")
+ 
+ 
+ @pytest.mark.parametrize(
+@@ -337,7 +340,7 @@ def test_package_dir_list(package_dir_loader):
  
  @pytest.fixture()
  def package_zip_loader(monkeypatch):

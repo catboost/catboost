@@ -603,6 +603,60 @@ class IlenTests(TestCase):
         self.assertEqual(mi.ilen(list(range(6))), 6)
 
 
+class MinMaxTests(TestCase):
+    def test_basic(self):
+        for iterable, expected in (
+            # easy case
+            ([0, 1, 2, 3], (0, 3)),
+            # min and max are not in the extremes + we have `int`s and `float`s
+            ([3, 5.5, -1, 2], (-1, 5.5)),
+            # unordered collection
+            ({3, 5.5, -1, 2}, (-1, 5.5)),
+            # with repetitions
+            ([3, 5.5, float('-Inf'), 5.5], (float('-Inf'), 5.5)),
+            # other collections
+            ('banana', ('a', 'n')),
+            ({0: 1, 2: 100, 1: 10}, (0, 2)),
+            (range(3, 14), (3, 13)),
+        ):
+            with self.subTest(iterable=iterable, expected=expected):
+                # check for expected results
+                self.assertTupleEqual(mi.minmax(iterable), expected)
+                # check for equality with built-in `min` and `max`
+                self.assertTupleEqual(
+                    mi.minmax(iterable), (min(iterable), max(iterable))
+                )
+
+    def test_unpacked(self):
+        self.assertTupleEqual(mi.minmax(2, 3, 1), (1, 3))
+        self.assertTupleEqual(mi.minmax(12, 3, 4, key=str), (12, 4))
+
+    def test_iterables(self):
+        self.assertTupleEqual(mi.minmax(x for x in [0, 1, 2, 3]), (0, 3))
+        self.assertTupleEqual(
+            mi.minmax(map(str, [3, 5.5, 'a', 2])), ('2', 'a')
+        )
+        self.assertTupleEqual(
+            mi.minmax(filter(None, [0, 3, '', None, 10])), (3, 10)
+        )
+
+    def test_key(self):
+        self.assertTupleEqual(
+            mi.minmax({(), (1, 4, 2), 'abcde', range(4)}, key=len),
+            ((), 'abcde'),
+        )
+        self.assertTupleEqual(
+            mi.minmax((x for x in [10, 3, 25]), key=str), (10, 3)
+        )
+
+    def test_default(self):
+        with self.assertRaises(ValueError):
+            mi.minmax([])
+
+        self.assertIs(mi.minmax([], default=None), None)
+        self.assertListEqual(mi.minmax([], default=[1, 'a']), [1, 'a'])
+
+
 class WithIterTests(TestCase):
     def test_with_iter(self):
         s = StringIO('One fish\nTwo fish')
@@ -4180,6 +4234,7 @@ class IsSortedTests(TestCase):
     def test_basic(self):
         for iterable, kwargs, expected in [
             ([], {}, True),
+            ([1], {}, True),
             ([1, 2, 3], {}, True),
             ([1, 1, 2, 3], {}, True),
             ([1, 10, 2, 3], {}, False),
@@ -4190,15 +4245,59 @@ class IsSortedTests(TestCase):
             ([1, 10, 2, 3], {'reverse': True}, False),
             (['3', '2', '10', '1'], {'reverse': True}, True),
             (['3', '2', '10', '1'], {'key': int, 'reverse': True}, False),
+            # strict
+            ([], {'strict': True}, True),
+            ([1], {'strict': True}, True),
+            ([1, 1], {'strict': True}, False),
+            ([1, 2, 3], {'strict': True}, True),
+            ([1, 1, 2, 3], {'strict': True}, False),
+            ([1, 10, 2, 3], {'strict': True}, False),
+            (['1', '10', '2', '3'], {'strict': True}, True),
+            (['1', '10', '2', '3', '3'], {'strict': True}, False),
+            (['1', '10', '2', '3'], {'strict': True, 'key': int}, False),
+            ([1, 2, 3], {'strict': True, 'reverse': True}, False),
+            ([1, 1, 2, 3], {'strict': True, 'reverse': True}, False),
+            ([1, 10, 2, 3], {'strict': True, 'reverse': True}, False),
+            (['3', '2', '10', '1'], {'strict': True, 'reverse': True}, True),
+            (
+                ['3', '2', '10', '10', '1'],
+                {'strict': True, 'reverse': True},
+                False,
+            ),
+            (
+                ['3', '2', '10', '1'],
+                {'strict': True, 'key': int, 'reverse': True},
+                False,
+            ),
             # We'll do the same weird thing as Python here
             (['nan', 0, 'nan', 0], {'key': float}, True),
             ([0, 'nan', 0, 'nan'], {'key': float}, True),
             (['nan', 0, 'nan', 0], {'key': float, 'reverse': True}, True),
             ([0, 'nan', 0, 'nan'], {'key': float, 'reverse': True}, True),
+            ([0, 'nan', 0, 'nan'], {'strict': True, 'key': float}, True),
+            (
+                ['nan', 0, 'nan', 0],
+                {'strict': True, 'key': float, 'reverse': True},
+                True,
+            ),
         ]:
-            with self.subTest(args=(iterable, kwargs)):
-                mi_result = mi.is_sorted(iter(iterable), **kwargs)
-                py_result = iterable == sorted(iterable, **kwargs)
+            key = kwargs.get('key', None)
+            reverse = kwargs.get('reverse', False)
+            strict = kwargs.get('strict', False)
+
+            with self.subTest(
+                iterable=iterable, key=key, reverse=reverse, strict=strict
+            ):
+                mi_result = mi.is_sorted(
+                    iter(iterable), key=key, reverse=reverse, strict=strict
+                )
+
+                sorted_iterable = sorted(iterable, key=key, reverse=reverse)
+                if strict:
+                    sorted_iterable = list(mi.unique_justseen(sorted_iterable))
+
+                py_result = iterable == sorted_iterable
+
                 self.assertEqual(mi_result, expected)
                 self.assertEqual(mi_result, py_result)
 
@@ -4652,6 +4751,9 @@ class ZipBroadcastTests(TestCase):
             ([1, [2, 3]], [(1, 2), (1, 3)]),
             # All iterable
             ([[1, 2], [3, 4]], [(1, 3), (2, 4)]),
+            # Infinite
+            ([count(), 1, [2]], [(0, 1, 2)]),
+            ([count(), 1, [2, 3]], [(0, 1, 2), (1, 1, 3)]),
         ]:
             with self.subTest(expected=expected):
                 actual = list(mi.zip_broadcast(*objects))
@@ -4679,15 +4781,253 @@ class ZipBroadcastTests(TestCase):
         )
 
     def test_strict(self):
-        # Truncate by default
-        self.assertEqual(
-            list(mi.zip_broadcast('a', [1, 2], [3, 4, 5])),
-            [('a', 1, 3), ('a', 2, 4)],
-        )
+        for objects, zipped in [
+            ([[], [1]], []),
+            ([[1], []], []),
+            ([[1], [2, 3]], [(1, 2)]),
+            ([[1, 2], [3]], [(1, 3)]),
+            ([[1, 2], [3], [4]], [(1, 3, 4)]),
+            ([[1], [2, 3], [4]], [(1, 2, 4)]),
+            ([[1], [2], [3, 4]], [(1, 2, 3)]),
+            ([[1], [2, 3], [4, 5]], [(1, 2, 4)]),
+            ([[1, 2], [3], [4, 5]], [(1, 3, 4)]),
+            ([[1, 2], [3, 4], [5]], [(1, 3, 5)]),
+            (['a', [1, 2], [3, 4, 5]], [('a', 1, 3), ('a', 2, 4)]),
+        ]:
+            # Truncate by default
+            with self.subTest(objects=objects, strict=False, zipped=zipped):
+                self.assertEqual(list(mi.zip_broadcast(*objects)), zipped)
 
-        # Raise an exception for strict=True
-        with self.assertRaises(mi.UnequalIterablesError):
-            list(mi.zip_broadcast('a', [1, 2], [3, 4, 5], strict=True))
+            # Raise an exception for strict=True
+            with self.subTest(objects=objects, strict=True):
+                with self.assertRaises(ValueError):
+                    list(mi.zip_broadcast(*objects, strict=True))
 
     def test_empty(self):
         self.assertEqual(list(mi.zip_broadcast()), [])
+
+
+class UniqueInWindowTests(TestCase):
+    def test_invalid_n(self):
+        with self.assertRaises(ValueError):
+            list(mi.unique_in_window([], 0))
+
+    def test_basic(self):
+        for iterable, n, expected in [
+            (range(9), 10, list(range(9))),
+            (range(20), 10, list(range(20))),
+            ([1, 2, 3, 4, 4, 4], 1, [1, 2, 3, 4]),
+            ([1, 2, 3, 4, 4, 4], 2, [1, 2, 3, 4]),
+            ([1, 2, 3, 4, 4, 4], 3, [1, 2, 3, 4]),
+            ([1, 2, 3, 4, 4, 4], 4, [1, 2, 3, 4]),
+            ([1, 2, 3, 4, 4, 4], 5, [1, 2, 3, 4]),
+        ]:
+            with self.subTest(expected=expected):
+                actual = list(mi.unique_in_window(iterable, n))
+                self.assertEqual(actual, expected)
+
+    def test_key(self):
+        iterable = [0, 1, 3, 4, 5, 6, 7, 8, 9]
+        n = 3
+        key = lambda x: x // 3
+        actual = list(mi.unique_in_window(iterable, n, key=key))
+        expected = [0, 3, 6, 9]
+        self.assertEqual(actual, expected)
+
+
+class StrictlyNTests(TestCase):
+    def test_basic(self):
+        iterable = ['a', 'b', 'c', 'd']
+        n = 4
+        actual = list(mi.strictly_n(iter(iterable), n))
+        expected = iterable
+        self.assertEqual(actual, expected)
+
+    def test_too_short_default(self):
+        iterable = ['a', 'b', 'c', 'd']
+        n = 5
+        with self.assertRaises(ValueError) as exc:
+            list(mi.strictly_n(iter(iterable), n))
+
+        self.assertEqual(
+            'Too few items in iterable (got 4)', exc.exception.args[0]
+        )
+
+    def test_too_long_default(self):
+        iterable = ['a', 'b', 'c', 'd']
+        n = 3
+        with self.assertRaises(ValueError) as cm:
+            list(mi.strictly_n(iter(iterable), n))
+
+        self.assertEqual(
+            'Too many items in iterable (got at least 4)',
+            cm.exception.args[0],
+        )
+
+    def test_too_short_custom(self):
+        call_count = 0
+
+        def too_short(item_count):
+            nonlocal call_count
+            call_count += 1
+
+        iterable = ['a', 'b', 'c', 'd']
+        n = 6
+        actual = []
+        for item in mi.strictly_n(iter(iterable), n, too_short=too_short):
+            actual.append(item)
+        expected = ['a', 'b', 'c', 'd']
+        self.assertEqual(actual, expected)
+        self.assertEqual(call_count, 1)
+
+    def test_too_long_custom(self):
+        import logging
+
+        iterable = ['a', 'b', 'c', 'd']
+        n = 2
+        too_long = lambda item_count: logging.warning(
+            'Picked the first %s items', n
+        )
+
+        with self.assertLogs(level='WARNING') as cm:
+            actual = list(mi.strictly_n(iter(iterable), n, too_long=too_long))
+
+        self.assertEqual(actual, ['a', 'b'])
+        self.assertIn('Picked the first 2 items', cm.output[0])
+
+
+class DuplicatesEverSeenTests(TestCase):
+    def test_basic(self):
+        for iterable, expected in [
+            ([], []),
+            ([1, 2, 3], []),
+            ([1, 1], [1]),
+            ([1, 2, 1, 2], [1, 2]),
+            ([1, 2, 3, '1'], []),
+        ]:
+            with self.subTest(args=(iterable,)):
+                self.assertEqual(
+                    list(mi.duplicates_everseen(iterable)), expected
+                )
+
+    def test_non_hashable(self):
+        self.assertEqual(list(mi.duplicates_everseen([[1, 2], [3, 4]])), [])
+        self.assertEqual(
+            list(mi.duplicates_everseen([[1, 2], [3, 4], [1, 2]])), [[1, 2]]
+        )
+
+    def test_partially_hashable(self):
+        self.assertEqual(
+            list(mi.duplicates_everseen([[1, 2], [3, 4], (5, 6)])), []
+        )
+        self.assertEqual(
+            list(mi.duplicates_everseen([[1, 2], [3, 4], (5, 6), [1, 2]])),
+            [[1, 2]],
+        )
+        self.assertEqual(
+            list(mi.duplicates_everseen([[1, 2], [3, 4], (5, 6), (5, 6)])),
+            [(5, 6)],
+        )
+
+    def test_key_hashable(self):
+        iterable = 'HEheHEhe'
+        self.assertEqual(list(mi.duplicates_everseen(iterable)), list('HEhe'))
+        self.assertEqual(
+            list(mi.duplicates_everseen(iterable, str.lower)),
+            list('heHEhe'),
+        )
+
+    def test_key_non_hashable(self):
+        iterable = [[1, 2], [3, 0], [5, -2], [5, 6]]
+        self.assertEqual(
+            list(mi.duplicates_everseen(iterable, lambda x: x)), []
+        )
+        self.assertEqual(
+            list(mi.duplicates_everseen(iterable, sum)), [[3, 0], [5, -2]]
+        )
+
+    def test_key_partially_hashable(self):
+        iterable = [[1, 2], (1, 2), [1, 2], [5, 6]]
+        self.assertEqual(
+            list(mi.duplicates_everseen(iterable, lambda x: x)), [[1, 2]]
+        )
+        self.assertEqual(
+            list(mi.duplicates_everseen(iterable, list)), [(1, 2), [1, 2]]
+        )
+
+
+class DuplicatesJustSeenTests(TestCase):
+    def test_basic(self):
+        for iterable, expected in [
+            ([], []),
+            ([1, 2, 3, 3, 2, 2], [3, 2]),
+            ([1, 1], [1]),
+            ([1, 2, 1, 2], []),
+            ([1, 2, 3, '1'], []),
+        ]:
+            with self.subTest(args=(iterable,)):
+                self.assertEqual(
+                    list(mi.duplicates_justseen(iterable)), expected
+                )
+
+    def test_non_hashable(self):
+        self.assertEqual(list(mi.duplicates_justseen([[1, 2], [3, 4]])), [])
+        self.assertEqual(
+            list(
+                mi.duplicates_justseen(
+                    [[1, 2], [3, 4], [3, 4], [3, 4], [1, 2]]
+                )
+            ),
+            [[3, 4], [3, 4]],
+        )
+
+    def test_partially_hashable(self):
+        self.assertEqual(
+            list(mi.duplicates_justseen([[1, 2], [3, 4], (5, 6)])), []
+        )
+        self.assertEqual(
+            list(
+                mi.duplicates_justseen(
+                    [[1, 2], [3, 4], (5, 6), [1, 2], [1, 2]]
+                )
+            ),
+            [[1, 2]],
+        )
+        self.assertEqual(
+            list(
+                mi.duplicates_justseen(
+                    [[1, 2], [3, 4], (5, 6), (5, 6), (5, 6)]
+                )
+            ),
+            [(5, 6), (5, 6)],
+        )
+
+    def test_key_hashable(self):
+        iterable = 'HEheHHHhEheeEe'
+        self.assertEqual(list(mi.duplicates_justseen(iterable)), list('HHe'))
+        self.assertEqual(
+            list(mi.duplicates_justseen(iterable, str.lower)),
+            list('HHheEe'),
+        )
+
+    def test_key_non_hashable(self):
+        iterable = [[1, 2], [3, 0], [5, -2], [5, 6], [1, 2]]
+        self.assertEqual(
+            list(mi.duplicates_justseen(iterable, lambda x: x)), []
+        )
+        self.assertEqual(
+            list(mi.duplicates_justseen(iterable, sum)), [[3, 0], [5, -2]]
+        )
+
+    def test_key_partially_hashable(self):
+        iterable = [[1, 2], (1, 2), [1, 2], [5, 6], [1, 2]]
+        self.assertEqual(
+            list(mi.duplicates_justseen(iterable, lambda x: x)), []
+        )
+        self.assertEqual(
+            list(mi.duplicates_justseen(iterable, list)), [(1, 2), [1, 2]]
+        )
+
+    def test_nested(self):
+        iterable = [[[1, 2], [1, 2]], [5, 6], [5, 6]]
+        self.assertEqual(list(mi.duplicates_justseen(iterable)), [[5, 6]])

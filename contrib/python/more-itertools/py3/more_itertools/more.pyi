@@ -84,6 +84,13 @@ def one(
     too_short: Optional[_Raisable] = ...,
     too_long: Optional[_Raisable] = ...,
 ) -> _T: ...
+def raise_(exception: _Raisable, *args: Any) -> None: ...
+def strictly_n(
+    iterable: Iterable[_T],
+    n: int,
+    too_short: Optional[_GenFn] = ...,
+    too_long: Optional[_GenFn] = ...,
+) -> List[_T]: ...
 def distinct_permutations(
     iterable: Iterable[_T], r: Optional[int] = ...
 ) -> Iterator[Tuple[_T, ...]]: ...
@@ -293,12 +300,62 @@ def adjacent(
     iterable: Iterable[_T],
     distance: int = ...,
 ) -> Iterator[Tuple[bool, _T]]: ...
+@overload
 def groupby_transform(
     iterable: Iterable[_T],
-    keyfunc: Optional[Callable[[_T], _U]] = ...,
-    valuefunc: Optional[Callable[[_T], _V]] = ...,
-    reducefunc: Optional[Callable[..., _W]] = ...,
-) -> Iterator[Tuple[_T, _W]]: ...
+    keyfunc: None = None,
+    valuefunc: None = None,
+    reducefunc: None = None,
+) -> Iterator[Tuple[_T, Iterator[_T]]]: ...
+@overload
+def groupby_transform(
+    iterable: Iterable[_T],
+    keyfunc: Callable[[_T], _U],
+    valuefunc: None,
+    reducefunc: None,
+) -> Iterator[Tuple[_U, Iterator[_T]]]: ...
+@overload
+def groupby_transform(
+    iterable: Iterable[_T],
+    keyfunc: None,
+    valuefunc: Callable[[_T], _V],
+    reducefunc: None,
+) -> Iterable[Tuple[_T, Iterable[_V]]]: ...
+@overload
+def groupby_transform(
+    iterable: Iterable[_T],
+    keyfunc: Callable[[_T], _U],
+    valuefunc: Callable[[_T], _V],
+    reducefunc: None,
+) -> Iterable[Tuple[_U, Iterator[_V]]]: ...
+@overload
+def groupby_transform(
+    iterable: Iterable[_T],
+    keyfunc: None,
+    valuefunc: None,
+    reducefunc: Callable[[Iterator[_T]], _W],
+) -> Iterable[Tuple[_T, _W]]: ...
+@overload
+def groupby_transform(
+    iterable: Iterable[_T],
+    keyfunc: Callable[[_T], _U],
+    valuefunc: None,
+    reducefunc: Callable[[Iterator[_T]], _W],
+) -> Iterable[Tuple[_U, _W]]: ...
+@overload
+def groupby_transform(
+    iterable: Iterable[_T],
+    keyfunc: None,
+    valuefunc: Callable[[_T], _V],
+    reducefunc: Callable[[Iterable[_V]], _W],
+) -> Iterable[Tuple[_T, _W]]: ...
+@overload
+def groupby_transform(
+    iterable: Iterable[_T],
+    keyfunc: Callable[[_T], _U],
+    valuefunc: Callable[[_T], _V],
+    reducefunc: Callable[[Iterable[_V]], _W],
+) -> Iterable[Tuple[_U, _W]]: ...
 
 class numeric_range(Generic[_T, _U], Sequence[_T], Hashable, Reversible[_T]):
     @overload
@@ -494,6 +551,7 @@ def is_sorted(
     iterable: Iterable[_T],
     key: Optional[Callable[[_T], _U]] = ...,
     reverse: bool = False,
+    strict: bool = False,
 ) -> bool: ...
 
 class AbortThread(BaseException):
@@ -554,3 +612,53 @@ def zip_broadcast(
     ] = ...,
     strict: bool = ...
 ) -> Iterable[Tuple[_T, ...]]: ...
+def unique_in_window(
+    iterable: Iterable[_T], n: int, key: Optional[Callable[[_T], _U]] = ...
+) -> Iterator[_T]: ...
+def duplicates_everseen(
+    iterable: Iterable[_T], key: Optional[Callable[[_T], _U]] = ...
+) -> Iterator[_T]: ...
+def duplicates_justseen(
+    iterable: Iterable[_T], key: Optional[Callable[[_T], _U]] = ...
+) -> Iterator[_T]: ...
+
+class _SupportsLessThan(Protocol):
+    def __lt__(self, __other: Any) -> bool: ...
+
+_SupportsLessThanT = TypeVar("_SupportsLessThanT", bound=_SupportsLessThan)
+
+@overload
+def minmax(
+    iterable_or_value: Iterable[_SupportsLessThanT], *, key: None = None
+) -> Tuple[_SupportsLessThanT, _SupportsLessThanT]: ...
+@overload
+def minmax(
+    iterable_or_value: Iterable[_T], *, key: Callable[[_T], _SupportsLessThan]
+) -> Tuple[_T, _T]: ...
+@overload
+def minmax(
+    iterable_or_value: Iterable[_SupportsLessThanT],
+    *,
+    key: None = None,
+    default: _U
+) -> Union[_U, Tuple[_SupportsLessThanT, _SupportsLessThanT]]: ...
+@overload
+def minmax(
+    iterable_or_value: Iterable[_T],
+    *,
+    key: Callable[[_T], _SupportsLessThan],
+    default: _U,
+) -> Union[_U, Tuple[_T, _T]]: ...
+@overload
+def minmax(
+    iterable_or_value: _SupportsLessThanT,
+    __other: _SupportsLessThanT,
+    *others: _SupportsLessThanT
+) -> Tuple[_SupportsLessThanT, _SupportsLessThanT]: ...
+@overload
+def minmax(
+    iterable_or_value: _T,
+    __other: _T,
+    *others: _T,
+    key: Callable[[_T], _SupportsLessThan]
+) -> Tuple[_T, _T]: ...
