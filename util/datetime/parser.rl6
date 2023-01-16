@@ -1,7 +1,4 @@
 #include <cstdio>
-
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-
 #include <cstdlib>
 #include <cstring>
 #include <cctype>

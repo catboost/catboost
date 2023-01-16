@@ -1,7 +1,4 @@
 #include <library/cpp/json/fast_sax/unescape.h>
-
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-
 #include <library/cpp/json/fast_sax/parser.h>
 
 #include <util/string/cast.h>
