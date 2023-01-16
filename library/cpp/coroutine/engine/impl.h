@@ -105,8 +105,6 @@ public:
         Trampoline_.SwitchTo(ctx);
     }
 
-    void* StackPtr() { return &(Trampoline_.Stack()[0]); }
-
 private:
     void Terminate();
 
