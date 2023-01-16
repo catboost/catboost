@@ -1,10 +1,10 @@
 LIBRARY()
 
 LICENSE(
-    Apache-2.0
-    Apache-2.0 WITH LLVM-exception
-    BSD-2-Clause
-    MIT
+    Apache-2.0 AND
+    Apache-2.0 WITH LLVM-exception AND
+    BSD-2-Clause AND
+    MIT AND
     NCSA
 )
 
@@ -14,7 +14,9 @@ VERSION(2021-04-02-7959d59028dd126416cdf10dbbd22162922e1336)
 
 
 
-ADDINCL(GLOBAL contrib/libs/cxxsupp/libcxx/include)
+ADDINCL(
+    GLOBAL contrib/libs/cxxsupp/libcxx/include
+)
 
 CXXFLAGS(-D_LIBCPP_BUILDING_LIBRARY)
 
@@ -28,16 +30,22 @@ IF (OS_ANDROID)
         LDFLAGS(-landroid_support)
     ENDIF()
     LDFLAGS(-Wl,--end-group)
-    CFLAGS(-DLIBCXX_BUILDING_LIBCXXABI)
+    CFLAGS(
+        -DLIBCXX_BUILDING_LIBCXXABI
+    )
 ELSEIF (OS_IOS)
     LDFLAGS(-lc++abi)
-    CFLAGS(-DLIBCXX_BUILDING_LIBCXXABI)
+    CFLAGS(
+        -DLIBCXX_BUILDING_LIBCXXABI
+    )
 ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
     IF (ARCH_ARM7)
         # XXX: libcxxrt support for ARM is currently broken
         DEFAULT(CXX_RT "glibcxx_static")
         # ARM7 OS_SDK has old libstdc++ without aligned allocation support
-        CFLAGS(GLOBAL -fno-aligned-new)
+        CFLAGS(
+            GLOBAL -fno-aligned-new
+        )
     ELSE()
         DEFAULT(CXX_RT "libcxxrt")
     ENDIF()
@@ -76,7 +84,9 @@ IF (OS_LINUX)
 ENDIF()
 
 IF (CLANG)
-    CFLAGS(GLOBAL -nostdinc++)
+    CFLAGS(
+        GLOBAL -nostdinc++
+    )
 ENDIF()
 
 # The CXX_RT variable controls which C++ runtime is used.
@@ -99,7 +109,9 @@ IF (CXX_RT == "libcxxrt")
         contrib/libs/cxxsupp/libcxxrt
         contrib/libs/cxxsupp/builtins
     )
-    ADDINCL(contrib/libs/cxxsupp/libcxxrt)
+    ADDINCL(
+        contrib/libs/cxxsupp/libcxxrt
+    )
     CFLAGS(
         GLOBAL -DLIBCXX_BUILDING_LIBCXXRT
     )
@@ -134,10 +146,7 @@ ELSEIF (CXX_RT == "glibcxx_driver")
 ELSEIF (CXX_RT == "default")
     # Do nothing
 ELSE()
-    MESSAGE(
-        FATAL_ERROR
-        "Unexpected CXX_RT value: ${CXX_RT}"
-    )
+    MESSAGE(FATAL_ERROR "Unexpected CXX_RT value: ${CXX_RT}")
 ENDIF()
 
 IF (NEED_GLIBCXX_CXX17_SHIMS)

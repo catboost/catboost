@@ -1,7 +1,7 @@
 LIBRARY()
 
 LICENSE(
-    MIT
+    MIT AND
     NCSA
 )
 
@@ -21,7 +21,9 @@ PEERDIR(
     contrib/libs/protobuf
 )
 
-ADDINCL(contrib/libs/onnx)
+ADDINCL(
+    contrib/libs/onnx
+)
 
 SRCDIR(contrib/libs/onnx/onnx)
 

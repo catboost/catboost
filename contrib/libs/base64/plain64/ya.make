@@ -3,7 +3,7 @@
 LIBRARY()
 
 LICENSE(
-    BSD-2-Clause
+    BSD-2-Clause AND
     MIT
 )
 

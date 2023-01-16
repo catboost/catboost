@@ -1,10 +1,10 @@
 LIBRARY()
 
 LICENSE(
-    GPL-2.0-or-later
-    GPL-3.0-or-later
-    LGPL-2.0-or-later
-    LGPL-2.1-only
+    GPL-2.0-or-later AND
+    GPL-3.0-or-later AND
+    LGPL-2.0-or-later AND
+    LGPL-2.1-only AND
     LGPL-2.1-or-later
 )
 
@@ -17,6 +17,8 @@ VERSION(3.5.0)
 
 
 
-ADDINCL(GLOBAL contrib/libs/r-lang)
+ADDINCL(
+    GLOBAL contrib/libs/r-lang
+)
 
 END()

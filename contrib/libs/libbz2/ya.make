@@ -9,7 +9,7 @@ VERSION(1.0.8)
 ORIGINAL_SOURCE(https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz)
 
 LICENSE(
-    BSD-3-Clause
+    BSD-3-Clause AND
     bzip2-1.0.6
 )
 

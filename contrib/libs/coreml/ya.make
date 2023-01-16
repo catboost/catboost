@@ -1,7 +1,7 @@
 PROTO_LIBRARY()
 
 LICENSE(
-    BSD-3-Clause
+    BSD-3-Clause AND
     MIT
 )
 
