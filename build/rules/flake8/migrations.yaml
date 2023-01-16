@@ -456,7 +456,6 @@ migrations:
     - media/media_support/media_support
     - media/media_support/media_support/chats
     - metrika/admin/maas/lib/core/common
-    - metrika/admin/python/seeker/lib
     - metrika/pylib/iptruler
     - metrika/pylib/utils
     - ml/nirvana/nope
@@ -1080,7 +1079,6 @@ migrations:
     - modadvert/libs/utils/codegeneration/ut
     - modadvert/libs/utils/dictutils/ut
     - modadvert/programs/cv_app/libs
-    - modadvert/programs/white_list_spam_client/libs
     - modadvert/tools/accept_campaigns
     - mssngr/botfarm/src/bot
     - music/analytics/jam-sox/music_lib/financial_reports/tests/unit
@@ -2570,7 +2568,6 @@ migrations:
     - sandbox/projects/app_host/BuildAndReleaseProductionResources
     - sandbox/projects/app_host/BuildAppHostExecutables
     - sandbox/projects/app_host/BuildAppHostGraphNameMapping
-    - sandbox/projects/app_host/BuildAppHostHttpAdapterRoutingConfig
     - sandbox/projects/app_host/CheckGolovanSignalsQuota
     - sandbox/projects/app_host/TestYaToolApphost
     - sandbox/projects/arcadia
