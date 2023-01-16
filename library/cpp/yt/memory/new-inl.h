@@ -227,16 +227,16 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithExtraSpace(
     size_t extraSpaceSize,
     As&&... args)
 {
-    auto totalSize = NDetail::TConstructHelper<T>::Size + extraSpaceSize;
+    auto totalSize = NYT::NDetail::TConstructHelper<T>::Size + extraSpaceSize;
     void* ptr = nullptr;
 
-    if (NDetail::TConstructHelper<T>::Alignment <= 16) {
+    if (NYT::NDetail::TConstructHelper<T>::Alignment <= 16) {
         ptr = NYTAlloc::Allocate(totalSize);
     } else {
-        ptr = NDetail::AllignedMalloc(totalSize, NDetail::TConstructHelper<T>::Alignment);
+        ptr = NYT::NDetail::AllignedMalloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
     }
 
-    return NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
+    return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
 }
 
 template <class T, class... As, class>
@@ -245,12 +245,12 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithExtraSpace(
     size_t extraSpaceSize,
     As&&... args)
 {
-    auto totalSize = NDetail::TConstructHelper<T>::Size + extraSpaceSize;
+    auto totalSize = NYT::NDetail::TConstructHelper<T>::Size + extraSpaceSize;
     auto* ptr = allocator->Allocate(totalSize);
     if (!ptr) {
         return nullptr;
     }
-    return NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
+    return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
