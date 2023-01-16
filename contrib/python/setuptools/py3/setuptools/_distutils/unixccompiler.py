@@ -13,7 +13,7 @@ the "typical" Unix-style command-line C compiler:
   * link shared library handled by 'cc -shared'
 """
 
-import os, sys, re
+import os, sys, re, shlex
 
 from distutils import sysconfig
 from distutils.dep_util import newer
@@ -231,7 +231,7 @@ class UnixCCompiler(CCompiler):
         # this time, there's no way to determine this information from
         # the configuration data stored in the Python installation, so
         # we use this hack.
-        compiler = os.path.basename(sysconfig.get_config_var("CC"))
+        compiler = os.path.basename(shlex.split(sysconfig.get_config_var("CC"))[0])
         if sys.platform[:6] == "darwin":
             from distutils.util import get_macosx_target_ver, split_version
             macosx_target_ver = get_macosx_target_ver()
