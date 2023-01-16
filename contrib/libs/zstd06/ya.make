@@ -2,7 +2,12 @@ LIBRARY()
 
 VERSION(0.6.2)
 
-LICENSE(BSD-2-Clause)
+LICENSE(
+    BSD-2-Clause
+    MIT
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
