@@ -2973,6 +2973,8 @@ je_valloc(size_t size) {
  * passed an extra argument for the caller return address, which will be
  * ignored.
  */
+#include <features.h> // defines __GLIBC__ if we are compiling against glibc
+
 JEMALLOC_EXPORT void (*__free_hook)(void *ptr) = je_free;
 JEMALLOC_EXPORT void *(*__malloc_hook)(size_t size) = je_malloc;
 JEMALLOC_EXPORT void *(*__realloc_hook)(void *ptr, size_t size) = je_realloc;
@@ -2981,7 +2983,7 @@ JEMALLOC_EXPORT void *(*__memalign_hook)(size_t alignment, size_t size) =
     je_memalign;
 #  endif
 
-#  ifdef CPU_COUNT
+#  ifdef __GLIBC__
 /*
  * To enable static linking with glibc, the libc specific malloc interface must
  * be implemented also, so none of glibc's malloc.o functions are added to the
