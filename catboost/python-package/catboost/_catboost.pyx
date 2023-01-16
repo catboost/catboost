@@ -2026,7 +2026,9 @@ cdef TFeaturesLayout* _init_features_layout(
 
     if feature_tags is not None:
         for tag_name in feature_tags:
-            list_to_vector(feature_tags[tag_name]['features'], &feature_tags_map[to_arcadia_string(str(tag_name))].Features)
+            tag_key = to_arcadia_string(str(tag_name))
+            list_to_vector(feature_tags[tag_name]['features'], &feature_tags_map[tag_key].Features)
+            feature_tags_map[tag_key].Cost = feature_tags[tag_name]['cost']
 
     all_features_are_sparse = False
     if isinstance(data, SPARSE_MATRIX_TYPES):
