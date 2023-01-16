@@ -468,6 +468,10 @@ class MallocExtension final {
   // Specifies the release rate from the page heap.  ProcessBackgroundActions
   // must be called for this to be operative.
   static void SetBackgroundReleaseRate(BytesPerSecond rate);
+
+  // Enables fork support.
+  // Allocator will continue to function correctly in the child, after calling fork().
+  static void EnableForkSupport();
 };
 
 }  // namespace tcmalloc

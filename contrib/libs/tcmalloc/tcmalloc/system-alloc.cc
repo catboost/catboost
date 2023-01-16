@@ -354,6 +354,14 @@ ABSL_CONST_INIT std::atomic<int> system_release_errors = ATOMIC_VAR_INIT(0);
 
 }  // namespace
 
+void AcquireSystemAllocLock() {
+  spinlock.Lock();
+}
+
+void ReleaseSystemAllocLock() {
+  spinlock.Unlock();
+}
+
 void* SystemAlloc(size_t bytes, size_t* actual_bytes, size_t alignment,
                   const MemoryTag tag) {
   // If default alignment is set request the minimum alignment provided by

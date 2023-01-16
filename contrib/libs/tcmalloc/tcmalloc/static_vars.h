@@ -50,6 +50,9 @@ class CPUCache;
 class PageMap;
 class ThreadCache;
 
+void TCMallocPreFork();
+void TCMallocPostFork();
+
 class Static {
  public:
   // True if InitIfNecessary() has run to completion.
@@ -124,6 +127,9 @@ class Static {
   static void ActivateCPUCache() { cpu_cache_active_ = true; }
   static void DeactivateCPUCache() { cpu_cache_active_ = false; }
 
+  static bool ForkSupportEnabled() { return fork_support_enabled_; }
+  static void EnableForkSupport() { fork_support_enabled_ = true; }
+
   static bool ABSL_ATTRIBUTE_ALWAYS_INLINE IsOnFastPath() {
     return
 #ifndef TCMALLOC_DEPRECATED_PERTHREAD
@@ -169,6 +175,7 @@ class Static {
   static PageHeapAllocator<StackTraceTable::Bucket> bucket_allocator_;
   ABSL_CONST_INIT static std::atomic<bool> inited_;
   static bool cpu_cache_active_;
+  static bool fork_support_enabled_;
   ABSL_CONST_INIT static PeakHeapTracker peak_heap_tracker_;
   ABSL_CONST_INIT static NumaTopology<kNumaPartitions, kNumBaseClasses>
       numa_topology_;

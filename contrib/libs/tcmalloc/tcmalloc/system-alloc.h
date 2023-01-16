@@ -50,6 +50,9 @@ void *SystemAlloc(size_t bytes, size_t *actual_bytes, size_t alignment,
 // call to SystemRelease.
 int SystemReleaseErrors();
 
+void AcquireSystemAllocLock();
+void ReleaseSystemAllocLock();
+
 // This call is a hint to the operating system that the pages
 // contained in the specified range of memory will not be used for a
 // while, and can be released for use by other processes or the OS.

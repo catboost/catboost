@@ -70,6 +70,14 @@ class CentralFreeList {
 
   SpanStats GetSpanStats() const;
 
+  void AcquireInternalLocks() {
+    lock_.Lock();
+  }
+
+  void ReleaseInternalLocks() {
+    lock_.Unlock();
+  }
+
  private:
   // Release an object to spans.
   // Returns object's span if it become completely free.

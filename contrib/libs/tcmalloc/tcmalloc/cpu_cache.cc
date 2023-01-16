@@ -1031,6 +1031,20 @@ void CPUCache::PrintInPbtxt(PbtxtRegion *region) const {
   }
 }
 
+void CPUCache::AcquireInternalLocks() {
+  for (int cpu = 0, num_cpus = absl::base_internal::NumCPUs(); cpu < num_cpus;
+       ++cpu) {
+    resize_[cpu].lock.Lock();
+  }
+}
+
+void CPUCache::ReleaseInternalLocks() {
+  for (int cpu = 0, num_cpus = absl::base_internal::NumCPUs(); cpu < num_cpus;
+       ++cpu) {
+    resize_[cpu].lock.Unlock();
+  }
+}
+
 void CPUCache::PerClassResizeInfo::Init() {
   state_.store(0, std::memory_order_relaxed);
 }

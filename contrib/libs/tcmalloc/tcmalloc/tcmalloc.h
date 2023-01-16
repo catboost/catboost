@@ -120,4 +120,7 @@ void TCMallocInternalDeleteArrayNothrow(void* p, const std::nothrow_t&) __THROW
 }
 #endif
 
+void TCMallocInternalAcquireLocks();
+void TCMallocInternalReleaseLocks();
+
 #endif  // TCMALLOC_TCMALLOC_H_

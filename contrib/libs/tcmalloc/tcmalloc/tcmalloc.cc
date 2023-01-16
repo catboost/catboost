@@ -1117,6 +1117,40 @@ extern "C" void MallocExtension_Internal_ReleaseMemoryToSystem(
   }
 }
 
+extern "C" void MallocExtension_EnableForkSupport() {
+  Static::EnableForkSupport();
+}
+
+void TCMallocPreFork() {
+  if (!Static::ForkSupportEnabled()) {
+    return;
+  }
+
+  if (Static::CPUCacheActive()) {
+    Static::cpu_cache().AcquireInternalLocks();
+  }
+  Static::transfer_cache().AcquireInternalLocks();
+  guarded_page_lock.Lock();
+  release_lock.Lock();
+  pageheap_lock.Lock();
+  AcquireSystemAllocLock();
+}
+
+void TCMallocPostFork() {
+  if (!Static::ForkSupportEnabled()) {
+    return;
+  }
+
+  ReleaseSystemAllocLock();
+  pageheap_lock.Unlock();  
+  guarded_page_lock.Unlock();
+  release_lock.Unlock();
+  Static::transfer_cache().ReleaseInternalLocks();
+  if (Static::CPUCacheActive()) {
+    Static::cpu_cache().ReleaseInternalLocks();
+  }
+}
+
 // nallocx slow path.
 // Moved to a separate function because size_class_with_alignment is not inlined
 // which would cause nallocx to become non-leaf function with stack frame and
