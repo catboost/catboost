@@ -8,6 +8,7 @@ SRCS(
 )
 
 PEERDIR(
+    contrib/libs/farmhash
     library/cpp/yt/exception
 )
 
