@@ -9024,7 +9024,6 @@
             },
             "executable": {
                 "pprof": [
-                    "pprof",
                     "pprof"
                 ]
             }
