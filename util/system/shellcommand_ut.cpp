@@ -15,6 +15,7 @@
 #include <util/stream/str.h>
 #include <util/stream/mem.h>
 #include <util/string/strip.h>
+#include <util/folder/tempdir.h>
 
 #if defined(_win_)
     #define NL "\r\n"
@@ -463,5 +464,30 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
 
         UNIT_ASSERT(options.OutputMode == TShellCommandOptions::HANDLE_STREAM);
         UNIT_ASSERT(options.ErrorMode == TShellCommandOptions::HANDLE_STREAM);
+    }
+    Y_UNIT_TEST(TestForkCallback) {
+        TString tmpFile = TString("shellcommand_ut.test_for_callback.txt");
+        TFsPath cwd(::NFs::CurrentWorkingDirectory());
+        const TString tmpFilePath = cwd.Child(tmpFile);
+
+        const TString text = "test output";
+        auto afterForkCallback = [&tmpFilePath, &text]() -> void {
+            TFixedBufferFileOutput out(tmpFilePath);
+            out << text;
+        };
+
+        TShellCommandOptions options;
+        options.SetFuncAfterFork(afterForkCallback);
+
+        const TString command = "ls";
+        TShellCommand cmd(command, options);
+        cmd.Run();
+
+        UNIT_ASSERT(NFs::Exists(tmpFilePath));
+
+        TUnbufferedFileInput fileOutput(tmpFilePath);
+        TString firstLine = fileOutput.ReadLine();
+
+        UNIT_ASSERT_VALUES_EQUAL(firstLine, text);
     }
 }
