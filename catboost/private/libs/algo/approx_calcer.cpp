@@ -301,7 +301,7 @@ static void CalcLeafCoxDers(
         weights.empty() ? nullptr : weights.data(),
         weightedDers.data());
     localExecutor->ExecRangeWithThrow(
-        [=, &error](int blockId) {
+        [=](int blockId) {
             constexpr int innerBlockSize = APPROX_BLOCK_SIZE;
             const auto approxDers = MakeArrayRef(
                 weightedDers.data() + innerBlockSize * blockId,
