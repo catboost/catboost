@@ -100,15 +100,22 @@ def merge_tidy_configs(base_config_path, additional_config_path, result_config_p
         "CheckOptions": [{"key": "option1_name", "value": "option1_value"}, {"key": "option2_name", "value": "option2_value"}, ...]
     }
     """
-    def merge_checks(base_checks, additional_checks):
+    def prepare_checks(base_checks, additional_checks):
         base_checks = base_checks.strip(",\n")
-        additional_checks = additional_checks.strip(",\n")
         base_checks = split_strip(base_checks)
+        if '-*' in base_checks:
+            base_checks.remove('-*')
+
+        additional_checks = additional_checks.strip(",\n")
         additional_checks = split_strip(additional_checks)
-        result_checks = base_checks
-        for check in additional_checks:
-            if check not in result_checks:
-                result_checks.append(check)
+        return base_checks, additional_checks
+
+    def merge_checks(base_checks, additional_checks):
+        base_checks, additional_checks = prepare_checks(base_checks, additional_checks)
+        result_checks = ['-*']
+        result_checks += additional_checks
+        for check in base_checks:
+            result_checks.append(check)
         return ", ".join(result_checks)
 
     def merge_options(base_options, additional_options):
