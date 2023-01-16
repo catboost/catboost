@@ -3717,7 +3717,6 @@ migrations:
     - vh/recommender/tools/build_offline_doc2doc/tests
     - vh/recommender/tools/build_offline_recommendations/tests
     - vh/recommender/tools/dssm_profiles/ut
-    - vh/recommender/tools/user_sessions_parser/tests
     - voicetech/asr/cloud_engine/cli/app/pytest/large
     - voicetech/asr/cloud_engine/cli/app/pytest/medium
     - voicetech/asr/cloud_engine/server/stt/pytest/medium
