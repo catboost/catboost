@@ -955,8 +955,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\py3ipython_genutils.vcxproj">
-      <Project>{EF519C27-3D77-67EB-3821-7EF82C4DDB03}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\py3contrib-python-ipython_genutils.vcxproj">
+      <Project>{D90F8E56-A3A2-F22B-7C63-64841F4D85E1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>

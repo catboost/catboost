@@ -129,8 +129,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
       <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pyipython_genutils.vcxproj">
-      <Project>{F3D8796F-FB25-69B7-B508-C57691C7426F}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython_genutils\pycontrib-python-ipython_genutils.vcxproj">
+      <Project>{2F9C4135-F22C-1226-4790-CC523EDFFDE1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
