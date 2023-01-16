@@ -245,10 +245,6 @@ public:
         ShowFails = show;
     }
 
-    void SetContinueOnFail(bool val) {
-        NUnitTest::ContinueOnFail = val;
-    }
-
     inline void BeQuiet() {
         SetPrintTimes(false);
         SetPrintBeforeSuite(false);
@@ -617,7 +613,6 @@ static int DoUsage(const char* progname) {
          << "  --print-before-suite  print each test suite name before running it\n"
          << "  --show-fails          print a list of all failed tests at the end\n"
          << "  --dont-show-fails     do not print a list of all failed tests at the end\n"
-         << "  --continue-on-fail    print a message and continue running test suite instead of break\n"
          << "  --print-times         print wall clock duration of each test\n"
          << "  --fork-tests          run each test in a separate process\n"
          << "  --trace-path          path to the trace file to be generated\n"
@@ -697,8 +692,6 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     processor.SetShowFails(true);
                 } else if (strcmp(name, "--dont-show-fails") == 0) {
                     processor.SetShowFails(false);
-                } else if (strcmp(name, "--continue-on-fail") == 0) {
-                    processor.SetContinueOnFail(true);
                 } else if (strcmp(name, "--print-times") == 0) {
                     processor.SetPrintTimes(true);
                 } else if (strcmp(name, "--from") == 0) {

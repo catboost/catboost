@@ -40,7 +40,6 @@ namespace NUnitTest {
     }
 
     extern bool ShouldColorizeDiff;
-    extern bool ContinueOnFail;
     TString ColoredDiff(TStringBuf s1, TStringBuf s2, const TString& delims = TString(), bool reverse = false);
     TString GetFormatTag(const char* name);
     TString GetResetTag();
