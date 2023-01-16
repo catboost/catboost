@@ -862,6 +862,9 @@ ALLOW .* -> vendor/github.com/pkg/xattr
 # CONTRIB-2452
 ALLOW .* -> vendor/github.com/scim2/filter-parser/v2
 
+# CONTRIB-2488 reading and writing SSH Key Revocation Lists
+ALLOW .* -> vendor/github.com/stripe/krl
+
 #
 # Tools
 #
