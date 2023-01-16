@@ -128,6 +128,8 @@ bool CppGenerator::Generate(const FileDescriptor* file,
                  options[i].second;
         return false;
       }
+    } else if (options[i].first == "transitive_pb_h") {
+      file_options.transitive_pb_h = options[i].second != "false";
     } else {
       *error = "Unknown generator option: " + options[i].first;
       return false;
