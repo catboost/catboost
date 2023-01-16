@@ -130,6 +130,20 @@ void TReaderSpinlockTraits<T>::Release(T* spinlock)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
+void TForkFriendlyReaderSpinlockTraits<T>::Acquire(T* spinlock)
+{
+    spinlock->AcquireReaderForkFriendly();
+}
+
+template <class T>
+void TForkFriendlyReaderSpinlockTraits<T>::Release(T* spinlock)
+{
+    spinlock->ReleaseReader();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class T>
 void TWriterSpinlockTraits<T>::Acquire(T* spinlock)
 {
     spinlock->AcquireWriter();
@@ -153,6 +167,18 @@ template <class T>
 auto ReaderGuard(const T* lock)
 {
     return TReaderGuard<T>(lock);
+}
+
+template <class T>
+auto ForkFriendlyReaderGuard(const T& lock)
+{
+    return TGuard<T, TForkFriendlyReaderSpinlockTraits<T>>(lock);
+}
+
+template <class T>
+auto ForkFriendlyReaderGuard(const T* lock)
+{
+    return TGuard<T, TForkFriendlyReaderSpinlockTraits<T>>(lock);
 }
 
 template <class T>
