@@ -20,9 +20,11 @@ def on_shutdown(s, f):
     raise SignalInterruptionError()
 
 
-def dump_chunk_error(args, name, imps):
-    tracefile = args[args.index('--output') + 1]
+def get_tracefile_path(args):
+    return args[args.index('--output') + 1]
 
+
+def dump_chunk_error(tracefile, name, imps):
     with open(tracefile, 'a') as afile:
         msg = {
             "timestamp": time.time(),
@@ -59,7 +61,8 @@ def verify_classpath(args):
 
     for name, imps in collisions.items():
         if len(imps) > 1:
-            dump_chunk_error(args, name, imps)
+            tracefile = get_tracefile_path(args)
+            dump_chunk_error(tracefile, name, imps)
             return False
     return True
 
@@ -94,6 +97,7 @@ def main():
 
     proc = subprocess.Popen(args)
     signal.signal(signum, on_shutdown)
+    timeout = False
 
     try:
         proc.wait()
@@ -104,9 +108,16 @@ def main():
         # Kill junit - for more info see DEVTOOLS-7636
         os.kill(proc.pid, signal.SIGKILL)
         proc.wait()
+        timeout = True
 
     if proc.returncode:
         sys.stderr.write('java exit code: {}\n'.format(proc.returncode))
+        if timeout:
+            # In case of timeout return specific exit code
+            # https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ya/test/const/__init__.py?rev=r8578188#L301
+            proc.returncode = 10
+            sys.stderr.write('java exit code changed to {}\n'.format(proc.returncode))
+
     return proc.returncode
 
 
