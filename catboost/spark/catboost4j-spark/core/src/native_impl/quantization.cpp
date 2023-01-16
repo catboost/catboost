@@ -25,7 +25,7 @@ using namespace NCB;
 TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
     const TFeaturesLayout& featuresLayout,
     const TString& plainJsonParamsAsString
-) throw (yexception) {
+) {
     NJson::TJsonValue plainJsonParams;
 
     TMaybe<TString> inputBorders;
@@ -61,7 +61,7 @@ TQuantizedFeaturesInfoPtr PrepareQuantizationParameters(
 
 TNanModeAndBordersBuilder::TNanModeAndBordersBuilder(
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
-) throw (yexception)
+)
     : QuantizedFeaturesInfo(quantizedFeaturesInfo)
 {
     const TFeaturesLayout& featuresLayout = *(QuantizedFeaturesInfo->GetFeaturesLayout());
@@ -79,14 +79,14 @@ TNanModeAndBordersBuilder::TNanModeAndBordersBuilder(
     Data.resize(FeatureIndicesToCalc.size());
 }
 
-void TNanModeAndBordersBuilder::SetSampleSize(i32 sampleSize) throw (yexception) {
+void TNanModeAndBordersBuilder::SetSampleSize(i32 sampleSize) {
     SampleSize = sampleSize;
     for (auto& featureData : Data) {
         featureData.reserve(sampleSize);
     }
 }
 
-void TNanModeAndBordersBuilder::AddSample(TConstArrayRef<double> objectData) throw (yexception) {
+void TNanModeAndBordersBuilder::AddSample(TConstArrayRef<double> objectData) {
     for (auto i : xrange(FeatureIndicesToCalc.size())) {
         double value = objectData[FeatureIndicesToCalc[i]];
         if (!IsNan(value)) {
@@ -95,7 +95,7 @@ void TNanModeAndBordersBuilder::AddSample(TConstArrayRef<double> objectData) thr
     }
 }
 
-void TNanModeAndBordersBuilder::CalcBordersWithoutNans(i32 threadCount) throw (yexception) {
+void TNanModeAndBordersBuilder::CalcBordersWithoutNans(i32 threadCount) {
     CB_ENSURE(threadCount >= 1);
 
     NPar::TLocalExecutor localExecutor;
@@ -135,7 +135,7 @@ void TNanModeAndBordersBuilder::CalcBordersWithoutNans(i32 threadCount) throw (y
     );
 }
 
-void TNanModeAndBordersBuilder::Finish(TConstArrayRef<i8> hasNans) throw (yexception) {
+void TNanModeAndBordersBuilder::Finish(TConstArrayRef<i8> hasNans) {
     TFeaturesLayout& featuresLayout = *(QuantizedFeaturesInfo->GetFeaturesLayout());
 
     for (auto i : xrange(FeatureIndicesToCalc.size())) {
@@ -182,7 +182,7 @@ TQuantizedObjectsDataProviderPtr Quantize(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     NCB::TRawObjectsDataProviderPtr* rawObjectsDataProvider, // moved into
     NPar::TLocalExecutor* localExecutor
-) throw (yexception) {
+) {
     TQuantizationOptions options;
     options.BundleExclusiveFeatures = false;
     options.PackBinaryFeaturesForCpu = false;
@@ -205,7 +205,7 @@ void GetActiveFeaturesIndices(
     TVector<i32>* ui8FlatIndices,
     TVector<i32>* ui16FlatIndices,
     TVector<i32>* ui32FlatIndices
-) throw (yexception) {
+) {
     ui8FlatIndices->clear();
     ui16FlatIndices->clear();
     ui32FlatIndices->clear();

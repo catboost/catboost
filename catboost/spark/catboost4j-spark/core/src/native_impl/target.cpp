@@ -25,7 +25,7 @@ TClassTargetPreprocessor::TClassTargetPreprocessor(
     ERawTargetType rawTargetType,
     bool trainDataHasWeights,
     bool trainDataHasGroups
-) throw (yexception)
+)
     : CatBoostOptionsPlainJson(ParseCatBoostPlainParamsToJson(plainJsonParamsAsString))
     , TrainDataHasWeights(trainDataHasWeights)
     , TrainDataHasGroups(trainDataHasGroups)
@@ -65,7 +65,7 @@ bool TClassTargetPreprocessor::IsNeedToProcessDistinctTargetValues() const {
 
 void TClassTargetPreprocessor::ProcessDistinctFloatTargetValues(
     TConstArrayRef<float> distinctTargetValues
-) throw (yexception) {
+) {
     ITypedSequencePtr<float> distinctTargetValuesAsTypedSequencePtr
         = MakeNonOwningTypeCastArrayHolder<float>(distinctTargetValues.begin(), distinctTargetValues.end());
 
@@ -78,7 +78,7 @@ void TClassTargetPreprocessor::ProcessDistinctFloatTargetValues(
 
 void TClassTargetPreprocessor::ProcessDistinctIntTargetValues(
     TConstArrayRef<i32> distinctTargetValues
-) throw (yexception) {
+) {
     ITypedSequencePtr<float> distinctTargetValuesAsTypedSequencePtr
         = MakeNonOwningTypeCastArrayHolder<float>(distinctTargetValues.begin(), distinctTargetValues.end());
 
@@ -91,7 +91,7 @@ void TClassTargetPreprocessor::ProcessDistinctIntTargetValues(
 
 void TClassTargetPreprocessor::ProcessDistinctStringTargetValues(
     const TVector<TString>& distinctTargetValues
-) throw (yexception) {
+) {
     ProcessDistinctTargetValuesImpl(
         TRawTarget(distinctTargetValues),
         ERawTargetType::String,
@@ -107,11 +107,11 @@ TString TClassTargetPreprocessor::GetLossFunction() const {
 }
 
 // including possibly updated loss_function and class labels
-TString TClassTargetPreprocessor::GetUpdatedCatBoostOptionsJsonAsString() const throw (yexception) {
+TString TClassTargetPreprocessor::GetUpdatedCatBoostOptionsJsonAsString() const {
     return NJson::WriteJson(CatBoostOptionsPlainJson, false);
 }
 
-TVector<i8> TClassTargetPreprocessor::GetSerializedLabelConverter() throw (yexception) {
+TVector<i8> TClassTargetPreprocessor::GetSerializedLabelConverter() {
     TVector<i8> result;
     {
         TVectorOutput out(&result);
@@ -122,7 +122,7 @@ TVector<i8> TClassTargetPreprocessor::GetSerializedLabelConverter() throw (yexce
 
 TVector<float> TClassTargetPreprocessor::PreprocessFloatTarget(
     TConstArrayRef<float> targetValues
-) throw (yexception) {
+) {
     ITypedSequencePtr<float> targetValuesAsTypedSequencePtr
         = MakeNonOwningTypeCastArrayHolder<float>(targetValues.begin(), targetValues.end());
 
@@ -134,7 +134,7 @@ TVector<float> TClassTargetPreprocessor::PreprocessFloatTarget(
 
 TVector<float> TClassTargetPreprocessor::PreprocessIntTarget(
     TConstArrayRef<i32> targetValues
-) throw (yexception) {
+) {
     ITypedSequencePtr<float> targetValuesAsTypedSequencePtr
         = MakeNonOwningTypeCastArrayHolder<float>(targetValues.begin(), targetValues.end());
 
@@ -146,7 +146,7 @@ TVector<float> TClassTargetPreprocessor::PreprocessIntTarget(
 
 TVector<float> TClassTargetPreprocessor::PreprocessStringTarget(
     const TVector<TString>& targetValues
-) throw (yexception) {
+) {
     return PreprocessTargetImpl(TRawTarget(targetValues), ERawTargetType::String);
 }
 

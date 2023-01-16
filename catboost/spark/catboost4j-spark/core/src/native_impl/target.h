@@ -20,25 +20,25 @@ public:
         NCB::ERawTargetType rawTargetType,
         bool trainDataHasWeights,
         bool trainDataHasGroups
-    ) throw (yexception);
+    );
 
     bool IsNeedToProcessDistinctTargetValues() const;
 
-    void ProcessDistinctFloatTargetValues(TConstArrayRef<float> distinctTargetValues) throw (yexception);
-    void ProcessDistinctIntTargetValues(TConstArrayRef<i32> distinctTargetValues) throw (yexception);
-    void ProcessDistinctStringTargetValues(const TVector<TString>& distinctTargetValues) throw (yexception);
+    void ProcessDistinctFloatTargetValues(TConstArrayRef<float> distinctTargetValues);
+    void ProcessDistinctIntTargetValues(TConstArrayRef<i32> distinctTargetValues);
+    void ProcessDistinctStringTargetValues(const TVector<TString>& distinctTargetValues);
 
     TString GetLossFunction() const;
 
     // including possibly updated loss_function
-    TString GetUpdatedCatBoostOptionsJsonAsString() const throw (yexception);
+    TString GetUpdatedCatBoostOptionsJsonAsString() const;
 
-    TVector<i8> GetSerializedLabelConverter() throw (yexception);
+    TVector<i8> GetSerializedLabelConverter();
 
     // call after initialization and one of ProcessDistinct functions
-    TVector<float> PreprocessFloatTarget(TConstArrayRef<float> targetValues) throw (yexception);
-    TVector<float> PreprocessIntTarget(TConstArrayRef<i32> targetValues) throw (yexception);
-    TVector<float> PreprocessStringTarget(const TVector<TString>& targetValues) throw (yexception);
+    TVector<float> PreprocessFloatTarget(TConstArrayRef<float> targetValues);
+    TVector<float> PreprocessIntTarget(TConstArrayRef<i32> targetValues);
+    TVector<float> PreprocessStringTarget(const TVector<TString>& targetValues);
 
 private:
     void UpdateLossFunctionIfNotSetAndInitCatBoostOptions(bool isMultiClass);

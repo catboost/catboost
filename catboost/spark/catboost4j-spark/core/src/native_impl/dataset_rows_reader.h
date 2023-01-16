@@ -106,7 +106,7 @@ public:
         bool hasHeader,
         i32 blockSize,
         i32 threadCount
-    ) throw (yexception);
+    );
 
     TIntermediateDataMetaInfo GetMetaInfo() const {
         return MetaInfo;
@@ -119,10 +119,10 @@ public:
 #endif
 
     // returns block size
-    i32 ReadNextBlock() throw (yexception);
+    i32 ReadNextBlock();
 
     // objectIdx means index in block
-    const TRawDatasetRow& GetRow(i32 objectIdx) throw (yexception);
+    const TRawDatasetRow& GetRow(i32 objectIdx);
 
 private:
     NPar::TLocalExecutor LocalExecutor;

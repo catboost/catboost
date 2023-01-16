@@ -53,7 +53,7 @@ namespace NCB {
                 const TDataMetaInfo& metaInfo,
                 i32 objectCount,
                 const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
-            ) throw (yexception) {
+            ) {
                 self->Start(
                     metaInfo,
                     SafeIntegerCast<ui32>(objectCount),
@@ -66,15 +66,15 @@ namespace NCB {
 
             // TCommonObjectsData
 
-            void AddGroupId(TConstArrayRef<i64> groupIdData) throw (yexception) {
+            void AddGroupId(TConstArrayRef<i64> groupIdData) {
                 self->AddGroupIdPart(0, AsUnalignedBuf<TGroupId>(groupIdData));
             }
 
-            void AddSubgroupId(TConstArrayRef<i32> subgroupIdData) throw (yexception) {
+            void AddSubgroupId(TConstArrayRef<i32> subgroupIdData) {
                 self->AddSubgroupIdPart(0, AsUnalignedBuf<TSubgroupId>(subgroupIdData));
             }
 
-            void AddTimestamp(TConstArrayRef<i64> timestampData) throw (yexception) {
+            void AddTimestamp(TConstArrayRef<i64> timestampData) {
                 self->AddTimestampPart(0, AsUnalignedBuf<ui64>(timestampData));
             }
 
@@ -87,7 +87,7 @@ namespace NCB {
                 i32 objectCount,
                 i8 bitsPerDocumentFeature,
                 TVector<i64>* featureDataBuffer // moved into per-object data size depends on BitsPerKey
-            ) throw (yexception) {
+            ) {
                 size_t sizeInBytes =
                     SafeIntegerCast<size_t>(objectCount)
                     * CeilDiv<size_t>(bitsPerDocumentFeature, CHAR_BIT);
@@ -123,18 +123,18 @@ namespace NCB {
 
             // TRawTargetData
 
-            void AddTarget(TConstArrayRef<float> targetData) throw (yexception) {
+            void AddTarget(TConstArrayRef<float> targetData) {
                 self->AddTargetPart(0, AsUnalignedBuf<float>(targetData));
             }
 
-            void AddTarget(TVector<TString>* targetData) throw (yexception) {
+            void AddTarget(TVector<TString>* targetData) {
                 self->AddTargetPart(
                     0,
                     NCB::TMaybeOwningConstArrayHolder<TString>::CreateOwning(std::move(*targetData))
                 );
             }
 
-            void AddBaseline(i32 baselineIdx, TConstArrayRef<float> baselineData) throw (yexception) {
+            void AddBaseline(i32 baselineIdx, TConstArrayRef<float> baselineData) {
                 self->AddBaselinePart(
                     0,
                     SafeIntegerCast<i32>(baselineIdx),
@@ -142,11 +142,11 @@ namespace NCB {
                 );
             }
 
-            void AddWeight(TConstArrayRef<float> weightData) throw (yexception) {
+            void AddWeight(TConstArrayRef<float> weightData) {
                 self->AddWeightPart(0, AsUnalignedBuf<float>(weightData));
             }
 
-            void AddGroupWeight(TConstArrayRef<float> groupWeightData) throw (yexception) {
+            void AddGroupWeight(TConstArrayRef<float> groupWeightData) {
                 self->AddGroupWeightPart(0, AsUnalignedBuf<float>(groupWeightData));
             }
         }

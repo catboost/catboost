@@ -9,13 +9,13 @@
 namespace NCB {
     struct TPrecomputedOnlineCtrMetaData {
     public:
-        void Append(TPrecomputedOnlineCtrMetaData& add) throw(yexception);
+        void Append(TPrecomputedOnlineCtrMetaData& add);
 
         // Use JSON as string to be able to use in JVM binding as well
-        TString SerializeToJson() const throw(yexception);
+        TString SerializeToJson() const;
         static TPrecomputedOnlineCtrMetaData DeserializeFromJson(
             const TString& serializedJson
-        ) throw(yexception);
+        );
     };
 }
 

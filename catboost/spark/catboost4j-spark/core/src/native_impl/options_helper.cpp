@@ -39,7 +39,7 @@ NCatboostOptions::TCatBoostOptions LoadCatBoostOptions(const NJson::TJsonValue& 
 void InitCatBoostOptions(
     const TString& plainJsonParamsAsString,
     NCatboostOptions::TCatBoostOptions* result
-) throw (yexception) {
+) {
     *result = LoadCatBoostOptions(ParseCatBoostPlainParamsToJson(plainJsonParamsAsString));
 }
 
@@ -48,7 +48,7 @@ i32 GetOneHotMaxSize(
     i32 maxCategoricalFeaturesUniqValuesOnLearn,
     bool hasLearnTarget,
     const TString& plainJsonParamsAsString
-) throw (yexception) {
+) {
     NCatboostOptions::TCatBoostOptions catBoostOptions
         = LoadCatBoostOptions(ParseCatBoostPlainParamsToJson(plainJsonParamsAsString));
 

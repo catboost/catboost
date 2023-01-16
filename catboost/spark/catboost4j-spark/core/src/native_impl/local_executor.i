@@ -16,7 +16,7 @@ namespace NPar {
     public:
         %extend {
             // threadCount can be positive or equal to -1 (in this case the number of CPU cores is used)
-            void Init(i32 threadCount) throw(yexception) {
+            void Init(i32 threadCount) {
                 if (threadCount == -1) {
                     threadCount = SafeIntegerCast<i32>(NSystemInfo::CachedNumberOfCpus());
                 } else {

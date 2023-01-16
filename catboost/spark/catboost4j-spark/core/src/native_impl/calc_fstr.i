@@ -33,7 +33,7 @@ struct TShapPreparedTrees {
     %typemap(javainterfaces) TShapPreparedTrees "Externalizable"
     
     %extend {
-        TVector<i8> Serialize() const throw (yexception) {
+        TVector<i8> Serialize() const {
             TVector<i8> result;
             TVectorOutput out(&result);
             self->Save(&out);
@@ -42,7 +42,7 @@ struct TShapPreparedTrees {
             return result;
         }
 
-        void Deserialize(TConstArrayRef<i8> binaryBuffer) throw (yexception) {
+        void Deserialize(TConstArrayRef<i8> binaryBuffer) {
             TMemoryInput in(binaryBuffer.data(), binaryBuffer.size());
             self->Load(&in);
         }

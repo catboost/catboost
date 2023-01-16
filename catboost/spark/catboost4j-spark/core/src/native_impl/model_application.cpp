@@ -18,7 +18,7 @@ TApplyResultIterator::TApplyResultIterator(
     NCB::TObjectsDataProviderPtr objectsDataProvider,
     EPredictionType predictionType,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception)
+)
     : ApplyResult(
           ApplyModelMulti(
               model,
@@ -77,7 +77,7 @@ static void CheckIfDatasetNanModeIsCompatibleWithModelNanValueTreatment(
 void CheckModelAndDatasetCompatibility(
     const TFullModel& model,
     const NCB::TQuantizedFeaturesInfo& datasetQuantizedFeaturesInfo
-) throw (yexception) {
+) {
     const auto& datasetFeaturesLayout = *datasetQuantizedFeaturesInfo.GetFeaturesLayout();
 
     THashMap<ui32, ui32> columnIndexesReorderMap;
@@ -107,7 +107,7 @@ void CheckModelAndDatasetCompatibility(
 TQuantizedFeaturesInfoPtr CreateQuantizedFeaturesInfoForModelApplication(
     const TFullModel& model,
     const TFeaturesLayout& datasetFeaturesLayout
-) throw (yexception) {
+) {
     THashMap<ui32, ui32> columnIndexesReorderMap;
     NCB::CheckModelAndDatasetCompatibility(model, datasetFeaturesLayout, &columnIndexesReorderMap);
 

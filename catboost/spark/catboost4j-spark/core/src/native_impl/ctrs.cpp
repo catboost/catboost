@@ -31,7 +31,7 @@ TCtrHelper GetCtrHelper(
     const NCB::TFeaturesLayout& layout,
     const TVector<float>& preprocessedLearnTarget,
     const TVector<i8>& serializedLabelConverter
-) throw (yexception) {
+) {
     auto lossFunction = catBoostOptions.LossFunctionDescription->GetLossFunction();
     NCatboostOptions::TCatFeatureParams updatedCatFeatureParams = catBoostOptions.CatFeatureParams.Get();
 
@@ -67,7 +67,7 @@ TTargetStatsForCtrs ComputeTargetStatsForCtrs(
     const TCtrHelper& ctrHelper,
     const TVector<float>& preprocessedLearnTarget,
     NPar::TLocalExecutor* localExecutor
-) throw (yexception) {
+) {
     TTargetStatsForCtrs targetStatsForCtrs;
 
     const auto& targetClassifiers = ctrHelper.GetTargetClassifiers();
@@ -215,7 +215,7 @@ void ComputeEstimatedCtrFeatures(
     NPar::TLocalExecutor* localExecutor,
     TEstimatedForCPUObjectsDataProviders* outputData,
     TPrecomputedOnlineCtrMetaData* outputMeta
-) throw (yexception) {
+) {
     TTrainingDataProviders trainingDataProviders;
     TVector<size_t> dataSizes;
     trainingDataProviders.Learn = MakeTrainingDataProvider(learnData);
@@ -319,7 +319,7 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
     TTargetStatsForCtrs* targetStatsForCtrs, // moved into
     const TCtrHelper& ctrHelper,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception)
+)
     : Model(std::move(*modelWithoutCtrData))
     , FeaturesLayout(quantizedFeaturesInfo.GetFeaturesLayout())
     , PreprocessedLearnTarget(std::move(*preprocessedLearnTarget))
@@ -362,7 +362,7 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
     );
 }
 
-TVector<i32> TFinalCtrsCalcer::GetCatFeatureFlatIndicesUsedForCtrs() const throw(yexception) {
+TVector<i32> TFinalCtrsCalcer::GetCatFeatureFlatIndicesUsedForCtrs() const {
     TVector<i32> result;
     for (const auto& [key, value] : CatFeatureFlatIndexToModelCtrsBases) {
         result.push_back(key);
@@ -374,7 +374,7 @@ void TFinalCtrsCalcer::ProcessForFeature(
    i32 catFeatureFlatIdx,
    const NCB::TQuantizedObjectsDataProviderPtr& learnData,
    const TVector<NCB::TQuantizedObjectsDataProviderPtr>& testData
-) throw(yexception) {
+) {
     DatasetDataForFinalCtrs.Data.Learn = MakeTrainingDataProvider(learnData);
     for (const auto& testDataPart : testData) {
         DatasetDataForFinalCtrs.Data.Test.push_back(MakeTrainingDataProvider(testDataPart));
@@ -476,7 +476,7 @@ private:
 };
 
 
-TFullModel TFinalCtrsCalcer::GetModelWithCtrData() throw(yexception) {
+TFullModel TFinalCtrsCalcer::GetModelWithCtrData() {
     StreamWriter.Destroy();
     CtrDataFileStream.Destroy();
     Model.CtrProvider = new TFromFileCtrProvider(CtrDataFile.Name());

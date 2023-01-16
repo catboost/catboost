@@ -67,7 +67,7 @@ public:
             EModelType format,
             const TString& exportParametersJsonString,
             i32 poolCatFeaturesMaxUniqValueCount
-        ) throw (yexception) {
+        ) {
             THashMap<ui32, TString> catFeaturesHashToString;
             for (auto v : xrange(SafeIntegerCast<ui32>(poolCatFeaturesMaxUniqValueCount))) {
                 const TString vAsString = ToString(v);
@@ -94,7 +94,7 @@ public:
     %typemap(javainterfaces) TFullModel "Externalizable"
 
     %extend {
-        TVector<i8> Serialize() const throw (yexception) {
+        TVector<i8> Serialize() const {
             TVector<i8> result;
             TVectorOutput out(&result);
             OutputModel(*self, &out);
@@ -103,7 +103,7 @@ public:
             return result;
         }
 
-        void Deserialize(TConstArrayRef<i8> binaryBuffer) throw (yexception) {
+        void Deserialize(TConstArrayRef<i8> binaryBuffer) {
             (*self) = ReadModel(binaryBuffer.data(), binaryBuffer.size());
         }
     }

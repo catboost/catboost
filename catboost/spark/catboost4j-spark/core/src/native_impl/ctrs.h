@@ -44,13 +44,13 @@ TCtrHelper GetCtrHelper(
     const NCB::TFeaturesLayout& layout,
     const TVector<float>& preprocessedLearnTarget,
     const TVector<i8>& serializedLabelConverter
-) throw (yexception);
+);
 
 TTargetStatsForCtrs ComputeTargetStatsForCtrs(
     const TCtrHelper& ctrHelper,
     const TVector<float>& preprocessedLearnTarget,
     NPar::TLocalExecutor* localExecutor
-) throw (yexception);
+);
 
 
 // only Learn and Test in the result are set
@@ -63,7 +63,7 @@ void ComputeEstimatedCtrFeatures(
     NPar::TLocalExecutor* localExecutor,
     NCB::TEstimatedForCPUObjectsDataProviders* outputData,
     NCB::TPrecomputedOnlineCtrMetaData* outputMeta
-) throw (yexception);
+);
 
 
 class TFinalCtrsCalcer {
@@ -76,17 +76,17 @@ public:
         TTargetStatsForCtrs* targetStatsForCtrs, // moved into
         const TCtrHelper& ctrHelper,
         NPar::TLocalExecutor* localExecutor
-    ) throw(yexception);
+    );
 
-    TVector<i32> GetCatFeatureFlatIndicesUsedForCtrs() const throw(yexception);
+    TVector<i32> GetCatFeatureFlatIndicesUsedForCtrs() const;
 
     void ProcessForFeature(
         i32 catFeatureFlatIdx,
         const NCB::TQuantizedObjectsDataProviderPtr& learnData,
         const TVector<NCB::TQuantizedObjectsDataProviderPtr>& testData
-    ) throw(yexception);
+    );
 
-    TFullModel GetModelWithCtrData() throw(yexception);
+    TFullModel GetModelWithCtrData();
 
 private:
     TFullModel Model;

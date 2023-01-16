@@ -10,7 +10,7 @@
 
 using namespace NCB;
 
-bool TIntermediateDataMetaInfo::HasSparseFeatures() const throw (yexception) {
+bool TIntermediateDataMetaInfo::HasSparseFeatures() const {
     if (HasUnknownNumberOfSparseFeatures) {
         return true;
     }
@@ -81,7 +81,7 @@ TIntermediateDataMetaInfo GetIntermediateDataMetaInfo(
     const TString& plainJsonParamsAsString,
     const TMaybe<TString>& dsvHeader,
     const TString& firstDataLine
-) throw (yexception) {
+) {
     TRawDatasetRowsReader rowsReader(
         schema,
         new TOneLineReader(TMaybe<TString>(dsvHeader), firstDataLine),

@@ -7,7 +7,7 @@
 #include <util/system/types.h>
 
 
-int ModeFitImpl(const TVector<TString>& args) throw (yexception);
+int ModeFitImpl(const TVector<TString>& args);
 
 
-void ShutdownWorkers(const TString& hostsFile, i32 timeoutInSeconds) throw (yexception);
+void ShutdownWorkers(const TString& hostsFile, i32 timeoutInSeconds);

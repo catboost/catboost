@@ -12,11 +12,11 @@ TFeatureMetaInfo MakeFeatureMetaInfo(
     bool isSparse,
     bool isIgnored,
     bool isAvailable
-) throw (yexception) {
+) {
     return TFeatureMetaInfo(type, name, isSparse, isIgnored, isAvailable);
 }
 
-TFeaturesLayout MakeFeaturesLayout(TVector<TFeatureMetaInfo>* data) throw (yexception) {
+TFeaturesLayout MakeFeaturesLayout(TVector<TFeatureMetaInfo>* data) {
     return TFeaturesLayout(data);
 }
 
@@ -24,7 +24,7 @@ TFeaturesLayout MakeFeaturesLayout(
     const int featureCount,
     const TVector<TString>& featureNames,
     const TVector<i32>& ignoredFeatures
-) throw (yexception) {
+) {
     TFeaturesLayout result(SafeIntegerCast<ui32>(featureCount), /*catFeatureIndices*/ {}, featureNames);
 
     for (auto i : ignoredFeatures) {
@@ -37,7 +37,7 @@ TFeaturesLayout MakeFeaturesLayout(
 NCB::TFeaturesLayoutPtr CloneWithSelectedFeatures(
     const NCB::TFeaturesLayout& featuresLayout,
     TConstArrayRef<i32> selectedFeatures
-) throw (yexception) {
+) {
     TConstArrayRef<TFeatureMetaInfo> srcFeaturesMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
     TVector<TFeatureMetaInfo> dstFeaturesMetaInfo;
     dstFeaturesMetaInfo.reserve(srcFeaturesMetaInfo.size());

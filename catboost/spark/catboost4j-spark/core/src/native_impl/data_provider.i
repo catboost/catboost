@@ -42,7 +42,7 @@ namespace NCB {
                 return (*self)->GetObjectCount();
             }
 
-            NCB::TQuantizedObjectsDataProviderPtr GetQuantizedObjectsDataProvider() const throw(yexception) {
+            NCB::TQuantizedObjectsDataProviderPtr GetQuantizedObjectsDataProvider() const {
                 auto* quantizedObjectsDataProvider
                     = dynamic_cast<NCB::TQuantizedObjectsDataProvider*>((*self)->ObjectsData.Get());
                 CB_ENSURE_INTERNAL(quantizedObjectsDataProvider, "Features data is not quantized");
