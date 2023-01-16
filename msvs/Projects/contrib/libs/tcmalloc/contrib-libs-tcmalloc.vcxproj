@@ -137,6 +137,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\atomic_danger.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\atomic_stats_counter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\cache_topology.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\clock.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\config.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\declarations.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tcmalloc\tcmalloc\internal\environment.h"/>
