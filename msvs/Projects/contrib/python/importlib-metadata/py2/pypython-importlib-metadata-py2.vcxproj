@@ -82,7 +82,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.obj	</Message>
+      <Message>$B/contrib/python/importlib-metadata/py2/_49730971c7c162a54271d6e1f6.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\_49730971c7c162a54271d6e1f6.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\_49730971c7c162a54271d6e1f6.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\_49730971c7c162a54271d6e1f6.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\_e8020487e800a6cb1544a28c08.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.obj	</Message>
+      <Message>$B/contrib/python/importlib-metadata/py2/_e8020487e800a6cb1544a28c08.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\_e8020487e800a6cb1544a28c08.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\_e8020487e800a6cb1544a28c08.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\importlib-metadata\py2\_e8020487e800a6cb1544a28c08.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
