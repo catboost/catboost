@@ -50,10 +50,11 @@ inline bool CheckStatus(Napi::Env& env, bool status) {
 enum ENApiType {
     NAT_NUMBER,
     NAT_STRING,
+    NAT_NUMBER_OR_STRING,
 };
 
 // Checks if the value a matrix with element of a given type.
-bool IsMatrix(const Napi::Value& value, ENApiType type);
+bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, const std::string& errorStr);
 
 // Converts vector of numbers to N-API array.
 template <typename T>

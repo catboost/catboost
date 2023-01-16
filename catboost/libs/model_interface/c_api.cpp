@@ -14,12 +14,11 @@
 
 struct TModelHandleContent {
     THolder<TFullModel> FullModel;
-    NCB::NModelEvaluation::TConstModelEvaluatorPtr Evaluator;
 };
 
 #define MODEL_HANDLE_CONTENT_PTR(x) ((TModelHandleContent*)(x))
 #define FULL_MODEL_PTR(x) (MODEL_HANDLE_CONTENT_PTR(x)->FullModel)
-#define EVALUATOR_PTR(x) (MODEL_HANDLE_CONTENT_PTR(x)->Evaluator)
+#define EVALUATOR_PTR(x) (MODEL_HANDLE_CONTENT_PTR(x)->FullModel->GetCurrentEvaluator())
 
 #define DATA_WRAPPER_PTR(x) ((TFeaturesDataWrapper*)(x))
 
@@ -183,8 +182,7 @@ CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrappe
 CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
     try {
         auto* fullModel = new TFullModel;
-        auto evaluator = fullModel->GetCurrentEvaluator();
-        return new TModelHandleContent{.FullModel = THolder(fullModel), .Evaluator = std::move(evaluator)};
+        return new TModelHandleContent{.FullModel = THolder(fullModel)};
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
     }
@@ -229,7 +227,6 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
         //TODO(kirillovs): fix this after adding set evaluator props interface
         CB_ENSURE(deviceId == 0, "FIXME: Only device 0 is supported for now");
         FULL_MODEL_PTR(modelHandle)->SetEvaluatorType(EFormulaEvaluatorType::GPU);
-        EVALUATOR_PTR(modelHandle) = FULL_MODEL_PTR(modelHandle)->GetCurrentEvaluator();
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
@@ -587,7 +584,7 @@ CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle) {
 }
 
 CATBOOST_API size_t GetPredictionDimensionsCount(ModelCalcerHandle* modelHandle) {
-    return EVALUATOR_PTR(modelHandle)->GetApproxDimension();
+    return EVALUATOR_PTR(modelHandle)->GetPredictionDimensions();
 }
 
 CATBOOST_API bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {

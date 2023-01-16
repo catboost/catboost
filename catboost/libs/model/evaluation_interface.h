@@ -81,20 +81,24 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
             virtual void SetProperty(const TStringBuf propName, const TStringBuf propValue) = 0;
 
-            // TODO(kirillovs): maybe write special class for results (on gpu it'll hold floats in possibly managed memory)
-            TVector<double> CreateVectorForPredictions(size_t docCount) const {
+            i32 GetPredictionDimensions() const {
                 switch (GetPredictionType())
                 {
                 case EPredictionType::RawFormulaVal:
                 case EPredictionType::Exponent:
                 case EPredictionType::RMSEWithUncertainty:
                 case EPredictionType::Probability:
-                    return TVector<double>(docCount * GetApproxDimension());
+                    return GetApproxDimension();
                 case EPredictionType::Class:
-                    return TVector<double>(docCount);
+                    return 1;
                 default:
                     Y_UNREACHABLE();
                 }
+            }
+
+            // TODO(kirillovs): maybe write special class for results (on gpu it'll hold floats in possibly managed memory)
+            TVector<double> CreateVectorForPredictions(size_t docCount) const {
+                return TVector<double>(docCount * GetPredictionDimensions());
             }
 
             virtual void CalcFlatTransposed(
