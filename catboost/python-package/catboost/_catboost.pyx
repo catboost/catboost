@@ -1099,7 +1099,9 @@ cdef extern from "catboost/libs/features_selection/select_features.h" namespace 
     cdef TJsonValue SelectFeatures(
         const TJsonValue& params,
         const TDataProviders& pools,
-        TFullModel* dstModel
+        TFullModel* dstModel,
+        const TVector[TEvalResult*]& testApproxes,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) nogil except +ProcessException
 
 
@@ -5001,6 +5003,8 @@ cdef class _CatBoost:
         dataProviders.Learn = train_pool.__pool
         if test_pool:
             dataProviders.Test.push_back(test_pool.__pool)
+        self._reserve_test_evals(dataProviders.Test.size())
+        self._clear_test_evals()
 
         cdef TJsonValue summary_json
         with nogil:
@@ -5009,7 +5013,9 @@ cdef class _CatBoost:
                 summary_json = SelectFeatures(
                     prep_params.tree,
                     dataProviders,
-                    self.__model
+                    self.__model,
+                    self.__test_evals,
+                    &self.__metrics_history,
                 )
             finally:
                 ResetPythonInterruptHandler()
