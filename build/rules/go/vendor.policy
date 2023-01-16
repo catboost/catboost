@@ -4,6 +4,9 @@
 
 ALLOW vendor/ -> .*
 
+# CONTRIB-2451
+ALLOW .* -> vendor/github.com/deepmap/oapi-codegen
+
 # CONTRIB-2311 gossip discovery protocol implementation
 ALLOW .* -> vendor/github.com/hashicorp/memberlist
 
