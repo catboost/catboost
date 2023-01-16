@@ -4,13 +4,16 @@ from threading import Lock
 
 from ._error import Timeout
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger("filelock")
+_LOGGER.setLevel(logging.DEBUG)
 
 
 # This is a helper class which is returned by :meth:`BaseFileLock.acquire` and wraps the lock to make sure __enter__
 # is not called twice when entering the with statement. If we would simply return *self*, the lock would be acquired
 # again in the *__enter__* method of the BaseFileLock, but not released again automatically. issue #37 (memory leak)
 class AcquireReturnProxy(object):
+    """A context aware object that will release the lock file when exiting."""
+
     def __init__(self, lock):
         self.lock = lock
 
@@ -22,10 +25,17 @@ class AcquireReturnProxy(object):
 
 
 class BaseFileLock(object):
-    """Implements the base class of a file lock."""
+    """Abstract base class for a file lock object."""
 
     def __init__(self, lock_file, timeout=-1):
-        """ """
+        """
+        Create a new lock object.
+
+        :param lock_file: path to the file
+        :param timeout: default timeout when acquiring the lock. It will be used as fallback value in the acquire
+        method, if no timeout value (``None``) is given. If you want to disable the timeout, set it to a negative value.
+         A timeout of 0 means, that there is exactly one attempt to acquire the file lock.
+        """
         # The path to the lock file.
         self._lock_file = lock_file
 
@@ -45,15 +55,13 @@ class BaseFileLock(object):
 
     @property
     def lock_file(self):
-        """The path to the lock file."""
+        """:return: path to the lock file"""
         return self._lock_file
 
     @property
     def timeout(self):
         """
-        You can set a default timeout for the filelock. It will be used as fallback value in the acquire method, if no
-        timeout value (*None*) is given. If you want to disable the timeout, set it to a negative value. A timeout of
-        0 means, that there is exactly one attempt to acquire the file lock.
+        :return: the default timeout value
 
         .. versionadded:: 2.0.0
         """
@@ -61,7 +69,11 @@ class BaseFileLock(object):
 
     @timeout.setter
     def timeout(self, value):
-        """change the timeout parameter"""
+        """
+        Change the default timeout value.
+
+        :param value: the new value
+        """
         self._timeout = float(value)
 
     def _acquire(self):
@@ -74,7 +86,9 @@ class BaseFileLock(object):
 
     @property
     def is_locked(self):
-        """True, if the object holds the file lock.
+        """
+
+        :return: A boolean indicating if the lock file is holding the lock currently.
 
         .. versionchanged:: 2.0.0
 
@@ -84,7 +98,13 @@ class BaseFileLock(object):
 
     def acquire(self, timeout=None, poll_intervall=0.05):
         """
-        Acquires the file lock or fails with a :exc:`Timeout` error.
+        Try to acquire the file lock.
+
+        :param timeout: maximum wait time for acquiring the lock, ``None`` means use the default :attr:`~timeout` is and
+         if ``timeout < 0``, there is no timeout and this method will block until the lock could be acquired
+        :param poll_intervall: interval of trying to acquire the lock file
+        :raises Timeout: if fails to acquire lock within the timeout period
+        :return: a context object that will unlock the file when the context is exited
 
         .. code-block:: python
 
@@ -99,23 +119,12 @@ class BaseFileLock(object):
             finally:
                 lock.release()
 
-        :arg float timeout:
-            The maximum time waited for the file lock.
-            If ``timeout < 0``, there is no timeout and this method will
-            block until the lock could be acquired.
-            If ``timeout`` is None, the default :attr:`~timeout` is used.
-
-        :arg float poll_intervall:
-            We check once in *poll_intervall* seconds if we can acquire the
-            file lock.
-
-        :raises Timeout:
-            if the lock could not be acquired in *timeout* seconds.
-
         .. versionchanged:: 2.0.0
 
             This method returns now a *proxy* object instead of *self*,
             so that it can be used in a with statement without side effects.
+
+
         """
         # Use the default timeout, if no timeout is provided.
         if timeout is None:
@@ -153,16 +162,10 @@ class BaseFileLock(object):
 
     def release(self, force=False):
         """
-        Releases the file lock.
+        Releases the file lock. Please note, that the lock is only completely released, if the lock counter is 0. Also
+        note, that the lock file itself is not automatically deleted.
 
-        Please note, that the lock is only completely released, if the lock
-        counter is 0.
-
-        Also note, that the lock file itself is not automatically deleted.
-
-        :arg bool force:
-            If true, the lock counter is ignored and the lock is released in
-            every case.
+        :param force: If true, the lock counter is ignored and the lock is released in every case/
         """
         with self._thread_lock:
 
@@ -178,13 +181,26 @@ class BaseFileLock(object):
                     _LOGGER.debug("Lock %s released on %s", lock_id, lock_filename)
 
     def __enter__(self):
+        """
+        Acquire the lock.
+
+        :return: the lock object
+        """
         self.acquire()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):  # noqa: U100
+        """
+        Release the lock.
+
+        :param exc_type: the exception type if raised
+        :param exc_value: the exception value if raised
+        :param traceback: the exception traceback if raised
+        """
         self.release()
 
     def __del__(self):
+        """Called when the lock object is deleted."""
         self.release(force=True)
 
 
