@@ -344,6 +344,7 @@ private[spark] object Helpers {
 
     "spark_partition_count" -> null,
     "worker_initialization_timeout" -> null,
+    "worker_max_failures" -> null,
     "connect_timeout" -> null,
 
     // processed in separate functions

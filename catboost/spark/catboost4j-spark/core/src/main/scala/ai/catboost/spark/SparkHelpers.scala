@@ -2,6 +2,7 @@ package ai.catboost.spark;
 
 import util.control.Breaks._
 
+import org.apache.spark.{SparkContext,SparkJobInfo,SparkStageInfo}
 import org.apache.spark.sql.SparkSession
 
 import ai.catboost.CatBoostError
@@ -90,5 +91,35 @@ private[spark] object SparkHelpers {
   def getExecutorNativeMemoryLimit(spark: SparkSession): Option[Long] = {
     val optionalValue = spark.sparkContext.getConf.getOption("spark.executor.memoryOverhead")
     if (optionalValue.isDefined) { Some(parseMemoryOverHeadOption(optionalValue.get)) } else { None }
+  }
+}
+
+private[spark] class SparkJobGroupLastStagesFailedStats(
+  val failedAttempts : Int,
+  val failedTasksInLastAttempt: Int
+)
+
+private[spark] object SparkJobGroupLastStagesFailedStats {
+  def apply(sparkContext: SparkContext, jobGroup: String) : SparkJobGroupLastStagesFailedStats = {
+    val statusTracker = sparkContext.statusTracker
+
+    var failedAttempts = 0
+    var failedTasksInLastAttempt = 0
+
+    for (jobId <- statusTracker.getJobIdsForGroup(jobGroup)) {
+      statusTracker.getJobInfo(jobId).foreach{
+        case jobInfo : SparkJobInfo => {
+          if (jobInfo.stageIds.nonEmpty) {
+            statusTracker.getStageInfo(jobInfo.stageIds.max).foreach{
+              case stageInfo : SparkStageInfo => { 
+                failedAttempts += stageInfo.currentAttemptId
+                failedTasksInLastAttempt += stageInfo.numFailedTasks 
+              }
+            }
+          }
+        }
+      }
+    }
+    new SparkJobGroupLastStagesFailedStats(failedAttempts, failedTasksInLastAttempt)
   }
 }

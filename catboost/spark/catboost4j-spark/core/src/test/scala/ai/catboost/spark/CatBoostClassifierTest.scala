@@ -281,7 +281,7 @@ class CatBoostClassifierTest {
   }
   
   // Master: String target type is not currently supported
-  @Test(expected = classOf[RuntimeException])
+  @Test(expected = classOf[CatBoostError])
   @throws(classOf[Exception])
   def testBinaryClassificationWithClassNamesExtraction() {
     val featureNames = Array[String]("f1", "f2", "f3")
@@ -315,7 +315,7 @@ class CatBoostClassifierTest {
   }
   
   // Master: String target type is not currently supported
-  @Test(expected = classOf[RuntimeException])
+  @Test(expected = classOf[CatBoostError])
   @throws(classOf[Exception])
   def testBinaryClassificationWithClassNamesSet() {
     val featureNames = Array[String]("f1", "f2", "f3")
