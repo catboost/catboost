@@ -6,7 +6,7 @@
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <library/cpp/cuda/wrappers/arch.cuh>
-#include <contrib/libs/cub/cub/block/block_reduce.cuh>
+#include <contrib/libs/nvidia/cub/cub/block/block_reduce.cuh>
 
 #include <cmath>
 #include <exception>
