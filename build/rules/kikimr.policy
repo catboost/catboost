@@ -67,7 +67,7 @@ ALLOW .* -> kikimr/persqueue
 ALLOW .* -> kikimr/public/api
 ALLOW .* -> kikimr/public/lib/json_value
 ALLOW .* -> kikimr/public/lib/yson_value
-ALLOW .* -> kikimr/public/tools/ydb
+ALLOW .* -> kikimr/public/lib/ydb_cli
 
 ALLOW cloud/blockstore -> kikimr/blockstore
 ALLOW cloud/blockstore -> kikimr/core
