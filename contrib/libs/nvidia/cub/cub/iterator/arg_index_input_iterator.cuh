@@ -34,18 +34,19 @@
 #pragma once
 
 #include <iterator>
+#include <iostream>
 
 #include "../thread/thread_load.cuh"
 #include "../thread/thread_store.cuh"
 #include "../util_device.cuh"
 #include "../util_namespace.cuh"
 
-// #include <thrust/version.h>
+#include <thrust/version.h>
 
 #if (THRUST_VERSION >= 100700)
     // This iterator is compatible with Thrust API 1.7 and newer
-//    #include <thrust/iterator/iterator_facade.h>
-//    #include <thrust/iterator/iterator_traits.h>
+    #include <thrust/iterator/iterator_facade.h>
+    #include <thrust/iterator/iterator_traits.h>
 #endif // THRUST_VERSION
 
 /// Optional outer namespace(s)
@@ -241,6 +242,12 @@ public:
     {
         itr += offset;
         offset = 0;
+    }
+
+    /// ostream operator
+    friend std::ostream& operator<<(std::ostream& os, const self_type& /*itr*/)
+    {
+        return os;
     }
 };
 

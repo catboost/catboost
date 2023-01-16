@@ -34,6 +34,7 @@
 #pragma once
 
 #include <iterator>
+#include <iostream>
 
 #include "../thread/thread_load.cuh"
 #include "../thread/thread_store.cuh"
@@ -43,8 +44,8 @@
 
 #if (THRUST_VERSION >= 100700)
     // This iterator is compatible with Thrust API 1.7 and newer
-//    #include <thrust/iterator/iterator_facade.h>
-//    #include <thrust/iterator/iterator_traits.h>
+    #include <thrust/iterator/iterator_facade.h>
+    #include <thrust/iterator/iterator_traits.h>
 #endif // THRUST_VERSION
 
 
@@ -292,6 +293,13 @@ public:
     {
         return ((ptr != rhs.ptr) || (tex_offset != rhs.tex_offset) || (tex_obj != rhs.tex_obj));
     }
+
+    /// ostream operator
+    friend std::ostream& operator<<(std::ostream& os, const self_type& itr)
+    {
+        return os;
+    }
+
 };
 
 
