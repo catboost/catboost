@@ -6,7 +6,8 @@ namespace NYT::NYson {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void IYsonConsumer::OnRaw(const TYsonStringBuf& yson) {
+void IYsonConsumer::OnRaw(const TYsonStringBuf& yson)
+{
     OnRaw(yson.AsStringBuf(), yson.GetType());
 }
 
