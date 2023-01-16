@@ -4,6 +4,7 @@ SRCS(
 )
 
 PEERDIR(
+    library/cpp/yt/exception
 )
 
 END()

@@ -4,8 +4,9 @@
 
 #include <library/cpp/yt/misc/guid.h>
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <util/generic/string.h>
-#include <util/generic/yexception.h>
 
 #include <util/datetime/base.h>
 
@@ -68,8 +69,11 @@ TYsonString ConvertToYsonString<TGuid>(const TGuid& value);
 // Note: these currently support a subset of NYT::NYTree::Convert features.
 
 class TYsonLiteralParseException
-    : public yexception
-{ };
+    : public TCompositeException
+{
+public:
+    using TCompositeException::TCompositeException;
+};
 
 template <>
 i8 ConvertFromYsonString<i8>(const TYsonStringBuf& str);

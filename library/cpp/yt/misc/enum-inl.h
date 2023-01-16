@@ -112,9 +112,9 @@ static constexpr bool AreValuesDistinct(const TValues& values)
         { \
             TType value; \
             if (!FindValueByLiteral(str, &value)) { \
-                throw std::runtime_error(Sprintf("Error parsing %s value %s", \
+                throw ::NYT::TSimpleException(Sprintf("Error parsing %s value %s", \
                     PP_STRINGIZE(name), \
-                    TString(str).Quote().data()).data()); \
+                    TString(str).Quote().c_str()).c_str()); \
             } \
             return value; \
         }

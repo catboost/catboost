@@ -239,24 +239,25 @@ bool TCaseInsensitiveStringEqualityComparer::operator()(TStringBuf lhs, TStringB
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool TryParseBool(const TString& value, bool& result)
+bool TryParseBool(TStringBuf value, bool* result)
 {
     if (value == "true" || value == "1") {
-        result = true;
+        *result = true;
         return true;
     } else if (value == "false" || value == "0") {
-        result = false;
+        *result = false;
         return true;
     } else {
         return false;
     }
 }
 
-bool ParseBool(const TString& value)
+bool ParseBool(TStringBuf value)
 {
     bool result;
-    if (!TryParseBool(value, result)) {
-        ythrow yexception() << Format("Error parsing boolean value %Qv", value);
+    if (!TryParseBool(value, &result)) {
+        throw TSimpleException(Format("Error parsing boolean value %Qv",
+            value));
     }
     return result;
 }

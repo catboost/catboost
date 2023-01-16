@@ -7,8 +7,8 @@ SRCS(
 )
 
 PEERDIR(
-    util
     library/cpp/yt/assert
+    library/cpp/yt/exception
     library/cpp/yt/misc
 )
 

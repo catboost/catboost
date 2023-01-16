@@ -2,6 +2,8 @@
 
 #include <util/random/random.h>
 
+#include <util/string/printf.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +46,8 @@ TGuid TGuid::FromString(TStringBuf str)
 {
     TGuid guid;
     if (!FromString(str, &guid)) {
-        ythrow TGuidException() << "Error parsing GUID \"" << str << "\"";
+        throw TSimpleException(Sprintf("Error parsing GUID \"%s\"",
+            TString(str).c_str()));
     }
     return guid;
 }
@@ -100,7 +103,8 @@ TGuid TGuid::FromStringHex32(TStringBuf str)
 {
     TGuid guid;
     if (!FromStringHex32(str, &guid)) {
-        ythrow TGuidException() << "Error parsing Hex32 GUID \"" << str << "\"";
+        throw TSimpleException(Sprintf("Error parsing Hex32 GUID \"%s\"",
+            TString(str).c_str()));
     }
     return guid;
 }
