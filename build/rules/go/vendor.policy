@@ -76,6 +76,9 @@ ALLOW .* -> vendor/github.com/jingyugao/rowserrcheck
 ALLOW .* -> vendor/go.temporal.io/sdk
 ALLOW .* -> vendor/go.temporal.io/api
 
+# CONTRIB-2468
+ALLOW .* -> vendor/github.com/DataDog/temporalite
+
 # CONTRIB-2353
 ALLOW vendor -> vendor/github.com/aromanovich/thrift
 ALLOW .* -> vendor/go.temporal.io/server
