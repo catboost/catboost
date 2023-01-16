@@ -1280,10 +1280,6 @@ class GnuCompiler(Compiler):
         self.cxx_warnings = [
             '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
         ]
-        if not (self.tc.is_gcc and not self.tc.version_at_least(7)):
-            self.cxx_warnings.extend([
-                '-Wno-register',  # IGNIETFERRO-722 needed for contrib
-            ])
 
         self.c_defines = ['-DFAKEID=$CPP_FAKEID']
         if self.target.is_android:
