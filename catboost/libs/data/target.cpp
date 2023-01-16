@@ -52,7 +52,7 @@ static void CheckRawTarget(ERawTargetType targetType, const TVector<TRawTarget>&
     );
 
     for (auto i : xrange(target.size())) {
-        if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&target[i])) {
+        if (const ITypedSequencePtr<float>* typedSequence = std::get_if<ITypedSequencePtr<float>>(&target[i])) {
             CB_ENSURE_INTERNAL(
                 (targetType == ERawTargetType::Float) || (targetType == ERawTargetType::Integer),
                 "target data contains float values but targetType is " << targetType
@@ -304,15 +304,15 @@ bool EqualAsFloatTarget(const ITypedSequencePtr<float>& lhs, const TVector<TStri
 }
 
 bool Equal(const TRawTarget& lhs, const TRawTarget& rhs) {
-    if (const ITypedSequencePtr<float>* lhsTypedSequence = GetIf<ITypedSequencePtr<float>>(&lhs)) {
-        if (const ITypedSequencePtr<float>* rhsTypedSequence = GetIf<ITypedSequencePtr<float>>(&rhs)) {
+    if (const ITypedSequencePtr<float>* lhsTypedSequence = std::get_if<ITypedSequencePtr<float>>(&lhs)) {
+        if (const ITypedSequencePtr<float>* rhsTypedSequence = std::get_if<ITypedSequencePtr<float>>(&rhs)) {
             return (*lhsTypedSequence)->EqualTo(**rhsTypedSequence, /*strict*/ false);
         } else {
             return EqualAsFloatTarget(*lhsTypedSequence, Get<TVector<TString>>(rhs));
         }
     } else {
         const TVector<TString>& lhsStringVector = Get<TVector<TString>>(lhs);
-        if (const TVector<TString>* rhsStringVector = GetIf<TVector<TString>>(&rhs)) {
+        if (const TVector<TString>* rhsStringVector = std::get_if<TVector<TString>>(&rhs)) {
             return lhsStringVector == *rhsStringVector;
         } else {
             return EqualAsFloatTarget(Get<ITypedSequencePtr<float>>(rhs), lhsStringVector);
@@ -465,7 +465,7 @@ static void GetRawTargetSubset(
     NPar::ILocalExecutor* localExecutor,
     TRawTarget* dst
 ) {
-    if (const ITypedSequencePtr<float>* srcTypedSequence = GetIf<ITypedSequencePtr<float>>(&src)) {
+    if (const ITypedSequencePtr<float>* srcTypedSequence = std::get_if<ITypedSequencePtr<float>>(&src)) {
         ITypedArraySubsetPtr<float> typedArraySubset = (*srcTypedSequence)->GetSubset(&subset);
         TVector<float> dstData;
         dstData.yresize(subset.Size());

@@ -21,7 +21,7 @@ namespace NCB {
         if (lhs.index() != rhs.index()) {
             return false;
         }
-        if (const TFlatPairsInfo* lhsFlatPairs = GetIf<TFlatPairsInfo>(&lhs)) {
+        if (const TFlatPairsInfo* lhsFlatPairs = std::get_if<TFlatPairsInfo>(&lhs)) {
             return EqualAsMultiSets<TPair>(*lhsFlatPairs, Get<TFlatPairsInfo>(rhs));
         }
         return EqualAsMultiSets<TPairInGroup>(Get<TGroupedPairsInfo>(lhs), Get<TGroupedPairsInfo>(rhs));

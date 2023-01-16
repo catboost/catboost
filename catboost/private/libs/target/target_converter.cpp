@@ -43,7 +43,7 @@ namespace NCB {
     ) {
         TVector<float> result;
 
-        if (const ITypedSequencePtr<float>* floatSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
+        if (const ITypedSequencePtr<float>* floatSequence = std::get_if<ITypedSequencePtr<float>>(&rawTarget)) {
             result.yresize((*floatSequence)->GetSize());
             TArrayRef<float> resultRef = result;
             size_t i = 0;
@@ -214,7 +214,7 @@ namespace NCB {
 
             TVector<float> result;
 
-            if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
+            if (const ITypedSequencePtr<float>* typedSequence = std::get_if<ITypedSequencePtr<float>>(&rawTarget)) {
                 UpdateFloatLabelToClass();
 
                 result.yresize((*typedSequence)->GetSize());

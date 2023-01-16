@@ -122,7 +122,7 @@ namespace {
             SampleInvertedSubset = GetInvertedIndexing(SampleSubset, ObjectCount, LocalExecutor);
             IsFullSubset = SampleSubset.IsFullSubset();
             if (!IsFullSubset) {
-                auto* indexedSubset = ::GetIf<TInvertedIndexedSubset<ui32>>(&SampleInvertedSubset);
+                auto* indexedSubset = ::std::get_if<TInvertedIndexedSubset<ui32>>(&SampleInvertedSubset);
                 CB_ENSURE_INTERNAL(
                     indexedSubset != nullptr,
                     "inverted subset should be either indexed or full");

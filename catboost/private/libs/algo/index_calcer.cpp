@@ -275,9 +275,9 @@ void GetObjectsDataAndIndexing(
         // test
 
         const TFeaturesArraySubsetIndexing& subsetIndexing = (*objectsData)->GetFeaturesArraySubsetIndexing();
-        if (GetIf<TFullSubset<ui32>>(&subsetIndexing)) {
+        if (std::get_if<TFullSubset<ui32>>(&subsetIndexing)) {
             *columnIndexing = nullptr;
-        } else if (const TIndexedSubset<ui32>* indexedSubset = GetIf<TIndexedSubset<ui32>>(&subsetIndexing)) {
+        } else if (const TIndexedSubset<ui32>* indexedSubset = std::get_if<TIndexedSubset<ui32>>(&subsetIndexing)) {
             *columnIndexing = indexedSubset->data();
         } else {
             // blocks
