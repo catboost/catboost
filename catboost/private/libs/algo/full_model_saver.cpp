@@ -50,7 +50,7 @@ namespace {
             PerTokenizedFeatureCalcers.resize(tokenizedFeatureCount);
         }
 
-        TVector<TEstimatedFeature> AddFeatureEstimator(
+        TTextCollectionBuilder& AddFeatureEstimator(
             const TGuid& calcerId,
             TConstArrayRef<TEstimatedFeature> estimatedFeatures
         ) {
@@ -69,14 +69,15 @@ namespace {
 
             const ui32 calcerFlatIdx = AddCalcer(MakeFinalFeatureCalcer(calcerId, MakeConstArrayRef(localIds)));
 
-            auto result = AddEstimatedFeature(textFeatureIdx, calcerFlatIdx, estimatedFeatures);
+            AddEstimatedFeature(textFeatureIdx, calcerFlatIdx, estimatedFeatures);
             RegisterIndices(
                 textFeatureIdx,
                 tokenizedFeatureIdx,
                 digitizerFlatIdx,
                 calcerFlatIdx
             );
-            return result;
+
+            return *this;
         }
 
         void InitializeDigitizer(
@@ -101,7 +102,8 @@ namespace {
         }
 
         void Build(
-            TTextProcessingCollection* textProcessingCollection
+            TTextProcessingCollection* textProcessingCollection,
+            TVector<TEstimatedFeature>* estimatedFeatures
         ) {
             CB_ENSURE_INTERNAL(!WasBuilt, "TTextCollectionBuilder: Build can be done only once");
             WasBuilt = true;
@@ -122,6 +124,8 @@ namespace {
             *textProcessingCollection = TTextProcessingCollection(
                 digitizers, Calcers, perFeatureDigitizers, PerTokenizedFeatureCalcers
             );
+
+            *estimatedFeatures = EstimatedFeatures;
         }
 
     private:
@@ -141,12 +145,11 @@ namespace {
             return calcerId;
         }
 
-        TVector<TEstimatedFeature> AddEstimatedFeature(
+        void AddEstimatedFeature(
             ui32 textFeatureId,
             ui32 calcerFlatIdx,
             TConstArrayRef<TEstimatedFeature> estimatedFeatures
         ) {
-            TVector<TEstimatedFeature> result;
             const auto& calcer = Calcers[calcerFlatIdx];
             for (ui32 localIndex: xrange(calcer->FeatureCount())) {
                 TEstimatedFeature estimatedFeature(TModelEstimatedFeature{
@@ -158,9 +161,7 @@ namespace {
                     estimatedFeatures[localIndex].Borders
                 );
                 EstimatedFeatures.push_back(estimatedFeature);
-                result.push_back(estimatedFeature);
             }
-            return result;
         }
 
         void RegisterIndices(ui32 textFeatureId, ui32 tokenizedFeatureId, ui32 digitizerId, ui32 calcerId) {
@@ -241,7 +242,7 @@ namespace {
             , LocalExecutor(localExecutor)
         {
         }
-        TVector<TEstimatedFeature> AddFeatureEstimator(
+        void AddFeatureEstimator(
             const TGuid& calcerId,
             TConstArrayRef<TEstimatedFeature> estimatedFeatures
         ) {
@@ -255,12 +256,11 @@ namespace {
 
             const ui32 calcerFlatIdx = AddCalcer(MakeFinalFeatureCalcer(calcerId, MakeConstArrayRef(localIds)));
 
-            auto result = AddEstimatedFeature(FeatureIdx, calcerFlatIdx, estimatedFeatures);
+            AddEstimatedFeature(FeatureIdx, calcerFlatIdx, estimatedFeatures);
             RegisterIndices(
                 FeatureIdx,
                 calcerFlatIdx
             );
-            return result;
         }
 
         void Build(
@@ -290,12 +290,11 @@ namespace {
             Calcers.push_back(calcer);
             return calcerId;
         }
-        TVector<TEstimatedFeature> AddEstimatedFeature(
+        void AddEstimatedFeature(
             ui32 FeatureId,
             ui32 calcerFlatIdx,
             TConstArrayRef<TEstimatedFeature> estimatedFeatures
         )  {
-            TVector<TEstimatedFeature> result;
             const auto& calcer = Calcers[calcerFlatIdx];
             for (ui32 localIndex: xrange(calcer->FeatureCount())) {
                 TEstimatedFeature estimatedFeature(TModelEstimatedFeature{
@@ -308,9 +307,7 @@ namespace {
                     estimatedFeature.Borders = estimatedFeatures[localIndex].Borders;
                 }
                 EstimatedFeatures.push_back(estimatedFeature);
-                result.push_back(estimatedFeature);
             }
-            return result;
         }
         TEmbeddingFeatureCalcerPtr MakeFinalFeatureCalcer(const TGuid& calcerId, TConstArrayRef<ui32> featureIds) {
             TFeatureEstimatorPtr estimator = FeatureEstimators.GetEstimatorByGuid(calcerId);
@@ -743,37 +740,33 @@ namespace NCB {
             localExecutor
         );
 
-        TVector<TEstimatedFeature> usedEstimatedFeatures, calcerFeatures;
+        TVector<TEstimatedFeature> usedEstimatedFeatures;
         TGuid lastCalcerId = estimatedFeatures[0].ModelEstimatedFeature.CalcerId;
-        reorderedEstimatedFeatures->clear();
-        reorderedEstimatedFeatures->reserve(estimatedFeatures.size());
 
         for (const auto& estimatedFeature: estimatedFeatures) {
             const TGuid currentCalcerIndex = estimatedFeature.ModelEstimatedFeature.CalcerId;
             if (lastCalcerId != currentCalcerIndex) {
                 if (featureEstimators.GetEstimatorSourceType(lastCalcerId) == EFeatureType::Text) {
-                    calcerFeatures = textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+                    textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
                 } else {
-                    calcerFeatures = embeddingCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+                    embeddingCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
                 }
-                reorderedEstimatedFeatures->insert(reorderedEstimatedFeatures->end(),
-                                                   calcerFeatures.begin(),
-                                                   calcerFeatures.end());
                 lastCalcerId = currentCalcerIndex;
                 usedEstimatedFeatures.clear();
             }
             usedEstimatedFeatures.push_back(estimatedFeature);
         }
         if (featureEstimators.GetEstimatorSourceType(lastCalcerId) == EFeatureType::Text) {
-            calcerFeatures = textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+            textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
         } else {
-            calcerFeatures = embeddingCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+            embeddingCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
         }
-        reorderedEstimatedFeatures->insert(reorderedEstimatedFeatures->end(),
-                                           calcerFeatures.begin(),
-                                           calcerFeatures.end());
-        textCollectionBuilder.Build(textProcessingCollection);
+        textCollectionBuilder.Build(textProcessingCollection, reorderedEstimatedFeatures);
         embeddingCollectionBuilder.Build(embeddingProcessingCollection);
+
+        for (auto feature : embeddingCollectionBuilder.GetFeatures()) {
+            reorderedEstimatedFeatures->push_back(feature);
+        }
     };
 
     void ExportFullModel(
