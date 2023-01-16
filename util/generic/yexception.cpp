@@ -39,12 +39,7 @@ TString CurrentExceptionMessage() {
 }
 
 bool UncaughtException() noexcept {
-// FIXME: use std::uncaught_exceptions() unconditionally after DEVTOOLS-8811
-#if defined(__cpp_lib_uncaught_exceptions) && !defined(_LIBCPP_AVAILABILITY_UNCAUGHT_EXCEPTIONS)
     return std::uncaught_exceptions() > 0;
-#else
-    return std::uncaught_exception();
-#endif
 }
 
 std::string CurrentExceptionTypeName() {
