@@ -8,10 +8,6 @@ WITHOUT_LICENSE_TEXTS()
 
 LICENSE(Apache-2.0)
 
-PEERDIR(
-    contrib/restricted/abseil-cpp/absl/base/internal/exponential_biased
-)
-
 ADDINCL(
     GLOBAL contrib/restricted/abseil-cpp
 )
@@ -24,10 +20,10 @@ CFLAGS(
     -DNOMINMAX
 )
 
-SRCDIR(contrib/restricted/abseil-cpp/absl/base/internal)
+SRCDIR(contrib/restricted/abseil-cpp/absl/profiling/internal)
 
 SRCS(
-    periodic_sampler.cc
+    exponential_biased.cc
 )
 
 END()

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ABSL_BASE_INTERNAL_EXPONENTIAL_BIASED_H_
-#define ABSL_BASE_INTERNAL_EXPONENTIAL_BIASED_H_
+#ifndef ABSL_PROFILING_INTERNAL_EXPONENTIAL_BIASED_H_
+#define ABSL_PROFILING_INTERNAL_EXPONENTIAL_BIASED_H_
 
 #include <stdint.h>
 
@@ -22,7 +22,7 @@
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
-namespace base_internal {
+namespace profiling_internal {
 
 // ExponentialBiased provides a small and fast random number generator for a
 // rounded exponential distribution. This generator manages very little state,
@@ -66,7 +66,7 @@ namespace base_internal {
 // Adjusting with rounding bias is relatively trivial:
 //
 //    double value = bias_ + exponential_distribution(mean)();
-//    double rounded_value = std::round(value);
+//    double rounded_value = std::rint(value);
 //    bias_ = value - rounded_value;
 //    return rounded_value;
 //
@@ -123,8 +123,8 @@ inline uint64_t ExponentialBiased::NextRandom(uint64_t rnd) {
   return (prng_mult * rnd + prng_add) & prng_mod_mask;
 }
 
-}  // namespace base_internal
+}  // namespace profiling_internal
 ABSL_NAMESPACE_END
 }  // namespace absl
 
-#endif  // ABSL_BASE_INTERNAL_EXPONENTIAL_BIASED_H_
+#endif  // ABSL_PROFILING_INTERNAL_EXPONENTIAL_BIASED_H_

@@ -18,7 +18,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/hash/internal
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
     contrib/restricted/abseil-cpp/absl/types
     contrib/restricted/abseil-cpp/absl/types/bad_optional_access
     contrib/restricted/abseil-cpp/absl/types/bad_variant_access

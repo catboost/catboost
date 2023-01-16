@@ -15,7 +15,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate
     contrib/restricted/abseil-cpp/absl/base/log_severity
     contrib/restricted/abseil-cpp/absl/numeric
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
 )
 
 ADDINCL(

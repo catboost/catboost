@@ -26,7 +26,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/flags/usage_config
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
     contrib/restricted/abseil-cpp/absl/strings/internal/str_format
     contrib/restricted/abseil-cpp/absl/synchronization
     contrib/restricted/abseil-cpp/absl/synchronization/internal

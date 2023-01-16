@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "absl/base/internal/exponential_biased.h"
+#include "absl/profiling/internal/exponential_biased.h"
 
 #include <stdint.h>
 
@@ -26,7 +26,7 @@
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
-namespace base_internal {
+namespace profiling_internal {
 
 // The algorithm generates a random number between 0 and 1 and applies the
 // inverse cumulative distribution function for an exponential. Specifically:
@@ -64,7 +64,7 @@ int64_t ExponentialBiased::GetSkipCount(int64_t mean) {
     // Assume huge values are bias neutral, retain bias for next call.
     return std::numeric_limits<int64_t>::max() / 2;
   }
-  double value = std::round(interval);
+  double value = std::rint(interval);
   bias_ = interval - value;
   return value;
 }
@@ -88,6 +88,6 @@ void ExponentialBiased::Initialize() {
   initialized_ = true;
 }
 
-}  // namespace base_internal
+}  // namespace profiling_internal
 ABSL_NAMESPACE_END
 }  // namespace absl

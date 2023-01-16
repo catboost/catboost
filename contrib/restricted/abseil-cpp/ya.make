@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(20210324.2)
+VERSION(20211102.0)
 
 LICENSE(Apache-2.0)
 
@@ -13,9 +13,7 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/algorithm
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/base/internal/exponential_biased
     contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc
-    contrib/restricted/abseil-cpp/absl/base/internal/periodic_sampler
     contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
     contrib/restricted/abseil-cpp/absl/base/internal/scoped_set_env
     contrib/restricted/abseil-cpp/absl/base/internal/spinlock_wait
@@ -52,6 +50,8 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/memory
     contrib/restricted/abseil-cpp/absl/meta
     contrib/restricted/abseil-cpp/absl/numeric
+    contrib/restricted/abseil-cpp/absl/profiling/internal/exponential_biased
+    contrib/restricted/abseil-cpp/absl/profiling/internal/periodic_sampler
     contrib/restricted/abseil-cpp/absl/random/absl_random_distributions
     contrib/restricted/abseil-cpp/absl/random/internal/absl_random_internal_distribution_test_util
     contrib/restricted/abseil-cpp/absl/random/internal/pool_urbg
@@ -66,8 +66,13 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/status
     contrib/restricted/abseil-cpp/absl/status/statusor
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/absl_cord
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/cord
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_cord_internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_functions
+    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_handle
+    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_info
+    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_sample_token
     contrib/restricted/abseil-cpp/absl/strings/internal/str_format
     contrib/restricted/abseil-cpp/absl/synchronization
     contrib/restricted/abseil-cpp/absl/synchronization/internal
@@ -89,9 +94,7 @@ END()
 RECURSE(
     absl/algorithm
     absl/base
-    absl/base/internal/exponential_biased
     absl/base/internal/low_level_alloc
-    absl/base/internal/periodic_sampler
     absl/base/internal/raw_logging
     absl/base/internal/scoped_set_env
     absl/base/internal/spinlock_wait
@@ -128,6 +131,8 @@ RECURSE(
     absl/memory
     absl/meta
     absl/numeric
+    absl/profiling/internal/exponential_biased
+    absl/profiling/internal/periodic_sampler
     absl/random/absl_random_distributions
     absl/random/internal/absl_random_internal_distribution_test_util
     absl/random/internal/pool_urbg
@@ -142,8 +147,13 @@ RECURSE(
     absl/status
     absl/status/statusor
     absl/strings
-    absl/strings/absl_cord
-    absl/strings/internal
+    absl/strings/cord
+    absl/strings/internal/absl_cord_internal
+    absl/strings/internal/absl_strings_internal
+    absl/strings/internal/cordz_functions
+    absl/strings/internal/cordz_handle
+    absl/strings/internal/cordz_info
+    absl/strings/internal/cordz_sample_token
     absl/strings/internal/str_format
     absl/synchronization
     absl/synchronization/internal
