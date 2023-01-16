@@ -6,7 +6,7 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-predict_proba(data, 
+predict_proba(X, 
               ntree_start={{ fit--ntree_start }}, 
               ntree_end=0, 
               thread_count=-1, 
@@ -15,7 +15,7 @@ predict_proba(data,
 
 ## {{ dl--parameters }} {#parameters}
 
-### data
+### X
 
 #### Description
 
