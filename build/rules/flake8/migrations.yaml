@@ -3188,7 +3188,7 @@ migrations:
     - weather/ml/quality/stand/misc/wrappers
     - weather/workers/warnings
     - weather/yasm/workerstats
-    - web/app_host/daemons/horizon/contrib
+    - apphost/daemons/horizon/contrib
     - apphost/tools/event_log_filter/tests/lib
     - web/daemons/begemot/scripts/yt_priemka
     - wmconsole/backend/packaging-tools
