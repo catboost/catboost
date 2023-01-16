@@ -27,5 +27,5 @@ namespace NFsPrivate {
 
     bool WinSetCurrentWorkingDirectory(const TString& path);
 
-    bool WinMakeDirectory(const TString path);
+    bool WinMakeDirectory(const TString& path);
 }
