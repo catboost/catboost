@@ -90,7 +90,7 @@ void UpdateApproxDeltas(
     const double* leafDeltasData = leafDeltas->data();
 
     NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
-    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
+    blockParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
 
     const auto getUpdateApproxBlockLambda = [&](auto boolConst) -> std::function<void(int)> {
         return [=](int blockIdx) {
