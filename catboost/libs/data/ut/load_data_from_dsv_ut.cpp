@@ -75,7 +75,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase simpleTestCase;
             TSrcData srcData;
-            srcData.CdFileData = AsStringBuf("0\tTarget");
+            srcData.CdFileData = TStringBuf("0\tTarget");
             srcData.DatasetFileData = AsStringBuf(
                 "Target\tFeat0\tFeat1\n"
                 "0\t0.1\t0.2\n"
