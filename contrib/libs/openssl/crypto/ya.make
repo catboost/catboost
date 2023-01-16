@@ -13,6 +13,13 @@ LICENSE(
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
+OPENSOURCE_EXPORT_REPLACEMENT(
+    CMAKE OpenSSL
+    CMAKE_PACKAGE_COMPONENT Crypto
+    CMAKE_TARGET OpenSSL::Crypto
+    CONAN openssl/1.1.1l
+)
+
 
 
 PEERDIR(
@@ -27,6 +34,8 @@ ADDINCL(
     contrib/libs/openssl/crypto/modes
     contrib/libs/openssl/include
 )
+
+IF (NOT EXPORT_CMAKE)
 
 IF (OS_LINUX)
     IF (ARCH_ARM64)
@@ -1448,6 +1457,8 @@ IF (OS_ANDROID AND ARCH_ARM64)
         rc4/rc4_skey.c
         whrlpool/wp_block.c
     )
+ENDIF()
+
 ENDIF()
 
 END()
