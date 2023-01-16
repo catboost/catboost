@@ -222,7 +222,7 @@ ALLOW mds/s3/s3_mds_proxy -> contrib/python/pycrypto
 ALLOW metrika/core -> contrib/python/pycrypto
 ALLOW mlp/mail -> contrib/python/pycrypto
 ALLOW mssngr/router/tools/export_legacy_messages -> contrib/python/pycrypto
-ALLOW passport/cpp/daemons/blackbox/ut/totp_manual/tests -> contrib/python/pycrypto
+ALLOW passport/infra/daemons/blackbox/ut/totp_manual/tests -> contrib/python/pycrypto
 ALLOW quality/functionality/turbo/merger/ut/medium -> contrib/python/pycrypto
 ALLOW samogon -> contrib/python/pycrypto
 ALLOW sandbox/common -> contrib/python/pycrypto
