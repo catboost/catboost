@@ -2,7 +2,7 @@
 ALLOW devtools/ya/handlers/yav -> passport/python/vault/cli/yav/vault_client_cli
 
 # PERSISTENT EXCEPTION: PASSP-31449
-ALLOW mail/so/daemons/antifraud -> passport/cpp/daemons/ysa/fingerprint
+ALLOW mail/so/daemons/antifraud -> passport/infra/daemons/ysa/fingerprint
 
 # PERSISTENT EXCEPTION: useful for debug purposes
 ALLOW junk -> passport/
