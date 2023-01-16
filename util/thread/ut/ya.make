@@ -11,4 +11,8 @@ SRCS(
     thread/singleton_ut.cpp
 )
 
+PEERDIR(
+    library/cpp/threading/future
+)
+
 END()
