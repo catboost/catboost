@@ -618,7 +618,15 @@ class manifest_maker(sdist):
         Therefore, avoid triggering any attempt of
         analyzing/building the manifest again.
         """
-        return build_py.get_data_files_without_manifest()
+        if hasattr(build_py, 'get_data_files_without_manifest'):
+            return build_py.get_data_files_without_manifest()
+
+        log.warn(
+            "Custom 'build_py' does not implement "
+            "'get_data_files_without_manifest'.\nPlease extend command classes"
+            " from setuptools instead of distutils."
+        )
+        return build_py.get_data_files()
 
 
 def write_file(filename, contents):
