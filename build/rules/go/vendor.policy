@@ -759,6 +759,9 @@ ALLOW .* -> vendor/github.com/ThalesIgnite/crypto11
 # CONTRIB-2232: graphql client library
 ALLOW .* -> vendor/github.com/shurcooL/graphql
 
+# CONTRIB-2301: RTSP 1.0 client and server library
+ALLOW .* -> vendor/github.com/aler9/gortsplib
+
 #
 # Tools
 #
