@@ -269,6 +269,8 @@ default:
   error-function__RecallAtK: RecallAt
   error-function__PrecisionAtK: PrecisionAt
   error-function__idcg: iDCG
+  error-function__MultiLogloss: MultiLogloss
+  error-function__MultiCrossEntropy: MultiCrossEntropy
   prediction-type--Probability: Probability
   prediction-type--Exponent: Exponent
   prediction-type--LogProbability: LogProbability
@@ -522,6 +524,8 @@ default:
   loss-functions__params__auc__type__Classic: Classic
   loss-functions__params__auc__ranking__type__default: Classic
   loss-functions__params__auc__type__Ranking: Ranking
+  loss-functions__params__accuracy__type__Classic: Classic
+  loss-functions__params__accuracy__type__PerClass: PerClass
   loss-functions__params__denominator: denominator
   loss-functions__params__delta: delta
   loss-functions__params__smoothness: smoothness

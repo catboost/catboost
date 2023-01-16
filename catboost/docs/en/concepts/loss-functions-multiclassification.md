@@ -35,6 +35,9 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 ### {{ error-function--Precision }} {#Precision}
 
+{% include [reusage-loss-function__for-multiclass](../_includes/work_src/reusage/loss-function__for-multiclass.md) %}
+
+
 $\frac{TP}{TP + FP}$
 
 {{ title__loss-functions__text__user-defined-params }}:
@@ -102,33 +105,19 @@ $TotalF1 = \displaystyle\frac{2 \cdot TP}{2 \cdot TP + FP + FN} {, where}$
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
-_Default:_
+_Default:_ {{ loss-functions__use_weights__default }}
 
-{{ loss-functions__use_weights__default }}
-
-{{ loss-functions__params__average__name }}
+{% cut "{{ loss-functions__params__average__name }}" %}
 
 The method for averaging the value of the metric that is initially individually calculated for each class.
 
 Possible values:
 
-#### {{ loss-functions__params__average__Weighted }}
+* {{ loss-functions__params__average__Weighted }}
+* {{ loss-functions__params__average__Macro }}
+* {{ loss-functions__params__average__Micro }}
 
-$\frac{\sum\limits_{i=1}^{M} w_{i} F1_{i}}{\sum\limits_{i=1}^{M}w_{i}} {, where}$
-
-$w_{i}$ is the sum of the weights of the documents which correspond to the i-th class. If document weights are not specified $w_{i}$ stands for the number of times the i-th class is found among the label values.
-
-#### {{ loss-functions__params__average__Macro }}
-
-$\displaystyle\frac{\sum\limits_{i=1}^{M}F1_{i}}{M}$
-
-#### {{ loss-functions__params__average__Micro }}
-
-$TotalF1 = \displaystyle\frac{2 \cdot TP}{2 \cdot TP + FP + FN} {, where}$
-- $TP = \sum\limits_{i=1}^{M} TP_{i}$
-- $FP = \sum\limits_{i=1}^{M} FP_{i}$
-- $FN = \sum\limits_{i=1}^{M} FN_{i}$
-
+{% endcut %}
 
 _Default:_  {{ loss-functions__params__average__Weighted }}
 
