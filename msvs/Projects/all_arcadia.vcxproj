@@ -138,6 +138,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.raw.fake.pkg.vcxproj">
       <Project>2A67684C-6D94-7642-16D5-16BE0E7BB51D</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.self.protodesc.vcxproj">
+      <Project>A8D7C0FE-39A3-D0F1-3C72-4832E3FB658A</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\py3idl-pool-proto.global.vcxproj">
       <Project>2C3B36E6-6E70-A24F-9C2D-D4E027B536F3</Project>
     </ProjectReference>
@@ -564,6 +567,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>0EED471E-D91D-9917-D1A8-550D2EBE46DB</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\protobuf-builtin_proto-protos_from_protobuf.self.protodesc.vcxproj">
+      <Project>DFC570C8-FD99-DF04-CC4B-6C83BBD3D14C</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\py3protobuf-builtin_proto-protos_from_protobuf.global.vcxproj">
       <Project>578F8CCF-0793-4FD7-1E57-C230913327F0</Project>
     </ProjectReference>
@@ -575,6 +581,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\pyprotobuf-builtin_proto-protos_from_protobuf.vcxproj">
       <Project>43ADBFD6-F655-8929-4665-E94E585F4058</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\protobuf-builtin_proto-protos_from_protoc.self.protodesc.vcxproj">
+      <Project>E88D1F06-4740-B9E1-337F-5A959A26CC82</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\py3protobuf-builtin_proto-protos_from_protoc.global.vcxproj">
       <Project>D91D403D-7F24-722C-300A-6E076283B3F5</Project>
