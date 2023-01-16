@@ -700,38 +700,6 @@
                 }
             ]
         },
-        "clang-tidy": {
-            "tools": {
-                "clang-tidy": {
-                    "bottle": "clang-tidy",
-                    "executable": "clang-tidy"
-                },
-                "clang-apply-replacements": {
-                    "bottle": "clang-tidy",
-                    "executable": "clang-apply-replacements"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "ymake": {
             "tools": {
                 "ymake": {
@@ -1591,6 +1559,10 @@
                     "bottle": "clang7",
                     "executable": "cc"
                 },
+                "clang-tidy": {
+                    "bottle": "clang7",
+                    "executable": "clang-tidy"
+                },
                 "gcov": {
                     "bottle": "clang7",
                     "executable": "gcov"
@@ -1902,6 +1874,10 @@
                     "bottle": "clang7-windows",
                     "executable": "cc"
                 },
+                "clang-tidy": {
+                    "bottle": "clang7-windows",
+                    "executable": "clang-tidy"
+                },
                 "gcov": {
                     "bottle": "clang7-windows",
                     "executable": "gcov"
@@ -1976,6 +1952,10 @@
                 "cc": {
                     "bottle": "clang11",
                     "executable": "cc"
+                },
+                "clang-tidy": {
+                    "bottle": "clang11",
+                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang11",
@@ -2076,6 +2056,10 @@
                     "bottle": "clang12",
                     "executable": "cc"
                 },
+                "clang-tidy": {
+                    "bottle": "clang12",
+                    "executable": "clang-tidy"
+                },
                 "gcov": {
                     "bottle": "clang12",
                     "executable": "llvm-gcov"
@@ -2173,6 +2157,10 @@
                 "cc": {
                     "bottle": "clang8",
                     "executable": "cc"
+                },
+                "clang-tidy": {
+                    "bottle": "clang8",
+                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang8",
@@ -2668,9 +2656,17 @@
                     "bottle": "clang11",
                     "executable": "cc"
                 },
+                "clang-apply-replacements": {
+                    "bottle": "clang11",
+                    "executable": "clang-apply-replacements"
+                },
                 "clang-rename": {
                     "bottle": "clang11",
                     "executable": "clang-rename"
+                },
+                "clang-tidy": {
+                    "bottle": "clang11",
+                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang11",
@@ -3111,9 +3107,17 @@
                     "bottle": "clang12",
                     "executable": "cc"
                 },
+                "clang-apply-replacements": {
+                    "bottle": "clang12",
+                    "executable": "clang-apply-replacements"
+                },
                 "clang-rename": {
                     "bottle": "clang12",
                     "executable": "clang-rename"
+                },
+                "clang-tidy": {
+                    "bottle": "clang12",
+                    "executable": "clang-tidy"
                 },
                 "gcov": {
                     "bottle": "clang12",
@@ -3848,6 +3852,10 @@
                     "bottle": "android-ndk-r21b",
                     "executable": "nm"
                 },
+                "clang-tidy": {
+                    "bottle": "android-ndk-r21b",
+                    "executable": "clang-tidy"
+                },
                 "llvm-cov": {
                     "bottle": "android-ndk-r21b",
                     "executable": "llvm-cov"
@@ -4007,6 +4015,10 @@
                     "bottle": "android-ndk-r22",
                     "executable": "nm"
                 },
+                "clang-tidy": {
+                    "bottle": "android-ndk-r22",
+                    "executable": "clang-tidy"
+                },
                 "llvm-cov": {
                     "bottle": "android-ndk-r22",
                     "executable": "llvm-cov"
@@ -4151,6 +4163,10 @@
                 "nm": {
                     "bottle": "android-ndk-r23",
                     "executable": "nm"
+                },
+                "clang-tidy": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "clang-tidy"
                 },
                 "llvm-cov": {
                     "bottle": "android-ndk-r23",
@@ -7351,24 +7367,6 @@
                 ]
             }
         },
-        "clang-tidy": {
-            "formula": {
-                "sandbox_id": [
-                    1044520899,
-                    1044525172,
-                    1044528653
-                ],
-                "match": "CLANG_TIDY"
-            },
-            "executable": {
-                "clang-tidy": [
-                    "clang-tidy"
-                ],
-                "clang-apply-replacements": [
-                    "clang-apply-replacements"
-                ]
-            }
-        },
         "maven_import_sandbox_uploader": {
             "formula": {
                 "sandbox_id": 1031028343,
@@ -7725,6 +7723,10 @@
                     "bin",
                     "clang"
                 ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
                 "gcov": [
                     "bin",
                     "llvm-gcov"
@@ -7776,6 +7778,10 @@
                     "bin",
                     "clang"
                 ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
                 "gcov": [
                     "bin",
                     "llvm-gcov"
@@ -7826,6 +7832,10 @@
                 "cc": [
                     "bin",
                     "clang"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
                 ],
                 "gcov": [
                     "bin",
@@ -7919,9 +7929,17 @@
                     "bin",
                     "clang"
                 ],
+                "clang-apply-replacements": [
+                    "bin",
+                    "clang-apply-replacements"
+                ],
                 "clang-rename": [
                     "bin",
                     "clang-rename"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
                 ],
                 "llvm-gcov": [
                     "bin",
@@ -7977,9 +7995,17 @@
                     "bin",
                     "clang"
                 ],
+                "clang-apply-replacements": [
+                    "bin",
+                    "clang-apply-replacements"
+                ],
                 "clang-rename": [
                     "bin",
                     "clang-rename"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
                 ],
                 "llvm-gcov": [
                     "bin",
@@ -8160,6 +8186,11 @@
                     "bin",
                     "i686-linux-android-c++filt"
                 ],
+                "clang-tidy": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang-tidy"
+                ],
                 "llvm-cov": [
                     "llvm-toolchain",
                     "bin",
@@ -8216,6 +8247,11 @@
                     "bin",
                     "i686-linux-android-c++filt"
                 ],
+                "clang-tidy": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang-tidy"
+                ],
                 "llvm-cov": [
                     "llvm-toolchain",
                     "bin",
@@ -8271,6 +8307,11 @@
                     "llvm-toolchain",
                     "bin",
                     "i686-linux-android-c++filt"
+                ],
+                "clang-tidy": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang-tidy"
                 ],
                 "llvm-cov": [
                     "llvm-toolchain",
