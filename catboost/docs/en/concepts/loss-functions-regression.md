@@ -5,7 +5,7 @@
 
 ## Objectives and metrics
 
-### {{ error-function--MAE }}
+### {{ error-function--MAE }} {#MAE}
 
 $\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i}}$
 
@@ -15,7 +15,7 @@ $\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i
 
 _Default:_ {{ loss-functions__use_weights__default }}
 
-### {{ error-function--MAPE }}
+### {{ error-function--MAPE }} {#MAPE}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}|}{Max(1, |t_{i}|)}}{\sum\limits_{i=1}^{N}w_{i}}$
 
@@ -26,7 +26,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}
 _Default:_ {{ loss-functions__use_weights__default }}
 
 
-### {{ error-function--Poisson }}
+### {{ error-function--Poisson }} {#Poisson}
 
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \left(e^{a_{i}} - a_{i}t_{i}\right)}{\sum\limits_{i=1}^{N}w_{i}}$
@@ -40,7 +40,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function--Quantile }}
+### {{ error-function--Quantile }} {#Quantile}
 
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} (\alpha - 1(t_{i} \leq a_{i}))(t_{i} - a_{i}) w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
@@ -62,7 +62,7 @@ _Default:_ {{ fit--alpha }}
 
 
 
-### {{ error-function--RMSE }}
+### {{ error-function--RMSE }} {#RMSE}
 
 $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{i=1}^N (a_{i}-t_{i})^2 w_{i}}{\sum\limits_{i=1}^{N}w_{i}}}$
 
@@ -74,7 +74,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### RMSEWithUncertainty
+### RMSEWithUncertainty {#RMSEWithUncertainty}
 
 
 $-\frac{1}{N} \sum_{i=1}^N \log p(t_i \vert a_i) = -\frac{1}{N} \sum_{i=1}^N \log(\frac{1}{2 \pi\sigma^2} \exp(-\frac{(y-\mu)^2}{2\sigma^2})) = C +\frac{1}{N}\sum_{i=1}^N \left(a_{i,1} + \frac{1}{2} \exp(-2 a_{i,1} (t_i - a_{i, 0})^2) \right)$, where t is target, a 2-dimensional approx $a_0$ is target predict, $a_1$ is $\log \sigma$ predict, and $p$ has normal distribution $p(t \vert a) = N(y \vert a_0, e^{2a_1}) = N(y \vert \mu, \sigma^2) = \frac{1}{2 \pi\sigma^2} \exp(-\frac{(y-\mu)^2}{2\sigma^2})$
@@ -90,7 +90,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function--LogLinQuantile }}
+### {{ error-function--LogLinQuantile }} {#LogLinQuantile}
 
 
 Depends on the condition for the ratio of the label value and the resulting value:
@@ -112,7 +112,7 @@ _Default:_  {{ fit--alpha }}
 
 
 
-### {{ error-function__lq }}
+### {{ error-function__lq }} {#lq}
 
 $\displaystyle\frac{\sum\limits_{i=1}^N |a_{i} - t_{i}|^q w_i}{\sum\limits_{i=1}^N w_{i}}$
 
@@ -131,7 +131,7 @@ The power coefficient.<br/><br/>Valid values are real numbers in the following r
 _Default:_ {{ loss-functions__params__q__default }}
 
 
-### {{ error-function__Huber }}
+### {{ error-function__Huber }} {#Huber}
 
 
 $L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i} { , where}$
@@ -154,7 +154,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__Expectile }}
+### {{ error-function__Expectile }} {#Expectile}
 
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} |\alpha - 1(t_{i} \leq a_{i})|(t_{i} - a_{i})^2 w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
@@ -174,7 +174,7 @@ The coefficient used in expectile-based losses.
 _Default:_  {{ fit--alpha }}
 
 
-### {{ error-function__Tweedie }}
+### {{ error-function__Tweedie }} {#Tweedie}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\lambda)}}{2-\lambda} - t_{i}\frac{e^{a_{i}(1-\lambda)}}{1-\lambda} \right)\cdot w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
 
@@ -192,13 +192,13 @@ The variance of the Tweedie distribution.
 
 Supported values are in the range (1;2).
 
-{% endcut %}    
+{% endcut %}
 
 _Default:_ {{ loss-functions__params__q__default }}
 
 
 
-### {{ error-function__FairLoss }}
+### {{ error-function__FairLoss }} {#FairLoss}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} c^2(\frac{|t_{i} - a_{i} |}{c} - \ln(\frac{|t_{i} - a_{i} |}{c} + 1))w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
 
@@ -220,7 +220,7 @@ _Default:_ {{ fit--smoothness }}
 
 
 
-### {{ error-function__NumErrors }}
+### {{ error-function__NumErrors }} {#NumErrors}
 
 The proportion of predictions, for which the difference from the label value exceeds the specified value `{{ loss-function__params__greater-than }}`.
 
@@ -241,7 +241,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__SMAPE }}
+### {{ error-function__SMAPE }} {#SMAPE}
 
 
 $\displaystyle\frac{100 \sum\limits_{i=1}^{N}\displaystyle\frac{w_{i} |a_{i} - t_{i} |}{(| t_{i} | + | a_{i} |) / 2}}{\sum\limits_{i=1}^{N} w_{i}}$
@@ -256,7 +256,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function--R2 }}
+### {{ error-function--R2 }} {#R2}
 
 $1 - \displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (a_{i} - t_{i})^{2}}{\sum\limits_{i=1}^{N} w_{i} (\bar{t} - t_{i})^{2}}$
 $\bar{t}$ is the average label value:
@@ -270,7 +270,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__MSLE }}
+### {{ error-function__MSLE }} {#MSLE}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e} (1 + a_{i}))^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
@@ -283,7 +283,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e}
 
 _Default:_ {{ loss-functions__use_weights__default }}
 
-### {{ error-function__MedianAbsoluteError }}
+### {{ error-function__MedianAbsoluteError }} {#MedianAbsoluteError}
 
 $median(|t_{1} - a_{1}|, ..., |t_{i} - a_{i}|)$
 

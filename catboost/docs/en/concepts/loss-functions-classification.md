@@ -1,6 +1,11 @@
 # Classification: objectives and metrics
 
-### {{ error-function--Logit }}
+- [Objectives and metrics](#objectives-and-metrics)
+- [{{ title__loss-functions__text__optimization }}](#used-for-optimization)
+
+## Objectives and metrics
+
+### {{ error-function--Logit }} {#Logit}
 
 $\displaystyle\frac{ - \sum\limits_{i=1}^N w_{i}\left(c_i \log(p_{i}) + (1-c_{i}) \log(1 - p_{i})\right)}{\sum\limits_{i = 1}^{N} w_{i}}$
 
@@ -12,11 +17,11 @@ $\displaystyle\frac{ - \sum\limits_{i=1}^N w_{i}\left(c_i \log(p_{i}) + (1-c_{i}
 _Default:_  {{ loss-functions__use_weights__default }}
 
 
-### {{ error-function--CrossEntropy }}
+### {{ error-function--CrossEntropy }} {#CrossEntropy}
 
 $\displaystyle\frac{- \sum\limits_{i=1}^N w_{i} \left(t_{i} \log(p_{i}) + (1 - t_{i}) \log(1 - p_{i})\right)}{\sum\limits_{i = 1}^{N} w_{i}}$
 
-{{ title__loss-functions__text__user-defined-params }}: 
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -24,7 +29,7 @@ $\displaystyle\frac{- \sum\limits_{i=1}^N w_{i} \left(t_{i} \log(p_{i}) + (1 - t
 _Default:_  {{ loss-functions__use_weights__default }}
 
 
-### {{ error-function--Precision }}
+### {{ error-function--Precision }} {#Precision}
 
 $\frac{TP}{TP + FP}$
 
@@ -37,11 +42,11 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function--Recall }}
+### {{ error-function--Recall }} {#Recall}
 
 $\frac{TP}{TP+FN}$
 
-{{ title__loss-functions__text__user-defined-params }}: 
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -49,11 +54,11 @@ $\frac{TP}{TP+FN}$
 _Default:_  {{ loss-functions__use_weights__default }}
 
 
-### {{ error-function--F1 }}
+### {{ error-function--F1 }} {#F1}
 
 $2 \frac{Precision * Recall}{Precision + Recall}$
 
-{{ title__loss-functions__text__user-defined-params }}:  
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -62,10 +67,10 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__BalancedAccuracy }}
+### {{ error-function__BalancedAccuracy }} {#BalancedAccuracy}
 
 $\frac{1}{2} \left(\frac{TP}{P} + \frac{TN}{N} \right)$
-{{ title__loss-functions__text__user-defined-params }}: 
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -74,11 +79,11 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__BalancedErrorRate }}
+### {{ error-function__BalancedErrorRate }} {#BalancedErrorRate}
 
 $\frac{1}{2} \left( \displaystyle\frac{FP}{TN + FP} + \displaystyle\frac{FN}{FN + TP} \right)$
 
-{{ title__loss-functions__text__user-defined-params }}:  
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -87,11 +92,11 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function--MCC }}
+### {{ error-function--MCC }} {#MCC}
 
 $\displaystyle\frac{TP * TN - FP * FN}{\sqrt{(TP + FP)(TP + FN)(TN + FP)(TN + FN)}}$
 
-{{ title__loss-functions__text__user-defined-params }}:  
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -100,11 +105,11 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function--Accuracy }}
+### {{ error-function--Accuracy }} {#Accuracy}
 
 $\frac{TP + TN}{\sum\limits_{i=1}^{N} w_{i}}$
 
-{{ title__loss-functions__text__user-defined-params }}: 
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -114,11 +119,11 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__CtrFactor }}
+### {{ error-function__CtrFactor }} {#CtrFactor}
 
 $\displaystyle\frac{\left(\sum\limits_{i = 1}^{N} w_{i} t_{i}/N\right)}{\left(\sum\limits_{i = 1}^{N} w_{i} p_{i} /N\right)}$
 
-{{ title__loss-functions__text__user-defined-params }}: 
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -127,7 +132,7 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function--AUC }}
+### {{ error-function--AUC }} {#AUC}
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
 - {{ loss-functions__params__type }}
@@ -183,7 +188,7 @@ _Default:_  False
 
 
 
-### {{ error-function--QueryAUC }}
+### {{ error-function--QueryAUC }} {#QueryAUC}
 
 - {{ loss-functions__params__type }}
 
@@ -203,7 +208,7 @@ _Default:_  False
     AUC:type=Ranking
     ```
 
- 
+
 
 #### {{ loss-functions__params__auc__type__Classic }}
 
@@ -241,7 +246,7 @@ _Default:_ false
 
 
 
-### {{ error-function--NormalizedGini }}
+### {{ error-function--NormalizedGini }} {#NormalizedGini}
 
 See {{ error-function--AUC }}.
 
@@ -254,11 +259,11 @@ Use object/group weights to calculate metrics if the specified value is <q>true
 
 
 
-### {{ error-function__Brierscore }}
+### {{ error-function__Brierscore }} {#Brierscore}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i}\left(p_{i} - t_{i} \right)^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
-{{ title__loss-functions__text__user-defined-params }}: 
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -267,7 +272,7 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__HingeLoss }}
+### {{ error-function__HingeLoss }} {#HingeLoss}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} max\{1 - t_{i} p_{i}, 0\}}{\sum\limits_{i=1}^{N} w_{i}} , t_{i} = \pm 1$
 
@@ -281,7 +286,7 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__HammingLoss }}
+### {{ error-function__HammingLoss }} {#HammingLoss}
 
 $\displaystyle\frac{\sum\limits_{i = 1}^{N} w_{i} [[p_{i} > 0.5] == t_{i}]]}{\sum\limits_{i=1}^{N} w_{i}}$
 
@@ -295,11 +300,11 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__ZeroOneLoss }}
+### {{ error-function__ZeroOneLoss }} {#ZeroOneLoss}
 
 $1 - Accuracy$
 
-{{ title__loss-functions__text__user-defined-params }}:  
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -309,13 +314,13 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__Kappa }}
+### {{ error-function__Kappa }} {#Kappa}
 
 $1 - \displaystyle\frac{1 - Accuracy}{1 - RAccuracy}$
 
 $RAccuracy = \displaystyle\frac{(TN + FP) (TN + FN) + (FN + TP) (FP + TP)}{(\sum\limits_{i=1}^{N} w_{i})^{2}}$
 
-{{ title__loss-functions__text__user-defined-params }}:  
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -325,11 +330,11 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__WKappa }}
+### {{ error-function__WKappa }} {#WKappa}
 
 See the formula on page 3 of the [A note on the linearly weighted kappa coefficient for ordinal scales](https://orbi.uliege.be/bitstream/2268/2262/1/STATMED-174.pdf) paper.
 
-{{ title__loss-functions__text__user-defined-params }}: 
+{{ title__loss-functions__text__user-defined-params }}:
 
 {% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
 
@@ -340,7 +345,7 @@ _Default:_  {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__LLP }}
+### {{ error-function__LLP }} {#LLP}
 
 The calculation consists of the following steps:
 

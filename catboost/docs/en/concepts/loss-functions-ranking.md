@@ -22,7 +22,7 @@ The following variables are used in formulas of the described pairwise metrics:
 
 ### Objectives and metrics {#pairwise-objectives-and-metrics}
 
-### {{ error-function__PairLogit }}
+### {{ error-function__PairLogit }} {#PairLogit}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -49,7 +49,7 @@ _Default:_ {{ loss-functions__params__max_pairs_default }}
 
 
 
-### {{ error-function__PairLogitPairwise }}
+### {{ error-function__PairLogitPairwise }} {#PairLogitPairwise}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -81,7 +81,7 @@ _Default:_  {{ loss-functions__params__max_pairs_default }}
 
 
 
-### {{ error-function__PairAccuracy }}
+### {{ error-function__PairAccuracy }} {#PairAccuracy}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -111,7 +111,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 ## Groupwise metrics {#groupwise-metrics}
 
-### {{ error-function__YetiRank }}
+### {{ error-function__YetiRank }} {#YetiRank}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
@@ -153,7 +153,7 @@ This metric gives less accurate results on big datasets compared to {{ error-fun
 
 
 
-### {{ error-function__YetiRankPairwise }}
+### {{ error-function__YetiRankPairwise }} {#YetiRankPairwise}
 
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
@@ -199,7 +199,7 @@ This technique is described in the [Winning The Transfer Learning Track of Yaho
 
 
 
-### {{ error-function__StochasticFilter }}
+### {{ error-function__StochasticFilter }} {#StochasticFilter}
 
 Directly optimize the {{ error-function__FilteredDCG }} metric calculated for a pre-defined order of objects for filtration of objects under a fixed ranking. As a result, the {{ error-function__FilteredDCG }} metric can be used for optimization.
 
@@ -247,7 +247,7 @@ Refer to the [Learning to Select for a Predefined Ranking]({{ learning-to-select
 
 
 
-### {{ error-function__StochasticRank }}
+### {{ error-function__StochasticRank }} {#StochasticRank}
 
 Directly optimize the selected metric. The value of the selected metric is written to [output data](../concepts/output-data.md)
 
@@ -354,7 +354,7 @@ Metric-specific parameters (available if the corresponding metric is set in the 
 
 
 
-### {{ error-function__QueryCrossEntropy }}
+### {{ error-function__QueryCrossEntropy }} {#QueryCrossEntropy}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -384,7 +384,7 @@ See the [{{ error-function__QueryCrossEntropy }}](../references/querycrossentrop
 
 
 
-### {{ error-function__QueryRMSE }}
+### {{ error-function__QueryRMSE }} {#QueryRMSE}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -400,7 +400,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 
 
-### {{ error-function__QuerySoftMax }}
+### {{ error-function__QuerySoftMax }} {#QuerySoftMax}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -422,7 +422,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
     1
 
 
-### {{ error-function__PFound }}
+### {{ error-function__PFound }} {#PFound}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
@@ -461,7 +461,7 @@ See the [{{ error-function__PFound }}](../references/pfound.md) section for mor
 
 
 
-### {{ error-function__ndcg }}
+### {{ error-function__ndcg }} {#ndcg}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
@@ -505,7 +505,7 @@ See the [{{ error-function__ndcg }}](../references/ndcg.md) section for more de
 
 
 
-### {{ error-function__dcg }}
+### {{ error-function__dcg }} {#dcg}
 
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
@@ -549,7 +549,7 @@ See the [{{ error-function__ndcg }}](../references/ndcg.md) section for more de
     {{ loss-functions__use_weights__default }}
 
 
-### {{ error-function__FilteredDCG }}
+### {{ error-function__FilteredDCG }} {#FilteredDCG}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
@@ -576,7 +576,7 @@ See the [{{ error-function__FilteredDCG }}](../references/filtereddcg.md) secti
 
 
 
-### {{ error-function__QueryAverage }}
+### {{ error-function__QueryAverage }} {#QueryAverage}
 
 Represents the average value of the label values for objects with the defined top $M$ label values.
 
@@ -602,7 +602,7 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
 
 
 
-### {{ error-function__PrecisionAtK }}
+### {{ error-function__PrecisionAtK }} {#PrecisionAtK}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -635,7 +635,7 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
     {{ fit--border }}
 
 
-### {{ error-function__RecallAtK }}
+### {{ error-function__RecallAtK }} {#RecallAtK}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -667,7 +667,7 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
 
 
 
-### {{ error-function__mapk }}
+### {{ error-function__mapk }} {#mapk}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -705,7 +705,7 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
 
 
 
-### {{ error-function__err }}
+### {{ error-function__err }} {#err}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -730,7 +730,7 @@ $t_{q,i} \in [0, 1]$
 
 
 
-### {{ error-function__mrr }}
+### {{ error-function__mrr }} {#mrr}
 
 {{ title__loss-functions__calculation-principles }}
 
@@ -777,7 +777,7 @@ $MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers t
 [{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |
 [{{ error-function__mapk }}](#mapk)                           |     -                   |
 [{{ error-function__err }}](#err)                             |     -                   |
-[{{ error-function__mrr }}](#PairLogit)                       |     -                   |
+[{{ error-function__mrr }}](#mrr)                             |     -                   |
 
 
 
@@ -788,7 +788,7 @@ $MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers t
 
 ## AUC {#auc}
 
-### {{ error-function--AUC }}
+### {{ error-function--AUC }} {#AUC}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 

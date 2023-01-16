@@ -1,6 +1,11 @@
 # Multiclassification: objectives and metrics
 
-### {{ error-function--MultiClass }} {#MMultiClass}
+- [Objectives and metrics](#objectives-and-metrics)
+- [{{ title__loss-functions__text__optimization }}](#used-for-optimization)
+
+## Objectives and metrics
+
+### {{ error-function--MultiClass }} {#MultiClass}
 
 
   $\displaystyle\frac{\sum\limits_{i=1}^{N}w_{i}\log\left(\displaystyle\frac{e^{a_{it_{i}}}}{ \sum\limits_{j=0}^{M - 1}e^{a_{ij}}} \right)}{\sum\limits_{i=1}^{N}w_{i}} { ,}$
@@ -300,7 +305,7 @@ _Default:_  All non-diagonal matrix elements are set to 1. All diagonal elements
 
 | Name                                                          | Optimization            |
 ----------------------------------------------------------------|-------------------------|
-[{{ error-function--MultiClass }}](#MMultiClass)                |     +                   |
+[{{ error-function--MultiClass }}](#MultiClass)                |     +                   |
 [{{ error-function--MultiClassOneVsAll }}](#MultiClassOneVsAll) |     +                   |
 [{{ error-function--Precision }}](#Precision)                   |     -                   |
 [{{ error-function--Recall }}](#Recall)                         |     -                   |
