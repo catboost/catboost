@@ -64,8 +64,10 @@
 #include <strings.h>
 #endif
 
+#if !defined(_musl_)
 #if __linux__ && __x86_64__
 __asm__(".symver memcpy,memcpy@GLIBC_2.2.5");
+#endif
 #endif
 
 #include <libyasm-stdint.h>
