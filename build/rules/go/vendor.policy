@@ -867,6 +867,7 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/storage/spansto
 ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/storage/dependencystore
 ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/model
 ALLOW yt/jaeger/plugin -> vendor/github.com/gogo/protobuf
+ALLOW yt/jaeger/plugin -> vendor/github.com/hashicorp/go-plugin
 
 ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/agent
 ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/docs
