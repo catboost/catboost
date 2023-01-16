@@ -83,6 +83,7 @@ static TDataProviders LoadPools(
         /*readTestData*/true,
         TDatasetSubset::MakeColumns(),
         TVector<TDatasetSubset>(poolLoadParams.TestSetPaths.size(), TDatasetSubset::MakeColumns()),
+        catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
         &classLabels,
         executor,
         /*profile*/nullptr

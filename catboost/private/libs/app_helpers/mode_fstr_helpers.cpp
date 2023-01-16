@@ -54,6 +54,7 @@ namespace {
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
                                            NCB::TDatasetSubset::MakeColumns(),
+                                           /*forceUnitAutoPairWeights*/ false,
                                            /*classLabels*/ Nothing(),
                                            LocalExecutor.Get());
                 CheckModelAndDatasetCompatibility(Model, *Dataset->ObjectsData.Get());

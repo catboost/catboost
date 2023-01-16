@@ -147,6 +147,7 @@
         ],
         "class_weights" : [ ],
         "target_border" : null,
+        "force_unit_auto_pair_weights" : false,
         "dev_sparse_array_indexing" : "Indices",
         "auto_class_weights" : "None",
         "float_features_binarization" : {

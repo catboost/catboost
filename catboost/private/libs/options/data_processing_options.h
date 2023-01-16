@@ -45,6 +45,7 @@ namespace NCatboostOptions {
 
         TOption<float> DevDefaultValueFractionToEnableSparseStorage; // 0 means sparse storage is disabled
         TOption<NCB::ESparseArrayIndexingType> DevSparseArrayIndexingType;
+        TOption<bool> ForceUnitAutoPairWeights;
 
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
         TCpuOnlyOption<bool> DevLeafwiseScoring;

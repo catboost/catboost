@@ -441,6 +441,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "auto_class_weights", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_default_value_fraction_for_sparse", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_sparse_array_indexing", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "force_unit_auto_pair_weights", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "gpu_cat_features_storage", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_scoring", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_group_features", &dataProcessingOptions, &seenKeys);
@@ -887,6 +888,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(dataProcessingOptions, "dev_group_features", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "dev_group_features");
+
+        CopyOption(dataProcessingOptions, "force_unit_auto_pair_weights", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "force_unit_auto_pair_weights");
 
         ConcatenatePerFloatFeatureQuantizationOptions(
             dataProcessingOptions,

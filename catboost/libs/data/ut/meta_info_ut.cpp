@@ -54,6 +54,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                 true,
                 false,
                 false,
+                true,
                 Nothing(),
                 &featureNames
             );
@@ -67,6 +68,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                     false,
                     false,
                     false,
+                    true,
                     Nothing(),
                     &featureNames
                 );
@@ -94,6 +96,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                     true,
                     false,
                     false,
+                    true,
                     Nothing(),
                     &featureNames3
                 );

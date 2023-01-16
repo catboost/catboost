@@ -1262,6 +1262,39 @@ def test_pairlogit_no_target(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_pairlogit_force_unit_pair_weights():
+    def train(params, output_eval_path):
+        cmd = (
+            '--loss-function', 'PairLogit',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd.group_weight'),
+            '-i', '20',
+            '-T', '4',
+            '--use-best-model', 'false',
+            '--eval-file', output_eval_path,
+        ) + params
+        execute_catboost_fit('CPU', cmd)
+
+    group_weights_eval = yatest.common.test_output_path('test_group_weights.eval')
+    train((), group_weights_eval)
+    unit_weights_eval = yatest.common.test_output_path('test_unit_weights.eval')
+    train(('--force-unit-auto-pair-weights',), unit_weights_eval)
+    assert not filecmp.cmp(group_weights_eval, unit_weights_eval), \
+        "Forcing unit weights for auto-generated pairs should change eval result"
+
+    pairs_paths = (
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--test-pairs', data_file('querywise', 'test.pairs'),
+    )
+    pairs_and_group_weights_eval = yatest.common.test_output_path('test_pairs_and_group_weights.eval')
+    train(pairs_paths, pairs_and_group_weights_eval)
+    pairs_and_unit_weights_eval = yatest.common.test_output_path('test_pairs_and_unit_weights.eval')
+    train(pairs_paths + ('--force-unit-auto-pair-weights',), pairs_and_unit_weights_eval)
+    assert filecmp.cmp(pairs_and_group_weights_eval, pairs_and_unit_weights_eval), \
+        "Forcing unit weights for explicit pairs should not change eval result"
+
+
 def test_pairlogit_approx_on_full_history():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')

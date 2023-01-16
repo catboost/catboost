@@ -65,6 +65,7 @@ int mode_eval_feature(int argc, const char* argv[]) {
         /*readTestData*/false,
         /*learnDatasetSubset*/ TDatasetSubset::MakeColumns(),
         /*testDatasetSubsets*/ {},
+        catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
         &classLabels,
         &NPar::LocalExecutor(),
         /*profile*/nullptr

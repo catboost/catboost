@@ -510,6 +510,7 @@ namespace NCB {
                     /*objectsGrouping*/ Nothing(), // will init from data
                     std::move(Data),
                     Options.SkipCheck,
+                    Data.MetaInfo.ForceUnitAutoPairWeights,
                     LocalExecutor
                 );
 
@@ -542,6 +543,7 @@ namespace NCB {
                     /*objectsGrouping*/ Nothing(), // will init from data
                     std::move(Data),
                     Options.SkipCheck,
+                    Data.MetaInfo.ForceUnitAutoPairWeights,
                     LocalExecutor
                 )->CastMoveTo<TObjectsDataProvider>();
             }
@@ -559,6 +561,7 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 Options.SkipCheck,
+                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             );
 
@@ -1334,6 +1337,7 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 Options.SkipCheck,
+                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
@@ -1805,6 +1809,7 @@ namespace NCB {
                 // without HasFeatures dataprovider self-test fails on distributed train
                 // on quantized pool
                 Options.SkipCheck || !DatasetSubset.HasFeatures,
+                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
@@ -2382,6 +2387,7 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(dataRef),
                 Options.SkipCheck,
+                dataRef.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }

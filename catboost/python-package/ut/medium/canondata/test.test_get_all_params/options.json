@@ -18,6 +18,7 @@
     "eval_metric": "RMSE",
     "feature_border_type": "GreedyLogSum",
     "fold_permutation_block": 0,
+    "force_unit_auto_pair_weights": false,
     "grow_policy": "SymmetricTree",
     "has_time": false,
     "iterations": 16,

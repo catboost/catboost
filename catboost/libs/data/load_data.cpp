@@ -28,6 +28,7 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
     ) {
@@ -57,6 +58,7 @@ namespace NCB {
                     10000, // TODO: make it a named constant
                     loadSubset,
                     /*LoadColumnsAsString*/ false,
+                    forceUnitAutoPairWeights,
                     localExecutor
                 }
             }
@@ -98,6 +100,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels
     ) {
         NPar::TLocalExecutor localExecutor;
@@ -118,6 +121,7 @@ namespace NCB {
             ignoredFeatures,
             objectsOrder,
             TDatasetSubset::MakeColumns(),
+            forceUnitAutoPairWeights,
             classLabels,
             &localExecutor
         );
@@ -138,6 +142,7 @@ namespace NCB {
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
     ) {
@@ -172,6 +177,7 @@ namespace NCB {
                     10000, // TODO: make it a named constant
                     loadSubset,
                     /*LoadColumnsAsString*/ false,
+                    forceUnitAutoPairWeights,
                     localExecutor
                 }
             }
@@ -187,6 +193,7 @@ namespace NCB {
         bool readTestData,
         TDatasetSubset learnDatasetSubset,
         TConstArrayRef<TDatasetSubset> testDatasetSubsets,
+        bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* const executor,
         TProfileInfo* const profile
@@ -215,6 +222,7 @@ namespace NCB {
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
                 learnDatasetSubset,
+                forceUnitAutoPairWeights,
                 classLabels,
                 executor
             );
@@ -251,6 +259,7 @@ namespace NCB {
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
                     testDatasetSubsets[testIdx],
+                    forceUnitAutoPairWeights,
                     classLabels,
                     executor
                 );

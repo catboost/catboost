@@ -2489,6 +2489,7 @@ namespace NCB {
                 objectsGrouping,
                 std::move(*data),
                 false,
+                data->MetaInfo.ForceUnitAutoPairWeights,
                 localExecutor
             );
         }
@@ -2532,7 +2533,7 @@ namespace NCB {
             std::move(dataMetaInfo),
             std::move(rawObjectsDataProvider),
             objectsGrouping,
-            TRawTargetDataProvider(objectsGrouping, std::move(dummyData), true, nullptr)
+            TRawTargetDataProvider(objectsGrouping, std::move(dummyData), true, /*forceUnitAutoPairWeights*/ true, nullptr)
         );
 
         auto quantizedDataProvider = Quantize(

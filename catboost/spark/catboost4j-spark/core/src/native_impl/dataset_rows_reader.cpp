@@ -382,6 +382,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
             SafeIntegerCast<ui32>(blockSize),
             /*loadSubset*/ TDatasetSubset(),
             /*LoadColumnsAsString*/ false,
+            /*ForceUnitAutoPairWeights*/ false,
             &LocalExecutor
         }
     };

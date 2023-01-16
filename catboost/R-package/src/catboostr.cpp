@@ -167,6 +167,7 @@ EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            EObjectsOrder::Undefined,
                                            UpdateThreadCount(asInteger(threadCountParam)),
                                            asLogical(verboseParam),
+                                           /*forceUnitAutoPairWeights*/ false,
                                            /*classLabels=*/Nothing());
     result = PROTECT(R_MakeExternalPtr(poolPtr.Get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);

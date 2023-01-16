@@ -196,6 +196,7 @@ namespace NCB {
                 Nothing(),
                 std::move(data),
                 true,
+                dataProvider.MetaInfo.ForceUnitAutoPairWeights,
                 executor
             );
 
@@ -216,6 +217,7 @@ namespace NCB {
             Nothing(),
             std::move(data),
             false,
+            dataProvider.MetaInfo.ForceUnitAutoPairWeights,
             executor);
 
         dataProvider = std::move(*(dataProviderPtr->template CastMoveTo<TObjectsDataProvider>()));

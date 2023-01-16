@@ -123,6 +123,10 @@ namespace NCatboostDistributed {
             testDatasetSubsets.push_back(GetSubsetForWorker(workerCount, hostId, testObjectsGrouping));
         }
 
+        NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
+        catBoostOptions.Load(GetJson(params->TrainOptions));
+        catBoostOptions.SystemOptions->FileWithHosts->clear();
+
         const auto poolLoadOptions = params->PoolLoadOptions;
         TProfileInfo profile;
         CATBOOST_DEBUG_LOG << "Load quantized pool section for worker " << hostId << "..." << Endl;
@@ -133,14 +137,12 @@ namespace NCatboostDistributed {
             /*readTest*/false,
             GetSubsetForWorker(workerCount, hostId, params->LearnObjectsGrouping),
             testDatasetSubsets,
+            catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
             &localData.ClassLabelsFromDataset,
             &NPar::LocalExecutor(),
             &profile
         );
 
-        NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
-        catBoostOptions.Load(GetJson(params->TrainOptions));
-        catBoostOptions.SystemOptions->FileWithHosts->clear();
         TLabelConverter labelConverter;
         auto quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
             params->FeaturesLayout,

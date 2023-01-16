@@ -59,6 +59,7 @@ namespace NCB {
         bool HasTimestamp = false;
         bool HasPairs = false;
         bool StoreStringColumns = false;
+        bool ForceUnitAutoPairWeights = false;
 
         // can be set from baseline file header or from quantized pool
         TVector<NJson::TJsonValue> ClassLabels = {};
@@ -76,6 +77,7 @@ namespace NCB {
             bool hasAdditionalGroupWeight,
             bool hasTimestamp,
             bool hasPairs,
+            bool forceUnitAutoPairWeights,
             TMaybe<ui32> additionalBaselineCount = Nothing(),
 
             // if specified - prefer these to Id in columnsInfo.Columns, otherwise take names
