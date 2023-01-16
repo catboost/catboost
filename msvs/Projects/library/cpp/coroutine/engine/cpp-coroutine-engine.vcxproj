@@ -148,6 +148,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\library\cpp\coroutine\engine\stack\stack_common.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\cont_poller.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\custom_time.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\events.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\helper.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\impl.h"/>
