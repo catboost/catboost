@@ -137,6 +137,7 @@ ALLOW taxi/graph/tools/find-one-way-gates -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/analyzer/libs/track_generator
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/libs/mms
 ALLOW taxi/graph/tools/lib -> maps/libs/road_graph
+ALLOW taxi/graph/tools/ -> maps/tools/easyview/pylib
 ALLOW taxi/tools/dorblu/lib -> maps/libs/common
 ALLOW taxi/tools/dorblu/lib -> maps/libs/deprecated/bson
 ALLOW taxi/tools/dorblu/lib -> maps/libs/deprecated/mongo
