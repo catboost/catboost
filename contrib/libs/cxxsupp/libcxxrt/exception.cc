@@ -350,13 +350,17 @@ static pthread_key_t eh_key;
 static void exception_cleanup(_Unwind_Reason_Code reason, 
                               struct _Unwind_Exception *ex)
 {
-	__cxa_free_exception(static_cast<void*>(ex));
+	// Exception layout:
+	// [__cxa_exception [_Unwind_Exception]] [exception object]
+	//
+	// __cxa_free_exception expects a pointer to the exception object
+	__cxa_free_exception(static_cast<void*>(ex + 1));
 }
 static void dependent_exception_cleanup(_Unwind_Reason_Code reason, 
                               struct _Unwind_Exception *ex)
 {
 
-	__cxa_free_dependent_exception(static_cast<void*>(ex));
+	__cxa_free_dependent_exception(static_cast<void*>(ex + 1));
 }
 
 /**
@@ -424,7 +428,8 @@ static void thread_cleanup(void* thread_info)
 		if (info->foreign_exception_state != __cxa_thread_info::none)
 		{
 			_Unwind_Exception *e = reinterpret_cast<_Unwind_Exception*>(info->globals.caughtExceptions);
-			e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
+			if (e->exception_cleanup)
+				e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
 		}
 		else
 		{
@@ -596,7 +601,7 @@ static void emergency_malloc_free(char *ptr)
 			break;
 		}
 	}
-	assert(buffer > 0 &&
+	assert(buffer >= 0 &&
 	       "Trying to free something that is not an emergency buffer!");
 	// emergency_malloc() is expected to return 0-initialized data.  We don't
 	// zero the buffer when allocating it, because the static buffers will
@@ -636,7 +641,7 @@ static void free_exception(char *e)
 {
 	// If this allocation is within the address range of the emergency buffer,
 	// don't call free() because it was not allocated with malloc()
-	if ((e > emergency_buffer) &&
+	if ((e >= emergency_buffer) &&
 	    (e < (emergency_buffer + sizeof(emergency_buffer))))
 	{
 		emergency_malloc_free(e);
@@ -1326,11 +1331,13 @@ extern "C" void *__cxa_begin_catch(void *e)
 	// we see is a foreign exception then we won't have called it yet.
 	__cxa_thread_info *ti = thread_info();
 	__cxa_eh_globals *globals = &ti->globals;
-	globals->uncaughtExceptions--;
 	_Unwind_Exception *exceptionObject = static_cast<_Unwind_Exception*>(e);
 
 	if (isCXXException(exceptionObject->exception_class))
 	{
+		// Only exceptions thrown with a C++ exception throwing function will
+		// increment this, so don't decrement it here.
+		globals->uncaughtExceptions--;
 		__cxa_exception *ex =  exceptionFromPointer(exceptionObject);
 
 		if (ex->handlerCount == 0)
@@ -1407,12 +1414,13 @@ extern "C" void __cxa_end_catch()
 	
 	if (ti->foreign_exception_state != __cxa_thread_info::none)
 	{
-		globals->caughtExceptions = 0;
 		if (ti->foreign_exception_state != __cxa_thread_info::rethrown)
 		{
 			_Unwind_Exception *e = reinterpret_cast<_Unwind_Exception*>(ti->globals.caughtExceptions);
-			e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
+			if (e->exception_cleanup)
+				e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
 		}
+		globals->caughtExceptions = 0;
 		ti->foreign_exception_state = __cxa_thread_info::none;
 		return;
 	}
@@ -1466,6 +1474,14 @@ extern "C" std::type_info *__cxa_current_exception_type()
 }
 
 /**
+ * Cleanup, ensures that `__cxa_end_catch` is called to balance an explicit
+ * `__cxa_begin_catch` call.
+ */
+static void end_catch(char *)
+{
+	__cxa_end_catch();
+}
+/**
  * ABI function, called when an exception specification is violated.
  *
  * This function does not return.
@@ -1473,6 +1489,12 @@ extern "C" std::type_info *__cxa_current_exception_type()
 extern "C" void __cxa_call_unexpected(void*exception) 
 {
 	_Unwind_Exception *exceptionObject = static_cast<_Unwind_Exception*>(exception);
+	// Wrap the call to the unexpected handler in calls to `__cxa_begin_catch`
+	// and `__cxa_end_catch` so that we correctly update exception counts if
+	// the unexpected handler throws an exception.
+	__cxa_begin_catch(exceptionObject);
+	__attribute__((cleanup(end_catch)))
+	char unused;
 	if (exceptionObject->exception_class == exception_class)
 	{
 		__cxa_exception *ex =  exceptionFromPointer(exceptionObject);
