@@ -526,7 +526,7 @@ TMetricHolder TMultiRMSEMetric::EvalSingleThread(
         for (auto i : xrange(begin, end)) {
             error.Stats[1] += realWeight(i);
         }
-        
+
         return error;
     };
 
@@ -554,7 +554,7 @@ namespace {
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
         static TVector<TParamSet> ValidParamSets();
-        
+
         TMetricHolder EvalSingleThread(
             TConstArrayRef<TVector<double>> approx,
             TConstArrayRef<TVector<double>> approxDelta,
@@ -584,7 +584,7 @@ TMetricHolder TMultiRMSEWithMissingValues::EvalSingleThread(
     const auto evalImpl = [=](bool useWeights, bool hasDelta) {
         const auto realApprox = [=](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
         const auto realWeight = [=](int idx) { return useWeights ? weight[idx] : 1; };
-        
+
         TMetricHolder error(target.size() * 2);
         for (auto dim : xrange(target.size())) {
             double sumWeights = 0.0;
@@ -598,7 +598,7 @@ TMetricHolder TMultiRMSEWithMissingValues::EvalSingleThread(
             error.Stats[dim * 2] += sumErrors;
             error.Stats[dim * 2 + 1] += sumWeights;
         }
-        
+
         return error;
     };
 
@@ -608,7 +608,7 @@ TMetricHolder TMultiRMSEWithMissingValues::EvalSingleThread(
 double TMultiRMSEWithMissingValues::GetFinalError(const TMetricHolder& error) const {
     double finalError = 0.0;
     for (size_t dim = 0; dim < error.Stats.size(); dim += 2) {
-        if (error.Stats[dim + 1] != 0) { 
+        if (error.Stats[dim + 1] != 0) {
             finalError += error.Stats[dim] / error.Stats[dim+1];
         }
     }
@@ -826,7 +826,7 @@ TMetricHolder TLogCoshMetric::EvalSingleThread(
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric LogCosh supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
-    const double METRIC_APPROXIMATION_THRESHOLD = 12; 
+    const double METRIC_APPROXIMATION_THRESHOLD = 12;
 
     const auto impl = [=] (auto hasDelta, auto hasWeight, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
         TMetricHolder error(2);
@@ -3009,7 +3009,7 @@ namespace {
             int begin,
             int end,
             NPar::ILocalExecutor& executor
-        ) const;
+        ) const override;
         double GetFinalError(const TMetricHolder& error) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
@@ -4060,7 +4060,7 @@ namespace {
         double GetFinalError(const TMetricHolder& error) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
-    	static constexpr int DefaultTopSize = -1;
+        static constexpr int DefaultTopSize = -1;
         const int TopSize;
         const float TargetBorder;
     };
@@ -4155,7 +4155,7 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-    	static constexpr int DefaultTopSize = -1;
+        static constexpr int DefaultTopSize = -1;
         const int TopSize;
         const float TargetBorder;
     };
@@ -4249,7 +4249,7 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-    	static constexpr int DefaultTopSize = -1;
+        static constexpr int DefaultTopSize = -1;
         const int TopSize;
         const float TargetBorder;
     };

@@ -210,6 +210,6 @@ namespace NCatboostCuda {
         void Estimate(NPar::ILocalExecutor* localExecutor);
 
         void AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
-                                           NPar::ILocalExecutor* localExecutor);
+                                           NPar::ILocalExecutor* localExecutor) override;
     };
 }
