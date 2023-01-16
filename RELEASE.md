@@ -12,12 +12,16 @@ In this release we decided to increment major version as we think that CatBoost 
 * Speedup training on numeric datasets (480K rows, 60 features, 100 trees, binclass, 20% speedup on 16 cores Intel CPU 3.7s -> 2.9s)
 
 ## R package
-* From now R tests clear environment after runs so they won't find temporary data from previous runs
 * Update C++ handles by reference to avoid redundant copies by @david-cortes
 * Avoid calculating groupwise feature importance: do not calculate feature importance for groupwise metrics by default
+* R tests clear environment after runs so they won't find temporary data from previous runs
+* Fixed ignored features in R fail whet single feature were ignored
+* Fix feature_count attribute with ignored_features
 
 ## CV improvements
-* We've fixed
+* Added support for text features and embeddings in crossvalidation mode
+* We've changed the way crossvalidation works - previously, CatBoost was training a small batch of trees on each fold and then switched to next fold or next batch of trees. In 1.0.0 we changed this behaviour and now CatBoost trains full model on each fold. That allows us to reduce memory and time overhead of starting new batch - only one CPU to GPU memory copy is needed per fold, not per each batch of trees. Mean metric interactive plot became unavailable until the end of training on all folds.
+* **Important change** From now on `use_best_model` and early stopping works independently on each fold, as we are trying to make single fold trainig as close to regular training as possible. If one model stops at iteration `i` we use it's last value in mean score plot for points with `[i+1; last iteration)`.
 
 ## GPU improvements
 * Fixed distributed training performance on Ethernet networks ~2x training time speedup. For 2 hosts, 8 v100/host, 10gigabit eth, 300 factors, 150m samples, 200 trees, 3300s -> 1700s
@@ -28,7 +32,7 @@ In this release we decided to increment major version as we think that CatBoost 
 
 ## Bugfixes
 * Fix for model predictions with text and embedding features
-* Switch to TBB local executor to limit TLS size #1835
+* Switch to TBB local executor to limit TLS size and avoid memory leakage #1835
 * Switch to tcmalloc under linux x86_64 to avoid memory fragmentation bug in LFAlloc
 * Fix for case of ignored text feature
 * Fixed application of baseline in C++ code. Moved addition of that before application of activation functions and determining labels of objects.
