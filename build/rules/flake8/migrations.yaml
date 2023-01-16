@@ -980,7 +980,6 @@ migrations:
     - infra/skybit/src
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_quota_distributor/lib
-    - keyboard/analytics/collect_logs
     - keyboard/dict/nirvana/config_generator/blocks
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
     - lbs/metrics/lbs_binbase_diff
@@ -1025,7 +1024,6 @@ migrations:
     - mlp/mail/aspam/experiments/MLP_231
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - modadvert/configurator/client/it
     - modadvert/libs/connectors/loggers
     - modadvert/libs/http
     - modadvert/libs/laas/workers/domain_threats
@@ -1160,7 +1158,6 @@ migrations:
     - yabs/server/cs/pylibs/gantt_chart/lib
     - yabs/server/cs/pylibs/settings
     - yabs/server/test/ft/BSSERVER-13708
-    - yabs/server/test/ft/BSSERVER-14014
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
@@ -1507,7 +1504,6 @@ migrations:
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
-    - yabs/server/test/ft/BSSERVER-12201
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-13878
     - yabs/server/test/ft/BSSERVER-14107
