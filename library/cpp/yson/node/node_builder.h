@@ -13,7 +13,7 @@ namespace NYT {
 ////////////////////////////////////////////////////////////////////////////////
 
 class TNodeBuilder
-    : public TYsonConsumerBase
+    : public ::NYson::TYsonConsumerBase
 {
 public:
     TNodeBuilder(TNode* node);

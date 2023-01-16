@@ -39,7 +39,7 @@ namespace NYT {
         , Depth(0)
     {
         if (Type == YT_MAP_FRAGMENT) {
-            ythrow TYsonException() << ("Map fragments are not supported by Json");
+            ythrow NYson::TYsonException() << ("Map fragments are not supported by Json");
         }
 
         UnderlyingJsonWriter.Reset(new NJson::TJsonWriter(

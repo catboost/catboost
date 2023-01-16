@@ -7,7 +7,7 @@
 
 class IInputStream;
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     class TYsonParser {
@@ -75,5 +75,12 @@ namespace NYT {
         TMaybe<ui64> memoryLimit = Nothing());
 
     ////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYson
+
+namespace NYT {
+
+// Temporary for backward compatibility
+using ::NYson::ParseYsonStringBuffer;
 
 }

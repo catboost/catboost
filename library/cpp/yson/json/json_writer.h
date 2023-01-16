@@ -27,7 +27,7 @@ namespace NYT {
     };
 
     class TJsonWriter
-       : public TYsonConsumerBase {
+       : public ::NYson::TYsonConsumerBase {
     public:
         TJsonWriter(
             IOutputStream* output,
