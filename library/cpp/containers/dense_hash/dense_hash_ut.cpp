@@ -78,6 +78,42 @@ Y_UNIT_TEST_SUITE(TDenseHashTest) {
         UNIT_ASSERT_EQUAL(dh.Size(), 1);
     }
 
+    Y_UNIT_TEST(TestReserveSpace) {
+        for (size_t size = 100; size < 5'000; ++size) {
+            TDenseHash<ui32, ui32> dh;
+
+            dh.ReserveSpace(size);
+            size_t capacity = dh.Capacity();
+            for (size_t i = 1; i <= size; ++i) {
+                dh.insert({i, 6});
+                UNIT_ASSERT_EQUAL(i, dh.Size());
+                UNIT_ASSERT_EQUAL(capacity, dh.Capacity());
+            }
+
+            size_t secondSize = size * 5;
+            dh.ReserveSpace(secondSize);
+            capacity = dh.Capacity();
+            for (size_t i = size + 1; i <= secondSize; ++i) {
+                dh.insert({i, 6});
+                UNIT_ASSERT_EQUAL(i, dh.Size());
+                UNIT_ASSERT_EQUAL(capacity, dh.Capacity());
+            }
+        }
+
+        {
+            size_t size = 1'000'000;
+            TDenseHash<ui32, ui32> dh;
+
+            dh.ReserveSpace(size);
+            size_t capacity = dh.Capacity();
+            for (size_t i = 1; i <= size; ++i) {
+                dh.insert({i, 6});
+                UNIT_ASSERT_EQUAL(i, dh.Size());
+                UNIT_ASSERT_EQUAL(capacity, dh.Capacity());
+            }
+        }
+    }
+
     Y_UNIT_TEST(TestAtOp) {
         TDenseHash<i32, i32> dh;
         UNIT_ASSERT(dh.Empty());
