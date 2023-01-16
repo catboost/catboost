@@ -22,6 +22,7 @@ import pytest
 import six
 
 import _pytest
+import _pytest._io
 import _pytest.mark
 import _pytest.outcomes
 import _pytest.skipping
@@ -605,7 +606,10 @@ def colorize(longrepr):
     # use default pytest colorization
     if pytest_config.option.tbstyle != "short":
         io = py.io.TextIO()
-        writer = py.io.TerminalWriter(file=io)
+        if six.PY2:
+            writer = py.io.TerminalWriter(file=io)
+        else:
+            writer = _pytest._io.TerminalWriter(file=io)
         # enable colorization
         writer.hasmarkup = True
 
