@@ -134,7 +134,7 @@ ALLOW statbox/libstatbox -> contrib/restricted/boost
 ALLOW taxi/uservices -> contrib/restricted/boost
 ALLOW tools/idl -> contrib/restricted/boost
 ALLOW voicetech/tools -> contrib/restricted/boost
-ALLOW weather/grid_api/lib -> contrib/restricted/boost
+ALLOW weather/archive/grid_api/lib -> contrib/restricted/boost
 ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
