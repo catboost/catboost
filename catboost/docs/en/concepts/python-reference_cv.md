@@ -21,7 +21,8 @@ cv(pool=None,
    plot=False,
    early_stopping_rounds=None,
    folds=None,
-   type='Classical')
+   type='Classical',
+   return_models=False)
 ```
 
 ## {{ dl--purpose }} {#purpose}
@@ -342,9 +343,27 @@ Possible values:
 
 {{ cv__type__default }}
 
+### return_models
+
+#### Description
+
+If `return_models` is `True`, returns a list of models fitted for each CV fold. By default, False.
+
+**Possible types** 
+
+{{ python-type--bool }}
+
+**Default value**
+
+False
+
+
 ## {{ dl--output-format }} {#output-format}
 
-Depends on the value of the `as_pandas` parameter and the availability of the `pandas`{{ python-package }}:
+Depends on `return_models`, `as_pandas`, and the availability of the `pandas`{{ python-package }}:
+- If `return_models` is `False`, `cv` returns `cv_results` which is a dict or a pandas frame (see a table below).
+- If `return_models` is `True`, `cv` returns a tuple (`cv_results`, `fitted_models`) containing, in addition to regular `cv_results`, a list of models fitted for each fold.
+
 `as_pandas` value | `pandas`{{ python-package }} availability | Type of return value
 ----- | ----- | -----
 True | Installed | {{ python-type--pandasDataFrame }}
