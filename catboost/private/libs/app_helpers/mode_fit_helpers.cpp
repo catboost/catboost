@@ -12,6 +12,10 @@
 #include <catboost/private/libs/options/pool_metainfo_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
+#if defined(HAVE_CUDA)
+#include <catboost/cuda/cuda_lib/devices_provider.h>
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
+#endif
 
 #if defined(USE_MPI)
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
@@ -48,6 +52,16 @@ int NCB::ModeFitImpl(int argc, const char* argv[]) {
     NCatboostOptions::LoadPoolMetaInfoOptions(poolLoadParams.PoolMetaInfoPath, &catBoostJsonOptions);
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
+    #if defined(HAVE_CUDA)
+    THolder<TStopCudaManagerCallback> stopCudaManagerGuard;
+    if (catBoostFlatJsonOptions["task_type"] == ToString(ETaskType::GPU)) {
+        NCatboostOptions::TCatBoostOptions updatedCatboostOptions(ETaskType::GPU);
+        updatedCatboostOptions.Load(catBoostJsonOptions);
+        auto deviceRequestConfig = NCudaLib::CreateDeviceRequestConfig(updatedCatboostOptions);
+        stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
+                                                    updatedCatboostOptions.LoggingLevel);
+    }
+    #endif
     ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
     NCatboostOptions::TOutputFilesOptions outputOptions;

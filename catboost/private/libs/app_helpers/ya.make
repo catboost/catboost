@@ -40,4 +40,12 @@ ENDIF()
 
 GENERATE_ENUM_SERIALIZATION(implementation_type_enum.h)
 
+IF (HAVE_CUDA)
+    CFLAGS(-DHAVE_CUDA)
+
+    PEERDIR(
+        catboost/cuda/cuda_lib
+    )
+ENDIF()
+
 END()

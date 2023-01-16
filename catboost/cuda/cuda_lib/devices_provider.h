@@ -3,6 +3,9 @@
 #include "cuda_base.h"
 #include "single_device.h"
 #include "helpers.h"
+
+#include <catboost/private/libs/options/catboost_options.h>
+
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
@@ -57,6 +60,8 @@ namespace NCudaLib {
             return PinnedMemorySize;
         }
     };
+
+    TDeviceRequestConfig CreateDeviceRequestConfig(const NCatboostOptions::TCatBoostOptions& options);
 
     //for mpi test purpose
     inline NCudaLib::TDeviceRequestConfig& GetDefaultDeviceRequestConfig() {
