@@ -46,19 +46,14 @@ class PnpmPackageManager(BasePackageManager):
     def calc_node_modules_inouts(self):
         """
         Returns input and output paths for command that creates `node_modules` bundle.
-        :return: Pair of input and output paths. All relative paths should be treated as build-root related.
+        :return: Pair of input and output paths with correct roots ($S or $B).
         :rtype: (list of str, list of str)
         """
-        src_pj_path = build_pj_path(self.sources_path)
-        src_lf_path = build_lockfile_path(self.sources_path)
-        if not os.path.isfile(src_lf_path):
-            raise PackageManagerError("Lockfile not found: {}".format(src_lf_path))
-
         # Inputs: source package.json and lockfile, built package.jsons, lockfiles and workspace configs of deps, tarballs.
-        ins = [src_pj_path, src_lf_path]
-        # Source lockfiles are using only to get tarballs info.
-        src_lf_paths = [src_lf_path]
-        pj = PackageJson.load(src_pj_path)
+        ins = []
+        # Source lockfiles are used only to get tarballs info.
+        src_lf_paths = [build_lockfile_path(self.sources_path)]
+        pj = PackageJson.load(build_pj_path(self.sources_path))
 
         for [dep_src_path, (dep_pj, depth)] in iteritems(pj.get_workspace_map()):
             if dep_src_path == self.sources_path:
@@ -78,8 +73,16 @@ class PnpmPackageManager(BasePackageManager):
         for pkg in self.extract_packages_meta_from_lockfiles(src_lf_paths):
             ins.append(self._contrib_tarball_path(pkg))
 
+        s_root = lambda x: os.path.join("$S", x)
+        b_root = lambda x: os.path.join("$B", x)
+
+        ins = map(b_root, ins) + [
+            s_root(build_pj_path(self.module_path)),
+            s_root(build_lockfile_path(self.module_path)),
+        ]
+
         # Outputs: patched lockfile, generated workspace config, created node_modules bundle.
-        outs = [f(self.module_path) for f in (build_lockfile_path, build_ws_config_path, build_nm_bundle_path)]
+        outs = [b_root(f(self.module_path)) for f in (build_lockfile_path, build_ws_config_path, build_nm_bundle_path)]
 
         return (ins, outs)
 
