@@ -1369,7 +1369,6 @@ class GnuCompiler(Compiler):
                     '-Wno-c99-designator',
                     '-Wno-deprecated-copy',
                     '-Wno-final-dtor-non-final-class',
-                    '-Wno-initializer-overrides',
                     '-Wno-pessimizing-move',
                     '-Wno-range-loop-construct',
                     '-Wno-reorder-init-list',
