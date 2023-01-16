@@ -1025,6 +1025,9 @@ ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
 # CONTRIB-2445
 ALLOW psp -> vendor/github.com/zimmski/go-mutesting
 
+# CONTRIB-2460
+ALLOW .* -> vendor/github.com/dgraph-io/ristretto
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
