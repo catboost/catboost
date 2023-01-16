@@ -35,8 +35,9 @@ ELSE()
     )
 ENDIF()
 
-IF (SANITIZER_TYPE == undefined)
+IF (SANITIZER_TYPE == undefined OR FUZZING)
     NO_SANITIZE()
+    NO_SANITIZE_COVERAGE()
 ENDIF()
 
 SRCS(
