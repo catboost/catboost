@@ -45,7 +45,6 @@
   #endif
 #endif // defined(FLATBUFFERS_USE_STD_OPTIONAL) ...
 
-#if defined __GNUC__
 // The __cpp_lib_span is the predefined feature macro.
 #if defined(FLATBUFFERS_USE_STD_SPAN)
     #include <span>
@@ -54,7 +53,6 @@
     #include <span>
     #define FLATBUFFERS_USE_STD_SPAN
   #endif
-#endif
 #else
   // Disable non-trivial ctors if FLATBUFFERS_SPAN_MINIMAL defined.
   #if !defined(FLATBUFFERS_TEMPLATES_ALIASES) || defined(FLATBUFFERS_CPP98_STL)
