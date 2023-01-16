@@ -435,6 +435,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\limited_precision_numpy_diff.vcxproj">
       <Project>A4ECB26B-C2EC-AF0B-D186-6A9ACFACD517</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.global.vcxproj">
+      <Project>6B2E7839-18CF-55A7-E31E-32B96B99C284</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_numpy_diff\pycatboost-tools-limited_precision_numpy_diff.vcxproj">
+      <Project>1EB5F002-38A7-F1BA-1792-1A25043DC96D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
     </ProjectReference>
