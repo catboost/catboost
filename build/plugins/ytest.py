@@ -32,7 +32,7 @@ SPLIT_FACTOR_MAX_VALUE = 1000
 SPLIT_FACTOR_TEST_FILES_MAX_VALUE = 4250
 PARTITION_MODS = ('SEQUENTIAL', 'MODULO')
 DEFAULT_TIDY_CONFIG = "build/config/tests/clang_tidy/config.yaml"
-DEFAULT_TIDY_CONFIGS_MAP = {}  # project_path -> path_to_config
+DEFAULT_TIDY_CONFIG_MAP_PATH = "build/yandex_specific/config/clang_tidy/tidy_default_map.json"
 PROJECT_TIDY_CONFIG_MAP_PATH = "build/yandex_specific/config/clang_tidy/tidy_project_map.json"
 
 
@@ -393,7 +393,10 @@ def get_tidy_config_map(unit):
 
 def get_default_tidy_config(unit):
     unit_path = get_norm_unit_path(unit)
-    for project_prefix, config_path in DEFAULT_TIDY_CONFIGS_MAP.items():
+    default_config_map_path = unit.resolve(os.path.join("$S", DEFAULT_TIDY_CONFIG_MAP_PATH))
+    with open(default_config_map_path, 'r') as afile:
+        tidy_default_config_map = json.load(afile)
+    for project_prefix, config_path in tidy_default_config_map.items():
         if unit_path.startswith(project_prefix):
             return config_path
     return DEFAULT_TIDY_CONFIG
@@ -459,8 +462,6 @@ def onadd_ytest(unit, *args):
 
         unit.set(["DEFAULT_TIDY_CONFIG", default_config_path])
         unit.set(["PROJECT_TIDY_CONFIG", project_config_path])
-
-
 
     fork_mode = []
     if 'FORK_SUBTESTS' in spec_args:
