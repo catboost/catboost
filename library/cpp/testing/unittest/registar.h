@@ -627,6 +627,23 @@ public:                       \
 // Assert that a specific exception is thrown
 #define UNIT_ASSERT_EXCEPTION(A, E) UNIT_ASSERT_EXCEPTION_C(A, E, "")
 
+#define UNIT_ASSERT_NO_EXCEPTION_RESULT_C(A, C)                 \
+    [&] () mutable -> decltype(A) {                             \
+        static_assert(!std::is_void_v<decltype(A)>);            \
+        try { return (A); }                                     \
+        catch (const ::NUnitTest::TAssertException&) { throw; } \
+        catch (...) {                                           \
+            UNIT_FAIL_IMPL(                                     \
+                "exception-free assertion failed",              \
+                Sprintf("%s throws %s\nException message: %s",  \
+                    #A, (::TStringBuilder() << C).data(),       \
+                    CurrentExceptionMessage().data()));         \
+            return decltype(A){};                               \
+        }                                                       \
+    }()
+
+#define UNIT_ASSERT_NO_EXCEPTION_RESULT(A) UNIT_ASSERT_NO_EXCEPTION_RESULT_C(A, "")
+
 #define UNIT_ASSERT_NO_EXCEPTION_C(A, C)                                                                                                                                 \
     do {                                                                                                                                                                 \
         try {                                                                                                                                                            \
