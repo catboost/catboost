@@ -6,7 +6,9 @@ LIBRARY()
 
 VERSION(20210324.2)
 
-LICENSE(Not-Applicable)
+LICENSE(Apache-2.0)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/algorithm
