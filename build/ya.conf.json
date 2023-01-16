@@ -1688,6 +1688,16 @@
                         "os": "LINUX"
                     },
                     "target": {
+                        "os": "IOSSIM",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
                         "os": "YOCTO",
                         "arch": "armv7a"
                     },
@@ -1795,6 +1805,16 @@
                 },
                 {
                     "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOSSIM",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
@@ -1899,6 +1919,17 @@
                     },
                     "target": {
                         "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "target": {
+                        "os": "IOSSIM",
                         "arch": "arm64"
                     },
                     "default": true
