@@ -5,7 +5,9 @@
 
 LIBRARY()
 
-LICENSE(PD)
+LICENSE(Public-Domain)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 VERSION(5.2.4)
 
@@ -43,7 +45,6 @@ SRCS(
     check/crc64_fast.c
     check/crc64_table.c
     check/sha256.c
-
     common/alone_decoder.c
     common/alone_encoder.c
     common/auto_decoder.c
@@ -84,15 +85,12 @@ SRCS(
     common/vli_decoder.c
     common/vli_encoder.c
     common/vli_size.c
-
     delta/delta_common.c
     delta/delta_decoder.c
     delta/delta_encoder.c
-
     lz/lz_decoder.c
     lz/lz_encoder.c
     lz/lz_encoder_mf.c
-
     lzma/fastpos_table.c
     lzma/lzma2_decoder.c
     lzma/lzma2_encoder.c
@@ -101,9 +99,7 @@ SRCS(
     lzma/lzma_encoder_optimum_fast.c
     lzma/lzma_encoder_optimum_normal.c
     lzma/lzma_encoder_presets.c
-
     rangecoder/price_table.c
-
     simple/arm.c
     simple/armthumb.c
     simple/ia64.c

@@ -5,13 +5,13 @@
 
 LIBRARY()
 
-LICENSE(PD)
+LICENSE(Public-Domain)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 VERSION(5.2.4)
 
-CFLAGS(
-    -DTUKLIB_SYMBOL_PREFIX=lzma_
-)
+CFLAGS(-DTUKLIB_SYMBOL_PREFIX=lzma_)
 
 ADDINCL(
     contrib/libs/xz
