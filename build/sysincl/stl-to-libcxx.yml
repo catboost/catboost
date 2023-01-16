@@ -11,6 +11,7 @@
   - complex.h:  contrib/libs/cxxsupp/libcxx/include/complex.h
   - ctype.h:    contrib/libs/cxxsupp/libcxx/include/ctype.h
   - errno.h:    contrib/libs/cxxsupp/libcxx/include/errno.h
+  - fenv.h:     contrib/libs/cxxsupp/libcxx/include/fenv.h
   - float.h:    contrib/libs/cxxsupp/libcxx/include/float.h
   - inttypes.h: contrib/libs/cxxsupp/libcxx/include/inttypes.h
   - limits.h:   contrib/libs/cxxsupp/libcxx/include/limits.h
@@ -155,3 +156,7 @@
 
   # TODO: there is no <corouine> in libc++. Disable this include upon its appearance
   - experimental/coroutine:    contrib/libs/cxxsupp/libcxx/include/experimental/coroutine
+
+- source_filter: "^contrib/restricted/boost"
+  includes:
+    - ../include/fenv.h: contrib/libs/cxxsupp/libcxx/include/fenv.h
