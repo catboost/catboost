@@ -134,7 +134,7 @@ namespace NCatboostDistributed {
             /*taskType*/ETaskType::CPU,
             poolLoadOptions,
             params->ObjectsOrder,
-            /*readTest*/false,
+            /*readTest*/true,
             GetSubsetForWorker(workerCount, hostId, params->LearnObjectsGrouping),
             testDatasetSubsets,
             catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
