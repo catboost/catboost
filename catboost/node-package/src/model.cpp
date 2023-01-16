@@ -1,6 +1,7 @@
 #include "model.h"
 
 #include "api_helpers.h"
+#include "catboost/libs/model_interface/c_api.h"
 
 namespace {
 
@@ -52,10 +53,12 @@ Napi::Function TModel::GetClass(Napi::Env env) {
         TModel::InstanceMethod("loadModel", &TModel::LoadFullFromFile),
         TModel::InstanceMethod("predict", &TModel::CalcPrediction),
         TModel::InstanceMethod("enableGPUEvaluation", &TModel::EvaluateOnGPU),
+        TModel::InstanceMethod("setPredictionType", &TModel::SetPredictionType),
         TModel::InstanceMethod("getFloatFeaturesCount", &TModel::GetModelFloatFeaturesCount),
         TModel::InstanceMethod("getCatFeaturesCount", &TModel::GetModelCatFeaturesCount),
         TModel::InstanceMethod("getTreeCount", &TModel::GetModelTreeCount),
         TModel::InstanceMethod("getDimensionsCount", &TModel::GetModelDimensionsCount),
+        TModel::InstanceMethod("getPredictionDimensionsCount", &TModel::GetPredictionDimensionsCount),
     });
 }
 
@@ -75,6 +78,23 @@ void TModel::LoadFullFromFile(const Napi::CallbackInfo& info) {
     if (status) {
         this->ModelLoaded = true;
     }
+}
+
+// Set model predictions postprocessing type.
+void TModel::SetPredictionType(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+
+    if (!NHelper::Check(env, info.Length() >= 1, "Wrong number of arguments") ||
+        !NHelper::Check(env, info[0].IsString(), "File name string is required")) {
+        return;
+    }
+
+    NHelper::CheckNotNullHandle(env, this->Handle);
+    const bool status = SetPredictionTypeString(
+        this->Handle,
+        info[0].As<Napi::String>().Utf8Value().c_str()
+    );
+    NHelper::CheckStatus(env, status);
 }
 
 Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
@@ -164,6 +184,14 @@ Napi::Value TModel::GetModelDimensionsCount(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, count);
 }
 
+Napi::Value TModel::GetPredictionDimensionsCount(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    const size_t count = ::GetPredictionDimensionsCount(this->Handle);
+
+    return Napi::Number::New(env, count);
+}
+
+
 Napi::Array TModel::CalcPredictionHash(Napi::Env env,
                                    const TVector<float>& floatFeatures,
                                    const Napi::Array& catFeatures) {
@@ -180,9 +208,9 @@ Napi::Array TModel::CalcPredictionHash(Napi::Env env,
             catHashValues.push_back(row[j].As<Napi::Number>().Int32Value());
         }
     }
-
+    const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
     TVector<double> resultValues;
-    resultValues.resize(docsCount);
+    resultValues.resize(docsCount * predictionDimensions);
 
     TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
     TVector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
@@ -214,9 +242,9 @@ Napi::Array TModel::CalcPredictionString(Napi::Env env,
             catStringValues.push_back(catStrings.back().c_str());
         }
     }
-
+    const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
     TVector<double> resultValues;
-    resultValues.resize(docsCount);
+    resultValues.resize(docsCount * predictionDimensions);
 
     TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
     TVector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(catStringValues, catFeaturesSize);

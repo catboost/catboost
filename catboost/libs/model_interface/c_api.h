@@ -105,6 +105,12 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
 CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, enum EApiPredictionType predictionType);
 
 /**
+ * Set prediction type for model evaluation with string constant
+*/
+CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const char* predictionTypeStr);
+
+
+/**
  * **Use this method only if you really understand what you want.**
  * Calculate raw model predictions on flat feature vectors
  * Flat here means that float features and categorical feature are in the same float array.
@@ -311,6 +317,15 @@ CATBOOST_API size_t GetTreeCount(ModelCalcerHandle* modelHandle);
  * @param calcer model handle
  */
 CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle);
+
+/**
+ * Get number of dimensions for current prediction
+ * For default `APT_RAW_FORMULA_VAL`, `APT_EXPONENT`, `APT_PROBABILITY`, `APT_CLASS` prediction type GetPredictionDimensionsCount == GetDimensionsCount
+ * For `APT_RMSE_WITH_UNCERTAINTY` - returns 2 (value prediction and predicted uncertainty)
+ * @param calcer model handle
+ */
+CATBOOST_API size_t GetPredictionDimensionsCount(ModelCalcerHandle* modelHandle);
+
 
 /**
  * Check if model metadata holds some value for provided key

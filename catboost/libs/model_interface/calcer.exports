@@ -15,6 +15,7 @@ C LoadFullModelFromBuffer
 
 C EnableGPUEvaluation
 C SetPredictionType
+C SetPredictionTypeString
 
 C CalcModelPrediction
 C CalcModelPredictionText
@@ -34,6 +35,7 @@ C GetFloatFeaturesCount
 C GetCatFeaturesCount
 C GetTreeCount
 C GetDimensionsCount
+C GetPredictionDimensionsCount
 C CheckModelMetadataHasKey
 C GetModelInfoValueSize
 C GetModelInfoValue

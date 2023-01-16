@@ -1,6 +1,7 @@
 #include "api_helpers.h"
 
-#include <util/system/yassert.h>
+#include <assert.h>
+//#include <util/system/yassert.h>
 
 namespace NHelper {
 
@@ -42,7 +43,7 @@ bool IsMatrix(const Napi::Value& value, ENApiType type) {
                     }
                     break;
                 default:
-                    Y_ASSERT(false);
+                    assert(false);
             }
         }
     }
