@@ -55,9 +55,11 @@ inline void TStringBuilderBase::AppendChar(char ch, int n)
 
 inline void TStringBuilderBase::AppendString(TStringBuf str)
 {
-    char* dst = Preallocate(str.length());
-    ::memcpy(dst, str.begin(), str.length());
-    Advance(str.length());
+    if (Y_LIKELY(str)) {
+        char* dst = Preallocate(str.length());
+        ::memcpy(dst, str.begin(), str.length());
+        Advance(str.length());
+    }
 }
 
 inline void TStringBuilderBase::AppendString(const char* str)
