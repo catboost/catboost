@@ -481,13 +481,13 @@
         "bigrt-cli": {
             "description": "bigrt utility"
         },
-        "caesar-yt_sync" : {
+        "caesar-yt_sync": {
             "description": "caesar utility"
         },
-        "caesar-lookup_profile" : {
+        "caesar-lookup_profile": {
             "description": "caesar utility"
         },
-        "caesar-profile_size_analyzer" : {
+        "caesar-profile_size_analyzer": {
             "description": "caesar utility"
         }
     },
@@ -712,7 +712,6 @@
                 }
             ]
         },
-
         "msvc2019-i686": {
             "name": "msvc2019",
             "tools": {
@@ -9566,7 +9565,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1066059868,
+                "sandbox_id": 1066967250,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -10269,7 +10268,7 @@
                 ]
             }
         },
-        "caesar-yt_sync" : {
+        "caesar-yt_sync": {
             "formula": {
                 "sandbox_id": [
                     1062506261
@@ -10282,7 +10281,7 @@
                 ]
             }
         },
-        "caesar-lookup_profile" : {
+        "caesar-lookup_profile": {
             "formula": {
                 "sandbox_id": [
                     1062506392
@@ -10295,7 +10294,7 @@
                 ]
             }
         },
-        "caesar-profile_size_analyzer" : {
+        "caesar-profile_size_analyzer": {
             "formula": {
                 "sandbox_id": [
                     1062506496
