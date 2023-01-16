@@ -480,36 +480,10 @@
         }
     },
     "toolchain": {
-        "bigb": {
-            "tools": {
-                "bb_requester": {
-                    "bottle": "bb_requester",
-                    "executable": "bb_requester"
-                },
-                "hitlog_analyser": {
-                    "bottle": "",
-                    "executable": ""
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "bigb-request": {
             "tools": {
-                "bb_requester": {
-                    "bottle": "bb_requester",
+                "bigb-request": {
+                    "bottle": "bigb-request",
                     "executable": "bb_requester"
                 }
             },
@@ -530,8 +504,8 @@
         },
         "bigb-hitlog_analyser": {
             "tools": {
-                "hitlog_analyser": {
-                    "bottle": "hitlog_analyser",
+                "bigb-hitlog_analyser": {
+                    "bottle": "bigb-hitlog_analyser",
                     "executable": "hitlog_analyser"
                 }
             },
@@ -552,8 +526,8 @@
         },
         "bigb-bsyeti_experiments": {
             "tools": {
-                "bb_requester": {
-                    "bottle": "bsyeti_experiments",
+                "bigb-bsyeti_experiments": {
+                    "bottle": "bigb-bsyeti_experiments",
                     "executable": "bsyeti_experiments"
                 }
             },
@@ -574,8 +548,8 @@
         },
         "bigb-buzzard_cluster_analyzer": {
             "tools": {
-                "bb_requester": {
-                    "bottle": "buzzard_cluster_analyzer",
+                "bigb-buzzard_cluster_analyzer": {
+                    "bottle": "bigb-buzzard_cluster_analyzer",
                     "executable": "buzzard_cluster_analyzer"
                 }
             },
@@ -596,8 +570,8 @@
         },
         "bigb-yt_profiles_dumper": {
             "tools": {
-                "bb_requester": {
-                    "bottle": "yt_profiles_dumper",
+                "bigb-yt_profiles_dumper": {
+                    "bottle": "bigb-yt_profiles_dumper",
                     "executable": "yt_profiles_dumper"
                 }
             },
@@ -618,8 +592,8 @@
         },
         "bigb-ab": {
             "tools": {
-                "bb_requester": {
-                    "bottle": "ab",
+                "bigb-ab": {
+                    "bottle": "bigb-ab",
                     "executable": "ab"
                 }
             },
@@ -10132,7 +10106,7 @@
                 ]
             }
         },
-        "bb_requester": {
+        "bigb-request": {
             "formula": {
                 "sandbox_id": [
                     1060379091
@@ -10145,7 +10119,7 @@
                 ]
             }
         },
-        "hitlog_analyser": {
+        "bigb-hitlog_analyser": {
             "formula": {
                 "sandbox_id": [
                     1062207871
@@ -10158,7 +10132,7 @@
                 ]
             }
         },
-        "bsyeti_experiments": {
+        "bigb-bsyeti_experiments": {
             "formula": {
                 "sandbox_id": [
                     1062269140
@@ -10171,7 +10145,7 @@
                 ]
             }
         },
-        "buzzard_cluster_analyzer": {
+        "bigb-buzzard_cluster_analyzer": {
             "formula": {
                 "sandbox_id": [
                     1062269123
@@ -10184,7 +10158,7 @@
                 ]
             }
         },
-        "yt_profiles_dumper": {
+        "bigb-yt_profiles_dumper": {
             "formula": {
                 "sandbox_id": [
                     1062269098
@@ -10197,7 +10171,7 @@
                 ]
             }
         },
-        "ab": {
+        "bigb-ab": {
             "formula": {
                 "sandbox_id": [
                     1062269065
