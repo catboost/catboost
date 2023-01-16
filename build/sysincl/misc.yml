@@ -455,3 +455,6 @@
 - source_filter: "^contrib/libs/h3"
   includes:
     - alloc.h: contrib/libs/h3/h3lib/include/alloc.h
+- source_filter: "^cloud/iam/token_agent/daemon"
+  includes:
+    - contrib/libs/grpc/include/grpcpp/impl/codegen/server_context_impl.h
