@@ -2,6 +2,7 @@ Checks: >
   -*,
   arcadia-typeid-name-restriction,
   bugprone-use-after-move,
+  performance-implicit-conversion-in-loop,
   readability-identifier-naming,
 CheckOptions:
   - key: readability-identifier-naming.ClassCase
