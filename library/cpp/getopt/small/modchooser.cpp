@@ -112,7 +112,7 @@ void TModChooser::AddMode(const TString& mode, TMainClassV* func, const TString&
 }
 
 void TModChooser::AddGroupModeDescription(const TString& description, bool hidden, bool noCompletion) {
-    UnsortedModes.push_back(MakeHolder<TMode>(nullptr, nullptr, description.data(), hidden, noCompletion));
+    UnsortedModes.push_back(MakeHolder<TMode>(TString(), nullptr, description.data(), hidden, noCompletion));
 }
 
 void TModChooser::SetDefaultMode(const TString& mode) {
