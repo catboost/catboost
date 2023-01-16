@@ -6,7 +6,7 @@ void NCatboostCuda::TBlockedHistogramsHelper::Rebuild() {
 
     const ui32 MB = 1024 * 1024;
     //TODO(noxoomo): tune it +  specializations for 1Gbs, 10Gbs networks and infiniband
-    const ui32 reduceBlockSize = NCudaLib::GetCudaManager().HasRemoteDevices() ? 4 * MB : 32 * MB;
+    const ui32 reduceBlockSize = NCudaLib::GetCudaManager().HasRemoteDevices() ? 256 * MB : 32 * MB;
 
     //TODO(noxoomo): there can be done more sophisticated balancing based on fold counts for feature
     //do it, if reduce'll be bottleneck in distributed setting
