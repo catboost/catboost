@@ -10,16 +10,16 @@
 #ifndef _LIBCPP__HASH_TABLE
 #define _LIBCPP__HASH_TABLE
 
+#include <__bits> // __libcpp_clz
 #include <__config>
-#include <initializer_list>
-#include <memory>
-#include <iterator>
+#include <__debug>
 #include <algorithm>
 #include <cmath>
-#include <utility>
+#include <initializer_list>
+#include <iterator>
+#include <memory>
 #include <type_traits>
-
-#include <__debug>
+#include <utility>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -93,7 +93,7 @@ struct __hash_node_base
 #pragma warning( disable: 4624 )
 #endif // _LIBCPP_COMPILER_MSVC
 template <class _Tp, class _VoidPtr>
-struct __hash_node
+struct _LIBCPP_STANDALONE_DEBUG __hash_node
     : public __hash_node_base
              <
                  typename __rebind_pointer<_VoidPtr, __hash_node<_Tp, _VoidPtr> >::type
@@ -343,7 +343,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     __hash_iterator& operator++() {
         _LIBCPP_DEBUG_ASSERT(__get_const_db()->__dereferenceable(this),
-                       "Attempted to increment non-incrementable unordered container iterator");
+                       "Attempted to increment a non-incrementable unordered container iterator");
         __node_ = __node_->__next_;
         return *this;
     }
@@ -463,7 +463,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     __hash_const_iterator& operator++() {
         _LIBCPP_DEBUG_ASSERT(__get_const_db()->__dereferenceable(this),
-                             "Attempted to increment non-incrementable unordered container const_iterator");
+                             "Attempted to increment a non-incrementable unordered container const_iterator");
         __node_ = __node_->__next_;
         return *this;
     }
@@ -576,7 +576,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     __hash_local_iterator& operator++() {
         _LIBCPP_DEBUG_ASSERT(__get_const_db()->__dereferenceable(this),
-                       "Attempted to increment non-incrementable unordered container local_iterator");
+                       "Attempted to increment a non-incrementable unordered container local_iterator");
         __node_ = __node_->__next_;
         if (__node_ != nullptr && __constrain_hash(__node_->__hash(), __bucket_count_) != __bucket_)
             __node_ = nullptr;
@@ -721,7 +721,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     __hash_const_local_iterator& operator++() {
         _LIBCPP_DEBUG_ASSERT(__get_const_db()->__dereferenceable(this),
-                       "Attempted to increment non-incrementable unordered container const_local_iterator");
+                       "Attempted to increment a non-incrementable unordered container const_local_iterator");
         __node_ = __node_->__next_;
         if (__node_ != nullptr && __constrain_hash(__node_->__hash(), __bucket_count_) != __bucket_)
             __node_ = nullptr;
@@ -2513,11 +2513,11 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::erase(const_iterator __first,
 {
 #if _LIBCPP_DEBUG_LEVEL == 2
     _LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__first) == this,
-        "unodered container::erase(iterator, iterator) called with an iterator not"
-        " referring to this unodered container");
+        "unordered container::erase(iterator, iterator) called with an iterator not"
+        " referring to this container");
     _LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__last) == this,
-        "unodered container::erase(iterator, iterator) called with an iterator not"
-        " referring to this unodered container");
+        "unordered container::erase(iterator, iterator) called with an iterator not"
+        " referring to this container");
 #endif
     for (const_iterator __p = __first; __first != __last; __p = __first)
     {

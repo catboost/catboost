@@ -432,6 +432,7 @@ template <class Key, class T, class Hash, class Pred, class Alloc>
 */
 
 #include <__config>
+#include <__debug>
 #include <__hash_table>
 #include <__node_handle>
 #include <compare>
@@ -440,8 +441,6 @@ template <class Key, class T, class Hash, class Pred, class Alloc>
 #include <stdexcept>
 #include <tuple>
 #include <version>
-
-#include <__debug>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -702,7 +701,7 @@ public:
 
 #ifndef _LIBCPP_CXX03_LANG
 template <class _Key, class _Tp>
-struct __hash_value_type
+struct _LIBCPP_STANDALONE_DEBUG __hash_value_type
 {
     typedef _Key                                     key_type;
     typedef _Tp                                      mapped_type;

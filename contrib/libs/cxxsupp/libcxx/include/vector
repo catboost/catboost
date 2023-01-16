@@ -272,22 +272,21 @@ erase_if(vector<T, Allocator>& c, Predicate pred);    // C++20
 */
 
 #include <__config>
-#include <iosfwd> // for forward declaration of vector
 #include <__bit_reference>
-#include <type_traits>
+#include <__debug>
+#include <__functional_base>
+#include <__split_buffer>
+#include <algorithm>
 #include <climits>
 #include <compare>
-#include <limits>
+#include <cstring>
 #include <initializer_list>
+#include <iosfwd> // for forward declaration of vector
+#include <limits>
 #include <memory>
 #include <stdexcept>
-#include <algorithm>
-#include <cstring>
+#include <type_traits>
 #include <version>
-#include <__split_buffer>
-#include <__functional_base>
-
-#include <__debug>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -679,22 +678,22 @@ public:
 
     _LIBCPP_INLINE_VISIBILITY reference       front() _NOEXCEPT
     {
-        _LIBCPP_ASSERT(!empty(), "front() called for empty vector");
+        _LIBCPP_ASSERT(!empty(), "front() called on an empty vector");
         return *this->__begin_;
     }
     _LIBCPP_INLINE_VISIBILITY const_reference front() const _NOEXCEPT
     {
-        _LIBCPP_ASSERT(!empty(), "front() called for empty vector");
+        _LIBCPP_ASSERT(!empty(), "front() called on an empty vector");
         return *this->__begin_;
     }
     _LIBCPP_INLINE_VISIBILITY reference       back() _NOEXCEPT
     {
-        _LIBCPP_ASSERT(!empty(), "back() called for empty vector");
+        _LIBCPP_ASSERT(!empty(), "back() called on an empty vector");
         return *(this->__end_ - 1);
     }
     _LIBCPP_INLINE_VISIBILITY const_reference back()  const _NOEXCEPT
     {
-        _LIBCPP_ASSERT(!empty(), "back() called for empty vector");
+        _LIBCPP_ASSERT(!empty(), "back() called on an empty vector");
         return *(this->__end_ - 1);
     }
 
@@ -1733,7 +1732,7 @@ inline
 void
 vector<_Tp, _Allocator>::pop_back()
 {
-    _LIBCPP_ASSERT(!empty(), "vector::pop_back called for empty vector");
+    _LIBCPP_ASSERT(!empty(), "vector::pop_back called on an empty vector");
     this->__destruct_at_end(this->__end_ - 1);
 }
 

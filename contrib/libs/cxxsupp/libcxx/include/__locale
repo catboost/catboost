@@ -10,8 +10,8 @@
 #ifndef _LIBCPP___LOCALE
 #define _LIBCPP___LOCALE
 
-#include <__config>
 #include <__availability>
+#include <__config>
 #include <string>
 #include <memory>
 #include <utility>
@@ -1491,14 +1491,14 @@ struct __narrow_to_utf8<8>
 
 _LIBCPP_SUPPRESS_DEPRECATED_PUSH
 template <>
-struct _LIBCPP_TEMPLATE_VIS __narrow_to_utf8<16>
+struct _LIBCPP_TYPE_VIS __narrow_to_utf8<16>
     : public codecvt<char16_t, char, mbstate_t>
 {
     _LIBCPP_INLINE_VISIBILITY
     __narrow_to_utf8() : codecvt<char16_t, char, mbstate_t>(1) {}
 _LIBCPP_SUPPRESS_DEPRECATED_POP
 
-    _LIBCPP_EXPORTED_FROM_ABI ~__narrow_to_utf8();
+    ~__narrow_to_utf8();
 
     template <class _OutputIterator, class _CharT>
     _LIBCPP_INLINE_VISIBILITY
@@ -1527,14 +1527,14 @@ _LIBCPP_SUPPRESS_DEPRECATED_POP
 
 _LIBCPP_SUPPRESS_DEPRECATED_PUSH
 template <>
-struct _LIBCPP_TEMPLATE_VIS __narrow_to_utf8<32>
+struct _LIBCPP_TYPE_VIS __narrow_to_utf8<32>
     : public codecvt<char32_t, char, mbstate_t>
 {
     _LIBCPP_INLINE_VISIBILITY
     __narrow_to_utf8() : codecvt<char32_t, char, mbstate_t>(1) {}
 _LIBCPP_SUPPRESS_DEPRECATED_POP
 
-    _LIBCPP_EXPORTED_FROM_ABI ~__narrow_to_utf8();
+    ~__narrow_to_utf8();
 
     template <class _OutputIterator, class _CharT>
     _LIBCPP_INLINE_VISIBILITY
@@ -1585,14 +1585,14 @@ struct __widen_from_utf8<8>
 
 _LIBCPP_SUPPRESS_DEPRECATED_PUSH
 template <>
-struct _LIBCPP_TEMPLATE_VIS __widen_from_utf8<16>
+struct _LIBCPP_TYPE_VIS __widen_from_utf8<16>
     : public codecvt<char16_t, char, mbstate_t>
 {
     _LIBCPP_INLINE_VISIBILITY
     __widen_from_utf8() : codecvt<char16_t, char, mbstate_t>(1) {}
 _LIBCPP_SUPPRESS_DEPRECATED_POP
 
-    _LIBCPP_EXPORTED_FROM_ABI ~__widen_from_utf8();
+    ~__widen_from_utf8();
 
     template <class _OutputIterator>
     _LIBCPP_INLINE_VISIBILITY
@@ -1621,14 +1621,14 @@ _LIBCPP_SUPPRESS_DEPRECATED_POP
 
 _LIBCPP_SUPPRESS_DEPRECATED_PUSH
 template <>
-struct _LIBCPP_TEMPLATE_VIS __widen_from_utf8<32>
+struct _LIBCPP_TYPE_VIS __widen_from_utf8<32>
     : public codecvt<char32_t, char, mbstate_t>
 {
     _LIBCPP_INLINE_VISIBILITY
     __widen_from_utf8() : codecvt<char32_t, char, mbstate_t>(1) {}
 _LIBCPP_SUPPRESS_DEPRECATED_POP
 
-    _LIBCPP_EXPORTED_FROM_ABI ~__widen_from_utf8();
+    ~__widen_from_utf8();
 
     template <class _OutputIterator>
     _LIBCPP_INLINE_VISIBILITY

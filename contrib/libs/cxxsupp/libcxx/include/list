@@ -181,16 +181,14 @@ template <class T, class Allocator, class Predicate>
 */
 
 #include <__config>
-
-#include <memory>
-#include <limits>
+#include <__debug>
+#include <algorithm>
 #include <initializer_list>
 #include <iterator>
-#include <algorithm>
+#include <limits>
+#include <memory>
 #include <type_traits>
 #include <version>
-
-#include <__debug>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -267,7 +265,7 @@ struct __list_node_base
 };
 
 template <class _Tp, class _VoidPtr>
-struct __list_node
+struct _LIBCPP_STANDALONE_DEBUG __list_node
     : public __list_node_base<_Tp, _VoidPtr>
 {
     _Tp __value_;
@@ -377,7 +375,7 @@ public:
     {
 #if _LIBCPP_DEBUG_LEVEL == 2
         _LIBCPP_ASSERT(__get_const_db()->__dereferenceable(this),
-                       "Attempted to increment non-incrementable list::iterator");
+                       "Attempted to increment a non-incrementable list::iterator");
 #endif
         __ptr_ = __ptr_->__next_;
         return *this;
@@ -390,7 +388,7 @@ public:
     {
 #if _LIBCPP_DEBUG_LEVEL == 2
         _LIBCPP_ASSERT(__get_const_db()->__decrementable(this),
-                       "Attempted to decrement non-decrementable list::iterator");
+                       "Attempted to decrement a non-decrementable list::iterator");
 #endif
         __ptr_ = __ptr_->__prev_;
         return *this;
@@ -504,7 +502,7 @@ public:
     {
 #if _LIBCPP_DEBUG_LEVEL == 2
         _LIBCPP_ASSERT(__get_const_db()->__dereferenceable(this),
-                       "Attempted to increment non-incrementable list::const_iterator");
+                       "Attempted to increment a non-incrementable list::const_iterator");
 #endif
         __ptr_ = __ptr_->__next_;
         return *this;
@@ -517,7 +515,7 @@ public:
     {
 #if _LIBCPP_DEBUG_LEVEL == 2
         _LIBCPP_ASSERT(__get_const_db()->__decrementable(this),
-                       "Attempted to decrement non-decrementable list::const_iterator");
+                       "Attempted to decrement a non-decrementable list::const_iterator");
 #endif
         __ptr_ = __ptr_->__prev_;
         return *this;
@@ -1772,7 +1770,7 @@ template <class _Tp, class _Alloc>
 void
 list<_Tp, _Alloc>::pop_back()
 {
-    _LIBCPP_ASSERT(!empty(), "list::pop_back() called with empty list");
+    _LIBCPP_ASSERT(!empty(), "list::pop_back() called on an empty list");
     __node_allocator& __na = base::__node_alloc();
     __link_pointer __n = base::__end_.__prev_;
     base::__unlink_nodes(__n, __n);
@@ -2049,14 +2047,14 @@ list<_Tp, _Alloc>::splice(const_iterator __p, list& __c, const_iterator __i)
 {
 #if _LIBCPP_DEBUG_LEVEL == 2
     _LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__p) == this,
-        "list::splice(iterator, list, iterator) called with first iterator not"
-        " referring to this list");
+        "list::splice(iterator, list, iterator) called with the first iterator"
+        " not referring to this list");
     _LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__i) == &__c,
-        "list::splice(iterator, list, iterator) called with second iterator not"
-        " referring to list argument");
+        "list::splice(iterator, list, iterator) called with the second iterator"
+        " not referring to the list argument");
     _LIBCPP_ASSERT(__get_const_db()->__dereferenceable(&__i),
-        "list::splice(iterator, list, iterator) called with second iterator not"
-        " dereferenceable");
+        "list::splice(iterator, list, iterator) called with the second iterator"
+        " not dereferenceable");
 #endif
     if (__p.__ptr_ != __i.__ptr_ && __p.__ptr_ != __i.__ptr_->__next_)
     {
@@ -2098,10 +2096,10 @@ list<_Tp, _Alloc>::splice(const_iterator __p, list& __c, const_iterator __f, con
         " referring to this list");
     _LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__f) == &__c,
         "list::splice(iterator, list, iterator, iterator) called with second iterator not"
-        " referring to list argument");
+        " referring to the list argument");
     _LIBCPP_ASSERT(__get_const_db()->__find_c_from_i(&__l) == &__c,
         "list::splice(iterator, list, iterator, iterator) called with third iterator not"
-        " referring to list argument");
+        " referring to the list argument");
     if (this == &__c)
     {
         for (const_iterator __i = __f; __i != __l; ++__i)

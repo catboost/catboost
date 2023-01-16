@@ -120,6 +120,9 @@
 #  define _LIBCPP_ABI_BAD_FUNCTION_CALL_KEY_FUNCTION
 // Enable optimized version of __do_get_(un)signed which avoids redundant copies.
 #  define _LIBCPP_ABI_OPTIMIZED_LOCALE_NUM_GET
+// Give reverse_iterator<T> one data member of type T, not two.
+// Also, in C++17 and later, don't derive iterator types from std::iterator.
+#  define _LIBCPP_ABI_NO_ITERATOR_BASES
 // Use the smallest possible integer type to represent the index of the variant.
 // Previously libc++ used "unsigned int" exclusively.
 #  define _LIBCPP_ABI_VARIANT_INDEX_TYPE_OPTIMIZATION
@@ -399,6 +402,9 @@
 #      define _LIBCPP_HAS_QUICK_EXIT
 #      define _LIBCPP_HAS_TIMESPEC_GET
 #    endif
+#  elif defined(_LIBCPP_MSVCRT)
+     // Using Microsoft's C Runtime library, not MinGW
+#    define _LIBCPP_HAS_TIMESPEC_GET
 #  elif defined(__APPLE__)
      // timespec_get and aligned_alloc were introduced in macOS 10.15 and
      // aligned releases
@@ -922,6 +928,12 @@ typedef unsigned int   char32_t;
 #  define _LIBCPP_EXPLICIT
 #endif
 
+#if __has_attribute(using_if_exists)
+# define _LIBCPP_USING_IF_EXISTS __attribute__((using_if_exists))
+#else
+# define _LIBCPP_USING_IF_EXISTS
+#endif
+
 #ifdef _LIBCPP_HAS_NO_STRONG_ENUMS
 #  define _LIBCPP_DECLARE_STRONG_ENUM(x) struct _LIBCPP_TYPE_VIS x { enum __lx
 #  define _LIBCPP_DECLARE_STRONG_ENUM_EPILOG(x) \
@@ -1392,6 +1404,12 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 #endif
 #endif // !defined(_LIBCPP_NODEBUG_TYPE)
 
+#if __has_attribute(__standalone_debug__)
+#define _LIBCPP_STANDALONE_DEBUG __attribute__((__standalone_debug__))
+#else
+#define _LIBCPP_STANDALONE_DEBUG
+#endif
+
 #if __has_attribute(__preferred_name__)
 #define _LIBCPP_PREFERRED_NAME(x) __attribute__((__preferred_name__(x)))
 #else
@@ -1408,10 +1426,16 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 
 #if defined(_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES)
 #define _LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR
-#define _LIBCPP_ENABLE_CXX17_REMOVED_UNEXPECTED_FUNCTIONS
-#define _LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE
 #define _LIBCPP_ENABLE_CXX17_REMOVED_BINDERS
+#define _LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE
+#define _LIBCPP_ENABLE_CXX17_REMOVED_UNEXPECTED_FUNCTIONS
 #endif // _LIBCPP_ENABLE_CXX17_REMOVED_FEATURES
+
+#if defined(_LIBCPP_ENABLE_CXX20_REMOVED_FEATURES)
+#define _LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_MEMBERS
+#define _LIBCPP_ENABLE_CXX20_REMOVED_NEGATORS
+#define _LIBCPP_ENABLE_CXX20_REMOVED_RAW_STORAGE_ITERATOR
+#endif // _LIBCPP_ENABLE_CXX20_REMOVED_FEATURES
 
 #if !defined(__cpp_deduction_guides) || __cpp_deduction_guides < 201611
 #define _LIBCPP_HAS_NO_DEDUCTION_GUIDES
