@@ -169,6 +169,8 @@ SRCS(
     src/condition_variable_destructor.cpp
     src/debug.cpp
     src/exception.cpp
+    src/filesystem/directory_iterator.cpp
+    src/filesystem/operations.cpp
     src/format.cpp
     src/functional.cpp
     src/future.cpp
