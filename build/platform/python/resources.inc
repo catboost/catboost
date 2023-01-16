@@ -1,7 +1,7 @@
 SET(PYTHON27_LINUX sbr:1666107838)  # Different from others(compatible with running tests) DEVTOOLS-7424
 SET(PYTHON34_LINUX sbr:419260733)
 SET(PYTHON35_LINUX sbr:1658217692)  # Different from others(compatible with running tests) DEVTOOLS-7424
-SET(PYTHON36_LINUX sbr:2466017052)  # Different from others(compatible with running tests) DEVTOOLS-7424
+SET(PYTHON36_LINUX sbr:2569180519)  # Different from others(compatible with running tests) DEVTOOLS-7424
 SET(PYTHON37_LINUX sbr:616675620)
 SET(PYTHON38_LINUX sbr:1211259884)
 SET(PYTHON39_LINUX sbr:2019057022)
