@@ -114,6 +114,7 @@ ALLOW taxi/graph/libs/nearest_edges -> maps/libs/snap
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/succinct_rtree/serialization
 ALLOW taxi/graph/libs/nearest_edges -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/libs/predict -> maps/analyzer/libs/common
+ALLOW taxi/graph/libs/predict -> maps/routing/common
 ALLOW taxi/graph/libs/probmatching -> maps/analyzer/libs/mapmatching
 ALLOW taxi/graph/libs/routing -> maps/libs/common
 ALLOW taxi/graph/libs/routing -> maps/libs/leptidea
