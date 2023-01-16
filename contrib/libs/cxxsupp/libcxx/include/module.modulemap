@@ -407,11 +407,32 @@ module std [system] {
   module functional {
     header "functional"
     export *
+
     module __functional {
-      module hash           { header "__functional/hash.h"           }
-      module search         { header "__functional/search.h"         }
-      module unary_function { header "__functional/unary_function.h" }
-      module unwrap_ref     { header "__functional/unwrap_ref.h"     }
+      module binary_function            { header "__functional/binary_function.h" }
+      module binary_negate              { header "__functional/binary_negate.h" }
+      module bind                       { header "__functional/bind.h" }
+      module bind_front                 { header "__functional/bind_front.h" }
+      module binder1st                  { header "__functional/binder1st.h" }
+      module binder2nd                  { header "__functional/binder2nd.h" }
+      module default_searcher           { header "__functional/default_searcher.h" }
+      module function                   { header "__functional/function.h" }
+      module hash                       { header "__functional/hash.h" }
+      module identity                   { header "__functional/identity.h" }
+      module invoke                     { header "__functional/invoke.h" }
+      module mem_fn                     { header "__functional/mem_fn.h"  }
+      module mem_fun_ref                { header "__functional/mem_fun_ref.h"  }
+      module not_fn                     { header "__functional/not_fn.h" }
+      module operations                 { header "__functional/operations.h" }
+      module perfect_forward            { header "__functional/perfect_forward.h" }
+      module pointer_to_binary_function { header "__functional/pointer_to_binary_function.h" }
+      module pointer_to_unary_function  { header "__functional/pointer_to_unary_function.h" }
+      module ranges_operations          { header "__functional/ranges_operations.h" }
+      module reference_wrapper          { header "__functional/reference_wrapper.h" }
+      module unary_function             { header "__functional/unary_function.h" }
+      module unary_negate               { header "__functional/unary_negate.h" }
+      module unwrap_ref                 { header "__functional/unwrap_ref.h" }
+      module weak_result_type           { header "__functional/weak_result_type.h" }
     }
   }
   module future {
@@ -453,17 +474,28 @@ module std [system] {
     export *
 
     module __iterator {
-      module advance              { header "__iterator/advance.h"              }
-      module concepts             { header "__iterator/concepts.h"             }
-      module default_sentinel     { header "__iterator/default_sentinel.h"     }
-      module incrementable_traits { header "__iterator/incrementable_traits.h" }
-      module iter_move            { header "__iterator/iter_move.h"            }
-      module iter_swap            { header "__iterator/iter_swap.h"            }
-      module iterator_traits      { header "__iterator/iterator_traits.h"      }
-      module next                 { header "__iterator/next.h"                 }
-      module prev                 { header "__iterator/prev.h"                 }
-      module projected            { header "__iterator/projected.h"            }
-      module readable_traits      { header "__iterator/readable_traits.h"      }
+      module advance                { header "__iterator/advance.h"               }
+      module back_insert_iterator   { header "__iterator/back_insert_iterator.h"  }
+      module concepts               { header "__iterator/concepts.h"              }
+      module default_sentinel       { header "__iterator/default_sentinel.h"      }
+      module front_insert_iterator  { header "__iterator/front_insert_iterator.h" }
+      module incrementable_traits   { header "__iterator/incrementable_traits.h"  }
+      module insert_iterator        { header "__iterator/insert_iterator.h"       }
+      module istream_iterator       { header "__iterator/istream_iterator.h"      }
+      module istreambuf_iterator    { header "__iterator/istreambuf_iterator.h"   }
+      module iter_move              { header "__iterator/iter_move.h"             }
+      module iter_swap              { header "__iterator/iter_swap.h"             }
+      module iterator               { header "__iterator/iterator.h"              }
+      module iterator_traits        { header "__iterator/iterator_traits.h"       }
+      module move_iterator          { header "__iterator/move_iterator.h"         }
+      module next                   { header "__iterator/next.h"                  }
+      module ostream_iterator       { header "__iterator/ostream_iterator.h"      }
+      module ostreambuf_iterator    { header "__iterator/ostreambuf_iterator.h"   }
+      module prev                   { header "__iterator/prev.h"                  }
+      module projected              { header "__iterator/projected.h"             }
+      module readable_traits        { header "__iterator/readable_traits.h"       }
+      module reverse_iterator       { header "__iterator/reverse_iterator.h"      }
+      module wrap_iter              { header "__iterator/wrap_iter.h"             }
     }
   }
   module latch {
@@ -497,6 +529,7 @@ module std [system] {
       module addressof                { header "__memory/addressof.h"                }
       module allocation_guard         { header "__memory/allocation_guard.h"         }
       module allocator_traits         { header "__memory/allocator_traits.h"         }
+      module allocator_arg_t          { header "__memory/allocator_arg_t.h"          }
       module allocator                { header "__memory/allocator.h"                }
       module auto_ptr                 { header "__memory/auto_ptr.h"                 }
       module compressed_pair          { header "__memory/compressed_pair.h"          }
@@ -715,7 +748,6 @@ module std [system] {
   module __debug             { header "__debug"             export * }
   module __errc              { header "__errc"              export * }
   module __function_like     { header "__function_like.h"   export * }
-  module __functional_base   { header "__functional_base"   export * }
   module __hash_table        { header "__hash_table"        export * }
   module __locale            { header "__locale"            export * }
   module __mutex_base        { header "__mutex_base"        export * }
