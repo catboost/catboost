@@ -3519,8 +3519,9 @@ def test_cv_small_data():
 
 def test_cv_without_loss_function():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    with pytest.raises(CatBoostError, message="Parameter loss_function should be specified for cross-validation"):
+    with pytest.raises(CatBoostError):
         cv(pool, {})
+        pytest.fail("Parameter loss_function should be specified for cross-validation")
 
 
 def test_tune_hyperparams_small_data():
@@ -4822,20 +4823,24 @@ def test_multiple_eval_sets_no_empty():
     x1, y1 = random_xy(3, 4, prng=prng)
     test0_file = save_and_give_path(y0, x0, 'test0.txt')  # empty file eval set
 
-    with pytest.raises(CatBoostError, message="Do not create Pool for empty data"):
+    with pytest.raises(CatBoostError):
         Pool(x0, y0, cat_features=cat_features)
+        pytest.fail("Do not create Pool for empty data")
 
     model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2,
                       'allow_const_label': True})
 
-    with pytest.raises(CatBoostError, message="Do not fit with empty tuple in multiple eval sets"):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=[(x1, y1), (x0, y0)], column_description=cd_file)
+        pytest.fail("Do not fit with empty tuple in multiple eval sets")
 
-    with pytest.raises(CatBoostError, message="Do not fit with empty file in multiple eval sets"):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=[(x1, y1), test0_file], column_description=cd_file)
+        pytest.fail("Do not fit with empty file in multiple eval sets")
 
-    with pytest.raises(CatBoostError, message="Do not fit with None in multiple eval sets"):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=[(x1, y1), None], column_description=cd_file)
+        pytest.fail("Do not fit with None in multiple eval sets")
 
     model.fit(train_pool, eval_set=[None], column_description=cd_file)
 
@@ -4890,10 +4895,12 @@ def test_multiple_eval_sets():
 
 def test_get_metadata_notrain():
     model = CatBoost()
-    with pytest.raises(CatBoostError, message='Only string keys should be allowed'):
+    with pytest.raises(CatBoostError):
         model.get_metadata()[1] = '1'
-    with pytest.raises(CatBoostError, message='Only string values should be allowed'):
+        pytest.fail('Only string keys should be allowed')
+    with pytest.raises(CatBoostError):
         model.get_metadata()['1'] = 1
+        pytest.fail('Only string values should be allowed')
     model.get_metadata()['1'] = '1'
     assert model.get_metadata().get('1', 'EMPTY') == '1'
     assert model.get_metadata().get('2', 'EMPTY') == 'EMPTY'
