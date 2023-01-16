@@ -301,17 +301,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
     return Arena::CreateMaybeMessage<T>(arena, std::forward<Args>(args)...);
   }
 
-  template <typename T, typename... Args>
-  PROTOBUF_ALWAYS_INLINE static T* CreateMessage(Arena& arena, Args&&... args) {
-    static_assert(
-        InternalHelper<T>::is_arena_constructable::value,
-        "CreateMessage can only construct types that are ArenaConstructable");
-    // We must delegate to CreateMaybeMessage() and NOT CreateMessageInternal()
-    // because protobuf generated classes specialize CreateMaybeMessage() and we
-    // need to use that specialization for code size reasons.
-    return Arena::CreateMaybeMessage<T>(arena, std::forward<Args>(args)...);
-  }
-
   // API to create any objects on the arena. Note that only the object will
   // be created on the arena; the underlying ptrs (in case of a proto2 message)
   // will be still heap allocated. Proto messages should usually be allocated
@@ -329,12 +318,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
   // is obtained from the arena).
   template <typename T, typename... Args>
   PROTOBUF_NDEBUG_INLINE static T* Create(Arena* arena, Args&&... args) {
-    return CreateInternal<T>(arena, std::is_convertible<T*, MessageLite*>(),
-                             std::forward<Args>(args)...);
-  }
-
-  template <typename T, typename... Args>
-  PROTOBUF_NDEBUG_INLINE static T* Create(Arena& arena, Args&&... args) {
     return CreateInternal<T>(arena, std::is_convertible<T*, MessageLite*>(),
                              std::forward<Args>(args)...);
   }
@@ -550,15 +533,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
     }
   }
 
-  template <typename T, typename... Args>
-  PROTOBUF_NDEBUG_INLINE static T* CreateMessageInternal(Arena& arena,
-                                                         Args&&... args) {
-    static_assert(
-        InternalHelper<T>::is_arena_constructable::value,
-        "CreateMessage can only construct types that are ArenaConstructable");
-    return arena.DoCreateMessage<T>(std::forward<Args>(args)...);
-  }
-
   // This specialization for no arguments is necessary, because its behavior is
   // slightly different.  When the arena pointer is nullptr, it calls T()
   // instead of T(nullptr).
@@ -612,13 +586,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
     return CreateMessageInternal<Msg>(arena, std::forward<Args>(args)...);
   }
 
-  template <typename Msg, typename... Args>
-  PROTOBUF_ALWAYS_INLINE static Msg* DoCreateMaybeMessage(Arena& arena,
-                                                          std::true_type,
-                                                          Args&&... args) {
-    return CreateMessageInternal<Msg>(arena, std::forward<Args>(args)...);
-  }
-
   template <typename T, typename... Args>
   PROTOBUF_ALWAYS_INLINE static T* DoCreateMaybeMessage(Arena* arena,
                                                         std::false_type,
@@ -627,21 +594,7 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
   }
 
   template <typename T, typename... Args>
-  PROTOBUF_ALWAYS_INLINE static T* DoCreateMaybeMessage(Arena& arena,
-                                                        std::false_type,
-                                                        Args&&... args) {
-    return Create<T>(arena, std::forward<Args>(args)...);
-  }
-
-  template <typename T, typename... Args>
   PROTOBUF_ALWAYS_INLINE static T* CreateMaybeMessage(Arena* arena,
-                                                      Args&&... args) {
-    return DoCreateMaybeMessage<T>(arena, is_arena_constructable<T>(),
-                                   std::forward<Args>(args)...);
-  }
-
-  template <typename T, typename... Args>
-  PROTOBUF_ALWAYS_INLINE static T* CreateMaybeMessage(Arena& arena,
                                                       Args&&... args) {
     return DoCreateMaybeMessage<T>(arena, is_arena_constructable<T>(),
                                    std::forward<Args>(args)...);
@@ -707,18 +660,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
   // These implement Create(). The second parameter has type 'true_type' if T is
   // a subtype of Message and 'false_type' otherwise.
   template <typename T, typename... Args>
-  PROTOBUF_ALWAYS_INLINE static T* CreateInternal(Arena& arena, std::true_type,
-                                                  Args&&... args) {
-    auto destructor =
-        internal::ObjectDestructor<std::is_trivially_destructible<T>::value,
-                                   T>::destructor;
-    T* result =
-        new (arena.AllocateInternal(sizeof(T), alignof(T), destructor,
-                                    RTTI_TYPE_ID(T)))
-                                    T(std::forward<Args>(args)...);
-    return result;
-  }
-  template <typename T, typename... Args>
   PROTOBUF_ALWAYS_INLINE static T* CreateInternal(Arena* arena, std::true_type,
                                                   Args&&... args) {
     if (arena == nullptr) {
@@ -733,16 +674,6 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
           T(std::forward<Args>(args)...);
       return result;
     }
-  }
-  template <typename T, typename... Args>
-  PROTOBUF_ALWAYS_INLINE static T* CreateInternal(Arena& arena, std::false_type,
-                                                  Args&&... args) {
-      auto destructor =
-          internal::ObjectDestructor<std::is_trivially_destructible<T>::value,
-                                     T>::destructor;
-      return new (arena.AllocateInternal(sizeof(T), alignof(T), destructor,
-                                         RTTI_TYPE_ID(T)))
-                                         T(std::forward<Args>(args)...);
   }
   template <typename T, typename... Args>
   PROTOBUF_ALWAYS_INLINE static T* CreateInternal(Arena* arena, std::false_type,
