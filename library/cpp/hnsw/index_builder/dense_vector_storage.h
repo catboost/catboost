@@ -2,6 +2,8 @@
 
 #include <util/generic/fwd.h>
 #include <util/memory/blob.h>
+#include <util/system/compiler.h>
+#include <util/system/types.h>
 
 #include <stddef.h>
 
@@ -29,6 +31,17 @@ namespace NHnsw {
         }
         const TVectorComponent* GetItem(size_t id) const {
             return Vectors + id * Dimension;
+        }
+
+        inline void PrefetchItem(size_t id) const {
+            const auto& item = GetItem(id);
+            const ui8* ptr = reinterpret_cast<const ui8*> (item);
+            const ui8* ptr_end = reinterpret_cast<const ui8*> (item + Dimension);
+            while (ptr < ptr_end) {
+                Y_PREFETCH_READ(ptr, 1);
+                ptr += 64u;
+            }
+            Y_PREFETCH_READ(ptr_end - 1, 1);
         }
 
         size_t GetDimension() const {
