@@ -139,7 +139,7 @@ FILE_INCLUDE AUTHORS found in files: util/rune.cc at line 10
 KEEP     X11-Lucent           b5677fabdf76935718fbac4c7effead7
 BELONGS ya.make
 FILE_INCLUDE AUTHORS found in files: util/utf.h at line 10
-FILE_INCLUDE util/rune.cc found in files: util/utf.h at line 14
+FILE_IGNORE util/rune.cc found in files: util/utf.h at line 14
     # copy of x11-lucent.LICENSE
     Note: matched license text is too long. Read it in the source files.
     Scancode info:

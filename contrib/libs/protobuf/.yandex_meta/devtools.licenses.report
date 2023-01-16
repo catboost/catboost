@@ -42,8 +42,9 @@ FILE_IGNORE src/google/protobuf/util/internal/json_stream_parser.cc found in fil
     Files with this license:
         CHANGES.txt [517:517]
 
-KEEP     BSD-3-Clause         37699d6edc78bcd9e06fd0dbc68720e1
+SKIP     BSD-3-Clause         37699d6edc78bcd9e06fd0dbc68720e1
 BELONGS ya.make
+    # not a license
     License text:
           * License changed from Apache 2.0 to 3-Clause BSD.
     Scancode info:

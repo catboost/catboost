@@ -1,8 +1,4 @@
 ====================BSD-3-Clause====================
-  * License changed from Apache 2.0 to 3-Clause BSD.
-
-
-====================BSD-3-Clause====================
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:

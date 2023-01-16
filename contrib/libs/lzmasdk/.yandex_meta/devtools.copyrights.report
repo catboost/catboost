@@ -29,7 +29,7 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
-KEEP     COPYRIGHT_SERVICE_LABEL 353136eae3b9f17d8f32a58e555936c0
+SKIP     COPYRIGHT_SERVICE_LABEL 353136eae3b9f17d8f32a58e555936c0
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:

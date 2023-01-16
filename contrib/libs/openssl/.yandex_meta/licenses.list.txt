@@ -25,14 +25,6 @@
  * SUCH DAMAGE.
 
 
-====================BSD-3-Clause====================
-  *) Add BSD-style MD5-based passwords to 'openssl passwd' (option '-1').
-
-
-====================BSD-3-Clause====================
- (on Unix and Windows, BSD style wildcards are supported, while on VMS,
-
-
 ====================BSD-Source-Code====================
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

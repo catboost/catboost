@@ -1,15 +1,3 @@
-====================COPYRIGHT====================
-#undef MY_COPYRIGHT
-#undef MY_VERSION_COPYRIGHT_DATE
-#define MY_AUTHOR_NAME "Igor Pavlov"
-#define MY_COPYRIGHT_PD "Igor Pavlov : Public domain"
-#define MY_COPYRIGHT_CR "Copyright (c) 1999-2018 Igor Pavlov"
-
-
-====================Public-Domain====================
-#define MY_COPYRIGHT_PD "Igor Pavlov : Public domain"
-
-
 ====================Public-Domain====================
 2013-01-18 : Igor Pavlov : Public domain */
 

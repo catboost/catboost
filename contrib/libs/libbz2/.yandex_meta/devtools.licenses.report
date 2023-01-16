@@ -32,7 +32,7 @@
 KEEP     bzip2-1.0.6          00db876d8c7e16fb8d9752fc6cc9dbaa
 BELONGS ya.make
 FILE_INCLUDE LICENSE found in files: README.XML.STUFF at line 12
-FILE_INCLUDE README found in files: README.XML.STUFF at line 9
+FILE_IGNORE README found in files: README.XML.STUFF at line 9
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: bzip2-1.0.6
@@ -57,7 +57,7 @@ FILE_INCLUDE LICENSE found in files: README at line 15
 KEEP     bzip2-1.0.6          4cf03339fe31c24a55a4eaff9316d27c
 BELONGS ya.make
 FILE_INCLUDE LICENSE found in files: blocksort.c at line 18, bzlib.c at line 18, bzlib.h at line 18, bzlib_private.h at line 18, compress.c at line 18, crctable.c at line 18, decompress.c at line 18, huffman.c at line 18, randtable.c at line 18
-FILE_INCLUDE README found in files: blocksort.c at line 15, bzlib.c at line 15, bzlib.h at line 15, bzlib_private.h at line 15, compress.c at line 15, crctable.c at line 15, decompress.c at line 15, huffman.c at line 15, randtable.c at line 15
+FILE_IGNORE README found in files: blocksort.c at line 15, bzlib.c at line 15, bzlib.h at line 15, bzlib_private.h at line 15, compress.c at line 15, crctable.c at line 15, decompress.c at line 15, huffman.c at line 15, randtable.c at line 15
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: bzip2-1.0.6
@@ -90,7 +90,7 @@ BELONGS ya.make
 KEEP     bzip2-1.0.6          7389bbba0aa5778eac4a963e0d000ea0
 BELONGS ya.make
 FILE_INCLUDE LICENSE found in files: README.COMPILATION.PROBLEMS at line 12
-FILE_INCLUDE README found in files: README.COMPILATION.PROBLEMS at line 9
+FILE_IGNORE README found in files: README.COMPILATION.PROBLEMS at line 9
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: bzip2-1.0.6
@@ -114,7 +114,7 @@ BELONGS ya.make
 KEEP     bzip2-1.0.6          fcd45790f39d55f4b805601066697e54
 BELONGS ya.make
 FILE_INCLUDE LICENSE found in files: CHANGES at line 12
-FILE_INCLUDE README found in files: CHANGES at line 9
+FILE_IGNORE README found in files: CHANGES at line 9
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: bzip2-1.0.6
