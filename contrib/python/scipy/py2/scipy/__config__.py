@@ -3,17 +3,15 @@
 __all__ = ["get_info","show"]
 
 
+
 import os
 import sys
 
 extra_dll_dir = os.path.join(os.path.dirname(__file__), '.libs')
 
 if sys.platform == 'win32' and os.path.isdir(extra_dll_dir):
-    if sys.version_info >= (3, 8):
-        os.add_dll_directory(extra_dll_dir)
-    else:
-        os.environ.setdefault('PATH', '')
-        os.environ['PATH'] += os.pathsep + extra_dll_dir
+    os.environ.setdefault('PATH', '')
+    os.environ['PATH'] += os.pathsep + extra_dll_dir
 
 lapack_mkl_info={}
 openblas_lapack_info={'libraries': ['lapack', 'lapacke', 'blas', 'cblas', 'lapack', 'lapacke', 'blas', 'cblas'], 'library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)], 'runtime_library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib']}
@@ -28,51 +26,6 @@ def get_info(name):
     return g.get(name, g.get(name + "_info", {}))
 
 def show():
-    """
-    Show libraries in the system on which NumPy was built.
-
-    Print information about various resources (libraries, library
-    directories, include directories, etc.) in the system on which
-    NumPy was built.
-
-    See Also
-    --------
-    get_include : Returns the directory containing NumPy C
-                  header files.
-
-    Notes
-    -----
-    Classes specifying the information to be printed are defined
-    in the `numpy.distutils.system_info` module.
-
-    Information may include:
-
-    * ``language``: language used to write the libraries (mostly
-      C or f77)
-    * ``libraries``: names of libraries found in the system
-    * ``library_dirs``: directories containing the libraries
-    * ``include_dirs``: directories containing library header files
-    * ``src_dirs``: directories containing library source files
-    * ``define_macros``: preprocessor macros used by
-      ``distutils.setup``
-    * ``baseline``: minimum CPU features required
-    * ``found``: dispatched features supported in the system
-    * ``not found``: dispatched features that are not supported
-      in the system
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> np.show_config()
-    blas_opt_info:
-        language = c
-        define_macros = [('HAVE_CBLAS', None)]
-        libraries = ['openblas', 'openblas']
-        library_dirs = ['/usr/local/lib']
-    """
-    from numpy.core._multiarray_umath import (
-        __cpu_features__, __cpu_baseline__, __cpu_dispatch__
-    )
     for name,info_dict in globals().items():
         if name[0] == "_" or type(info_dict) is not type({}): continue
         print(name + ":")
@@ -83,16 +36,4 @@ def show():
             if k == "sources" and len(v) > 200:
                 v = v[:60] + " ...\n... " + v[-60:]
             print("    %s = %s" % (k,v))
-
-    features_found, features_not_found = [], []
-    for feature in __cpu_dispatch__:
-        if __cpu_features__[feature]:
-            features_found.append(feature)
-        else:
-            features_not_found.append(feature)
-
-    print("Supported SIMD extensions in this NumPy install:")
-    print("    baseline = %s" % (','.join(__cpu_baseline__)))
-    print("    found = %s" % (','.join(features_found)))
-    print("    not found = %s" % (','.join(features_not_found)))
-
+    
