@@ -75,7 +75,7 @@ class _WinFileLock(AbstractFileLock):
         super(_WinFileLock, self).__init__(path)
         self._lock = None
         try:
-            with file(path, 'w') as lock_file:
+            with open(path, 'w') as lock_file:
                 lock_file.write(" " * self._LOCKED_BYTES_NUM)
         except IOError as e:
             if e.errno != errno.EACCES or not os.path.isfile(path):
