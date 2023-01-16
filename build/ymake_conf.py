@@ -2648,12 +2648,13 @@ class MSVCLinker(MSVC, Linker):
         if self.tc.use_clang:
             flags_debug_only.append('/STACK:4194304')
 
-        if self.tc.ide_msvs:
-            flags_debug_only.append('/DEBUG:FASTLINK' if not self.tc.use_clang else '/DEBUG')
-            flags_release_only.append('/DEBUG')
-        else:
-            # No FASTLINK for ya make, because resulting PDB would require .obj files (build_root's) to persist
-            flags_common.append('/DEBUG')
+        if is_negative_str(preset('NO_DEBUGINFO', 'no')):
+            if self.tc.ide_msvs:
+                flags_debug_only.append('/DEBUG:FASTLINK' if not self.tc.use_clang else '/DEBUG')
+                flags_release_only.append('/DEBUG')
+            else:
+                # No FASTLINK for ya make, because resulting PDB would require .obj files (build_root's) to persist
+                flags_common.append('/DEBUG')
 
         if not self.tc.ide_msvs:
             flags_common += ['/LIBPATH:"{}"'.format(path) for path in libpaths]
@@ -2708,7 +2709,10 @@ class MSVCLinker(MSVC, Linker):
 
         emit('LINK_IMPLIB_VALUE')
         emit('LINK_IMPLIB', '/IMPLIB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.lib}')
-        emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.pdb}')
+        if is_negative_str(preset('NO_DEBUGINFO', 'no')):
+            emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.pdb}')
+        else:
+            emit('LINK_EXTRA_OUTPUT')
 
         if not self.tc.under_wine:
             emit('LIB_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'lib')
