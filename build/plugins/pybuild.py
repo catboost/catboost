@@ -8,7 +8,6 @@ from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ym
 
 YA_IDE_VENV_VAR = 'YA_IDE_VENV'
 PY_NAMESPACE_PREFIX = 'py/namespace'
-GOOGLE_LIB = 'python/google_lib'
 BUILTIN_PROTO = 'builtin_proto'
 
 def is_arc_src(src, unit):
@@ -483,15 +482,19 @@ def onpy_srcs(unit, *args):
             unit.onresource(res)
             add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
 
-    arcadia_protos_path = 'contrib/libs/protobuf'
-    std_protos_path = 'contrib/libs/protobuf_std'
-    use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes' or upath.startswith(std_protos_path)
-    proto_path_pref = std_protos_path if use_vanilla_protoc else arcadia_protos_path
-    google_lib = '/'.join([proto_path_pref, GOOGLE_LIB])
+    use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes'
+    if use_vanilla_protoc:
+        cpp_runtime_path = 'contrib/libs/protobuf_std'
+        py_runtime_path = cpp_runtime_path + '/python/google_lib'
+        builtin_proto_path = cpp_runtime_path + '/' + BUILTIN_PROTO
+    else:
+        cpp_runtime_path = 'contrib/libs/protobuf'
+        py_runtime_path = cpp_runtime_path + '/python/google_lib'
+        builtin_proto_path = cpp_runtime_path + '/' + BUILTIN_PROTO
 
     if protos:
-        if not upath.startswith((google_lib, '/'.join([proto_path_pref, BUILTIN_PROTO]))):
-            unit.onpeerdir([google_lib])
+        if not upath.startswith(py_runtime_path) and not upath.startswith(builtin_proto_path):
+            unit.onpeerdir(py_runtime_path)
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
@@ -507,9 +510,7 @@ def onpy_srcs(unit, *args):
             unit.onpeerdir(['kernel/gazetteer/proto'])
 
     if evs:
-        if not upath.startswith(proto_path_pref):
-            unit.onpeerdir([proto_path_pref])
-
+        unit.onpeerdir([cpp_runtime_path])
         unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
 
