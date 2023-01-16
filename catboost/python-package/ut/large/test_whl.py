@@ -111,6 +111,7 @@ def prepare_all(py_ver):
                 "-DCATBOOST_OPENSOURCE=yes",
                 "-DCFLAGS=-DCATBOOST_OPENSOURCE=yes",
                 "--host-platform-flag", "CATBOOST_OPENSOURCE=yes",
+                "--build-widget=no"
             ],
             cwd=whl_dir,
             env=mk_wheel_env,
