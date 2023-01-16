@@ -1503,7 +1503,6 @@ migrations:
     - maps/wikimap/stat/tasks_payment/tasks_logging/feedback/lib
     - maps_adv/common/shared_mock
     - market/backctld/pyb
-    - market/click_n_collect/mt
     - market/dynamic_pricing/tools/kvi_evaluation
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
