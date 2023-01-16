@@ -106,31 +106,6 @@ The following variant is equivalent to the previous but is redundant:
 ```
 {% if audience == "internal" %}
 
-## YT tables {#yt-tables}
+{% include [reusage-file-with-column-descs](../yandex_specific/_includes/yt_tables.md) %}
 
-{% note info %}
-
-{% include [internal__cd-use-the-mr-yt-utility__desc](../_includes/work_src/reusage-formats/use-the-mr-yt-utility__desc.md) %}
-
-{% endnote %}
-
-
-## {{ input_data__title__contains }}
-
-{% include [catboost-cd__full-desc-contains__full](../_includes/work_src/reusage-input-data/contains__full.md) %}
-
-
-The list of supported columns matches the ones defined for the [Local TSV files](#local-file).
-
-## {{ input_data__title__specification }}
-
-- {% include [dataset-list-each-object-on-a-new-table-row](../_includes/work_src/reusage-formats/list-each-object-on-a-new-table-row.md) %}
-
-- Use the `key` column as the storage for the first column.
-- Use the `value` column as the storage for all the remaining data.
-- Use a tab as the delimiter to separate data in the `value` column.
-
-## {{ input_data__title__example }}
-
-Refer to [this YT table](https://yt.yandex-team.ru/hahn/navigation?path=//home/mltools/data/pools/binclass/adult/pool.cd&offsetMode=row) for more details.
 {% endif %}
