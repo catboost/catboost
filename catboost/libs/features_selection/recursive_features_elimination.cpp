@@ -13,6 +13,7 @@
 #include <catboost/private/libs/algo/full_model_saver.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/options/path_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/hash_set.h>
@@ -368,8 +369,12 @@ namespace NCB {
             featuresSelectOptions,
             &summary);
 
-        if (outputFileOptions.SaveSnapshot() && NFs::Exists(outputFileOptions.GetSnapshotFilename())) {
-            callbacks->LoadSnapshot(catBoostOptions.GetTaskType(), outputFileOptions.GetSnapshotFilename());
+        if (outputFileOptions.SaveSnapshot()) {
+            const auto& absoluteSnapshotPath = MakeAbsolutePath(outputFileOptions.GetSnapshotFilename());
+            outputFileOptions.SetSnapshotFilename(absoluteSnapshotPath);
+            if (NFs::Exists(outputFileOptions.GetSnapshotFilename())) {
+                callbacks->LoadSnapshot(catBoostOptions.GetTaskType(), outputFileOptions.GetSnapshotFilename());
+            }
         }
         TFeaturesSelectionLossGraphBuilder lossGraphBuilder(&summary.LossGraph);
 

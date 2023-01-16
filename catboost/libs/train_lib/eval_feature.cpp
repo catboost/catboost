@@ -29,6 +29,7 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/feature_eval_options.h>
 #include <catboost/private/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/path_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <util/generic/algorithm.h>
@@ -1092,13 +1093,6 @@ static void EvaluateFeaturesImpl(
             foldRangeBegin,
             callbacks->GetAbsoluteOffset());
     }
-}
-
-static TString MakeAbsolutePath(const TString& path) {
-    if (TFsPath(path).IsAbsolute()) {
-        return path;
-    }
-    return JoinFsPaths(TFsPath::Cwd(), path);
 }
 
 static ui32 GetSamplingUnitCount(const NCB::TObjectsGrouping& objectsGrouping, bool isObjectwise) {

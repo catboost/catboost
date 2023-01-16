@@ -30,6 +30,7 @@ SRCS(
     option.cpp
     output_file_options.cpp
     overfitting_detector_options.cpp
+    path_helpers.cpp
     parse_per_feature_options.cpp
     plain_options_helper.cpp
     pool_metainfo_options.cpp
