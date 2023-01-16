@@ -1407,7 +1407,6 @@ class GnuCompiler(Compiler):
 
             self.cxx_warnings += [
                 '-Wimport-preprocessor-directive-pedantic',
-                '-Wno-exceptions',
                 '-Wno-undefined-var-template',
             ]
 
