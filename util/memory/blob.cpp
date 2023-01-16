@@ -4,7 +4,6 @@
 #include <util/system/yassert.h>
 #include <util/system/filemap.h>
 #include <util/system/mlock.h>
-#include <util/stream/output.h>
 #include <util/stream/buffer.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
