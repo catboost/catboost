@@ -77,10 +77,3 @@ namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYson
-
-namespace NYT {
-
-// Temporary for backward compatibility
-using ::NYson::ParseYsonStringBuffer;
-
-}
