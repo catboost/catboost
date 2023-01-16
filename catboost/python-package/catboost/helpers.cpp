@@ -197,7 +197,7 @@ size_t GetNumPairs(const NCB::TDataProvider& dataProvider) {
     size_t result = 0;
     const NCB::TMaybeData<NCB::TRawPairsData>& maybePairsData = dataProvider.RawTargetData.GetPairs();
     if (maybePairsData) {
-        Visit([&](const auto& pairs) { result = pairs.size(); }, *maybePairsData);
+        std::visit([&](const auto& pairs) { result = pairs.size(); }, *maybePairsData);
     }
     return result;
 }

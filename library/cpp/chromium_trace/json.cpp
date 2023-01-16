@@ -112,7 +112,7 @@ void TJsonTraceConsumer::WriteArgs(const TEventArgs& args) {
     Json.WriteKey(TStringBuf("args")).BeginObject();
     for (const auto& item : args.Items) {
         Json.WriteKey(item.Name);
-        Visit(TWriteArg{&Json}, item.Value);
+        std::visit(TWriteArg{&Json}, item.Value);
     }
     Json.EndObject();
 }

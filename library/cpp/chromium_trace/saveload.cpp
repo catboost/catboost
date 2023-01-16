@@ -63,7 +63,7 @@ namespace {
             static const TEventArgs emptyArgs;
 
             ::Save(out, static_cast<i8>(Event.index()));
-            Visit(TSavePtrVisitor{out}, Event);
+            std::visit(TSavePtrVisitor{out}, Event);
             if (Args) {
                 ::Save(out, *Args);
             } else {
@@ -138,7 +138,7 @@ void TSerializer<TEventArgs::TArg>::Save(IOutputStream* out, const TEventArgs::T
 
     i8 tag = v.Value.index();
     ::Save(out, tag);
-    Visit(TSaveVisitor{out}, v.Value);
+    std::visit(TSaveVisitor{out}, v.Value);
 }
 
 void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, TMemoryPool& pool) {
@@ -252,7 +252,7 @@ void TSerializer<TMetadataEvent>::Load(IInputStream* in, TMetadataEvent& v, TMem
 }
 
 void TSerializer<TEventWithArgs>::Save(IOutputStream* out, const TEventWithArgs& v) {
-    Visit(TSaveAnyEventVisitor{out, &v.Args}, v.Event);
+    std::visit(TSaveAnyEventVisitor{out, &v.Args}, v.Event);
 }
 
 void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMemoryPool& pool) {
