@@ -91,6 +91,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\py3idl-pool-proto.global.vcxproj">
+      <Project>{2C3B36E6-6E70-A24F-9C2D-D4E027B536F3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\pyidl-pool-proto.global.vcxproj">
+      <Project>{BAC40F6F-75C0-60EE-58B5-897007D13A9D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
     </ProjectReference>
@@ -144,6 +150,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\py3catboost-pytest-lib.global.vcxproj">
       <Project>{775BF033-F658-849F-EECB-F18F50769072}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\pycatboost-pytest-lib.global.vcxproj">
+      <Project>{3773CB7C-3A64-506B-3BB3-2CADE115A28C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\py3catboost-python-package-lib.global.vcxproj">
       <Project>{59BB056C-CFD0-4DCB-5BFB-D6D460A31787}</Project>
@@ -219,6 +228,18 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
       <Project>{53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\py3protobuf-builtin_proto-protos_from_protobuf.global.vcxproj">
+      <Project>{578F8CCF-0793-4FD7-1E57-C230913327F0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\pyprotobuf-builtin_proto-protos_from_protobuf.global.vcxproj">
+      <Project>{BCD8091B-F965-631B-C987-3E6F42F789E2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\py3protobuf-builtin_proto-protos_from_protoc.global.vcxproj">
+      <Project>{D91D403D-7F24-722C-300A-6E076283B3F5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\pyprotobuf-builtin_proto-protos_from_protoc.global.vcxproj">
+      <Project>{2B218A28-5A52-AB4F-EA37-7CFB392E3411}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
@@ -310,6 +331,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\faulthandler\pycontrib-python-faulthandler.global.vcxproj">
       <Project>{1A23756F-1E49-66E3-3B01-B3FDF631CF54}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\filelock\py3\pypython-filelock-py3.global.vcxproj">
+      <Project>{D43AB308-388B-D998-BF6B-A71D3354C1B4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.global.vcxproj">
       <Project>{E6280809-0D81-6EE8-F4D9-9A9D571C79C1}</Project>
     </ProjectReference>
@@ -340,6 +364,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.global.vcxproj">
       <Project>{FFD04B57-AAF4-4AF2-EDB6-4395B3523C3C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\joblib\pycontrib-python-joblib.global.vcxproj">
+      <Project>{D718789F-C2A7-D99C-708F-BC90D83E78F0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.global.vcxproj">
       <Project>{CB99058B-CBC4-4D66-0B8B-99F7E6B97BC3}</Project>
     </ProjectReference>
@@ -348,6 +375,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3\pypython-more-itertools-py3.global.vcxproj">
       <Project>{D269A104-C97F-7D88-203B-FBD0A9E4F25A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\pycontrib-python-mypy-protobuf.global.vcxproj">
+      <Project>{15127EAF-6A59-636D-6354-64791D7806E0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\pycore-src-multiarray.global.vcxproj">
       <Project>{D4CC2AAD-6EC9-22F4-C0D6-D3851367558E}</Project>
@@ -412,6 +442,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py3\pypython-prompt-toolkit-py3.global.vcxproj">
       <Project>{5880C7EA-46DF-EAE8-B9B2-3F3ABA57BB49}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py2\pypython-protobuf-py2.global.vcxproj">
+      <Project>{27578D7E-E0AA-D8FF-02AC-5CF7630F4B35}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.global.vcxproj">
+      <Project>{EDCD8B7B-7FD1-A35B-0E2C-CEC73756FF8B}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\py3contrib-python-py.global.vcxproj">
       <Project>{364FEC92-377E-1941-F20C-DD358F828BD7}</Project>
     </ProjectReference>
@@ -439,6 +475,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
       <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scikit-learn\py3\pypython-scikit-learn-py3.global.vcxproj">
+      <Project>{669C2627-23FB-2A20-C7CA-1F8E8FE99062}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py2\py3python-scipy-py2.global.vcxproj">
       <Project>{4F2BA35B-F3C4-C377-F2E9-9F2D4219FE04}</Project>
     </ProjectReference>
@@ -465,6 +504,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py3contrib-python-testpath.global.vcxproj">
       <Project>{4404DA7E-09BE-57CA-6D0A-DC08B989F0BE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\pycontrib-python-testpath.global.vcxproj">
+      <Project>{C64D778F-7C73-8ADC-F7C7-0DBA579BB288}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tornado\tornado-6\pypython-tornado-tornado-6.global.vcxproj">
+      <Project>{CD91984B-90CD-8C91-0031-A3FD437A20AD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py2\pypython-traitlets-py2.global.vcxproj">
       <Project>{CC326F0E-AD85-9087-4F85-A0C250A1716C}</Project>
@@ -672,6 +717,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.global.vcxproj">
       <Project>{EA459EEC-FD7A-826B-F354-11314F53F8D7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\py3python-hnsw-lib.global.vcxproj">
+      <Project>{A939A972-6B36-5F38-2E3C-799EC85D2A4D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\hnsw\lib\pypython-hnsw-lib.global.vcxproj">
+      <Project>{592F8468-258B-E453-1BBD-D7A8859D5E08}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\pytest\plugins\py3python-pytest-plugins.global.vcxproj">
       <Project>{31A4C39F-EB9D-307A-6EA2-6FD6DDAB3B79}</Project>
