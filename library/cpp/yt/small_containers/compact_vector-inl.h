@@ -936,7 +936,7 @@ template <class T, size_t N>
 void TCompactVector<T, N>::Move(T* srcFirst, T* srcLast, T* dst)
 {
     if constexpr(std::is_trivially_copyable_v<T>) {
-        ::memcpy(dst, srcFirst, (srcLast - srcFirst) * sizeof(T));
+        ::memmove(dst, srcFirst, (srcLast - srcFirst) * sizeof(T));
     } else {
         std::move(srcFirst, srcLast, dst);
     }
