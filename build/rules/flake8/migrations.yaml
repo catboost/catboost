@@ -1262,7 +1262,6 @@ migrations:
     - search/scraper_over_yt/scripts
     - skynet/kernel
     - skynet/kernel/util/tests
-    - smart_devices/packages/generate_packages
     - smart_devices/tools/launcher2/tests/restarts
     - statbox/statkey/jam/jobs
     - statbox/statkey/jam/jobs/cubes/superapp/autofill/v2
@@ -1451,7 +1450,6 @@ migrations:
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
     - dict/mt/analytics/make/tools/toloka/simple_toloka
-    - dict/mt/make/modules/corpus_generation/aligner/tests
     - dict/mt/make/modules/corpus_generation/post_filtering/tests
     - dict/mt/make/modules/prepare_corpus
     - dict/mt/make/pipeline/nmt
@@ -1972,8 +1970,6 @@ migrations:
     - balancer/production/x/yasm_errors_collector
     - billing/agency_rewards/tests_platform/common
     - billing/agency_rewards/tests_platform/generators
-    - billing/agency_rewards/tests_regression/common
-    - billing/agency_rewards/tests_regression/generators
     - billing/balance
     - billing/balance_utils
     - billing/bcl/src
@@ -2418,7 +2414,6 @@ migrations:
     - mds/mastermind/resizer/lib
     - mds/mastermind/scheduler
     - mds/mastermind/stat_reporter/lib
-    - mds/mastermind/state_builder
     - mds/nscfg/lib
     - metrika/admin/python/cms/frontend/base
     - metrika/admin/python/duty/frontend/base
@@ -3140,7 +3135,6 @@ migrations:
     - voicetech/asr/pipeline/language_models/special_lm_build
     - voicetech/asr/pipeline/language_models/tools/run_lm_pipeline
     - voicetech/asr/pipeline/train_pytorch/lib
-    - voicetech/asr/pipeline/utils
     - voicetech/asr/tools/ctc_visualize
     - voicetech/asr/tools/decoder_sweeper/lib
     - voicetech/asr/tools/decoding_result_viewer
@@ -4079,7 +4073,6 @@ migrations:
     - balancer/test/functional/consistent_hashing
     - balancer/test/functional/pingerprocess
     - balancer/test/functional/unistat
-    - billing/agency_rewards/tests_regression
     - yabs/autobudget/ml/flatten_visit_log/lib/mt
     - ads/sandbox_scripts/visibility_stats/fat
     - ads/sandbox_scripts/truncate_hitfactors/tests
