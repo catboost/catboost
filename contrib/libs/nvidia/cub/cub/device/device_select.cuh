@@ -38,7 +38,7 @@
 #include <iterator>
 
 #include "dispatch/dispatch_select_if.cuh"
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX

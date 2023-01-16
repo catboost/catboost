@@ -31,10 +31,11 @@
  * Simple portable mutex
  */
 
+#include "../util_cpp_dialect.cuh"
 
 #pragma once
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#if CUB_CPP_DIALECT >= 2011
     #include <mutex>
 #else
     #if defined(_WIN32) || defined(_WIN64)
@@ -54,7 +55,7 @@
     #endif
 #endif
 
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 
 
 /// Optional outer namespace(s)
@@ -71,7 +72,7 @@ namespace cub {
  */
 struct Mutex
 {
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#if CUB_CPP_DIALECT >= 2011
 
     std::mutex mtx;
 
@@ -85,14 +86,9 @@ struct Mutex
         mtx.unlock();
     }
 
-    void TryLock()
-    {
-        mtx.try_lock();
-    }
+#else       // C++11
 
-#else       //__cplusplus > 199711L
-
-    #if defined(_MSC_VER)
+    #if CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
 
         // Microsoft VC++
         typedef long Spinlock;
@@ -127,7 +123,7 @@ struct Mutex
         {
         }
 
-    #endif  // defined(_MSC_VER)
+    #endif  // MSVC
 
         /// Lock member
         volatile Spinlock lock;
@@ -159,7 +155,7 @@ struct Mutex
             lock = 0;
         }
 
-#endif      // __cplusplus > 199711L
+#endif      // C++11
 
 };
 

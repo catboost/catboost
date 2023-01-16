@@ -33,11 +33,9 @@
 
 #pragma once
 
-#include "../util_arch.cuh"
+#include "../config.cuh"
 #include "../util_ptx.cuh"
-#include "../util_macro.cuh"
 #include "../util_type.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -89,11 +87,7 @@ private:
      ******************************************************************************/
 
     /// Shared memory storage layout type (last element from each thread's input)
-    struct _TempStorage
-    {
-        T prev[BLOCK_THREADS];
-        T next[BLOCK_THREADS];
-    };
+    typedef T _TempStorage[BLOCK_THREADS];
 
 
 public:
@@ -173,12 +167,15 @@ public:
         T&  output,                 ///< [out] The \p input item from the successor (or predecessor) thread <em>thread</em><sub><em>i</em>+<tt>distance</tt></sub> (may be aliased to \p input).  This value is only updated for for <em>thread<sub>i</sub></em> when 0 <= (<em>i</em> + \p distance) < <tt>BLOCK_THREADS-1</tt>
         int distance = 1)           ///< [in] Offset distance (may be negative)
     {
-        temp_storage[linear_tid].prev = input;
+        temp_storage[linear_tid] = input;
 
         CTA_SYNC();
 
-        if ((linear_tid + distance >= 0) && (linear_tid + distance < BLOCK_THREADS))
-            output = temp_storage[linear_tid + distance].prev;
+        const int offset_tid = static_cast<int>(linear_tid) + distance;
+        if ((offset_tid >= 0) && (offset_tid < BLOCK_THREADS))
+        {
+            output = temp_storage[static_cast<size_t>(offset_tid)];
+        }
     }
 
 
@@ -193,7 +190,7 @@ public:
         T&  output,                 ///< [out] The \p input item from thread <em>thread</em><sub>(<em>i</em>+<tt>distance></tt>)%<tt><BLOCK_THREADS></tt></sub> (may be aliased to \p input).  This value is not updated for <em>thread</em><sub>BLOCK_THREADS-1</sub>
         unsigned int distance = 1)  ///< [in] Offset distance (0 < \p distance < <tt>BLOCK_THREADS</tt>)
     {
-        temp_storage[linear_tid].prev = input;
+        temp_storage[linear_tid] = input;
 
         CTA_SYNC();
 
@@ -201,7 +198,7 @@ public:
         if (offset >= BLOCK_THREADS)
             offset -= BLOCK_THREADS;
 
-        output = temp_storage[offset].prev;
+        output = temp_storage[offset];
     }
 
 
@@ -218,7 +215,7 @@ public:
         T (&input)[ITEMS_PER_THREAD],   ///< [in] The calling thread's input items
         T (&prev)[ITEMS_PER_THREAD])    ///< [out] The corresponding predecessor items (may be aliased to \p input).  The item \p prev[0] is not updated for <em>thread</em><sub>0</sub>.
     {
-        temp_storage[linear_tid].prev = input[ITEMS_PER_THREAD - 1];
+        temp_storage[linear_tid] = input[ITEMS_PER_THREAD - 1];
 
         CTA_SYNC();
 
@@ -226,9 +223,8 @@ public:
         for (int ITEM = ITEMS_PER_THREAD - 1; ITEM > 0; --ITEM)
             prev[ITEM] = input[ITEM - 1];
 
-
         if (linear_tid > 0)
-            prev[0] = temp_storage[linear_tid - 1].prev;
+            prev[0] = temp_storage[linear_tid - 1];
     }
 
 
@@ -247,7 +243,7 @@ public:
         T &block_suffix)                ///< [out] The item \p input[ITEMS_PER_THREAD-1] from <em>thread</em><sub><tt>BLOCK_THREADS-1</tt></sub>, provided to all threads
     {
         Up(input, prev);
-        block_suffix = temp_storage[BLOCK_THREADS - 1].prev;
+        block_suffix = temp_storage[BLOCK_THREADS - 1];
     }
 
 
@@ -264,16 +260,16 @@ public:
         T (&input)[ITEMS_PER_THREAD],   ///< [in] The calling thread's input items
         T (&prev)[ITEMS_PER_THREAD])    ///< [out] The corresponding predecessor items (may be aliased to \p input).  The value \p prev[0] is not updated for <em>thread</em><sub>BLOCK_THREADS-1</sub>.
     {
-        temp_storage[linear_tid].prev = input[ITEMS_PER_THREAD - 1];
+        temp_storage[linear_tid] = input[0];
 
         CTA_SYNC();
 
         #pragma unroll
-        for (int ITEM = ITEMS_PER_THREAD - 1; ITEM > 0; --ITEM)
-            prev[ITEM] = input[ITEM - 1];
+        for (int ITEM = 0; ITEM < ITEMS_PER_THREAD - 1; ITEM++)
+            prev[ITEM] = input[ITEM + 1];
 
-        if (linear_tid > 0)
-            prev[0] = temp_storage[linear_tid - 1].prev;
+        if (linear_tid < BLOCK_THREADS - 1)
+            prev[ITEMS_PER_THREAD - 1] = temp_storage[linear_tid + 1];
     }
 
 
@@ -291,8 +287,8 @@ public:
         T (&prev)[ITEMS_PER_THREAD],    ///< [out] The corresponding predecessor items (may be aliased to \p input).  The value \p prev[0] is not updated for <em>thread</em><sub>BLOCK_THREADS-1</sub>.
         T &block_prefix)                ///< [out] The item \p input[0] from <em>thread</em><sub><tt>0</tt></sub>, provided to all threads
     {
-        Up(input, prev);
-        block_prefix = temp_storage[BLOCK_THREADS - 1].prev;
+        Down(input, prev);
+        block_prefix = temp_storage[0];
     }
 
     //@}  end member group

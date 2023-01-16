@@ -40,9 +40,9 @@
 #include "../block/block_store.cuh"
 #include "../block/block_scan.cuh"
 #include "../block/block_discontinuity.cuh"
+#include "../config.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
 #include "../iterator/constant_input_iterator.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -226,12 +226,12 @@ struct AgentReduceByKey
     // Shared memory type for this thread block
     union _TempStorage
     {
-        struct
+        struct ScanStorage
         {
             typename BlockScanT::TempStorage                scan;           // Smem needed for tile scanning
             typename TilePrefixCallbackOpT::TempStorage     prefix;         // Smem needed for cooperative prefix callback
             typename BlockDiscontinuityKeys::TempStorage    discontinuity;  // Smem needed for discontinuity detection
-        };
+        } scan_storage;
 
         // Smem needed for loading keys
         typename BlockLoadKeysT::TempStorage load_keys;
@@ -433,13 +433,13 @@ struct AgentReduceByKey
         {
             // Use custom flag operator to additionally flag the first out-of-bounds item
             GuardedInequalityWrapper<EqualityOpT> flag_op(equality_op, num_remaining);
-            BlockDiscontinuityKeys(temp_storage.discontinuity).FlagHeads(
+            BlockDiscontinuityKeys(temp_storage.scan_storage.discontinuity).FlagHeads(
                 head_flags, keys, prev_keys, flag_op, tile_predecessor);
         }
         else
         {
             InequalityWrapper<EqualityOpT> flag_op(equality_op);
-            BlockDiscontinuityKeys(temp_storage.discontinuity).FlagHeads(
+            BlockDiscontinuityKeys(temp_storage.scan_storage.discontinuity).FlagHeads(
                 head_flags, keys, prev_keys, flag_op, tile_predecessor);
         }
 
@@ -458,7 +458,7 @@ struct AgentReduceByKey
         if (tile_idx == 0)
         {
             // Scan first tile
-            BlockScanT(temp_storage.scan).ExclusiveScan(scan_items, scan_items, scan_op, block_aggregate);
+            BlockScanT(temp_storage.scan_storage.scan).ExclusiveScan(scan_items, scan_items, scan_op, block_aggregate);
             num_segments_prefix     = 0;
             total_aggregate         = block_aggregate;
 
@@ -469,8 +469,8 @@ struct AgentReduceByKey
         else
         {
             // Scan non-first tile
-            TilePrefixCallbackOpT prefix_op(tile_state, temp_storage.prefix, scan_op, tile_idx);
-            BlockScanT(temp_storage.scan).ExclusiveScan(scan_items, scan_items, scan_op, prefix_op);
+            TilePrefixCallbackOpT prefix_op(tile_state, temp_storage.scan_storage.prefix, scan_op, tile_idx);
+            BlockScanT(temp_storage.scan_storage.scan).ExclusiveScan(scan_items, scan_items, scan_op, prefix_op);
 
             block_aggregate         = prefix_op.GetBlockAggregate();
             num_segments_prefix     = prefix_op.GetExclusivePrefix().key;
@@ -518,7 +518,7 @@ struct AgentReduceByKey
      * Scan tiles of items as part of a dynamic chained scan
      */
     __device__ __forceinline__ void ConsumeRange(
-        int                 num_items,          ///< Total number of input items
+        OffsetT             num_items,          ///< Total number of input items
         ScanTileStateT&     tile_state,         ///< Global tile state descriptor
         int                 start_tile)         ///< The starting tile for the current grid
     {

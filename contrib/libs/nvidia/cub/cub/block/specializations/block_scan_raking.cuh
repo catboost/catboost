@@ -34,13 +34,12 @@
 
 #pragma once
 
+#include "../../config.cuh"
 #include "../../util_ptx.cuh"
-#include "../../util_arch.cuh"
 #include "../../block/block_raking_layout.cuh"
 #include "../../thread/thread_reduce.cuh"
 #include "../../thread/thread_scan.cuh"
 #include "../../warp/warp_scan.cuh"
-#include "../../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -85,7 +84,7 @@ struct BlockScanRaking
         SEGMENT_LENGTH = BlockRakingLayout::SEGMENT_LENGTH,
 
         /// Cooperative work can be entirely warp synchronous
-        WARP_SYNCHRONOUS = (BLOCK_THREADS == RAKING_THREADS),
+        WARP_SYNCHRONOUS = (int(BLOCK_THREADS) == int(RAKING_THREADS)),
     };
 
     ///  WarpScan utility type

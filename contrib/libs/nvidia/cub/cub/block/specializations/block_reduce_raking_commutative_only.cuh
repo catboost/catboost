@@ -36,8 +36,8 @@
 #include "block_reduce_raking.cuh"
 #include "../../warp/warp_reduce.cuh"
 #include "../../thread/thread_reduce.cuh"
+#include "../../config.cuh"
 #include "../../util_ptx.cuh"
-#include "../../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -95,11 +95,12 @@ struct BlockReduceRakingCommutativeOnly
     /// Shared memory storage layout type
     union _TempStorage
     {
-        struct
+        struct DefaultStorage
         {
             typename WarpReduce::TempStorage        warp_storage;        ///< Storage for warp-synchronous reduction
             typename BlockRakingLayout::TempStorage raking_grid;         ///< Padded thread block raking grid
-        };
+        } default_storage;
+
         typename FallBack::TempStorage              fallback_storage;    ///< Fall-back storage for non-commutative block scan
     };
 
@@ -136,7 +137,7 @@ struct BlockReduceRakingCommutativeOnly
         {
             // Place partial into shared memory grid
             if (linear_tid >= RAKING_THREADS)
-                *BlockRakingLayout::PlacementPtr(temp_storage.raking_grid, linear_tid - RAKING_THREADS) = partial;
+                *BlockRakingLayout::PlacementPtr(temp_storage.default_storage.raking_grid, linear_tid - RAKING_THREADS) = partial;
 
             CTA_SYNC();
 
@@ -144,11 +145,11 @@ struct BlockReduceRakingCommutativeOnly
             if (linear_tid < RAKING_THREADS)
             {
                 // Raking reduction in grid
-                T *raking_segment = BlockRakingLayout::RakingPtr(temp_storage.raking_grid, linear_tid);
+                T *raking_segment = BlockRakingLayout::RakingPtr(temp_storage.default_storage.raking_grid, linear_tid);
                 partial = internal::ThreadReduce<SEGMENT_LENGTH>(raking_segment, cub::Sum(), partial);
 
                 // Warpscan
-                partial = WarpReduce(temp_storage.warp_storage).Sum(partial);
+                partial = WarpReduce(temp_storage.default_storage.warp_storage).Sum(partial);
             }
         }
 
@@ -173,7 +174,7 @@ struct BlockReduceRakingCommutativeOnly
         {
             // Place partial into shared memory grid
             if (linear_tid >= RAKING_THREADS)
-                *BlockRakingLayout::PlacementPtr(temp_storage.raking_grid, linear_tid - RAKING_THREADS) = partial;
+                *BlockRakingLayout::PlacementPtr(temp_storage.default_storage.raking_grid, linear_tid - RAKING_THREADS) = partial;
 
             CTA_SYNC();
 
@@ -181,11 +182,11 @@ struct BlockReduceRakingCommutativeOnly
             if (linear_tid < RAKING_THREADS)
             {
                 // Raking reduction in grid
-                T *raking_segment = BlockRakingLayout::RakingPtr(temp_storage.raking_grid, linear_tid);
+                T *raking_segment = BlockRakingLayout::RakingPtr(temp_storage.default_storage.raking_grid, linear_tid);
                 partial = internal::ThreadReduce<SEGMENT_LENGTH>(raking_segment, reduction_op, partial);
 
                 // Warpscan
-                partial = WarpReduce(temp_storage.warp_storage).Reduce(partial, reduction_op);
+                partial = WarpReduce(temp_storage.default_storage.warp_storage).Reduce(partial, reduction_op);
             }
         }
 

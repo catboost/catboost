@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX

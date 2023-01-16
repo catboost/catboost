@@ -1,7 +1,7 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the NVIDIA CORPORATION nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36,10 +36,10 @@
 #include <iterator>
 #include <iostream>
 
+#include "../config.cuh"
 #include "../thread/thread_load.cuh"
 #include "../thread/thread_store.cuh"
 #include "../util_device.cuh"
-#include "../util_namespace.cuh"
 
 #if (THRUST_VERSION >= 100700)
     // This iterator is compatible with Thrust API 1.7 and newer
@@ -66,7 +66,7 @@ namespace cub {
  * \brief A random-access input wrapper for dereferencing array values using a PTX cache load modifier.
  *
  * \par Overview
- * - CacheModifiedInputIteratorTis a random-access input iterator that wraps a native
+ * - CacheModifiedInputIterator is a random-access input iterator that wraps a native
  *   device pointer of type <tt>ValueType*</tt>. \p ValueType references are
  *   made by reading \p ValueType values through loads modified by \p MODIFIER.
  * - Can be used to load any data type from memory using PTX cache load modifiers (e.g., "LOAD_LDG",
@@ -76,7 +76,7 @@ namespace cub {
  * - Compatible with Thrust API v1.7 or newer.
  *
  * \par Snippet
- * The code snippet below illustrates the use of \p CacheModifiedInputIteratorTto
+ * The code snippet below illustrates the use of \p CacheModifiedInputIterator to
  * dereference a device array of double using the "ldg" PTX load modifier
  * (i.e., load values through texture cache).
  * \par

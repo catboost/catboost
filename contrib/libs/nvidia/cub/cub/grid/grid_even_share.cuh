@@ -34,8 +34,11 @@
 
 #pragma once
 
+#include "../config.cuh"
 #include "../util_namespace.cuh"
 #include "../util_macro.cuh"
+#include "../util_math.cuh"
+#include "../util_type.cuh"
 #include "grid_mapping.cuh"
 
 /// Optional outer namespace(s)
@@ -75,7 +78,7 @@ struct GridEvenShare
 {
 private:
 
-    OffsetT     total_tiles;
+    int         total_tiles;
     int         big_shares;
     OffsetT     big_share_items;
     OffsetT     normal_share_items;
@@ -120,17 +123,18 @@ public:
      * \brief Dispatch initializer. To be called prior prior to kernel launch.
      */
     __host__ __device__ __forceinline__ void DispatchInit(
-        OffsetT num_items,          ///< Total number of input items
+        OffsetT num_items_,          ///< Total number of input items
         int     max_grid_size,      ///< Maximum grid size allowable (actual grid size may be less if not warranted by the the number of input items)
         int     tile_items)         ///< Number of data items per input tile
     {
-        this->block_offset          = num_items;    // Initialize past-the-end
-        this->block_end             = num_items;    // Initialize past-the-end
-        this->num_items             = num_items;
-        this->total_tiles           = (num_items + tile_items - 1) / tile_items;
+        this->block_offset          = num_items_;    // Initialize past-the-end
+        this->block_end             = num_items_;    // Initialize past-the-end
+        this->num_items             = num_items_;
+        this->total_tiles           = static_cast<int>(cub::DivideAndRoundUp(num_items_, tile_items));
         this->grid_size             = CUB_MIN(total_tiles, max_grid_size);
-        OffsetT avg_tiles_per_block = total_tiles / grid_size;
-        this->big_shares            = total_tiles - (avg_tiles_per_block * grid_size);        // leftover grains go to big blocks
+        int avg_tiles_per_block     = total_tiles / grid_size;
+        // leftover grains go to big blocks:
+        this->big_shares            = total_tiles - (avg_tiles_per_block * grid_size);
         this->normal_share_items    = avg_tiles_per_block * tile_items;
         this->normal_base_offset    = big_shares * tile_items;
         this->big_share_items       = normal_share_items + tile_items;

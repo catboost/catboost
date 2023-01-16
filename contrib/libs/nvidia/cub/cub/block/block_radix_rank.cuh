@@ -38,10 +38,10 @@
 #include "../thread/thread_reduce.cuh"
 #include "../thread/thread_scan.cuh"
 #include "../block/block_scan.cuh"
+#include "../block/radix_rank_sort_operations.cuh"
+#include "../config.cuh"
 #include "../util_ptx.cuh"
-#include "../util_arch.cuh"
 #include "../util_type.cuh"
-#include "../util_namespace.cuh"
 
 
 /// Optional outer namespace(s)
@@ -49,6 +49,52 @@ CUB_NS_PREFIX
 
 /// CUB namespace
 namespace cub {
+
+
+/**
+ * \brief Radix ranking algorithm, the algorithm used to implement stable ranking of the
+ * keys from a single tile. Note that different ranking algorithms require different
+ * initial arrangements of keys to function properly.
+ */
+enum RadixRankAlgorithm
+{
+    /** Ranking using the BlockRadixRank algorithm with MEMOIZE_OUTER_SCAN == false. It
+     * uses thread-private histograms, and thus uses more shared memory. Requires blocked
+     * arrangement of keys. Does not support count callbacks. */
+    RADIX_RANK_BASIC,
+    /** Ranking using the BlockRadixRank algorithm with MEMOIZE_OUTER_SCAN ==
+     * true. Similar to RADIX_RANK BASIC, it requires blocked arrangement of
+     * keys and does not support count callbacks.*/
+    RADIX_RANK_MEMOIZE,
+    /** Ranking using the BlockRadixRankMatch algorithm. It uses warp-private
+     * histograms and matching for ranking the keys in a single warp. Therefore,
+     * it uses less shared memory compared to RADIX_RANK_BASIC. It requires
+     * warp-striped key arrangement and supports count callbacks. */
+    RADIX_RANK_MATCH,
+    /** Ranking using the BlockRadixRankMatchEarlyCounts algorithm with
+     * MATCH_ALGORITHM == WARP_MATCH_ANY. An alternative implementation of
+     * match-based ranking that computes bin counts early. Because of this, it
+     * works better with onesweep sorting, which requires bin counts for
+     * decoupled look-back. Assumes warp-striped key arrangement and supports
+     * count callbacks.*/
+    RADIX_RANK_MATCH_EARLY_COUNTS_ANY,
+    /** Ranking using the BlockRadixRankEarlyCounts algorithm with
+     * MATCH_ALGORITHM == WARP_MATCH_ATOMIC_OR. It uses extra space in shared
+     * memory to generate warp match masks using atomicOr(). This is faster when
+     * there are few matches, but can lead to slowdowns if the number of
+     * matching keys among warp lanes is high. Assumes warp-striped key
+     * arrangement and supports count callbacks. */
+    RADIX_RANK_MATCH_EARLY_COUNTS_ATOMIC_OR
+};
+
+
+/** Empty callback implementation */
+template <int BINS_PER_THREAD>
+struct BlockRadixRankEmptyCallback
+{
+    __device__ __forceinline__ void operator()(int (&bins)[BINS_PER_THREAD]) {}
+};
+
 
 /**
  * \brief BlockRadixRank provides operations for ranking unsigned integer types within a CUDA thread block.
@@ -127,7 +173,7 @@ private:
         PACKING_RATIO               = sizeof(PackedCounter) / sizeof(DigitCounter),
         LOG_PACKING_RATIO           = Log2<PACKING_RATIO>::VALUE,
 
-        LOG_COUNTER_LANES           = CUB_MAX((RADIX_BITS - LOG_PACKING_RATIO), 0),                // Always at least one lane
+        LOG_COUNTER_LANES           = CUB_MAX((int(RADIX_BITS) - int(LOG_PACKING_RATIO)), 0),                // Always at least one lane
         COUNTER_LANES               = 1 << LOG_COUNTER_LANES,
 
         // The number of packed counters per thread (plus one for padding)
@@ -347,12 +393,12 @@ public:
      */
     template <
         typename        UnsignedBits,
-        int             KEYS_PER_THREAD>
+        int             KEYS_PER_THREAD,
+        typename        DigitExtractorT>
     __device__ __forceinline__ void RankKeys(
         UnsignedBits    (&keys)[KEYS_PER_THREAD],           ///< [in] Keys for this tile
         int             (&ranks)[KEYS_PER_THREAD],          ///< [out] For each key, the local rank within the tile
-        int             current_bit,                        ///< [in] The least-significant bit position of the current digit to extract
-        int             num_bits)                           ///< [in] The number of bits in the current digit
+        DigitExtractorT digit_extractor)                    ///< [in] The digit extractor
     {
         DigitCounter    thread_prefixes[KEYS_PER_THREAD];   // For each key, the count of previous keys in this tile having the same digit
         DigitCounter*   digit_counters[KEYS_PER_THREAD];    // For each key, the byte-offset of its corresponding digit counter in smem
@@ -364,7 +410,7 @@ public:
         for (int ITEM = 0; ITEM < KEYS_PER_THREAD; ++ITEM)
         {
             // Get digit
-            unsigned int digit = BFE(keys[ITEM], current_bit, num_bits);
+            unsigned int digit = digit_extractor.Digit(keys[ITEM]);
 
             // Get sub-counter
             unsigned int sub_counter = digit >> LOG_COUNTER_LANES;
@@ -396,6 +442,7 @@ public:
         CTA_SYNC();
 
         // Extract the local ranks of each key
+        #pragma unroll
         for (int ITEM = 0; ITEM < KEYS_PER_THREAD; ++ITEM)
         {
             // Add in thread block exclusive prefix
@@ -409,16 +456,16 @@ public:
      */
     template <
         typename        UnsignedBits,
-        int             KEYS_PER_THREAD>
+        int             KEYS_PER_THREAD,
+        typename        DigitExtractorT>
     __device__ __forceinline__ void RankKeys(
         UnsignedBits    (&keys)[KEYS_PER_THREAD],           ///< [in] Keys for this tile
         int             (&ranks)[KEYS_PER_THREAD],          ///< [out] For each key, the local rank within the tile (out parameter)
-        int             current_bit,                        ///< [in] The least-significant bit position of the current digit to extract
-        int             num_bits,                           ///< [in] The number of bits in the current digit
+        DigitExtractorT digit_extractor,                    ///< [in] The digit extractor
         int             (&exclusive_digit_prefix)[BINS_TRACKED_PER_THREAD])            ///< [out] The exclusive prefix sum for the digits [(threadIdx.x * BINS_TRACKED_PER_THREAD) ... (threadIdx.x * BINS_TRACKED_PER_THREAD) + BINS_TRACKED_PER_THREAD - 1]
     {
         // Rank keys
-        RankKeys(keys, ranks, current_bit, num_bits);
+        RankKeys(keys, ranks, digit_extractor);
 
         // Get the inclusive and exclusive digit totals corresponding to the calling thread.
         #pragma unroll
@@ -566,17 +613,63 @@ public:
      *********************************************************************/
     //@{
 
+    /** \brief Computes the count of keys for each digit value, and calls the
+     * callback with the array of key counts.
+
+     * @tparam CountsCallback The callback type. It should implement an instance
+     * overload of operator()(int (&bins)[BINS_TRACKED_PER_THREAD]), where bins
+     * is an array of key counts for each digit value distributed in block
+     * distribution among the threads of the thread block. Key counts can be
+     * used, to update other data structures in global or shared
+     * memory. Depending on the implementation of the ranking algoirhtm
+     * (see BlockRadixRankMatchEarlyCounts), key counts may become available
+     * early, therefore, they are returned through a callback rather than a
+     * separate output parameter of RankKeys().
+     */
+    template <int KEYS_PER_THREAD, typename CountsCallback>
+    __device__ __forceinline__ void CallBack(CountsCallback callback)
+    {
+        int bins[BINS_TRACKED_PER_THREAD];
+        // Get count for each digit
+        #pragma unroll
+        for (int track = 0; track < BINS_TRACKED_PER_THREAD; ++track)
+        {
+            int bin_idx = (linear_tid * BINS_TRACKED_PER_THREAD) + track;
+            const int TILE_ITEMS = KEYS_PER_THREAD * BLOCK_THREADS;
+
+            if ((BLOCK_THREADS == RADIX_DIGITS) || (bin_idx < RADIX_DIGITS))
+            {
+                if (IS_DESCENDING)
+                {
+                    bin_idx = RADIX_DIGITS - bin_idx - 1;
+                    bins[track] = (bin_idx > 0 ?
+                        temp_storage.aliasable.warp_digit_counters[bin_idx - 1][0] : TILE_ITEMS) -
+                        temp_storage.aliasable.warp_digit_counters[bin_idx][0];
+                }
+                else
+                {
+                    bins[track] = (bin_idx < RADIX_DIGITS - 1 ?
+                        temp_storage.aliasable.warp_digit_counters[bin_idx + 1][0] : TILE_ITEMS) -
+                        temp_storage.aliasable.warp_digit_counters[bin_idx][0];
+                }
+            }
+        }
+        callback(bins);
+    }
+
     /**
      * \brief Rank keys.
      */
     template <
         typename        UnsignedBits,
-        int             KEYS_PER_THREAD>
+        int             KEYS_PER_THREAD,
+        typename        DigitExtractorT,
+        typename        CountsCallback>
     __device__ __forceinline__ void RankKeys(
         UnsignedBits    (&keys)[KEYS_PER_THREAD],           ///< [in] Keys for this tile
         int             (&ranks)[KEYS_PER_THREAD],          ///< [out] For each key, the local rank within the tile
-        int             current_bit,                        ///< [in] The least-significant bit position of the current digit to extract
-        int             num_bits)                           ///< [in] The number of bits in the current digit
+        DigitExtractorT digit_extractor,                    ///< [in] The digit extractor
+        CountsCallback    callback)
     {
         // Initialize shared digit counters
 
@@ -596,7 +689,7 @@ public:
         for (int ITEM = 0; ITEM < KEYS_PER_THREAD; ++ITEM)
         {
             // My digit
-            uint32_t digit = BFE(keys[ITEM], current_bit, num_bits);
+            uint32_t digit = digit_extractor.Digit(keys[ITEM]);
 
             if (IS_DESCENDING)
                 digit = RADIX_DIGITS - digit - 1;
@@ -649,6 +742,10 @@ public:
             temp_storage.aliasable.raking_grid[linear_tid][ITEM] = scan_counters[ITEM];
 
         CTA_SYNC();
+        if (!Equals<CountsCallback, BlockRadixRankEmptyCallback<BINS_TRACKED_PER_THREAD>>::VALUE)
+        {
+            CallBack<KEYS_PER_THREAD>(callback);
+        }
 
         // Seed ranks with counter values from previous warps
         #pragma unroll
@@ -656,21 +753,34 @@ public:
             ranks[ITEM] += *digit_counters[ITEM];
     }
 
+    template <
+        typename        UnsignedBits,
+        int             KEYS_PER_THREAD,
+        typename        DigitExtractorT>
+    __device__ __forceinline__ void RankKeys(
+        UnsignedBits    (&keys)[KEYS_PER_THREAD], int (&ranks)[KEYS_PER_THREAD],
+        DigitExtractorT digit_extractor)
+    {
+        RankKeys(keys, ranks, digit_extractor,
+                 BlockRadixRankEmptyCallback<BINS_TRACKED_PER_THREAD>());
+    }
 
     /**
      * \brief Rank keys.  For the lower \p RADIX_DIGITS threads, digit counts for each digit are provided for the corresponding thread.
      */
     template <
         typename        UnsignedBits,
-        int             KEYS_PER_THREAD>
+        int             KEYS_PER_THREAD,
+        typename        DigitExtractorT,
+        typename        CountsCallback>
     __device__ __forceinline__ void RankKeys(
         UnsignedBits    (&keys)[KEYS_PER_THREAD],           ///< [in] Keys for this tile
         int             (&ranks)[KEYS_PER_THREAD],          ///< [out] For each key, the local rank within the tile (out parameter)
-        int             current_bit,                        ///< [in] The least-significant bit position of the current digit to extract
-        int             num_bits,                           ///< [in] The number of bits in the current digit
-        int             (&exclusive_digit_prefix)[BINS_TRACKED_PER_THREAD])            ///< [out] The exclusive prefix sum for the digits [(threadIdx.x * BINS_TRACKED_PER_THREAD) ... (threadIdx.x * BINS_TRACKED_PER_THREAD) + BINS_TRACKED_PER_THREAD - 1]
+        DigitExtractorT digit_extractor,                    ///< [in] The digit extractor
+        int             (&exclusive_digit_prefix)[BINS_TRACKED_PER_THREAD],            ///< [out] The exclusive prefix sum for the digits [(threadIdx.x * BINS_TRACKED_PER_THREAD) ... (threadIdx.x * BINS_TRACKED_PER_THREAD) + BINS_TRACKED_PER_THREAD - 1]
+        CountsCallback callback)
     {
-        RankKeys(keys, ranks, current_bit, num_bits);
+        RankKeys(keys, ranks, digit_extractor, callback);
 
         // Get exclusive count for each digit
         #pragma unroll
@@ -686,6 +796,326 @@ public:
                 exclusive_digit_prefix[track] = temp_storage.aliasable.warp_digit_counters[bin_idx][0];
             }
         }
+    }
+
+    template <
+        typename        UnsignedBits,
+        int             KEYS_PER_THREAD,
+        typename        DigitExtractorT>
+    __device__ __forceinline__ void RankKeys(
+        UnsignedBits    (&keys)[KEYS_PER_THREAD],           ///< [in] Keys for this tile
+        int             (&ranks)[KEYS_PER_THREAD],          ///< [out] For each key, the local rank within the tile (out parameter)
+        DigitExtractorT digit_extractor,
+        int             (&exclusive_digit_prefix)[BINS_TRACKED_PER_THREAD])            ///< [out] The exclusive prefix sum for the digits [(threadIdx.x * BINS_TRACKED_PER_THREAD) ... (threadIdx.x * BINS_TRACKED_PER_THREAD) + BINS_TRACKED_PER_THREAD - 1]
+    {
+        RankKeys(keys, ranks, digit_extractor, exclusive_digit_prefix,
+                 BlockRadixRankEmptyCallback<BINS_TRACKED_PER_THREAD>());
+    }
+};
+
+enum WarpMatchAlgorithm
+{
+    WARP_MATCH_ANY,
+    WARP_MATCH_ATOMIC_OR
+};
+
+/**
+ * Radix-rank using matching which computes the counts of keys for each digit
+ * value early, at the expense of doing more work. This may be useful e.g. for
+ * decoupled look-back, where it reduces the time other thread blocks need to
+ * wait for digit counts to become available.
+ */
+template <int BLOCK_DIM_X, int RADIX_BITS, bool IS_DESCENDING,
+          BlockScanAlgorithm INNER_SCAN_ALGORITHM = BLOCK_SCAN_WARP_SCANS,
+          WarpMatchAlgorithm MATCH_ALGORITHM = WARP_MATCH_ANY, int NUM_PARTS = 1>
+struct BlockRadixRankMatchEarlyCounts
+{
+    // constants
+    enum
+    {
+        BLOCK_THREADS = BLOCK_DIM_X,
+        RADIX_DIGITS = 1 << RADIX_BITS,
+        BINS_PER_THREAD = (RADIX_DIGITS + BLOCK_THREADS - 1) / BLOCK_THREADS,
+        BINS_TRACKED_PER_THREAD = BINS_PER_THREAD,
+        FULL_BINS = BINS_PER_THREAD * BLOCK_THREADS == RADIX_DIGITS,
+        WARP_THREADS = CUB_PTX_WARP_THREADS,
+        BLOCK_WARPS = BLOCK_THREADS / WARP_THREADS,
+        WARP_MASK = ~0,
+        NUM_MATCH_MASKS = MATCH_ALGORITHM == WARP_MATCH_ATOMIC_OR ? BLOCK_WARPS : 0,
+        // Guard against declaring zero-sized array:
+        MATCH_MASKS_ALLOC_SIZE = NUM_MATCH_MASKS < 1 ? 1 : NUM_MATCH_MASKS,
+    };
+
+    // types
+    typedef cub::BlockScan<int, BLOCK_THREADS, INNER_SCAN_ALGORITHM> BlockScan;
+
+    
+
+    // temporary storage
+    struct TempStorage
+    {
+        union
+        {
+            int warp_offsets[BLOCK_WARPS][RADIX_DIGITS];
+            int warp_histograms[BLOCK_WARPS][RADIX_DIGITS][NUM_PARTS];
+        };
+
+        int match_masks[MATCH_MASKS_ALLOC_SIZE][RADIX_DIGITS];
+
+        typename BlockScan::TempStorage prefix_tmp;
+    };
+
+    TempStorage& temp_storage;
+
+    // internal ranking implementation
+    template <typename UnsignedBits, int KEYS_PER_THREAD, typename DigitExtractorT,
+              typename CountsCallback>
+    struct BlockRadixRankMatchInternal
+    {
+        TempStorage& s;
+        DigitExtractorT digit_extractor;
+        CountsCallback callback;
+        int warp;
+        int lane;
+
+        __device__ __forceinline__ int Digit(UnsignedBits key)
+        {
+            int digit =  digit_extractor.Digit(key);
+            return IS_DESCENDING ? RADIX_DIGITS - 1 - digit : digit;
+        }
+
+        __device__ __forceinline__ int ThreadBin(int u)
+        {
+            int bin = threadIdx.x * BINS_PER_THREAD + u;
+            return IS_DESCENDING ? RADIX_DIGITS - 1 - bin : bin;
+        }
+
+        __device__ __forceinline__
+        void ComputeHistogramsWarp(UnsignedBits (&keys)[KEYS_PER_THREAD])
+        {
+            //int* warp_offsets = &s.warp_offsets[warp][0];
+            int (&warp_histograms)[RADIX_DIGITS][NUM_PARTS] = s.warp_histograms[warp];
+            // compute warp-private histograms
+            #pragma unroll
+            for (int bin = lane; bin < RADIX_DIGITS; bin += WARP_THREADS)
+            {
+                #pragma unroll
+                for (int part = 0; part < NUM_PARTS; ++part)
+                {
+                    warp_histograms[bin][part] = 0;
+                }
+            }
+            if (MATCH_ALGORITHM == WARP_MATCH_ATOMIC_OR)
+            {
+                int* match_masks = &s.match_masks[warp][0];
+                #pragma unroll
+                for (int bin = lane; bin < RADIX_DIGITS; bin += WARP_THREADS)
+                {
+                    match_masks[bin] = 0;
+                }                    
+            }
+            WARP_SYNC(WARP_MASK);
+
+            // compute private per-part histograms
+            int part = lane % NUM_PARTS;
+            #pragma unroll
+            for (int u = 0; u < KEYS_PER_THREAD; ++u)
+            {
+                atomicAdd(&warp_histograms[Digit(keys[u])][part], 1);
+            }
+            
+            // sum different parts;
+            // no extra work is necessary if NUM_PARTS == 1
+            if (NUM_PARTS > 1)
+            {
+                WARP_SYNC(WARP_MASK);
+                // TODO: handle RADIX_DIGITS % WARP_THREADS != 0 if it becomes necessary
+                const int WARP_BINS_PER_THREAD = RADIX_DIGITS / WARP_THREADS;
+                int bins[WARP_BINS_PER_THREAD];
+                #pragma unroll
+                for (int u = 0; u < WARP_BINS_PER_THREAD; ++u)
+                {
+                    int bin = lane + u * WARP_THREADS;
+                    bins[u] = internal::ThreadReduce(warp_histograms[bin], Sum());
+                }
+                CTA_SYNC();
+
+                // store the resulting histogram in shared memory
+                int* warp_offsets = &s.warp_offsets[warp][0];
+                #pragma unroll
+                for (int u = 0; u < WARP_BINS_PER_THREAD; ++u)
+                {
+                    int bin = lane + u * WARP_THREADS;
+                    warp_offsets[bin] = bins[u];
+                }
+            }
+        }
+
+        __device__ __forceinline__
+        void ComputeOffsetsWarpUpsweep(int (&bins)[BINS_PER_THREAD])
+        {
+            // sum up warp-private histograms
+            #pragma unroll
+            for (int u = 0; u < BINS_PER_THREAD; ++u) 
+            {
+                bins[u] = 0;
+                int bin = ThreadBin(u);
+                if (FULL_BINS || (bin >= 0 && bin < RADIX_DIGITS))
+                {
+                    #pragma unroll
+                    for (int j_warp = 0; j_warp < BLOCK_WARPS; ++j_warp)
+                    {
+                        int warp_offset = s.warp_offsets[j_warp][bin];
+                        s.warp_offsets[j_warp][bin] = bins[u];
+                        bins[u] += warp_offset;
+                    }
+                }
+            }
+        }
+
+        __device__ __forceinline__
+        void ComputeOffsetsWarpDownsweep(int (&offsets)[BINS_PER_THREAD])
+        {
+            #pragma unroll
+            for (int u = 0; u < BINS_PER_THREAD; ++u)
+            {
+                int bin = ThreadBin(u);
+                if (FULL_BINS || (bin >= 0 && bin < RADIX_DIGITS))
+                {
+                    int digit_offset = offsets[u];
+                    #pragma unroll
+                    for (int j_warp = 0; j_warp < BLOCK_WARPS; ++j_warp)
+                    {
+                        s.warp_offsets[j_warp][bin] += digit_offset;
+                    }
+                }
+            }
+        }
+
+        __device__ __forceinline__
+        void ComputeRanksItem(
+            UnsignedBits (&keys)[KEYS_PER_THREAD], int (&ranks)[KEYS_PER_THREAD],
+            Int2Type<WARP_MATCH_ATOMIC_OR>)
+        {
+            // compute key ranks
+            int lane_mask = 1 << lane;
+            int* warp_offsets = &s.warp_offsets[warp][0];
+            int* match_masks = &s.match_masks[warp][0];
+            #pragma unroll
+            for (int u = 0; u < KEYS_PER_THREAD; ++u)
+            {
+                int bin = Digit(keys[u]);
+                int* p_match_mask = &match_masks[bin];
+                atomicOr(p_match_mask, lane_mask);
+                WARP_SYNC(WARP_MASK);
+                int bin_mask = *p_match_mask;
+                int leader = (WARP_THREADS - 1) - __clz(bin_mask);
+                int warp_offset = 0;
+                int popc = __popc(bin_mask & LaneMaskLe());
+                if (lane == leader)
+                {
+                    // atomic is a bit faster
+                    warp_offset = atomicAdd(&warp_offsets[bin], popc);
+                }
+                warp_offset = SHFL_IDX_SYNC(warp_offset, leader, bin_mask);
+                if (lane == leader) *p_match_mask = 0;
+                WARP_SYNC(WARP_MASK);
+                ranks[u] = warp_offset + popc - 1;
+            }
+        }
+
+        __device__ __forceinline__
+        void ComputeRanksItem(
+            UnsignedBits (&keys)[KEYS_PER_THREAD], int (&ranks)[KEYS_PER_THREAD],
+            Int2Type<WARP_MATCH_ANY>)
+        {
+            // compute key ranks
+            int* warp_offsets = &s.warp_offsets[warp][0];
+            #pragma unroll
+            for (int u = 0; u < KEYS_PER_THREAD; ++u)
+            {
+                int bin = Digit(keys[u]);
+                int bin_mask = MatchAny<RADIX_BITS>(bin);
+                int leader = (WARP_THREADS - 1) - __clz(bin_mask);
+                int warp_offset = 0;
+                int popc = __popc(bin_mask & LaneMaskLe());
+                if (lane == leader)
+                {
+                    // atomic is a bit faster
+                    warp_offset = atomicAdd(&warp_offsets[bin], popc);
+                }
+                warp_offset = SHFL_IDX_SYNC(warp_offset, leader, bin_mask);
+                ranks[u] = warp_offset + popc - 1;
+            }
+        }
+
+        __device__ __forceinline__ void RankKeys(
+            UnsignedBits (&keys)[KEYS_PER_THREAD],
+            int (&ranks)[KEYS_PER_THREAD],
+            int (&exclusive_digit_prefix)[BINS_PER_THREAD])
+        {
+            ComputeHistogramsWarp(keys);
+            
+            CTA_SYNC();
+            int bins[BINS_PER_THREAD];
+            ComputeOffsetsWarpUpsweep(bins);
+            callback(bins);
+            
+            BlockScan(s.prefix_tmp).ExclusiveSum(bins, exclusive_digit_prefix);
+
+            ComputeOffsetsWarpDownsweep(exclusive_digit_prefix);
+            CTA_SYNC();
+            ComputeRanksItem(keys, ranks, Int2Type<MATCH_ALGORITHM>());
+        }
+
+        __device__ __forceinline__ BlockRadixRankMatchInternal
+        (TempStorage& temp_storage, DigitExtractorT digit_extractor, CountsCallback callback)
+            : s(temp_storage), digit_extractor(digit_extractor),
+              callback(callback), warp(threadIdx.x / WARP_THREADS), lane(LaneId())
+            {}
+    };
+
+    __device__ __forceinline__ BlockRadixRankMatchEarlyCounts
+    (TempStorage& temp_storage) : temp_storage(temp_storage) {}
+
+    /**
+     * \brief Rank keys.  For the lower \p RADIX_DIGITS threads, digit counts for each digit are provided for the corresponding thread.
+     */
+    template <typename UnsignedBits, int KEYS_PER_THREAD, typename DigitExtractorT,
+        typename CountsCallback>
+    __device__ __forceinline__ void RankKeys(
+        UnsignedBits    (&keys)[KEYS_PER_THREAD],
+        int             (&ranks)[KEYS_PER_THREAD],
+        DigitExtractorT digit_extractor,
+        int             (&exclusive_digit_prefix)[BINS_PER_THREAD],
+        CountsCallback  callback)
+    {
+        BlockRadixRankMatchInternal<UnsignedBits, KEYS_PER_THREAD, DigitExtractorT, CountsCallback>
+            internal(temp_storage, digit_extractor, callback);
+        internal.RankKeys(keys, ranks, exclusive_digit_prefix);        
+    }
+
+    template <typename UnsignedBits, int KEYS_PER_THREAD, typename DigitExtractorT>
+    __device__ __forceinline__ void RankKeys(
+        UnsignedBits    (&keys)[KEYS_PER_THREAD],
+        int             (&ranks)[KEYS_PER_THREAD],
+        DigitExtractorT digit_extractor,
+        int             (&exclusive_digit_prefix)[BINS_PER_THREAD])
+    {
+        typedef BlockRadixRankEmptyCallback<BINS_PER_THREAD> CountsCallback;
+        BlockRadixRankMatchInternal<UnsignedBits, KEYS_PER_THREAD, DigitExtractorT, CountsCallback>
+            internal(temp_storage, digit_extractor, CountsCallback());
+        internal.RankKeys(keys, ranks, exclusive_digit_prefix);
+    }
+
+    template <typename UnsignedBits, int KEYS_PER_THREAD, typename DigitExtractorT>
+    __device__ __forceinline__ void RankKeys(
+        UnsignedBits    (&keys)[KEYS_PER_THREAD],
+        int             (&ranks)[KEYS_PER_THREAD],
+        DigitExtractorT digit_extractor)
+    {
+        int exclusive_digit_prefix[BINS_PER_THREAD];
+        RankKeys(keys, ranks, digit_extractor, exclusive_digit_prefix);
     }
 };
 

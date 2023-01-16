@@ -1,7 +1,7 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the NVIDIA CORPORATION nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -40,15 +40,14 @@
 #include "../thread/thread_store.cuh"
 #include "../util_device.cuh"
 #include "../util_debug.cuh"
-#include "../util_namespace.cuh"
+#include "../config.cuh"
 
-#if (CUDA_VERSION >= 5050) || defined(DOXYGEN_ACTIVE)  // This iterator is compatible with CUDA 5.5 and newer
+#if (CUDART_VERSION >= 5050) || defined(DOXYGEN_ACTIVE)  // This iterator is compatible with CUDA 5.5 and newer
 
 #if (THRUST_VERSION >= 100700)    // This iterator is compatible with Thrust API 1.7 and newer
     #include <thrust/iterator/iterator_facade.h>
     #include <thrust/iterator/iterator_traits.h>
 #endif // THRUST_VERSION
-
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -68,8 +67,21 @@ namespace {
 
 /// Global texture reference specialized by type
 template <typename T>
-struct IteratorTexRef
+struct CUB_DEPRECATED IteratorTexRef
 {
+
+// This class uses the deprecated cudaBindTexture / cudaUnbindTexture APIs.
+// See issue NVIDIA/cub#191.
+// Turn off deprecation warnings when compiling class implementation in favor
+// of deprecating TexRefInputIterator instead.
+#if CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
+#pragma warning(disable:4996)
+#elif CUB_HOST_COMPILER == CUB_HOST_COMPILER_GCC || \
+      CUB_HOST_COMPILER == CUB_HOST_COMPILER_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
     /// And by unique ID
     template <int UNIQUE_ID>
     struct TexId
@@ -132,6 +144,13 @@ template <typename  T>
 template <int       UNIQUE_ID>
 typename IteratorTexRef<T>::template TexId<UNIQUE_ID>::TexRef IteratorTexRef<T>::template TexId<UNIQUE_ID>::ref = 0;
 
+// Re-enable deprecation warnings:
+#if CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
+#pragma warning(default:4996)
+#elif CUB_HOST_COMPILER == CUB_HOST_COMPILER_GCC || \
+      CUB_HOST_COMPILER == CUB_HOST_COMPILER_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 } // Anonymous namespace
 
@@ -150,25 +169,27 @@ typename IteratorTexRef<T>::template TexId<UNIQUE_ID>::TexRef IteratorTexRef<T>:
 /**
  * \brief A random-access input wrapper for dereferencing array values through texture cache.  Uses older Tesla/Fermi-style texture references.
  *
+ * \deprecated [Since 1.13.0] The CUDA texture management APIs used by
+ * TexRefInputIterator are deprecated. Use cub::TexObjInputIterator instead.
+ *
  * \par Overview
- * - TexRefInputIteratorTwraps a native device pointer of type <tt>ValueType*</tt>. References
+ * - TexRefInputIterator wraps a native device pointer of type <tt>ValueType*</tt>. References
  *   to elements are to be loaded through texture cache.
  * - Can be used to load any data type from memory through texture cache.
  * - Can be manipulated and exchanged within and between host and device
  *   functions, can only be constructed within host functions, and can only be
  *   dereferenced within device functions.
  * - The \p UNIQUE_ID template parameter is used to statically name the underlying texture
- *   reference.  Only one TexRefInputIteratorTinstance can be bound at any given time for a
+ *   reference.  Only one TexRefInputIterator instance can be bound at any given time for a
  *   specific combination of (1) data type \p T, (2) \p UNIQUE_ID, (3) host
  *   thread, and (4) compilation .o unit.
- * - With regard to nested/dynamic parallelism, TexRefInputIteratorTiterators may only be
+ * - With regard to nested/dynamic parallelism, TexRefInputIterator iterators may only be
  *   created by the host thread and used by a top-level kernel (i.e. the one which is launched
  *   from the host).
  * - Compatible with Thrust API v1.7 or newer.
- * - Compatible with CUDA toolkit v5.5 or newer.
  *
  * \par Snippet
- * The code snippet below illustrates the use of \p TexRefInputIteratorTto
+ * The code snippet below illustrates the use of \p TexRefInputIterator to
  * dereference a device array of doubles through texture cache.
  * \par
  * \code
@@ -201,8 +222,21 @@ template <
     typename    T,
     int         UNIQUE_ID,
     typename    OffsetT = ptrdiff_t>
-class TexRefInputIterator
+class CUB_DEPRECATED TexRefInputIterator
 {
+
+// This class uses the deprecated cudaBindTexture / cudaUnbindTexture APIs.
+// See issue NVIDIA/cub#191.
+// Turn off deprecation warnings when compiling class implementation in favor
+// of deprecating TexRefInputIterator instead.
+#if CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
+#pragma warning(disable:4996)
+#elif CUB_HOST_COMPILER == CUB_HOST_COMPILER_GCC || \
+      CUB_HOST_COMPILER == CUB_HOST_COMPILER_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 public:
 
     // Required iterator traits
@@ -245,7 +279,7 @@ public:
     template <typename QualifiedT>
     cudaError_t BindTexture(
         QualifiedT      *ptr,                   ///< Native pointer to wrap that is aligned to cudaDeviceProp::textureAlignment
-        size_t          bytes = size_t(-1),     ///< Number of bytes in the range
+        size_t          /*bytes*/ = size_t(-1), ///< Number of bytes in the range
         size_t          tex_offset = 0)         ///< OffsetT (in items) from \p ptr denoting the position of the iterator
     {
         this->ptr = const_cast<typename RemoveQualifiers<QualifiedT>::Type *>(ptr);
@@ -279,13 +313,19 @@ public:
     /// Indirection
     __host__ __device__ __forceinline__ reference operator*() const
     {
-#if (CUB_PTX_ARCH == 0)
-        // Simply dereference the pointer on the host
-        return ptr[tex_offset];
-#else
-        // Use the texture reference
-        return TexId::Fetch(tex_offset);
-#endif
+        if (CUB_IS_HOST_CODE) {
+            // Simply dereference the pointer on the host
+            return ptr[tex_offset];
+        } else {
+            #if CUB_INCLUDE_DEVICE_CODE
+                // Use the texture reference
+                return TexId::Fetch(tex_offset);
+            #else
+                // This is dead code that will never be executed.  It is here
+                // only to avoid warnings about missing returns.
+                return ptr[tex_offset];
+            #endif
+        }
     }
 
     /// Addition
@@ -357,10 +397,18 @@ public:
     }
 
     /// ostream operator
-    friend std::ostream& operator<<(std::ostream& os, const self_type& itr)
+    friend std::ostream& operator<<(std::ostream& os, const self_type& /*itr*/)
     {
         return os;
     }
+
+// Re-enable deprecation warnings:
+#if CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
+#pragma warning(default:4996)
+#elif CUB_HOST_COMPILER == CUB_HOST_COMPILER_GCC || \
+      CUB_HOST_COMPILER == CUB_HOST_COMPILER_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 };
 
@@ -371,4 +419,4 @@ public:
 }               // CUB namespace
 CUB_NS_POSTFIX  // Optional outer namespace(s)
 
-#endif // CUDA_VERSION
+#endif // CUDART_VERSION

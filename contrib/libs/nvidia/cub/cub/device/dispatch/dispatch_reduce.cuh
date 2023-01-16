@@ -42,9 +42,11 @@
 #include "../../thread/thread_operators.cuh"
 #include "../../grid/grid_even_share.cuh"
 #include "../../iterator/arg_index_input_iterator.cuh"
+#include "../../config.cuh"
 #include "../../util_debug.cuh"
 #include "../../util_device.cuh"
-#include "../../util_namespace.cuh"
+
+#include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -108,14 +110,14 @@ template <
     typename                OutputIteratorT,            ///< Output iterator type for recording the reduced aggregate \iterator
     typename                OffsetT,                    ///< Signed integer type for global offsets
     typename                ReductionOpT,               ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
-    typename                OuputT>                     ///< Data element type that is convertible to the \p value type of \p OutputIteratorT
+    typename                OutputT>                     ///< Data element type that is convertible to the \p value type of \p OutputIteratorT
 __launch_bounds__ (int(ChainedPolicyT::ActivePolicy::SingleTilePolicy::BLOCK_THREADS), 1)
 __global__ void DeviceReduceSingleTileKernel(
     InputIteratorT          d_in,                       ///< [in] Pointer to the input sequence of data items
     OutputIteratorT         d_out,                      ///< [out] Pointer to the output aggregate
     OffsetT                 num_items,                  ///< [in] Total number of input data items
     ReductionOpT            reduction_op,               ///< [in] Binary reduction functor
-    OuputT                  init)                       ///< [in] The initial value of the reduction
+    OutputT                  init)                       ///< [in] The initial value of the reduction
 {
     // Thread block type for reducing input tiles
     typedef AgentReduce<
@@ -138,7 +140,7 @@ __global__ void DeviceReduceSingleTileKernel(
     }
 
     // Consume input tiles
-    OuputT block_aggregate = AgentReduceT(temp_storage, d_in, reduction_op).ConsumeRange(
+    OutputT block_aggregate = AgentReduceT(temp_storage, d_in, reduction_op).ConsumeRange(
         OffsetT(0),
         num_items);
 
@@ -177,7 +179,8 @@ template <
     typename                ChainedPolicyT,             ///< Chained tuning policy
     typename                InputIteratorT,             ///< Random-access input iterator type for reading input items \iterator
     typename                OutputIteratorT,            ///< Output iterator type for recording the reduced aggregate \iterator
-    typename                OffsetIteratorT,            ///< Random-access input iterator type for reading segment offsets \iterator
+    typename                BeginOffsetIteratorT,       ///< Random-access input iterator type for reading segment beginning offsets \iterator
+    typename                EndOffsetIteratorT,         ///< Random-access input iterator type for reading segment ending offsets \iterator
     typename                OffsetT,                    ///< Signed integer type for global offsets
     typename                ReductionOpT,               ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
     typename                OutputT>                    ///< Data element type that is convertible to the \p value type of \p OutputIteratorT
@@ -185,10 +188,10 @@ __launch_bounds__ (int(ChainedPolicyT::ActivePolicy::ReducePolicy::BLOCK_THREADS
 __global__ void DeviceSegmentedReduceKernel(
     InputIteratorT          d_in,                       ///< [in] Pointer to the input sequence of data items
     OutputIteratorT         d_out,                      ///< [out] Pointer to the output aggregate
-    OffsetIteratorT         d_begin_offsets,            ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-    OffsetIteratorT         d_end_offsets,              ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+    BeginOffsetIteratorT    d_begin_offsets,            ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+    EndOffsetIteratorT      d_end_offsets,              ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
     int                     /*num_segments*/,           ///< [in] The number of segments that comprise the sorting data
-    ReductionOpT            reduction_op,               ///< [in] Binary reduction functor 
+    ReductionOpT            reduction_op,               ///< [in] Binary reduction functor
     OutputT                 init)                       ///< [in] The initial value of the reduction
 {
     // Thread block type for reducing input tiles
@@ -234,59 +237,22 @@ __global__ void DeviceSegmentedReduceKernel(
  ******************************************************************************/
 
 template <
-    typename OuputT,            ///< Data type
+    typename InputT,            ///< Input data type
+    typename OutputT,           ///< Compute/output data type
     typename OffsetT,           ///< Signed integer type for global offsets
-    typename ReductionOpT>      ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt> 
+    typename ReductionOpT>      ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
 struct DeviceReducePolicy
 {
     //------------------------------------------------------------------------------
     // Architecture-specific tuning policies
     //------------------------------------------------------------------------------
 
-    /// SM13
-    struct Policy130 : ChainedPolicy<130, Policy130, Policy130>
-    {
-        // ReducePolicy
-        typedef AgentReducePolicy<
-                CUB_SCALED_GRANULARITIES(128, 8, OuputT), ///< Threads per block, items per thread
-                2,                                  ///< Number of items per vectorized load
-                BLOCK_REDUCE_RAKING,                ///< Cooperative block-wide reduction algorithm to use
-                LOAD_DEFAULT>                       ///< Cache load modifier
-            ReducePolicy;
-
-        // SingleTilePolicy
-        typedef ReducePolicy SingleTilePolicy;
-
-        // SegmentedReducePolicy
-        typedef ReducePolicy SegmentedReducePolicy;
-    };
-
-
-    /// SM20
-    struct Policy200 : ChainedPolicy<200, Policy200, Policy130>
-    {
-        // ReducePolicy (GTX 580: 178.9 GB/s @ 48M 4B items, 158.1 GB/s @ 192M 1B items)
-        typedef AgentReducePolicy<
-                CUB_SCALED_GRANULARITIES(128, 8, OuputT),     ///< Threads per block, items per thread
-                4,                                      ///< Number of items per vectorized load
-                BLOCK_REDUCE_RAKING,                    ///< Cooperative block-wide reduction algorithm to use
-                LOAD_DEFAULT>                           ///< Cache load modifier
-            ReducePolicy;
-
-        // SingleTilePolicy
-        typedef ReducePolicy SingleTilePolicy;
-
-        // SegmentedReducePolicy
-        typedef ReducePolicy SegmentedReducePolicy;
-    };
-
-
     /// SM30
-    struct Policy300 : ChainedPolicy<300, Policy300, Policy200>
+    struct Policy300 : ChainedPolicy<300, Policy300, Policy300>
     {
         // ReducePolicy (GTX670: 154.0 @ 48M 4B items)
         typedef AgentReducePolicy<
-                CUB_SCALED_GRANULARITIES(256, 20, OuputT),    ///< Threads per block, items per thread
+                256, 20, InputT,                       ///< Threads per block, items per thread, compute type, compute type
                 2,                                      ///< Number of items per vectorized load
                 BLOCK_REDUCE_WARP_REDUCTIONS,           ///< Cooperative block-wide reduction algorithm to use
                 LOAD_DEFAULT>                           ///< Cache load modifier
@@ -305,7 +271,7 @@ struct DeviceReducePolicy
     {
         // ReducePolicy (GTX Titan: 255.1 GB/s @ 48M 4B items; 228.7 GB/s @ 192M 1B items)
         typedef AgentReducePolicy<
-                CUB_SCALED_GRANULARITIES(256, 20, OuputT),    ///< Threads per block, items per thread
+                256, 20, InputT,                       ///< Threads per block, items per thread, compute type
                 4,                                      ///< Number of items per vectorized load
                 BLOCK_REDUCE_WARP_REDUCTIONS,           ///< Cooperative block-wide reduction algorithm to use
                 LOAD_LDG>                               ///< Cache load modifier
@@ -323,7 +289,7 @@ struct DeviceReducePolicy
     {
         // ReducePolicy (P100: 591 GB/s @ 64M 4B items; 583 GB/s @ 256M 1B items)
         typedef AgentReducePolicy<
-                CUB_SCALED_GRANULARITIES(256, 16, OuputT),    ///< Threads per block, items per thread
+                256, 16, InputT,                       ///< Threads per block, items per thread, compute type
                 4,                                      ///< Number of items per vectorized load
                 BLOCK_REDUCE_WARP_REDUCTIONS,           ///< Cooperative block-wide reduction algorithm to use
                 LOAD_LDG>                               ///< Cache load modifier
@@ -355,25 +321,19 @@ template <
     typename InputIteratorT,    ///< Random-access input iterator type for reading input items \iterator
     typename OutputIteratorT,   ///< Output iterator type for recording the reduced aggregate \iterator
     typename OffsetT,           ///< Signed integer type for global offsets
-    typename ReductionOpT>      ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt> 
-struct DispatchReduce :
-    DeviceReducePolicy<
+    typename ReductionOpT,      ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
+    typename OutputT =          ///< Data type of the output iterator
         typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
             typename std::iterator_traits<InputIteratorT>::value_type,                                  // ... then the input iterator's value type,
             typename std::iterator_traits<OutputIteratorT>::value_type>::Type,                          // ... else the output iterator's value type
+    typename SelectedPolicy = DeviceReducePolicy<
+        typename std::iterator_traits<InputIteratorT>::value_type,
+        OutputT,
         OffsetT,
-        ReductionOpT>
+        ReductionOpT> >
+struct DispatchReduce :
+    SelectedPolicy
 {
-    //------------------------------------------------------------------------------
-    // Constants
-    //------------------------------------------------------------------------------
-
-    // Data type of output iterator
-    typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
-        typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
-
-
     //------------------------------------------------------------------------------
     // Problem state
     //------------------------------------------------------------------------------
@@ -383,7 +343,7 @@ struct DispatchReduce :
     InputIteratorT      d_in;                           ///< [in] Pointer to the input sequence of data items
     OutputIteratorT     d_out;                          ///< [out] Pointer to the output aggregate
     OffsetT             num_items;                      ///< [in] Total number of input items (i.e., length of \p d_in)
-    ReductionOpT        reduction_op;                   ///< [in] Binary reduction functor 
+    ReductionOpT        reduction_op;                   ///< [in] Binary reduction functor
     OutputT             init;                           ///< [in] The initial value of the reduction
     cudaStream_t        stream;                         ///< [in] CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
     bool                debug_synchronous;              ///< [in] Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
@@ -455,7 +415,9 @@ struct DispatchReduce :
                 ActivePolicyT::SingleTilePolicy::ITEMS_PER_THREAD);
 
             // Invoke single_reduce_sweep_kernel
-            single_tile_kernel<<<1, ActivePolicyT::SingleTilePolicy::BLOCK_THREADS, 0, stream>>>(
+            thrust::cuda_cub::launcher::triple_chevron(
+                1, ActivePolicyT::SingleTilePolicy::BLOCK_THREADS, 0, stream
+            ).doit(single_tile_kernel,
                 d_in,
                 d_out,
                 num_items,
@@ -520,7 +482,7 @@ struct DispatchReduce :
             even_share.DispatchInit(num_items, max_blocks, reduce_config.tile_size);
 
             // Temporary storage allocation requirements
-            void* allocations[1];
+            void* allocations[1] = {};
             size_t allocation_sizes[1] =
             {
                 max_blocks * sizeof(OutputT)    // bytes needed for privatized block reductions
@@ -549,7 +511,10 @@ struct DispatchReduce :
                 reduce_config.sm_occupancy);
 
             // Invoke DeviceReduceKernel
-            reduce_kernel<<<reduce_grid_size, ActivePolicyT::ReducePolicy::BLOCK_THREADS, 0, stream>>>(
+            thrust::cuda_cub::launcher::triple_chevron(
+                reduce_grid_size, ActivePolicyT::ReducePolicy::BLOCK_THREADS,
+                0, stream
+            ).doit(reduce_kernel,
                 d_in,
                 d_block_reductions,
                 num_items,
@@ -569,7 +534,9 @@ struct DispatchReduce :
                 ActivePolicyT::SingleTilePolicy::ITEMS_PER_THREAD);
 
             // Invoke DeviceReduceSingleTileKernel
-            single_tile_kernel<<<1, ActivePolicyT::SingleTilePolicy::BLOCK_THREADS, 0, stream>>>(
+            thrust::cuda_cub::launcher::triple_chevron(
+                1, ActivePolicyT::SingleTilePolicy::BLOCK_THREADS, 0, stream
+            ).doit(single_tile_kernel,
                 d_block_reductions,
                 d_out,
                 reduce_grid_size,
@@ -634,7 +601,7 @@ struct DispatchReduce :
         InputIteratorT  d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT d_out,                              ///< [out] Pointer to the output aggregate
         OffsetT         num_items,                          ///< [in] Total number of input items (i.e., length of \p d_in)
-        ReductionOpT    reduction_op,                       ///< [in] Binary reduction functor 
+        ReductionOpT    reduction_op,                       ///< [in] Binary reduction functor
         OutputT         init,                               ///< [in] The initial value of the reduction
         cudaStream_t    stream,                             ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool            debug_synchronous)                  ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
@@ -645,7 +612,7 @@ struct DispatchReduce :
         do
         {
             // Get PTX version
-            int ptx_version;
+            int ptx_version = 0;
             if (CubDebug(error = PtxVersion(ptx_version))) break;
 
             // Create dispatch functor
@@ -673,43 +640,40 @@ struct DispatchReduce :
  * Utility class for dispatching the appropriately-tuned kernels for device-wide reduction
  */
 template <
-    typename InputIteratorT,    ///< Random-access input iterator type for reading input items \iterator
-    typename OutputIteratorT,   ///< Output iterator type for recording the reduced aggregate \iterator
-    typename OffsetIteratorT,   ///< Random-access input iterator type for reading segment offsets \iterator
-    typename OffsetT,           ///< Signed integer type for global offsets
-    typename ReductionOpT>      ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt> 
-struct DispatchSegmentedReduce :
-    DeviceReducePolicy<
+    typename InputIteratorT,       ///< Random-access input iterator type for reading input items \iterator
+    typename OutputIteratorT,      ///< Output iterator type for recording the reduced aggregate \iterator
+    typename BeginOffsetIteratorT, ///< Random-access input iterator type for reading segment beginning offsets \iterator
+    typename EndOffsetIteratorT,   ///< Random-access input iterator type for reading segment ending offsets \iterator
+    typename OffsetT,              ///< Signed integer type for global offsets
+    typename ReductionOpT,         ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
+    typename OutputT =             ///< Data type of the output iterator
+        typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
+            typename std::iterator_traits<InputIteratorT>::value_type,                                  // ... then the input iterator's value type,
+            typename std::iterator_traits<OutputIteratorT>::value_type>::Type,                          // ... else the output iterator's value type
+    typename SelectedPolicy = DeviceReducePolicy<
         typename std::iterator_traits<InputIteratorT>::value_type,
+        OutputT,
         OffsetT,
-        ReductionOpT>
+        ReductionOpT> >
+struct DispatchSegmentedReduce :
+    SelectedPolicy
 {
-    //------------------------------------------------------------------------------
-    // Constants
-    //------------------------------------------------------------------------------
-
-    /// The output value type
-    typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
-        typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
-
-
     //------------------------------------------------------------------------------
     // Problem state
     //------------------------------------------------------------------------------
 
-    void                *d_temp_storage;        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-    size_t              &temp_storage_bytes;    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-    InputIteratorT      d_in;                   ///< [in] Pointer to the input sequence of data items
-    OutputIteratorT     d_out;                  ///< [out] Pointer to the output aggregate
-    OffsetT             num_segments;           ///< [in] The number of segments that comprise the sorting data
-    OffsetIteratorT     d_begin_offsets;        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-    OffsetIteratorT     d_end_offsets;          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-    ReductionOpT        reduction_op;           ///< [in] Binary reduction functor 
-    OutputT             init;                   ///< [in] The initial value of the reduction
-    cudaStream_t        stream;                 ///< [in] CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-    bool                debug_synchronous;      ///< [in] Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
-    int                 ptx_version;            ///< [in] PTX version
+    void                 *d_temp_storage;        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+    size_t               &temp_storage_bytes;    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+    InputIteratorT       d_in;                   ///< [in] Pointer to the input sequence of data items
+    OutputIteratorT      d_out;                  ///< [out] Pointer to the output aggregate
+    OffsetT              num_segments;           ///< [in] The number of segments that comprise the sorting data
+    BeginOffsetIteratorT d_begin_offsets;        ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+    EndOffsetIteratorT   d_end_offsets;          ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+    ReductionOpT         reduction_op;           ///< [in] Binary reduction functor
+    OutputT              init;                   ///< [in] The initial value of the reduction
+    cudaStream_t         stream;                 ///< [in] CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+    bool                 debug_synchronous;      ///< [in] Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+    int                  ptx_version;            ///< [in] PTX version
 
     //------------------------------------------------------------------------------
     // Constructor
@@ -723,8 +687,8 @@ struct DispatchSegmentedReduce :
         InputIteratorT          d_in,
         OutputIteratorT         d_out,
         OffsetT                 num_segments,
-        OffsetIteratorT         d_begin_offsets,
-        OffsetIteratorT         d_end_offsets,
+        BeginOffsetIteratorT    d_begin_offsets,
+        EndOffsetIteratorT      d_end_offsets,
         ReductionOpT            reduction_op,
         OutputT                 init,
         cudaStream_t            stream,
@@ -787,7 +751,10 @@ struct DispatchSegmentedReduce :
                 segmented_reduce_config.sm_occupancy);
 
             // Invoke DeviceReduceKernel
-            segmented_reduce_kernel<<<num_segments, ActivePolicyT::SegmentedReducePolicy::BLOCK_THREADS, 0, stream>>>(
+            thrust::cuda_cub::launcher::triple_chevron(
+                num_segments,
+                ActivePolicyT::SegmentedReducePolicy::BLOCK_THREADS, 0, stream
+            ).doit(segmented_reduce_kernel,
                 d_in,
                 d_out,
                 d_begin_offsets,
@@ -820,7 +787,7 @@ struct DispatchSegmentedReduce :
 
         // Force kernel code-generation in all compiler passes
         return InvokePasses<ActivePolicyT>(
-            DeviceSegmentedReduceKernel<MaxPolicyT, InputIteratorT, OutputIteratorT, OffsetIteratorT, OffsetT, ReductionOpT, OutputT>);
+            DeviceSegmentedReduceKernel<MaxPolicyT, InputIteratorT, OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, ReductionOpT, OutputT>);
     }
 
 
@@ -833,17 +800,17 @@ struct DispatchSegmentedReduce :
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void            *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t          &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT  d_in,                               ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT d_out,                              ///< [out] Pointer to the output aggregate
-        int             num_segments,                       ///< [in] The number of segments that comprise the sorting data
-        OffsetIteratorT d_begin_offsets,                    ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
-        OffsetIteratorT d_end_offsets,                      ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
-        ReductionOpT    reduction_op,                       ///< [in] Binary reduction functor 
-        OutputT         init,                               ///< [in] The initial value of the reduction
-        cudaStream_t    stream,                             ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool            debug_synchronous)                  ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
+        OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
+        int                  num_segments,                       ///< [in] The number of segments that comprise the sorting data
+        BeginOffsetIteratorT d_begin_offsets,                    ///< [in] Random-access input iterator to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        EndOffsetIteratorT   d_end_offsets,                      ///< [in] Random-access input iterator to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
+        ReductionOpT         reduction_op,                       ///< [in] Binary reduction functor
+        OutputT              init,                               ///< [in] The initial value of the reduction
+        cudaStream_t         stream,                             ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        bool                 debug_synchronous)                  ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         typedef typename DispatchSegmentedReduce::MaxPolicy MaxPolicyT;
 
@@ -854,7 +821,7 @@ struct DispatchSegmentedReduce :
         do
         {
             // Get PTX version
-            int ptx_version;
+            int ptx_version = 0;
             if (CubDebug(error = PtxVersion(ptx_version))) break;
 
             // Create dispatch functor

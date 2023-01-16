@@ -36,8 +36,7 @@
 #include <iterator>
 #include <iostream>
 
-#include "../util_namespace.cuh"
-#include "../util_macro.cuh"
+#include "../config.cuh"
 
 #if (THRUST_VERSION >= 100700)
     // This iterator is compatible with Thrust API 1.7 and newer
@@ -176,12 +175,6 @@ public:
     __host__ __device__ __forceinline__ pointer operator->()
     {
         return;
-    }
-
-    /// Assignment to self (no-op)
-    __host__ __device__ __forceinline__ void operator=(self_type const& other)
-    {
-        offset = other.offset;
     }
 
     /// Assignment to anything else (no-op)

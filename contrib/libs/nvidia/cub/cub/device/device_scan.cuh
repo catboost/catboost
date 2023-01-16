@@ -37,8 +37,8 @@
 #include <stdio.h>
 #include <iterator>
 
+#include "../config.cuh"
 #include "dispatch/dispatch_scan.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -67,7 +67,7 @@ namespace cub {
  * idea is to leverage a small, constant factor of redundant work in order to overlap the latencies
  * of global prefix propagation with local computation.  As such, our algorithm requires only
  * ~2<em>n</em> data movement (<em>n</em> inputs are read, <em>n</em> outputs are written), and typically
- * proceeds at "memcpy" speeds.
+ * proceeds at "memcpy" speeds. Our algorithm supports inplace operations.
  *
  * \par
  * [1] [Duane Merrill and Michael Garland.  "Single-pass Parallel Prefix Scan with Decoupled Look-back", <em>NVIDIA Technical Report NVR-2016-002</em>, 2016.](https://research.nvidia.com/publication/single-pass-parallel-prefix-scan-decoupled-look-back)
@@ -158,10 +158,9 @@ struct DeviceScan
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        // The output value type
-        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-            typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
-            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
+        // The output value type -- used as the intermediate accumulator
+        // Use the input value type per https://wg21.link/P0571
+        typedef typename std::iterator_traits<InputIteratorT>::value_type OutputT;
 
         // Initial value
         OutputT init_value = 0;

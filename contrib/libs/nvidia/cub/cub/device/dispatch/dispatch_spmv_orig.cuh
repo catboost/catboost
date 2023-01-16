@@ -43,9 +43,12 @@
 #include "../../util_type.cuh"
 #include "../../util_debug.cuh"
 #include "../../util_device.cuh"
+#include "../../util_math.cuh"
 #include "../../thread/thread_search.cuh"
 #include "../../grid/grid_queue.cuh"
-#include "../../util_namespace.cuh"
+#include "../../config.cuh"
+
+#include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -262,83 +265,6 @@ struct DispatchSpmv
     // Tuning policies
     //---------------------------------------------------------------------
 
-    /// SM11
-    struct Policy110
-    {
-        typedef AgentSpmvPolicy<
-                128,
-                1,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                false,
-                BLOCK_SCAN_WARP_SCANS>
-            SpmvPolicyT;
-
-        typedef AgentSegmentFixupPolicy<
-                128,
-                4,
-                BLOCK_LOAD_VECTORIZE,
-                LOAD_DEFAULT,
-                BLOCK_SCAN_WARP_SCANS>
-            SegmentFixupPolicyT;
-    };
-
-    /// SM20
-    struct Policy200 
-    {
-        typedef AgentSpmvPolicy<
-                96,
-                18,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                false,
-                BLOCK_SCAN_RAKING>
-            SpmvPolicyT;
-
-        typedef AgentSegmentFixupPolicy<
-                128,
-                4,
-                BLOCK_LOAD_VECTORIZE,
-                LOAD_DEFAULT,
-                BLOCK_SCAN_WARP_SCANS>
-            SegmentFixupPolicyT;
-
-    };
-
-
-
-    /// SM30
-    struct Policy300 
-    {
-        typedef AgentSpmvPolicy<
-                96,
-                6,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                LOAD_DEFAULT,
-                false,
-                BLOCK_SCAN_WARP_SCANS>
-            SpmvPolicyT;
-
-        typedef AgentSegmentFixupPolicy<
-                128,
-                4,
-                BLOCK_LOAD_VECTORIZE,
-                LOAD_DEFAULT,
-                BLOCK_SCAN_WARP_SCANS>
-            SegmentFixupPolicyT;
-
-    };
-
-
     /// SM35
     struct Policy350
     {
@@ -376,7 +302,7 @@ struct DispatchSpmv
                 LOAD_LDG,
                 LOAD_LDG,
                 LOAD_LDG,
-                false, 
+                false,
                 BLOCK_SCAN_WARP_SCANS>
             SpmvPolicyT;
 
@@ -455,17 +381,8 @@ struct DispatchSpmv
 #elif (CUB_PTX_ARCH >= 370)
     typedef Policy370 PtxPolicy;
 
-#elif (CUB_PTX_ARCH >= 350)
-    typedef Policy350 PtxPolicy;
-
-#elif (CUB_PTX_ARCH >= 300)
-    typedef Policy300 PtxPolicy;
-
-#elif (CUB_PTX_ARCH >= 200)
-    typedef Policy200 PtxPolicy;
-
 #else
-    typedef Policy110 PtxPolicy;
+    typedef Policy350 PtxPolicy;
 
 #endif
 
@@ -488,53 +405,40 @@ struct DispatchSpmv
         KernelConfig    &spmv_config,
         KernelConfig    &segment_fixup_config)
     {
-    #if (CUB_PTX_ARCH > 0)
-
-        // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
-        spmv_config.template Init<PtxSpmvPolicyT>();
-        segment_fixup_config.template Init<PtxSegmentFixupPolicy>();
-
-    #else
-
-        // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
-        if (ptx_version >= 600)
+        if (CUB_IS_DEVICE_CODE)
         {
-            spmv_config.template            Init<typename Policy600::SpmvPolicyT>();
-            segment_fixup_config.template   Init<typename Policy600::SegmentFixupPolicyT>();
-        }
-        else if (ptx_version >= 500)
-        {
-            spmv_config.template            Init<typename Policy500::SpmvPolicyT>();
-            segment_fixup_config.template   Init<typename Policy500::SegmentFixupPolicyT>();
-        }
-        else if (ptx_version >= 370)
-        {
-            spmv_config.template            Init<typename Policy370::SpmvPolicyT>();
-            segment_fixup_config.template   Init<typename Policy370::SegmentFixupPolicyT>();
-        }
-        else if (ptx_version >= 350)
-        {
-            spmv_config.template            Init<typename Policy350::SpmvPolicyT>();
-            segment_fixup_config.template   Init<typename Policy350::SegmentFixupPolicyT>();
-        }
-        else if (ptx_version >= 300)
-        {
-            spmv_config.template            Init<typename Policy300::SpmvPolicyT>();
-            segment_fixup_config.template   Init<typename Policy300::SegmentFixupPolicyT>();
-
-        }
-        else if (ptx_version >= 200)
-        {
-            spmv_config.template            Init<typename Policy200::SpmvPolicyT>();
-            segment_fixup_config.template   Init<typename Policy200::SegmentFixupPolicyT>();
+            #if CUB_INCLUDE_DEVICE_CODE
+                // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
+                spmv_config.template Init<PtxSpmvPolicyT>();
+                segment_fixup_config.template Init<PtxSegmentFixupPolicy>();
+            #endif
         }
         else
         {
-            spmv_config.template            Init<typename Policy110::SpmvPolicyT>();
-            segment_fixup_config.template   Init<typename Policy110::SegmentFixupPolicyT>();
+            #if CUB_INCLUDE_HOST_CODE
+                // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
+                if (ptx_version >= 600)
+                {
+                    spmv_config.template            Init<typename Policy600::SpmvPolicyT>();
+                    segment_fixup_config.template   Init<typename Policy600::SegmentFixupPolicyT>();
+                }
+                else if (ptx_version >= 500)
+                {
+                    spmv_config.template            Init<typename Policy500::SpmvPolicyT>();
+                    segment_fixup_config.template   Init<typename Policy500::SegmentFixupPolicyT>();
+                }
+                else if (ptx_version >= 370)
+                {
+                    spmv_config.template            Init<typename Policy370::SpmvPolicyT>();
+                    segment_fixup_config.template   Init<typename Policy370::SegmentFixupPolicyT>();
+                }
+                else
+                {
+                    spmv_config.template            Init<typename Policy350::SpmvPolicyT>();
+                    segment_fixup_config.template   Init<typename Policy350::SegmentFixupPolicyT>();
+                }
+            #endif
         }
-
-    #endif
     }
 
 
@@ -607,14 +511,17 @@ struct DispatchSpmv
                 }
 
                 // Get search/init grid dims
-                int degen_col_kernel_block_size     = INIT_KERNEL_THREADS;
-                int degen_col_kernel_grid_size      = (spmv_params.num_rows + degen_col_kernel_block_size - 1) / degen_col_kernel_block_size;
+                int degen_col_kernel_block_size = INIT_KERNEL_THREADS;
+                int degen_col_kernel_grid_size = cub::DivideAndRoundUp(spmv_params.num_rows, degen_col_kernel_block_size);
 
                 if (debug_synchronous) _CubLog("Invoking spmv_1col_kernel<<<%d, %d, 0, %lld>>>()\n",
                     degen_col_kernel_grid_size, degen_col_kernel_block_size, (long long) stream);
 
                 // Invoke spmv_search_kernel
-                spmv_1col_kernel<<<degen_col_kernel_grid_size, degen_col_kernel_block_size, 0, stream>>>(
+                thrust::cuda_cub::launcher::triple_chevron(
+                    degen_col_kernel_grid_size, degen_col_kernel_block_size, 0,
+                    stream
+                ).doit(spmv_1col_kernel,
                     spmv_params);
 
                 // Check for failure to launch
@@ -646,8 +553,8 @@ struct DispatchSpmv
             int segment_fixup_tile_size     = segment_fixup_config.block_threads * segment_fixup_config.items_per_thread;
 
             // Number of tiles for kernels
-            int num_merge_tiles                     = (num_merge_items + merge_tile_size - 1) / merge_tile_size;
-            int num_segment_fixup_tiles             = (num_merge_tiles + segment_fixup_tile_size - 1) / segment_fixup_tile_size;
+            int num_merge_tiles            = cub::DivideAndRoundUp(num_merge_items, merge_tile_size);
+            int num_segment_fixup_tiles    = cub::DivideAndRoundUp(num_merge_tiles, segment_fixup_tile_size);
 
             // Get SM occupancy for kernels
             int spmv_sm_occupancy;
@@ -665,12 +572,12 @@ struct DispatchSpmv
             // Get grid dimensions
             dim3 spmv_grid_size(
                 CUB_MIN(num_merge_tiles, max_dim_x),
-                (num_merge_tiles + max_dim_x - 1) / max_dim_x,
+                cub::DivideAndRoundUp(num_merge_tiles, max_dim_x),
                 1);
 
             dim3 segment_fixup_grid_size(
                 CUB_MIN(num_segment_fixup_tiles, max_dim_x),
-                (num_segment_fixup_tiles + max_dim_x - 1) / max_dim_x,
+                cub::DivideAndRoundUp(num_segment_fixup_tiles, max_dim_x),
                 1);
 
             // Get the temporary storage allocation requirements
@@ -680,7 +587,7 @@ struct DispatchSpmv
             allocation_sizes[2] = (num_merge_tiles + 1) * sizeof(CoordinateT);   // bytes needed for tile starting coordinates
 
             // Alias the temporary allocations from the single storage blob (or compute the necessary size of the blob)
-            void* allocations[3];
+            void* allocations[3] = {};
             if (CubDebug(error = AliasTemporaries(d_temp_storage, temp_storage_bytes, allocations, allocation_sizes))) break;
             if (d_temp_storage == NULL)
             {
@@ -698,12 +605,15 @@ struct DispatchSpmv
 
             // Get search/init grid dims
             int search_block_size   = INIT_KERNEL_THREADS;
-            int search_grid_size    = (num_merge_tiles + 1 + search_block_size - 1) / search_block_size;
+            int search_grid_size    = cub::DivideAndRoundUp(num_merge_tiles + 1, search_block_size);
 
-#if (CUB_PTX_ARCH == 0)
-            // Init textures
-            if (CubDebug(error = spmv_params.t_vector_x.BindTexture(spmv_params.d_vector_x))) break;
-#endif
+            #if CUB_INCLUDE_HOST_CODE
+                if (CUB_IS_HOST_CODE)
+                {
+                    // Init textures
+                    if (CubDebug(error = spmv_params.t_vector_x.BindTexture(spmv_params.d_vector_x))) break;
+                }
+            #endif
 
             if (search_grid_size < sm_count)
 //            if (num_merge_tiles < spmv_sm_occupancy * sm_count)
@@ -720,7 +630,9 @@ struct DispatchSpmv
                     search_grid_size, search_block_size, (long long) stream);
 
                 // Invoke spmv_search_kernel
-                spmv_search_kernel<<<search_grid_size, search_block_size, 0, stream>>>(
+                thrust::cuda_cub::launcher::triple_chevron(
+                    search_grid_size, search_block_size, 0, stream
+                ).doit(spmv_search_kernel,
                     num_merge_tiles,
                     d_tile_coordinates,
                     spmv_params);
@@ -737,7 +649,9 @@ struct DispatchSpmv
                 spmv_grid_size.x, spmv_grid_size.y, spmv_grid_size.z, spmv_config.block_threads, (long long) stream, spmv_config.items_per_thread, spmv_sm_occupancy);
 
             // Invoke spmv_kernel
-            spmv_kernel<<<spmv_grid_size, spmv_config.block_threads, 0, stream>>>(
+            thrust::cuda_cub::launcher::triple_chevron(
+                spmv_grid_size, spmv_config.block_threads, 0, stream
+            ).doit(spmv_kernel,
                 spmv_params,
                 d_tile_coordinates,
                 d_tile_carry_pairs,
@@ -759,7 +673,10 @@ struct DispatchSpmv
                     segment_fixup_grid_size.x, segment_fixup_grid_size.y, segment_fixup_grid_size.z, segment_fixup_config.block_threads, (long long) stream, segment_fixup_config.items_per_thread, segment_fixup_sm_occupancy);
 
                 // Invoke segment_fixup_kernel
-                segment_fixup_kernel<<<segment_fixup_grid_size, segment_fixup_config.block_threads, 0, stream>>>(
+                thrust::cuda_cub::launcher::triple_chevron(
+                    segment_fixup_grid_size, segment_fixup_config.block_threads,
+                    0, stream
+                ).doit(segment_fixup_kernel,
                     d_tile_carry_pairs,
                     spmv_params.d_vector_y,
                     num_merge_tiles,
@@ -773,10 +690,13 @@ struct DispatchSpmv
                 if (debug_synchronous && (CubDebug(error = SyncStream(stream)))) break;
             }
 
-#if (CUB_PTX_ARCH == 0)
-            // Free textures
-            if (CubDebug(error = spmv_params.t_vector_x.UnbindTexture())) break;
-#endif
+            #if CUB_INCLUDE_HOST_CODE
+                if (CUB_IS_HOST_CODE)
+                {
+                    // Free textures
+                    if (CubDebug(error = spmv_params.t_vector_x.UnbindTexture())) break;
+                }
+            #endif
         }
         while (0);
 
@@ -801,12 +721,8 @@ struct DispatchSpmv
         do
         {
             // Get PTX version
-            int ptx_version;
-    #if (CUB_PTX_ARCH == 0)
+            int ptx_version = 0;
             if (CubDebug(error = PtxVersion(ptx_version))) break;
-    #else
-            ptx_version = CUB_PTX_ARCH;
-    #endif
 
             // Get kernel kernel dispatch configurations
             KernelConfig spmv_config, segment_fixup_config;

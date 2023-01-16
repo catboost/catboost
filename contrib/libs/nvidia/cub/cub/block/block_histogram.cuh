@@ -35,9 +35,8 @@
 
 #include "specializations/block_histogram_sort.cuh"
 #include "specializations/block_histogram_atomic.cuh"
+#include "../config.cuh"
 #include "../util_ptx.cuh"
-#include "../util_arch.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX

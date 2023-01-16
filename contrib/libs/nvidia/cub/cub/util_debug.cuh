@@ -1,7 +1,7 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the NVIDIA CORPORATION nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -72,15 +72,26 @@ __host__ __device__ __forceinline__ cudaError_t Debug(
 {
     (void)filename;
     (void)line;
+
+#ifdef CUB_RUNTIME_ENABLED
+    // Clear the global CUDA error state which may have been set by the last
+    // call. Otherwise, errors may "leak" to unrelated kernel launches.
+    cudaGetLastError();
+#endif
+
 #ifdef CUB_STDERR
     if (error)
     {
-    #if (CUB_PTX_ARCH == 0)
-        fprintf(stderr, "CUDA error %d [%s, %d]: %s\n", error, filename, line, cudaGetErrorString(error));
-        fflush(stderr);
-    #elif (CUB_PTX_ARCH >= 200)
-        printf("CUDA error %d [block (%d,%d,%d) thread (%d,%d,%d), %s, %d]\n", error, blockIdx.z, blockIdx.y, blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x, filename, line);
-    #endif
+        if (CUB_IS_HOST_CODE) {
+            #if CUB_INCLUDE_HOST_CODE
+                fprintf(stderr, "CUDA error %d [%s, %d]: %s\n", error, filename, line, cudaGetErrorString(error));
+                fflush(stderr);
+            #endif
+        } else {
+            #if CUB_INCLUDE_DEVICE_CODE
+                printf("CUDA error %d [block (%d,%d,%d) thread (%d,%d,%d), %s, %d]\n", error, blockIdx.z, blockIdx.y, blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x, filename, line);
+            #endif
+        }
     }
 #endif
     return error;
@@ -107,7 +118,13 @@ __host__ __device__ __forceinline__ cudaError_t Debug(
  * \brief Log macro for printf statements.
  */
 #if !defined(_CubLog)
-    #if !(defined(__clang__) && defined(__CUDA__))
+    #if defined(__NVCOMPILER_CUDA__)
+        #define _CubLog(format, ...) (__builtin_is_device_code() \
+            ? printf("[block (%d,%d,%d), thread (%d,%d,%d)]: " format, \
+                     blockIdx.z, blockIdx.y, blockIdx.x, \
+                     threadIdx.z, threadIdx.y, threadIdx.x, __VA_ARGS__) \
+            : printf(format, __VA_ARGS__));
+    #elif !(defined(__clang__) && defined(__CUDA__))
         #if (CUB_PTX_ARCH == 0)
             #define _CubLog(format, ...) printf(format,__VA_ARGS__);
         #elif (CUB_PTX_ARCH >= 200)
@@ -129,9 +146,9 @@ __host__ __device__ __forceinline__ cudaError_t Debug(
         #endif
             }
         #ifndef __CUDA_ARCH__
-            #define _CubLog(format, ...) va_printf(format,__VA_ARGS__);
+            #define _CubLog(format, ...) cub::va_printf(format,__VA_ARGS__);
         #else
-            #define _CubLog(format, ...) va_printf("[block (%d,%d,%d), thread (%d,%d,%d)]: " format, __VA_ARGS__);
+            #define _CubLog(format, ...) cub::va_printf("[block (%d,%d,%d), thread (%d,%d,%d)]: " format, __VA_ARGS__);
         #endif
     #endif
 #endif

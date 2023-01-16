@@ -37,9 +37,10 @@
 #include "../thread/thread_load.cuh"
 #include "../warp/warp_reduce.cuh"
 #include "../block/block_load.cuh"
+#include "../block/radix_rank_sort_operations.cuh"
+#include "../config.cuh"
 #include "../util_type.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -55,16 +56,17 @@ namespace cub {
  * Parameterizable tuning policy type for AgentRadixSortUpsweep
  */
 template <
-    int                 _BLOCK_THREADS,     ///< Threads per thread block
-    int                 _ITEMS_PER_THREAD,  ///< Items per thread (per tile of input)
-    CacheLoadModifier   _LOAD_MODIFIER,     ///< Cache load modifier for reading keys
-    int                 _RADIX_BITS>        ///< The number of radix bits, i.e., log2(bins)
-struct AgentRadixSortUpsweepPolicy
+    int                 NOMINAL_BLOCK_THREADS_4B,       ///< Threads per thread block
+    int                 NOMINAL_ITEMS_PER_THREAD_4B,    ///< Items per thread (per tile of input)
+    typename            ComputeT,                       ///< Dominant compute type
+    CacheLoadModifier   _LOAD_MODIFIER,                 ///< Cache load modifier for reading keys
+    int                 _RADIX_BITS,                    ///< The number of radix bits, i.e., log2(bins)
+    typename            ScalingType = RegBoundScaling<NOMINAL_BLOCK_THREADS_4B, NOMINAL_ITEMS_PER_THREAD_4B, ComputeT> >
+struct AgentRadixSortUpsweepPolicy :
+    ScalingType
 {
     enum
     {
-        BLOCK_THREADS       = _BLOCK_THREADS,       ///< Threads per thread block
-        ITEMS_PER_THREAD    = _ITEMS_PER_THREAD,    ///< Items per thread (per tile of input)
         RADIX_BITS          = _RADIX_BITS,          ///< The number of radix bits, i.e., log2(bins)
     };
 
@@ -120,7 +122,7 @@ struct AgentRadixSortUpsweep
         PACKING_RATIO           = sizeof(PackedCounter) / sizeof(DigitCounter),
         LOG_PACKING_RATIO       = Log2<PACKING_RATIO>::VALUE,
 
-        LOG_COUNTER_LANES       = CUB_MAX(0, RADIX_BITS - LOG_PACKING_RATIO),
+        LOG_COUNTER_LANES       = CUB_MAX(0, int(RADIX_BITS) - int(LOG_PACKING_RATIO)),
         COUNTER_LANES           = 1 << LOG_COUNTER_LANES,
 
         // To prevent counter overflow, we must periodically unpack and aggregate the
@@ -137,6 +139,9 @@ struct AgentRadixSortUpsweep
 
     // Input iterator wrapper type (for applying cache modifier)s
     typedef CacheModifiedInputIterator<LOAD_MODIFIER, UnsignedBits, OffsetT> KeysItr;
+
+    // Digit extractor type
+    typedef BFEDigitExtractor<KeyT> DigitExtractorT;
 
     /**
      * Shared memory storage layout
@@ -166,12 +171,8 @@ struct AgentRadixSortUpsweep
     // Input and output device pointers
     KeysItr         d_keys_in;
 
-    // The least-significant bit position of the current digit to extract
-    int             current_bit;
-
-    // Number of bits in current digit
-    int             num_bits;
-
+    // Digit extractor
+    DigitExtractorT digit_extractor;
 
 
     //---------------------------------------------------------------------
@@ -216,7 +217,7 @@ struct AgentRadixSortUpsweep
         UnsignedBits converted_key = Traits<KeyT>::TwiddleIn(key);
 
         // Extract current digit bits
-        UnsignedBits digit = BFE(converted_key, current_bit, num_bits);
+        UnsignedBits digit = digit_extractor.Digit(converted_key);
 
         // Get sub-counter offset
         UnsignedBits sub_counter = digit & (PACKING_RATIO - 1);
@@ -341,8 +342,7 @@ struct AgentRadixSortUpsweep
     :
         temp_storage(temp_storage.Alias()),
         d_keys_in(reinterpret_cast<const UnsignedBits*>(d_keys_in)),
-        current_bit(current_bit),
-        num_bits(num_bits)
+        digit_extractor(current_bit, num_bits)
     {}
 
 

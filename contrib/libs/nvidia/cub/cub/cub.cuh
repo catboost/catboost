@@ -33,6 +33,8 @@
 
 #pragma once
 
+// Static configuration
+#include "config.cuh"
 
 // Block
 #include "block/block_histogram.cuh"
@@ -81,11 +83,13 @@
 #include "iterator/cache_modified_output_iterator.cuh"
 #include "iterator/constant_input_iterator.cuh"
 #include "iterator/counting_input_iterator.cuh"
+#include "iterator/discard_output_iterator.cuh"
 #include "iterator/tex_obj_input_iterator.cuh"
 #include "iterator/tex_ref_input_iterator.cuh"
 #include "iterator/transform_input_iterator.cuh"
 
 // Util
+#include "util_allocator.cuh"
 #include "util_arch.cuh"
 #include "util_debug.cuh"
 #include "util_device.cuh"

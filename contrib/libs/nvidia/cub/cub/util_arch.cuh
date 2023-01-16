@@ -1,7 +1,7 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the NVIDIA CORPORATION nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33,7 +33,9 @@
 
 #pragma once
 
+#include "util_cpp_dialect.cuh"
 #include "util_namespace.cuh"
+#include "util_macro.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -43,19 +45,54 @@ namespace cub {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
 
-#if (__CUDACC_VER_MAJOR__ >= 9) && !defined(CUB_USE_COOPERATIVE_GROUPS)
-    #define CUB_USE_COOPERATIVE_GROUPS
+#if ((__CUDACC_VER_MAJOR__ >= 9) || defined(__NVCOMPILER_CUDA__) ||            \
+     CUDA_VERSION >= 9000) &&                                                  \
+  !defined(CUB_USE_COOPERATIVE_GROUPS)
+#define CUB_USE_COOPERATIVE_GROUPS
 #endif
 
-/// CUB_PTX_ARCH reflects the PTX version targeted by the active compiler pass (or zero during the host pass).
+/// In device code, CUB_PTX_ARCH expands to the PTX version for which we are
+/// compiling. In host code, CUB_PTX_ARCH's value is implementation defined.
 #ifndef CUB_PTX_ARCH
-    #ifndef __CUDA_ARCH__
+    #if defined(__NVCOMPILER_CUDA__)
+        // __NVCOMPILER_CUDA_ARCH__ is the target PTX version, and is defined
+        // when compiling both host code and device code. Currently, only one
+        // PTX version can be targeted.
+        #define CUB_PTX_ARCH __NVCOMPILER_CUDA_ARCH__
+    #elif !defined(__CUDA_ARCH__)
         #define CUB_PTX_ARCH 0
     #else
         #define CUB_PTX_ARCH __CUDA_ARCH__
     #endif
 #endif
 
+#ifndef CUB_IS_DEVICE_CODE
+    #if defined(__NVCOMPILER_CUDA__)
+        #define CUB_IS_DEVICE_CODE __builtin_is_device_code()
+        #define CUB_IS_HOST_CODE (!__builtin_is_device_code())
+        #define CUB_INCLUDE_DEVICE_CODE 1
+        #define CUB_INCLUDE_HOST_CODE 1
+    #elif CUB_PTX_ARCH > 0
+        #define CUB_IS_DEVICE_CODE 1
+        #define CUB_IS_HOST_CODE 0
+        #define CUB_INCLUDE_DEVICE_CODE 1
+        #define CUB_INCLUDE_HOST_CODE 0
+    #else
+        #define CUB_IS_DEVICE_CODE 0
+        #define CUB_IS_HOST_CODE 1
+        #define CUB_INCLUDE_DEVICE_CODE 0
+        #define CUB_INCLUDE_HOST_CODE 1
+    #endif
+#endif
+
+/// Maximum number of devices supported.
+#ifndef CUB_MAX_DEVICES
+    #define CUB_MAX_DEVICES 128
+#endif
+
+#if CUB_CPP_DIALECT >= 2011
+    static_assert(CUB_MAX_DEVICES > 0, "CUB_MAX_DEVICES must be greater than 0.");
+#endif
 
 /// Whether or not the source targeted by the active compiler pass is allowed to  invoke device kernels or methods from the CUDA runtime API.
 #ifndef CUB_RUNTIME_FUNCTION
@@ -116,32 +153,31 @@ namespace cub {
 #endif
 
 
-/// Scale down the number of threads to keep same amount of scratch storage as the nominal configuration for 4B data.  Minimum of two warps.
-#ifndef CUB_SCALED_BLOCK_THREADS
-    #define CUB_SCALED_BLOCK_THREADS(NOMINAL_4B_BLOCK_THREADS, T, PTX_ARCH)                   \
-        (CUB_MIN(                                                                           \
-            NOMINAL_4B_BLOCK_THREADS,                                                       \
-            CUB_WARP_THREADS(PTX_ARCH) * CUB_MAX(                                           \
-                2,                                                                          \
-                (NOMINAL_4B_BLOCK_THREADS / CUB_WARP_THREADS(PTX_ARCH)) * 4 / sizeof(T))))
-#endif
+template <
+    int NOMINAL_4B_BLOCK_THREADS,
+    int NOMINAL_4B_ITEMS_PER_THREAD,
+    typename T>
+struct RegBoundScaling
+{
+    enum {
+        ITEMS_PER_THREAD    = CUB_MAX(1, NOMINAL_4B_ITEMS_PER_THREAD * 4 / CUB_MAX(4, sizeof(T))),
+        BLOCK_THREADS       = CUB_MIN(NOMINAL_4B_BLOCK_THREADS, (((1024 * 48) / (sizeof(T) * ITEMS_PER_THREAD)) + 31) / 32 * 32),
+    };
+};
 
-/// Scale down number of items per thread to keep the same amount of register storage as the nominal configuration for 4B data.  Minimum 1 item per thread
-#ifndef CUB_SCALED_ITEMS_PER_THREAD
-    #define CUB_SCALED_ITEMS_PER_THREAD(NOMINAL_4B_ITEMS_PER_THREAD, NOMINAL_4B_BLOCK_THREADS, T, PTX_ARCH)     \
-        CUB_MAX(                                                                                                \
-            1,                                                                                                  \
-            (sizeof(T) < 4) ?                                                                                   \
-                ((NOMINAL_4B_ITEMS_PER_THREAD * NOMINAL_4B_BLOCK_THREADS * 4) / CUB_MAX(4, sizeof(T))) / CUB_SCALED_BLOCK_THREADS(NOMINAL_4B_BLOCK_THREADS, T, PTX_ARCH) / 2 :  \
-                ((NOMINAL_4B_ITEMS_PER_THREAD * NOMINAL_4B_BLOCK_THREADS * 4) / CUB_MAX(4, sizeof(T))) / CUB_SCALED_BLOCK_THREADS(NOMINAL_4B_BLOCK_THREADS, T, PTX_ARCH))
-#endif
 
-/// Define both nominal threads-per-block and items-per-thread
-#ifndef CUB_SCALED_GRANULARITIES
-    #define CUB_SCALED_GRANULARITIES(NOMINAL_4B_BLOCK_THREADS, NOMINAL_4B_ITEMS_PER_THREAD, T)      \
-        CUB_SCALED_BLOCK_THREADS(NOMINAL_4B_BLOCK_THREADS, T, 200),                                   \
-        CUB_SCALED_ITEMS_PER_THREAD(NOMINAL_4B_ITEMS_PER_THREAD, NOMINAL_4B_BLOCK_THREADS, T, 200)
-#endif
+template <
+    int NOMINAL_4B_BLOCK_THREADS,
+    int NOMINAL_4B_ITEMS_PER_THREAD,
+    typename T>
+struct MemBoundScaling
+{
+    enum {
+        ITEMS_PER_THREAD    = CUB_MAX(1, CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(T), NOMINAL_4B_ITEMS_PER_THREAD * 2)),
+        BLOCK_THREADS       = CUB_MIN(NOMINAL_4B_BLOCK_THREADS, (((1024 * 48) / (sizeof(T) * ITEMS_PER_THREAD)) + 31) / 32 * 32),
+    };
+};
+
 
 
 

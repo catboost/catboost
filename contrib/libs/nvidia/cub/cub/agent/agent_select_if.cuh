@@ -41,9 +41,9 @@
 #include "../block/block_scan.cuh"
 #include "../block/block_exchange.cuh"
 #include "../block/block_discontinuity.cuh"
+#include "../config.cuh"
 #include "../grid/grid_queue.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
-#include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -195,12 +195,12 @@ struct AgentSelectIf
     // Shared memory type for this thread block
     union _TempStorage
     {
-        struct
+        struct ScanStorage
         {
             typename BlockScanT::TempStorage                scan;           // Smem needed for tile scanning
             typename TilePrefixCallbackOpT::TempStorage     prefix;         // Smem needed for cooperative prefix callback
             typename BlockDiscontinuityT::TempStorage       discontinuity;  // Smem needed for discontinuity detection
-        };
+        } scan_storage;
 
         // Smem needed for loading items
         typename BlockLoadT::TempStorage load_items;
@@ -331,7 +331,7 @@ struct AgentSelectIf
             CTA_SYNC();
 
             // Set head selection_flags.  First tile sets the first flag for the first item
-            BlockDiscontinuityT(temp_storage.discontinuity).FlagHeads(selection_flags, items, inequality_op);
+            BlockDiscontinuityT(temp_storage.scan_storage.discontinuity).FlagHeads(selection_flags, items, inequality_op);
         }
         else
         {
@@ -341,7 +341,7 @@ struct AgentSelectIf
 
             CTA_SYNC();
 
-            BlockDiscontinuityT(temp_storage.discontinuity).FlagHeads(selection_flags, items, inequality_op, tile_predecessor);
+            BlockDiscontinuityT(temp_storage.scan_storage.discontinuity).FlagHeads(selection_flags, items, inequality_op, tile_predecessor);
         }
 
         // Set selection flags for out-of-bounds items
@@ -548,7 +548,7 @@ struct AgentSelectIf
 
         // Exclusive scan of selection_flags
         OffsetT num_tile_selections;
-        BlockScanT(temp_storage.scan).ExclusiveSum(selection_flags, selection_indices, num_tile_selections);
+        BlockScanT(temp_storage.scan_storage.scan).ExclusiveSum(selection_flags, selection_indices, num_tile_selections);
 
         if (threadIdx.x == 0)
         {
@@ -607,8 +607,8 @@ struct AgentSelectIf
         CTA_SYNC();
 
         // Exclusive scan of values and selection_flags
-        TilePrefixCallbackOpT prefix_op(tile_state, temp_storage.prefix, cub::Sum(), tile_idx);
-        BlockScanT(temp_storage.scan).ExclusiveSum(selection_flags, selection_indices, prefix_op);
+        TilePrefixCallbackOpT prefix_op(tile_state, temp_storage.scan_storage.prefix, cub::Sum(), tile_idx);
+        BlockScanT(temp_storage.scan_storage.scan).ExclusiveSum(selection_flags, selection_indices, prefix_op);
 
         OffsetT num_tile_selections     = prefix_op.GetBlockAggregate();
         OffsetT num_selections          = prefix_op.GetInclusivePrefix();
