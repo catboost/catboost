@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: importlib-metadata
-Version: 4.9.0
+Version: 4.10.0
 Summary: Read metadata from Python packages
 Home-page: https://github.com/python/importlib_metadata
 Author: Jason R. Coombs
@@ -28,7 +28,6 @@ Requires-Dist: pytest-flake8 ; extra == 'testing'
 Requires-Dist: pytest-cov ; extra == 'testing'
 Requires-Dist: pytest-enabler (>=1.0.1) ; extra == 'testing'
 Requires-Dist: packaging ; extra == 'testing'
-Requires-Dist: pep517 ; extra == 'testing'
 Requires-Dist: pyfakefs ; extra == 'testing'
 Requires-Dist: flufl.flake8 ; extra == 'testing'
 Requires-Dist: pytest-perf (>=0.9.2) ; extra == 'testing'
