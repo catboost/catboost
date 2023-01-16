@@ -52,6 +52,7 @@ RECURSE(
     grid_creator/ut
     hnsw
     http
+    iterator
     json
     json/fast_sax
     json/flex_buffers
