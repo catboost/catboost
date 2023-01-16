@@ -283,6 +283,7 @@ ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/facebook-business
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/facebook-business
 ALLOW geoproduct/amocrm/fb_leads -> contrib/python/facebook-business
 ALLOW statbox/statkey -> contrib/python/facebook-business
+ALLOW quality/ab_testing/cofe/bin/lib/files/py3/cofe_kernel_yql -> contrib/python/facebook-business
 DENY .* -> contrib/python/facebook-business
 
 # https://st.yandex-team.ru/CONTRIB-1954
@@ -694,7 +695,8 @@ ALLOW zootopia/analytics/drive/source/drive/models -> contrib/python/sqlalchemy/
 ALLOW zootopia/hub/geosupply/geosupply -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW jupytercloud/arcadia_kernel/default -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW jupytercloud/arcadia_kernel/default_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW quality/ab_testing/cofe/bin/lib/files/cofe_kernel_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW quality/ab_testing/cofe/bin/lib/files/py2/cofe_kernel_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW quality/ab_testing/cofe/bin/lib/files/py3/cofe_kernel_yql -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yql/udfs/common/python/python3 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/sqlalchemy/sqlalchemy-1.2
 DENY .* -> contrib/python/sqlalchemy/sqlalchemy-1.2
