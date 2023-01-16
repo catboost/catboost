@@ -1,4 +1,5 @@
 import xml.dom.minidom as minidom
+from string import Formatter
 from typing import Any, List, Tuple, Union
 
 from .base import FormattedText, StyleAndTextTuples
@@ -29,7 +30,7 @@ class HTML:
 
     def __init__(self, value: str) -> None:
         self.value = value
-        document = minidom.parseString("<html-root>%s</html-root>" % (value,))
+        document = minidom.parseString(f"<html-root>{value}</html-root>")
 
         result: StyleAndTextTuples = []
         name_stack: List[str] = []
@@ -97,7 +98,7 @@ class HTML:
         self.formatted_text = FormattedText(result)
 
     def __repr__(self) -> str:
-        return "HTML(%r)" % (self.value,)
+        return f"HTML({self.value!r})"
 
     def __pt_formatted_text__(self) -> StyleAndTextTuples:
         return self.formatted_text
@@ -107,13 +108,9 @@ class HTML:
         Like `str.format`, but make sure that the arguments are properly
         escaped.
         """
-        # Escape all the arguments.
-        escaped_args = [html_escape(a) for a in args]
-        escaped_kwargs = {k: html_escape(v) for k, v in kwargs.items()}
+        return HTML(FORMATTER.vformat(self.value, args, kwargs))
 
-        return HTML(self.value.format(*escaped_args, **escaped_kwargs))
-
-    def __mod__(self, value: Union[object, Tuple[object, ...]]) -> "HTML":
+    def __mod__(self, value: object) -> "HTML":
         """
         HTML('<b>%s</b>') % value
         """
@@ -124,11 +121,16 @@ class HTML:
         return HTML(self.value % value)
 
 
+class HTMLFormatter(Formatter):
+    def format_field(self, value: object, format_spec: str) -> str:
+        return html_escape(format(value, format_spec))
+
+
 def html_escape(text: object) -> str:
     # The string interpolation functions also take integers and other types.
     # Convert to string first.
     if not isinstance(text, str):
-        text = "{}".format(text)
+        text = f"{text}"
 
     return (
         text.replace("&", "&amp;")
@@ -136,3 +138,6 @@ def html_escape(text: object) -> str:
         .replace(">", "&gt;")
         .replace('"', "&quot;")
     )
+
+
+FORMATTER = HTMLFormatter()
