@@ -76,10 +76,18 @@ def ongenerate_script(unit, *args):
 
 def onjava_module(unit, *args):
     args_delim = unit.get('ARGS_DELIM')
+    idea_only = True if 'IDEA_ONLY' in args else False
+
+    if idea_only:
+        if unit.get('YA_IDE_IDEA') != 'yes':
+            return
+        if unit.get('YMAKE_JAVA_MODULES') != 'yes':
+            return
 
     data = {
         'BUNDLE_NAME': unit.name(),
         'PATH': unit.path(),
+        'IDEA_ONLY': 'yes' if idea_only else 'no',
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
         'MANAGED_PEERS': '${MANAGED_PEERS}',
@@ -211,28 +219,6 @@ def onjava_module(unit, *args):
         if external:
             unit.onpeerdir(external)
 
-    dep_veto = extract_macro_calls(unit, 'JAVA_DEPENDENCIES_CONFIGURATION_VALUE', args_delim)
-    if dep_veto:
-        dep_veto = set(dep_veto[0])
-        if (unit.get('IGNORE_JAVA_DEPENDENCIES_CONFIGURATION') or '').lower() != 'yes':
-            for veto in map(str.upper, dep_veto):
-                if veto.upper() == 'FORBID_DIRECT_PEERDIRS':
-                    data['JAVA_DEPENDENCY_DIRECT'] = [['yes']]
-                elif veto.upper() == 'FORBID_DEFAULT_VERSIONS':
-                    data['JAVA_DEPENDENCY_DEFAULT_VERSION'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT':
-                    data['JAVA_DEPENDENCY_CHECK_RESOLVED_CONFLICTS'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT_DM':
-                    data['JAVA_DEPENDENCY_DM_CHECK_DIFFERENT'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT_DM_RECENT':
-                    data['JAVA_DEPENDENCY_DM_CHECK_RECENT'] = [['yes']]
-                elif veto.upper() == 'REQUIRE_DM':
-                    data['JAVA_DEPENDENCY_DM_REQUIRED'] = [['yes']]
-                else:
-                    ymake.report_configure_error('Unknown JAVA_DEPENDENCIES_CONFIGURATION value {} Allowed only [{}]'.format(veto, ', '.join(
-                        ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT', 'REQUIRE_DM']
-                    )))
-
     for k, v in data.items():
         if not v:
             data.pop(k)
@@ -240,7 +226,7 @@ def onjava_module(unit, *args):
     dart = 'JAVA_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
     unit.set_property(['JAVA_DART_DATA', dart])
-    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
+    if not idea_only and unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
         unit.on_add_classpath_clash_check()
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
