@@ -955,6 +955,7 @@ ALLOW transfer_manager/go/pkg/source/eventhub -> vendor/github.com/Azure/azure-a
 
 # CONTRIB-2347
 ALLOW trust/psp/core/go -> vendor/github.com/gorilla/mux
+ALLOW trust/psp/core/handler -> vendor/github.com/gorilla/mux
 
 # CONTRIB-2307
 ALLOW .* -> vendor/github.com/airbusgeo/godal
