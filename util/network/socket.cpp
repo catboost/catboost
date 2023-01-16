@@ -423,6 +423,15 @@ void SetSocketToS(SOCKET s, int tos) {
     SetSocketToS(s, &addr, tos);
 }
 
+void SetSocketPriority(SOCKET s, int priority) {
+#if defined(SO_PRIORITY)
+    CheckedSetSockOpt(s, SOL_SOCKET, SO_PRIORITY, priority, "priority");
+#else
+    Y_UNUSED(s);
+    Y_UNUSED(priority);
+#endif
+}
+
 bool HasLocalAddress(SOCKET socket) {
     TOpaqueAddr localAddr;
     if (getsockname(socket, localAddr.MutableAddr(), localAddr.LenPtr()) != 0) {
