@@ -156,9 +156,9 @@ def _default_sysroot(cc):
 
     if _cache_default_sysroot is not None:
         return _cache_default_sysroot
-   
+
     contents = _read_output('%s -c -E -v - </dev/null' % (cc,), True)
-    in_incdirs = False   
+    in_incdirs = False
     for line in contents.splitlines():
         if line.startswith("#include <...>"):
             in_incdirs = True
@@ -482,7 +482,7 @@ def customize_compiler(_config_vars):
 
     This customization is performed when the first
     extension module build is requested
-    in distutils.sysconfig.customize_compiler).
+    in distutils.sysconfig.customize_compiler.
     """
 
     # Find a compiler to use for extension module builds

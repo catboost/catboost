@@ -839,7 +839,7 @@ static int _call_function_pointer(int flags,
 #      define HAVE_FFI_PREP_CIF_VAR_RUNTIME false
 #   endif
 
-    /* Even on Apple-arm64 the calling convention for variadic functions conincides
+    /* Even on Apple-arm64 the calling convention for variadic functions coincides
      * with the standard calling convention in the case that the function called
      * only with its fixed arguments.   Thus, we do not need a special flag to be
      * set on variadic functions.   We treat a function as variadic if it is called
@@ -1485,14 +1485,14 @@ static PyObject *py_dyld_shared_cache_contains_path(PyObject *self, PyObject *ar
 
          if (!PyArg_ParseTuple(args, "O", &name))
              return NULL;
-    
+
          if (name == Py_None)
              Py_RETURN_FALSE;
-    
+
          if (PyUnicode_FSConverter(name, &name2) == 0)
              return NULL;
          name_str = PyBytes_AS_STRING(name2);
-    
+
          r = _dyld_shared_cache_contains_path(name_str);
          Py_DECREF(name2);
 

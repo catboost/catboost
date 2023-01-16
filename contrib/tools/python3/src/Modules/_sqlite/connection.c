@@ -97,6 +97,7 @@ int pysqlite_connection_init(pysqlite_Connection* self, PyObject* args, PyObject
     }
 
     if (PySys_Audit("sqlite3.connect", "O", database_obj) < 0) {
+        Py_DECREF(database_obj);
         return -1;
     }
 
@@ -133,6 +134,10 @@ int pysqlite_connection_init(pysqlite_Connection* self, PyObject* args, PyObject
 
     Py_DECREF(database_obj);
 
+    if (self->db == NULL && rc == SQLITE_NOMEM) {
+        PyErr_NoMemory();
+        return -1;
+    }
     if (rc != SQLITE_OK) {
         _pysqlite_seterror(self->db, NULL);
         return -1;
