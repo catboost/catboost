@@ -24,11 +24,15 @@ PEERDIR(
     contrib/libs/protobuf/python/google_lib/protos_from_protoc
 )
 
-ADDINCL(contrib/libs/protobuf/python)
+ADDINCL(
+    contrib/libs/protobuf/python
+)
 
 SRCDIR(contrib/libs/protobuf/python)
 
-CFLAGS(-DPYTHON_PROTO2_CPP_IMPL_V2)
+CFLAGS(
+    -DPYTHON_PROTO2_CPP_IMPL_V2
+)
 
 PY_SRCS(
     TOP_LEVEL
