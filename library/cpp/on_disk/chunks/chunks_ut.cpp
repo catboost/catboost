@@ -231,7 +231,7 @@ public:
 
     void TestNamedChunkedData() {
         const TString filename = MakeTempName(nullptr, "named_chunked_data_test");
-        TTempFileHandle file(filename);
+        TTempFile file(filename);
 
         {
             TFixedBufferFileOutput fOut(filename);
