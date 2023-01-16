@@ -102,11 +102,6 @@ def has_pyx(args):
 def get_srcdir(path, unit):
     return rootrel_arc_src(path, unit)[:-len(path)].rstrip('/')
 
-
-def is_generated(path, unit):
-    return not unit.resolve(path).startswith('$S/')
-
-
 def add_python_lint_checks(unit, py_ver, files):
     def get_resolved_files():
         resolved_files = []
