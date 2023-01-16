@@ -10,6 +10,8 @@ LICENSE(
     LLVM-exception
 )
 
+VERSION(2021-06-07-87039c048c0cbc3d8cbba86187269b006bf2f373)
+
 ADDINCL(
     contrib/libs/cxxsupp/libcxxabi/include
     contrib/libs/cxxsupp/libcxx/include

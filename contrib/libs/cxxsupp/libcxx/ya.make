@@ -10,6 +10,8 @@ LICENSE(
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
+VERSION(2021-04-02-7959d59028dd126416cdf10dbbd22162922e1336)
+
 
 
 ADDINCL(GLOBAL contrib/libs/cxxsupp/libcxx/include)
