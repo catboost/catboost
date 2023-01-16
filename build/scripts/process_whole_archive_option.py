@@ -142,7 +142,7 @@ class ProcessWholeArchiveOption():
         return cmd
 
     def construct_cmd(self, args):
-        if self.arch in ('DARWIN', 'IOS'):
+        if self.arch in ('DARWIN', 'IOS', 'IOSSIM'):
             return self._construct_cmd_apple(args)
 
         if self.arch == 'WINDOWS':

@@ -2036,6 +2036,16 @@
                         "arch": "arm64"
                     },
                     "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOSSIM",
+                        "arch": "arm64"
+                    },
+                    "default": false
                 }
             ],
             "params": {
