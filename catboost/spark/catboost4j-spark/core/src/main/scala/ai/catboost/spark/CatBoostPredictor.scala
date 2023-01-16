@@ -133,7 +133,6 @@ trait CatBoostPredictorTrait[
       trainPool.quantize(quantizationParams)
     }
 
-    // TODO(akhropov): eval pools are not distributed for now, so they are not repartitioned
     var evalIdx = 0
     val quantizedEvalPools = evalPools.map {
       evalPool => {
