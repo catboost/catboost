@@ -11,7 +11,7 @@ _b = lambda x: x if isinstance(x, bytes) else utf_8_encode(x)[0]
 _s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
 env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
-env_strict_source_search = b'Y_PYTHON_STRICT_SOURCE_SEARCH'
+env_extended_source_search = b'Y_PYTHON_EXTENDED_SOURCE_SEARCH'
 executable = sys.executable or 'Y_PYTHON'
 sys.modules['run_import_hook'] = __resource
 
@@ -20,7 +20,7 @@ py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
 Y_PYTHON_SOURCE_ROOT = _os.environ.get(env_source_root)
-Y_PYTHON_STRICT_SOURCE_SEARCH = _os.environ.get(env_strict_source_search)
+Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search)
 
 
 def _print(*xs):
@@ -130,7 +130,7 @@ class ResourceImporter(object):
         self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
-        if Y_PYTHON_SOURCE_ROOT and not Y_PYTHON_STRICT_SOURCE_SEARCH:
+        if Y_PYTHON_SOURCE_ROOT and Y_PYTHON_EXTENDED_SOURCE_SEARCH:
             self.arcadia_source_finder = ArcadiaSourceFinder(_s(Y_PYTHON_SOURCE_ROOT))
         else:
             self.arcadia_source_finder = None
