@@ -1,6 +1,5 @@
 #include "init_atfork.h"
 #include "random.h"
-#include "entropy.h"
 
 #include <util/generic/singleton.h>
 #include <util/system/yassert.h>
