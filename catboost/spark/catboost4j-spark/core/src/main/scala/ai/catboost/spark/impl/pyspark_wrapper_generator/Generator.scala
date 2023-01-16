@@ -657,10 +657,11 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
     "\""
     $modelDoc
     "\""
-    def __init__(self, java_model):
+    def __init__(self, java_model=None):
         super($modelClassName, self).__init__(java_model)
 ${generateParamsInitialization(modelAsParams)}
-        self._transfer_params_from_java()
+        if java_model is not None:
+            self._transfer_params_from_java()
 
 ${generateParamsPart(model, modelParamsKeywordArgs)}
 
