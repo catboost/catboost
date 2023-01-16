@@ -15,6 +15,8 @@ IF (USE_ARCADIA_CUDA)
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2410761119) # CUDA Toolkit 11.4.2 for Linux x86-64
             ELSEIF (CUDA_VERSION == "11.3")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2213063565) # CUDA Toolkit 11.3.1 for Linux x86-64
+            ELSEIF (CUDA_VERSION == "11.1")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1882836946) # CUDA Toolkit 11.1.1 for Linux x86-64
             ELSEIF (CUDA_VERSION == "11.0")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1647896014) # CUDA Toolkit 11.0.2 for Linux x86-64
             ELSEIF (CUDA_VERSION == "10.1")
@@ -60,6 +62,8 @@ IF (USE_ARCADIA_CUDA)
         IF (OS_WINDOWS AND ARCH_X86_64)
             IF (CUDA_VERSION == "11.3")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2215101513) # CUDA Toolkit 11.3.1 for Windows x86-64
+            ELSEIF (CUDA_VERSION == "11.1")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1896564605) # CUDA Toolkit 11.1.1 for Windows x86-64
             ELSEIF (CUDA_VERSION == "10.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:978734165) # CUDA Toolkit 10.1.168 for Windows x86-64
             ELSE()
