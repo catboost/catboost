@@ -10,17 +10,8 @@
 $\sqrt{\displaystyle\frac{\sum\limits_{i=1}^{N}\sum\limits_{d=1}^{dim}(a_{i,d} - t_{i, d})^{2} w_{i}}{\sum\limits_{i=1}^{N} w_{i}}}$
 $dim$ is the identifier of the dimension of the label.
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-
-_Default:_  {{ loss-functions__use_weights__default }}
-
-
-## {{ title__loss-functions__text__optimization }}
-
-
-| Name                                           | Optimization            |
--------------------------------------------------|-------------------------|
-[{{ error-function--MultiRMSE  }}](#MultiRMSE)   |     +                   |
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
