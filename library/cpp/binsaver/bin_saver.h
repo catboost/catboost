@@ -485,7 +485,7 @@ public:
         } else {
             index = pData->index(); // type cast is safe because of static_assert check above
             Add(1, &index);
-            ::Visit([&](auto& dst) -> void { Add(2, &dst); }, *pData);
+            std::visit([&](auto& dst) -> void { Add(2, &dst); }, *pData);
         }
         return 0;
     }

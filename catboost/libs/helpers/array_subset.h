@@ -260,12 +260,12 @@ namespace NCB {
         // Had to redefine Get because automatic resolution does not work with current std::variant implementation
         template <class T>
         decltype(auto) Get() {
-            return ::Get<T>((TBase&)*this);
+            return std::get<T>((TBase&)*this);
         }
 
         template <class T>
         decltype(auto) Get() const {
-            return ::Get<T>((const TBase&)*this);
+            return std::get<T>((const TBase&)*this);
         }
         TMaybe<TSize> GetConsecutiveSubsetBegin() const {
             return ConsecutiveSubsetBeginCache;
@@ -1219,7 +1219,7 @@ namespace NCB {
 
         template <class T>
         decltype(auto) Get() const {
-            return ::Get<T>((const TBase&)*this);
+            return std::get<T>((const TBase&)*this);
         }
 
         TSize GetSize() const {
