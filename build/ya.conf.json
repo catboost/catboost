@@ -186,10 +186,6 @@
         "gcov": {
             "description": "Run gcov"
         },
-        "hg": {
-            "description": "Run mercurial",
-            "visible": false
-        },
         "bloat": {
             "description": "Run bloat tool",
             "visible": false
@@ -1362,41 +1358,6 @@
                 {
                     "host": {
                         "os": "DARWIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
-        "hg": {
-            "tools": {
-                "hg": {
-                    "bottle": "hg",
-                    "executable": "hg"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "LINUX",
-                        "arch": "aarch64"
                     },
                     "default": true
                 }
@@ -7700,21 +7661,6 @@
             "executable": {
                 "sandboxctl": [
                     "sandboxctl"
-                ]
-            }
-        },
-        "hg": {
-            "formula": {
-                "sandbox_id": [
-                    384697982,
-                    384698485,
-                    446769978
-                ],
-                "match": "Hg"
-            },
-            "executable": {
-                "hg": [
-                    "hg/hg"
                 ]
             }
         },
