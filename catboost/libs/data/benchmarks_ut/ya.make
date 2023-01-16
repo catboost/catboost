@@ -1,4 +1,4 @@
-PY2TEST()
+PY3TEST()
 
 
 

@@ -165,8 +165,8 @@ namespace {
         }
 
         void RegisterIndices(ui32 textFeatureId, ui32 tokenizedFeatureId, ui32 digitizerId, ui32 calcerId) {
-            PerFeatureDigitizers[textFeatureId][tokenizedFeatureId] = digitizerId;
-            PerTokenizedFeatureCalcers[tokenizedFeatureId].push_back(calcerId);
+            PerFeatureDigitizers[textFeatureId][tokenizedFeatureId - PerFeatureDigitizers.size()] = digitizerId;
+            PerTokenizedFeatureCalcers[tokenizedFeatureId - PerFeatureDigitizers.size()].push_back(calcerId);
         }
 
         void CheckFeatureIndexes(
@@ -726,7 +726,7 @@ namespace NCB {
     ) {
         CB_ENSURE(
             !estimatedFeatures.empty(),
-            "CreateTextProcessingCollection: Estimated feature shouldn't be empty"
+            "CreateProcessingCollection: Estimated feature shouldn't be empty"
         );
 
         TTextCollectionBuilder textCollectionBuilder(

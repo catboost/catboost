@@ -56,7 +56,10 @@ namespace NCB {
         }
 
         ui32 GetSourceTextsCount() const {
-            return SourceToDestinationIndexes.size();
+            if (SourceToDestinationIndexes.empty()) {
+                return 0;
+            }
+            return SourceToDestinationIndexes.rbegin()->first + 1;
         }
 
         ui32 GetDigitizedTextsCount() const {
@@ -96,10 +99,9 @@ namespace NCB {
 
         TVector<TDigitizer> GetDigitizers() const {
             TVector<TDigitizer> digitizers;
-            digitizers.resize(Digitizers.size());
-
             for (const auto& [dstTextIdx, digitizer]: Digitizers) {
-                digitizers[dstTextIdx]= digitizer;
+                Y_UNUSED(dstTextIdx);
+                digitizers.push_back(digitizer);
             }
 
             return digitizers;
