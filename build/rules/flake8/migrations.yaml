@@ -1122,7 +1122,6 @@ migrations:
     - statbox/statkey/jam/jobs/cubes/superapp/cohorts_daily/v2
     - strm/generate/lib/generate
     - taxi/graph/packages/taxigraphd
-    - testenv/core/tools
     - testenv/core/web_server
     - travel/avia/shared_flights/tasks/schedules_dumper
     - travel/hotels/suggest/builder
