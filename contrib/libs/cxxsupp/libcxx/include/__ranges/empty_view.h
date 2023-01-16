@@ -6,13 +6,11 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#ifndef _LIBCPP___ITERATOR_PROJECTED_H
-#define _LIBCPP___ITERATOR_PROJECTED_H
+#ifndef _LIBCPP___RANGES_EMPTY_VIEW_H
+#define _LIBCPP___RANGES_EMPTY_VIEW_H
 
 #include <__config>
-#include <__iterator/concepts.h>
-#include <__iterator/incrementable_traits.h>
-#include <type_traits>
+#include <__ranges/view_interface.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -25,16 +23,18 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 #if !defined(_LIBCPP_HAS_NO_RANGES)
 
-template<indirectly_readable _It, indirectly_regular_unary_invocable<_It> _Proj>
-struct projected {
-  using value_type = remove_cvref_t<indirect_result_t<_Proj&, _It>>;
-  indirect_result_t<_Proj&, _It> operator*() const; // not defined
-};
-
-template<weakly_incrementable _It, class _Proj>
-struct incrementable_traits<projected<_It, _Proj>> {
-  using difference_type = iter_difference_t<_It>;
-};
+namespace ranges {
+  template<class _Tp>
+    requires is_object_v<_Tp>
+  class empty_view : public view_interface<empty_view<_Tp>> {
+  public:
+    static constexpr _Tp* begin() noexcept { return nullptr; }
+    static constexpr _Tp* end() noexcept { return nullptr; }
+    static constexpr _Tp* data() noexcept { return nullptr; }
+    static constexpr size_t size() noexcept { return 0; }
+    static constexpr bool empty() noexcept { return true; }
+  };
+} // namespace ranges
 
 #endif // !defined(_LIBCPP_HAS_NO_RANGES)
 
@@ -42,4 +42,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif // _LIBCPP___ITERATOR_PROJECTED_H
+#endif // _LIBCPP___RANGES_EMPTY_VIEW_H
