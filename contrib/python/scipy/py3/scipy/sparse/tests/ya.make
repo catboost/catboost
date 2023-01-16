@@ -2,21 +2,21 @@
 
 PY3TEST()
 
+REQUIREMENTS(ram:30)
+
 
 
 VERSION(1.2.3)
 
 ORIGINAL_SOURCE(mirror://pypi/s/scipy/scipy-1.2.3.tar.gz)
 
-LICENSE(BSD-3-Clause)
-
 SIZE(MEDIUM)
 
 FORK_TESTS()
 
 PEERDIR(
-    contrib/python/scipy/py2
-    contrib/python/scipy/py2/scipy/conftest
+    contrib/python/scipy/py3
+    contrib/python/scipy/py3/scipy/conftest
 )
 
 NO_LINT()

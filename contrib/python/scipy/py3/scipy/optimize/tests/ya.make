@@ -8,15 +8,13 @@ VERSION(1.2.3)
 
 ORIGINAL_SOURCE(mirror://pypi/s/scipy/scipy-1.2.3.tar.gz)
 
-LICENSE(BSD-3-Clause)
-
 SIZE(MEDIUM)
 
 FORK_TESTS()
 
 PEERDIR(
-    contrib/python/scipy/py2
-    contrib/python/scipy/py2/scipy/conftest
+    contrib/python/scipy/py3
+    contrib/python/scipy/py3/scipy/conftest
 )
 
 NO_LINT()
@@ -46,6 +44,7 @@ TEST_SRCS(
     test_lsq_common.py
     test_lsq_linear.py
     test_minimize_constrained.py
+    test_minpack.py
     test_nnls.py
     test_nonlin.py
     test_optimize.py
