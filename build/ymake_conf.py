@@ -1871,7 +1871,7 @@ class LD(Linker):
             (target.is_linux or target.is_macos, '-lpthread'),
         ])
 
-        self.rdynamic = None
+        self.ld_export_dynamic_flag = None
         self.start_group = None
         self.end_group = None
         self.whole_archive = None
@@ -1883,7 +1883,7 @@ class LD(Linker):
         self.libresolv = '-lresolv' if target.is_linux or target.is_macos or target.is_android else None
 
         if target.is_linux or target.is_android:
-            self.rdynamic = '-rdynamic'
+            self.ld_export_dynamic_flag = '-rdynamic'
             self.use_stdlib = '-nodefaultlibs'
 
         if target.is_linux or target.is_android or target.is_cygwin or target.is_none:
@@ -1987,13 +1987,17 @@ class LD(Linker):
 
         if dwarf_tool is not None:
             emit('DWARF_TOOL', dwarf_tool)
-
         emit('OBJADDE')
 
+        emit('LD_EXPORT_ALL_DYNAMIC_SYMBOLS_FLAG', self.ld_export_dynamic_flag)
         emit_big('''
-            EXPORTS_VALUE=
+            NO_EXPORT_DYNAMIC_SYMBOLS=
+            EXPORTS_VALUE=$LD_EXPORT_ALL_DYNAMIC_SYMBOLS_FLAG
             when ($EXPORTS_FILE) {
-                EXPORTS_VALUE=-Wl,--version-script=${input:EXPORTS_FILE}
+                EXPORTS_VALUE=$LD_EXPORT_ALL_DYNAMIC_SYMBOLS_FLAG -Wl,--version-script=${input:EXPORTS_FILE}
+            }
+            when ($NO_EXPORT_DYNAMIC_SYMBOLS == "yes") {
+                EXPORTS_VALUE=
             }''')
 
         exe_flags = [
@@ -2035,7 +2039,7 @@ class LD(Linker):
             emit('LINK_SCRIPT_EXE_FLAGS')
             emit('REAL_LINK_EXE',
                  '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '--source-root $ARCADIA_ROOT', '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
-                 arch_flag, '$LINK_SCRIPT_EXE_FLAGS', '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags, ld_env_style)
+                 arch_flag, '$LINK_SCRIPT_EXE_FLAGS', '$CXX_COMPILER', srcs_globals, '$VCS_C_OBJ $AUTO_INPUT -o $TARGET', exe_flags, ld_env_style)
 
         # Executable Shared Library
 
@@ -2706,7 +2710,12 @@ class MSVCLinker(MSVC, Linker):
             emit('LINK_WRAPPER')
 
         emit('LINK_WRAPPER_DYNLIB', '${YMAKE_PYTHON}', '${input:"build/scripts/link_dyn_lib.py"}', '--arch', 'WINDOWS', '--target', '$TARGET')
-        emit('EXPORTS_VALUE')
+        emit_big('''
+            EXPORTS_VALUE=
+            when ($EXPORTS_FILE) {
+                LINK_IMPLIB_VALUE=$LINK_IMPLIB
+                EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
+            }''')
 
         emit("GENERATE_MF", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
              '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
@@ -2730,12 +2739,6 @@ class MSVCLinker(MSVC, Linker):
         tail_link_lib = '--ya-start-command-file ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}'
         emit('LINK_LIB', '${GENERATE_MF} &&', head_link_lib, '/OUT:${qe;rootrel:TARGET}', tail_link_lib)
         emit('GLOBAL_LINK_LIB', head_link_lib, '/OUT:${qe;rootrel:GLOBAL_TARGET}', tail_link_lib)
-
-        emit_big('''
-            when ($EXPORTS_FILE) {
-                LINK_IMPLIB_VALUE=$LINK_IMPLIB
-                EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
-            }''')
 
         emit('LINK_EXE', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER}',
              '${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET} ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL} ',
