@@ -1532,11 +1532,19 @@ class GnuCompiler(Compiler):
         emit_big('''
             when ($NO_WSHADOW == "yes") {
                 C_WARNING_OPTS += -Wno-shadow
-            }
+            }''')
+
+        # Though -w is intended to switch off all the warnings,
+        # it does not switch at least -Wregister and -Wreserved-user-defined-literal under clang.
+        #
+        # Use -Wno-everything to force warning suppression.
+        emit_big('''
             when ($NO_COMPILER_WARNINGS == "yes") {
                 C_WARNING_OPTS = -w
                 CXX_WARNING_OPTS = -Wno-everything
-            }
+            }''')
+
+        emit_big('''
             when ($NO_OPTIMIZE == "yes") {
                 OPTIMIZE = -O0
             }
@@ -2452,7 +2460,6 @@ class MSVCCompiler(MSVC, Compiler):
             # Some warnings are getting triggered even when NO_COMPILER_WARNINGS is enabled
             flags.extend((
                 '-Wno-c++11-narrowing',
-                '-Wno-register',
             ))
 
             c_warnings.extend((
@@ -2477,7 +2484,6 @@ class MSVCCompiler(MSVC, Compiler):
 
             cxx_warnings += [
                 '-Woverloaded-virtual',
-                '-Wno-register',  # IGNIETFERRO-722 needed for contrib
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-undefined-var-template',
             ]
@@ -2591,11 +2597,26 @@ class MSVCCompiler(MSVC, Compiler):
         emit_big('''
             when ($NO_WSHADOW == "yes") {
                 C_WARNING_OPTS += /wd4456 /wd4457
-            }
-            when ($NO_COMPILER_WARNINGS == "yes") {
-                C_WARNING_OPTS = /w
-                CXX_WARNING_OPTS =
-            }
+            }''')
+
+        if self.tc.use_clang:
+            # Though /w is intended to switch off all the warnings,
+            # it does not switch at least -Wregister and -Wreserved-user-defined-literal under clang-cl.
+            #
+            # Use -Wno-everything to force warning suppression.
+            emit_big('''
+                when ($NO_COMPILER_WARNINGS == "yes") {
+                    C_WARNING_OPTS = /w
+                    CXX_WARNING_OPTS = -Wno-everything
+                }''')
+        else:
+            emit_big('''
+                when ($NO_COMPILER_WARNINGS == "yes") {
+                    C_WARNING_OPTS = /w
+                    CXX_WARNING_OPTS =
+                }''')
+
+        emit_big('''
             when ($NO_OPTIMIZE == "yes") {
                 OPTIMIZE = /Od
             }''')
