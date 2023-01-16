@@ -26,15 +26,9 @@ struct TCombinationClassFeatures;
 
 EFstrType GetDefaultFstrType(const TFullModel& model);
 
-// needed for forwarding exceptions from C++ to JVM
-TVector<TString> GetMaybeGeneratedModelFeatureIdsWrapper(
-    const TFullModel& model,
-    const NCB::TFeaturesLayoutPtr datasetFeaturesLayout // can be null
-);
-
 bool PreparedTreesNeedLeavesWeightsFromDataset(const TFullModel& model);
 
-// needed for forwarding exceptions from C++ to JVM
+// needed for API with TDataProviderPtr
 TVector<double> CollectLeavesStatisticsWrapper(
     const NCB::TDataProviderPtr dataset,
     const TFullModel& model,

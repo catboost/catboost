@@ -28,7 +28,7 @@ public int hashCode() {
 %define ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(CPPTYPE)
 
 %extend {
-    bool equalsImpl(const CPPTYPE& rhs) const throw (std::exception) {
+    bool equalsImpl(const CPPTYPE& rhs) const {
         return *self == rhs;
     }
 }

@@ -10,6 +10,9 @@
 %include "java_helpers.i"
 %include "tvector.i"
 
+
+%catches(std::exception) NCB::TFeatureMetaInfo::equalsImpl(const NCB::TFeatureMetaInfo& rhs) const;
+
 namespace NCB {
     struct TFeatureMetaInfo {
         EFeatureType Type;
@@ -61,7 +64,13 @@ namespace NCB {
     };
 }
 
-%template(TVector_TFeatureMetaInfo) TVector<NCB::TFeatureMetaInfo>;
+DECLARE_TVECTOR(TVector_TFeatureMetaInfo, NCB::TFeatureMetaInfo)
+
+
+%catches(yexception) NCB::TFeaturesLayout::Init(TVector<TFeatureMetaInfo>* data);
+%catches(yexception) NCB::TFeaturesLayout::GetExternalFeatureIds() const;
+%catches(yexception) NCB::TFeaturesLayout::GetExternalFeaturesMetaInfoAsVector() const;
+%catches(std::exception) NCB::TFeaturesLayout::equalsImpl(const NCB::TFeaturesLayout& rhs) const;
 
 namespace NCB {
     class TFeaturesLayout {
@@ -108,7 +117,13 @@ namespace NCB {
                 this.swigCMemOwn = true;
 
                 TVector_TFeatureMetaInfo data = (TVector_TFeatureMetaInfo)in.readUnshared();
-                Init(data);
+                try {
+                    Init(data);
+                } catch (Exception e) {
+                    throw new IOException(
+                        "Error in TFeaturesLayout::Init: " + e.getMessage()
+                    );
+                }
             }
         %}
 
@@ -124,10 +139,38 @@ namespace NCB {
 
 %template(TFeaturesLayoutPtr) TIntrusivePtr<NCB::TFeaturesLayout>;
 
+
+%catches(yexception) MakeFeatureMetaInfo(
+    EFeatureType type,
+    const TString& name,
+    bool isSparse = false,
+    bool isIgnored = false,
+    bool isAvailable = true // isIgnored = true overrides this parameter
+);
+
+%catches(yexception) MakeFeaturesLayout(TVector<NCB::TFeatureMetaInfo>* data);
+%catches(yexception) MakeFeaturesLayout(
+    const int featureCount,
+    const TVector<TString>& featureNames,
+    const TVector<i32>& ignoredFeatures
+);
+
+%catches(yexception) CloneWithSelectedFeatures(
+    const NCB::TFeaturesLayout& featuresLayout,
+    TConstArrayRef<i32> selectedFeatures
+);
+
 %include "features_layout.h"
 
+
+%catches(yexception) GetAvailableFeatures_Float(const NCB::TFeaturesLayout& featuresLayout);
 %template(GetAvailableFeatures_Float) GetAvailableFeatures<EFeatureType::Float>;
+
+%catches(yexception) GetAvailableFeatures_Categorical(const NCB::TFeaturesLayout& featuresLayout);
 %template(GetAvailableFeatures_Categorical) GetAvailableFeatures<EFeatureType::Categorical>;
 
+%catches(yexception) GetAvailableFeaturesFlatIndices_Float(const NCB::TFeaturesLayout& featuresLayout);
 %template(GetAvailableFeaturesFlatIndices_Float) GetAvailableFeaturesFlatIndices<EFeatureType::Float>;
+
+%catches(yexception) GetAvailableFeaturesFlatIndices_Categorical(const NCB::TFeaturesLayout& featuresLayout);
 %template(GetAvailableFeaturesFlatIndices_Categorical) GetAvailableFeaturesFlatIndices<EFeatureType::Categorical>;

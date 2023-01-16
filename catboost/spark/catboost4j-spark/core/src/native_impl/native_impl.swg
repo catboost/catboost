@@ -19,7 +19,7 @@
 
 %include <bindings/swiglib/stroka.swg>
 
-%template(TVector_TString) TVector<TString>;
+DECLARE_TVECTOR(TVector_TString, TString)
 
 %include "maybe.i"
 %include "string.i"

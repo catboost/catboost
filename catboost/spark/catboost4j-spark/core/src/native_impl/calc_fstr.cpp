@@ -22,14 +22,6 @@ EFstrType GetDefaultFstrType(const TFullModel& model) {
        : EFstrType::PredictionValuesChange;
 }
 
-
-TVector<TString> GetMaybeGeneratedModelFeatureIdsWrapper(
-    const TFullModel& model,
-    const TFeaturesLayoutPtr datasetFeaturesLayout // can be null
-) {
-    return GetMaybeGeneratedModelFeatureIds(model, std::move(datasetFeaturesLayout));
-}
-
 bool PreparedTreesNeedLeavesWeightsFromDataset(const TFullModel& model) {
     const auto leafWeightsOfModels = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
     if (!leafWeightsOfModels) {

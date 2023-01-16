@@ -322,7 +322,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
   ) : Array[FeatureImportance]  = {
     val featureImportancesArray = getFeatureImportance(fstrType, data, calcType)
     val datasetFeaturesLayout = if (data != null) { data.getFeaturesLayout } else { new TFeaturesLayoutPtr }
-    val featureNames = native_impl.GetMaybeGeneratedModelFeatureIdsWrapper(nativeModel, datasetFeaturesLayout)
+    val featureNames = native_impl.GetMaybeGeneratedModelFeatureIds(nativeModel, datasetFeaturesLayout)
     featureNames.asScala.zip(featureImportancesArray).sortBy(-_._2).map{
       case (name, value) => new FeatureImportance(name, value)
     }.toArray

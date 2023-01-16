@@ -209,7 +209,7 @@ private[spark] class CatBoostMasterWrapper (
     log.info("CatBoost Master process finished successfully.")
 
     log.info("Trained model: start loading")
-    nativeModelResult = native_impl.native_impl.ReadModelWrapper(resultModelFilePath.toString)
+    nativeModelResult = native_impl.native_impl.ReadModel(resultModelFilePath.toString)
     log.info("Trained model: finish loading")
 
     FileUtils.deleteDirectory(tmpDirPath.toFile)

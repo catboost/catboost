@@ -25,6 +25,9 @@ enum class EColumn {
     NumVector
 };
 
+
+%catches(std::exception) TColumn::equalsImpl(const TColumn& rhs) const;
+
 struct TColumn {
     EColumn Type;
     TString Id;
@@ -49,3 +52,4 @@ struct TColumn {
 
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TColumn)
 };
+
