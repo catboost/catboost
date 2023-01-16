@@ -58,8 +58,6 @@ using ::NYson::EYsonType::YT_MAP_FRAGMENT;
 using ::NYson::IYsonConsumer;
 using ::NYson::TYsonConsumerBase;
 
-using ::NYson::TYsonWriter;
-
 using ::NYson::TYsonListParser;
 
 } // namespace NYT

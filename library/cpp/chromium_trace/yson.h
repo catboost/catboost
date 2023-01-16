@@ -6,7 +6,7 @@
 
 namespace NChromiumTrace {
     class TYsonTraceConsumer final: public ITraceConsumer {
-        NYT::TYsonWriter Yson;
+        NYson::TYsonWriter Yson;
         TString JobId;
 
     public:
