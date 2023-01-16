@@ -75,4 +75,3 @@ def test(py_ver, case):
                     diff_tool = args[1]
                 canon_files.append(yatest.common.canonical_file(canon_file, diff_tool=diff_tool, local=True))
         return canon_files
-
