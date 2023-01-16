@@ -18,11 +18,11 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
         TString s(r.End(rs));
         s.to_lower();
 
-        UNIT_ASSERT_EQUAL(s, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
+        UNIT_ASSERT_NO_DIFF(s, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
 
         TString result = r.Calc(TStringBuf(b));
         result.to_lower();
-        UNIT_ASSERT_EQUAL(result, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
+        UNIT_ASSERT_NO_DIFF(result, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
     }
 
     Y_UNIT_TEST(TestFile) {
@@ -39,10 +39,10 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
         TString fileHash = MD5::File(tmpFile.data(), fileBuf);
         TString memoryHash = MD5::Data((const unsigned char*)s.data(), s.size(), memBuf);
 
-        UNIT_ASSERT_EQUAL(fileHash, memoryHash);
+        UNIT_ASSERT_NO_DIFF(fileHash, memoryHash);
 
         fileHash = MD5::File(tmpFile);
-        UNIT_ASSERT_EQUAL(fileHash, memoryHash);
+        UNIT_ASSERT_NO_DIFF(fileHash, memoryHash);
 
         NFs::Remove(tmpFile);
         fileHash = MD5::File(tmpFile);
