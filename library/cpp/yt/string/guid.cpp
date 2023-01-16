@@ -6,7 +6,7 @@ namespace NYT {
 
 void FormatValue(TStringBuilderBase* builder, TGuid value, TStringBuf /*format*/)
 {
-    char* begin = builder->Preallocate(8 * 4 + 3);
+    char* begin = builder->Preallocate(MaxGuidStringSize);
     char* end = WriteGuidToBuffer(begin, value);
     builder->Advance(end - begin);
 }

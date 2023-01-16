@@ -2,6 +2,51 @@
 Cython Changelog
 ================
 
+0.29.26 (2021-12-16)
+====================
+
+Bugs fixed
+----------
+
+* An incompatibility with CPython 3.11.0a3 was resolved.
+  (Github issue #4499)
+
+* The ``in`` operator failed on literal lists with starred expressions.
+  Patch by Arvind Natarajan.  (Github issue #3938)
+
+* A C compiler warning in PyPy about a missing struct field initialisation was resolved.
+
+
+0.29.25 (2021-12-06)
+====================
+
+Bugs fixed
+----------
+
+* Several incompatibilities with CPython 3.11 were resolved.
+  Patches by David Woods, Victor Stinner, Thomas Caswell.
+  (Github issues #4411, #4414, #4415, #4416, #4420, #4428, #4473, #4479, #4480)
+
+* Some C compiler warnings were resolved.
+  Patches by Lisandro Dalcin and others.  (Github issue #4439)
+
+* C++ ``std::move()`` should only be used automatically in MSVC versions that support it.
+  Patch by Max Bachmann.  (Github issue #4191)
+
+ * The ``Py_hash_t`` type failed to accept arbitrary "index" values.
+   (Github issue #2752)
+
+* Avoid copying unaligned 16-bit values since some platforms require them to be aligned.
+  Use memcpy() instead to let the C compiler decide how to do it.
+  (Github issue #4343)
+
+* Cython crashed on invalid truthiness tests on C++ types without ``operator bool``.
+  Patch by David Woods.  (Github issue #4348)
+
+* The declaration of ``PyUnicode_CompareWithASCIIString()`` in ``cpython.unicode`` was incorrect.
+  Patch by Max Bachmann.  (Github issue #4344)
+
+
 0.29.24 (2021-07-14)
 ====================
 

@@ -202,9 +202,7 @@ class build_ext(Command):
             # Append the source distribution include and library directories,
             # this allows distutils on windows to work in the source tree
             self.include_dirs.append(os.path.dirname(get_config_h_filename()))
-            _sys_home = getattr(sys, '_home', None)
-            if _sys_home:
-                self.library_dirs.append(_sys_home)
+            self.library_dirs.append(sys.base_exec_prefix)
 
             # Use the .lib files for the correct architecture
             if self.plat_name == 'win32':

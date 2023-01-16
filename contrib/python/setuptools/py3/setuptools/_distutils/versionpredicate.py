@@ -23,7 +23,9 @@ def splitUp(pred):
     if not res:
         raise ValueError("bad package restriction syntax: %r" % pred)
     comp, verStr = res.groups()
-    return (comp, distutils.version.StrictVersion(verStr))
+    with distutils.version.suppress_known_deprecation():
+        other = distutils.version.StrictVersion(verStr)
+    return (comp, other)
 
 compmap = {"<": operator.lt, "<=": operator.le, "==": operator.eq,
            ">": operator.gt, ">=": operator.ge, "!=": operator.ne}
@@ -162,5 +164,6 @@ def split_provision(value):
         raise ValueError("illegal provides specification: %r" % value)
     ver = m.group(2) or None
     if ver:
-        ver = distutils.version.StrictVersion(ver)
+        with distutils.version.suppress_known_deprecation():
+            ver = distutils.version.StrictVersion(ver)
     return m.group(1), ver

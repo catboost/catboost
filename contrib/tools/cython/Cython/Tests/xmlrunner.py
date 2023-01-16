@@ -27,12 +27,12 @@ class TestSequenceFunctions(unittest.TestCase):
 
     def test_choice(self):
         element = random.choice(self.seq)
-        self.assert_(element in self.seq)
+        self.assertTrue(element in self.seq)
 
     def test_sample(self):
         self.assertRaises(ValueError, random.sample, self.seq, 20)
         for element in random.sample(self.seq, 5):
-            self.assert_(element in self.seq)
+            self.assertTrue(element in self.seq)
 
 if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='test-reports'))
@@ -43,7 +43,7 @@ from __future__ import absolute_import
 import os
 import sys
 import time
-from unittest import TestResult, _TextTestResult, TextTestRunner
+from unittest import TestResult, TextTestResult, TextTestRunner
 import xml.dom.minidom
 try:
     from StringIO import StringIO
@@ -95,7 +95,7 @@ class _TestInfo(object):
             self.err, self.test_method)
 
 
-class _XMLTestResult(_TextTestResult):
+class _XMLTestResult(TextTestResult):
     """A test result class that can express test results in a XML report.
 
     Used by XMLTestRunner.
@@ -103,7 +103,7 @@ class _XMLTestResult(_TextTestResult):
     def __init__(self, stream=sys.stderr, descriptions=1, verbosity=1,
                  elapsed_times=True):
         "Create a new instance of _XMLTestResult."
-        _TextTestResult.__init__(self, stream, descriptions, verbosity)
+        TextTestResult.__init__(self, stream, descriptions, verbosity)
         self.successes = []
         self.callback = None
         self.elapsed_times = elapsed_times
@@ -159,7 +159,7 @@ class _XMLTestResult(_TextTestResult):
     def stopTest(self, test):
         "Called after execute each test method."
         self._restore_standard_output()
-        _TextTestResult.stopTest(self, test)
+        TextTestResult.stopTest(self, test)
         self.stop_time = time.time()
 
         if self.callback and callable(self.callback):
