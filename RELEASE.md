@@ -1,3 +1,26 @@
+# Release 1.0.4
+
+## New features
+* Add `sort` param to `FilteredDCG` metric.
+* Add `StochasticRank` for `FilteredDCG`.
+
+## Python package
+* add is_max/minimizable methods. #1915
+* Support custom metric in select_features #1920
+
+## R package
+* Register functions from libcatboostr natively in R, removing one of CRAN notes.
+
+## Bugfixes
+* Fix apply for models without main `loss_function`.
+* Fix text calcer options specification. #1916
+* Fix `calc_feature_statistics`
+* Fix Multi-approx support in CLI `calc_metrics` mode.
+* Fix processing for text options. #1930
+* Fix snapshot saving in feature selection.
+* Fix CatBoost models serialization inside pipeline models in PySpark. #1936
+
+
 # Release 1.0.3
 
 ## CatBoost for Apache Spark
