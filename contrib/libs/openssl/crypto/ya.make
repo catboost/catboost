@@ -1,6 +1,17 @@
 LIBRARY()
 
-LICENSE(OpenSSL SSLeay)
+LICENSE(
+    Apache-2.0
+    BSD-2-Clause
+    BSD-3-Clause
+    BSD-Source-Code
+    CC0-1.0
+    OpenSSL
+    Public-Domain
+    Snprintf
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
@@ -20,9 +31,9 @@ ADDINCL(
 IF (OS_LINUX)
     IF (ARCH_ARM64)
         SET(LINUX_ARM64 yes)
-    ELSEIF(ARCH_ARM7)
+    ELSEIF (ARCH_ARM7)
         SET(LINUX_ARMV7 yes)
-    ELSEIF(ARCH_X86_64)
+    ELSEIF (ARCH_X86_64)
         SET(LINUX_X86_64 yes)
     ENDIF()
 ENDIF()
@@ -30,11 +41,11 @@ ENDIF()
 IF (OS_IOS)
     IF (ARCH_ARM64)
         SET(IOS_ARM64 yes)
-    ELSEIF(ARCH_ARM7)
+    ELSEIF (ARCH_ARM7)
         SET(IOS_ARMV7 yes)
-    ELSEIF(ARCH_X86_64)
+    ELSEIF (ARCH_X86_64)
         SET(IOS_X86_64 yes)
-    ELSEIF(ARCH_I386)
+    ELSEIF (ARCH_I386)
         SET(IOS_I386 yes)
     ENDIF()
 ENDIF()
@@ -42,11 +53,11 @@ ENDIF()
 IF (OS_ANDROID)
     IF (ARCH_ARM64)
         SET(ANDROID_ARM64 yes)
-    ELSEIF(ARCH_ARM7)
+    ELSEIF (ARCH_ARM7)
         SET(ANDROID_ARMV7 yes)
-    ELSEIF(ARCH_X86_64)
+    ELSEIF (ARCH_X86_64)
         SET(ANDROID_X86_64 yes)
-    ELSEIF(ARCH_I686)
+    ELSEIF (ARCH_I686)
         SET(ANDROID_I686 yes)
     ENDIF()
 ENDIF()
@@ -54,7 +65,7 @@ ENDIF()
 IF (OS_WINDOWS)
     IF (ARCH_X86_64)
         SET(WINDOWS_X86_64 yes)
-    ELSEIF(ARCH_I686)
+    ELSEIF (ARCH_I686)
         SET(WINDOWS_I686 yes)
     ENDIF()
 ENDIF()
@@ -91,15 +102,11 @@ IF (NOT WINDOWS_I686)
 ENDIF()
 
 IF (NOT IOS_I386 AND NOT ANDROID_I686 AND NOT WINDOWS_I686)
-    CFLAGS(
-        -DKECCAK1600_ASM
-    )
+    CFLAGS(-DKECCAK1600_ASM)
 ENDIF()
 
 IF (NOT IOS_ARMV7 AND NOT ANDROID_ARMV7 AND NOT LINUX_ARMV7)
-    CFLAGS(
-        -DVPAES_ASM
-    )
+    CFLAGS(-DVPAES_ASM)
 ENDIF()
 
 IF (NOT OS_WINDOWS)
@@ -127,9 +134,7 @@ IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64)
 ENDIF()
 
 IF (OS_DARWIN AND ARCH_X86_64)
-    CFLAGS(
-        -D_REENTRANT
-    )
+    CFLAGS(-D_REENTRANT)
 ENDIF()
 
 IF (OS_DARWIN AND ARCH_ARM64)
@@ -146,7 +151,7 @@ IF (OS_WINDOWS)
             -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\""
             -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\""
         )
-    ELSEIF(ARCH_I386)
+    ELSEIF (ARCH_I386)
         CFLAGS(
             -DENGINESDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\OpenSSL\\\\lib\\\\engines-1_1\""
             -DOPENSSLDIR="\"C:\\\\Program\ Files\ \(x86\)\\\\Common\ Files\\\\SSL\""
@@ -161,7 +166,6 @@ IF (OS_WINDOWS)
         -D_WINSOCK_DEPRECATED_NO_WARNINGS
         /GF
     )
-
 ENDIF()
 
 IF (SANITIZER_TYPE == memory)
@@ -177,10 +181,15 @@ IF (ARCH_TYPE_32)
 ENDIF()
 
 IF (ARCH_X86_64 AND NOT MSVC)
-    SET_APPEND(SFLAGS -mavx512bw -mavx512ifma -mavx512vl)
+    SET_APPEND(
+        SFLAGS
+        -mavx512bw
+        -mavx512ifma
+        -mavx512vl
+    )
 ENDIF()
 
-IF(OS_WINDOWS)
+IF (OS_WINDOWS)
     SET_COMPILE_OUTPUTS_MODIFIERS(NOREL)
 ENDIF()
 
@@ -818,11 +827,13 @@ IF (NOT IOS_ARM64 AND NOT IOS_ARMV7)
         engine/tb_rsa.c
     )
 ENDIF()
+
 IF (NOT IOS_ARMV7 AND NOT ANDROID_ARMV7 AND NOT LINUX_ARMV7)
     SRCS(
         aes/aes_core.c
     )
 ENDIF()
+
 IF (NOT IOS_I386 AND NOT ANDROID_I686 AND NOT WINDOWS_I686)
     SRCS(
         bf/bf_enc.c
@@ -883,7 +894,6 @@ IF (OS_DARWIN AND ARCH_X86_64)
     )
 ENDIF()
 
-
 IF (OS_DARWIN AND ARCH_ARM64)
     SRCS(
         ../asm/darwin-arm64/crypto/sha/keccak1600-armv8.S
@@ -916,7 +926,6 @@ IF (OS_LINUX AND ARCH_ARM7)
         # https://github.com/openssl/openssl/issues/7878
         CFLAGS(-mno-thumb)
     ENDIF()
-
     CFLAGS(
         -DOPENSSL_PIC
         -DOPENSSL_BN_ASM_GF2m
@@ -1071,7 +1080,6 @@ IF (OS_WINDOWS AND ARCH_X86_64)
     )
 ENDIF()
 
-
 IF (OS_WINDOWS AND ARCH_I386)
     CFLAGS(
         -DGHASH_ASM
@@ -1079,7 +1087,6 @@ IF (OS_WINDOWS AND ARCH_I386)
         -DRC4_ASM
         -DMD5_ASM
     )
-
     SRCS(
         ../asm/windows/crypto/aes/aesni-x86.masm
         ../asm/windows/crypto/aes/vpaes-x86.masm
@@ -1398,9 +1405,7 @@ IF (OS_ANDROID AND ARCH_ARM7)
 ENDIF()
 
 IF (OS_ANDROID AND ARCH_ARM64)
-    CFLAGS(
-       -DOPENSSL_PIC
-    )
+    CFLAGS(-DOPENSSL_PIC)
     SRCS(
         ../asm/android/arm64/crypto/ec/ecp_nistz256-armv8.S
         ../asm/android/arm64/crypto/poly1305/poly1305-armv8.S
