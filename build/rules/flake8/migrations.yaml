@@ -50,7 +50,6 @@ migrations:
     - ads/sandbox_scripts/build_tag_rules_table
     - ads/sandbox_scripts/clean_mapreduce/ut
     - ads/sandbox_scripts/join_yabar
-    - ads/targeting/bsmr-scripts/ut_fat
     - ads/tools/mranalyze
     - ads/tools/yt_operations_analyzer
     - ads/watchman/contrib/apispec-patched
@@ -1618,7 +1617,6 @@ migrations:
     - '*'
     prefixes:
     - addappter/backend/addappter/tests
-    - addappter/backend/addappter_api/tests
     - addappter/backend/addappter_cli/tests
     - addappter/backend/addappter_less/tests
     - addappter/backend/addappter_partners_api/tests
@@ -3070,7 +3068,6 @@ migrations:
     - ads/quality/bid_correction/lib/ut
     - ads/quality/metric_eval/tests/ut
     - ads/sandbox_scripts/logs_scheme/fat
-    - ads/targeting/bsmr-scripts/ut
     - ads/targeting/cross_check/ut
     - advq/generation/broadmatch_export/tests
     - advq/generation/chrono_db_generator/tests

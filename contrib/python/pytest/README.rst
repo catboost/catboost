@@ -22,11 +22,11 @@
 .. image:: https://travis-ci.org/pytest-dev/pytest.svg?branch=master
     :target: https://travis-ci.org/pytest-dev/pytest
 
-.. image:: https://ci.appveyor.com/api/projects/status/mrgbjaua7t33pg6b?svg=true
-    :target: https://ci.appveyor.com/project/pytestbot/pytest
+.. image:: https://dev.azure.com/pytest-dev/pytest/_apis/build/status/pytest-CI?branchName=master
+    :target: https://dev.azure.com/pytest-dev/pytest
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/ambv/black
+    :target: https://github.com/python/black
 
 .. image:: https://www.codetriage.com/pytest-dev/pytest/badges/users.svg
     :target: https://www.codetriage.com/pytest-dev/pytest
@@ -108,10 +108,30 @@ Changelog
 Consult the `Changelog <https://docs.pytest.org/en/latest/changelog.html>`__ page for fixes and enhancements of each version.
 
 
+Support pytest
+--------------
+
+You can support pytest by obtaining a `Tideflift subscription`_.
+
+Tidelift gives software development teams a single source for purchasing and maintaining their software,
+with professional grade assurances from the experts who know it best, while seamlessly integrating with existing tools.
+
+
+.. _`Tideflift subscription`: https://tidelift.com/subscription/pkg/pypi-pytest?utm_source=pypi-pytest&utm_medium=referral&utm_campaign=readme
+
+
+Security
+^^^^^^^^
+
+pytest has never been associated with a security vunerability, but in any case, to report a
+security vulnerability please use the `Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
+
+
 License
 -------
 
-Copyright Holger Krekel and others, 2004-2018.
+Copyright Holger Krekel and others, 2004-2020.
 
 Distributed under the terms of the `MIT`_ license, pytest is free and open source software.
 

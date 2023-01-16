@@ -1,18 +1,24 @@
+# -*- coding: utf-8 -*-
 """ discover and run doctests in modules and test files."""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import inspect
 import platform
 import sys
 import traceback
+import warnings
+from contextlib import contextmanager
 
 import pytest
 from _pytest._code.code import ExceptionInfo
 from _pytest._code.code import ReprFileLocation
 from _pytest._code.code import TerminalRepr
+from _pytest.compat import safe_getattr
 from _pytest.fixtures import FixtureRequest
-
+from _pytest.outcomes import Skipped
+from _pytest.warning_types import PytestWarning
 
 DOCTEST_REPORT_CHOICE_NONE = "none"
 DOCTEST_REPORT_CHOICE_CDIFF = "cdiff"
@@ -151,6 +157,8 @@ def _init_runner_class():
                 raise failure
 
         def report_unexpected_exception(self, out, test, example, exc_info):
+            if isinstance(exc_info[1], Skipped):
+                raise exc_info[1]
             failure = doctest.UnexpectedException(test, example, exc_info)
             if self.continue_on_failure:
                 out.append(failure)
@@ -346,9 +354,68 @@ def _check_all_skipped(test):
         pytest.skip("all tests skipped by +SKIP option")
 
 
+def _is_mocked(obj):
+    """
+    returns if a object is possibly a mock object by checking the existence of a highly improbable attribute
+    """
+    return (
+        safe_getattr(obj, "pytest_mock_example_attribute_that_shouldnt_exist", None)
+        is not None
+    )
+
+
+@contextmanager
+def _patch_unwrap_mock_aware():
+    """
+    contextmanager which replaces ``inspect.unwrap`` with a version
+    that's aware of mock objects and doesn't recurse on them
+    """
+    real_unwrap = getattr(inspect, "unwrap", None)
+    if real_unwrap is None:
+        yield
+    else:
+
+        def _mock_aware_unwrap(obj, stop=None):
+            try:
+                if stop is None or stop is _is_mocked:
+                    return real_unwrap(obj, stop=_is_mocked)
+                return real_unwrap(obj, stop=lambda obj: _is_mocked(obj) or stop(obj))
+            except Exception as e:
+                warnings.warn(
+                    "Got %r when unwrapping %r.  This is usually caused "
+                    "by a violation of Python's object protocol; see e.g. "
+                    "https://github.com/pytest-dev/pytest/issues/5080" % (e, obj),
+                    PytestWarning,
+                )
+                raise
+
+        inspect.unwrap = _mock_aware_unwrap
+        try:
+            yield
+        finally:
+            inspect.unwrap = real_unwrap
+
+
 class DoctestModule(pytest.Module):
     def collect(self):
         import doctest
+
+        class MockAwareDocTestFinder(doctest.DocTestFinder):
+            """
+            a hackish doctest finder that overrides stdlib internals to fix a stdlib bug
+
+            https://github.com/pytest-dev/pytest/issues/3456
+            https://bugs.python.org/issue25532
+            """
+
+            def _find(self, tests, obj, name, module, source_lines, globs, seen):
+                if _is_mocked(obj):
+                    return
+                with _patch_unwrap_mock_aware():
+
+                    doctest.DocTestFinder._find(
+                        self, tests, obj, name, module, source_lines, globs, seen
+                    )
 
         if self.fspath.basename == "conftest.py":
             module = self.config.pluginmanager._importconftest(self.fspath)
@@ -361,7 +428,7 @@ class DoctestModule(pytest.Module):
                 else:
                     raise
         # uses internal doctest module parsing mechanism
-        finder = doctest.DocTestFinder()
+        finder = MockAwareDocTestFinder()
         optionflags = get_optionflags(self)
         runner = _get_runner(
             verbose=0,

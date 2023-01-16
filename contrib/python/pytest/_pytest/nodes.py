@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -5,13 +6,11 @@ from __future__ import print_function
 import os
 import warnings
 
-import attr
 import py
 import six
 
 import _pytest._code
 from _pytest.compat import getfslineno
-from _pytest.mark.structures import MarkInfo
 from _pytest.mark.structures import NodeKeywords
 from _pytest.outcomes import fail
 
@@ -54,22 +53,6 @@ def ischildnode(baseid, nodeid):
     if len(node_parts) < len(base_parts):
         return False
     return node_parts[: len(base_parts)] == base_parts
-
-
-@attr.s
-class _CompatProperty(object):
-    name = attr.ib()
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self
-
-        from _pytest.deprecated import COMPAT_PROPERTY
-
-        warnings.warn(
-            COMPAT_PROPERTY.format(name=self.name, owner=owner.__name__), stacklevel=2
-        )
-        return getattr(__import__("pytest"), self.name)
 
 
 class Node(object):
@@ -119,95 +102,10 @@ class Node(object):
         """ fspath sensitive hook proxy used to call pytest hooks"""
         return self.session.gethookproxy(self.fspath)
 
-    Module = _CompatProperty("Module")
-    Class = _CompatProperty("Class")
-    Instance = _CompatProperty("Instance")
-    Function = _CompatProperty("Function")
-    File = _CompatProperty("File")
-    Item = _CompatProperty("Item")
-
-    def _getcustomclass(self, name):
-        maybe_compatprop = getattr(type(self), name)
-        if isinstance(maybe_compatprop, _CompatProperty):
-            return getattr(__import__("pytest"), name)
-        else:
-            from _pytest.deprecated import CUSTOM_CLASS
-
-            cls = getattr(self, name)
-            self.warn(CUSTOM_CLASS.format(name=name, type_name=type(self).__name__))
-        return cls
-
     def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, getattr(self, "name", None))
+        return "<%s %s>" % (self.__class__.__name__, getattr(self, "name", None))
 
-    def warn(self, _code_or_warning=None, message=None, code=None):
-        """Issue a warning for this item.
-
-        Warnings will be displayed after the test session, unless explicitly suppressed.
-
-        This can be called in two forms:
-
-        **Warning instance**
-
-        This was introduced in pytest 3.8 and uses the standard warning mechanism to issue warnings.
-
-        .. code-block:: python
-
-            node.warn(PytestWarning("some message"))
-
-        The warning instance must be a subclass of :class:`pytest.PytestWarning`.
-
-        **code/message (deprecated)**
-
-        This form was used in pytest prior to 3.8 and is considered deprecated. Using this form will emit another
-        warning about the deprecation:
-
-        .. code-block:: python
-
-            node.warn("CI", "some message")
-
-        :param Union[Warning,str] _code_or_warning:
-            warning instance or warning code (legacy). This parameter receives an underscore for backward
-            compatibility with the legacy code/message form, and will be replaced for something
-            more usual when the legacy form is removed.
-
-        :param Union[str,None] message: message to display when called in the legacy form.
-        :param str code: code for the warning, in legacy form when using keyword arguments.
-        :return:
-        """
-        if message is None:
-            if _code_or_warning is None:
-                raise ValueError("code_or_warning must be given")
-            self._std_warn(_code_or_warning)
-        else:
-            if _code_or_warning and code:
-                raise ValueError(
-                    "code_or_warning and code cannot both be passed to this function"
-                )
-            code = _code_or_warning or code
-            self._legacy_warn(code, message)
-
-    def _legacy_warn(self, code, message):
-        """
-        .. deprecated:: 3.8
-
-            Use :meth:`Node.std_warn <_pytest.nodes.Node.std_warn>` instead.
-
-        Generate a warning with the given code and message for this item.
-        """
-        from _pytest.deprecated import NODE_WARN
-
-        self._std_warn(NODE_WARN)
-
-        assert isinstance(code, str)
-        fslocation = get_fslocation_from_item(self)
-        self.ihook.pytest_logwarning.call_historic(
-            kwargs=dict(
-                code=code, message=message, nodeid=self.nodeid, fslocation=fslocation
-            )
-        )
-
-    def _std_warn(self, warning):
+    def warn(self, warning):
         """Issue a warning for this item.
 
         Warnings will be displayed after the test session, unless explicitly suppressed
@@ -215,6 +113,13 @@ class Node(object):
         :param Warning warning: the warning instance to issue. Must be a subclass of PytestWarning.
 
         :raise ValueError: if ``warning`` instance is not a subclass of PytestWarning.
+
+        Example usage:
+
+        .. code-block:: python
+
+            node.warn(PytestWarning("some message"))
+
         """
         from _pytest.warning_types import PytestWarning
 
@@ -307,20 +212,6 @@ class Node(object):
         """
         return next(self.iter_markers(name=name), default)
 
-    def get_marker(self, name):
-        """ get a marker object from this node or None if
-        the node doesn't have a marker with that name.
-
-        .. deprecated:: 3.6
-            This function has been deprecated in favor of
-            :meth:`Node.get_closest_marker <_pytest.nodes.Node.get_closest_marker>` and
-            :meth:`Node.iter_markers <_pytest.nodes.Node.iter_markers>`, see :ref:`update marker code`
-            for more details.
-        """
-        markers = list(self.iter_markers(name=name))
-        if markers:
-            return MarkInfo(markers)
-
     def listextrakeywords(self):
         """ Return a set of all extra keywords in self and any parents."""
         extra_keywords = set()
@@ -358,7 +249,7 @@ class Node(object):
         if excinfo.errisinstance(fm.FixtureLookupError):
             return excinfo.value.formatrepr()
         tbfilter = True
-        if self.config.option.fulltrace:
+        if self.config.getoption("fulltrace", False):
             style = "long"
         else:
             tb = _pytest._code.Traceback([excinfo.traceback[-1]])
@@ -370,12 +261,12 @@ class Node(object):
                 style = "long"
         # XXX should excinfo.getrepr record all data and toterminal() process it?
         if style is None:
-            if self.config.option.tbstyle == "short":
+            if self.config.getoption("tbstyle", "auto") == "short":
                 style = "short"
             else:
                 style = "long"
 
-        if self.config.option.verbose > 1:
+        if self.config.getoption("verbose", 0) > 1:
             truncate_locals = False
         else:
             truncate_locals = True
@@ -389,7 +280,7 @@ class Node(object):
         return excinfo.getrepr(
             funcargs=True,
             abspath=abspath,
-            showlocals=self.config.option.showlocals,
+            showlocals=self.config.getoption("showlocals", False),
             style=style,
             tbfilter=tbfilter,
             truncate_locals=truncate_locals,
@@ -435,7 +326,14 @@ class Collector(Node):
         if excinfo.errisinstance(self.CollectError):
             exc = excinfo.value
             return str(exc.args[0])
-        return self._repr_failure_py(excinfo, style="short")
+
+        # Respect explicit tbstyle option, but default to "short"
+        # (None._repr_failure_py defaults to "long" without "fulltrace" option).
+        tbstyle = self.config.getoption("tbstyle", "auto")
+        if tbstyle == "auto":
+            tbstyle = "short"
+
+        return self._repr_failure_py(excinfo, style=tbstyle)
 
     def _prunetraceback(self, excinfo):
         if hasattr(self, "fspath"):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 merged implementation of the cache provider
 
@@ -20,7 +21,7 @@ import pytest
 from .compat import _PY2 as PY2
 from .pathlib import Path
 from .pathlib import resolve_from_str
-from .pathlib import rmtree
+from .pathlib import rm_rf
 
 README_CONTENT = u"""\
 # pytest cache directory #
@@ -33,6 +34,13 @@ which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
 See [the docs](https://docs.pytest.org/en/latest/cache.html) for more information.
 """
 
+CACHEDIR_TAG_CONTENT = b"""\
+Signature: 8a477f597d28d172789f06886806bc55
+# This file is a cache directory tag created by pytest.
+# For information about cache directory tags, see:
+#	http://www.bford.info/cachedir/spec.html
+"""
+
 
 @attr.s
 class Cache(object):
@@ -43,7 +51,7 @@ class Cache(object):
     def for_config(cls, config):
         cachedir = cls.cache_dir_from_config(config)
         if config.getoption("cacheclear") and cachedir.exists():
-            rmtree(cachedir, force=True)
+            rm_rf(cachedir)
             cachedir.mkdir()
         return cls(cachedir, config)
 
@@ -52,12 +60,12 @@ class Cache(object):
         return resolve_from_str(config.getini("cache_dir"), config.rootdir)
 
     def warn(self, fmt, **args):
-        from _pytest.warnings import _issue_config_warning
-        from _pytest.warning_types import PytestWarning
+        from _pytest.warnings import _issue_warning_captured
+        from _pytest.warning_types import PytestCacheWarning
 
-        _issue_config_warning(
-            PytestWarning(fmt.format(**args) if args else fmt),
-            self._config,
+        _issue_warning_captured(
+            PytestCacheWarning(fmt.format(**args) if args else fmt),
+            self._config.hook,
             stacklevel=3,
         )
 
@@ -114,10 +122,12 @@ class Cache(object):
                 cache_dir_exists_already = True
             else:
                 cache_dir_exists_already = self._cachedir.exists()
-            path.parent.mkdir(exist_ok=True, parents=True)
+                path.parent.mkdir(exist_ok=True, parents=True)
         except (IOError, OSError):
             self.warn("could not create cache path {path}", path=path)
             return
+        if not cache_dir_exists_already:
+            self._ensure_supporting_files()
         try:
             f = path.open("wb" if PY2 else "w")
         except (IOError, OSError):
@@ -125,20 +135,18 @@ class Cache(object):
         else:
             with f:
                 json.dump(value, f, indent=2, sort_keys=True)
-            if not cache_dir_exists_already:
-                self._ensure_supporting_files()
 
     def _ensure_supporting_files(self):
         """Create supporting files in the cache dir that are not really part of the cache."""
-        if self._cachedir.is_dir():
-            readme_path = self._cachedir / "README.md"
-            if not readme_path.is_file():
-                readme_path.write_text(README_CONTENT)
+        readme_path = self._cachedir / "README.md"
+        readme_path.write_text(README_CONTENT)
 
-            gitignore_path = self._cachedir.joinpath(".gitignore")
-            if not gitignore_path.is_file():
-                msg = u"# Created by pytest automatically.\n*"
-                gitignore_path.write_text(msg, encoding="UTF-8")
+        gitignore_path = self._cachedir.joinpath(".gitignore")
+        msg = u"# Created by pytest automatically.\n*"
+        gitignore_path.write_text(msg, encoding="UTF-8")
+
+        cachedir_tag_path = self._cachedir.joinpath("CACHEDIR.TAG")
+        cachedir_tag_path.write_bytes(CACHEDIR_TAG_CONTENT)
 
 
 class LFPlugin(object):
@@ -150,18 +158,37 @@ class LFPlugin(object):
         self.active = any(config.getoption(key) for key in active_keys)
         self.lastfailed = config.cache.get("cache/lastfailed", {})
         self._previously_failed_count = None
-        self._no_failures_behavior = self.config.getoption("last_failed_no_failures")
+        self._report_status = None
+        self._skipped_files = 0  # count skipped files during collection due to --lf
+
+    def last_failed_paths(self):
+        """Returns a set with all Paths()s of the previously failed nodeids (cached).
+        """
+        try:
+            return self._last_failed_paths
+        except AttributeError:
+            rootpath = Path(self.config.rootdir)
+            result = {rootpath / nodeid.split("::")[0] for nodeid in self.lastfailed}
+            result = {x for x in result if x.exists()}
+            self._last_failed_paths = result
+            return result
+
+    def pytest_ignore_collect(self, path):
+        """
+        Ignore this file path if we are in --lf mode and it is not in the list of
+        previously failed files.
+        """
+        if self.active and self.config.getoption("lf") and path.isfile():
+            last_failed_paths = self.last_failed_paths()
+            if last_failed_paths:
+                skip_it = Path(path) not in self.last_failed_paths()
+                if skip_it:
+                    self._skipped_files += 1
+                return skip_it
 
     def pytest_report_collectionfinish(self):
         if self.active and self.config.getoption("verbose") >= 0:
-            if not self._previously_failed_count:
-                return None
-            noun = "failure" if self._previously_failed_count == 1 else "failures"
-            suffix = " first" if self.config.getoption("failedfirst") else ""
-            mode = "rerun previous {count} {noun}{suffix}".format(
-                count=self._previously_failed_count, suffix=suffix, noun=noun
-            )
-            return "run-last-failure: %s" % mode
+            return "run-last-failure: %s" % self._report_status
 
     def pytest_runtest_logreport(self, report):
         if (report.when == "call" and report.passed) or report.skipped:
@@ -179,28 +206,51 @@ class LFPlugin(object):
             self.lastfailed[report.nodeid] = True
 
     def pytest_collection_modifyitems(self, session, config, items):
-        if self.active:
-            if self.lastfailed:
-                previously_failed = []
-                previously_passed = []
-                for item in items:
-                    if item.nodeid in self.lastfailed:
-                        previously_failed.append(item)
-                    else:
-                        previously_passed.append(item)
-                self._previously_failed_count = len(previously_failed)
-                if not previously_failed:
-                    # running a subset of all tests with recorded failures outside
-                    # of the set of tests currently executing
-                    return
+        if not self.active:
+            return
+
+        if self.lastfailed:
+            previously_failed = []
+            previously_passed = []
+            for item in items:
+                if item.nodeid in self.lastfailed:
+                    previously_failed.append(item)
+                else:
+                    previously_passed.append(item)
+            self._previously_failed_count = len(previously_failed)
+
+            if not previously_failed:
+                # Running a subset of all tests with recorded failures
+                # only outside of it.
+                self._report_status = "%d known failures not in selected tests" % (
+                    len(self.lastfailed),
+                )
+            else:
                 if self.config.getoption("lf"):
                     items[:] = previously_failed
                     config.hook.pytest_deselected(items=previously_passed)
-                else:
+                else:  # --failedfirst
                     items[:] = previously_failed + previously_passed
-            elif self._no_failures_behavior == "none":
+
+                noun = "failure" if self._previously_failed_count == 1 else "failures"
+                suffix = " first" if self.config.getoption("failedfirst") else ""
+                self._report_status = "rerun previous {count} {noun}{suffix}".format(
+                    count=self._previously_failed_count, suffix=suffix, noun=noun
+                )
+
+            if self._skipped_files > 0:
+                files_noun = "file" if self._skipped_files == 1 else "files"
+                self._report_status += " (skipped {files} {files_noun})".format(
+                    files=self._skipped_files, files_noun=files_noun
+                )
+        else:
+            self._report_status = "no previously failed tests, "
+            if self.config.getoption("last_failed_no_failures") == "none":
+                self._report_status += "deselecting all items."
                 config.hook.pytest_deselected(items=items)
                 items[:] = []
+            else:
+                self._report_status += "not deselecting items."
 
     def pytest_sessionfinish(self, session):
         config = self.config
@@ -275,9 +325,13 @@ def pytest_addoption(parser):
     )
     group.addoption(
         "--cache-show",
-        action="store_true",
+        action="append",
+        nargs="?",
         dest="cacheshow",
-        help="show cache contents, don't perform collection or tests",
+        help=(
+            "show cache contents, don't perform collection or tests. "
+            "Optional argument: glob (default: '*')."
+        ),
     )
     group.addoption(
         "--cache-clear",
@@ -296,8 +350,7 @@ def pytest_addoption(parser):
         dest="last_failed_no_failures",
         choices=("all", "none"),
         default="all",
-        help="change the behavior when no test failed in the last run or no "
-        "information about the last failures was found in the cache",
+        help="which tests to run with no previously (known) failures.",
     )
 
 
@@ -333,7 +386,7 @@ def cache(request):
 
 def pytest_report_header(config):
     """Display cachedir with --cache-show and if non-default."""
-    if config.option.verbose or config.getini("cache_dir") != ".pytest_cache":
+    if config.option.verbose > 0 or config.getini("cache_dir") != ".pytest_cache":
         cachedir = config.cache._cachedir
         # TODO: evaluate generating upward relative paths
         # starting with .., ../.. if sensible
@@ -353,11 +406,16 @@ def cacheshow(config, session):
     if not config.cache._cachedir.is_dir():
         tw.line("cache is empty")
         return 0
+
+    glob = config.option.cacheshow[0]
+    if glob is None:
+        glob = "*"
+
     dummy = object()
     basedir = config.cache._cachedir
     vdir = basedir / "v"
-    tw.sep("-", "cache values")
-    for valpath in sorted(x for x in vdir.rglob("*") if x.is_file()):
+    tw.sep("-", "cache values for %r" % glob)
+    for valpath in sorted(x for x in vdir.rglob(glob) if x.is_file()):
         key = valpath.relative_to(vdir)
         val = config.cache.get(key, dummy)
         if val is dummy:
@@ -369,8 +427,8 @@ def cacheshow(config, session):
 
     ddir = basedir / "d"
     if ddir.is_dir():
-        contents = sorted(ddir.rglob("*"))
-        tw.sep("-", "cache directories")
+        contents = sorted(ddir.rglob(glob))
+        tw.sep("-", "cache directories for %r" % glob)
         for p in contents:
             # if p.check(dir=1):
             #    print("%s/" % p.relto(basedir))

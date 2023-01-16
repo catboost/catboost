@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ recording warnings during test function execution. """
 from __future__ import absolute_import
 from __future__ import division
@@ -11,6 +12,8 @@ import warnings
 import six
 
 import _pytest._code
+from _pytest.deprecated import PYTEST_WARNS_UNKNOWN_KWARGS
+from _pytest.deprecated import WARNS_EXEC
 from _pytest.fixtures import yield_fixture
 from _pytest.outcomes import fail
 
@@ -83,24 +86,27 @@ def warns(expected_warning, *args, **kwargs):
 
     """
     __tracebackhide__ = True
-    match_expr = None
     if not args:
-        if "match" in kwargs:
-            match_expr = kwargs.pop("match")
+        match_expr = kwargs.pop("match", None)
+        if kwargs:
+            warnings.warn(
+                PYTEST_WARNS_UNKNOWN_KWARGS.format(args=sorted(kwargs)), stacklevel=2
+            )
         return WarningsChecker(expected_warning, match_expr=match_expr)
     elif isinstance(args[0], str):
-        code, = args
+        warnings.warn(WARNS_EXEC, stacklevel=2)
+        (code,) = args
         assert isinstance(code, str)
         frame = sys._getframe(1)
         loc = frame.f_locals.copy()
         loc.update(kwargs)
 
-        with WarningsChecker(expected_warning, match_expr=match_expr):
+        with WarningsChecker(expected_warning):
             code = _pytest._code.Source(code).compile()
-            six.exec_(code, frame.f_globals, loc)
+            exec(code, frame.f_globals, loc)
     else:
         func = args[0]
-        with WarningsChecker(expected_warning, match_expr=match_expr):
+        with WarningsChecker(expected_warning):
             return func(*args[1:], **kwargs)
 
 
@@ -189,6 +195,10 @@ class WarningsRecorder(warnings.catch_warnings):
         if six.PY2:
             warnings.warn = self._saved_warn
         super(WarningsRecorder, self).__exit__(*exc_info)
+
+        # Built-in catch_warnings does not reset entered state so we do it
+        # manually here for this context manager to become reusable.
+        self._entered = False
 
 
 class WarningsChecker(WarningsRecorder):

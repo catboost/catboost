@@ -2,7 +2,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(4.0.1)
+VERSION(4.6.11)
 
 LICENSE(MIT)
 
@@ -10,15 +10,17 @@ PEERDIR(
     contrib/python/atomicwrites
     contrib/python/attrs
     contrib/python/more-itertools
+    contrib/python/packaging
     contrib/python/pluggy
     contrib/python/py
-    contrib/python/setuptools
     contrib/python/six
+    contrib/python/wcwidth
 )
 
 IF (PYTHON2)
     PEERDIR(
         contrib/python/funcsigs
+        contrib/python/importlib-metadata
         contrib/python/pathlib2
     )
 ENDIF()
@@ -38,6 +40,8 @@ PY_SRCS(
     _pytest/_code/_py2traceback.py
     _pytest/_code/code.py
     _pytest/_code/source.py
+    _pytest/_io/__init__.py
+    _pytest/_io/saferepr.py
     _pytest/_version.py
     _pytest/assertion/__init__.py
     _pytest/assertion/rewrite.py

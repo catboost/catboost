@@ -3,11 +3,6 @@ import sys
 import logging
 import json
 
-try:
-    import pytest
-except ImportError:
-    pass
-
 from .tools import to_str
 from .external import ExternalDataInfo
 
@@ -221,15 +216,22 @@ class Ya(object):
         assert self._test_item_node_id
         return self._test_item_node_id
 
+    @property
+    def pytest_config(self):
+        if not hasattr(self, "_pytest_config"):
+            import library.python.pytest.plugins.ya as ya_plugin
+            self._pytest_config = ya_plugin.pytest_config
+        return self._pytest_config
+
     def set_metric_value(self, name, val):
         node_id = self.get_test_item_node_id()
-        if node_id not in pytest.config.test_metrics:
-            pytest.config.test_metrics[node_id] = {}
+        if node_id not in self.pytest_config.test_metrics:
+            self.pytest_config.test_metrics[node_id] = {}
 
-        pytest.config.test_metrics[node_id][name] = val
+        self.pytest_config.test_metrics[node_id][name] = val
 
     def get_metric_value(self, name, default=None):
-        res = pytest.config.test_metrics.get(self.get_test_item_node_id(), {}).get(name)
+        res = self.pytest_config.test_metrics.get(self.get_test_item_node_id(), {}).get(name)
         if res is None:
             return default
         return res
