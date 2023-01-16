@@ -1,4 +1,5 @@
 import argparse
+import errno
 import os
 import process_command_files as pcf
 import shutil
@@ -18,8 +19,11 @@ def parse_args():
 def makedirs(dirname):
     try:
         os.makedirs(dirname)
-    except OSError:
-        pass
+    except OSError as e:
+        if e.errno == errno.EEXIST and os.path.isdir(dirname):
+            pass
+        else:
+            raise
 
 
 def main():
