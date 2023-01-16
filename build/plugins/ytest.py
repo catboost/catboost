@@ -30,6 +30,10 @@ VALID_DNS_REQUIREMENTS = ("default", "local", "dns64")
 BLOCK_SEPARATOR = '============================================================='
 SPLIT_FACTOR_MAX_VALUE = 1000
 PARTITION_MODS = ('SEQUENTIAL', 'MODULO')
+DEFAULT_TIDY_CONFIG = "build/config/tests/clang_tidy/config.yaml"
+TIDY_CONFIG_MAP_PATH = "build/yandex_specific/config/clang_tidy/tidy_project_map.json"
+
+tidy_config_map = None
 
 def ontest_data(unit, *args):
     ymake.report_configure_error("TEST_DATA is removed in favour of DATA")
@@ -359,6 +363,15 @@ def match_coverage_extractor_requirements(unit):
     ])
 
 
+def get_tidy_config_map(unit):
+    global tidy_config_map
+    if tidy_config_map is None:
+        config_map_path = unit.resolve(os.path.join("$S", TIDY_CONFIG_MAP_PATH))
+        with open(config_map_path, 'r') as afile:
+            tidy_config_map = json.load(afile)
+    return tidy_config_map
+
+
 def onadd_ytest(unit, *args):
     keywords = {"DEPENDS": -1, "DATA": -1, "TIMEOUT": 1, "FORK_MODE": 1, "SPLIT_FACTOR": 1,
                 "FORK_SUBTESTS": 0, "FORK_TESTS": 0}
@@ -394,6 +407,20 @@ def onadd_ytest(unit, *args):
             test_timeout = "60"
         else:
             return
+
+    if flat_args[1] == "clang_tidy" and unit.get("TIDY") == "yes":
+        if not unit.get("TIDY_CONFIG"):
+            tidy_map = get_tidy_config_map(unit)
+            unit_path = get_norm_unit_path(unit)
+            for k, v in tidy_map.items():
+                if unit_path.startswith(k):
+                    # Remove after release project configs
+                    assert v.startswith("devtools/dummy_arcadia/example_tidy_project")
+                    assert k.startswith("devtools/dummy_arcadia/example_tidy_project")
+                    unit.set(["TIDY_CONFIG", v])
+                    break
+            else:
+                unit.set(["TIDY_CONFIG", DEFAULT_TIDY_CONFIG])
 
     fork_mode = []
     if 'FORK_SUBTESTS' in spec_args:
