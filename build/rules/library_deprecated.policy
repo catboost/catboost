@@ -204,6 +204,7 @@ ALLOW ofd/common/services/tvm -> library/python/deprecated/ticket_parser2
 ALLOW ofd/common/tests/test_tvm_service -> library/python/deprecated/ticket_parser2
 ALLOW offline_data/call_center/nirvana/send_sms -> library/python/deprecated/ticket_parser2
 ALLOW orgvisits/viewers/geotrack/backend -> library/python/deprecated/ticket_parser2
+ALLOW passport/backend/social/common -> library/python/deprecated/ticket_parser2
 ALLOW passport/backend/tvm_keyring -> library/python/deprecated/ticket_parser2
 ALLOW passport/infra/daemons/tvmapi/ut_py -> library/python/deprecated/ticket_parser2
 ALLOW passport/infra/daemons/tvmtool/ut_py -> library/python/deprecated/ticket_parser2
@@ -213,7 +214,6 @@ ALLOW passport/python/core/tvm/faker/tests -> library/python/deprecated/ticket_p
 ALLOW passport/python/core/tvm/faker -> library/python/deprecated/ticket_parser2
 ALLOW passport/python/core/tvm/tests -> library/python/deprecated/ticket_parser2
 ALLOW passport/python/core/tvm -> library/python/deprecated/ticket_parser2
-ALLOW passport/python/social/common -> library/python/deprecated/ticket_parser2
 ALLOW passport/python/tasks_nirvana/antifraud -> library/python/deprecated/ticket_parser2
 ALLOW passport/python/vault/api -> library/python/deprecated/ticket_parser2
 ALLOW payplatform/nirvana/lib -> library/python/deprecated/ticket_parser2
