@@ -309,6 +309,7 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
 ) throw(yexception)
     : Model(std::move(*modelWithoutCtrData))
     , FeaturesLayout(quantizedFeaturesInfo.GetFeaturesLayout())
+    , LearnTarget(learnTarget.begin(), learnTarget.end())
     , TargetStatsForCtrs(std::move(*targetStatsForCtrs))
     , LocalExecutor(localExecutor)
     , CtrDataFile(MakeTempName(nullptr, "ctr_data_file"))
@@ -332,7 +333,7 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
         maxUniqCatValuesPerFeature = Max(maxUniqCatValuesPerFeature, uniqCatValuesCountsPerFeature.OnAll);
     }
 
-    DatasetDataForFinalCtrs.Targets = TVector<TConstArrayRef<float>>(1, learnTarget);
+    DatasetDataForFinalCtrs.Targets = TVector<TConstArrayRef<float>>(1, LearnTarget);
     DatasetDataForFinalCtrs.LearnTargetClass = &TargetStatsForCtrs.LearnTargetClass;
     DatasetDataForFinalCtrs.TargetClassesCount = &TargetStatsForCtrs.TargetClassesCount;
     DatasetDataForFinalCtrs.TargetClassifiers = &ctrHelper.GetTargetClassifiers();
