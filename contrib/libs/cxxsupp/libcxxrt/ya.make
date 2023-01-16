@@ -3,9 +3,9 @@
 LIBRARY()
 
 LICENSE(
-    BSD-2-Clause
-    BSD-2-Clause-Views
-    BSD-3-Clause
+    BSD-2-Clause AND
+    BSD-2-Clause-Views AND
+    BSD-3-Clause AND
     MIT
 )
 
