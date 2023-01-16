@@ -331,7 +331,14 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         auto loss = lossFunctionConfig.GetLossFunction();
         CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::LogCosh),
             "Exact method is only available for Quantile, MAE, MAPE and LogCosh loss functions.");
-        CB_ENSURE(TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method on CPU.");
+        CB_ENSURE(
+            BoostingOptions->BoostingType == EBoostingType::Plain || TaskType == ETaskType::CPU,
+            "Exact leaf estimation method don't work with ordered boosting on GPU"
+        );
+        CB_ENSURE(
+            TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory,
+            "ApproxOnFullHistory option is not available within Exact method on CPU."
+        );
     }
 
     if (treeConfig.L2Reg == 0.0f) {
