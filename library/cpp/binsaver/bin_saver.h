@@ -472,7 +472,7 @@ public:
 
     template <class... TVariantTypes>
     int Add(const chunk_id, std::variant<TVariantTypes...>* pData) {
-        static_assert(::TVariantSize<std::variant<TVariantTypes...>>::value < Max<ui32>());
+        static_assert(std::variant_size_v<std::variant<TVariantTypes...>> < Max<ui32>());
 
         ui32 index;
         if (IsReading()) {
