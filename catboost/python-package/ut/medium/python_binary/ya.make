@@ -7,9 +7,7 @@ PEERDIR(
     contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
-    contrib/python/scipy/scipy/integrate
-    contrib/python/scipy/scipy/sparse
-    contrib/python/scipy/scipy/special
+    contrib/python/scipy
     contrib/python/enum34
     library/python/pymain
 )
