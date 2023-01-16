@@ -1,5 +1,17 @@
 #pragma once
 
+#if defined(_MSC_VER) && defined(__clang__)
+    #define _compiler_clang_cl_
+#elif defined(_MSC_VER)
+    #define _compiler_msvc_
+#elif defined(__clang__)
+    #define _compiler_clang_
+#elif defined(__GNUC__)
+    #define _compiler_gcc_
+#else
+    #warning("Current compiler is not supported by " __FILE__)
+#endif
+
 #if defined(_MSC_VER)
     #include <intrin.h>
 #endif
@@ -157,7 +169,7 @@
     #define Y_UNLIKELY(Cond) (Cond)
 #endif
 
-#ifdef __GNUC__
+#if defined(_compiler_clang_) || defined(_compiler_clang_cl_) || defined(_compiler_gcc_)
     #define Y_PACKED __attribute__((packed))
 #else
     #define Y_PACKED
