@@ -251,7 +251,7 @@ namespace NTextProcessing::NDictionary {
             return EndOfSentenceTokenId + 1;
         }
 
-        void Save(IOutputStream* stream) const {
+        void Save(IOutputStream* stream) const override {
             const ui32 dictionarySize = InternalIdsToId.size();
             TVector<const TMultiInternalTokenId<GramOrder>*> idToInternalIds;
             NFH::TFlatHashMap<TInternalTokenId, TStringBuf> internalIdToToken;
@@ -329,7 +329,7 @@ namespace NTextProcessing::NDictionary {
             }
         }
 
-        void Load(IInputStream* stream, bool isNewFormat) {
+        void Load(IInputStream* stream, bool isNewFormat) override {
             ui32 dictionarySize = FromString<ui32>(stream->ReadLine());
 
             InternalIdsToId.clear();
