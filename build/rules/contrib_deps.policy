@@ -1,3 +1,4 @@
+ALLOW contrib/clickhouse -> library/cpp/consistent_hashing
 ALLOW contrib -> contrib
 ALLOW contrib -> build
 ALLOW contrib -> library/python/resource
