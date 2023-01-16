@@ -292,7 +292,7 @@ def on_fill_jar_copy_resources_cmd(unit, *args):
         varname, srcdir, base_classes_dir, package, reslist = tuple(args)
     dest_dir = os.path.join(base_classes_dir, *package.split('.')) if package else base_classes_dir
     var = unit.get(varname)
-    var += ' && ${{cwd:CURDIR}} $FS_TOOLS copy_files {} {} {}'.format(srcdir, dest_dir, reslist)
+    var += ' && $FS_TOOLS copy_files {} {} {}'.format(srcdir if srcdir.startswith('"$') else '${CURDIR}/' + srcdir, dest_dir, reslist)
     unit.set([varname, var])
 
 def on_fill_jar_gen_srcs(unit, *args):
@@ -315,14 +315,6 @@ def on_fill_jar_gen_srcs(unit, *args):
     if unit.get('WITH_GROOVY_VALUE') == 'yes':
         var += ' --resolve-groovy'
     unit.set([varname, var])
-
-
-def onrun_jar_program(unit, *args):
-    counter = unit.get('RUN_JAR_PROGRAM_COUNTER')
-    if not counter:
-        counter = '0'
-    unit.set(['RUN_JAR_PROGRAM_COUNTER', str(int(counter) + 1)])
-    unit.on_run_jar_program(['GENTAR_EXT', '.{}.gentar'.format(counter)] + [a for a in args])
 
 
 def on_check_run_java_prog_classpath(unit, *args):
