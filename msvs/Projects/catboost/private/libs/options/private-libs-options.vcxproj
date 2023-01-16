@@ -108,6 +108,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\output_file_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\overfitting_detector_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\parse_per_feature_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\path_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\plain_options_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\pool_metainfo_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\runtime_embedding_options.cpp"/>
@@ -196,6 +197,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\output_file_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\overfitting_detector_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\parse_per_feature_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\path_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\plain_options_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\pool_metainfo_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\restrictions.h"/>
