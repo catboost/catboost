@@ -63,6 +63,10 @@ extern "C" void* memalign(size_t alignment, size_t size) {
     return res ? nullptr : ptr;
 }
 
+extern "C" void* aligned_alloc(size_t alignment, size_t size) {
+    return memalign(alignment, size);
+}
+
 #if !defined(_MSC_VER) && !defined(_freebsd_)
 // Workaround for pthread_create bug in linux.
 extern "C" void* __libc_memalign(size_t alignment, size_t size) {
