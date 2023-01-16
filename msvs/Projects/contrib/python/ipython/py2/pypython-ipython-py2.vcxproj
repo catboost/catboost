@@ -2630,8 +2630,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
       <Project>{09B94D29-C8D9-195E-BE7A-2CF5517C1312}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pypickleshare.vcxproj">
-      <Project>{81A5063F-36BD-685C-C2AD-836B04477F09}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pycontrib-python-pickleshare.vcxproj">
+      <Project>{19043F21-DFA6-9A42-5EE5-EEAD938C9242}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py2\pypython-prompt-toolkit-py2.vcxproj">
       <Project>{44F46013-3EC8-EF76-35CB-8F6A62BF2F33}</Project>

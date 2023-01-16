@@ -144,8 +144,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.global.vcxproj">
       <Project>{514AAD98-20AD-3EB4-FFE0-77F4E22D6E93}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pypickleshare.global.vcxproj">
-      <Project>{57701E8A-7881-EF01-C9D4-41B3A42C0CB8}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pycontrib-python-pickleshare.global.vcxproj">
+      <Project>{3C138A13-4913-5DF0-C00A-BE13876396F6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\pycontrib-python-pluggy.global.vcxproj">
       <Project>{BB06FBED-AFC4-24E5-48A3-6DAF8960486C}</Project>
