@@ -2,7 +2,11 @@ LIBRARY()
 
 LICENSE(Apache-2.0)
 
-SRCS(gamma_function.cpp)
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+SRCS(
+    gamma_function.cpp
+)
 
 
 
