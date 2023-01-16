@@ -61,6 +61,7 @@ namespace NCB {
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
         ui64 docIdOffset,
+        bool* needColumnsPrinterPtr,
         TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>(),
         double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
