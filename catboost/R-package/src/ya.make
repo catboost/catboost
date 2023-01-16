@@ -10,6 +10,7 @@ ENDIF()
 
 SRCS(
     catboostr.cpp
+    init.c
 )
 
 PEERDIR(

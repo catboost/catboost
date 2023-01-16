@@ -26,3 +26,4 @@ C CatBoostSerializeModel_R
 C CatBoostShrinkModel_R
 C CatBoostSumModels_R
 C CatBoostEvalMetrics_R
+C R_init_libcatboostr
