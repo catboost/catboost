@@ -62,11 +62,7 @@ struct _Unwind_Control_Block {
   } pr_cache;
 
   long long int :0; /* Enforce the 8-byte alignment */
-#ifndef _MSC_VER
 } __attribute__((__aligned__(8)));
-#else
-} __declspec(align(8));
-#endif
 
 typedef _Unwind_Reason_Code (*_Unwind_Personality_Fn)(
     _Unwind_State state, _Unwind_Exception *exceptionObject,

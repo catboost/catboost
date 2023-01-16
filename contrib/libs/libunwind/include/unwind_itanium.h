@@ -38,11 +38,7 @@ struct _Unwind_Exception {
   // The Itanium ABI requires that _Unwind_Exception objects are "double-word
   // aligned".  GCC has interpreted this to mean "use the maximum useful
   // alignment for the target"; so do we.
-#ifndef _MSC_VER
 } __attribute__((__aligned__));
-#else
-} __declspec(align(8));
-#endif
 
 typedef _Unwind_Reason_Code (*_Unwind_Personality_Fn)(
     int version, _Unwind_Action actions, uint64_t exceptionClass,
