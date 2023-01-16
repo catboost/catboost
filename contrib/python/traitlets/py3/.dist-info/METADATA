@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: traitlets
-Version: 5.1.0
+Version: 5.1.1
 Summary: Traitlets Python configuration system
 Home-page: https://github.com/ipython/traitlets
 Author: IPython Development Team
@@ -22,6 +22,7 @@ Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
+License-File: COPYING.md
 Provides-Extra: test
 Requires-Dist: pytest ; extra == 'test'
 
@@ -183,6 +184,8 @@ However, we **recommend** that custom cross-validators don't modify the state
 of the HasTraits instance.
 
 ### Release build:
+
+Releases should be automatically build and pushed to Pypi when a tag is marked and pushed to GitHub.
 
 ```bash
 $ pip install build

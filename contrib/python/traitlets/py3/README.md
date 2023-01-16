@@ -157,6 +157,8 @@ of the HasTraits instance.
 
 ### Release build:
 
+Releases should be automatically build and pushed to Pypi when a tag is marked and pushed to GitHub.
+
 ```bash
 $ pip install build
 $ python -m build .

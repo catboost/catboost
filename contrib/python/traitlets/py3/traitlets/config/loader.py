@@ -930,6 +930,8 @@ class _FlagAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         if self.nargs == 0 or values is Undefined:
+            if not hasattr(namespace, '_flags'):
+                namespace._flags = []
             namespace._flags.append(self.flag)
         else:
             setattr(namespace, self.alias, values)
