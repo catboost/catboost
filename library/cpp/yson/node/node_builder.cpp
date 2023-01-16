@@ -9,7 +9,7 @@ TNodeBuilder::TNodeBuilder(TNode* node)
     Stack_.push(node);
 }
 
-void TNodeBuilder::OnStringScalar(const TStringBuf& value)
+void TNodeBuilder::OnStringScalar(TStringBuf value)
 {
     AddNode(value, true);
 }
@@ -59,7 +59,7 @@ void TNodeBuilder::OnBeginMap()
     AddNode(TNode::CreateMap(), false);
 }
 
-void TNodeBuilder::OnKeyedItem(const TStringBuf& key)
+void TNodeBuilder::OnKeyedItem(TStringBuf key)
 {
     Stack_.push(&(*Stack_.top())[TString(key)]);
 }

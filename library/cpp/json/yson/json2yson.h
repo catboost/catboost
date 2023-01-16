@@ -12,7 +12,7 @@ namespace NJson2Yson {
         {
         }
 
-        void OnStringScalar(const TStringBuf& value) override {
+        void OnStringScalar(TStringBuf value) override {
             ParserCallbacks_->OnString(value);
         }
 
@@ -51,7 +51,7 @@ namespace NJson2Yson {
             ParserCallbacks_->OnOpenMap();
         }
 
-        void OnKeyedItem(const TStringBuf& key) override {
+        void OnKeyedItem(TStringBuf key) override {
             ParserCallbacks_->OnMapKey(key);
         }
 
@@ -78,7 +78,7 @@ namespace NJson2Yson {
         {
         }
 
-        void OnStringScalar(const TStringBuf& value) override {
+        void OnStringScalar(TStringBuf value) override {
             if (AttributesDepth == 0) {
                 TBase::OnStringScalar(value);
             }
@@ -138,7 +138,7 @@ namespace NJson2Yson {
             }
         }
 
-        void OnKeyedItem(const TStringBuf& key) override {
+        void OnKeyedItem(TStringBuf key) override {
             if (AttributesDepth == 0) {
                 TBase::OnKeyedItem(key);
             }

@@ -214,7 +214,7 @@ namespace NYson {
         }
     }
 
-    void TYsonWriter::OnStringScalar(const TStringBuf& value) {
+    void TYsonWriter::OnStringScalar(TStringBuf value) {
         WriteStringScalar(value);
         EndNode();
     }
@@ -285,7 +285,7 @@ namespace NYson {
         BeginCollection(BeginMapToken);
     }
 
-    void TYsonWriter::OnKeyedItem(const TStringBuf& key) {
+    void TYsonWriter::OnKeyedItem(TStringBuf key) {
         CollectionItem(KeyedItemSeparatorToken);
 
         WriteStringScalar(key);
@@ -317,7 +317,7 @@ namespace NYson {
         }
     }
 
-    void TYsonWriter::OnRaw(const TStringBuf& yson, EYsonType type) {
+    void TYsonWriter::OnRaw(TStringBuf yson, EYsonType type) {
         if (EnableRaw) {
             Stream->Write(yson);
             BeforeFirstItem = false;

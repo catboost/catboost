@@ -45,7 +45,7 @@ namespace NYT {
 
         void Flush();
 
-        void OnStringScalar(const TStringBuf& value) override;
+        void OnStringScalar(TStringBuf value) override;
         void OnInt64Scalar(i64 value) override;
         void OnUint64Scalar(ui64 value) override;
         void OnDoubleScalar(double value) override;
@@ -58,7 +58,7 @@ namespace NYT {
         void OnEndList() override;
 
         void OnBeginMap() override;
-        void OnKeyedItem(const TStringBuf& key) override;
+        void OnKeyedItem(TStringBuf key) override;
         void OnEndMap() override;
 
         void OnBeginAttributes() override;

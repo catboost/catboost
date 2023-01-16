@@ -10,8 +10,8 @@ namespace NYson {
         OnRaw(yson.AsStringBuf(), yson.GetType());
     }
 
-    void TYsonConsumerBase::OnRaw(const TStringBuf& yson, EYsonType type) {
-        ParseYsonStringBuffer(yson, this, type);
+    void TYsonConsumerBase::OnRaw(TStringBuf str, EYsonType type) {
+        ParseYsonStringBuffer(str, this, type);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
