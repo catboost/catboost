@@ -36,7 +36,7 @@ public:
 class TMutex {
 public:
     TMutex();
-    TMutex(TMutex&&);
+    TMutex(TMutex&&) noexcept;
     ~TMutex();
 
     void Acquire() noexcept;
