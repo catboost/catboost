@@ -118,9 +118,18 @@ int GetSocketToS(SOCKET s);
 int GetSocketToS(SOCKET s, const NAddr::IRemoteAddr* addr);
 void SetTcpFastOpen(SOCKET s, int qlen);
 /**
- * Useful for keep-alive connections.
+ * Deprecated, consider using HasSocketDataToRead instead.
  **/
 bool IsNotSocketClosedByOtherSide(SOCKET s);
+enum class ESocketReadStatus {
+    HasData,
+    NoData,
+    SocketClosed
+};
+/**
+ * Useful for keep-alive connections.
+ **/
+ESocketReadStatus HasSocketDataToRead(SOCKET s);
 /**
  * Determines whether connection on socket is local (same machine) or not.
  **/
