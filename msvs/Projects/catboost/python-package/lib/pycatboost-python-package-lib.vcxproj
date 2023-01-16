@@ -1179,9 +1179,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\api\cpp-ytalloc-api.vcxproj">
       <Project>{D0B26F3B-1FA2-DBBE-795F-70EF8DDE9BE1}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\core\cpp-ytalloc-core.vcxproj">
-      <Project>{48CA1C7E-9FF3-8299-9D74-DB9A77F55630}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
       <Project>{37AC15B4-A170-D4C8-25DC-6474572B40BA}</Project>
     </ProjectReference>
