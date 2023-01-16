@@ -12,11 +12,15 @@ LICENSE(BSD-3-Clause)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-ADDINCL(GLOBAL contrib/libs/snappy/include)
+ADDINCL(
+    GLOBAL contrib/libs/snappy/include
+)
 
 NO_COMPILER_WARNINGS()
 
-CFLAGS(-DHAVE_CONFIG_H)
+CFLAGS(
+    -DHAVE_CONFIG_H
+)
 
 SRCS(
     snappy-c.cc
