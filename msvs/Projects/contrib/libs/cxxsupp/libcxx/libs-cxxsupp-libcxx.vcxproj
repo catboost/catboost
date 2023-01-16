@@ -89,6 +89,8 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\condition_variable_destructor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\debug.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\exception.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\filesystem\directory_iterator.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\filesystem\operations.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\format.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\functional.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\future.cpp"/>
@@ -175,6 +177,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\unwind.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\wchar.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\wctype.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\filesystem\filesystem_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\filesystem\posix_compat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\apple_availability.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\atomic_support.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\config_elast.h"/>
