@@ -10,7 +10,7 @@ import logging
 import tempfile
 import subprocess
 import errno
-import distutils.version
+import packaging.version
 
 import six
 
@@ -721,13 +721,13 @@ def _run_readelf(binary_path):
 
 
 def check_glibc_version(binary_path):
-    lucid_glibc_version = distutils.version.LooseVersion("2.11")
+    lucid_glibc_version = packaging.version.parse("2.11")
 
     for l in _run_readelf(binary_path).split('\n'):
         match = GLIBC_PATTERN.search(l)
         if not match:
             continue
-        assert distutils.version.LooseVersion(match.group(1)) <= lucid_glibc_version, match.group(0)
+        assert packaging.version.parse(match.group(1)) <= lucid_glibc_version, match.group(0)
 
 
 def backtrace_to_html(bt_filename, output):
