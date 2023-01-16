@@ -161,9 +161,6 @@ class TMaybe;
 
 struct TGUID;
 
-template <class... Ts>
-class TVariant;
-
 template <class T>
 class TArrayRef;
 
