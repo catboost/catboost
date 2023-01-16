@@ -27,7 +27,7 @@
 #include "kmp_wait_release.h"
 
 #if OMPT_SUPPORT
-#include "ompt-specific.h"
+#error #include "ompt-specific.h"
 #endif
 
 /* these are temporary issues to be dealt with */

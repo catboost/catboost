@@ -97,7 +97,7 @@ extern int __kmp_hwloc_error;
 #include "kmp_debug.h"
 #include "kmp_lock.h"
 #if USE_DEBUGGER
-#include "kmp_debugger.h"
+#error #include "kmp_debugger.h"
 #endif
 #include "kmp_i18n.h"
 
@@ -116,7 +116,7 @@ extern int __kmp_hwloc_error;
 #endif
 
 #if OMPT_SUPPORT
-#include "ompt-internal.h"
+#error #include "ompt-internal.h"
 #endif
 
 /*Select data placement in NUMA memory */

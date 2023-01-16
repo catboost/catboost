@@ -18,7 +18,7 @@
 #endif
 
 #ifdef KMP_STUB
-    #include "kmp_stub.h"
+    #error #include "kmp_stub.h"
 #endif
 
 #include "kmp_i18n.h"

@@ -36,8 +36,8 @@
 #endif
 
 #if OMPT_SUPPORT
-#include "ompt-internal.h"
-#include "ompt-specific.h"
+#error #include "ompt-internal.h"
+#error #include "ompt-specific.h"
 #endif
 
 /* ------------------------------------------------------------------------ */

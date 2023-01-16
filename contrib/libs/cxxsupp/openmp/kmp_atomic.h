@@ -20,7 +20,7 @@
 #include "kmp_lock.h"
 
 #if OMPT_SUPPORT
-#include "ompt-specific.h"
+#error #include "ompt-specific.h"
 #endif
 
 // C++ build port.

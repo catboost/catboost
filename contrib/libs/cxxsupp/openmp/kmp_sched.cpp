@@ -30,7 +30,7 @@
 #include "kmp_itt.h"
 
 #if OMPT_SUPPORT
-#include "ompt-specific.h"
+#error #include "ompt-specific.h"
 #endif
 
 // template for type limits

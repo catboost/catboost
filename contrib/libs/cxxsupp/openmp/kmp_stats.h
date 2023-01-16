@@ -30,7 +30,7 @@
 #include <string>
 #include <stdint.h>
 #include <new> // placement new
-#include "kmp_stats_timing.h"
+#error #include "kmp_stats_timing.h"
 
 /*
  * Enable developer statistics here if you want them. They are more detailed than is useful for application characterisation and
