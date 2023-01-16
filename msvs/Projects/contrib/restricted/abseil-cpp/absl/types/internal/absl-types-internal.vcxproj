@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{C9B8177C-77AC-C52C-D246-D21AEEF2C8DA}</ProjectGUID>
+    <ProjectGUID>{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>abseil-cpp-absl-types</ProjectName>
+    <ProjectName>absl-types-internal</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>abseil-cpp-absl-types</TargetName>
+    <TargetName>absl-types-internal</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\restricted\abseil-cpp\absl\types\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C9B8177C-77AC-C52C-D246-D21AEEF2C8DA\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\restricted\abseil-cpp\absl\types\internal\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,12 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\bad_any_cast.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\bad_optional_access.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\bad_variant_access.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\optional.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\span.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\variant.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\internal\optional.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\internal\span.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\internal\variant.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

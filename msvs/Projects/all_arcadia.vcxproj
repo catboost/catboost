@@ -1434,6 +1434,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\bad_variant_access\absl-types-bad_variant_access.vcxproj">
       <Project>28ADA7AD-918A-CFA6-21EF-D9B491057E66</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\internal\absl-types-internal.vcxproj">
+      <Project>F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\utility\abseil-cpp-absl-utility.vcxproj">
       <Project>8E4C07DF-5503-9B55-81B6-3168543E79CA</Project>
     </ProjectReference>
