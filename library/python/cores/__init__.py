@@ -21,8 +21,7 @@ def _read_file(filename):
         return afile.read().strip("\n")
 
 
-def recover_core_dump_file(binary_path, cwd, pid):
-
+def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
     class CoreFilePattern(object):
         def __init__(self, path, mask):
             self.path = path
@@ -36,7 +35,8 @@ def recover_core_dump_file(binary_path, cwd, pid):
 
         logger.debug("hostname = '%s'", socket.gethostname())
         logger.debug("rlimit_core = '%s'", str(resource.getrlimit(resource.RLIMIT_CORE)))
-        core_pattern = _read_file("/proc/sys/kernel/core_pattern")
+        if core_pattern is None:
+            core_pattern = _read_file("/proc/sys/kernel/core_pattern")
         logger.debug("core_pattern = '%s'", core_pattern)
         if core_pattern.startswith("/"):
             default_pattern = CoreFilePattern(os.path.dirname(core_pattern), '*')
