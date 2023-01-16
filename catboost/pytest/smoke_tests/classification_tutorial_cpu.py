@@ -1,8 +1,34 @@
 import os
 try:
     import catboost_dev as catboost
+    from catboost_dev import *
+    from catboost_dev import datasets
+    from catboost_dev.utils import create_cd
+    from catboost_dev import CatBoostClassifier
+    from catboost_dev.widget import MetricVisualizer
+    from catboost_dev import cv
+    from catboost_dev.utils import get_roc_curve
+    from catboost_dev.utils import get_fpr_curve
+    from catboost_dev.utils import get_fnr_curve
+    from catboost_dev.utils import select_threshold
+    from catboost_dev import CatBoost
+    from catboost_dev.eval.catboost_evaluation import *
+    from catboost_dev.eval.evaluation_result import *
 except:
     import catboost
+    from catboost import *
+    from catboost import datasets
+    from catboost.utils import create_cd
+    from catboost import CatBoostClassifier
+    from catboost.widget import MetricVisualizer
+    from catboost import cv
+    from catboost.utils import get_roc_curve
+    from catboost.utils import get_fpr_curve
+    from catboost.utils import get_fnr_curve
+    from catboost.utils import select_threshold
+    from catboost import CatBoost
+    from catboost.eval.catboost_evaluation import *
+    from catboost.eval.evaluation_result import *
 ## Solving classification problems with CatBoost
 
 
@@ -22,7 +48,6 @@ except:
 #!jupyter nbextension enable --py widgetsnbextension
 
 
-import catboost
 print(catboost.__version__)
 os.system("python --version")
 
@@ -34,9 +59,6 @@ import pandas as pd
 import os
 import numpy as np
 np.set_printoptions(precision=4)
-import catboost
-from catboost import *
-from catboost import datasets
 
 
 (train_df, test_df) = catboost.datasets.amazon()
@@ -98,7 +120,6 @@ test_df.to_csv(
 os.system("head amazon/train.csv")
 
 
-from catboost.utils import create_cd
 feature_names = dict()
 for column, name in enumerate(train_df):
     if column == 0:
@@ -169,7 +190,6 @@ X_train, X_validation, y_train, y_validation = train_test_split(X, y, train_size
 #`CrossEntropy` for probabilities in target
 
 
-from catboost import CatBoostClassifier
 model = CatBoostClassifier(
     iterations=5,
     learning_rate=0.1,
@@ -189,7 +209,6 @@ print(model.get_params())
 ### Stdout of the training
 
 
-from catboost import CatBoostClassifier
 model = CatBoostClassifier(
     iterations=15,
 #     verbose=5,
@@ -204,7 +223,6 @@ model.fit(
 ### Metrics calculation and graph plotting
 
 
-from catboost import CatBoostClassifier
 model = CatBoostClassifier(
     iterations=50,
     random_seed=63,
@@ -249,14 +267,12 @@ model2.fit(
 )
 
 
-from catboost import MetricVisualizer
 MetricVisualizer(['learing_rate_0.01', 'learing_rate_0.7']).start()
 
 
 ### Best iteration
 
 
-from catboost import CatBoostClassifier
 model = CatBoostClassifier(
     iterations=100,
     random_seed=63,
@@ -278,7 +294,6 @@ print('Tree count: ' + str(model.tree_count_))
 ### Cross-validation
 
 
-from catboost import cv
 params = {}
 params['loss_function'] = 'Logloss'
 params['iterations'] = 80
@@ -302,7 +317,7 @@ cv_data.head()
 
 best_value = np.min(cv_data['test-Logloss-mean'])
 best_iter = np.argmin(cv_data['test-Logloss-mean'])
-print('Best validation Logloss score, not stratified: {:.4f}±{:.4f} on step {}'.format(
+print('Best validation Logloss score, not stratified: {:.4f}+-{:.4f} on step {}'.format(
     best_value,
     cv_data['test-Logloss-std'][best_iter],
     best_iter)
@@ -322,7 +337,7 @@ cv_data = cv(
 )
 best_value = np.min(cv_data['test-Logloss-mean'])
 best_iter = np.argmin(cv_data['test-Logloss-mean'])
-print('Best validation Logloss score, stratified: {:.4f}±{:.4f} on step {}'.format(
+print('Best validation Logloss score, stratified: {:.4f}+-{:.4f} on step {}'.format(
     best_value,
     cv_data['test-Logloss-std'][best_iter],
     best_iter)
@@ -388,7 +403,6 @@ model.fit(
 #![](https://habrastorage.org/webt/y4/1q/yq/y41qyqfm9mcerp2ziys48phpjia.png)
 
 
-from catboost.utils import get_roc_curve
 import sklearn
 from sklearn import metrics
 eval_pool = Pool(X_validation, y_validation, cat_features=cat_features)
@@ -412,11 +426,9 @@ plt.xlabel('False Positive Rate', fontsize=16)
 plt.ylabel('True Positive Rate', fontsize=16)
 plt.title('Receiver operating characteristic', fontsize=20)
 plt.legend(loc="lower right", fontsize=16)
-plt.show()
+plt.show(block=False)
 
 
-from catboost.utils import get_fpr_curve
-from catboost.utils import get_fnr_curve
 (thresholds, fpr) = get_fpr_curve(curve=curve)
 (thresholds, fnr) = get_fnr_curve(curve=curve)
 
@@ -434,10 +446,9 @@ plt.xlabel('Threshold', fontsize=16)
 plt.ylabel('Error Rate', fontsize=16)
 plt.title('FPR-FNR curves', fontsize=20)
 plt.legend(loc="lower left", fontsize=16)
-plt.show()
+plt.show(block=False)
 
 
-from catboost.utils import select_threshold
 print(select_threshold(model=model, data=eval_pool, FNR=0.01))
 print(select_threshold(model=model, data=eval_pool, FPR=0.01))
 
@@ -446,7 +457,6 @@ print(select_threshold(model=model, data=eval_pool, FPR=0.01))
 
 
 # !rm 'catboost_info/snapshot.bkp'
-from catboost import CatBoostClassifier
 model = CatBoostClassifier(
     iterations=100,
     save_snapshot=True,
@@ -465,7 +475,7 @@ model.fit(
 ### Model predictions
 
 
-print(model.predict_proba(data=X_validation))
+print(model.predict_proba(X=X_validation))
 
 
 print(model.predict(data=X_validation))
@@ -487,7 +497,7 @@ print(probabilities)
 X_prepared = X_validation.values.astype(str).astype(object)
 # For FeaturesData class categorial features must have type str
 fast_predictions = model.predict_proba(
-    data=FeaturesData(
+    X=FeaturesData(
         cat_feature_data=X_prepared,
         cat_feature_names=list(X_validation)
     )
@@ -515,7 +525,6 @@ except Exception:
 ### Solving MultiClassification problem
 
 
-from catboost import CatBoostClassifier
 model = CatBoostClassifier(
     iterations=50,
     random_seed=43,
@@ -560,7 +569,6 @@ def build_multiclass_ranking_dataset(X, y, cat_features, label_values=[0,1], sta
     return Pool(ranking_matrix, ranking_labels, cat_features=final_cat_features, group_id = group_ids)
 
 
-from catboost import CatBoost
 params = {'iterations':150, 'learning_rate':0.01, 'l2_leaf_reg':30, 'random_seed':0, 'loss_function':'QuerySoftMax'}
 groupwise_train_pool = build_multiclass_ranking_dataset(X_train, y_train, cat_features, [0,1])
 groupwise_eval_pool = build_multiclass_ranking_dataset(X_validation, y_validation, cat_features, [0,1], X_train.shape[0])
@@ -637,26 +645,25 @@ print(shap_values.shape)
 
 import shap
 shap.initjs()
-shap.force_plot(expected_value, shap_values[3,:], X.iloc[3,:])
+shap.force_plot(expected_value, shap_values[3,:], X.iloc[3,:], show=False)
 
 
 import shap
 shap.initjs()
-shap.force_plot(expected_value, shap_values[91,:], X.iloc[91,:])
+shap.force_plot(expected_value, shap_values[91,:], X.iloc[91,:], show=False)
 
 
-shap.summary_plot(shap_values, X)
+shap.summary_plot(shap_values, X, show=False)
 
 
 X_small = X.iloc[0:200]
 shap_small = shap_values[:200]
-shap.force_plot(expected_value, shap_small, X_small)
+shap.force_plot(expected_value, shap_small, X_small, show=False)
 
 
 ### Feature evaluation
 
 
-from catboost.eval.catboost_evaluation import *
 learn_params = {'iterations': 20, # 2000
                 'learning_rate': 0.5, # we set big learning_rate,
                                       # because we have small
@@ -677,7 +684,6 @@ result = evaluator.eval_features(learn_config=learn_params,
                                  features_to_eval=[6, 7, 8])
 
 
-from catboost.eval.evaluation_result import *
 logloss_result = result.get_metric_results('Logloss')
 logloss_result.get_baseline_comparison(
     ScoreConfig(ScoreType.Rel, overfit_iterations_info=False)
@@ -709,7 +715,6 @@ print(my_best_model.random_seed_)
 #### Training speed
 
 
-from catboost import CatBoost
 fast_model = CatBoostClassifier(
     random_seed=63,
     iterations=150,
