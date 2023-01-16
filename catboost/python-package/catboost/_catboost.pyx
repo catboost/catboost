@@ -1999,7 +1999,8 @@ cdef TFeaturesLayout* _init_features_layout(
     cat_features,
     text_features,
     embedding_features,
-    feature_names
+    feature_names,
+    feature_tags
 ) except*:
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector
@@ -2022,6 +2023,10 @@ cdef TFeaturesLayout* _init_features_layout(
     if feature_names is not None:
         for feature_name in feature_names:
             feature_names_vector.push_back(to_arcadia_string(str(feature_name)))
+
+    if feature_tags is not None:
+        for tag_name in feature_tags:
+            list_to_vector(feature_tags[tag_name]['features'], &feature_tags_map[to_arcadia_string(str(tag_name))].Features)
 
     all_features_are_sparse = False
     if isinstance(data, SPARSE_MATRIX_TYPES):
@@ -3754,7 +3759,7 @@ cdef class _PoolBase:
 
 
     cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, pairs, weight,
-                     group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names,
+                     group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags,
                      thread_count):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
@@ -3780,7 +3785,8 @@ cdef class _PoolBase:
             cat_features,
             text_features,
             embedding_features,
-            feature_names
+            feature_names,
+            feature_tags
         )
 
         do_use_raw_data_in_features_order = False
