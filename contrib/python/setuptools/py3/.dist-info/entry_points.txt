@@ -37,6 +37,7 @@ test_loader = setuptools.dist:check_importable
 test_runner = setuptools.dist:check_importable
 test_suite = setuptools.dist:check_test_suite
 tests_require = setuptools.dist:check_requirements
+use_2to3 = setuptools.dist:invalid_unless_false
 zip_safe = setuptools.dist:assert_bool
 
 [egg_info.writers]
