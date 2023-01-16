@@ -1312,7 +1312,13 @@ class GnuCompiler(Compiler):
         self.target = self.build.target
         self.tc = tc
 
-        self.c_foptions = ['-fexceptions']
+        self.c_foptions = [
+            # Enable C++ exceptions (and allow them to be throw through pure C code)
+            '-fexceptions',
+            # Enable standard-conforming behavior and generate duplicate symbol error in case of duplicated global constants.
+            # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85678#c0
+            '-fno-common',
+        ]
 
         # Set up output colorization
         if self.tc.is_clang:
@@ -1423,10 +1429,6 @@ class GnuCompiler(Compiler):
                 ))
 
             if self.tc.version_at_least(11):
-                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#improvements-to-clang-s-diagnostics
-                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#modified-compiler-flags
-                # Disable useful -f and -W that should be restored ASAP:
-                self.c_foptions += ['-fcommon']
                 self.c_warnings += [
                     '-Wno-implicit-const-int-float-conversion',
                 ]
