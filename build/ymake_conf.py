@@ -1423,8 +1423,6 @@ class GnuCompiler(Compiler):
 
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
-            if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
-                self.c_foptions.append('-fembed-bitcode')
 
         self.extra_compile_opts = []
 
@@ -1663,9 +1661,6 @@ class LD(Linker):
             (not target.is_iossim and target.is_ios, '-Wl,-sdk_version,13.1'),
             (target.is_iossim, '-Wl,-sdk_version,14.5'),
         ])
-
-        if self.target.is_ios and preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
-            self.ld_flags.extend(('-fembed-bitcode', '-Wl,-bitcode_verify'))
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
