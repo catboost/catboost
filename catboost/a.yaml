@@ -8,3 +8,6 @@ ci:
     large-autostart:
       - target: catboost/python-package/ut/medium/gpu
         toolchains: default-linux-x86_64-release
+    native-builds:
+      default-win-x86_64-debug:
+        - catboost
