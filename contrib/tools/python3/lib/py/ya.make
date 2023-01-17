@@ -55,6 +55,7 @@ PY_SRCS(
     _pyio.py
     _sitebuiltins.py
     _strptime.py
+    _sysconfigdata_arcadia.py
     _threading_local.py
     _weakrefset.py
     abc.py

@@ -36,6 +36,7 @@ PY_SRCS(
     _pyio.py
     _sitebuiltins.py
     _strptime.py
+    _sysconfigdata_arcadia.py
     _threading_local.py
     _weakrefset.py
     abc.py
@@ -81,6 +82,7 @@ PY_SRCS(
     binhex.py
     bisect.py
     bz2.py
+    cProfile.py
     calendar.py
     cgi.py
     cgitb.py
@@ -103,7 +105,6 @@ PY_SRCS(
     contextvars.py
     copy.py
     copyreg.py
-    cProfile.py
     crypt.py
     csv.py
     ctypes/__init__.py
@@ -543,19 +544,19 @@ PY_SRCS(
     wsgiref/validate.py
     xdrlib.py
     xml/__init__.py
+    xml/dom/NodeFilter.py
     xml/dom/__init__.py
     xml/dom/domreg.py
     xml/dom/expatbuilder.py
     xml/dom/minicompat.py
     xml/dom/minidom.py
-    xml/dom/NodeFilter.py
     xml/dom/pulldom.py
     xml/dom/xmlbuilder.py
-    xml/etree/__init__.py
-    xml/etree/cElementTree.py
     xml/etree/ElementInclude.py
     xml/etree/ElementPath.py
     xml/etree/ElementTree.py
+    xml/etree/__init__.py
+    xml/etree/cElementTree.py
     xml/parsers/__init__.py
     xml/parsers/expat.py
     xml/sax/__init__.py
