@@ -462,6 +462,11 @@ void FormatIntValue(
     TStringBuf format,
     TStringBuf genericSpec);
 
+void FormatPointerValue(
+    TStringBuilderBase* builder,
+    const void* value,
+    TStringBuf format);
+
 } // namespace NDetail
 
 #define XX(valueType, castType, genericSpec) \
@@ -501,7 +506,7 @@ XX(float,               float,    TStringBuf("f"))
 template <class T>
 void FormatValue(TStringBuilderBase* builder, T* value, TStringBuf format)
 {
-    NYT::NDetail::FormatValueViaSprintf(builder, static_cast<const void*>(value), format, TStringBuf("p"));
+    NYT::NDetail::FormatPointerValue(builder, static_cast<const void*>(value), format);
 }
 
 // TDuration (specialize for performance reasons)

@@ -160,9 +160,20 @@ TEST(TFormatTest, Nullable)
 
 TEST(TFormatTest, Pointers)
 {
-    // No idea if pointer format is standardized, check against Sprintf.
-    auto p = reinterpret_cast<void*>(123);
-    EXPECT_EQ(Sprintf("%p", reinterpret_cast<void*>(123)), Format("%p", p));
+    {
+        auto ptr = reinterpret_cast<void*>(0x12345678);
+        EXPECT_EQ("0x12345678", Format("%p", ptr));
+        EXPECT_EQ("0x12345678", Format("%v", ptr));
+        EXPECT_EQ("12345678", Format("%x", ptr));
+        EXPECT_EQ("12345678", Format("%X", ptr));
+    }
+    {
+        auto ptr = reinterpret_cast<void*>(0x12345678abcdefab);
+        EXPECT_EQ("0x12345678abcdefab", Format("%p", ptr));
+        EXPECT_EQ("0x12345678abcdefab", Format("%v", ptr));
+        EXPECT_EQ("12345678abcdefab", Format("%x", ptr));
+        EXPECT_EQ("12345678ABCDEFAB", Format("%X", ptr));
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

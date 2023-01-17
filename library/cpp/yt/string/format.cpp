@@ -30,7 +30,8 @@ void FormatValueViaSprintf(
     char formatBuf[MaxFormatSize];
     YT_VERIFY(format.length() >= 1 && format.length() <= MaxFormatSize - 2); // one for %, one for \0
     formatBuf[0] = '%';
-    if (format[format.length() - 1] == GenericSpecSymbol) {
+
+    if (format.back() == GenericSpecSymbol) {
         char* formatEnd = copyFormat(formatBuf + 1, format.begin(), format.length() - 1);
         ::memcpy(formatEnd, genericSpec.begin(), genericSpec.length());
         formatEnd[genericSpec.length()] = '\0';
@@ -104,6 +105,22 @@ XX(i64)
 XX(ui64)
 
 #undef XX
+
+void FormatPointerValue(
+    TStringBuilderBase* builder,
+    const void* value,
+    TStringBuf format)
+{
+    static_assert(sizeof(value) == sizeof(ui64));
+    if (format == TStringBuf("p") || format == TStringBuf("v")) {
+        builder->AppendString(TStringBuf("0x"));
+        FormatValue(builder, reinterpret_cast<ui64>(value), TStringBuf("x"));
+    } else if (format == TStringBuf("x") || format == TStringBuf("X")) {
+        FormatValue(builder, reinterpret_cast<ui64>(value), format);
+    } else {
+        builder->AppendString("<invalid pointer format>");
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
