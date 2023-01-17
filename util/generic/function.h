@@ -11,15 +11,23 @@ namespace NPrivate {
         using TSignature = F;
     };
 
-    template <typename C, typename R, typename... Args>
-    struct TRemoveClassImpl<R (C::*)(Args...)> {
-        typedef R TSignature(Args...);
+#define Y_EMPTY_REF_QUALIFIER
+#define Y_FOR_EACH_REF_QUALIFIERS_COMBINATION(XX) \
+    XX(Y_EMPTY_REF_QUALIFIER)                     \
+    XX(&)                                         \
+    XX(&&)                                        \
+    XX(const)                                     \
+    XX(const&)                                    \
+    XX(const&&)
+
+#define Y_DECLARE_REMOVE_CLASS_IMPL(qualifiers)             \
+    template <typename C, typename R, typename... Args>     \
+    struct TRemoveClassImpl<R (C::*)(Args...) qualifiers> { \
+        typedef R TSignature(Args...);                      \
     };
 
-    template <typename C, typename R, typename... Args>
-    struct TRemoveClassImpl<R (C::*)(Args...) const> {
-        typedef R TSignature(Args...);
-    };
+    Y_FOR_EACH_REF_QUALIFIERS_COMBINATION(Y_DECLARE_REMOVE_CLASS_IMPL)
+#undef Y_DECLARE_REMOVE_CLASS_IMPL
 
     template <class T>
     struct TRemoveNoExceptImpl {
@@ -31,10 +39,17 @@ namespace NPrivate {
         using Type = R(Args...);
     };
 
-    template <typename R, typename C, typename... Args>
-    struct TRemoveNoExceptImpl<R (C::*)(Args...) noexcept> {
-        using Type = R (C::*)(Args...);
+#define Y_DECLARE_REMOVE_NOEXCEPT_IMPL(qualifiers)                      \
+    template <typename R, typename C, typename... Args>                 \
+    struct TRemoveNoExceptImpl<R (C::*)(Args...) qualifiers noexcept> { \
+        using Type = R (C::*)(Args...);                                 \
     };
+
+    Y_FOR_EACH_REF_QUALIFIERS_COMBINATION(Y_DECLARE_REMOVE_NOEXCEPT_IMPL)
+#undef Y_DECLARE_REMOVE_NOEXCEPT_IMPL
+
+#undef Y_FOR_EACH_REF_QUALIFIERS_COMBINATION
+#undef Y_EMPTY_REF_QUALIFIER
 
     template <class T>
     using TRemoveNoExcept = typename TRemoveNoExceptImpl<T>::Type;
