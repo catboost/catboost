@@ -144,6 +144,7 @@ class DeprecatedTuple:
     1
     """
 
+    # Do not remove prior to 2023-05-01 or Python 3.13
     _warn = functools.partial(
         warnings.warn,
         "EntryPoint tuple interface is deprecated. Access members by name.",
@@ -298,8 +299,7 @@ class EntryPoints(tuple):
         Select entry points from self that match the
         given parameters (typically group and/or name).
         """
-        candidates = (_py39compat.ep_matches(ep, **params) for ep in self)
-        return EntryPoints(ep for ep, predicate in candidates if predicate)
+        return EntryPoints(ep for ep in self if _py39compat.ep_matches(ep, **params))
 
     @property
     def names(self):
