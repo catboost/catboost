@@ -528,6 +528,9 @@
         },
         "lama": {
             "description": "Analytics tool for safe reactor calculation"
+        },
+        "vh3": {
+            "description": "Run VH3 CLI"
         }
     },
     "toolchain": {
@@ -734,6 +737,28 @@
                 "lama": {
                     "bottle": "lama",
                     "executable": "lama"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "vh3": {
+            "tools": {
+                "vh3": {
+                    "bottle": "vh3",
+                    "executable": "vh3"
                 }
             },
             "platforms": [
@@ -8329,6 +8354,17 @@
             "executable": {
                 "lama": [
                     "lama"
+                ]
+            }
+        },
+        "vh3": {
+            "formula": {
+                "sandbox_id": 1279179247,
+                "match": "vh3"
+            },
+            "executable": {
+                "vh3": [
+                    "vh3"
                 ]
             }
         },
