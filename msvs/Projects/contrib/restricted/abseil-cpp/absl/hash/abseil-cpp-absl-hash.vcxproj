@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\city.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\hash.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\low_level_hash.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\hash.h"/>
@@ -96,9 +97,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
       <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\city\abseil-cpp-absl-city.vcxproj">
-      <Project>{4B9028E4-4039-F789-E741-D88BFFC9DFFD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\numeric\abseil-cpp-absl-numeric.vcxproj">
       <Project>{712179CD-DCD3-3049-EA4D-D416593142EB}</Project>
