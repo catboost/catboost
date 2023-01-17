@@ -98,3 +98,4 @@ cloud/mdb/vm-image-build
 market/erp_axapta/libs/TVMToolClient
 marketing/referats
 marketing/export/for
+data-ui/ydb-embedded-ui
