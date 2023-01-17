@@ -1,5 +1,6 @@
 #include "blob.h"
-#include "ref.h"
+
+#include <library/cpp/yt/memory/ref.h>
 
 #include <library/cpp/ytalloc/api/ytalloc.h>
 
