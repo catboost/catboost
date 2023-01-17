@@ -101,6 +101,6 @@ add_link_options(
 if (APPLE)
   set(CMAKE_SHARED_LINKER_FLAGS "-undefined dynamic_lookup")
 elseif(UNIX)
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fuse-init-array)
-  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fuse-init-array)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-init-array")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-init-array")
 endif()
