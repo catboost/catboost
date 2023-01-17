@@ -27,6 +27,14 @@ CUDA_LIBRARIES = {
     '-lcurand_static': '-lcurand',
     '-lcusolver_static': '-lcusolver',
     '-lcusparse_static': '-lcusparse',
+    '-lmyelin_compiler_static': '-lmyelin',
+    '-lmyelin_executor_static': '-lnvcaffe_parser',
+    '-lmyelin_pattern_library_static': '',
+    '-lmyelin_pattern_runtime_static': '',
+    '-lnvinfer_static': '-lnvinfer',
+    '-lnvinfer_plugin_static': '-lnvinfer_plugin',
+    '-lnvonnxparser_static': '-lnvonnxparser',
+    '-lnvparsers_static': '-lnvparsers'
 }
 
 
