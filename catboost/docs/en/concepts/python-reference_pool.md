@@ -5,6 +5,7 @@ class Pool(data,
            label=None,
            cat_features=None,
            text_features=None,
+           embedding_features=None,
            column_description=None,
            pairs=None,
            delimiter='\t',
@@ -126,6 +127,23 @@ None (it is assumed that all columns are the values of numerical features)
 #### Description
 
 A one-dimensional array of text columns indices (specified as integers) or names (specified as strings).
+
+{% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
+
+**Possible types**
+
+- {{ python-type--list }}
+- {{ python-type--numpyarray }}
+
+**Default value**
+
+{% include [default-value-none](../_includes/concepts/default-value-none.md) %}
+
+### embedding_features
+
+#### Description
+
+A one-dimensional array of embedding columns indices (specified as integers) or names (specified as strings).
 
 {% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
 
