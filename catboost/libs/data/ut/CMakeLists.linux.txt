@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(lib)
 
 add_executable(catboost-libs-data-ut)
 target_include_directories(catboost-libs-data-ut PRIVATE

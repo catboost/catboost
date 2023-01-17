@@ -6,6 +6,8 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(codecs)
+add_subdirectory(core)
 
 add_library(library-cpp-blockcodecs)
 target_link_libraries(library-cpp-blockcodecs PUBLIC

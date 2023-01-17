@@ -6,6 +6,9 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(flatbuffers)
+add_subdirectory(parallel_sort)
+add_subdirectory(ut)
 
 add_library(catboost-libs-helpers)
 target_link_libraries(catboost-libs-helpers PUBLIC

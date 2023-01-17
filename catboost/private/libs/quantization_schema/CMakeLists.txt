@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(ut)
 
 add_library(private-libs-quantization_schema)
 target_link_libraries(private-libs-quantization_schema PUBLIC

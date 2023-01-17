@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(small)
 
 add_library(library-cpp-getopt INTERFACE)
 target_link_libraries(library-cpp-getopt INTERFACE

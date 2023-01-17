@@ -6,6 +6,8 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(approx_calcer)
+add_subdirectory(ut)
 
 add_library(private-libs-algo)
 target_link_libraries(private-libs-algo PUBLIC
