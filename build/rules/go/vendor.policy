@@ -630,6 +630,9 @@ ALLOW .* -> vendor/github.com/soniah/gosnmp
 # CONTRIB-1686 markdown parser
 ALLOW .* -> vendor/github.com/yuin/goldmark
 
+# Created after version bump. It is currently (may 2022) experimental and requires googleapis testing dependency.
+DENY .* -> vendor/github.com/spf13/afero/gcsfs
+
 # CONTRIB-1681 A FileSystem Abstraction System for Go
 ALLOW .* -> vendor/github.com/spf13/afero
 
