@@ -54,8 +54,8 @@ struct TGuid
     constexpr TGuid(ui64 part0, ui64 part1);
 
     //! Copies an existing guid.
-    TGuid(const TGuid& other) = default;
-    TGuid& operator=(const TGuid& other) = default;
+    constexpr TGuid(const TGuid& other) noexcept = default;
+    constexpr TGuid& operator=(const TGuid& other) noexcept = default;
 
     //! Checks if TGuid is zero.
     bool IsEmpty() const;
