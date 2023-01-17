@@ -26,7 +26,6 @@ PEERDIR(
 SRCS(
     system/align_ut.cpp
     system/atexit_ut.cpp
-    system/atomic_ut.cpp
     system/backtrace_ut.cpp
     system/byteorder_ut.cpp
     system/compat_ut.cpp

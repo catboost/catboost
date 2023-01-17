@@ -242,7 +242,6 @@ target_joined_source(yutil
 target_joined_source(yutil
   all_system_2.cpp
   ${CMAKE_SOURCE_DIR}/util/system/align.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/atomic.cpp
   ${CMAKE_SOURCE_DIR}/util/system/byteorder.cpp
   ${CMAKE_SOURCE_DIR}/util/system/cpu_id.cpp
   ${CMAKE_SOURCE_DIR}/util/system/fhandle.cpp

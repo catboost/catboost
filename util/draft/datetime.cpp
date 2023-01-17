@@ -2,7 +2,6 @@
 
 #include <util/ysaveload.h>
 
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/fasttime.h>
 #include <util/datetime/base.h>
 #include <util/datetime/systime.h>

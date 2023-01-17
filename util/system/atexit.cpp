@@ -77,28 +77,27 @@ namespace {
     };
 
     static TAdaptiveLock atExitLock;
-    static TAtExit* volatile atExitPtr = nullptr;
+    static std::atomic<TAtExit*> atExitPtr = nullptr;
     alignas(TAtExit) static char atExitMem[sizeof(TAtExit)];
 
     static void OnExit() {
-        if (TAtExit* const atExit = AtomicGet(atExitPtr)) {
+        if (TAtExit* const atExit = atExitPtr.exchange(nullptr)) {
             atExit->Finish();
             atExit->~TAtExit();
-            AtomicSet(atExitPtr, nullptr);
         }
     }
 
     static inline TAtExit* Instance() {
-        if (TAtExit* const atExit = AtomicGet(atExitPtr)) {
+        if (TAtExit* const atExit = atExitPtr.load(std::memory_order_acquire)) {
             return atExit;
         }
         with_lock (atExitLock) {
-            if (TAtExit* const atExit = AtomicGet(atExitPtr)) {
+            if (TAtExit* const atExit = atExitPtr.load()) {
                 return atExit;
             }
             atexit(OnExit);
             TAtExit* const atExit = new (atExitMem) TAtExit;
-            AtomicSet(atExitPtr, atExit);
+            atExitPtr.store(atExit, std::memory_order_release);
             return atExit;
         }
     }
@@ -109,7 +108,7 @@ void ManualRunAtExitFinalizers() {
 }
 
 bool ExitStarted() {
-    if (TAtExit* const atExit = AtomicGet(atExitPtr)) {
+    if (TAtExit* const atExit = atExitPtr.load(std::memory_order_acquire)) {
         return atExit->FinishStarted();
     }
     return false;
