@@ -6942,10 +6942,7 @@
             }
         },
         "python": {
-            "formula": {
-                "sandbox_id": 1277485811,
-                "match": "Python"
-            },
+            "formula": "build/platform/python/ymake_python2/resources.json",
             "executable": {
                 "python": [
                     "python"
@@ -8320,10 +8317,7 @@
             }
         },
         "ya-tc": {
-            "formula": {
-                "sandbox_id": 1437768899,
-                "match": "ya-tc"
-            },
+            "formula": "build/external_resources/ya-tc/resources.json",
             "executable": {
                 "ya-tc": [
                     "ya-tc"
