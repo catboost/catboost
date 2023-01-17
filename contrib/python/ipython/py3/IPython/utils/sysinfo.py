@@ -40,15 +40,15 @@ def pkg_commit_hash(pkg_path):
     Parameters
     ----------
     pkg_path : str
-       directory containing package
-       only used for getting commit from active repo
+        directory containing package
+        only used for getting commit from active repo
 
     Returns
     -------
     hash_from : str
-       Where we got the hash from - description
+        Where we got the hash from - description
     hash_str : str
-       short form of hash
+        short form of hash
     """
     # Try and get commit from written commit text file
     if _sysinfo.commit:
@@ -71,12 +71,12 @@ def pkg_info(pkg_path):
     Parameters
     ----------
     pkg_path : str
-       path containing __init__.py for package
+        path containing __init__.py for package
 
     Returns
     -------
     context : dict
-       with named parameters of interest
+        with named parameters of interest
     """
     src, hsh = pkg_commit_hash(pkg_path)
     return dict(
@@ -118,49 +118,25 @@ def sys_info():
     """
     return pprint.pformat(get_sys_info())
 
-def _num_cpus_unix():
-    """Return the number of active CPUs on a Unix system."""
-    return os.sysconf("SC_NPROCESSORS_ONLN")
-
-
-def _num_cpus_darwin():
-    """Return the number of active CPUs on a Darwin system."""
-    p = subprocess.Popen(['sysctl','-n','hw.ncpu'],stdout=subprocess.PIPE)
-    return p.stdout.read()
-
-
-def _num_cpus_windows():
-    """Return the number of active CPUs on a Windows system."""
-    return os.environ.get("NUMBER_OF_PROCESSORS")
-
 
 def num_cpus():
-   """Return the effective number of CPUs in the system as an integer.
+    """DEPRECATED
 
-   This cross-platform function makes an attempt at finding the total number of
-   available CPUs in the system, as returned by various underlying system and
-   python calls.
+    Return the effective number of CPUs in the system as an integer.
 
-   If it can't find a sensible answer, it returns 1 (though an error *may* make
-   it return a large positive number that's actually incorrect).
-   """
+    This cross-platform function makes an attempt at finding the total number of
+    available CPUs in the system, as returned by various underlying system and
+    python calls.
 
-   # Many thanks to the Parallel Python project (http://www.parallelpython.com)
-   # for the names of the keys we needed to look up for this function.  This
-   # code was inspired by their equivalent function.
+    If it can't find a sensible answer, it returns 1 (though an error *may* make
+    it return a large positive number that's actually incorrect).
+    """
+    import warnings
 
-   ncpufuncs = {'Linux':_num_cpus_unix,
-                'Darwin':_num_cpus_darwin,
-                'Windows':_num_cpus_windows
-                }
+    warnings.warn(
+        "`num_cpus` is deprecated since IPython 8.0. Use `os.cpu_count` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-   ncpufunc = ncpufuncs.get(platform.system(),
-                            # default to unix version (Solaris, AIX, etc)
-                            _num_cpus_unix)
-
-   try:
-       ncpus = max(1,int(ncpufunc()))
-   except:
-       ncpus = 1
-   return ncpus
-
+    return os.cpu_count() or 1

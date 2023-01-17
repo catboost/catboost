@@ -1,6 +1,6 @@
 --- contrib/python/ipython/py3/IPython/core/completer.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/completer.py	(working tree)
-@@ -996,6 +996,7 @@ def _make_signature(completion)-> str:
+@@ -1025,6 +1025,7 @@ def _make_signature(completion)-> str:
  
      """
  
@@ -8,7 +8,7 @@
      # it looks like this might work on jedi 0.17
      if hasattr(completion, 'get_signatures'):
          signatures = completion.get_signatures()
-@@ -1388,7 +1389,7 @@ class IPCompleter(Completer):
+@@ -1438,7 +1439,7 @@ class IPCompleter(Completer):
                  else:
                      raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
  
@@ -17,7 +17,7 @@
          try_jedi = True
  
          try:
-@@ -1415,7 +1416,7 @@ class IPCompleter(Completer):
+@@ -1465,7 +1466,7 @@ class IPCompleter(Completer):
          if not try_jedi:
              return []
          try:
@@ -96,7 +96,7 @@
  def module_list(path):
      """
      Return the list containing the names of the modules available in the given
-@@ -165,7 +212,8 @@ def try_import(mod: str, only_modules=False) -> List[str]:
+@@ -176,7 +223,8 @@ def try_import(mod: str, only_modules=False) -> List[str]:
      except:
          return []
  
@@ -106,9 +106,9 @@
  
      completions = []
      if (not hasattr(m, '__file__')) or (not only_modules) or m_is_init:
-@@ -174,10 +222,10 @@ def try_import(mod: str, only_modules=False) -> List[str]:
- 
-     completions.extend(getattr(m, '__all__', []))
+@@ -190,10 +238,10 @@ def try_import(mod: str, only_modules=False) -> List[str]:
+         completions.extend(m_all)
+
      if m_is_init:
 -        completions.extend(module_list(os.path.dirname(m.__file__)))
 +        completions.extend(arcadia_module_list(mod))
@@ -119,7 +119,7 @@
  
  
  #-----------------------------------------------------------------------------
-@@ -226,10 +274,10 @@ def module_completion(line):
+@@ -242,10 +290,10 @@ def module_completion(line):
      # 'from xy<tab>' or 'import xy<tab>'
      if nwords < 3 and (words[0] in {'%aimport', 'import', 'from'}) :
          if nwords == 1:
@@ -134,7 +134,7 @@
  
 --- contrib/python/ipython/py3/IPython/core/extensions.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/extensions.py	(working tree)
-@@ -72,11 +72,11 @@ class ExtensionManager(Configurable):
+@@ -84,11 +84,11 @@ class ExtensionManager(Configurable):
          if module_str in self.loaded:
              return "already loaded"
  
@@ -151,7 +151,7 @@
                          print(("Loading extensions from {dir} is deprecated. "
 --- contrib/python/ipython/py3/IPython/core/profiledir.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/profiledir.py	(working tree)
-@@ -111,13 +111,11 @@ class ProfileDir(LoggingConfigurable):
+@@ -112,13 +112,11 @@ class ProfileDir(LoggingConfigurable):
          self._mkdir(self.startup_dir)
  
          readme = os.path.join(self.startup_dir, 'README')

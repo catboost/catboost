@@ -20,7 +20,6 @@ from traitlets.config.configurable import Configurable
 from . import oinspect
 from .error import UsageError
 from .inputtransformer2 import ESC_MAGIC, ESC_MAGIC2
-from decorator import decorator
 from ..utils.ipstruct import Struct
 from ..utils.process import arg_split
 from ..utils.text import dedent
@@ -115,16 +114,13 @@ def record_magic(dct, magic_kind, magic_name, func):
     Parameters
     ----------
     dct : dict
-      A dictionary with 'line' and 'cell' subdicts.
-
+        A dictionary with 'line' and 'cell' subdicts.
     magic_kind : str
-      Kind of magic to be stored.
-
+        Kind of magic to be stored.
     magic_name : str
-      Key to store the magic as.
-
+        Key to store the magic as.
     func : function
-      Callable object to store.
+        Callable object to store.
     """
     if magic_kind == 'line_cell':
         dct['line'][magic_name] = dct['cell'][magic_name] = func
@@ -184,20 +180,18 @@ def _method_magic_marker(magic_kind):
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
-        call = lambda f, *a, **k: f(*a, **k)
-
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
             name = func.__name__
-            retval = decorator(call, func)
+            retval = arg
             record_magic(magics, magic_kind, name, name)
         elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
                 record_magic(magics, magic_kind, name, func.__name__)
-                return decorator(call, func)
+                return func
             retval = mark
         else:
             raise TypeError("Decorator can only be called with "
@@ -217,8 +211,6 @@ def _function_magic_marker(magic_kind):
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
-        call = lambda f, *a, **k: f(*a, **k)
-
         # Find get_ipython() in the caller's namespace
         caller = sys._getframe(1)
         for ns in ['f_locals', 'f_globals', 'f_builtins']:
@@ -236,13 +228,13 @@ def _function_magic_marker(magic_kind):
             func = arg
             name = func.__name__
             ip.register_magic_function(func, magic_kind, name)
-            retval = decorator(call, func)
+            retval = arg
         elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
                 ip.register_magic_function(func, magic_kind, name)
-                return decorator(call, func)
+                return func
             retval = mark
         else:
             raise TypeError("Decorator can only be called with "
@@ -423,7 +415,7 @@ class MagicsManager(Configurable):
     def register(self, *magic_objects):
         """Register one or more instances of Magics.
 
-        Take one or more classes or instances of classes that subclass the main 
+        Take one or more classes or instances of classes that subclass the main
         `core.Magic` class, and register them with IPython to use the magic
         functions they provide.  The registration process will then ensure that
         any methods that have decorated to provide line and/or cell magics will
@@ -438,7 +430,7 @@ class MagicsManager(Configurable):
 
         Parameters
         ----------
-        magic_objects : one or more classes or instances
+        *magic_objects : one or more classes or instances
         """
         # Start by validating them to ensure they have all had their magic
         # methods registered at the instance level
@@ -461,7 +453,7 @@ class MagicsManager(Configurable):
 
         This will create an IPython magic (line, cell or both) from a
         standalone function.  The functions should have the following
-        signatures: 
+        signatures:
 
         * For line magics: `def f(line)`
         * For cell magics: `def f(line, cell)`
@@ -473,14 +465,12 @@ class MagicsManager(Configurable):
         Parameters
         ----------
         func : callable
-          Function to be registered as a magic.
-
+            Function to be registered as a magic.
         magic_kind : str
-          Kind of magic, one of 'line', 'cell' or 'line_cell'
-
+            Kind of magic, one of 'line', 'cell' or 'line_cell'
         magic_name : optional str
-          If given, the name the magic will have in the IPython namespace.  By
-          default, the name of the function itself is used.
+            If given, the name the magic will have in the IPython namespace.  By
+            default, the name of the function itself is used.
         """
 
         # Create the new method in the user_magics and register it in the
@@ -501,13 +491,11 @@ class MagicsManager(Configurable):
         Parameters
         ----------
         alias_name : str
-          The name of the magic to be registered.
-
+            The name of the magic to be registered.
         magic_name : str
-          The name of an existing magic.
-
+            The name of an existing magic.
         magic_kind : str
-          Kind of magic, one of 'line' or 'cell'
+            Kind of magic, one of 'line' or 'cell'
         """
 
         # `validate_type` is too permissive, as it allows 'line_cell'
@@ -631,25 +619,20 @@ class Magics(Configurable):
 
         Parameters
         ----------
-
         arg_str : str
-          The arguments to parse.
-
+            The arguments to parse.
         opt_str : str
-          The options specification.
-
+            The options specification.
         mode : str, default 'string'
-          If given as 'list', the argument string is returned as a list (split
-          on whitespace) instead of a string.
-
+            If given as 'list', the argument string is returned as a list (split
+            on whitespace) instead of a string.
         list_all : bool, default False
-          Put all option values in lists. Normally only options
-          appearing more than once are put in a list.
-
+            Put all option values in lists. Normally only options
+            appearing more than once are put in a list.
         posix : bool, default True
-          Whether to split the input line in POSIX mode or not, as per the
-          conventions outlined in the :mod:`shlex` module from the standard
-          library.
+            Whether to split the input line in POSIX mode or not, as per the
+            conventions outlined in the :mod:`shlex` module from the standard
+            library.
         """
 
         # inject default options at the beginning of the input line
@@ -664,6 +647,9 @@ class Magics(Configurable):
         posix = kw.get('posix', os.name == 'posix')
         strict = kw.get('strict', True)
 
+        preserve_non_opts = kw.get("preserve_non_opts", False)
+        remainder_arg_str = arg_str
+
         # Check if we have more than one argument to warrant extra processing:
         odict = {}  # Dictionary with options
         args = arg_str.split()
@@ -675,10 +661,18 @@ class Magics(Configurable):
             try:
                 opts,args = getopt(argv, opt_str, long_opts)
             except GetoptError as e:
-                raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
-                                        " ".join(long_opts)))
-            for o,a in opts:
-                if o.startswith('--'):
+                raise UsageError(
+                    '%s ( allowed: "%s" %s)' % (e.msg, opt_str, " ".join(long_opts))
+                ) from e
+            for o, a in opts:
+                if mode == "string" and preserve_non_opts:
+                    # remove option-parts from the original args-string and preserve remaining-part.
+                    # This relies on the arg_split(...) and getopt(...)'s impl spec, that the parsed options are
+                    # returned in the original order.
+                    remainder_arg_str = remainder_arg_str.replace(o, "", 1).replace(
+                        a, "", 1
+                    )
+                if o.startswith("--"):
                     o = o[2:]
                 else:
                     o = o[1:]
@@ -695,7 +689,10 @@ class Magics(Configurable):
         # Prepare opts,args for return
         opts = Struct(odict)
         if mode == 'string':
-            args = ' '.join(args)
+            if preserve_non_opts:
+                args = remainder_arg_str.lstrip()
+            else:
+                args = " ".join(args)
 
         return opts,args
 

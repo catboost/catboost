@@ -1,0 +1,11 @@
+--- contrib/python/ipython/py3/IPython/core/ultratb.py	(index)
++++ contrib/python/ipython/py3/IPython/core/ultratb.py	(working tree)
+@@ -842,7 +842,7 @@ class VerboseTB(TBTools):
+         before = context - after
+         if self.has_colors:
+             style = get_style_by_name("default")
+-            style = stack_data.style_with_executing_node(style, "bg:ansiyellow")
++            style = stack_data.style_with_executing_node(style, "")
+             formatter = Terminal256Formatter(style=style)
+         else:
+             formatter = None

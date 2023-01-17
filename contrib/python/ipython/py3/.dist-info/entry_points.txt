@@ -1,6 +1,4 @@
 [console_scripts]
-iptest = IPython.testing.iptestcontroller:main
-iptest3 = IPython.testing.iptestcontroller:main
 ipython = IPython:start_ipython
 ipython3 = IPython:start_ipython
 

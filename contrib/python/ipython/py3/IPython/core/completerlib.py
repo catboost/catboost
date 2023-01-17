@@ -201,6 +201,17 @@ def is_importable(module, attr, only_modules):
     else:
         return not(attr[:2] == '__' and attr[-2:] == '__')
 
+def is_possible_submodule(module, attr):
+    try:
+        obj = getattr(module, attr)
+    except AttributeError:
+        # Is possilby an unimported submodule
+        return True
+    except TypeError:
+        # https://github.com/ipython/ipython/issues/9678
+        return False
+    return inspect.ismodule(obj)
+
 
 def try_import(mod: str, only_modules=False) -> List[str]:
     """
@@ -220,7 +231,12 @@ def try_import(mod: str, only_modules=False) -> List[str]:
         completions.extend( [attr for attr in dir(m) if
                              is_importable(m, attr, only_modules)])
 
-    completions.extend(getattr(m, '__all__', []))
+    m_all = getattr(m, "__all__", [])
+    if only_modules:
+        completions.extend(attr for attr in m_all if is_possible_submodule(m, attr))
+    else:
+        completions.extend(m_all)
+
     if m_is_init:
         completions.extend(arcadia_module_list(mod))
     completions_set = {c for c in completions if isinstance(c, str)}
