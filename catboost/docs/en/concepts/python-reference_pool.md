@@ -450,6 +450,12 @@ Use only when the dataset is read from an input file.
 
 {% include [get-cat-feature-indices-get_cat_feature_indices-desc](../_includes/work_src/reusage-python/get_cat_feature_indices-desc.md) %}
 
+**Method:** [get_embedding_feature_indices](python-reference_pool_get_embedding_feature_indices.md)
+
+#### Description
+
+{% include [get-embedding-feature-indices-get_embedding_feature_indices-desc](../_includes/work_src/reusage-python/get_embedding_feature_indices-desc.md) %}
+
 **Method:** [get_features](python-reference_pool_get_features.md)
 
 #### Description
