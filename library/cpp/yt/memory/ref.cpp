@@ -4,6 +4,7 @@
 #include <library/cpp/ytalloc/api/ytalloc.h>
 
 #include <util/system/info.h>
+#include <util/system/align.h>
 
 namespace NYT {
 
@@ -297,9 +298,7 @@ size_t GetPageSize()
 
 size_t RoundUpToPage(size_t bytes)
 {
-    static const size_t PageSize = NSystemInfo::GetPageSize();
-    YT_ASSERT((PageSize & (PageSize - 1)) == 0);
-    return (bytes + PageSize - 1) & (~(PageSize - 1));
+    return AlignUp<size_t>(bytes, GetPageSize());
 }
 
 size_t GetByteSize(const TSharedRefArray& array)
