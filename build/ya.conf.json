@@ -8785,8 +8785,16 @@
         },
         "cs": {
             "formula": {
-                "sandbox_id": 1414486917,
-                "match": "cs"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "FAST_CODESEARCH_CS",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "CODESEARCH"
+                    },
+                    "update_interval": 86400
+                }
             },
             "executable": {
                 "cs": [
