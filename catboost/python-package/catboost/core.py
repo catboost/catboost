@@ -1,6 +1,7 @@
-import sys
+from contextlib import contextmanager  # noqa E402
 from copy import deepcopy
-from six import iteritems, string_types, integer_types
+import logging
+import sys
 import os
 
 if sys.version_info >= (3, 3):
@@ -9,6 +10,8 @@ else:
     from collections import Iterable, Sequence, Mapping, MutableMapping
 
 from collections import OrderedDict, defaultdict
+
+from six import iteritems, string_types, integer_types
 
 import warnings
 import numpy as np
@@ -78,8 +81,7 @@ fspath = _catboost.fspath
 _eval_metric_util = _catboost._eval_metric_util
 
 
-from contextlib import contextmanager  # noqa E402
-
+logger = logging.getLogger(__name__)
 
 _configure_malloc()
 _catboost._library_init()
@@ -115,14 +117,26 @@ def _get_stream_like_object(obj):
         'Expected callable object or stream-like object'
     )
 
+catboost_logger_lock = Lock()
 
 @contextmanager
 def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
-    try:
-        _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
+    if catboost_logger_lock.acquire(False):
+        try:
+            _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
+            yield
+        finally:
+            _reset_logger()
+            catboost_logger_lock.release()
+    else:
+        if log_cout is not sys.stdout or log_cerr is not sys.stderr:
+            logger.warning(
+                'CatBoost custom logger function is already set in another thread, ' +
+                'will use it from this thread. If you are training CatBoost models from different threads, ' +
+                'consider using sys.stdout and sys.stderr default loggers'
+            )
         yield
-    finally:
-        _reset_logger()
+
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
