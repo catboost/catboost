@@ -98,6 +98,14 @@ public:
         return *this;
     }
 
+    TThis& operator = (const TThis& that) {
+        if (Y_LIKELY(this != &that)) {
+            TThis tmp(that);
+            Swap(tmp);
+        }
+        return *this;
+    }
+
     TThis& operator = (std::initializer_list<T> init) {
         TThis data(init);
         Swap(data);

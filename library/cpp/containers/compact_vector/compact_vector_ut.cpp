@@ -125,4 +125,25 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         UNIT_ASSERT_VALUES_EQUAL("мыла", vector[1]);
         UNIT_ASSERT_VALUES_EQUAL("раму", vector[2]);
     }
+
+    Y_UNIT_TEST(TestCopyAssignmentOperator) {
+        TCompactVector<std::string> vector;
+        const TCompactVector<std::string> vector2 = {
+                "мама",
+                "мыла",
+                "раму"
+        };
+
+        vector = vector2;
+
+        UNIT_ASSERT_VALUES_EQUAL(3u, vector.Size());
+
+        UNIT_ASSERT_VALUES_EQUAL("мама", vector[0]);
+        UNIT_ASSERT_VALUES_EQUAL("мыла", vector[1]);
+        UNIT_ASSERT_VALUES_EQUAL("раму", vector[2]);
+
+        UNIT_ASSERT_VALUES_EQUAL(vector[0], vector2[0]);
+        UNIT_ASSERT_VALUES_EQUAL(vector[1], vector2[1]);
+        UNIT_ASSERT_VALUES_EQUAL(vector[2], vector2[2]);
+    }
 }
