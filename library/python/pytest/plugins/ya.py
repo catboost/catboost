@@ -862,7 +862,7 @@ class TraceReportGenerator(object):
 
     def dump_suite_metrics(self):
         message = {"metrics": pytest_config.suite_metrics}
-        self.trace("suite-event", message)
+        self.trace("chunk_event", message)
 
     def on_error(self, test_item):
         self.trace('chunk_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
