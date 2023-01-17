@@ -1187,3 +1187,7 @@ kinopoisk/sre/kpmail
 haas/bot/vintage/eti
 data-ui/shared-services-api
 direct/frontend/legacy/mds-uploader
+trust/frontend/trust-web-sdk
+direct/frontend/legacy/creatives-form
+direct/frontend/legacy/adv-media-utils
+direct/frontend/legacy/media-adv-components
