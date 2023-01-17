@@ -1416,3 +1416,4 @@ admins/icecream/ice
 admins/icecream/backend
 haas/infra/graphite-sender
 noc/packages/telegraf-noc-conf
+admins/icecream/node-icecream

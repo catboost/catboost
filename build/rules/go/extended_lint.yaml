@@ -10,8 +10,9 @@ scopes:
     - importcheck
   a.yandex-team.ru/noc:
     - importcheck
+  a.yandex-team.ru/noc/cmdb:
+    - exhaustivestruct
   a.yandex-team.ru/noc/nocauth:
-    - importcheck
     - exhaustivestruct
     - sqlclosecheck
   a.yandex-team.ru/passport:
