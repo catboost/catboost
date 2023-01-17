@@ -8,7 +8,10 @@ from datetime import (
     tzinfo,
 )
 import functools
-from typing import Any
+from typing import (
+    Any,
+    cast,
+)
 
 from dateutil.relativedelta import relativedelta
 import matplotlib.dates as dates
@@ -28,6 +31,7 @@ from pandas._libs.tslibs import (
 )
 from pandas._libs.tslibs.dtypes import FreqGroup
 from pandas._libs.tslibs.offsets import BaseOffset
+from pandas._typing import F
 
 from pandas.core.dtypes.common import (
     is_float,
@@ -59,7 +63,7 @@ SEC_PER_MIN = 60.0
 SEC_PER_HOUR = SEC_PER_MIN * MIN_PER_HOUR
 SEC_PER_DAY = SEC_PER_HOUR * HOURS_PER_DAY
 
-MUSEC_PER_DAY = 10 ** 6 * SEC_PER_DAY
+MUSEC_PER_DAY = 10**6 * SEC_PER_DAY
 
 _mpl_units = {}  # Cache for units overwritten by us
 
@@ -76,7 +80,7 @@ def get_pairs():
     return pairs
 
 
-def register_pandas_matplotlib_converters(func):
+def register_pandas_matplotlib_converters(func: F) -> F:
     """
     Decorator applying pandas_converters.
     """
@@ -86,7 +90,7 @@ def register_pandas_matplotlib_converters(func):
         with pandas_converters():
             return func(*args, **kwargs)
 
-    return wrapper
+    return cast(F, wrapper)
 
 
 @contextlib.contextmanager
@@ -137,7 +141,7 @@ def deregister():
 
 
 def _to_ordinalf(tm: pydt.time) -> float:
-    tot_sec = tm.hour * 3600 + tm.minute * 60 + tm.second + tm.microsecond / 10 ** 6
+    tot_sec = tm.hour * 3600 + tm.minute * 60 + tm.second + tm.microsecond / 10**6
     return tot_sec
 
 
@@ -203,7 +207,7 @@ class TimeFormatter(Formatter):
         """
         fmt = "%H:%M:%S.%f"
         s = int(x)
-        msus = round((x - s) * 10 ** 6)
+        msus = round((x - s) * 10**6)
         ms = msus // 1000
         us = msus % 1000
         m, s = divmod(s, 60)
@@ -1080,7 +1084,7 @@ class TimeSeries_TimedeltaFormatter(Formatter):
         """
         Convert seconds to 'D days HH:MM:SS.F'
         """
-        s, ns = divmod(x, 10 ** 9)
+        s, ns = divmod(x, 10**9)
         m, s = divmod(s, 60)
         h, m = divmod(m, 60)
         d, h = divmod(h, 24)
@@ -1094,7 +1098,7 @@ class TimeSeries_TimedeltaFormatter(Formatter):
 
     def __call__(self, x, pos=0) -> str:
         (vmin, vmax) = tuple(self.axis.get_view_interval())
-        n_decimals = int(np.ceil(np.log10(100 * 10 ** 9 / abs(vmax - vmin))))
+        n_decimals = int(np.ceil(np.log10(100 * 10**9 / abs(vmax - vmin))))
         if n_decimals > 9:
             n_decimals = 9
         return self.format_timedelta_ticks(x, pos, n_decimals)

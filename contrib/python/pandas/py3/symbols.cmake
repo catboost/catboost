@@ -174,4 +174,5 @@ CFLAGS(
     -Duint64_conflict=_pandas_uint64_conflict
     -Duint_state_init=_pandas_uint_state_init
     -Dxstrtod=_pandas_xstrtod
+    -DObject_newUnsignedLong=_pandas_Object_newUnsignedLong
 )

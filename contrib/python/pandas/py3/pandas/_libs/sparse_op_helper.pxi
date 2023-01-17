@@ -42,6 +42,11 @@ cdef inline sparse_t __mod__(sparse_t a, sparse_t b):
 cdef inline sparse_t __floordiv__(sparse_t a, sparse_t b):
     if b == 0:
         if sparse_t is float64_t:
+            # Match non-sparse Series behavior implemented in mask_zero_div_zero
+            if a > 0:
+                return INF
+            elif a < 0:
+                return -INF
             return NaN
         else:
             return 0
@@ -232,11 +237,6 @@ cpdef sparse_add_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_add_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill + yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_add_int64(int64_t[:] x_,
@@ -413,11 +413,6 @@ cpdef sparse_add_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_add_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill + yfill
 
 
 @cython.wraparound(False)
@@ -598,11 +593,6 @@ cpdef sparse_sub_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_sub_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill - yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_sub_int64(int64_t[:] x_,
@@ -779,11 +769,6 @@ cpdef sparse_sub_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_sub_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill - yfill
 
 
 @cython.wraparound(False)
@@ -964,11 +949,6 @@ cpdef sparse_mul_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_mul_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill * yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_mul_int64(int64_t[:] x_,
@@ -1145,11 +1125,6 @@ cpdef sparse_mul_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_mul_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill * yfill
 
 
 @cython.wraparound(False)
@@ -1330,11 +1305,6 @@ cpdef sparse_div_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_div_float64(float64_t xfill,
-                                       float64_t yfill):
-    return __div__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_div_int64(int64_t[:] x_,
@@ -1511,11 +1481,6 @@ cpdef sparse_div_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_div_int64(int64_t xfill,
-                                       int64_t yfill):
-    return __div__(xfill, yfill)
 
 
 @cython.wraparound(False)
@@ -1696,11 +1661,6 @@ cpdef sparse_mod_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_mod_float64(float64_t xfill,
-                                       float64_t yfill):
-    return __mod__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_mod_int64(int64_t[:] x_,
@@ -1877,11 +1837,6 @@ cpdef sparse_mod_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_mod_int64(int64_t xfill,
-                                       int64_t yfill):
-    return __mod__(xfill, yfill)
 
 
 @cython.wraparound(False)
@@ -2062,11 +2017,6 @@ cpdef sparse_truediv_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_truediv_float64(float64_t xfill,
-                                       float64_t yfill):
-    return __truediv__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_truediv_int64(int64_t[:] x_,
@@ -2243,11 +2193,6 @@ cpdef sparse_truediv_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_truediv_int64(int64_t xfill,
-                                       int64_t yfill):
-    return __truediv__(xfill, yfill)
 
 
 @cython.wraparound(False)
@@ -2428,11 +2373,6 @@ cpdef sparse_floordiv_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_floordiv_float64(float64_t xfill,
-                                       float64_t yfill):
-    return __floordiv__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_floordiv_int64(int64_t[:] x_,
@@ -2609,11 +2549,6 @@ cpdef sparse_floordiv_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_floordiv_int64(int64_t xfill,
-                                       int64_t yfill):
-    return __floordiv__(xfill, yfill)
 
 
 @cython.wraparound(False)
@@ -2794,11 +2729,6 @@ cpdef sparse_pow_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_pow_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill ** yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_pow_int64(int64_t[:] x_,
@@ -2975,11 +2905,6 @@ cpdef sparse_pow_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_pow_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill ** yfill
 
 
 @cython.wraparound(False)
@@ -3160,11 +3085,6 @@ cpdef sparse_eq_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_eq_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill == yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_eq_int64(int64_t[:] x_,
@@ -3341,11 +3261,6 @@ cpdef sparse_eq_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_eq_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill == yfill
 
 
 @cython.wraparound(False)
@@ -3526,11 +3441,6 @@ cpdef sparse_ne_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_ne_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill != yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_ne_int64(int64_t[:] x_,
@@ -3707,11 +3617,6 @@ cpdef sparse_ne_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_ne_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill != yfill
 
 
 @cython.wraparound(False)
@@ -3892,11 +3797,6 @@ cpdef sparse_lt_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_lt_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill < yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_lt_int64(int64_t[:] x_,
@@ -4073,11 +3973,6 @@ cpdef sparse_lt_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_lt_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill < yfill
 
 
 @cython.wraparound(False)
@@ -4258,11 +4153,6 @@ cpdef sparse_gt_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_gt_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill > yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_gt_int64(int64_t[:] x_,
@@ -4439,11 +4329,6 @@ cpdef sparse_gt_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_gt_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill > yfill
 
 
 @cython.wraparound(False)
@@ -4624,11 +4509,6 @@ cpdef sparse_le_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_le_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill <= yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_le_int64(int64_t[:] x_,
@@ -4805,11 +4685,6 @@ cpdef sparse_le_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_le_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill <= yfill
 
 
 @cython.wraparound(False)
@@ -4990,11 +4865,6 @@ cpdef sparse_ge_float64(float64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_ge_float64(float64_t xfill,
-                                       float64_t yfill):
-    return xfill >= yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_ge_int64(int64_t[:] x_,
@@ -5171,11 +5041,6 @@ cpdef sparse_ge_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_ge_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill >= yfill
 
 
 @cython.wraparound(False)
@@ -5356,11 +5221,6 @@ cpdef sparse_and_int64(int64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_and_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill & yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_and_uint8(uint8_t[:] x_,
@@ -5537,11 +5397,6 @@ cpdef sparse_and_uint8(uint8_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_and_uint8(uint8_t xfill,
-                                       uint8_t yfill):
-    return xfill & yfill
 
 
 @cython.wraparound(False)
@@ -5722,11 +5577,6 @@ cpdef sparse_or_int64(int64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_or_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill | yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_or_uint8(uint8_t[:] x_,
@@ -5903,11 +5753,6 @@ cpdef sparse_or_uint8(uint8_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_or_uint8(uint8_t xfill,
-                                       uint8_t yfill):
-    return xfill | yfill
 
 
 @cython.wraparound(False)
@@ -6088,11 +5933,6 @@ cpdef sparse_xor_int64(int64_t[:] x,
         raise NotImplementedError
 
 
-cpdef sparse_fill_xor_int64(int64_t xfill,
-                                       int64_t yfill):
-    return xfill ^ yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
 cdef inline tuple block_op_xor_uint8(uint8_t[:] x_,
@@ -6269,8 +6109,3 @@ cpdef sparse_xor_uint8(uint8_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
-cpdef sparse_fill_xor_uint8(uint8_t xfill,
-                                       uint8_t yfill):
-    return xfill ^ yfill
