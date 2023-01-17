@@ -2,9 +2,7 @@
 
 #include <util/folder/dirut.h>
 #include <util/generic/yexception.h>
-#include <util/stream/file.h>
 
-#include <cerrno>
 #include <cstring>
 
 #ifdef _win32_
@@ -12,7 +10,6 @@
     #include <io.h>
 #else
     #include <unistd.h>
-    #include <stdlib.h>
 #endif
 
 extern "C" int mkstemps(char* path, int slen);

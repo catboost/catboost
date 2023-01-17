@@ -3,9 +3,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #include "file.h"
-#include "sysstat.h"
 #include "fstat.h"
-#include <util/folder/dirut.h>
 #include <util/folder/path.h>
 
 //WARNING: on windows the test must be run with administative rules

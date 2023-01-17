@@ -5,7 +5,6 @@
 #include "file.h"
 #include <util/system/tempfile.h>
 #include <util/random/entropy.h>
-#include <util/random/random.h>
 
 #define ZDATA "./zdata"
 

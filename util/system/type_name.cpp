@@ -2,7 +2,6 @@
 #include "demangle_impl.h"
 
 #ifdef __GNUC__
-    #include <stdexcept>
     #include <cxxabi.h>
 #endif
 

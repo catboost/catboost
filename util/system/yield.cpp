@@ -4,7 +4,6 @@
     #include "winint.h"
     #include <process.h>
 #else
-    #include <pthread.h>
     #include <sched.h>
 #endif
 

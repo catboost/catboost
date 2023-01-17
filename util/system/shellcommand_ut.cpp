@@ -9,7 +9,6 @@
 #include <library/cpp/testing/unittest/env.h>
 #include <library/cpp/testing/unittest/registar.h>
 
-#include <util/folder/dirut.h>
 #include <util/random/random.h>
 #include <util/stream/file.h>
 #include <util/stream/str.h>

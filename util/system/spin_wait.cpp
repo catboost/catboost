@@ -1,7 +1,6 @@
 #include "spin_wait.h"
 #include "yield.h"
 #include "compat.h"
-#include "thread.h"
 #include "spinlock.h"
 
 #include <util/digest/numeric.h>

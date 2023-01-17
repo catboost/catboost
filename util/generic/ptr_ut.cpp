@@ -6,7 +6,6 @@
 
 #include <util/generic/hash_set.h>
 #include <util/generic/is_in.h>
-#include <util/stream/output.h>
 #include <util/system/thread.h>
 
 class TPointerTest: public TTestBase {

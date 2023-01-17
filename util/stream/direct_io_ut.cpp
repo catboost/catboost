@@ -2,7 +2,6 @@
 
 #include <util/generic/string.h>
 #include <util/generic/array_size.h>
-#include <util/system/env.h>
 
 #include "buffered.h"
 #include "direct_io.h"

@@ -1,16 +1,14 @@
 #include "platform.h"
 
-#include <stdlib.h>
-
 #if defined(_solaris_)
     #include <stdlib.h>
 #elif defined(_darwin_)
     #include <mach-o/dyld.h>
+    #include <util/generic/function.h>
 #elif defined(_win_)
     #include "winint.h"
     #include <io.h>
 #elif defined(_linux_)
-    #include <unistd.h>
 #elif defined(_freebsd_)
     #include <string.h>
     #include <sys/types.h> // for u_int not defined in sysctl.h
@@ -18,16 +16,8 @@
     #include <unistd.h>
 #endif
 
-#include <util/folder/dirut.h>
 #include <util/generic/singleton.h>
-#include <util/generic/function.h>
-#include <util/generic/yexception.h>
-#include <util/memory/tempbuf.h>
-#include <util/stream/file.h>
-#include <util/stream/pipe.h>
-#include <util/string/cast.h>
 
-#include "filemap.h"
 #include "execpath.h"
 #include "fs.h"
 

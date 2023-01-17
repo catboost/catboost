@@ -1,6 +1,5 @@
 #include "mem.h"
 #include "multi.h"
-#include "str.h"
 #include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestMultiInput) {

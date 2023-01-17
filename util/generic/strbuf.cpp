@@ -1,6 +1,5 @@
 #include "strbuf.h"
 
-#include <util/stream/output.h>
 #include <ostream>
 
 std::ostream& operator<<(std::ostream& os, TStringBuf buf) {

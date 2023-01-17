@@ -4,7 +4,6 @@
     #include <sys/utime.h>
 #else
     #define HDR <../include/utime.h>
-    #include <sys/types.h>
     #include HDR
 #endif
 
