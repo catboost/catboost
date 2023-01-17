@@ -284,7 +284,6 @@ geoproduct/woronkey
 disk/workspace/dns-hosting
 cmnt/frontend/cmnt-front
 taxi/lavka/platform/lavkach
-intranet/yasanta
 milab/projects/yac_simface
 milab/projects/best_queries
 pr/contacts/dockerfiles
@@ -1430,3 +1429,5 @@ callab/delta
 devtools/cache_test_trigger
 haas/eine/eine-firmware
 adv/pcode/mobileadssdk/sdk/unity/plugin-internal
+noc/packages/mondata
+samsara/samsara
