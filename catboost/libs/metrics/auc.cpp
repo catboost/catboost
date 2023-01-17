@@ -243,6 +243,7 @@ double CalcAUC(TVector<TSample>* samples, NPar::ILocalExecutor* localExecutor, d
 double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairWeightSum, int threadCount) {
     THolder<NPar::TLocalExecutor> localExecutor;
     if (threadCount > 1) {
+        localExecutor = MakeHolder<NPar::TLocalExecutor>();
         localExecutor->RunAdditionalThreads(threadCount - 1);
     }
     return CalcAUC(samples, localExecutor.Get(), outWeightSum, outPairWeightSum);
