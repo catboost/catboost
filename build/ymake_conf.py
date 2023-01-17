@@ -2610,7 +2610,7 @@ class MSVCCompiler(MSVC, Compiler):
 
         if not self.tc.under_wine:
             emit('CL_WRAPPER', '${FIX_MSVC_OUTPUT}', 'cl')
-            emit('ML_WRAPPER', '${FIX_MSVC_OUTPUT"}', 'ml')
+            emit('ML_WRAPPER', '${FIX_MSVC_OUTPUT}', 'ml')
         else:
             emit('CL_WRAPPER')
             emit('ML_WRAPPER')
