@@ -41,11 +41,7 @@
  * @param dtype2 Second DType class.
  * @return The common DType or NULL with an error set
  */
-#if defined(_MSC_VER) && defined(__clang__)
 NPY_NO_EXPORT PyArray_DTypeMeta *
-#else
-NPY_NO_EXPORT NPY_INLINE PyArray_DTypeMeta *
-#endif
 PyArray_CommonDType(PyArray_DTypeMeta *dtype1, PyArray_DTypeMeta *dtype2)
 {
     if (dtype1 == dtype2) {

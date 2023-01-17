@@ -1,3 +1,5 @@
+# https://github.com/numpy/numpy/commit/50d69741cb35db1a535282060c51e536a863ce99 partial backport
+# remove this patch when updating contrib
 --- contrib/python/numpy/py3/numpy/core/src/common/simd/intdiv.h	(index)
 +++ contrib/python/numpy/py3/numpy/core/src/common/simd/intdiv.h	(working tree)
 @@ -136,7 +136,7 @@ NPY_FINLINE npy_uint64 npyv__divh128_u64(npy_uint64 high, npy_uint64 divisor)
@@ -11,15 +13,12 @@
      (void)remainder;
 --- contrib/python/numpy/py3/numpy/core/src/multiarray/common_dtype.c	(index)
 +++ contrib/python/numpy/py3/numpy/core/src/multiarray/common_dtype.c	(working tree)
-@@ -41,7 +41,11 @@
+@@ -41,7 +41,7 @@
   * @param dtype2 Second DType class.
   * @return The common DType or NULL with an error set
   */
-+#if defined(_MSC_VER) && defined(__clang__)
+-NPY_NO_EXPORT NPY_INLINE PyArray_DTypeMeta *
 +NPY_NO_EXPORT PyArray_DTypeMeta *
-+#else
- NPY_NO_EXPORT NPY_INLINE PyArray_DTypeMeta *
-+#endif
  PyArray_CommonDType(PyArray_DTypeMeta *dtype1, PyArray_DTypeMeta *dtype2)
  {
      if (dtype1 == dtype2) {
