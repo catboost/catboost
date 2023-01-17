@@ -60,7 +60,7 @@ namespace NCatboostCuda {
                                 &sampledQids,
                                 &sampledQidOffsets);
 
-            TCudaBuffer<ui32, TMapping> matrixOffsets;
+            TCudaBuffer<ui64, TMapping> matrixOffsets;
             matrixOffsets.Reset(sampledQidOffsets.GetMapping());
             {
                 auto tmp = TCudaBuffer<ui32, TMapping>::CopyMapping(matrixOffsets);

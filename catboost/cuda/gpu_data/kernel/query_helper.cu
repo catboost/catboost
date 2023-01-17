@@ -4,6 +4,8 @@
 
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
+#include <util/generic/cast.h>
+
 namespace NKernel {
 
     template <ui32 BLOCK_SIZE>
@@ -236,8 +238,8 @@ namespace NKernel {
     void ComputeGroupMeans(const float* target, const float* weights,
                            const ui32* qOffsets,  ui32 qCount,
                            float* result, TCudaStream stream) {
-        const int blockSize = 128;
-        const int numBlocks = (qCount * 32 + blockSize - 1) / blockSize;
+        const ui32 blockSize = 128;
+        const ui32 numBlocks = SafeIntegerCast<ui32>(((ui64)(qCount + 1) * 32 + blockSize - 1) / blockSize); // qOffsets points at qCount+1 ui32's
         if (numBlocks > 0) {
             ComputeGroupMeansImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (target, weights, qOffsets,  qCount, result);
         }
@@ -281,8 +283,8 @@ namespace NKernel {
     void ComputeGroupMax(const float* target,
                          const ui32* qOffsets,  ui32 qCount,
                          float* result, TCudaStream stream) {
-        const int blockSize = 128;
-        const int numBlocks = (qCount * 32 + blockSize - 1) / blockSize;
+        const ui32 blockSize = 128;
+        const ui32 numBlocks = SafeIntegerCast<ui32>(((ui64)(qCount + 1) * 32 + blockSize - 1) / blockSize); // qOffsets points at qCount+1 ui32's
         if (numBlocks > 0) {
             ComputeGroupMaxImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (target, qOffsets,  qCount, result);
         }

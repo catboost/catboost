@@ -662,14 +662,14 @@ namespace NKernelHost {
     class TMakePairsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> QOffsets;
-        TCudaBufferPtr<const ui32> MatrixOffsets;
+        TCudaBufferPtr<const ui64> MatrixOffsets;
         TCudaBufferPtr<uint2> Pairs;
 
     public:
         TMakePairsKernel() = default;
 
         TMakePairsKernel(TCudaBufferPtr<const ui32> qOffsets,
-                         TCudaBufferPtr<const ui32> matrixOffsets,
+                         TCudaBufferPtr<const ui64> matrixOffsets,
                          TCudaBufferPtr<uint2> pairs)
             : QOffsets(qOffsets)
             , MatrixOffsets(matrixOffsets)
@@ -699,7 +699,7 @@ namespace NKernelHost {
         ui32 BootstrapIter;
         TCudaBufferPtr<const ui32> Qids;
         TCudaBufferPtr<const ui32> QueryOffsets;
-        TCudaBufferPtr<const ui32> MatrixOffsets;
+        TCudaBufferPtr<const ui64> MatrixOffsets;
         TCudaBufferPtr<const float> ExpApprox;
         TCudaBufferPtr<const float> Relev;
         TCudaBufferPtr<float> WeightMatrixDst;
@@ -709,13 +709,13 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->QidCursor = memoryManager.Allocate<int, NCudaLib::EPtrType::CudaDevice>(1);
+            context->QidCursor = memoryManager.Allocate<ui32, NCudaLib::EPtrType::CudaDevice>(1);
             return context;
         }
 
         TPFoundFGradientKernel() = default;
 
-        TPFoundFGradientKernel(ui64 seed, float decaySpeed, ui32 bootstrapIter, TCudaBufferPtr<const ui32> qids, TCudaBufferPtr<const ui32> queryOffsets, TCudaBufferPtr<const ui32> matrixOffsets, TCudaBufferPtr<const float> expApprox, TCudaBufferPtr<const float> relev, TCudaBufferPtr<float> weightMatrixDst)
+        TPFoundFGradientKernel(ui64 seed, float decaySpeed, ui32 bootstrapIter, TCudaBufferPtr<const ui32> qids, TCudaBufferPtr<const ui32> queryOffsets, TCudaBufferPtr<const ui64> matrixOffsets, TCudaBufferPtr<const float> expApprox, TCudaBufferPtr<const float> relev, TCudaBufferPtr<float> weightMatrixDst)
             : Seed(seed)
             , DecaySpeed(decaySpeed)
             , BootstrapIter(bootstrapIter)
@@ -962,7 +962,7 @@ inline void ApproximateYetiRank(ui64 seed, float decay, ui32 permutationCount,
 
 template <class TMapping>
 inline void MakePairs(const TCudaBuffer<ui32, TMapping>& qidOffsets,
-                      const TCudaBuffer<ui32, TMapping>& matrixOffsets,
+                      const TCudaBuffer<ui64, TMapping>& matrixOffsets,
                       TCudaBuffer<uint2, TMapping>* pairs,
                       ui32 stream = 0) {
     using TKernel = NKernelHost::TMakePairsKernel;
@@ -984,7 +984,7 @@ inline void ComputePFoundFWeightsMatrix(NCudaLib::TDistributedObject<ui64> seed,
                                         const TCudaBuffer<float, NCudaLib::TStripeMapping>& target,
                                         const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& qids,
                                         const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& qidOffsets,
-                                        const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& matrixOffsets,
+                                        const TCudaBuffer<ui64, NCudaLib::TStripeMapping>& matrixOffsets,
                                         TCudaBuffer<float, NCudaLib::TStripeMapping>* weights,
                                         ui32 stream = 0) {
     using TKernel = NKernelHost::TPFoundFGradientKernel;
@@ -1016,7 +1016,7 @@ inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMa
                            expApprox,
                            querywiseWeights,
                            target,
-                           pairWeights,
+                           *pairWeights,
                            *gradient,
                            *pairs);
 }
