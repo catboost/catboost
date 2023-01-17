@@ -70,6 +70,11 @@ ALLOW metrika/core/libs/strconvert -> contrib/restricted/glib
 ALLOW yandex_io -> contrib/restricted/glib
 
 # GStreamer is LGPL
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gstreamer
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-plugins-base
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-plugins-good
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-plugins-ugly
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-rtsp-server
 ALLOW yandex_io -> contrib/restricted/gstreamer
 ALLOW yandex_io -> contrib/restricted/gst-plugins-base
 ALLOW yandex_io -> contrib/restricted/gst-plugins-good
