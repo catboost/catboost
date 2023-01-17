@@ -1,0 +1,13 @@
+service: ya_make
+title: Build and deploy prebuilt tools
+
+ci:
+  secret: sec-01g2yx8rzeak0z9qh4w558desc
+
+  runtime:
+    sandbox:
+      owner: YA_TOOL
+
+
+
+
