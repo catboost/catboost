@@ -105,6 +105,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_5cbf7f602f28ee1e6e6065102b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_5cbf7f602f28ee1e6e6065102b.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_7f93352da0f459214c621db385.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7f93352da0f459214c621db385.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7f93352da0f459214c621db385.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7f93352da0f459214c621db385.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7f93352da0f459214c621db385.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/stack-data/_7f93352da0f459214c621db385.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_7f93352da0f459214c621db385.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_7f93352da0f459214c621db385.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7aa071b497d4c72208121b79c.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
@@ -131,33 +158,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7aa071b497d4c72208121b79c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7aa071b497d4c72208121b79c.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_d53eb223cf2d5742c376c2fd4e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_d53eb223cf2d5742c376c2fd4e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_d53eb223cf2d5742c376c2fd4e.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -190,7 +190,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.yasm" "-" "contrib/python/stack-data/.dist-info/METADATA" "_eabfda93473f8d3c1e44ea0b2d.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_2b181cec627b3230e9f3887f78.rodata" "-" "contrib/python/stack-data/.dist-info/top_level.txt" "_d2dafdd49c1ceb877436226bfc.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_f3c032a7ba08351b65a6c98267.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7f93352da0f459214c621db385.yasm" "-" "contrib/python/stack-data/.dist-info/METADATA" "_eabfda93473f8d3c1e44ea0b2d.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_2b181cec627b3230e9f3887f78.rodata" "-" "contrib/python/stack-data/.dist-info/top_level.txt" "_d2dafdd49c1ceb877436226bfc.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_f3c032a7ba08351b65a6c98267.rodata" "-" "contrib/python/stack-data/stack_data/py.typed" "_938aaf0beb7bf5e65812e716ed.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_8d371662a7fc204ba58d861712.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.yasm" "-" "contrib/python/stack-data/.dist-info/METADATA" "_eabfda93473f8d3c1e44ea0b2d.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_2b181cec627b3230e9f3887f78.rodata" "-" "contrib/python/stack-data/.dist-info/top_level.txt" "_d2dafdd49c1ceb877436226bfc.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_f3c032a7ba08351b65a6c98267.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7f93352da0f459214c621db385.yasm" "-" "contrib/python/stack-data/.dist-info/METADATA" "_eabfda93473f8d3c1e44ea0b2d.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_2b181cec627b3230e9f3887f78.rodata" "-" "contrib/python/stack-data/.dist-info/top_level.txt" "_d2dafdd49c1ceb877436226bfc.rodata" "$(SolutionDir)../contrib/python/stack-data/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_f3c032a7ba08351b65a6c98267.rodata" "-" "contrib/python/stack-data/stack_data/py.typed" "_938aaf0beb7bf5e65812e716ed.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_8d371662a7fc204ba58d861712.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,9 +209,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/stack-data/_d53eb223cf2d5742c376c2fd4e.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\stack-data\.dist-info\METADATA;$(SolutionDir)..\contrib\python\stack-data\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_d53eb223cf2d5742c376c2fd4e.yasm;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_2b181cec627b3230e9f3887f78.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_f3c032a7ba08351b65a6c98267.rodata;</Outputs>
+      <Message>$B/contrib/python/stack-data/_7f93352da0f459214c621db385.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\stack-data\.dist-info\METADATA;$(SolutionDir)..\contrib\python\stack-data\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\stack-data\stack_data\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_7f93352da0f459214c621db385.yasm;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_2b181cec627b3230e9f3887f78.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_f3c032a7ba08351b65a6c98267.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_8d371662a7fc204ba58d861712.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\stack-data\stack_data\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
