@@ -1,7 +1,7 @@
 import os.path
 
 import ytest
-from _common import to_yesno, resolve_common_const, rootrel_arc_src
+from _common import to_yesno, rootrel_arc_src
 
 
 def _create_pm(unit):
@@ -48,16 +48,21 @@ def on_ts_configure(unit, tsconfig_path):
     unit.set(["TS_CONFIG_DECLARATION_MAP", to_yesno(tsconfig.compiler_option("declarationMap"))])
     unit.set(["TS_CONFIG_PRESERVE_JSX", to_yesno(tsconfig.compiler_option("jsx") == "preserve")])
 
-    if unit.get('LINT_LEVEL_VALUE') != "none":
-        _setup_eslint(unit)
+    _setup_eslint(unit)
 
 
 def _setup_eslint(unit):
+    if unit.get('LINT_LEVEL_VALUE') == "none":
+        return
+
+    lint_files = ytest.get_values_list(unit, '_TS_LINT_SRCS_VALUE')
+    if not lint_files:
+        return
+
     # MODDIR == devtools/dummy_arcadia/ts/packages/with_lint
     # CURDIR == $S/MODDIR
     mod_dir = unit.get('MODDIR')
 
-    lint_files = ytest.get_values_list(unit, '_TS_LINT_SRCS_VALUE')
     resolved_files = []
     for path in lint_files:
         resolved = rootrel_arc_src(path, unit)
@@ -65,26 +70,20 @@ def _setup_eslint(unit):
             resolved = resolved[len(mod_dir) + 1:]
         resolved_files.append(resolved)
 
-    if resolved_files:
-        # ESLint should start in the MODDIR to properly use relative paths in config files
-        _add_eslint(unit, mod_dir, resolved_files)
-
-
-def _add_eslint(unit, test_cwd, test_files):
-    check_type = "eslint"
+    # devtools/dummy_arcadia/ts/packages/with_lint == MODDIR
     test_dir = ytest.get_norm_unit_path(unit)
 
     test_record = {
-        'TEST-NAME': check_type.lower(),
+        'TEST-NAME': "eslint",
         'TEST-TIMEOUT': '',
-        'SCRIPT-REL-PATH': check_type,
+        'SCRIPT-REL-PATH': "eslint",
         'TESTED-PROJECT-NAME': os.path.basename(test_dir),
         'SOURCE-FOLDER-PATH': test_dir,
         'SPLIT-FACTOR': unit.get('TEST_SPLIT_FACTOR') or '',
         'FORK-MODE': unit.get('TEST_FORK_MODE') or '',
         'SIZE': 'SMALL',
-        'TEST-FILES': ytest.serialize_list(test_files),
-        'TEST-CWD': test_cwd,
+        'TEST-FILES': ytest.serialize_list(resolved_files),
+        'ESLINT_CONFIG_NAME': unit.get('ESLINT_CONFIG_NAME'),
     }
 
     data = ytest.dump_test(unit, test_record)
