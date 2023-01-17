@@ -15,7 +15,7 @@ namespace NCB {
 
         TVector<TVector<double>> GetApproxes(NPar::TLocalExecutor* localExecutor) const;
         TVector<TSharedVector<float>> GetLabels(NPar::TLocalExecutor* localExecutor) const;
-        const TWeights<float>& GetWeights() const;
+        const TWeights<float>& GetWeights(NPar::TLocalExecutor* localExecutor) const;
         TMaybe<TSharedVector<TQueryInfo>> GetQueriesInfo() const;
 
         void ExtractApproxesToBackOfVector(TVector<TVector<double>>* approxesPtr, NPar::TLocalExecutor* localExecutor) const;
@@ -95,12 +95,12 @@ namespace NCB {
         );
     }
 
-    const TWeights<float>& TCalcMetricDataProvider::GetWeights() const {
+    const TWeights<float>& TCalcMetricDataProvider::GetWeights(NPar::TLocalExecutor* localExecutor) const {
         const auto& weights = *NCB::MakeWeights(
             DataProvider->RawTargetData.GetWeights(),
             DataProvider->RawTargetData.GetGroupWeights(),
             /*isForGpu*/ false,
-            /*localExecutor*/ nullptr);
+            localExecutor);
         return weights;
     }
 
@@ -156,7 +156,7 @@ namespace NCB {
         TVector<TVector<double>> approx = dataProvider.GetApproxes(localExecutor);
         TVector<TSharedVector<float>> labels = dataProvider.GetLabels(localExecutor);
 
-        auto& weights = dataProvider.GetWeights();
+        auto& weights = dataProvider.GetWeights(localExecutor);
         TMaybe<TSharedVector<TQueryInfo>> queriesInfo = dataProvider.GetQueriesInfo();
         TConstArrayRef<TQueryInfo> queriesInfoRef;
         if (queriesInfo.Defined()) {
@@ -188,7 +188,7 @@ namespace NCB {
         dataProvider.ExtractApproxesToBackOfVector(&Approxes, localExecutor);
 
         TVector<TSharedVector<float>> labels = dataProvider.GetLabels(localExecutor);
-        auto& weights = dataProvider.GetWeights();
+        auto& weights = dataProvider.GetWeights(localExecutor);
         if (!weights.IsTrivial()) {
             Weights.insert(
                 Weights.end(),
