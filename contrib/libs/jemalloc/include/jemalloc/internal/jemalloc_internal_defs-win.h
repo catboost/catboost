@@ -2,7 +2,7 @@
 
 #include "jemalloc_internal_defs-linux.h"
 
-
+#undef JEMALLOC_HAVE_MPROTECT
 
 /*
  * Define overrides for non-standard allocator-related functions if they are
