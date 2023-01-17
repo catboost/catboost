@@ -25,6 +25,10 @@
 #if !defined(_MSC_VER)
     #if defined(__has_builtin) && __has_builtin(__debugbreak)
     // Do nothing, use __debugbreak builtin
+    #elif defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
+inline void __debugbreak() {
+    __builtin_debugtrap();
+}
     #else
 inline void __debugbreak() {
         #if defined(__x86_64__) || defined(__i386__)
