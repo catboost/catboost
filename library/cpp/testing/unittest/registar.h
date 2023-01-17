@@ -1007,7 +1007,6 @@ public:                       \
 #define Y_UNIT_TEST_IMPL_REGISTER(N, FF, F)            \
     struct TTestCase##N : public F {                        \
         TTestCase##N()                                      \
-            : F()                                           \
         {                                                   \
             Name_ = #N;                                     \
             ForceFork_ = FF;                                \

@@ -27,14 +27,11 @@ class Swig(iw.CustomCommand):
         self._swig_lang = unit.get('SWIG_LANG')
 
         if self._swig_lang != 'jni_java':
+            self._flags += ['-c++']
             self._main_out = os.path.join(
                 self._bindir,
                 '' if relpath == '.' else relpath.replace('..', '__'),
-                self._input_name + '_wrap.swg.c')
-
-            if not path.endswith('.c.swg'):
-                self._flags += ['-c++']
-                self._main_out += 'pp'
+                self._input_name + '_wrap.swg.cpp')
 
         # lang_specific_incl_dir = 'perl5' if self._swig_lang == 'perl' else self._swig_lang
         lang_specific_incl_dir = self._swig_lang

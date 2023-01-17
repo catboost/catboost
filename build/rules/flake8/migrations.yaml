@@ -1976,7 +1976,6 @@ migrations:
     - mapreduce/yt/python
     - maps/contrib/pylibs/googlemaps
     - maps/contrib/pylibs/mox
-    - maps/goods/contrib/pylibs/xlrd
     - maps/pylibs/utils/lib
     - maps/pymod/yandex/maps/test_utils
     - maps/renderer/designs_config/libs/pymod
