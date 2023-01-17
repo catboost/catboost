@@ -216,3 +216,4 @@ market/infra/market-teamcity
 contest/legacy/api-schema
 intranet/bugbounty
 contest/legacy/qloud-zk
+contest/legacy/contest-docker-images
