@@ -2565,6 +2565,7 @@ namespace {
         static constexpr int DefaultTopSize = -1;
         static constexpr ENdcgMetricType DefaultMetricType = ENdcgMetricType::Base;
         static constexpr ENdcgDenominatorType DefaultDenominatorType = ENdcgDenominatorType::LogPosition;
+        static constexpr size_t LargeGroupSize = 10 * 1000;
     };
 }
 
@@ -2652,7 +2653,7 @@ TMetricHolder TDcgMetric::EvalSingleThread(
     TMetricHolder error(2);
     TVector<NMetrics::TSample> samples;
     TVector<double> decay;
-    decay.yresize(10 * 1000);
+    decay.yresize(LargeGroupSize);
     FillDcgDecay(DenominatorType, Nothing(), decay);
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
         const auto queryBegin = queriesInfo[queryIndex].Begin;
@@ -2664,7 +2665,7 @@ TMetricHolder TDcgMetric::EvalSingleThread(
             MakeArrayRef(approxesRef.data() + queryBegin, querySize),
             &samples);
         if (decay.size() < querySize) {
-            decay.resize(querySize);
+            decay.resize(2 * querySize);
             FillDcgDecay(DenominatorType, Nothing(), decay);
         }
         if (Normalized) {
@@ -4726,6 +4727,7 @@ namespace {
 
         static constexpr ENdcgMetricType DefaultMetricType = ENdcgMetricType::Base;
         static constexpr ENdcgDenominatorType DefaultDenominatorType= ENdcgDenominatorType::Position;
+        static constexpr size_t LargeGroupSize = 10 * 1000;
     };
 }
 
@@ -4769,7 +4771,7 @@ TMetricHolder TFilteredDcgMetric::EvalSingleThread(
     TVector<double> filteredTarget;
     TVector<NMetrics::TSample> samples;
     TVector<double> decay;
-    decay.yresize(10 * 1000);
+    decay.yresize(LargeGroupSize);
     FillDcgDecay(DenominatorType, Nothing(), decay);
 
     for(int queryIndex = queryBegin; queryIndex < queryEnd; ++queryIndex) {
@@ -4790,7 +4792,7 @@ TMetricHolder TFilteredDcgMetric::EvalSingleThread(
             continue;
         }
         if (begin + decay.size() < (size_t)end) {
-            decay.resize(end - begin);
+            decay.resize(2 * (end - begin));
             FillDcgDecay(DenominatorType, Nothing(), decay);
         }
         switch (SortType) {
