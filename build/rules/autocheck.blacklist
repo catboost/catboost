@@ -892,3 +892,6 @@ taxi/github/react-yandex-maps
 portal/tap-formatter-html
 intranet/idm_backend
 market/market-tpl/sc-app
+weather/frontend/front
+taxi/mobile/infra/dart-codegen
+taxi/github/rida/php
