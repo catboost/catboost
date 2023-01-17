@@ -223,6 +223,10 @@ android {{
                 def aar_set = dependencyTree.matching{{include "**/*.aar"}}.getFiles()
                 def jar_tree = dependencyTree.matching{{include "**/*.jar"}}
 
+                classpath += files(android.libraryVariants.collect {{ libraryVariant ->
+                    libraryVariant.javaCompileProvider.get().classpath.files
+                }})
+
                 aar_set.each{{ aar ->
                     def outputPath = "$buildDir/tmp/aarJar/${{aar.name.replace('.aar', '.jar')}}"
                     classpath += files(outputPath)
