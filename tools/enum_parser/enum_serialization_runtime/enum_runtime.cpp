@@ -55,21 +55,12 @@ namespace NEnumSerializationRuntime {
         const TArrayRef<const TStringBuf>& cppNamesInitializer = enumInitData.CppNamesInitializer;
 
         TMap<TRepresentationType, TString> mapValueToName;
-        TMap<TString, TRepresentationType> mapNameToValue;
-        const bool bijectiveHint = (namesInitializer.data() == valuesInitializer.data() && namesInitializer.size() == valuesInitializer.size());
-        if (bijectiveHint) {
-            for (const TEnumStringPair& it : namesInitializer) {
-                TString name{it.Name};
-                mapValueToName.emplace(it.Key, name);
-                mapNameToValue.emplace(std::move(name), it.Key);
-            }
-        } else {
-            for (const TEnumStringPair& it : namesInitializer) {
-                mapValueToName.emplace(it.Key, TString(it.Name));
-            }
-            for (const TEnumStringPair& it : valuesInitializer) {
-                mapNameToValue.emplace(TString(it.Name), it.Key);
-            }
+        TMap<TStringBuf, TRepresentationType> mapNameToValue;
+        for (const TEnumStringPair& it : namesInitializer) {
+            mapValueToName.emplace(it.Key, TString(it.Name));
+        }
+        for (const TEnumStringPair& it : valuesInitializer) {
+            mapNameToValue.emplace(it.Name, it.Key);
         }
         Names = std::move(mapValueToName);
         Values = std::move(mapNameToValue);
