@@ -9,6 +9,7 @@
 
 add_library(cpp-containers-disjoint_interval_tree)
 target_link_libraries(cpp-containers-disjoint_interval_tree PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

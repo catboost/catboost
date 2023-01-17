@@ -13,5 +13,6 @@ add_subdirectory(libcxxrt)
 
 add_library(contrib-libs-cxxsupp INTERFACE)
 target_link_libraries(contrib-libs-cxxsupp INTERFACE
+  contrib-libs-linux-headers
   libs-cxxsupp-libcxx
 )

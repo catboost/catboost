@@ -9,6 +9,7 @@
 
 add_library(library-cpp-accurate_accumulate)
 target_link_libraries(library-cpp-accurate_accumulate PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

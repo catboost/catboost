@@ -9,6 +9,7 @@
 
 add_library(text_features-ut-lib)
 target_link_libraries(text_features-ut-lib PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-options

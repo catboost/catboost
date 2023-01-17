@@ -9,6 +9,7 @@
 
 add_library(cpp-threading-atomic)
 target_link_libraries(cpp-threading-atomic PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-deprecated-atomic

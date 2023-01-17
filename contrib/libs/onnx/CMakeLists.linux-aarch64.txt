@@ -20,6 +20,7 @@ target_include_directories(contrib-libs-onnx PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
 )
 target_link_libraries(contrib-libs-onnx PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   libs-onnx-proto

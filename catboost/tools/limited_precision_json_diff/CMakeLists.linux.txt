@@ -9,6 +9,7 @@
 
 add_executable(limited_precision_json_diff)
 target_link_libraries(limited_precision_json_diff PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

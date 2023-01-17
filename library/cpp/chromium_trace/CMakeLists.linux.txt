@@ -9,6 +9,7 @@
 
 add_library(library-cpp-chromium_trace)
 target_link_libraries(library-cpp-chromium_trace PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-containers-stack_vector

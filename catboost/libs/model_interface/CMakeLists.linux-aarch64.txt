@@ -10,6 +10,7 @@ add_subdirectory(static)
 
 add_library(catboostmodel SHARED)
 target_link_libraries(catboostmodel PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-cat_feature

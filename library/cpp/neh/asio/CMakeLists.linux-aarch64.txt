@@ -9,6 +9,7 @@
 
 add_library(cpp-neh-asio)
 target_link_libraries(cpp-neh-asio PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-libc_compat

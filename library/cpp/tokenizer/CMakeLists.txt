@@ -6,72 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(library-cpp-tokenizer)
-target_compile_options(library-cpp-tokenizer PRIVATE
-  -DCATBOOST_OPENSOURCE=yes
-)
-target_link_libraries(library-cpp-tokenizer PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-enumbitset
-  library-cpp-langmask
-  cpp-token-lite
-)
-target_sources(library-cpp-tokenizer PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/abbreviations.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/charclasses.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/multitokenparser.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/multitokenutil.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/nlpparser.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/sentbreakfilter.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/split.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/tokenizer.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/special_tokens.cpp
-)
-add_custom_command(
-  OUTPUT
-  ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
-  DEPENDS
-  ${TOOLS_ROOT}/tools/archiver/archiver
-  ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
-  COMMAND
-  ${TOOLS_ROOT}/tools/archiver/archiver
-  -q
-  -p
-  ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie:
-  -o
-  ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
-)
-add_custom_command(
-  OUTPUT
-  ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
-  DEPENDS
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/special_tokens.txt
-  ${TOOLS_ROOT}/tools/triecompiler/triecompiler
-  WORKING_DIRECTORY
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer
-  COMMAND
-  ${TOOLS_ROOT}/tools/triecompiler/triecompiler
-  ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
-  -0
-  -i
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/special_tokens.txt
-  -w
-)
-target_ragel_lexers(library-cpp-tokenizer
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/nlptok_v2.rl6
-  -L
-  -G2
-)
-target_ragel_lexers(library-cpp-tokenizer
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/nlptok_v3.rl6
-  -L
-  -G2
-)
-target_rodata_sources(library-cpp-tokenizer
-  PRIVATE
-  ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

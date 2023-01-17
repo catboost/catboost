@@ -9,6 +9,7 @@
 
 add_library(cpp-coroutine-listener)
 target_link_libraries(cpp-coroutine-listener PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-coroutine-engine

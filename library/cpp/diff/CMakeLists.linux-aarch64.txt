@@ -9,6 +9,7 @@
 
 add_library(library-cpp-diff)
 target_link_libraries(library-cpp-diff PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lcs
