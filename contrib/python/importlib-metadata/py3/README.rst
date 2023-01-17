@@ -1,10 +1,7 @@
 .. image:: https://img.shields.io/pypi/v/importlib_metadata.svg
-   :target: `PyPI link`_
+   :target: https://pypi.org/project/importlib_metadata
 
 .. image:: https://img.shields.io/pypi/pyversions/importlib_metadata.svg
-   :target: `PyPI link`_
-
-.. _PyPI link: https://pypi.org/project/importlib_metadata
 
 .. image:: https://github.com/python/importlib_metadata/workflows/tests/badge.svg
    :target: https://github.com/python/importlib_metadata/actions?query=workflow%3A%22tests%22
@@ -42,9 +39,11 @@ were contributed to different versions in the standard library:
 
    * - importlib_metadata
      - stdlib
-   * - 4.8
+   * - 5.0
+     - 3.12
+   * - 4.13
      - 3.11
-   * - 4.4
+   * - 4.6
      - 3.10
    * - 1.4
      - 3.8
