@@ -2,7 +2,7 @@
 set -e
 
 WEBPACK_VERSION="5.69.1"
-PACKAGES="webpack@$WEBPACK_VERSION webpack-cli@4.9.2 ts-loader@9.2.6 typescript@4.5.5"
+PACKAGES="webpack@$WEBPACK_VERSION webpack-cli@4.9.2 ts-loader@9.2.6 webpack-dev-middleware@5.3.3 typescript@4.5.5"
 
 cd ~
 
