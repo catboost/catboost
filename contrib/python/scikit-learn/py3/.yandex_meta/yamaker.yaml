@@ -7,6 +7,7 @@ mark_as_cython_c:
   # C++ - sklearn/cluster/_hierarchical_fast.pyx
   - sklearn/cluster/_k_means_elkan.pyx
   - sklearn/cluster/_k_means_fast.pyx
+  - sklearn/cluster/_k_means_lloyd.pyx
   - sklearn/datasets/*.pyx
   - sklearn/decomposition/*.pyx
   - sklearn/ensemble/*.pyx
@@ -16,7 +17,10 @@ mark_as_cython_c:
   - sklearn/metrics/*.pyx
   - sklearn/neighbors/*.pyx
   - sklearn/preprocessing/*.pyx
-  - sklearn/svm/*.pyx
+  - sklearn/svm/_liblinear.pyx
+  - sklearn/svm/_libsvm.pyx
+  - sklearn/svm/_libsvm_sparse.pyx
+  # C++ - sklearn/svm/_newrand.pyx
   - sklearn/tree/*.pyx
   - sklearn/utils/_cython_blas.pyx
   # C++ - sklearn/utils/_fast_dict.pyx
@@ -34,5 +38,7 @@ exclude_from_macros:
   - sklearn/svm/src/liblinear/liblinear_helper.c
   - sklearn/svm/src/libsvm/libsvm_helper.c
   - sklearn/svm/src/libsvm/libsvm_sparse_helper.c
+  - sklearn/svm/src/libsvm/LIBSVM_CHANGES
+  - sklearn/svm/src/liblinear/COPYRIGHT
 exclude:
   - sklearn/*setup.py

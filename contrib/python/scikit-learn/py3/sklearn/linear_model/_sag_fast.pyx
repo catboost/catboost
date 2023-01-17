@@ -28,6 +28,7 @@ from ..utils._seq_dataset cimport SequentialDataset32, SequentialDataset64
 
 from libc.stdio cimport printf
 
+np.import_array()
 
 
 cdef extern from "_sgd_fast_helpers.h":
@@ -135,7 +136,7 @@ cdef class MultinomialLogLoss64:
         loss = (logsumexp_prediction - prediction[int(y)]) * sample_weight
         return loss
 
-    cdef void _dloss(self, double* prediction, double y, int n_classes,
+    cdef void dloss(self, double* prediction, double y, int n_classes,
                      double sample_weight, double* gradient_ptr) nogil:
         r"""Multinomial Logistic regression gradient of the loss.
 
@@ -235,7 +236,7 @@ cdef class MultinomialLogLoss32:
         loss = (logsumexp_prediction - prediction[int(y)]) * sample_weight
         return loss
 
-    cdef void _dloss(self, float* prediction, float y, int n_classes,
+    cdef void dloss(self, float* prediction, float y, int n_classes,
                      float sample_weight, float* gradient_ptr) nogil:
         r"""Multinomial Logistic regression gradient of the loss.
 
@@ -496,10 +497,10 @@ def sag64(SequentialDataset64 dataset,
 
                 # compute the gradient for this sample, given the prediction
                 if multinomial:
-                    multiloss._dloss(prediction, y, n_classes, sample_weight,
+                    multiloss.dloss(prediction, y, n_classes, sample_weight,
                                      gradient)
                 else:
-                    gradient[0] = loss._dloss(prediction[0], y) * sample_weight
+                    gradient[0] = loss.dloss(prediction[0], y) * sample_weight
 
                 # L2 regularization by simply rescaling the weights
                 wscale *= wscale_update
@@ -827,10 +828,10 @@ def sag32(SequentialDataset32 dataset,
 
                 # compute the gradient for this sample, given the prediction
                 if multinomial:
-                    multiloss._dloss(prediction, y, n_classes, sample_weight,
+                    multiloss.dloss(prediction, y, n_classes, sample_weight,
                                      gradient)
                 else:
-                    gradient[0] = loss._dloss(prediction[0], y) * sample_weight
+                    gradient[0] = loss.dloss(prediction[0], y) * sample_weight
 
                 # L2 regularization by simply rescaling the weights
                 wscale *= wscale_update
@@ -1341,7 +1342,7 @@ def _multinomial_grad_loss_all_samples(
                            intercept, prediction, n_classes)
 
             # compute the gradient for this sample, given the prediction
-            multiloss._dloss(prediction, y, n_classes, sample_weight, gradient)
+            multiloss.dloss(prediction, y, n_classes, sample_weight, gradient)
 
             # compute the loss for this sample, given the prediction
             sum_loss += multiloss._loss(prediction, y, n_classes, sample_weight)
