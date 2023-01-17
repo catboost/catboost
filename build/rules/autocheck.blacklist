@@ -88,3 +88,4 @@ data-ui/infra-components
 portal/frontend/tune-suggest-proxy
 data-ui/yqlkit
 data-ui/generic-socket
+data-ui/infra-buzzer
