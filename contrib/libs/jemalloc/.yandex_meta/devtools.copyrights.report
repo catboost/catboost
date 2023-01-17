@@ -40,6 +40,17 @@ BELONGS ya.make
     Files with this license:
         COPYING [6:6]
 
+KEEP     COPYRIGHT_SERVICE_LABEL 1c361018c28e9d50c09ec5e3e3a3c31d
+BELONGS ya.make
+    License text:
+         * Copyright 2009-2010 Andrea Leofreddi <a.leofreddi@itcharm.com>. All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        bin/jeprof [2354:2354]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 3fc0805e0d840e358c161050fcb8adac
 BELONGS ya.make
     License text:
@@ -62,3 +73,26 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         COPYING [4:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 7c47a05dc6877bd58d0192a0c5bb1a2e
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 1998-2007, Google Inc.
+        \# All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        bin/jeprof [3:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e012a01815867f7487a523b365382d0e
+BELONGS ya.make
+    License text:
+        Copyright 1998-2007 Google Inc.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        bin/jeprof [284:284]
