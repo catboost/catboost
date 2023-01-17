@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</ProjectGUID>
+    <ProjectGUID>{C05157A0-7771-F262-8E14-B98F127FF6B6}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3contrib-python-backcall.global</ProjectName>
+    <ProjectName>pycontrib-python-backcall.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3contrib-python-backcall.global</TargetName>
+    <TargetName>pycontrib-python-backcall.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\backcall\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\473BBBA7-56F6-21FD-E4E7-833A72D068E1\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C05157A0-7771-F262-8E14-B98F127FF6B6\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
