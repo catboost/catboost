@@ -16,10 +16,6 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
-CFLAGS(
-    -DNOMINMAX
-)
-
 SRCS(
     internal/cycleclock.cc
     internal/low_level_alloc.cc
