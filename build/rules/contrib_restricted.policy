@@ -44,6 +44,9 @@ ALLOW passport/infra -> contrib/restricted/keyutils
 # For Apache Arrow: CONTRIB-1662
 ALLOW mds -> contrib/restricted/uriparser
 
+# For patched imagemagick CONTRIB-1902
+ALLOW mds -> contrib/restricted/ImageMagickMDS
+
 # https://st.yandex-team.ru/CONTRIB-2020
 ALLOW weather -> contrib/restricted/range-v3
 
