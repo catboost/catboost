@@ -62,8 +62,8 @@ class LazyListTestCase(unittest.TestCase):
         self.assertEqual(3 * self.lazy, 3 * self.base)
 
         # Contains
-        self.assertTrue(2 in self.lazy)
-        self.assertFalse(42 in self.lazy)
+        self.assertIn(2, self.lazy)
+        self.assertNotIn(42, self.lazy)
 
     def test_iadd(self):
         self.lazy += [1]
@@ -79,8 +79,8 @@ class LazyListTestCase(unittest.TestCase):
         self.assertRaises(TypeError, hash, self.lazy)
 
     def test_isinstance(self):
-        self.assertTrue(isinstance(self.lazy, list))
-        self.assertFalse(isinstance(self.lazy, tuple))
+        self.assertIsInstance(self.lazy, list)
+        self.assertNotIsInstance(self.lazy, tuple)
 
     def test_callable(self):
         try:
@@ -231,8 +231,8 @@ class LazySetTestCase(unittest.TestCase):
                 op(self.base, self.base), str(op))
 
         # Contains
-        self.assertTrue(2 in self.lazy)
-        self.assertFalse(42 in self.lazy)
+        self.assertIn(2, self.lazy)
+        self.assertNotIn(42, self.lazy)
 
     def test_iops(self):
         try:
@@ -256,7 +256,7 @@ class LazySetTestCase(unittest.TestCase):
         self.assertRaises(TypeError, hash, self.lazy)
 
     def test_isinstance(self):
-        self.assertTrue(isinstance(self.lazy, set))
+        self.assertIsInstance(self.lazy, set)
 
     def test_callable(self):
         try:
