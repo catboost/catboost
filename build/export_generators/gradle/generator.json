@@ -22,6 +22,7 @@
     "KnownAttrs":
     [
       "proto_files",
+      "proto_grpc",
       "proto_namespace"
     ],
     "KnownInducedAttrs":
