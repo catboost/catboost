@@ -52,3 +52,11 @@
   - ttyent.h
   - ustat.h
   - xlocale.h
+
+- source_filter: "^contrib/libs/webrtc/modules"
+  includes:
+    - jni.h
+    - aaudio/AAudio.h
+    - SLES/OpenSLES.h
+    - SLES/OpenSLES_Android.h
+    - SLES/OpenSLES_AndroidConfiguration.h
