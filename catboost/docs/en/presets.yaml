@@ -210,6 +210,7 @@ default:
   error-function--totalF1: TotalF1
   error-function--CrossEntropy: CrossEntropy
   error-function--Quantile: Quantile
+  error-function--MultiQuantile: MultiQuantile
   error-function--LogLinQuantile: LogLinQuantile
   error-function__lq: Lq
   error-function__Expectile: Expectile

@@ -298,6 +298,7 @@ No.
 [{{ error-function--MAPE }}](#MAPE)                               |     +                   |     +                   |
 [{{ error-function--Poisson }}](#Poisson)                         |     +                   |     +                   |
 [{{ error-function--Quantile }}](#Quantile)                       |     +                   |     +                   |
+[{{ error-function--MultiQuantile }}](#MultiQuantile)             |     +                   |     -                   |
 [{{ error-function--RMSE }}](#RMSE)                               |     +                   |     +                   |
 [RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |     -                   |
 [{{ error-function--LogLinQuantile }}](#LogLinQuantile)           |     +                   |     +                   |
