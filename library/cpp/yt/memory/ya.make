@@ -22,6 +22,7 @@ CHECK_DEPENDENT_DIRS(
     util
     library/cpp/yt/assert
     library/cpp/yt/misc
+    library/cpp/yt/malloc
 )
 
 END()

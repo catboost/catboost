@@ -170,6 +170,7 @@ private:
 struct TSharedMutableRefAllocateOptions
 {
     bool InitializeStorage = true;
+    bool ExtendToUsableSize = false;
 };
 
 //! A reference to a mutable range of memory with shared ownership.
