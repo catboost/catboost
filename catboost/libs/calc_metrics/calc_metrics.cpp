@@ -240,8 +240,6 @@ namespace NCB {
         size_t threadCount
     ) {
         auto inputPath = datasetReadingParams.PoolPath;
-        CB_ENSURE(inputPath.Scheme.Contains("dsv") || inputPath.Scheme == "", // "" is "dsv"
-                  "Local metrics evaluation supports \"dsv\" and \"yt-dsv\" input file schemas.");
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);

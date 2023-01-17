@@ -201,10 +201,8 @@ namespace NCB {
     }
 
     TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DefPoolColumnsPrinter("");
-    TLineDataPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DefLineDataPoolColumnsPrinter("");
 
     TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DsvPoolColumnsPrinter("dsv");
-    TLineDataPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DsvLineDataPoolColumnsPrinter("dsv");
 
     TPoolColumnsPrinterLoaderFactory::TRegistrator<TQuantizedPoolColumnsPrinter> QuantizedPoolColumnsPrinter("quantized");
 
