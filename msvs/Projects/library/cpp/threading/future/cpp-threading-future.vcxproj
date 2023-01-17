@@ -87,10 +87,12 @@
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait_group.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\wait\wait_policy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\async.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\async_semaphore.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\threading\future\fwd.cpp">
       <ObjectFileName>$(IntDir)fwd_extra2.obj</ObjectFileName>
     </ClCompile>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\async.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\async_semaphore.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\core\future-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\core\future.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\core\fwd.h"/>
