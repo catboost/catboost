@@ -21,11 +21,3 @@
 #else
 #   include "buildinf-linux.h"
 #endif
-
-#if defined(__IOS__) && defined(__arm__)
-#   include "buildinf-ios-armv7.h"
-#endif
-
-#if defined(__IOS__) && defined(__i386__)
-#   include "buildinf-ios-i386.h"
-#endif
