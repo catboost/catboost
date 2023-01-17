@@ -254,6 +254,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.global.vcxproj">
       <Project>{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.global.vcxproj">
+      <Project>{180F9C01-17FB-8F97-4AB7-806F81FA4EA4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
     </ProjectReference>
@@ -448,9 +451,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.global.vcxproj">
       <Project>{C6896F31-8B91-4391-9F1C-0EB8F10B43B7}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\faulthandler\pycontrib-python-faulthandler.global.vcxproj">
-      <Project>{1A23756F-1E49-66E3-3B01-B3FDF631CF54}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.global.vcxproj">
       <Project>{E6280809-0D81-6EE8-F4D9-9A9D571C79C1}</Project>

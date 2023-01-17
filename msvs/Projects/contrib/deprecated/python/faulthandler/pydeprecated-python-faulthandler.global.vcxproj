@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{B91FAD52-E23E-B3E4-D7A1-568C2BA36521}</ProjectGUID>
+    <ProjectGUID>{180F9C01-17FB-8F97-4AB7-806F81FA4EA4}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-faulthandler</ProjectName>
+    <ProjectName>pydeprecated-python-faulthandler.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-faulthandler</TargetName>
+    <TargetName>pydeprecated-python-faulthandler.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B91FAD52-E23E-B3E4-D7A1-568C2BA36521\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\180F9C01-17FB-8F97-4AB7-806F81FA4EA4\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUSE_SIGINFO -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUSE_SIGINFO -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUSE_SIGINFO -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUSE_SIGINFO -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -78,17 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\faulthandler\faulthandler.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\faulthandler\traceback.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_b4df0efb20907b53f67241c501.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler\9f624be30e4e94b7ef18ae50d0.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler\faulthandler.reg.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.obj" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.yasm"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/faulthandler/9f624be30e4e94b7ef18ae50d0.cpp" "_1bd0b471cc94f42e7754cdf183=resfs/src/resfs/file/contrib/deprecated/python/faulthandler/.dist-info/METADATA" "_2f49a67070a6092e67938b08f7=resfs/file/contrib/deprecated/python/faulthandler/.dist-info/METADATA" "_2a2536820189db9fa1ca0f9173=resfs/src/resfs/file/contrib/deprecated/python/faulthandler/.dist-info/top_level.txt" "_34a15ed2e9fabe443e84cde334=resfs/file/contrib/deprecated/python/faulthandler/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,9 +93,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.obj" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.yasm"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/faulthandler/9f624be30e4e94b7ef18ae50d0.cpp" "_1bd0b471cc94f42e7754cdf183=resfs/src/resfs/file/contrib/deprecated/python/faulthandler/.dist-info/METADATA" "_2f49a67070a6092e67938b08f7=resfs/file/contrib/deprecated/python/faulthandler/.dist-info/METADATA" "_2a2536820189db9fa1ca0f9173=resfs/src/resfs/file/contrib/deprecated/python/faulthandler/.dist-info/top_level.txt" "_34a15ed2e9fabe443e84cde334=resfs/file/contrib/deprecated/python/faulthandler/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,15 +103,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_b4df0efb20907b53f67241c501.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_b4df0efb20907b53f67241c501.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/faulthandler/9f624be30e4e94b7ef18ae50d0.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler\9f624be30e4e94b7ef18ae50d0.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\faulthandler\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.yasm" "-" "contrib/python/faulthandler/.dist-info/METADATA" "_f2fd0ded18aa0592354701872e.rodata" "$(SolutionDir)../contrib/python/faulthandler/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_47480699002286ccb3028c6471.rodata" "-" "contrib/python/faulthandler/.dist-info/top_level.txt" "_d3bb352be95c7069244c9d3103.rodata" "$(SolutionDir)../contrib/python/faulthandler/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_e9374d6099fb0e56b654483d11.rodata"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "faulthandler" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/faulthandler/faulthandler.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -124,9 +120,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\faulthandler
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.yasm" "-" "contrib/python/faulthandler/.dist-info/METADATA" "_f2fd0ded18aa0592354701872e.rodata" "$(SolutionDir)../contrib/python/faulthandler/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_47480699002286ccb3028c6471.rodata" "-" "contrib/python/faulthandler/.dist-info/top_level.txt" "_d3bb352be95c7069244c9d3103.rodata" "$(SolutionDir)../contrib/python/faulthandler/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/faulthandler/_e9374d6099fb0e56b654483d11.rodata"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "faulthandler" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/faulthandler/faulthandler.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -134,9 +130,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/faulthandler/_b4df0efb20907b53f67241c501.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\faulthandler\.dist-info\METADATA;$(SolutionDir)..\contrib\python\faulthandler\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_b4df0efb20907b53f67241c501.yasm;$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_47480699002286ccb3028c6471.rodata;$(SolutionDir)$(Configuration)\contrib\python\faulthandler\_e9374d6099fb0e56b654483d11.rodata;</Outputs>
+      <Message>$B/contrib/deprecated/python/faulthandler/faulthandler.reg.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\faulthandler\faulthandler.reg.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
