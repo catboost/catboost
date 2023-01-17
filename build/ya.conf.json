@@ -8382,7 +8382,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1516812607,
+                "sandbox_id": 1518546820,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9039,7 +9039,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1517645686,
+                "sandbox_id": 1518546832,
                 "match": "bb_requester"
             },
             "executable": {
