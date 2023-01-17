@@ -27,8 +27,16 @@
 
 
 ====================COPYRIGHT====================
+// Copyright 2017 Google Inc. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+// Copyright 2017 The Abseil Authors.
+
+
+====================COPYRIGHT====================
 // Copyright 2018 The Abseil Authors.
 
 
 ====================COPYRIGHT====================
-// Copyright 2020 The Abseil Authors.
+// Copyright 2019 The Abseil Authors.

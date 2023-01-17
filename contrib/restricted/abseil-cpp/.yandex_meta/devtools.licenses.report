@@ -30,7 +30,7 @@
 # =======================
 
 KEEP     Apache-2.0           0e8699c5f5ea602534a6558430df2b8d
-BELONGS absl/debugging/internal/ya.make absl/hash/internal/ya.make absl/numeric/ya.make absl/strings/ya.make ya.make
+BELONGS absl/debugging/ya.make absl/hash/ya.make absl/numeric/ya.make absl/profiling/ya.make absl/random/ya.make absl/strings/ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: Apache-2.0
@@ -121,7 +121,7 @@ BELONGS absl/time/ya.make
         absl/time/internal/cctz/src/tzfile.h [8:8]
 
 KEEP     Apache-2.0           3ea5060c4f08f5769674fbf0c0fb3992
-BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/flags/ya.make absl/functional/ya.make absl/hash/internal/ya.make absl/hash/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/status/ya.make absl/strings/internal/str_format/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make absl/synchronization/ya.make absl/time/ya.make absl/types/internal/ya.make absl/types/ya.make absl/utility/ya.make ya.make
+BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/debugging/ya.make absl/flags/ya.make absl/functional/ya.make absl/hash/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/profiling/ya.make absl/random/ya.make absl/status/ya.make absl/strings/ya.make absl/synchronization/ya.make absl/time/ya.make absl/types/ya.make absl/utility/ya.make ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: Apache-2.0
@@ -503,7 +503,7 @@ BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/deb
         absl/utility/utility.h [3:13]
 
 SKIP     LicenseRef-scancode-warranty-disclaimer 5ba761db85e57267704f71a6bcf20c2a
-BELONGS absl/container/ya.make ya.make
+BELONGS absl/container/ya.make absl/profiling/ya.make
     License text:
         // This utility is internal-only. Use at your own risk.
     Scancode info:
@@ -563,7 +563,7 @@ BELONGS ya.make
         LICENSE [2:202]
 
 KEEP     Apache-2.0           d4afbfe97ca1f27103271d24e8af5b32
-BELONGS absl/debugging/internal/ya.make absl/synchronization/internal/ya.make
+BELONGS absl/debugging/ya.make absl/synchronization/ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: Apache-2.0

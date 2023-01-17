@@ -17,14 +17,18 @@ target_include_directories(abseil-cpp-absl-base PUBLIC
 )
 target_link_libraries(abseil-cpp-absl-base PUBLIC
   contrib-libs-cxxsupp
-  base-internal-raw_logging
-  base-internal-spinlock_wait
-  absl-base-log_severity
 )
 target_sources(abseil-cpp-absl-base PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/cycleclock.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/raw_logging.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/scoped_set_env.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/spinlock.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/spinlock_wait.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/strerror.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/sysinfo.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/thread_identity.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/unscaledcycleclock.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/log_severity.cc
 )

@@ -9,8 +9,7 @@ LICENSE(Apache-2.0)
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
-    contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
-    contrib/restricted/abseil-cpp/absl/base/log_severity
+    contrib/restricted/abseil-cpp/absl/base
 )
 
 ADDINCL(
@@ -26,9 +25,15 @@ CFLAGS(
 )
 
 SRCS(
+    failure_signal_handler.cc
     internal/address_is_readable.cc
     internal/elf_mem_image.cc
+    internal/examine_stack.cc
     internal/vdso_support.cc
+    leak_check.cc
+    leak_check_disable.cc
+    stacktrace.cc
+    symbolize.cc
 )
 
 END()

@@ -18,27 +18,17 @@ target_include_directories(abseil-cpp-absl-synchronization PUBLIC
 target_link_libraries(abseil-cpp-absl-synchronization PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
-  base-internal-low_level_alloc
-  base-internal-raw_logging
-  base-internal-spinlock_wait
-  base-internal-throw_delegate
-  absl-base-log_severity
   abseil-cpp-absl-debugging
-  absl-debugging-stacktrace
-  absl-debugging-symbolize
   abseil-cpp-absl-demangle
   abseil-cpp-absl-numeric
   abseil-cpp-absl-strings
-  strings-internal-absl_strings_internal
-  absl-synchronization-internal
   abseil-cpp-absl-time
-  absl-time-civil_time
-  absl-time-time_zone
 )
 target_sources(abseil-cpp-absl-synchronization PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/barrier.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/blocking_counter.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/create_thread_identity.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/graphcycles.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/per_thread_sem.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/waiter.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/mutex.cc

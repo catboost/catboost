@@ -10,7 +10,6 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/city
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
     contrib/restricted/abseil-cpp/absl/types
@@ -29,8 +28,19 @@ CFLAGS(
 )
 
 SRCS(
-    internal/hash.cc
-    internal/low_level_hash.cc
+    discrete_distribution.cc
+    gaussian_distribution.cc
+    internal/chi_square.cc
+    internal/distribution_test_util.cc
+    internal/pool_urbg.cc
+    internal/randen.cc
+    internal/randen_detect.cc
+    internal/randen_hwaes.cc
+    internal/randen_round_keys.cc
+    internal/randen_slow.cc
+    internal/seed_material.cc
+    seed_gen_exception.cc
+    seed_sequences.cc
 )
 
 END()
