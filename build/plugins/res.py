@@ -1,3 +1,4 @@
+import json
 from _common import iterpair, listid, pathid, rootrel_arc_src, tobuilddir, filter_out_by_keyword
 import ymake
 
@@ -112,6 +113,34 @@ def onresource_files(unit, *args):
 def onall_resource_files(unit, *args):
     # This is only validation, actual work is done in ymake.core.conf implementation
     for arg in args:
-        if '*' in arg or '?' in arg:            
+        if '*' in arg or '?' in arg:
             ymake.report_configure_error('Wildcards in [[imp]]ALL_RESOURCE_FILES[[rst]] are not allowed')
 
+
+def on_declare_external_resource_by_json(unit, name, json_file):
+    platform = unit.get('CANONIZED_TARGET_PLATFORM')
+    json_file_path = unit.resolve(unit.resolve_arc_path(json_file))
+    with open(json_file_path) as f:
+        formula = json.load(f)
+    if 'by_platform' in formula:
+        by_platform = formula['by_platform']
+        if platform not in by_platform:
+            ymake.report_configure_error('platform "{}" not found in {}'.format(platform, json_file_path))
+        else:
+            unit.ondeclare_external_resource([name, by_platform[platform]['uri']])
+    else:
+        ymake.report_configure_error('Wrong format of "{}"'.format(json_file_path))
+
+
+def on_declare_external_host_resources_bundle_by_json(unit, name, json_file):
+    json_file_path = unit.resolve(unit.resolve_arc_path(json_file))
+    with open(json_file_path) as f:
+        formula = json.load(f)
+    if 'by_platform' in formula:
+        by_platform = formula['by_platform']
+        params = [name]
+        for platform, dest in sorted(by_platform.items()):
+            params.extend([dest['uri'], 'FOR', platform.upper()])
+        unit.ondeclare_external_host_resources_bundle(params)
+    else:
+        ymake.report_configure_error('Wrong format of "{}"'.format(json_file_path))

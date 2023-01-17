@@ -184,6 +184,20 @@ class Platform(object):
         else:
             return self.os.upper()
 
+    @property
+    def canonized_platform(self):
+        os = None
+        if self.os == 'macos':
+            os = 'darwin'
+        elif self.os == 'windows':
+            os = 'win32'
+        else:
+            os = self.os
+        if self.arch != 'x86_64':
+            return '-'.join([os, self.arch])
+        else:
+            return os
+
     def exe(self, *paths):
         if self.is_windows:
             return ntpath.join(*itertools.chain(paths[:-1], (paths[-1] + '.exe',)))
@@ -778,6 +792,7 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 
     def print_target_settings(self):
         emit('TARGET_PLATFORM', self.platform.os_compat)
+        emit('CANONIZED_TARGET_PLATFORM', self.platform.canonized_platform)
         emit('HARDWARE_ARCH', '32' if self.platform.is_32_bit else '64')
         emit('HARDWARE_TYPE', self.platform.arch)
 
@@ -802,6 +817,7 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 
     def print_host_settings(self):
         emit('HOST_PLATFORM', self.platform.os_compat)
+        emit('CANONIZED_HOST_PLATFORM', self.platform.canonized_platform)
         if not self.platform.is_windows:
             self.print_nix_host_const()
 
