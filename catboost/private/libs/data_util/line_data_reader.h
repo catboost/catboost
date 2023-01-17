@@ -2,12 +2,15 @@
 
 #include "path_with_scheme.h"
 
+#include <catboost/private/libs/index_range/index_range.h>
+
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
+#include <util/generic/ptr.h>
 
 #include <util/stream/file.h>
 #include <util/string/escape.h>
@@ -135,4 +138,22 @@ namespace NCB {
         ui64 LineIndex = 0;
     };
 
+    class TBlocksSubsetLineDataReader final : public ILineDataReader {
+    public:
+        TBlocksSubsetLineDataReader(THolder<ILineDataReader>&& lineDataReader, TVector<TIndexRange<ui64>>&& subsetBlocks);
+
+        ui64 GetDataLineCount(bool estimate = false) override;
+
+        TMaybe<TString> GetHeader() override;
+
+        bool ReadLine(TString* line, ui64* lineIdx = nullptr) override;
+
+    private:
+        THolder<ILineDataReader> LineDataReader;
+        TVector<TIndexRange<ui64>> SubsetBlocks;
+        ui64 CurrentSubsetBlock;
+        ui64 EnclosingLineIdx;
+        ui64 LineIdx;
+        TString LineBuffer;
+    };
 }
