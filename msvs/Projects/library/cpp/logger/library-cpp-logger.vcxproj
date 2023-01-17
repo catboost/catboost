@@ -143,6 +143,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\library\cpp\logger\null.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\logger\null_creator.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\logger\record.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\logger\reopen.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\logger\rotating_file.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\logger\rotating_file_creator.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\logger\stream.h"/>
