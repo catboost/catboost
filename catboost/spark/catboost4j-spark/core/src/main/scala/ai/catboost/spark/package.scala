@@ -28,4 +28,5 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
  */
 package object spark {
   type EModelType = native_impl.EModelType
+  type ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy
 }

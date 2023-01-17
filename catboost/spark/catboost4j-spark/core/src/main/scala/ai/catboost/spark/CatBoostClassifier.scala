@@ -255,6 +255,14 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
   ): CatBoostClassificationModel = {
     new CatBoostClassificationModel(native_impl.native_impl.ReadModel(fileName, format))
   }
+
+  def sum(
+    models: Array[CatBoostClassificationModel],
+    weights: Array[Double] = null,
+    ctrMergePolicy: ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy.IntersectingCountersAverage
+  ): CatBoostClassificationModel = {
+    new CatBoostClassificationModel(CatBoostModel.sum(models.toArray[CatBoostModelTrait[CatBoostClassificationModel]], weights, ctrMergePolicy))
+  } 
 }
 
 
