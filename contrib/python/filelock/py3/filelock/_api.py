@@ -56,7 +56,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         self._lock_file_fd: int | None = None
 
         # The default timeout value.
-        self.timeout: float = timeout
+        self._timeout: float = timeout
 
         # We use this lock primarily for the lock counter.
         self._thread_lock: Lock = Lock()
