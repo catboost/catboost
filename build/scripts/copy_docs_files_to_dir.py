@@ -36,8 +36,8 @@ def copy_file(src, dst, overwrite=False, orig_path=None, generated=False):
     makedirs(os.path.dirname(dst))
 
     with open(src, 'r') as fsrc, open(dst, 'w') as fdst:
-        # if (orig_path or generated) and src.endswith('.md'):
-        #    fdst.write('---\n{}\n\n---\n'.format('generated: true' if generated else 'vcsPath: {}'.format(orig_path)))
+        if (orig_path or generated) and src.endswith('.md'):
+            fdst.write('---\n{}\n\n---\n'.format('generated: true' if generated else 'vcsPath: {}'.format(orig_path)))
         shutil.copyfileobj(fsrc, fdst)
 
 
