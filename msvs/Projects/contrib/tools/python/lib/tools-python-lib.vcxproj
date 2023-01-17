@@ -85,7 +85,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
@@ -98,7 +98,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
@@ -109,7 +109,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/tools/python/lib/python_frozen_modules.rodata.asm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\rodata2asm.py;$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\rodata2asm.py;$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata.asm;$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\python\lib\bootstrap.py">
@@ -148,8 +148,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
-      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>

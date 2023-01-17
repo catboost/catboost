@@ -91,13 +91,13 @@ cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -110,13 +110,13 @@ cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h" "$(SolutionDir)../catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -125,7 +125,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h	$B/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;$(SolutionDir)..\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.fbs.cpp;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_feature_calcers.bfbs;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.fbs.cpp;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\private\libs\embedding_features\flatbuffers\embedding_processing_collection.bfbs;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\embedding_features\embedding_calcers.h"/>
@@ -137,8 +137,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
-      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\column_description\catboost-libs-column_description.vcxproj">
       <Project>{C4CE937E-C847-074C-4882-D3312E33D29A}</Project>
