@@ -3,7 +3,7 @@ PY23_TEST()
 
 
 TEST_SRCS(
-    tsc_wrapper.py
+    ts_config.py
 )
 
 PEERDIR(

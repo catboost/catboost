@@ -1,11 +1,9 @@
-from .ts_bundle_wrapper import TsBundleWrapper
 from .ts_config import TsConfig
-from .ts_errors import TsValidationError
-from .tsc_wrapper import TscWrapper
+from .ts_errors import TsCompilationError, TsValidationError
+
 
 __all__ = [
-    "TscWrapper",
-    "TsBundleWrapper",
     "TsConfig",
+    "TsCompilationError",
     "TsValidationError",
 ]

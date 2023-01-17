@@ -5,9 +5,10 @@ import yaml
 from six import iteritems
 
 from ..base import PackageJson, BasePackageManager, PackageManagerError
+from ..base.utils import build_pj_path, build_nm_path, build_nm_bundle_path
 from .lockfile import PnpmLockfile
 from .workspace import PnpmWorkspace
-from .utils import build_pj_path, build_lockfile_path, build_ws_config_path, build_nm_bundle_path
+from .utils import build_lockfile_path, build_ws_config_path
 
 
 class PnpmPackageManager(BasePackageManager):
@@ -15,7 +16,7 @@ class PnpmPackageManager(BasePackageManager):
     _VSTORE_NM_PATH = os.path.join(".pnpm", "virtual-store")
     _STORE_VER = "v3"
 
-    def install(self):
+    def create_node_modules(self):
         """
         Creates node_modules directory according to the lockfile.
         """
@@ -24,6 +25,7 @@ class PnpmPackageManager(BasePackageManager):
             "install",
             "--offline",
             "--frozen-lockfile",
+            "--public-hoist-pattern", "",
             "--store-dir", self._nm_path(self._STORE_NM_PATH),
             "--virtual-store-dir", self._nm_path(self._VSTORE_NM_PATH),
             "--no-verify-store-integrity",
@@ -34,7 +36,7 @@ class PnpmPackageManager(BasePackageManager):
         ])
         self._fix_stores_in_modules_yaml()
 
-    def get_peer_paths_from_package_json(self):
+    def get_local_peers_from_package_json(self):
         """
         Returns paths of direct workspace dependencies (source root related).
         :rtype: list of str
@@ -42,6 +44,21 @@ class PnpmPackageManager(BasePackageManager):
         pj = PackageJson.load(build_pj_path(self.sources_path))
 
         return map(lambda x: os.path.normpath(os.path.join(self.module_path, x[1])), pj.get_workspace_dep_paths())
+
+    def get_peers_from_package_json(self):
+        """
+        Returns paths of workspace dependencies (source root related).
+        :rtype: list of str
+        """
+        pj = PackageJson.load(build_pj_path(self.sources_path))
+        prefix_len = len(self.sources_root) + 1
+        peers = []
+
+        for p in pj.get_workspace_map().keys():
+            if p != self.sources_path:
+                peers.append(p[prefix_len:])
+
+        return peers
 
     def calc_node_modules_inouts(self):
         """
@@ -164,7 +181,7 @@ class PnpmPackageManager(BasePackageManager):
         with open(self._nm_path(".modules.yaml"), "r+") as f:
             data = yaml.load(f, Loader=yaml.CSafeLoader)
             # NOTE: pnpm requires absolute store path here.
-            data["storeDir"] = os.path.join(self.sources_path, "node_modules", self._STORE_NM_PATH, self._STORE_VER)
+            data["storeDir"] = os.path.join(build_nm_path(self.sources_path), self._STORE_NM_PATH, self._STORE_VER)
             data["virtualStoreDir"] = self._VSTORE_NM_PATH
             f.seek(0)
             yaml.dump(data, f, Dumper=yaml.CSafeDumper)
