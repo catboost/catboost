@@ -337,11 +337,19 @@ public:
 
 
     bool InitFromFile(const std::string& filename) {
-        return LoadFullModelFromFile(CalcerHolder.get(), filename.c_str());
+        if (!LoadFullModelFromFile(CalcerHolder.get(), filename.c_str())) {
+            return false;
+        }
+        InitProps();
+        return true;
     }
 
     bool InitFromMemory(const void* pointer, size_t size) {
-        return LoadFullModelFromBuffer(CalcerHolder.get(), pointer, size);
+        if (!LoadFullModelFromBuffer(CalcerHolder.get(), pointer, size)) {
+            return false;
+        }
+        InitProps();
+        return true;
     }
 
     bool init_from_file(const std::string& filename) {  // TODO(kirillovs): mark as deprecated
