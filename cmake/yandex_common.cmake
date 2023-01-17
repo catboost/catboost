@@ -42,6 +42,45 @@ function(target_joined_source TgtName Out)
   target_sources(${TgtName} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${Out})
 endfunction()
 
+function(target_sources_custom TgtName CompileOutSuffix)
+  set(opts "")
+  set(oneval_args "")
+  set(multival_args SRCS CUSTOM_FLAGS)
+  cmake_parse_arguments(TARGET_SOURCES_CUSTOM
+    "${opts}"
+    "${oneval_args}"
+    "${multival_args}"
+    ${ARGN}
+  )
+
+  foreach(Src ${TARGET_SOURCES_CUSTOM_SRCS})
+    file(RELATIVE_PATH SrcRealPath ${CMAKE_SOURCE_DIR} ${Src})
+    get_filename_component(SrcDir ${SrcRealPath} DIRECTORY)
+    get_filename_component(SrcName ${SrcRealPath} NAME_WLE)
+    get_filename_component(SrcExt ${SrcRealPath} LAST_EXT)
+    set(SrcCopy "${CMAKE_BINARY_DIR}/${SrcDir}/${SrcName}${CompileOutSuffix}${SrcExt}")
+    add_custom_command(
+      OUTPUT ${SrcCopy}
+      COMMAND ${CMAKE_COMMAND} -E copy ${Src} ${SrcCopy}
+      DEPENDS ${Src}
+    )
+    list(APPEND PreparedSrc ${SrcCopy})
+    set_property(
+      SOURCE
+      ${SrcCopy}
+      APPEND PROPERTY COMPILE_OPTIONS
+      ${TARGET_SOURCES_CUSTOM_CUSTOM_FLAGS}
+      -I${CMAKE_SOURCE_DIR}/${SrcDir}
+    )
+  endforeach()
+
+  target_sources(
+    ${TgtName}
+    PRIVATE
+    ${PreparedSrc}
+  )
+endfunction()
+
 function(generate_enum_serilization Tgt Input)
   set(opts "")
   set(oneval_args INCLUDE_HEADERS)
