@@ -94,3 +94,4 @@ data-ui/reconnecting-websocket
 portal/frontend/morda-stubs
 contest/compilers
 supdev/tier35
+cloud/mdb/vm-image-build
