@@ -1,5 +1,4 @@
 import os.path
-
 import ytest
 from _common import to_yesno, rootrel_arc_src
 
@@ -62,29 +61,75 @@ def _setup_eslint(unit):
     # MODDIR == devtools/dummy_arcadia/ts/packages/with_lint
     # CURDIR == $S/MODDIR
     mod_dir = unit.get('MODDIR')
+    resolved_files = _resolve_test_files(unit, mod_dir, lint_files)
 
+    _add_eslint(unit, mod_dir, resolved_files)
+
+
+def _add_eslint(unit, test_cwd, test_files):
+    test_record_args = {
+        'ESLINT_CONFIG_NAME': unit.get('ESLINT_CONFIG_NAME'),
+    }
+
+    _add_test_type(unit, "eslint", test_cwd, test_files, test_record_args)
+
+
+def on_hermione_configure(unit, config_path):
+    test_files = ytest.get_values_list(unit, '_HERMIONE_SRCS_VALUE')
+    if not test_files:
+        return
+
+    mod_dir = unit.get('MODDIR')
+    resolved_files = _resolve_test_files(unit, mod_dir, test_files)
+
+    _add_hermione(unit, config_path, mod_dir, resolved_files)
+
+
+def _add_hermione(unit, config_path, test_cwd, test_files):
+    test_tags = list(set(['ya:fat', 'ya:external'] + ytest.get_values_list(unit, 'TEST_TAGS_VALUE')))
+    test_requirements = list(set(['network:full'] + ytest.get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')))
+
+    test_record_args = {
+        'SIZE': 'LARGE',
+        'TAG': ytest.serialize_list(test_tags),
+        'REQUIREMENTS': ytest.serialize_list(test_requirements),
+        'HERMIONE-CONFIG-PATH': config_path,
+    }
+
+    _add_test_type(unit, "hermione", test_cwd, test_files, test_record_args)
+
+
+def _resolve_test_files(unit, mod_dir, file_paths):
     resolved_files = []
-    for path in lint_files:
+
+    for path in file_paths:
         resolved = rootrel_arc_src(path, unit)
         if resolved.startswith(mod_dir):
             resolved = resolved[len(mod_dir) + 1:]
         resolved_files.append(resolved)
 
-    # devtools/dummy_arcadia/ts/packages/with_lint == MODDIR
+    return resolved_files
+
+
+def _add_test_type(unit, test_type, test_cwd, test_files, test_record_args={}):
     test_dir = ytest.get_norm_unit_path(unit)
 
     test_record = {
-        'TEST-NAME': "eslint",
-        'TEST-TIMEOUT': '',
-        'SCRIPT-REL-PATH': "eslint",
+        'TEST-NAME': test_type.lower(),
+        'TEST-TIMEOUT': unit.get('TEST_TIMEOUT') or '',
+        'TEST-ENV': ytest.prepare_env(unit.get("TEST_ENV_VALUE")),
         'TESTED-PROJECT-NAME': os.path.basename(test_dir),
+        'SCRIPT-REL-PATH': test_type,
         'SOURCE-FOLDER-PATH': test_dir,
         'SPLIT-FACTOR': unit.get('TEST_SPLIT_FACTOR') or '',
         'FORK-MODE': unit.get('TEST_FORK_MODE') or '',
         'SIZE': 'SMALL',
-        'TEST-FILES': ytest.serialize_list(resolved_files),
-        'ESLINT_CONFIG_NAME': unit.get('ESLINT_CONFIG_NAME'),
+        'TEST-FILES': ytest.serialize_list(test_files),
+        'TEST-CWD': test_cwd,
+        'TAG': ytest.serialize_list(ytest.get_values_list(unit, 'TEST_TAGS_VALUE')),
+        'REQUIREMENTS': ytest.serialize_list(ytest.get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
     }
+    test_record.update(test_record_args)
 
     data = ytest.dump_test(unit, test_record)
     if data:
