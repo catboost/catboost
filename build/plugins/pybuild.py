@@ -344,7 +344,7 @@ def onpy_srcs(unit, *args):
             pathmod = (path, mod)
 
             if dump_output is not None:
-                dump_output.write('{path}\t{module}\n'.format(path=rootrel_arc_src(path, unit), module=mod))
+                dump_output.write('{path}\t{module}\t{py3}\n'.format(path=rootrel_arc_src(path, unit), module=mod, py3=1 if py3 else 0))
 
             if path.endswith('.py'):
                 if cythonize_py:

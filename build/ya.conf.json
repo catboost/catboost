@@ -8040,7 +8040,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1304913789,
+                "sandbox_id": 1306095941,
                 "match": "horadric"
             },
             "executable": {
@@ -8183,7 +8183,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1304914696,
+                "sandbox_id": 1306097136,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8840,7 +8840,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1304916665,
+                "sandbox_id": 1306096958,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8851,7 +8851,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1304913023,
+                "sandbox_id": 1306097757,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8873,7 +8873,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1304914713,
+                "sandbox_id": 1306096406,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8919,7 +8919,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1304913726,
+                "sandbox_id": 1306097001,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8930,7 +8930,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1304915381,
+                "sandbox_id": 1306096615,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8941,7 +8941,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1304912828,
+                "sandbox_id": 1306096977,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8985,7 +8985,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1304914041,
+                "sandbox_id": 1306096980,
                 "match": "profile_size_analyzer"
             },
             "executable": {

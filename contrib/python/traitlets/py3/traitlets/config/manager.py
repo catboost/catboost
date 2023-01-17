@@ -3,7 +3,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 import errno
-import io
 import json
 import os
 
@@ -38,7 +37,7 @@ class BaseJSONConfigManager(LoggingConfigurable):
     Deals with persisting/storing config in a json file
     """
 
-    config_dir = Unicode('.')
+    config_dir = Unicode(".")
 
     def ensure_config_dir_exists(self):
         try:
@@ -48,7 +47,7 @@ class BaseJSONConfigManager(LoggingConfigurable):
                 raise
 
     def file_name(self, section_name):
-        return os.path.join(self.config_dir, section_name+'.json')
+        return os.path.join(self.config_dir, section_name + ".json")
 
     def get(self, section_name):
         """Retrieve the config data for the specified section.
@@ -58,18 +57,17 @@ class BaseJSONConfigManager(LoggingConfigurable):
         """
         filename = self.file_name(section_name)
         if os.path.isfile(filename):
-            with io.open(filename, encoding='utf-8') as f:
+            with open(filename, encoding="utf-8") as f:
                 return json.load(f)
         else:
             return {}
 
     def set(self, section_name, data):
-        """Store the given config data.
-        """
+        """Store the given config data."""
         filename = self.file_name(section_name)
         self.ensure_config_dir_exists()
 
-        f = open(filename, 'w', encoding='utf-8')
+        f = open(filename, "w", encoding="utf-8")
         with f:
             json.dump(data, f, indent=2)
 

@@ -1,8 +1,7 @@
 """Useful decorators for Traitlets users."""
 
 import copy
-
-from inspect import Signature, Parameter, signature
+from inspect import Parameter, Signature, signature
 
 from ..traitlets import Undefined
 
@@ -17,7 +16,7 @@ def signature_has_traits(cls):
     traits = [
         (name, _get_default(value.default_value))
         for name, value in cls.class_traits().items()
-        if not name.startswith('_')
+        if not name.startswith("_")
     ]
 
     # Taking the __init__ signature, as the cls signature is not initialized yet
@@ -33,7 +32,10 @@ def signature_has_traits(cls):
         # Copy the parameter
         parameter = copy.copy(old_signature.parameters[parameter_name])
 
-        if parameter.kind is Parameter.POSITIONAL_ONLY or parameter.kind is Parameter.POSITIONAL_OR_KEYWORD:
+        if (
+            parameter.kind is Parameter.POSITIONAL_ONLY
+            or parameter.kind is Parameter.POSITIONAL_OR_KEYWORD
+        ):
             old_positional_parameters.append(parameter)
 
         elif parameter.kind is Parameter.VAR_POSITIONAL:
@@ -49,8 +51,9 @@ def signature_has_traits(cls):
     # because it can't accept traits as keyword arguments
     if old_var_keyword_parameter is None:
         raise RuntimeError(
-            'The {} constructor does not take **kwargs, which means that the signature can not be expanded with trait names'
-            .format(cls)
+            "The {} constructor does not take **kwargs, which means that the signature can not be expanded with trait names".format(
+                cls
+            )
         )
 
     new_parameters = []

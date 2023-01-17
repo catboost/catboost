@@ -32,11 +32,11 @@ The generated rST syntax looks like this::
 
     Cross reference like this: :configtrait:`Application.log_datefmt`.
 """
+from collections import defaultdict
+from textwrap import dedent
+
 from traitlets import Undefined
 from traitlets.utils.text import indent
-from collections import defaultdict
-
-from textwrap import indent as _indent, dedent
 
 
 def setup(app):
@@ -45,9 +45,10 @@ def setup(app):
     You shouldn't need to call this directly; configure Sphinx to use this
     module instead.
     """
-    app.add_object_type('configtrait', 'configtrait', objname='Config option')
-    metadata = {'parallel_read_safe': True, 'parallel_write_safe': True}
+    app.add_object_type("configtrait", "configtrait", objname="Config option")
+    metadata = {"parallel_read_safe": True, "parallel_write_safe": True}
     return metadata
+
 
 def interesting_default_value(dv):
     if (dv is None) or (dv is Undefined):
@@ -56,12 +57,14 @@ def interesting_default_value(dv):
         return bool(dv)
     return True
 
+
 def format_aliases(aliases):
     fmted = []
     for a in aliases:
-        dashes = '-' if len(a) == 1 else '--'
-        fmted.append('``%s%s``' % (dashes, a))
-    return ', '.join(fmted)
+        dashes = "-" if len(a) == 1 else "--"
+        fmted.append(f"``{dashes}{a}``")
+    return ", ".join(fmted)
+
 
 def class_config_rst_doc(cls, trait_aliases):
     """Generate rST documentation for this class' config options.
@@ -70,23 +73,19 @@ def class_config_rst_doc(cls, trait_aliases):
     """
     lines = []
     classname = cls.__name__
-    for k, trait in sorted(cls.class_traits(config=True).items()):
+    for _, trait in sorted(cls.class_traits(config=True).items()):
         ttype = trait.__class__.__name__
 
-        fullname = classname + '.' + trait.name
-        lines += ['.. configtrait:: ' + fullname,
-                  ''
-                 ]
+        fullname = classname + "." + trait.name
+        lines += [".. configtrait:: " + fullname, ""]
 
         help = trait.help.rstrip() or "No description"
         lines.append(indent(dedent(help)) + "\n")
 
         # Choices or type
-        if 'Enum' in ttype:
+        if "Enum" in ttype:
             # include Enum choices
-            lines.append(
-                indent(":options: " + ", ".join("``%r``" % x for x in trait.values))
-            )
+            lines.append(indent(":options: " + ", ".join("``%r``" % x for x in trait.values)))
         else:
             lines.append(indent(":trait type: " + ttype))
 
@@ -99,7 +98,7 @@ def class_config_rst_doc(cls, trait_aliases):
                 dvr = None  # ignore defaults we can't construct
             if dvr is not None:
                 if len(dvr) > 64:
-                    dvr = dvr[:61] + '...'
+                    dvr = dvr[:61] + "..."
                 # Double up backslashes, so they get to the rendered docs
                 dvr = dvr.replace("\\n", "\\\\n")
                 lines.append(indent(":default: ``%s``" % dvr))
@@ -110,13 +109,13 @@ def class_config_rst_doc(cls, trait_aliases):
             lines.append(indent(":CLI option: " + fmt_aliases))
 
         # Blank line
-        lines.append('')
+        lines.append("")
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
+
 
 def reverse_aliases(app):
-    """Produce a mapping of trait names to lists of command line aliases.
-    """
+    """Produce a mapping of trait names to lists of command line aliases."""
     res = defaultdict(list)
     for alias, trait in app.aliases.items():
         res[trait].append(alias)
@@ -130,9 +129,10 @@ def reverse_aliases(app):
             if len(cls_cfg) == 1:
                 traitname = list(cls_cfg)[0]
                 if cls_cfg[traitname] is True:
-                    res[classname+'.'+traitname].append(flag)
+                    res[classname + "." + traitname].append(flag)
 
     return res
+
 
 def write_doc(path, title, app, preamble=None):
     """Write a rst file documenting config options for a traitlets application.
@@ -149,13 +149,13 @@ def write_doc(path, title, app, preamble=None):
         Extra text to add just after the title (optional)
     """
     trait_aliases = reverse_aliases(app)
-    with open(path, 'w') as f:
-        f.write(title + '\n')
-        f.write(('=' * len(title)) + '\n')
-        f.write('\n')
+    with open(path, "w") as f:
+        f.write(title + "\n")
+        f.write(("=" * len(title)) + "\n")
+        f.write("\n")
         if preamble is not None:
-            f.write(preamble + '\n\n')
+            f.write(preamble + "\n\n")
 
         for c in app._classes_inc_parents():
             f.write(class_config_rst_doc(c, trait_aliases))
-            f.write('\n')
+            f.write("\n")

@@ -6,7 +6,7 @@ PROVIDES(pyparsing)
 
 
 
-VERSION(3.0.8)
+VERSION(3.0.9)
 
 LICENSE(MIT)
 
@@ -35,7 +35,6 @@ RESOURCE_FILES(
     PREFIX contrib/python/pyparsing/py3/
     .dist-info/METADATA
     .dist-info/top_level.txt
-    pyparsing/diagram/template.jinja2
     pyparsing/py.typed
 )
 

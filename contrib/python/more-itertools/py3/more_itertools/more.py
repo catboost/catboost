@@ -27,6 +27,9 @@ from sys import hexversion, maxsize
 from time import monotonic
 
 from .recipes import (
+    _marker,
+    _zip_equal,
+    UnequalIterablesError,
     consume,
     flatten,
     pairwise,
@@ -131,9 +134,6 @@ __all__ = [
     'zip_equal',
     'zip_offset',
 ]
-
-
-_marker = object()
 
 
 def chunked(iterable, n, strict=False):
@@ -1646,45 +1646,6 @@ def stagger(iterable, offsets=(-1, 0, 1), longest=False, fillvalue=None):
     )
 
 
-class UnequalIterablesError(ValueError):
-    def __init__(self, details=None):
-        msg = 'Iterables have different lengths'
-        if details is not None:
-            msg += (': index 0 has length {}; index {} has length {}').format(
-                *details
-            )
-
-        super().__init__(msg)
-
-
-def _zip_equal_generator(iterables):
-    for combo in zip_longest(*iterables, fillvalue=_marker):
-        for val in combo:
-            if val is _marker:
-                raise UnequalIterablesError()
-        yield combo
-
-
-def _zip_equal(*iterables):
-    # Check whether the iterables are all the same size.
-    try:
-        first_size = len(iterables[0])
-        for i, it in enumerate(iterables[1:], 1):
-            size = len(it)
-            if size != first_size:
-                break
-        else:
-            # If we didn't break out, we can use the built-in zip.
-            return zip(*iterables)
-
-        # If we did break out, there was a mismatch.
-        raise UnequalIterablesError(details=(first_size, i, size))
-    # If any one of the iterables didn't have a length, start reading
-    # them until one runs out.
-    except TypeError:
-        return _zip_equal_generator(iterables)
-
-
 def zip_equal(*iterables):
     """``zip`` the input *iterables* together, but raise
     ``UnequalIterablesError`` if they aren't all the same length.
@@ -1826,7 +1787,7 @@ def unzip(iterable):
     of the zipped *iterable*.
 
     The ``i``-th iterable contains the ``i``-th element from each element
-    of the zipped iterable. The first element is used to to determine the
+    of the zipped iterable. The first element is used to determine the
     length of the remaining elements.
 
         >>> iterable = [('a', 1), ('b', 2), ('c', 3), ('d', 4)]
@@ -2684,7 +2645,7 @@ def difference(iterable, func=sub, *, initial=None):
     if initial is not None:
         first = []
 
-    return chain(first, starmap(func, zip(b, a)))
+    return chain(first, map(func, b, a))
 
 
 class SequenceView(Sequence):
@@ -3327,6 +3288,27 @@ def only(iterable, default=None, too_long=None):
     return first_value
 
 
+class _IChunk:
+    def __init__(self, iterable, n):
+        self._it = islice(iterable, n)
+        self._cache = deque()
+
+    def fill_cache(self):
+        self._cache.extend(self._it)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            return next(self._it)
+        except StopIteration:
+            if self._cache:
+                return self._cache.popleft()
+            else:
+                raise
+
+
 def ichunked(iterable, n):
     """Break *iterable* into sub-iterables with *n* elements each.
     :func:`ichunked` is like :func:`chunked`, but it yields iterables
@@ -3348,20 +3330,19 @@ def ichunked(iterable, n):
     [8, 9, 10, 11]
 
     """
-    source = iter(iterable)
-
+    source = peekable(iter(iterable))
+    ichunk_marker = object()
     while True:
         # Check to see whether we're at the end of the source iterable
-        item = next(source, _marker)
-        if item is _marker:
+        item = source.peek(ichunk_marker)
+        if item is ichunk_marker:
             return
 
-        # Clone the source and yield an n-length slice
-        source, it = tee(chain([item], source))
-        yield islice(it, n)
+        chunk = _IChunk(source, n)
+        yield chunk
 
-        # Advance the source iterable
-        consume(source, n)
+        # Advance the source iterable and fill previous chunk's cache
+        chunk.fill_cache()
 
 
 def distinct_combinations(iterable, r):
@@ -4114,7 +4095,7 @@ def zip_broadcast(*objects, scalar_types=(str, bytes), strict=False):
 
     If the *strict* keyword argument is ``True``, then
     ``UnequalIterablesError`` will be raised if any of the iterables have
-    different lengthss.
+    different lengths.
     """
 
     def is_scalar(obj):

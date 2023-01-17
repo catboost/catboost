@@ -259,35 +259,75 @@ class PairwiseTests(TestCase):
 
 
 class GrouperTests(TestCase):
-    """Tests for ``grouper()``"""
+    def test_basic(self):
+        seq = 'ABCDEF'
+        for n, expected in [
+            (3, [('A', 'B', 'C'), ('D', 'E', 'F')]),
+            (4, [('A', 'B', 'C', 'D'), ('E', 'F', None, None)]),
+            (5, [('A', 'B', 'C', 'D', 'E'), ('F', None, None, None, None)]),
+            (6, [('A', 'B', 'C', 'D', 'E', 'F')]),
+            (7, [('A', 'B', 'C', 'D', 'E', 'F', None)]),
+        ]:
+            with self.subTest(n=n):
+                actual = list(mi.grouper(iter(seq), n))
+                self.assertEqual(actual, expected)
 
-    def test_even(self):
-        """Test when group size divides evenly into the length of
-        the iterable.
+    def test_fill(self):
+        seq = 'ABCDEF'
+        fillvalue = 'x'
+        for n, expected in [
+            (1, ['A', 'B', 'C', 'D', 'E', 'F']),
+            (2, ['AB', 'CD', 'EF']),
+            (3, ['ABC', 'DEF']),
+            (4, ['ABCD', 'EFxx']),
+            (5, ['ABCDE', 'Fxxxx']),
+            (6, ['ABCDEF']),
+            (7, ['ABCDEFx']),
+        ]:
+            with self.subTest(n=n):
+                it = mi.grouper(
+                    iter(seq), n, incomplete='fill', fillvalue=fillvalue
+                )
+                actual = [''.join(x) for x in it]
+                self.assertEqual(actual, expected)
 
-        """
-        self.assertEqual(
-            list(mi.grouper('ABCDEF', 3)), [('A', 'B', 'C'), ('D', 'E', 'F')]
-        )
+    def test_ignore(self):
+        seq = 'ABCDEF'
+        for n, expected in [
+            (1, ['A', 'B', 'C', 'D', 'E', 'F']),
+            (2, ['AB', 'CD', 'EF']),
+            (3, ['ABC', 'DEF']),
+            (4, ['ABCD']),
+            (5, ['ABCDE']),
+            (6, ['ABCDEF']),
+            (7, []),
+        ]:
+            with self.subTest(n=n):
+                it = mi.grouper(iter(seq), n, incomplete='ignore')
+                actual = [''.join(x) for x in it]
+                self.assertEqual(actual, expected)
 
-    def test_odd(self):
-        """Test when group size does not divide evenly into the length of the
-        iterable.
+    def test_strict(self):
+        seq = 'ABCDEF'
+        for n, expected in [
+            (1, ['A', 'B', 'C', 'D', 'E', 'F']),
+            (2, ['AB', 'CD', 'EF']),
+            (3, ['ABC', 'DEF']),
+            (6, ['ABCDEF']),
+        ]:
+            with self.subTest(n=n):
+                it = mi.grouper(iter(seq), n, incomplete='strict')
+                actual = [''.join(x) for x in it]
+                self.assertEqual(actual, expected)
 
-        """
-        self.assertEqual(
-            list(mi.grouper('ABCDE', 3)), [('A', 'B', 'C'), ('D', 'E', None)]
-        )
-
-    def test_fill_value(self):
-        """Test that the fill value is used to pad the final group"""
-        self.assertEqual(
-            list(mi.grouper('ABCDE', 3, 'x')),
-            [('A', 'B', 'C'), ('D', 'E', 'x')],
-        )
+    def test_strict_fails(self):
+        seq = 'ABCDEF'
+        for n in [4, 5, 7]:
+            with self.subTest(n=n):
+                with self.assertRaises(ValueError):
+                    list(mi.grouper(iter(seq), n, incomplete='strict'))
 
     def test_legacy_order(self):
-        """Historically, grouper expected the n as the first parameter"""
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter('always')
             self.assertEqual(
@@ -295,8 +335,11 @@ class GrouperTests(TestCase):
                 [('A', 'B', 'C'), ('D', 'E', 'F')],
             )
 
-        (warning,) = caught
-        assert warning.category == DeprecationWarning
+        self.assertEqual(caught[0].category, DeprecationWarning)
+
+    def test_invalid_incomplete(self):
+        with self.assertRaises(ValueError):
+            list(mi.grouper('ABCD', 3, incomplete='bogus'))
 
 
 class RoundrobinTests(TestCase):
@@ -762,4 +805,33 @@ class SlidingWindowTests(TestCase):
         ]:
             with self.subTest(expected=expected):
                 actual = list(mi.sliding_window(iterable, n))
+                self.assertEqual(actual, expected)
+
+
+class SubslicesTests(TestCase):
+    def test_basic(self):
+        for iterable, expected in [
+            ([], []),
+            ([1], [[1]]),
+            ([1, 2], [[1], [1, 2], [2]]),
+            (iter([1, 2]), [[1], [1, 2], [2]]),
+            ([2, 1], [[2], [2, 1], [1]]),
+            (
+                'ABCD',
+                [
+                    ['A'],
+                    ['A', 'B'],
+                    ['A', 'B', 'C'],
+                    ['A', 'B', 'C', 'D'],
+                    ['B'],
+                    ['B', 'C'],
+                    ['B', 'C', 'D'],
+                    ['C'],
+                    ['C', 'D'],
+                    ['D'],
+                ],
+            ),
+        ]:
+            with self.subTest(expected=expected):
+                actual = list(mi.subslices(iterable))
                 self.assertEqual(actual, expected)

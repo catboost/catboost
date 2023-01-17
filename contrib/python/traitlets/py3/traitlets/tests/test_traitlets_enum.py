@@ -3,20 +3,22 @@
 Test the trait-type ``UseEnum``.
 """
 
-import unittest
 import enum
-from traitlets import HasTraits, TraitError, Enum, UseEnum, CaselessStrEnum, FuzzyEnum
+import unittest
 
+from traitlets import CaselessStrEnum, Enum, FuzzyEnum, HasTraits, TraitError, UseEnum
 
 # -----------------------------------------------------------------------------
 # TEST SUPPORT:
 # -----------------------------------------------------------------------------
+
 
 class Color(enum.Enum):
     red = 1
     green = 2
     blue = 3
     yellow = 4
+
 
 class OtherColor(enum.Enum):
     red = 0
@@ -30,7 +32,7 @@ class CSColor(enum.Enum):
     YeLLoW = 4
 
 
-color_choices = 'red Green  BLUE YeLLoW'.split()
+color_choices = "red Green  BLUE YeLLoW".split()
 
 
 # -----------------------------------------------------------------------------
@@ -49,7 +51,7 @@ class TestUseEnum(unittest.TestCase):
 
     def test_assign_all_enum_values(self):
         # pylint: disable=no-member
-        enum_values = [value  for value in Color.__members__.values()]
+        enum_values = [value for value in Color.__members__.values()]
         for value in enum_values:
             self.assertIsInstance(value, Color)
             example = self.Example()
@@ -107,8 +109,7 @@ class TestUseEnum(unittest.TestCase):
     def test_assign_enum_value_number(self):
         # -- CONVERT: number => Enum value (item)
         # pylint: disable=no-member
-        enum_numbers = [enum_val.value
-                        for enum_val in Color.__members__.values()]
+        enum_numbers = [enum_val.value for enum_val in Color.__members__.values()]
         for value in enum_numbers:
             self.assertIsInstance(value, int)
             example = self.Example()
@@ -142,12 +143,12 @@ class TestUseEnum(unittest.TestCase):
         example = Example2()
         self.assertEqual(example.color, Color.green)
 
-
     def test_ctor_with_default_value_none_and_not_allow_none(self):
         # -- IMPLICIT: default_value = Color.red (first enum-value)
         class Example2(HasTraits):
             color1 = UseEnum(Color, default_value=None, allow_none=False)
             color2 = UseEnum(Color, default_value=None)
+
         example = Example2()
         self.assertEqual(example.color1, Color.red)
         self.assertEqual(example.color2, Color.red)
@@ -189,51 +190,50 @@ class TestUseEnum(unittest.TestCase):
             example.color = "BAD_VALUE"
 
     def test_info(self):
-        import sys
-
         choices = color_choices
+
         class Example(HasTraits):
             enum1 = Enum(choices, allow_none=False)
             enum2 = CaselessStrEnum(choices, allow_none=False)
             enum3 = FuzzyEnum(choices, allow_none=False)
             enum4 = UseEnum(CSColor, allow_none=False)
 
-        for i in range(1,5):
-            attr = 'enum%s' % i
+        for i in range(1, 5):
+            attr = "enum%s" % i
             enum = getattr(Example, attr)
 
             enum.allow_none = True
 
             info = enum.info()
-            self.assertEqual(len(info.split(', ')), len(choices), info.split(', '))
-            self.assertIn('or None', info)
+            self.assertEqual(len(info.split(", ")), len(choices), info.split(", "))
+            self.assertIn("or None", info)
 
             info = enum.info_rst()
-            self.assertEqual(len(info.split('|')), len(choices), info.split('|'))
-            self.assertIn('or `None`', info)
-            ## Check no single `\` exists.
-            self.assertNotRegex(info, r'\b\\\b')
+            self.assertEqual(len(info.split("|")), len(choices), info.split("|"))
+            self.assertIn("or `None`", info)
+            # Check no single `\` exists.
+            self.assertNotRegex(info, r"\b\\\b")
 
             enum.allow_none = False
 
             info = enum.info()
-            self.assertEqual(len(info.split(', ')), len(choices), info.split(', '))
-            self.assertNotIn('None', info)
+            self.assertEqual(len(info.split(", ")), len(choices), info.split(", "))
+            self.assertNotIn("None", info)
 
             info = enum.info_rst()
-            self.assertEqual(len(info.split('|')), len(choices), info.split('|'))
-            self.assertNotIn('None', info)
-            ## Check no single `\` exists.
-            self.assertNotRegex(info, r'\b\\\b')
-
+            self.assertEqual(len(info.split("|")), len(choices), info.split("|"))
+            self.assertNotIn("None", info)
+            # Check no single `\` exists.
+            self.assertNotRegex(info, r"\b\\\b")
 
 
 # -----------------------------------------------------------------------------
 # TESTSUITE:
 # -----------------------------------------------------------------------------
 
+
 class TestFuzzyEnum(unittest.TestCase):
-    ## Check mostly `validate()`, Ctor must be checked on generic `Enum`
+    # Check mostly `validate()`, Ctor must be checked on generic `Enum`
     # or `CaselessStrEnum`.
 
     def test_search_all_prefixes__overwrite(self):
@@ -276,8 +276,7 @@ class TestFuzzyEnum(unittest.TestCase):
 
     def test_search_substrings__overwrite(self):
         class FuzzyExample(HasTraits):
-            color = FuzzyEnum(color_choices, help="Color enum",
-                              substring_matching=True)
+            color = FuzzyEnum(color_choices, help="Color enum", substring_matching=True)
 
         example = FuzzyExample()
         for color in color_choices:
@@ -295,8 +294,7 @@ class TestFuzzyEnum(unittest.TestCase):
 
     def test_search_substrings__ctor(self):
         class FuzzyExample(HasTraits):
-            color = FuzzyEnum(color_choices, help="Color enum",
-                              substring_matching=True)
+            color = FuzzyEnum(color_choices, help="Color enum", substring_matching=True)
 
         color = color_choices[-1]  # 'YeLLoW'
         for end in (-1, len(color)):
@@ -314,52 +312,55 @@ class TestFuzzyEnum(unittest.TestCase):
     def test_assign_other_raises(self):
         def new_trait_class(case_sensitive, substring_matching):
             class Example(HasTraits):
-                color = FuzzyEnum(color_choices,
-                                  case_sensitive=case_sensitive,
-                                  substring_matching=substring_matching)
+                color = FuzzyEnum(
+                    color_choices,
+                    case_sensitive=case_sensitive,
+                    substring_matching=substring_matching,
+                )
 
             return Example
 
         example = new_trait_class(case_sensitive=False, substring_matching=False)()
         with self.assertRaises(TraitError):
-            example.color = ''
+            example.color = ""
         with self.assertRaises(TraitError):
-            example.color = 'BAD COLOR'
+            example.color = "BAD COLOR"
         with self.assertRaises(TraitError):
-            example.color = 'ed'
+            example.color = "ed"
 
         example = new_trait_class(case_sensitive=True, substring_matching=False)()
         with self.assertRaises(TraitError):
-            example.color = ''
+            example.color = ""
         with self.assertRaises(TraitError):
-            example.color = 'Red'  # not 'red'
+            example.color = "Red"  # not 'red'
 
         example = new_trait_class(case_sensitive=True, substring_matching=True)()
         with self.assertRaises(TraitError):
-            example.color = ''
+            example.color = ""
         with self.assertRaises(TraitError):
-            example.color = 'BAD COLOR'
+            example.color = "BAD COLOR"
         with self.assertRaises(TraitError):
-            example.color = 'green'  # not 'Green'
+            example.color = "green"  # not 'Green'
         with self.assertRaises(TraitError):
-            example.color = 'lue'  # not (b)'LUE'
+            example.color = "lue"  # not (b)'LUE'
         with self.assertRaises(TraitError):
-            example.color = 'lUE'  # not (b)'LUE'
+            example.color = "lUE"  # not (b)'LUE'
 
         example = new_trait_class(case_sensitive=False, substring_matching=True)()
         with self.assertRaises(TraitError):
-            example.color = ''
+            example.color = ""
         with self.assertRaises(TraitError):
-            example.color = 'BAD COLOR'
+            example.color = "BAD COLOR"
 
     def test_ctor_with_default_value(self):
-        def new_trait_class(default_value,
-                            case_sensitive, substring_matching):
+        def new_trait_class(default_value, case_sensitive, substring_matching):
             class Example(HasTraits):
-                color = FuzzyEnum(color_choices,
-                                  default_value=default_value,
-                                  case_sensitive=case_sensitive,
-                                  substring_matching=substring_matching)
+                color = FuzzyEnum(
+                    color_choices,
+                    default_value=default_value,
+                    case_sensitive=case_sensitive,
+                    substring_matching=substring_matching,
+                )
 
             return Example
 
@@ -374,7 +375,6 @@ class TestFuzzyEnum(unittest.TestCase):
         example = new_trait_class(color, True, False)()
         self.assertEqual(example.color, color)
 
-        ## FIXME: default value not validated!
-        #with self.assertRaises(TraitError):
+        # FIXME: default value not validated!
+        # with self.assertRaises(TraitError):
         #    example = new_trait_class(color.lower(), True, False)
-

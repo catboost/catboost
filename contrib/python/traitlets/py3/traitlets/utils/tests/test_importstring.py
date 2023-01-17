@@ -12,18 +12,15 @@ from traitlets.utils.importstring import import_item
 
 
 class TestImportItem(TestCase):
-
     def test_import_unicode(self):
-        self.assertIs(os, import_item('os'))
-        self.assertIs(os.path, import_item('os.path'))
-        self.assertIs(os.path.join, import_item('os.path.join'))
+        self.assertIs(os, import_item("os"))
+        self.assertIs(os.path, import_item("os.path"))
+        self.assertIs(os.path.join, import_item("os.path.join"))
 
     def test_bad_input(self):
-        class NotAString(object):
+        class NotAString:
             pass
-        msg = (
-            "import_item accepts strings, "
-            "not '%s'." % NotAString
-        )
+
+        msg = "import_item accepts strings, not '%s'." % NotAString
         with self.assertRaisesRegex(TypeError, msg):
             import_item(NotAString())
