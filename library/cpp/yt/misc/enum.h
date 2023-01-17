@@ -204,8 +204,14 @@ public:
     using TIndex = E;
     using TValue = T;
 
-    TEnumIndexedVector();
-    TEnumIndexedVector(std::initializer_list<T> elements);
+    constexpr TEnumIndexedVector();
+    constexpr TEnumIndexedVector(std::initializer_list<T> elements);
+
+    constexpr TEnumIndexedVector(const TEnumIndexedVector&) = default;
+    constexpr TEnumIndexedVector(TEnumIndexedVector&&) noexcept = default;
+
+    constexpr TEnumIndexedVector& operator=(const TEnumIndexedVector&) = default;
+    constexpr TEnumIndexedVector& operator=(TEnumIndexedVector&&) noexcept = default;
 
     T& operator[] (E index);
     const T& operator[] (E index) const;
