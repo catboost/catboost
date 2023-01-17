@@ -11,4 +11,5 @@ Supported values:
 - {{ autoclass__weights__SqrtBalanced }}:
     
     $CW_k=\sqrt{\displaystyle\frac{max_{c=1}^K(\sum_{t_i=c}{w_i})}{\sum_{t_i=k}{w_i}}}$
+
     
