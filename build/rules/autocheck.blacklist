@@ -1337,3 +1337,4 @@ haas/einebox
 classifieds/nginx-tests
 practicum/services/jrunner
 classifieds/sphinx-configs
+classifieds/php-cron
