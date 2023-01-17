@@ -2085,7 +2085,6 @@ migrations:
     - noc/aioalexandria
     - noc/annlib/contrib/valkit
     - noc/checkist/clients/python/swagger_client
-    - noc/hbf-server
     - noc/soft_pingers
     - noc/yanet/yanetagent
     - ofd/notifier/server/blueprints/monitoring
@@ -2807,6 +2806,7 @@ migrations:
     - yt/odin/tests/data/checks/with_data
     - yt/odin/tests/data/checks/with_invalid_return_value
     - yt/odin/tests/data/checks/with_options
+    - yt/python/contrib/prettytable
     - yt/python/contrib/python-argcomplete
     - yt/python/contrib/python-backports.ssl_match_hostname
     - yt/python/contrib/python-certifi
