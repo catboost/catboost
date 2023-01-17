@@ -1599,6 +1599,79 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     }
 }
 
+static THolder<TNonSymmetricTreeNode> GetTree(
+    const TModelTrees& trees,
+    double leafMultiplier,
+    bool streamLeafWeights,
+    int nodeIdx
+) {
+    const auto& data = trees.GetModelTreeData();
+    const auto& nodes = data->GetNonSymmetricStepNodes();
+    const auto leftDiff = nodes[nodeIdx].LeftSubtreeDiff;
+    const auto rightDiff = nodes[nodeIdx].RightSubtreeDiff;
+
+    auto tree = MakeHolder<TNonSymmetricTreeNode>();
+    if (leftDiff) {
+        tree->Left = GetTree(trees, leafMultiplier, streamLeafWeights, nodeIdx + leftDiff);
+    }
+    if (rightDiff) {
+        tree->Right = GetTree(trees, leafMultiplier, streamLeafWeights, nodeIdx + rightDiff);
+    }
+    if (leftDiff || rightDiff) {
+        const auto& binFeatures = trees.GetBinFeatures();
+        tree->SplitCondition = binFeatures[data->GetTreeSplits()[nodeIdx]];
+    }
+
+    const auto& leafIdx = data->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+    if (leafIdx != (ui32)-1) {
+        CB_ENSURE(!leftDiff || !rightDiff, "Got a corrupted non-symmetric tree");
+        const auto dimensionCount = trees.GetDimensionsCount();
+        CB_ENSURE(leafIdx % dimensionCount == 0, "Got a corrupted non-symmetric tree");
+        auto leaf = MakeHolder<TNonSymmetricTreeNode>();
+        const auto leafValues = data->GetLeafValues();
+        if (dimensionCount == 1) {
+            leaf->Value = leafValues[leafIdx] * leafMultiplier;
+        } else {
+            const auto begin = leafValues.begin() + leafIdx;
+            const auto end = begin + dimensionCount;
+            leaf->Value = TVector<double>{begin, end};
+            for (auto& value : std::get<TVector<double>>(leaf->Value)) {
+                value *= leafMultiplier;
+            }
+        }
+        const auto leafWeights = data->GetLeafWeights();
+        if (streamLeafWeights && !leafWeights.empty()) {
+            leaf->NodeWeight = leafWeights[leafIdx / dimensionCount];
+        }
+        if (leftDiff) {
+            tree->Right = std::move(leaf);
+        } else if (rightDiff) {
+            tree->Left = std::move(leaf);
+        } else {
+            tree = std::move(leaf);
+        }
+    }
+    return tree;
+}
+
+// overload by type of builder
+static void StreamModelTreesWithoutScaleAndBiasToBuilder(
+    const TModelTrees& trees,
+    double leafMultiplier,
+    TNonSymmetricTreeModelBuilder* builder,
+    bool streamLeafWeights
+) {
+    const auto& data = trees.GetModelTreeData();
+    for (size_t treeIdx = 0; treeIdx < trees.GetTreeCount(); ++treeIdx) {
+        builder->AddTree(
+            GetTree(
+                trees,
+                leafMultiplier,
+                streamLeafWeights,
+                data->GetTreeStartOffsets()[treeIdx]));
+    }
+}
+
 static void SumModelsParams(
     const TVector<const TFullModel*> modelVector,
     THashMap<TString, TString>* modelInfo
@@ -1705,6 +1778,38 @@ static void SumModelsParams(
     }
 }
 
+static bool IsAllOblivious(const TVector<const TFullModel*>& modelVector) {
+    return AllOf(modelVector, [] (const TFullModel* m) { return m->IsOblivious(); });
+}
+
+static bool IsAllNonSymmetric(const TVector<const TFullModel*>& modelVector) {
+    return AllOf(modelVector, [] (const TFullModel* m) { return !m->IsOblivious(); });
+}
+
+template <typename TBuilderType>
+static void SumModels(
+    const TVector<const TFullModel*>& modelVector,
+    const TVector<double>& weights,
+    const TVector<TFloatFeature>& floatFeatures,
+    const TVector<TCatFeature>& catFeatures,
+    bool allModelsHaveLeafWeights,
+    TFullModel* sum
+) {
+    const auto approxDimension = modelVector.back()->GetDimensionsCount();
+    TBuilderType builder(floatFeatures, catFeatures, {}, {}, approxDimension);
+
+    for (const auto modelId : xrange(modelVector.size())) {
+        TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
+        StreamModelTreesWithoutScaleAndBiasToBuilder(
+            *modelVector[modelId]->ModelTrees,
+            weights[modelId] * normer.Scale,
+            &builder,
+            allModelsHaveLeafWeights
+        );
+    }
+    builder.Build(sum->ModelTrees.GetMutable());
+}
+
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
@@ -1712,6 +1817,9 @@ TFullModel SumModels(
 {
     CB_ENSURE(!modelVector.empty(), "empty model vector unexpected");
     CB_ENSURE(modelVector.size() == weights.size());
+    CB_ENSURE(
+        IsAllOblivious(modelVector) || IsAllNonSymmetric(modelVector),
+        "Summation of symmetric and non-symmetric models is not supported [for now]");
     const auto approxDimension = modelVector.back()->GetDimensionsCount();
     size_t maxFlatFeatureVectorSize = 0;
     TVector<TIntrusivePtr<ICtrProvider>> ctrProviders;
@@ -1719,8 +1827,6 @@ TFullModel SumModels(
     bool someModelHasLeafWeights = false;
     for (const auto& model : modelVector) {
         Y_ASSERT(model != nullptr);
-        //TODO(eermishkina): support non symmetric trees
-        CB_ENSURE(model->IsOblivious(), "Models summation supported only for symmetric trees");
         CB_ENSURE(
             model->ModelTrees->GetTextFeatures().empty(),
             "Models summation is not supported for models with text features"
@@ -1760,7 +1866,6 @@ TFullModel SumModels(
     for (auto& flatFeature: flatFeatureInfoVector) {
         std::visit(merger, flatFeature.FeatureVariant);
     }
-    TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, {}, approxDimension);
     TVector<double> totalBias(approxDimension);
     for (const auto modelId : xrange(modelVector.size())) {
         TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
@@ -1771,15 +1876,28 @@ TFullModel SumModels(
                 totalBias[dim] += weights[modelId] * normerBias[dim];
             }
         }
-        StreamModelTreesWithoutScaleAndBiasToBuilder(
-            *modelVector[modelId]->ModelTrees,
-            weights[modelId] * normer.Scale,
-            &builder,
-            allModelsHaveLeafWeights
-        );
     }
     TFullModel result;
-    builder.Build(result.ModelTrees.GetMutable());
+    if (IsAllOblivious(modelVector)) {
+        SumModels<TObliviousTreeBuilder>(
+            modelVector,
+            weights,
+            merger.MergedFloatFeatures,
+            merger.MergedCatFeatures,
+            allModelsHaveLeafWeights,
+            &result);
+    } else if (IsAllNonSymmetric(modelVector)) {
+        SumModels<TNonSymmetricTreeModelBuilder>(
+            modelVector,
+            weights,
+            merger.MergedFloatFeatures,
+            merger.MergedCatFeatures,
+            allModelsHaveLeafWeights,
+            &result);
+    } else {
+        CB_ENSURE(false, "This should be unreachable");
+    }
+
     for (const auto modelIdx : xrange(modelVector.size())) {
         TStringBuilder keyPrefix;
         keyPrefix << "model" << modelIdx << ":";

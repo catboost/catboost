@@ -256,9 +256,11 @@ ui32 TNonSymmetricTreeModelBuilder::AddTreeNode(const TNonSymmetricTreeNode& nod
         FlatNonSymmetricStepNodes.emplace_back();
         if (node.Left->IsSplitNode() == node.Right->IsSplitNode()) {
             FlatNodeValueIndexes.emplace_back(Max<ui32>());
+            const auto leftId = AddTreeNode(*node.Left);
+            const auto rightId = AddTreeNode(*node.Right);
             FlatNonSymmetricStepNodes[stepNodeId] = TNonSymmetricTreeStepNode{
-                static_cast<ui16>(AddTreeNode(*node.Left) - nodeId),
-                static_cast<ui16>(AddTreeNode(*node.Right) - nodeId)
+                static_cast<ui16>(leftId - nodeId),
+                static_cast<ui16>(rightId - nodeId)
             };
         } else {
             if (node.Right->IsSplitNode()) {
