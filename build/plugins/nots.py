@@ -78,16 +78,19 @@ def on_ts_test_configure(unit, jestconfig_path):
 
     pm = _create_pm(unit)
     mod_dir = unit.get("MODDIR")
-    resolved_files = _resolve_test_files(unit, mod_dir, test_files)
+    test_files = _resolve_module_files(unit, mod_dir, test_files)
+    data_dirs = list(set([os.path.dirname(rootrel_arc_src(p, unit)) for p in (ytest.get_values_list(unit, "_TS_TEST_DATA_VALUE") or [])]))
+
     test_record_args = {
         "CUSTOM-DEPENDENCIES": " ".join(pm.get_peers_from_package_json()),
         "TS-TEST-FOR-PATH": unit.get("TS_TEST_FOR_PATH"),
         "TS-OUT-DIR": unit.get("TS_CONFIG_OUT_DIR"),
+        "TS-TEST-DATA-DIRS": ytest.serialize_list(data_dirs),
         "NODE-MODULES-BUNDLE-FILENAME": constants.NODE_MODULES_WORKSPACE_BUNDLE_FILENAME,
         "JEST-CONFIG-PATH": jestconfig_path,
     }
 
-    _add_test_type(unit, "ts_test", mod_dir, resolved_files, test_record_args)
+    _add_test_type(unit, "ts_test", mod_dir, test_files, test_record_args)
 
 
 def _setup_eslint(unit):
@@ -101,7 +104,7 @@ def _setup_eslint(unit):
     # MODDIR == devtools/dummy_arcadia/ts/packages/with_lint
     # CURDIR == $S/MODDIR
     mod_dir = unit.get('MODDIR')
-    resolved_files = _resolve_test_files(unit, mod_dir, lint_files)
+    resolved_files = _resolve_module_files(unit, mod_dir, lint_files)
 
     _add_eslint(unit, mod_dir, resolved_files)
 
@@ -120,7 +123,7 @@ def on_hermione_configure(unit, config_path):
         return
 
     mod_dir = unit.get('MODDIR')
-    resolved_files = _resolve_test_files(unit, mod_dir, test_files)
+    resolved_files = _resolve_module_files(unit, mod_dir, test_files)
 
     _add_hermione(unit, config_path, mod_dir, resolved_files)
 
@@ -139,7 +142,7 @@ def _add_hermione(unit, config_path, test_cwd, test_files):
     _add_test_type(unit, "hermione", test_cwd, test_files, test_record_args)
 
 
-def _resolve_test_files(unit, mod_dir, file_paths):
+def _resolve_module_files(unit, mod_dir, file_paths):
     resolved_files = []
 
     for path in file_paths:
