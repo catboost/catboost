@@ -42,7 +42,7 @@ BELONGS ya.make
 
 KEEP     MIT                  6bb6514a1d779748b76a73215a89ae66
 BELONGS ya.make
-FILE_INCLUDE AUTHORS found in files: expat.h at line 35, expat_external.h at line 34, lib/ascii.h at line 30, lib/asciitab.h at line 29, lib/iasciitab.h at line 29, lib/internal.h at line 50, lib/latin1tab.h at line 29, lib/utf8tab.h at line 29, lib/winconfig.h at line 29, lib/xmlparse.c at line 54, lib/xmlrole.c at line 35, lib/xmlrole.h at line 30, lib/xmltok.c at line 40, lib/xmltok.h at line 31, lib/xmltok_impl.c at line 35, lib/xmltok_impl.h at line 28, lib/xmltok_ns.c at line 31
+FILE_INCLUDE AUTHORS found in files: expat.h at line 35, expat_external.h at line 34, lib/ascii.h at line 30, lib/asciitab.h at line 29, lib/iasciitab.h at line 29, lib/internal.h at line 50, lib/latin1tab.h at line 29, lib/utf8tab.h at line 29, lib/winconfig.h at line 29, lib/xmlparse.c at line 54, lib/xmlrole.c at line 35, lib/xmlrole.h at line 30, lib/xmltok.c at line 41, lib/xmltok.h at line 31, lib/xmltok_impl.c at line 36, lib/xmltok_impl.h at line 28, lib/xmltok_ns.c at line 31
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: MIT
@@ -62,9 +62,9 @@ FILE_INCLUDE AUTHORS found in files: expat.h at line 35, expat_external.h at lin
         lib/xmlparse.c [40:57]
         lib/xmlrole.c [21:38]
         lib/xmlrole.h [16:33]
-        lib/xmltok.c [26:43]
+        lib/xmltok.c [27:44]
         lib/xmltok.h [17:34]
-        lib/xmltok_impl.c [21:38]
+        lib/xmltok_impl.c [22:39]
         lib/xmltok_impl.h [14:31]
         lib/xmltok_ns.c [17:34]
 
@@ -103,9 +103,9 @@ BELONGS ya.make
         lib/xmlparse.c [38:38]
         lib/xmlrole.c [19:19]
         lib/xmlrole.h [14:14]
-        lib/xmltok.c [24:24]
+        lib/xmltok.c [25:25]
         lib/xmltok.h [15:15]
-        lib/xmltok_impl.c [19:19]
+        lib/xmltok_impl.c [20:20]
         lib/xmltok_impl.h [12:12]
         lib/xmltok_ns.c [15:15]
 
