@@ -1434,3 +1434,6 @@ haas/trash/bot/tel
 taxi/mobile_qa_test_app
 classifieds/reviews
 market/front/libs/region-async
+marketing/events/events-api
+marketing/events/events-admin-v2
+marketing/events/events-front

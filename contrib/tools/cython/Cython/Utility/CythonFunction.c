@@ -661,6 +661,13 @@ static PyObject *__Pyx_CyFunction_CallAsMethod(PyObject *func, PyObject *args, P
         self = PyTuple_GetItem(args, 0);
         if (unlikely(!self)) {
             Py_DECREF(new_args);
+            PyErr_Format(PyExc_TypeError,
+                         "unbound method %.200s() needs an argument",
+#if PY_MAJOR_VERSION >= 3
+                         cyfunc->func_qualname);
+#else
+                         PyString_AsString(cyfunc->func_qualname));
+#endif
             return NULL;
         }
 

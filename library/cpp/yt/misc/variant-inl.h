@@ -12,20 +12,6 @@ namespace NYT {
 
 namespace NDetail {
 
-template <class T>
-struct TIndexOf<T>
-{
-    static constexpr size_t Value = std::numeric_limits<size_t>::max();
-};
-
-template <class T, class T0, class... Ts>
-struct TIndexOf<T, T0, Ts...>
-{
-    static constexpr size_t Value = std::is_same_v<T, T0>
-        ? 0
-        : 1 + TIndexOf<T, Ts...>::Value;
-};
-
 template <size_t Index, class... Ts>
 struct TVariantFormatter;
 

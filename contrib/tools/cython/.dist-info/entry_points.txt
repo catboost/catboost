@@ -2,4 +2,3 @@
 cygdb = Cython.Debugger.Cygdb:main
 cython = Cython.Compiler.Main:setuptools_main
 cythonize = Cython.Build.Cythonize:main
-

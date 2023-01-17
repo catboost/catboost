@@ -2,6 +2,65 @@
 Cython Changelog
 ================
 
+0.29.30 (2022-05-16)
+====================
+
+Bugs fixed
+----------
+
+* The GIL handling changes in 0.29.29 introduced a regression where
+  objects could be deallocated without holding the GIL.
+  (Github issue #4796)
+
+
+0.29.29 (2022-05-16)
+====================
+
+Features added
+--------------
+
+* Avoid acquiring the GIL at the end of nogil functions.
+  This change was backported in order to avoid generating wrong C code
+  that would trigger C compiler warnings with tracing support enabled.
+  Backport by Oleksandr Pavlyk.  (Github issue #4637)
+
+Bugs fixed
+----------
+
+* Function definitions in ``finally:`` clauses were not correctly generated.
+  Patch by David Woods.  (Github issue #4651)
+
+* A case where C-API functions could be called with a live exception set was fixed.
+  Patch by Jakub Kulík.  (Github issue #4722)
+
+* Pickles can now be exchanged again with those generated from Cython 3.0 modules.
+  (Github issue #4680)
+
+* Cython now correctly generates Python methods for both the provided regular and
+  reversed special numeric methods of extension types.
+  Patch by David Woods.  (Github issue #4750)
+
+* Calling unbound extension type methods without arguments could raise an
+  ``IndexError`` instead of a ``TypeError``.
+  Patch by David Woods.  (Github issue #4779)
+
+* Calling unbound ``.__contains__()`` super class methods on some builtin base
+  types could trigger an infinite recursion.
+  Patch by David Woods.  (Github issue #4785)
+
+* The C union type in pure Python mode mishandled some field names.
+  Patch by Jordan Brière.  (Github issue #4727)
+
+* Allow users to overwrite the C macro ``_USE_MATH_DEFINES``.
+  Patch by Yuriy Chernyshov. (Github issue #4690)
+
+* Improved compatibility with CPython 3.10/11.
+  Patches by Thomas Caswell, David Woods.  (Github issues #4609, #4667, #4721, #4730, #4777)
+
+* Docstrings of descriptors are now provided in PyPy 7.3.9.
+  Patch by Matti Picus.  (Github issue #4701)
+
+
 0.29.28 (2022-02-17)
 ====================
 
