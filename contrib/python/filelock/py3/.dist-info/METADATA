@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: filelock
-Version: 3.6.0
+Version: 3.7.0
 Summary: A platform independent file lock.
 Home-page: https://github.com/tox-dev/py-filelock
 Download-URL: https://github.com/tox-dev/py-filelock/archive/main.zip
@@ -9,7 +9,6 @@ Author-email: benedikt@benediktschmitt.de
 License: Unlicense
 Project-URL: Source, https://github.com/tox-dev/py-filelock
 Project-URL: Tracker, https://github.com/tox-dev/py-filelock/issues
-Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: License :: Public Domain
@@ -51,5 +50,3 @@ black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://gith
 [![check](https://github.com/tox-dev/py-filelock/actions/workflows/check.yml/badge.svg)](https://github.com/tox-dev/py-filelock/actions/workflows/check.yml)
 
 For more information checkout the [official documentation](https://py-filelock.readthedocs.io/en/latest/api.html).
-
-
