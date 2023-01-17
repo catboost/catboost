@@ -82,7 +82,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.py2.obj	</Message>
+      <Message>$B/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.py2.obj	</Message>
+      <Message>$B/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
