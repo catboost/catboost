@@ -7856,10 +7856,14 @@
         },
         "yp-util": {
             "formula": {
-                "sandbox_id": [
-                    1406459595
-                ],
-                "match": "yp-util"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "YP_UTIL",
+                        "owner": "YP"
+                    }
+                },
+                "update_interval": 604800,
+                "ignore_platform": false
             },
             "executable": {
                 "yp-util": [
@@ -7869,10 +7873,14 @@
         },
         "yp": {
             "formula": {
-                "sandbox_id": [
-                    1406461325
-                ],
-                "match": "YP"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "YP_CLIENT",
+                        "owner": "YP"
+                    }
+                },
+                "update_interval": 604800,
+                "ignore_platform": false
             },
             "executable": {
                 "yp": [
@@ -8801,8 +8809,8 @@
         "devtools_license_analyzer_bundle": {
             "formula": {
                 "sandbox_id": [
-                    1291677795,
-                    1291680132
+                    1407601176,
+                    1407636833
                 ],
                 "match": "license_analyzer"
             },
