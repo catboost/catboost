@@ -24,6 +24,7 @@
 #include <util/thread/factory.h>
 #include <util/thread/singleton.h>
 #include <util/system/sanitizers.h>
+#include <util/system/thread.h>
 
 #include <atomic>
 
@@ -1042,6 +1043,7 @@ namespace {
         }
 
         void DoExecute() override {
+            TThread::SetCurrentThreadName("NehHttpConnMngr");
             while (true) {
                 {
                     TGuard<TMutex> g(PurgeMutex_);
