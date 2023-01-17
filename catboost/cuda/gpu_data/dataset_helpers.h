@@ -50,14 +50,12 @@ namespace NCatboostCuda {
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                                       const NCB::TTrainingDataProvider& dataProvider,
                                       const ui32 dataSetId,
-                                      bool skipExclusiveFeatureBundles,
-                                      NPar::ILocalExecutor* localExecutor)
+                                      bool skipExclusiveFeatureBundles)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
             , SkipExclusiveFeatureBundles(skipExclusiveFeatureBundles)
             , IndexBuilder(indexBuilder)
-            , LocalExecutor(localExecutor)
         {
         }
 
@@ -127,9 +125,7 @@ namespace NCatboostCuda {
                         features[taskIdx],
                         FeaturesManager.GetBinCount(feature),
                         *objectsData.GetFloatFeature(*floatFeatureIdx),
-                        [baseValue] (ui16 value) -> ui8 {
-                            return (ui8)Min(Max(value - baseValue, 0), 255);
-                        }
+                        baseValue
                     );
                 }
             }
@@ -173,7 +169,6 @@ namespace NCatboostCuda {
         ui32 DataSetId = -1;
         bool SkipExclusiveFeatureBundles = false;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
-        NPar::ILocalExecutor* LocalExecutor;
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>
