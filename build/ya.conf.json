@@ -2356,6 +2356,7 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang-cl",
                 "cxx_compiler": "$(CLANG)/bin/clang-cl",
+                "cxx_std": "c++20",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "wine": "yes",
                 "version": "2019"
@@ -9212,8 +9213,8 @@
         }
     },
     "toolchain_aliases": {
-        "clang-win-x86_64": "clang12-win-x86_64",
-        "clang-win-i686": "clang12-win-i686",
+        "clang-win-x86_64": "clang14-win-x86_64",
+        "clang-win-i686": "clang14-win-i686",
         "gcc-linux-x86_64": "gcc82-linux-x86_64"
     }
 }

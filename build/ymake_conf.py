@@ -2008,6 +2008,9 @@ class MSVCCompiler(MSVC, Compiler):
                 #
                 # We override this value to match current value of the actual MSVC being used.
                 '-fms-compatibility-version=19.21',
+                # for msvc compatibility
+                # https://clang.llvm.org/docs/UsersManual.html#microsoft-extensions
+                '-fdelayed-template-parsing',
             ]
             if target.is_x86:
                 flags.append('-m32')
