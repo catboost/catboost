@@ -92,14 +92,5 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
       <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\raw_logging\base-internal-raw_logging.vcxproj">
-      <Project>{F9CAC534-B202-1BEF-0A8B-D9744CF09AA1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\spinlock_wait\base-internal-spinlock_wait.vcxproj">
-      <Project>{AD59D561-C3C2-7163-8691-7C5CA1F199EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\log_severity\absl-base-log_severity.vcxproj">
-      <Project>{C9918ED1-4C5B-5AD8-D640-EB537BA8DFDE}</Project>
-    </ProjectReference>
   </ItemGroup>
 </Project>

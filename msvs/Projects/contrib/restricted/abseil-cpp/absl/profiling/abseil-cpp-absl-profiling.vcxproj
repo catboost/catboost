@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{42386F04-F5A3-24D1-5842-4155AF92073F}</ProjectGUID>
+    <ProjectGUID>{D0F9E8F2-0B34-4F28-D333-8ACAA85827BB}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>base-internal-strerror</ProjectName>
+    <ProjectName>abseil-cpp-absl-profiling</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>base-internal-strerror</TargetName>
+    <TargetName>abseil-cpp-absl-profiling</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\restricted\abseil-cpp\absl\base\internal\strerror\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\42386F04-F5A3-24D1-5842-4155AF92073F\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\restricted\abseil-cpp\absl\profiling\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D0F9E8F2-0B34-4F28-D333-8ACAA85827BB\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,7 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\strerror.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\exponential_biased.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\periodic_sampler.cc"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\exponential_biased.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\periodic_sampler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\sample_recorder.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

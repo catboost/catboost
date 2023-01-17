@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\create_thread_identity.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\graphcycles.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\per_thread_sem.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\waiter.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\barrier.cc"/>
@@ -87,6 +88,12 @@
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\notification.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\barrier.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\blocking_counter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\create_thread_identity.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\futex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\graphcycles.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\kernel_timeout.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\per_thread_sem.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\internal\waiter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\synchronization\notification.h"/>
   </ItemGroup>
@@ -102,29 +109,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
       <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\low_level_alloc\base-internal-low_level_alloc.vcxproj">
-      <Project>{6A85D2D1-BEDF-D8FE-7AE1-3582230CA750}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\raw_logging\base-internal-raw_logging.vcxproj">
-      <Project>{F9CAC534-B202-1BEF-0A8B-D9744CF09AA1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\spinlock_wait\base-internal-spinlock_wait.vcxproj">
-      <Project>{AD59D561-C3C2-7163-8691-7C5CA1F199EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\throw_delegate\base-internal-throw_delegate.vcxproj">
-      <Project>{54B668D5-4CE5-3175-13C6-35CA57F303F9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\log_severity\absl-base-log_severity.vcxproj">
-      <Project>{C9918ED1-4C5B-5AD8-D640-EB537BA8DFDE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\debugging\abseil-cpp-absl-debugging.vcxproj">
       <Project>{555B82DA-9717-22EB-2E6B-ABC66CD65809}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\debugging\stacktrace\absl-debugging-stacktrace.vcxproj">
-      <Project>{369BDFF8-58C8-C5DA-44ED-9B3960803FE8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\debugging\symbolize\absl-debugging-symbolize.vcxproj">
-      <Project>{2A1052D5-AFC8-FAC4-14EF-2F0CF3C58C4B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\demangle\abseil-cpp-absl-demangle.vcxproj">
       <Project>{0C7FCEF6-C6D4-5453-F293-DFF90FE3B912}</Project>
@@ -135,20 +121,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\abseil-cpp-absl-strings.vcxproj">
       <Project>{C94DBD31-AE85-DCD5-7C63-712955C59002}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_strings_internal\strings-internal-absl_strings_internal.vcxproj">
-      <Project>{CCFF9B15-FE51-1012-6FBE-985A6A2AD777}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\synchronization\internal\absl-synchronization-internal.vcxproj">
-      <Project>{72F07C9D-F87F-E74A-360E-ED30C7D4B3AE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\abseil-cpp-absl-time.vcxproj">
       <Project>{7C7DA40E-6011-9566-C8DC-349BB25F8EB4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\civil_time\absl-time-civil_time.vcxproj">
-      <Project>{76AC917E-AEF9-219C-67C7-3D3299141392}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\time_zone\absl-time-time_zone.vcxproj">
-      <Project>{C90415E2-11A6-7C43-3BAE-276EBF6D81E3}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

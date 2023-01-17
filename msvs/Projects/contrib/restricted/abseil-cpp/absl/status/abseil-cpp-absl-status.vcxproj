@@ -95,98 +95,32 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\algorithm\abseil-cpp-absl-algorithm.vcxproj">
-      <Project>{8B676919-4151-DE9D-5086-E1C01B68FA2B}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
       <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\low_level_alloc\base-internal-low_level_alloc.vcxproj">
-      <Project>{6A85D2D1-BEDF-D8FE-7AE1-3582230CA750}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\raw_logging\base-internal-raw_logging.vcxproj">
-      <Project>{F9CAC534-B202-1BEF-0A8B-D9744CF09AA1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\spinlock_wait\base-internal-spinlock_wait.vcxproj">
-      <Project>{AD59D561-C3C2-7163-8691-7C5CA1F199EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\throw_delegate\base-internal-throw_delegate.vcxproj">
-      <Project>{54B668D5-4CE5-3175-13C6-35CA57F303F9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\log_severity\absl-base-log_severity.vcxproj">
-      <Project>{C9918ED1-4C5B-5AD8-D640-EB537BA8DFDE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\container\abseil-cpp-absl-container.vcxproj">
-      <Project>{132C6772-47DC-500A-B256-2F3E6648C800}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\debugging\abseil-cpp-absl-debugging.vcxproj">
       <Project>{555B82DA-9717-22EB-2E6B-ABC66CD65809}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\debugging\stacktrace\absl-debugging-stacktrace.vcxproj">
-      <Project>{369BDFF8-58C8-C5DA-44ED-9B3960803FE8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\debugging\symbolize\absl-debugging-symbolize.vcxproj">
-      <Project>{2A1052D5-AFC8-FAC4-14EF-2F0CF3C58C4B}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\demangle\abseil-cpp-absl-demangle.vcxproj">
       <Project>{0C7FCEF6-C6D4-5453-F293-DFF90FE3B912}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\functional\abseil-cpp-absl-functional.vcxproj">
-      <Project>{043652F6-9AAD-B16F-6894-D1A784DE2122}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\numeric\abseil-cpp-absl-numeric.vcxproj">
       <Project>{712179CD-DCD3-3049-EA4D-D416593142EB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\profiling\internal\exponential_biased\profiling-internal-exponential_biased.vcxproj">
-      <Project>{066F2EC2-62CD-748B-4A64-723A9D5A38AC}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\profiling\abseil-cpp-absl-profiling.vcxproj">
+      <Project>{D0F9E8F2-0B34-4F28-D333-8ACAA85827BB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\abseil-cpp-absl-strings.vcxproj">
       <Project>{C94DBD31-AE85-DCD5-7C63-712955C59002}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\cord\absl-strings-cord.vcxproj">
-      <Project>{C90ADDFF-B541-65DF-B484-A2BB21EFD418}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_cord_internal\strings-internal-absl_cord_internal.vcxproj">
-      <Project>{E9340DF5-F61F-83E9-226D-5C96A9C07B5C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_strings_internal\strings-internal-absl_strings_internal.vcxproj">
-      <Project>{CCFF9B15-FE51-1012-6FBE-985A6A2AD777}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_functions\strings-internal-cordz_functions.vcxproj">
-      <Project>{E6E912A0-D726-BC08-06EA-9090AAF42B1A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_handle\strings-internal-cordz_handle.vcxproj">
-      <Project>{DD2ED761-B837-5F67-FB40-DA76B229DB3D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_info\strings-internal-cordz_info.vcxproj">
-      <Project>{030C3DA8-C186-9E71-144D-36D7EEFC3151}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\str_format\strings-internal-str_format.vcxproj">
-      <Project>{2E18B11E-ACFF-6D83-BF6B-AF719B38A32D}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\synchronization\abseil-cpp-absl-synchronization.vcxproj">
       <Project>{165141B1-3326-18DB-DA6E-651F94147ABB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\synchronization\internal\absl-synchronization-internal.vcxproj">
-      <Project>{72F07C9D-F87F-E74A-360E-ED30C7D4B3AE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\abseil-cpp-absl-time.vcxproj">
       <Project>{7C7DA40E-6011-9566-C8DC-349BB25F8EB4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\civil_time\absl-time-civil_time.vcxproj">
-      <Project>{76AC917E-AEF9-219C-67C7-3D3299141392}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\time_zone\absl-time-time_zone.vcxproj">
-      <Project>{C90415E2-11A6-7C43-3BAE-276EBF6D81E3}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\abseil-cpp-absl-types.vcxproj">
       <Project>{C9B8177C-77AC-C52C-D246-D21AEEF2C8DA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\bad_optional_access\absl-types-bad_optional_access.vcxproj">
-      <Project>{753BBE3B-79AD-E56C-7D2C-82F512858168}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\utility\abseil-cpp-absl-utility.vcxproj">
-      <Project>{8E4C07DF-5503-9B55-81B6-3168543E79CA}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>
