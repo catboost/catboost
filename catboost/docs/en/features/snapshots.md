@@ -131,3 +131,5 @@ The native {{ product }} model file ({{ yandex-specific__model_ops__EConvertMode
     {% include [python-python__snapshot_interval__desc__div](../_includes/work_src/reusage/python__snapshot_interval__desc__div.md) %}
 
    {% endcut %}
+
+{% endlist %}
