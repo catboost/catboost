@@ -469,7 +469,6 @@
 
 - source_filter: "^contrib/restricted/noc/frr"
   includes:
-    - assert.h: contrib/restricted/noc/frr/lib/assert/assert.h
     - bfd.h: contrib/restricted/noc/frr/lib/bfd.h
     - getopt.h: contrib/restricted/noc/frr/lib/getopt.h
     - filter.h: contrib/restricted/noc/frr/lib/filter.h
