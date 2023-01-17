@@ -7890,7 +7890,7 @@
             "formula": {
                 "latest_matched": {
                     "query": {
-                        "resource_type": "YP_UTIL",
+                        "resource_type": "YP_UTIL_CLI",
                         "owner": "YP"
                     }
                 },
@@ -7907,7 +7907,7 @@
             "formula": {
                 "latest_matched": {
                     "query": {
-                        "resource_type": "YP_CLIENT",
+                        "resource_type": "YP_CLIENT_CLI",
                         "owner": "YP"
                     }
                 },
