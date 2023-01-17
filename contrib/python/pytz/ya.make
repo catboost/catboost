@@ -4,7 +4,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(2022.1)
+VERSION(2022.2.1)
 
 LICENSE(MIT)
 
@@ -477,6 +477,7 @@ RESOURCE_FILES(
     pytz/zoneinfo/Europe/Kaliningrad
     pytz/zoneinfo/Europe/Kiev
     pytz/zoneinfo/Europe/Kirov
+    pytz/zoneinfo/Europe/Kyiv
     pytz/zoneinfo/Europe/Lisbon
     pytz/zoneinfo/Europe/Ljubljana
     pytz/zoneinfo/Europe/London

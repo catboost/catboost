@@ -46,12 +46,6 @@
 +    assert not nfailures
 --- contrib/python/pytz/pytz/tests/test_tzinfo.py	(index)
 +++ contrib/python/pytz/pytz/tests/test_tzinfo.py	(working tree)
-@@ -855,7 +855,7 @@ class DstTzInfoTestCase(unittest.TestCase, BaseTzInfoTestCase):
-     tz_class = DstTzInfo
- 
- 
+@@ -857,1 +857,1 @@ class DstTzInfoTestCase(unittest.TestCase, BaseTzInfoTestCase):
 -def test_suite():
 +def _test_suite():
-     suite = unittest.TestSuite()
-     suite.addTest(doctest.DocTestSuite('pytz'))
-     suite.addTest(doctest.DocTestSuite('pytz.tzinfo'))
