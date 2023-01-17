@@ -195,5 +195,10 @@ public:
 
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
 
+TFullModel SumModels(
+    const TVector<const TFullModel*> modelVector,
+    const TVector<double>& weights,
+    ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
+
 
 void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> softmax);
