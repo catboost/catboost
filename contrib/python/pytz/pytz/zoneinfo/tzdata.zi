@@ -833,10 +833,11 @@ R J 2005 o - S lastF 0s 0 -
 R J 2006 2011 - O lastF 0s 0 -
 R J 2013 o - D 20 0 0 -
 R J 2014 2021 - Mar lastTh 24 1 S
-R J 2014 ma - O lastF 0s 0 -
-R J 2022 ma - F lastTh 24 1 S
+R J 2014 2022 - O lastF 0s 0 -
+R J 2022 o - F lastTh 24 1 S
 Z Asia/Amman 2:23:44 - LMT 1931
-2 J EE%sT
+2 J EE%sT 2022 O 28 0s
+3 - +03
 Z Asia/Almaty 5:7:48 - LMT 1924 May 2
 5 - +05 1930 Jun 21
 6 R +06/+07 1991 Mar 31 2s
@@ -1137,10 +1138,11 @@ R S 2008 o - Ap F>=1 0 1 S
 R S 2008 o - N 1 0 0 -
 R S 2009 o - Mar lastF 0 1 S
 R S 2010 2011 - Ap F>=1 0 1 S
-R S 2012 ma - Mar lastF 0 1 S
-R S 2009 ma - O lastF 0 0 -
+R S 2012 2022 - Mar lastF 0 1 S
+R S 2009 2022 - O lastF 0 0 -
 Z Asia/Damascus 2:25:12 - LMT 1920
-2 S EE%sT
+2 S EE%sT 2022 O 28
+3 - +03
 Z Asia/Dushanbe 4:35:12 - LMT 1924 May 2
 5 - +05 1930 Jun 21
 6 R +06/+07 1991 Mar 31 2s
@@ -2493,7 +2495,7 @@ Z Europe/Madrid -0:14:44 - LMT 1901 Ja 1 0u
 0 s WE%sT 1940 Mar 16 23
 1 s CE%sT 1979
 1 E CE%sT
-Z Africa/Ceuta -0:21:16 - LMT 1900 D 31 23:38:44
+Z Africa/Ceuta -0:21:16 - LMT 1901 Ja 1 0u
 0 - WET 1918 May 6 23
 0 1 WEST 1918 O 7 23
 0 - WET 1924
@@ -2620,7 +2622,7 @@ R Ch 1921 o - Mar lastSu 2 1 D
 R Ch 1922 1966 - Ap lastSu 2 1 D
 R Ch 1922 1954 - S lastSu 2 0 S
 R Ch 1955 1966 - O lastSu 2 0 S
-Z America/Chicago -5:50:36 - LMT 1883 N 18 12:9:24
+Z America/Chicago -5:50:36 - LMT 1883 N 18 18u
 -6 u C%sT 1920
 -6 Ch C%sT 1936 Mar 1 2
 -5 - EST 1936 N 15 2
@@ -2628,13 +2630,13 @@ Z America/Chicago -5:50:36 - LMT 1883 N 18 12:9:24
 -6 u C%sT 1946
 -6 Ch C%sT 1967
 -6 u C%sT
-Z America/North_Dakota/Center -6:45:12 - LMT 1883 N 18 12:14:48
+Z America/North_Dakota/Center -6:45:12 - LMT 1883 N 18 19u
 -7 u M%sT 1992 O 25 2
 -6 u C%sT
-Z America/North_Dakota/New_Salem -6:45:39 - LMT 1883 N 18 12:14:21
+Z America/North_Dakota/New_Salem -6:45:39 - LMT 1883 N 18 19u
 -7 u M%sT 2003 O 26 2
 -6 u C%sT
-Z America/North_Dakota/Beulah -6:47:7 - LMT 1883 N 18 12:12:53
+Z America/North_Dakota/Beulah -6:47:7 - LMT 1883 N 18 19u
 -7 u M%sT 2010 N 7 2
 -6 u C%sT
 R De 1920 1921 - Mar lastSu 2 1 D
@@ -2642,7 +2644,7 @@ R De 1920 o - O lastSu 2 0 S
 R De 1921 o - May 22 2 0 S
 R De 1965 1966 - Ap lastSu 2 1 D
 R De 1965 1966 - O lastSu 2 0 S
-Z America/Denver -6:59:56 - LMT 1883 N 18 12:0:4
+Z America/Denver -6:59:56 - LMT 1883 N 18 19u
 -7 u M%sT 1920
 -7 De M%sT 1942
 -7 u M%sT 1946
@@ -2653,7 +2655,7 @@ R CA 1949 o - Ja 1 2 0 S
 R CA 1950 1966 - Ap lastSu 1 1 D
 R CA 1950 1961 - S lastSu 2 0 S
 R CA 1962 1966 - O lastSu 2 0 S
-Z America/Los_Angeles -7:52:58 - LMT 1883 N 18 12:7:2
+Z America/Los_Angeles -7:52:58 - LMT 1883 N 18 20u
 -8 u P%sT 1946
 -8 CA P%sT 1967
 -8 u P%sT
@@ -2723,7 +2725,7 @@ Z Pacific/Honolulu -10:31:26 - LMT 1896 Ja 13 12
 -10:30 1 HDT 1933 May 21 12
 -10:30 u H%sT 1947 Jun 8 2
 -10 - HST
-Z America/Phoenix -7:28:18 - LMT 1883 N 18 11:31:42
+Z America/Phoenix -7:28:18 - LMT 1883 N 18 19u
 -7 u M%sT 1944 Ja 1 0:1
 -7 - MST 1944 Ap 1 0:1
 -7 u M%sT 1944 O 1 0:1
@@ -2731,7 +2733,7 @@ Z America/Phoenix -7:28:18 - LMT 1883 N 18 11:31:42
 -7 u M%sT 1968 Mar 21
 -7 - MST
 L America/Phoenix America/Creston
-Z America/Boise -7:44:49 - LMT 1883 N 18 12:15:11
+Z America/Boise -7:44:49 - LMT 1883 N 18 20u
 -8 u P%sT 1923 May 13 2
 -7 u M%sT 1974
 -7 - MST 1974 F 3 2
@@ -2739,7 +2741,7 @@ Z America/Boise -7:44:49 - LMT 1883 N 18 12:15:11
 R In 1941 o - Jun 22 2 1 D
 R In 1941 1954 - S lastSu 2 0 S
 R In 1946 1954 - Ap lastSu 2 1 D
-Z America/Indiana/Indianapolis -5:44:38 - LMT 1883 N 18 12:15:22
+Z America/Indiana/Indianapolis -5:44:38 - LMT 1883 N 18 18u
 -6 u C%sT 1920
 -6 In C%sT 1942
 -6 u C%sT 1946
@@ -2754,7 +2756,7 @@ R Ma 1951 o - Ap lastSu 2 1 D
 R Ma 1951 o - S lastSu 2 0 S
 R Ma 1954 1960 - Ap lastSu 2 1 D
 R Ma 1954 1960 - S lastSu 2 0 S
-Z America/Indiana/Marengo -5:45:23 - LMT 1883 N 18 12:14:37
+Z America/Indiana/Marengo -5:45:23 - LMT 1883 N 18 18u
 -6 u C%sT 1951
 -6 Ma C%sT 1961 Ap 30 2
 -5 - EST 1969
@@ -2772,7 +2774,7 @@ R V 1956 1963 - Ap lastSu 2 1 D
 R V 1960 o - O lastSu 2 0 S
 R V 1961 o - S lastSu 2 0 S
 R V 1962 1963 - O lastSu 2 0 S
-Z America/Indiana/Vincennes -5:50:7 - LMT 1883 N 18 12:9:53
+Z America/Indiana/Vincennes -5:50:7 - LMT 1883 N 18 18u
 -6 u C%sT 1946
 -6 V C%sT 1964 Ap 26 2
 -5 - EST 1969
@@ -2784,7 +2786,7 @@ R Pe 1955 o - May 1 0 1 D
 R Pe 1955 1960 - S lastSu 2 0 S
 R Pe 1956 1963 - Ap lastSu 2 1 D
 R Pe 1961 1963 - O lastSu 2 0 S
-Z America/Indiana/Tell_City -5:47:3 - LMT 1883 N 18 12:12:57
+Z America/Indiana/Tell_City -5:47:3 - LMT 1883 N 18 18u
 -6 u C%sT 1946
 -6 Pe C%sT 1964 Ap 26 2
 -5 - EST 1967 O 29 2
@@ -2796,7 +2798,7 @@ R Pi 1955 o - May 1 0 1 D
 R Pi 1955 1960 - S lastSu 2 0 S
 R Pi 1956 1964 - Ap lastSu 2 1 D
 R Pi 1961 1964 - O lastSu 2 0 S
-Z America/Indiana/Petersburg -5:49:7 - LMT 1883 N 18 12:10:53
+Z America/Indiana/Petersburg -5:49:7 - LMT 1883 N 18 18u
 -6 u C%sT 1955
 -6 Pi C%sT 1965 Ap 25 2
 -5 - EST 1966 O 30 2
@@ -2809,7 +2811,7 @@ R St 1947 1954 - S lastSu 2 0 S
 R St 1955 1956 - O lastSu 2 0 S
 R St 1957 1958 - S lastSu 2 0 S
 R St 1959 1961 - O lastSu 2 0 S
-Z America/Indiana/Knox -5:46:30 - LMT 1883 N 18 12:13:30
+Z America/Indiana/Knox -5:46:30 - LMT 1883 N 18 18u
 -6 u C%sT 1947
 -6 St C%sT 1962 Ap 29 2
 -5 - EST 1963 O 27 2
@@ -2820,7 +2822,7 @@ R Pu 1946 1960 - Ap lastSu 2 1 D
 R Pu 1946 1954 - S lastSu 2 0 S
 R Pu 1955 1956 - O lastSu 2 0 S
 R Pu 1957 1960 - S lastSu 2 0 S
-Z America/Indiana/Winamac -5:46:25 - LMT 1883 N 18 12:13:35
+Z America/Indiana/Winamac -5:46:25 - LMT 1883 N 18 18u
 -6 u C%sT 1946
 -6 Pu C%sT 1961 Ap 30 2
 -5 - EST 1969
@@ -2828,7 +2830,7 @@ Z America/Indiana/Winamac -5:46:25 - LMT 1883 N 18 12:13:35
 -5 - EST 2006 Ap 2 2
 -6 u C%sT 2007 Mar 11 2
 -5 u E%sT
-Z America/Indiana/Vevay -5:40:16 - LMT 1883 N 18 12:19:44
+Z America/Indiana/Vevay -5:40:16 - LMT 1883 N 18 18u
 -6 u C%sT 1954 Ap 25 2
 -5 - EST 1969
 -5 u E%sT 1973
@@ -2843,7 +2845,7 @@ R v 1946 o - Jun 2 2 0 S
 R v 1950 1961 - Ap lastSu 2 1 D
 R v 1950 1955 - S lastSu 2 0 S
 R v 1956 1961 - O lastSu 2 0 S
-Z America/Kentucky/Louisville -5:43:2 - LMT 1883 N 18 12:16:58
+Z America/Kentucky/Louisville -5:43:2 - LMT 1883 N 18 18u
 -6 u C%sT 1921
 -6 v C%sT 1942
 -6 u C%sT 1946
@@ -2852,7 +2854,7 @@ Z America/Kentucky/Louisville -5:43:2 - LMT 1883 N 18 12:16:58
 -5 u E%sT 1974 Ja 6 2
 -6 1 CDT 1974 O 27 2
 -5 u E%sT
-Z America/Kentucky/Monticello -5:39:24 - LMT 1883 N 18 12:20:36
+Z America/Kentucky/Monticello -5:39:24 - LMT 1883 N 18 18u
 -6 u C%sT 1946
 -6 - CST 1968
 -6 u C%sT 2000 O 29 2
@@ -3194,6 +3196,8 @@ Z America/Dawson -9:17:40 - LMT 1900 Au 20
 -8 Y P%sT 1980
 -8 C P%sT 2020 N
 -7 - MST
+R m 1931 o - May 1 23 1 D
+R m 1931 o - O 1 0 0 S
 R m 1939 o - F 5 0 1 D
 R m 1939 o - Jun 25 0 0 S
 R m 1940 o - D 9 0 1 D
@@ -3208,87 +3212,75 @@ R m 2001 o - May Su>=1 2 1 D
 R m 2001 o - S lastSu 2 0 S
 R m 2002 ma - Ap Su>=1 2 1 D
 R m 2002 ma - O lastSu 2 0 S
-Z America/Cancun -5:47:4 - LMT 1922 Ja 1 0:12:56
+Z America/Cancun -5:47:4 - LMT 1922 Ja 1 6u
 -6 - CST 1981 D 23
 -5 m E%sT 1998 Au 2 2
 -6 m C%sT 2015 F 1 2
 -5 - EST
-Z America/Merida -5:58:28 - LMT 1922 Ja 1 0:1:32
+Z America/Merida -5:58:28 - LMT 1922 Ja 1 6u
 -6 - CST 1981 D 23
 -5 - EST 1982 D 2
 -6 m C%sT
-Z America/Matamoros -6:40 - LMT 1921 D 31 23:20
+Z America/Matamoros -6:30 - LMT 1922 Ja 1 6u
 -6 - CST 1988
 -6 u C%sT 1989
 -6 m C%sT 2010
 -6 u C%sT
-Z America/Monterrey -6:41:16 - LMT 1921 D 31 23:18:44
+Z America/Monterrey -6:41:16 - LMT 1922 Ja 1 6u
 -6 - CST 1988
 -6 u C%sT 1989
 -6 m C%sT
-Z America/Mexico_City -6:36:36 - LMT 1922 Ja 1 0:23:24
+Z America/Mexico_City -6:36:36 - LMT 1922 Ja 1 7u
 -7 - MST 1927 Jun 10 23
 -6 - CST 1930 N 15
--7 - MST 1931 May 1 23
--6 - CST 1931 O
--7 - MST 1932 Ap
+-7 m M%sT 1932 Ap
 -6 m C%sT 2001 S 30 2
 -6 - CST 2002 F 20
 -6 m C%sT
-Z America/Ojinaga -6:57:40 - LMT 1922 Ja 1 0:2:20
+Z America/Ojinaga -6:57:40 - LMT 1922 Ja 1 7u
 -7 - MST 1927 Jun 10 23
 -6 - CST 1930 N 15
--7 - MST 1931 May 1 23
--6 - CST 1931 O
--7 - MST 1932 Ap
+-7 m M%sT 1932 Ap
 -6 - CST 1996
 -6 m C%sT 1998
 -6 - CST 1998 Ap Su>=1 3
 -7 m M%sT 2010
 -7 u M%sT
-Z America/Chihuahua -7:4:20 - LMT 1921 D 31 23:55:40
+Z America/Chihuahua -7:4:20 - LMT 1922 Ja 1 7u
 -7 - MST 1927 Jun 10 23
 -6 - CST 1930 N 15
--7 - MST 1931 May 1 23
--6 - CST 1931 O
--7 - MST 1932 Ap
+-7 m M%sT 1932 Ap
 -6 - CST 1996
 -6 m C%sT 1998
 -6 - CST 1998 Ap Su>=1 3
 -7 m M%sT
-Z America/Hermosillo -7:23:52 - LMT 1921 D 31 23:36:8
+Z America/Hermosillo -7:23:52 - LMT 1922 Ja 1 7u
 -7 - MST 1927 Jun 10 23
 -6 - CST 1930 N 15
--7 - MST 1931 May 1 23
--6 - CST 1931 O
--7 - MST 1932 Ap
+-7 m M%sT 1932 Ap
 -6 - CST 1942 Ap 24
 -7 - MST 1949 Ja 14
 -8 - PST 1970
 -7 m M%sT 1999
 -7 - MST
-Z America/Mazatlan -7:5:40 - LMT 1921 D 31 23:54:20
+Z America/Mazatlan -7:5:40 - LMT 1922 Ja 1 7u
 -7 - MST 1927 Jun 10 23
 -6 - CST 1930 N 15
--7 - MST 1931 May 1 23
--6 - CST 1931 O
--7 - MST 1932 Ap
+-7 m M%sT 1932 Ap
 -6 - CST 1942 Ap 24
 -7 - MST 1949 Ja 14
 -8 - PST 1970
 -7 m M%sT
-Z America/Bahia_Banderas -7:1 - LMT 1921 D 31 23:59
+Z America/Bahia_Banderas -7:1 - LMT 1922 Ja 1 7u
 -7 - MST 1927 Jun 10 23
 -6 - CST 1930 N 15
--7 - MST 1931 May 1 23
--6 - CST 1931 O
--7 - MST 1932 Ap
+-7 m M%sT 1932 Ap
 -6 - CST 1942 Ap 24
 -7 - MST 1949 Ja 14
 -8 - PST 1970
 -7 m M%sT 2010 Ap 4 2
 -6 m C%sT
-Z America/Tijuana -7:48:4 - LMT 1922 Ja 1 0:11:56
+Z America/Tijuana -7:48:4 - LMT 1922 Ja 1 7u
 -7 - MST 1924
 -8 - PST 1927 Jun 10 23
 -7 - MST 1930 N 15
