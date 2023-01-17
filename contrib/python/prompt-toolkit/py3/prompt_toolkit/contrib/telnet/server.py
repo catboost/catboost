@@ -169,9 +169,7 @@ class TelnetConnection:
 
         def ttype_received(ttype: str) -> None:
             """TelnetProtocolParser 'ttype_received' callback"""
-            self.vt100_output = Vt100_Output(
-                self.stdout, get_size, term=ttype, write_binary=False
-            )
+            self.vt100_output = Vt100_Output(self.stdout, get_size, term=ttype)
             self._ready.set()
 
         self.parser = TelnetProtocolParser(data_received, size_received, ttype_received)
@@ -245,7 +243,7 @@ class TelnetConnection:
         # Make sure that when an application was active for this connection,
         # that we print the text above the application.
         if self.context:
-            self.context.run(run_in_terminal, func)
+            self.context.run(run_in_terminal, func)  # type: ignore
         else:
             raise RuntimeError("Called _run_in_terminal outside `run_application`.")
 
