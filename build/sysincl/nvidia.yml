@@ -28,6 +28,7 @@
   - host_defines.h
   - library_types.h
   - math_constants.h
+  - nvrtc.h  
   - npp.h
   - nppi.h
   - nvToolsExt.h
