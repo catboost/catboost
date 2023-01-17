@@ -29,7 +29,7 @@ def to_basestring(value):
         return value
     try:
         if six.PY2:
-            return unicode(value)
+            return unicode(value)  # noqa
         else:
             return str(value)
     except UnicodeDecodeError:
@@ -37,6 +37,8 @@ def to_basestring(value):
             return str(value)
         except UnicodeEncodeError:
             return repr(value)
+
+
 to_text = to_basestring
 
 
@@ -45,7 +47,7 @@ def to_unicode(value, from_enc=DEFAULT_ENCODING):
         return value
     if isinstance(value, six.binary_type):
         if six.PY2:
-            return unicode(value, from_enc, ENCODING_ERRORS_POLICY)
+            return unicode(value, from_enc, ENCODING_ERRORS_POLICY)  # noqa
         else:
             return value.decode(from_enc, errors=ENCODING_ERRORS_POLICY)
     return six.text_type(value)
