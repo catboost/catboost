@@ -13,16 +13,16 @@
  
  __all__ = [
      'Distribution',
-@@ -869,7 +875,7 @@ class Prepared:
+@@ -898,7 +898,7 @@ class Prepared:
          return bool(self.name)
  
  
--#@install
+-@install
 +@install(ARCADIA == False)
  class MetadataPathFinder(NullFinder, DistributionFinder):
      """A degenerate finder for distribution packages on the file system.
  
-@@ -957,7 +963,7 @@ class ArcadiaDistribution(Distribution):
+@@ -999,7 +1005,7 @@ class ArcadiaDistribution(Distribution):
          return '{}{}'.format(self.prefix, path)
  
  
@@ -33,7 +33,7 @@
      prefixes = {}
 --- contrib/python/importlib-metadata/py3/importlib_metadata/_compat.py	(index)
 +++ contrib/python/importlib-metadata/py3/importlib_metadata/_compat.py	(working tree)
-@@ -11,17 +11,20 @@ except ImportError:  # pragma: no cover
+@@ -12,17 +12,20 @@ except ImportError:  # pragma: no cover
      from typing_extensions import Protocol  # type: ignore
  
  
