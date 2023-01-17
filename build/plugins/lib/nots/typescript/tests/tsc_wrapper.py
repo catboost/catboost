@@ -84,11 +84,6 @@ def test_ts_config_transform():
         "include": ["src/**/*"],
     }
 
-    cfg.transform_paths(
-        build_path="bindir",
-        sources_path="srcdir",
-    )
-
     assert cfg.data == {
         "compilerOptions": {
             "outDir": "bindir/build",
@@ -110,11 +105,6 @@ def test_ts_config_transform_when_root_eq_out():
         },
     }
 
-    cfg.transform_paths(
-        build_path="bindir",
-        sources_path="srcdir",
-    )
-
     assert cfg.data == {
         "compilerOptions": {
             "rootDir": "srcdir",
@@ -135,11 +125,6 @@ def test_ts_config_transform_sets_correct_source_root():
             "sourceMap": True,
         },
     }
-
-    cfg.transform_paths(
-        build_path="bindir",
-        sources_path="srcdir",
-    )
 
     assert cfg.data == {
         "compilerOptions": {

@@ -67,10 +67,6 @@ class TsBundleWrapper(object):
 
         config = TsConfig.load(self.ts_config_curpath)
         config.validate()
-        config.transform_paths(
-            build_path=self.build_path,
-            sources_path=self.sources_path,
-        )
 
         config.path = self.ts_config_binpath
         config.write()

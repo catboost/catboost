@@ -7819,7 +7819,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1387591549,
+                "sandbox_id": 1388784527,
                 "match": "infractl"
             },
             "executable": {
@@ -8236,11 +8236,14 @@
         },
         "renderer": {
             "formula": {
-                "sandbox_id": [
-                    1217317559,
-                    1219860570
-                ],
-                "match": ""
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "REPORT_RENDERER_BUNDLE",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    }
+                }
             },
             "executable": {
                 "renderer": [
@@ -8250,11 +8253,14 @@
         },
         "appteka": {
             "formula": {
-                "sandbox_id": [
-                    1351396288,
-                    1351404983
-                ],
-                "match": "appteka"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "APPTEKA_BUNDLE",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    }
+                }
             },
             "executable": {
                 "appteka": [
@@ -8985,7 +8991,7 @@
         "vh3": {
             "formula": {
                 "sandbox_id": [
-                    1374299104
+                    1389153629
                 ],
                 "match": "vh3"
             },

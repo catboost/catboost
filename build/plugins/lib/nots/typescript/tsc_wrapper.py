@@ -51,10 +51,6 @@ class TscWrapper(object):
     def _build_config(self):
         config = TsConfig.load(self.config_path)
         config.validate()
-        config.transform_paths(
-            build_path=self.build_path,
-            sources_path=self.sources_path,
-        )
 
         config.path = os.path.join(self.build_path, self._TSCONFIG_FILENAME)
         config.write()
