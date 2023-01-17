@@ -223,7 +223,9 @@ namespace NCB {
                 (*typedSequence)->ForEach(
                     [this, resultRef, &i] (float srcLabel) {
                         const auto it = FloatLabelToClass.find(srcLabel);
-                        CB_ENSURE(it != FloatLabelToClass.end(), "Unknown class label: \"" << srcLabel << '"');
+                        if (it == FloatLabelToClass.end()) {
+                            ythrow TUnknownClassLabelException(ToString(srcLabel));
+                        }
                         resultRef[i++] = it->second;
                     }
                 );
@@ -236,10 +238,9 @@ namespace NCB {
                 localExecutor->ExecRangeBlockedWithThrow(
                     [this, resultRef, stringLabels] (int i) {
                         const auto it = StringLabelToClass.find(stringLabels[i]);
-                        CB_ENSURE(
-                            it != StringLabelToClass.end(),
-                            "Unknown class label: \"" << EscapeC(stringLabels[i]) << '"'
-                        );
+                        if (it == StringLabelToClass.end()) {
+                            ythrow TUnknownClassLabelException(EscapeC(stringLabels[i]));
+                        }
                         resultRef[i] = it->second;
                     },
                     0,

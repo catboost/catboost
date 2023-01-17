@@ -16,6 +16,7 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <catboost/private/libs/target/target_converter.h>
 #include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/private/libs/feature_estimator/embedding_feature_estimators.h>
@@ -175,20 +176,29 @@ namespace NCB {
 
         CB_ENSURE(dataCanBeEmpty || srcData->RawTargetData.GetObjectCount() > 0, "Dataset " << datasetName  << " is empty");
 
-        trainingData->TargetData = CreateTargetDataProvider(
-            srcData->RawTargetData,
-            trainingData->ObjectsData->GetSubgroupIds(),
-            /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
-            &params->LossFunctionDescription.Get(),
-            /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
-            /*knownModelApproxDimension*/ Nothing(),
-            targetCreationOptions,
-            inputClassificationInfo,
-            &outputClassificationInfo,
-            rand,
-            localExecutor,
-            &outputPairsInfo
-        );
+        try {
+            trainingData->TargetData = CreateTargetDataProvider(
+                srcData->RawTargetData,
+                trainingData->ObjectsData->GetSubgroupIds(),
+                /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
+                &params->LossFunctionDescription.Get(),
+                /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
+                /*knownModelApproxDimension*/ Nothing(),
+                targetCreationOptions,
+                inputClassificationInfo,
+                &outputClassificationInfo,
+                rand,
+                localExecutor,
+                &outputPairsInfo
+            );
+        } catch (const TUnknownClassLabelException& e) {
+            if (!isLearnData) {
+                ythrow TCatBoostException() << "Dataset " << datasetName << " contains class label \"" << e.GetUnknownClassLabel()
+                    << "\" that is not present in the learn dataset";
+            } else {
+                throw;
+            }
+        }
 
         CheckTargetConsistency(
             trainingData->TargetData,
