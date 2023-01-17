@@ -41,7 +41,7 @@ import typing
 
 if typing.TYPE_CHECKING:
     from typing import Type  # noqa: F401
-    from wsgiref.types import WSGIApplication as WSGIAppType  # noqa: F401
+    from _typeshed.wsgi import WSGIApplication as WSGIAppType  # noqa: F401
 
 
 # PEP 3333 specifies that WSGI on python 3 generally deals with byte strings
@@ -73,12 +73,15 @@ class WSGIContainer(object):
             status = "200 OK"
             response_headers = [("Content-type", "text/plain")]
             start_response(status, response_headers)
-            return ["Hello world!\n"]
+            return [b"Hello world!\n"]
 
-        container = tornado.wsgi.WSGIContainer(simple_app)
-        http_server = tornado.httpserver.HTTPServer(container)
-        http_server.listen(8888)
-        tornado.ioloop.IOLoop.current().start()
+        async def main():
+            container = tornado.wsgi.WSGIContainer(simple_app)
+            http_server = tornado.httpserver.HTTPServer(container)
+            http_server.listen(8888)
+            await asyncio.Event().wait()
+
+        asyncio.run(main())
 
     This class is intended to let other frameworks (Django, web.py, etc)
     run on the Tornado HTTP server and I/O loop.
@@ -146,8 +149,7 @@ class WSGIContainer(object):
 
     @staticmethod
     def environ(request: httputil.HTTPServerRequest) -> Dict[Text, Any]:
-        """Converts a `tornado.httputil.HTTPServerRequest` to a WSGI environment.
-        """
+        """Converts a `tornado.httputil.HTTPServerRequest` to a WSGI environment."""
         hostport = request.host.split(":")
         if len(hostport) == 2:
             host = hostport[0]
@@ -192,7 +194,14 @@ class WSGIContainer(object):
         request_time = 1000.0 * request.request_time()
         assert request.method is not None
         assert request.uri is not None
-        summary = request.method + " " + request.uri + " (" + request.remote_ip + ")"
+        summary = (
+            request.method  # type: ignore[operator]
+            + " "
+            + request.uri
+            + " ("
+            + request.remote_ip
+            + ")"
+        )
         log_method("%d %s %.2fms", status_code, summary, request_time)
 
 

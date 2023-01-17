@@ -20,7 +20,7 @@ via `tornado.web.RequestHandler.request`.
 """
 
 import calendar
-import collections
+import collections.abc
 import copy
 import datetime
 import email.utils
@@ -408,7 +408,7 @@ class HTTPServerRequest(object):
 
     def full_url(self) -> str:
         """Reconstructs the full URL for this request."""
-        return self.protocol + "://" + self.host + self.uri
+        return self.protocol + "://" + self.host + self.uri  # type: ignore[operator]
 
     def request_time(self) -> float:
         """Returns the amount of time it took for this request to execute."""
@@ -602,8 +602,7 @@ class HTTPConnection(object):
         raise NotImplementedError()
 
     def finish(self) -> None:
-        """Indicates that the last body data has been written.
-        """
+        """Indicates that the last body data has been written."""
         raise NotImplementedError()
 
 
@@ -665,7 +664,9 @@ class HTTPFile(ObjectDict):
     * ``content_type``
     """
 
-    pass
+    filename: str
+    body: bytes
+    content_type: str
 
 
 def _parse_request_range(

@@ -225,7 +225,6 @@ class WebSocketHandler(tornado.web.RequestHandler):
         self.ws_connection = None  # type: Optional[WebSocketProtocol]
         self.close_code = None  # type: Optional[int]
         self.close_reason = None  # type: Optional[str]
-        self.stream = None  # type: Optional[IOStream]
         self._on_close_called = False
 
     async def get(self, *args: Any, **kwargs: Any) -> None:
@@ -584,16 +583,6 @@ class WebSocketHandler(tornado.web.RequestHandler):
         if self.get_status() != 101 or self._on_close_called:
             super()._break_cycles()
 
-    def send_error(self, *args: Any, **kwargs: Any) -> None:
-        if self.stream is None:
-            super().send_error(*args, **kwargs)
-        else:
-            # If we get an uncaught exception during the handshake,
-            # we have no choice but to abruptly close the connection.
-            # TODO: for uncaught exceptions after the handshake,
-            # we can close the connection more gracefully.
-            self.stream.close()
-
     def get_websocket_protocol(self) -> Optional["WebSocketProtocol"]:
         websocket_version = self.request.headers.get("Sec-WebSocket-Version")
         if websocket_version in ("7", "8", "13"):
@@ -626,8 +615,7 @@ def _raise_not_supported_for_websockets(*args: Any, **kwargs: Any) -> None:
 
 
 class WebSocketProtocol(abc.ABC):
-    """Base class for WebSocket protocol versions.
-    """
+    """Base class for WebSocket protocol versions."""
 
     def __init__(self, handler: "_WebSocketDelegate") -> None:
         self.handler = handler
@@ -681,7 +669,7 @@ class WebSocketProtocol(abc.ABC):
 
     @abc.abstractmethod
     def write_message(
-        self, message: Union[str, bytes], binary: bool = False
+        self, message: Union[str, bytes, Dict[str, Any]], binary: bool = False
     ) -> "Future[None]":
         raise NotImplementedError()
 
@@ -1073,13 +1061,15 @@ class WebSocketProtocol13(WebSocketProtocol):
         return self.stream.write(frame)
 
     def write_message(
-        self, message: Union[str, bytes], binary: bool = False
+        self, message: Union[str, bytes, Dict[str, Any]], binary: bool = False
     ) -> "Future[None]":
         """Sends the given message to the client of this Web Socket."""
         if binary:
             opcode = 0x2
         else:
             opcode = 0x1
+        if isinstance(message, dict):
+            message = tornado.escape.json_encode(message)
         message = tornado.escape.utf8(message)
         assert isinstance(message, bytes)
         self._message_bytes_out += len(message)
@@ -1494,7 +1484,7 @@ class WebSocketClientConnection(simple_httpclient._HTTPConnection):
         future_set_result_unless_cancelled(self.connect_future, self)
 
     def write_message(
-        self, message: Union[str, bytes], binary: bool = False
+        self, message: Union[str, bytes, Dict[str, Any]], binary: bool = False
     ) -> "Future[None]":
         """Sends a message to the WebSocket server.
 
@@ -1505,6 +1495,8 @@ class WebSocketClientConnection(simple_httpclient._HTTPConnection):
            Exception raised on a closed stream changed from `.StreamClosedError`
            to `WebSocketClosedError`.
         """
+        if self.protocol is None:
+            raise WebSocketClosedError("Client connection has been closed")
         return self.protocol.write_message(message, binary=binary)
 
     def read_message(

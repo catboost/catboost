@@ -11,6 +11,7 @@ and `.Resolver`.
 """
 
 import array
+import asyncio
 import atexit
 from inspect import getfullargspec
 import os
@@ -63,19 +64,13 @@ except ImportError:
     is_finalizing = _get_emulated_is_finalizing()
 
 
-class TimeoutError(Exception):
-    """Exception raised by `.with_timeout` and `.IOLoop.run_sync`.
-
-    .. versionchanged:: 5.0:
-       Unified ``tornado.gen.TimeoutError`` and
-       ``tornado.ioloop.TimeoutError`` as ``tornado.util.TimeoutError``.
-       Both former names remain as aliases.
-    """
+# versionchanged:: 6.2
+# no longer our own TimeoutError, use standard asyncio class
+TimeoutError = asyncio.TimeoutError
 
 
 class ObjectDict(Dict[str, Any]):
-    """Makes a dictionary behave like an object, with attribute-style access.
-    """
+    """Makes a dictionary behave like an object, with attribute-style access."""
 
     def __getattr__(self, name: str) -> Any:
         try:
@@ -115,8 +110,7 @@ class GzipDecompressor(object):
 
     @property
     def unconsumed_tail(self) -> bytes:
-        """Returns the unconsumed portion left over
-        """
+        """Returns the unconsumed portion left over"""
         return self.decompressobj.unconsumed_tail
 
     def flush(self) -> bytes:
@@ -168,14 +162,8 @@ def exec_in(
 
 
 def raise_exc_info(
-    exc_info,  # type: Tuple[Optional[type], Optional[BaseException], Optional[TracebackType]]
-):
-    # type: (...) -> typing.NoReturn
-    #
-    # This function's type annotation must use comments instead of
-    # real annotations because typing.NoReturn does not exist in
-    # python 3.5's typing module. The formatting is funky because this
-    # is apparently what flake8 wants.
+    exc_info: Tuple[Optional[type], Optional[BaseException], Optional["TracebackType"]]
+) -> typing.NoReturn:
     try:
         if exc_info[1] is not None:
             raise exc_info[1].with_traceback(exc_info[2])
