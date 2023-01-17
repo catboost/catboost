@@ -7,6 +7,7 @@
 #include <util/generic/cast.h>
 #include <util/generic/ptr.h>
 #include <util/generic/ymath.h>
+#include <util/system/info.h>
 
 using namespace NCB;
 
@@ -91,7 +92,12 @@ static THolder<ILineDataReader> GetSpotsLineDataReader(
 
 void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
     NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(calculateStatisticsParams.ThreadCount - 1);
+
+    int threadCount = (calculateStatisticsParams.ThreadCount == -1) ?
+        SafeIntegerCast<int>(NSystemInfo::CachedNumberOfCpus())
+        : calculateStatisticsParams.ThreadCount;
+
+    localExecutor.RunAdditionalThreads(threadCount - 1);
 
     const int blockSize = Max<int>(
         10000, 10000 // ToDo: meaningful estimation
