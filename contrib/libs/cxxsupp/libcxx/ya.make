@@ -118,6 +118,7 @@ ENDIF()
 DEFAULT(CXX_RT "default")
 
 DISABLE(NEED_GLIBCXX_CXX17_SHIMS)
+DISABLE(NEED_CXX_RT_ADDINCL)
 
 IF (CXX_RT == "libcxxrt")
     PEERDIR(
@@ -144,6 +145,7 @@ ELSEIF (CXX_RT == "glibcxx_static")
     )
     CXXFLAGS(-D__GLIBCXX__=1)
     ENABLE(NEED_GLIBCXX_CXX17_SHIMS)
+    ENABLE(NEED_CXX_RT_ADDINCL)
     CFLAGS(
         GLOBAL -DLIBCXX_BUILDING_LIBGCC
     )
@@ -157,6 +159,7 @@ ELSEIF (CXX_RT == "glibcxx_dynamic")
         GLOBAL -DLIBCXX_BUILDING_LIBGCC
     )
     ENABLE(NEED_GLIBCXX_CXX17_SHIMS)
+    ENABLE(NEED_CXX_RT_ADDINCL)
 ELSEIF (CXX_RT == "default")
     # Do nothing
 ELSE()
@@ -167,18 +170,21 @@ IF (NEED_GLIBCXX_CXX17_SHIMS)
     IF (GCC)
         # Assume GCC is bundled with a modern enough version of C++ runtime
     ELSEIF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14" OR OS_SDK == "ubuntu-16")
-        # FIXME:
-        # This looks extremely weird and we have to use cxxabi.h from libsupc++ instead.
-        # This ADDINCL is placed here just to fix the status quo
-        ADDINCL(
-            GLOBAL contrib/libs/cxxsupp/libcxxrt/include
-        )
         # Prior to ubuntu-18, system C++ runtime for C++17 is incomplete
         # and requires std::uncaught_exceptions() to be implemented.
         SRCS(
             glibcxx_eh_cxx17.cpp
         )
     ENDIF()
+ENDIF()
+
+IF (NEED_CXX_RT_ADDINCL)
+    # FIXME:
+    # This looks extremely weird and we have to use cxxabi.h from libsupc++ instead.
+    # This ADDINCL is placed here just to fix the status quo
+    ADDINCL(
+         GLOBAL contrib/libs/cxxsupp/libcxxrt/include
+    )
 ENDIF()
 
 NO_UTIL()
