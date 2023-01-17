@@ -1,6 +1,0 @@
-dos_to_unix:
-- pathlib2/*.py
-- README.rst
-- LICENSE.rst
-- .dist-info/METADATA
-
