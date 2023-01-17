@@ -264,6 +264,7 @@
         },
         "dev_max_ctr_complexity_for_borders_cache" : 1,
         "observations_to_bootstrap" : "TestOnly",
+        "fixed_binary_splits" : [ ],
         "depth" : 6,
         "max_leaves" : 64,
         "rsm" : 1,

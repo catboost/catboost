@@ -380,6 +380,10 @@ namespace NCatboostCuda {
                                                      Options.MaxLeaves);
     }
 
+    bool TGreedySearchHelper::HaveFixedSplits(ui32 depth) const {
+        return Options.FixedBinarySplits.size() > depth; // allow empty leaves after fixed splits
+    }
+
     void TGreedySearchHelper::ComputeOptimalSplits(TPointsSubsets* subsets) {
         SplitPropsHelper.BuildNecessaryHistograms(subsets);
 
@@ -388,6 +392,19 @@ namespace NCatboostCuda {
         if (leavesToVisit.empty()) {
             return;
         }
+
+        const auto depth = FindMaxDepth(subsets->Leaves);
+        if (HaveFixedSplits(depth)) {
+            TBestSplitProperties bestSplit;
+            bestSplit.BinId = 0;
+            bestSplit.FeatureId = Options.FixedBinarySplits[depth];
+            bestSplit.Score = -std::numeric_limits<float>::infinity();
+            for (auto leafId : leavesToVisit) {
+                subsets->Leaves[leafId].UpdateBestSplit(bestSplit);
+            }
+            return;
+        }
+
         ui32 numScoreBlocks = 1;
         switch (Options.Policy) {
             case EGrowPolicy::SymmetricTree: {
@@ -438,7 +455,7 @@ namespace NCatboostCuda {
                                    false,
                                    ScoreStdDev,
                                    Random.NextUniformL());
-        } else if (Options.Policy == EGrowPolicy::Depthwise) {
+        } else if (Options.Policy == EGrowPolicy::Depthwise || HaveFixedSplits(depth)) {
             auto leafIds = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leavesToVisit.size()));
             leafIds.Write(leavesToVisit);
 
@@ -545,8 +562,19 @@ namespace NCatboostCuda {
 
         TVector<ui32> leavesToSplit;
 
-        SelectLeavesToSplit(subsets,
-                            &leavesToSplit);
+        const auto depth = FindMaxDepth(subsets.Leaves);
+        if (HaveFixedSplits(depth + 1)) {
+            const auto& leaves = subsets.Leaves;
+            leavesToSplit.reserve(leaves.size());
+            for (auto leaf : xrange(leaves.size())) {
+                if (leaves[leaf].BestSplit.Defined() && leaves[leaf].BestSplit.Score < 0) {
+                    leavesToSplit.push_back(leaf);
+                }
+            }
+        } else {
+            SelectLeavesToSplit(subsets,
+                                &leavesToSplit);
+        }
 
         if (!leavesToSplit.empty()) {
             if (IsObliviousSplit() || Options.Policy == EGrowPolicy::Region) {
@@ -557,11 +585,8 @@ namespace NCatboostCuda {
             } else {
                 ui32 iteration = subsets.Leaves.size();
 
-                if (Options.Policy == EGrowPolicy::Depthwise) {
-                    iteration = 0;
-                    for (auto& leaf : subsets.Leaves) {
-                        iteration = Max(iteration, leaf.Path.GetDepth());
-                    }
+                if (Options.Policy == EGrowPolicy::Depthwise || HaveFixedSplits(depth + 1)) {
+                    iteration = FindMaxDepth(subsets.Leaves);
                 }
 
                 for (ui32 leafId : leavesToSplit) {

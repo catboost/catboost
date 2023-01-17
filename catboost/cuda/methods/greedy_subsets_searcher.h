@@ -27,6 +27,7 @@ namespace NCatboostCuda {
         options.MinLeafSize = config.MinDataInLeaf;
         options.L2Reg = config.L2Reg;
         options.Policy = config.GrowPolicy;
+        options.FixedBinarySplits = config.FixedBinarySplits;
         if (config.GrowPolicy == EGrowPolicy::Region) {
             options.MaxLeaves = config.MaxDepth + 1;
         } else {

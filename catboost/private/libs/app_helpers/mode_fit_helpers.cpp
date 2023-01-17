@@ -48,6 +48,7 @@ int NCB::ModeFitImpl(int argc, const char* argv[]) {
         InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
         NCatboostOptions::LoadPoolMetaInfoOptions(poolLoadParams.PoolMetaInfoPath, &catBoostJsonOptions);
         ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
+        ConvertFixedBinarySplitsFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
         NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
         ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
 
