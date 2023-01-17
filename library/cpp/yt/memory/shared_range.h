@@ -13,52 +13,62 @@ namespace NYT {
 template <class T, size_t N>
 class TCompactVector;
 
+////////////////////////////////////////////////////////////////////////////////
+
+DECLARE_REFCOUNTED_STRUCT(ISharedRangeHolder)
+
+struct ISharedRangeHolder
+    : public TRefCounted
+{ };
+
+DEFINE_REFCOUNTED_TYPE(ISharedRangeHolder)
+
+////////////////////////////////////////////////////////////////////////////////
+
 //! TRange with ownership semantics.
 template <class T>
 class TSharedRange
     : public TRange<T>
 {
 public:
-    using THolderPtr = TRefCountedPtr;
-
     //! Constructs a null TSharedRange.
     TSharedRange()
     { }
 
     //! Constructs a TSharedRange from TRange.
-    TSharedRange(TRange<T> range, THolderPtr holder)
+    TSharedRange(TRange<T> range, ISharedRangeHolderPtr holder)
         : TRange<T>(range)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedRange from a pointer and length.
-    TSharedRange(const T* data, size_t length, THolderPtr holder)
+    TSharedRange(const T* data, size_t length, ISharedRangeHolderPtr holder)
         : TRange<T>(data, length)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedRange from a range.
-    TSharedRange(const T* begin, const T* end, THolderPtr holder)
+    TSharedRange(const T* begin, const T* end, ISharedRangeHolderPtr holder)
         : TRange<T>(begin, end)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedRange from a TCompactVector.
     template <size_t N>
-    TSharedRange(const TCompactVector<T, N>& elements, THolderPtr holder)
+    TSharedRange(const TCompactVector<T, N>& elements, ISharedRangeHolderPtr holder)
         : TRange<T>(elements)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedRange from an std::vector.
-    TSharedRange(const std::vector<T>& elements, THolderPtr holder)
+    TSharedRange(const std::vector<T>& elements, ISharedRangeHolderPtr holder)
         : TRange<T>(elements)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedRange from a C array.
     template <size_t N>
-    TSharedRange(const T (& elements)[N], THolderPtr holder)
+    TSharedRange(const T (& elements)[N], ISharedRangeHolderPtr holder)
         : TRange<T>(elements)
         , Holder_(std::move(holder))
     { }
@@ -85,18 +95,18 @@ public:
         return TSharedRange<T>(begin, end, Holder_);
     }
 
-    const THolderPtr& GetHolder() const
+    const ISharedRangeHolderPtr& GetHolder() const
     {
         return Holder_;
     }
 
-    THolderPtr&& ReleaseHolder()
+    ISharedRangeHolderPtr&& ReleaseHolder()
     {
         return std::move(Holder_);
     }
 
 protected:
-    THolderPtr Holder_;
+    ISharedRangeHolderPtr Holder_;
 
 };
 
@@ -104,10 +114,10 @@ protected:
 
 //! Constructs a combined holder instance by taking ownership of a given list of holders.
 template <class... THolders>
-TRefCountedPtr MakeCompositeHolder(THolders&&... holders)
+ISharedRangeHolderPtr MakeSharedRangeHolder(THolders&&... holders)
 {
     struct THolder
-        : public TRefCounted
+        : public ISharedRangeHolder
     {
         std::tuple<typename std::decay<THolders>::type...> Holders;
     };
@@ -121,7 +131,7 @@ template <class T, class TContainer, class... THolders>
 TSharedRange<T> DoMakeSharedRange(TContainer&& elements, THolders&&... holders)
 {
     struct THolder
-        : public TRefCounted
+        : public ISharedRangeHolder
     {
         typename std::decay<TContainer>::type Elements;
         std::tuple<typename std::decay<THolders>::type...> Holders;
@@ -160,11 +170,11 @@ TSharedRange<T> MakeSharedRange(const std::vector<T>& elements, THolders&&... ho
 template <class T, class... THolders>
 TSharedRange<T> MakeSharedRange(TRange<T> range, THolders&&... holders)
 {
-    return TSharedRange<T>(range, MakeCompositeHolder(std::forward<THolders>(holders)...));
+    return TSharedRange<T>(range, MakeSharedRangeHolder(std::forward<THolders>(holders)...));
 }
 
 template <class T, class THolder>
-TSharedRange<T> MakeSharedRange(TRange<T> range, TIntrusivePtr<THolder> holder)
+TSharedRange<T> MakeSharedRange(TRange<T> range, ISharedRangeHolderPtr holder)
 {
     return TSharedRange<T>(range, std::move(holder));
 }
@@ -185,46 +195,44 @@ class TSharedMutableRange
     : public TMutableRange<T>
 {
 public:
-    using THolderPtr = TRefCountedPtr;
-
     //! Constructs a null TSharedMutableRange.
     TSharedMutableRange()
     { }
 
     //! Constructs a TSharedMutableRange from TMutableRange.
-    TSharedMutableRange(TMutableRange<T> range, THolderPtr holder)
+    TSharedMutableRange(TMutableRange<T> range, ISharedRangeHolderPtr holder)
         : TMutableRange<T>(range)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedMutableRange from a pointer and length.
-    TSharedMutableRange(T* data, size_t length, THolderPtr holder)
+    TSharedMutableRange(T* data, size_t length, ISharedRangeHolderPtr holder)
         : TMutableRange<T>(data, length)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedMutableRange from a range.
-    TSharedMutableRange(T* begin, T* end, THolderPtr holder)
+    TSharedMutableRange(T* begin, T* end, ISharedRangeHolderPtr holder)
         : TMutableRange<T>(begin, end)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedMutableRange from a TCompactVector.
     template <size_t N>
-    TSharedMutableRange(TCompactVector<T, N>& elements, THolderPtr holder)
+    TSharedMutableRange(TCompactVector<T, N>& elements, ISharedRangeHolderPtr holder)
         : TMutableRange<T>(elements)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedMutableRange from an std::vector.
-    TSharedMutableRange(std::vector<T>& elements, THolderPtr holder)
+    TSharedMutableRange(std::vector<T>& elements, ISharedRangeHolderPtr holder)
         : TMutableRange<T>(elements)
         , Holder_(std::move(holder))
     { }
 
     //! Constructs a TSharedMutableRange from a C array.
     template <size_t N>
-    TSharedMutableRange(T (& elements)[N], THolderPtr holder)
+    TSharedMutableRange(T (& elements)[N], ISharedRangeHolderPtr holder)
         : TMutableRange<T>(elements)
         , Holder_(std::move(holder))
     { }
@@ -251,26 +259,25 @@ public:
         return TSharedMutableRange<T>(begin, end, Holder_);
     }
 
-    THolderPtr GetHolder() const
+    ISharedRangeHolderPtr GetHolder() const
     {
         return Holder_;
     }
 
-    THolderPtr&& ReleaseHolder()
+    ISharedRangeHolderPtr&& ReleaseHolder()
     {
         return std::move(Holder_);
     }
 
 protected:
-    THolderPtr Holder_;
-
+    ISharedRangeHolderPtr Holder_;
 };
 
 template <class T, class TContainer, class... THolders>
 TSharedMutableRange<T> DoMakeSharedMutableRange(TContainer&& elements, THolders&&... holders)
 {
     struct THolder
-        : public TRefCounted
+        : public ISharedRangeHolder
     {
         typename std::decay<TContainer>::type Elements;
         std::tuple<typename std::decay<THolders>::type...> Holders;

@@ -111,9 +111,7 @@ private:
     struct TNullPayload
     { };
 
-    using THolder = TRefCountedPtr;
-
-    std::variant<TNullPayload, THolder, TString> Payload_;
+    std::variant<TNullPayload, ISharedRangeHolderPtr, TString> Payload_;
 
     const char* Begin_;
     ui64 Size_ : 56;
