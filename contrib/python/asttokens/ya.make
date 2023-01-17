@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(2.0.5)
+VERSION(2.0.7)
 
 LICENSE(Apache-2.0)
 
@@ -28,6 +28,7 @@ RESOURCE_FILES(
     PREFIX contrib/python/asttokens/
     .dist-info/METADATA
     .dist-info/top_level.txt
+    asttokens/py.typed
 )
 
 END()

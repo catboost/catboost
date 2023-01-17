@@ -5,8 +5,8 @@ ASTTokens
     :target: https://pypi.python.org/pypi/asttokens/
 .. image:: https://img.shields.io/pypi/pyversions/asttokens.svg
     :target: https://pypi.python.org/pypi/asttokens/
-.. image:: https://travis-ci.org/gristlabs/asttokens.svg?branch=master
-    :target: https://travis-ci.org/gristlabs/asttokens
+.. image:: https://github.com/gristlabs/asttokens/actions/workflows/build-and-test.yml/badge.svg
+    :target: https://github.com/gristlabs/asttokens/actions/workflows/build-and-test.yml
 .. image:: https://readthedocs.org/projects/asttokens/badge/?version=latest
     :target: http://asttokens.readthedocs.io/en/latest/index.html
 .. image:: https://coveralls.io/repos/github/gristlabs/asttokens/badge.svg
