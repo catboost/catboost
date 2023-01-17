@@ -84,6 +84,7 @@ def canonical_execute(
     diff_tool=None,
     diff_file_name=None,
     diff_tool_timeout=None,
+    data_transformer=None,
 ):
     """
     Shortcut to execute a binary and canonize its stdout
@@ -101,6 +102,7 @@ def canonical_execute(
     :param diff_tool: path to custome diff tool
     :param diff_file_name: custom diff file name to create when diff is found
     :param diff_tool_timeout: timeout for running diff tool
+    :param data_transformer: data modifier (before canonize)
     :return: object that can be canonized
     """
     if type(binary) == list:
@@ -118,10 +120,18 @@ def canonical_execute(
     del execute_args["diff_tool"]
     del execute_args["diff_file_name"]
     del execute_args["diff_tool_timeout"]
+    del execute_args["data_transformer"]
     if not file_name and stdin:
         file_name = os.path.basename(stdin.name)
     return _canonical_execute(
-        process.execute, execute_args, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout
+        process.execute,
+        execute_args,
+        file_name,
+        save_locally,
+        diff_tool,
+        diff_file_name,
+        diff_tool_timeout,
+        data_transformer,
     )
 
 
@@ -142,6 +152,7 @@ def canonical_py_execute(
     diff_tool=None,
     diff_file_name=None,
     diff_tool_timeout=None,
+    data_transformer=None,
 ):
     """
     Shortcut to execute a python script and canonize its stdout
@@ -159,6 +170,7 @@ def canonical_py_execute(
     :param diff_tool: path to custome diff tool
     :param diff_file_name: custom diff file name to create when diff is found
     :param diff_tool_timeout: timeout for running diff tool
+    :param data_transformer: data modifier (before canonize)
     :return: object that can be canonized
     """
     command = [runtime.source_path(script_path)] + _prepare_args(args)
@@ -172,8 +184,16 @@ def canonical_py_execute(
     del execute_args["diff_tool"]
     del execute_args["diff_file_name"]
     del execute_args["diff_tool_timeout"]
+    del execute_args["data_transformer"]
     return _canonical_execute(
-        process.py_execute, execute_args, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout
+        process.py_execute,
+        execute_args,
+        file_name,
+        save_locally,
+        diff_tool,
+        diff_file_name,
+        diff_tool_timeout,
+        data_transformer,
     )
 
 
@@ -185,7 +205,9 @@ def _prepare_args(args):
     return args
 
 
-def _canonical_execute(excutor, kwargs, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout):
+def _canonical_execute(
+    excutor, kwargs, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout, data_transformer
+):
     res = excutor(**kwargs)
     command = kwargs["command"]
     file_name = file_name or process.get_command_name(command)
@@ -193,6 +215,8 @@ def _canonical_execute(excutor, kwargs, file_name, save_locally, diff_tool, diff
         file_name = os.path.splitext(file_name)[0]  # don't want to bring windows stuff in file names
     out_file_path = path.get_unique_file_path(runtime.output_path(), "{}.out.txt".format(file_name))
     err_file_path = path.get_unique_file_path(runtime.output_path(), "{}.err.txt".format(file_name))
+    if not data_transformer:
+        data_transformer = lambda x: x
 
     try:
         os.makedirs(os.path.dirname(out_file_path))
@@ -201,7 +225,7 @@ def _canonical_execute(excutor, kwargs, file_name, save_locally, diff_tool, diff
 
     with open(out_file_path, "wb") as out_file:
         yatest_logger.debug("Will store file in %s", out_file_path)
-        out_file.write(res.std_out)
+        out_file.write(data_transformer(res.std_out))
 
     if res.std_err:
         with open(err_file_path, "wb") as err_file:
