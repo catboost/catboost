@@ -74,6 +74,7 @@ __all__ = [
     "CComplex",
     "CFloat",
     "CInt",
+    "CLong",
     "CRegExp",
     "CUnicode",
     "Callable",
@@ -95,7 +96,9 @@ __all__ = [
     "HasTraits",
     "Instance",
     "Int",
+    "Integer",
     "List",
+    "Long",
     "MetaHasDescriptors",
     "MetaHasTraits",
     "ObjectName",
@@ -3455,16 +3458,3 @@ class Callable(TraitType):
             return value
         else:
             self.error(obj, value)
-
-
-def _add_all():
-    """add all trait types to `__all__`
-
-    do in a function to avoid iterating through globals while defining local variables
-    """
-    for _name, _value in globals().items():
-        if not _name.startswith("_") and isinstance(_value, type) and issubclass(_value, TraitType):
-            __all__.append(_name)
-
-
-_add_all()
