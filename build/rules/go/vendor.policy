@@ -1103,6 +1103,13 @@ ALLOW .* -> vendor/github.com/fatih/color
 # CONTRIB-2519
 ALLOW .* -> vendor/github.com/nathan-osman/go-sunrise
 
+# CONTRIB-2541
+ALLOW noc/traffic/dns/.* -> vendor/github.com/gin-gonic/gin
+
+# CONTRIB-2542
+ALLOW noc/traffic/dns/.* -> vendor/github.com/gin-contrib/gzip
+
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #

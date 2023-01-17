@@ -32,7 +32,6 @@ ALLOW alice/hollywood/library/scenarios/suggesters/games/ut -> alice/megamind/li
 ALLOW alice/hollywood/library/scenarios/suggesters/movie_akinator -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/suggesters/movie_akinator/ammo_generator -> alice/megamind/library/session/protos
 ALLOW alice/hollywood/library/scenarios/suggesters/movies/ut -> alice/megamind/library/util
-ALLOW alice/library/nlg -> alice/megamind/library/util
 ALLOW alice/library/video_common/ut -> alice/megamind/library/testing
 ALLOW alice/library/websearch -> alice/megamind/library/search/protos
 ALLOW alice/tools/sessions_tool -> alice/megamind/library/session
