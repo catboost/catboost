@@ -182,7 +182,9 @@ def onjava_module(unit, *args):
 
     if not data['EXTERNAL_JAR']:
         has_processor = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)
-        data['EMBED_VCS'] = [[str(has_processor and has_processor[0] and has_processor[0][0])]]
+        # IMPORTANT before switching vcs_info.py to python3 the value was always evaluated to $YMAKE_PYTHON but no
+        # code in java dart parser extracts its value only checks this key for existance.
+        data['EMBED_VCS'] = [['yes']]
         # FORCE_VCS_INFO_UPDATE is responsible for setting special value of VCS_INFO_DISABLE_CACHE__NO_UID__
         macro_val = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
         macro_str = macro_val[0][0] if macro_val and macro_val[0] and macro_val[0][0] else ''
