@@ -232,13 +232,8 @@ class Source(object):
             for node in ast.walk(self.tree):
                 for child in ast.iter_child_nodes(node):
                     child.parent = node
-                if hasattr(node, "lineno"):
-                    if hasattr(node, "end_lineno") and isinstance(node, ast.expr):
-                        linenos = range(node.lineno, node.end_lineno + 1)
-                    else:
-                        linenos = [node.lineno]
-                    for lineno in linenos:
-                        self._nodes_by_line[lineno].append(node)
+                for lineno in node_linenos(node):
+                    self._nodes_by_line[lineno].append(node)
 
             visitor = QualnameVisitor()
             visitor.visit(self.tree)
@@ -1069,10 +1064,10 @@ def assert_linenos(tree):
     for node in ast.walk(tree):
         if (
                 hasattr(node, 'parent') and
-                hasattr(node, 'lineno') and
                 isinstance(statement_containing_node(node), ast.Assert)
         ):
-            yield node.lineno
+            for lineno in node_linenos(node):
+                yield lineno
 
 
 def _extract_ipython_statement(stmt):
@@ -1116,3 +1111,13 @@ def attr_names_match(attr, argval):
     if not attr.startswith("__"):
         return False
     return bool(re.match(r"^_\w+%s$" % attr, argval))
+
+
+def node_linenos(node):
+    if hasattr(node, "lineno"):
+        if hasattr(node, "end_lineno") and isinstance(node, ast.expr):
+            linenos = range(node.lineno, node.end_lineno + 1)
+        else:
+            linenos = [node.lineno]
+        for lineno in linenos:
+            yield lineno
