@@ -12,7 +12,6 @@ RECURSE(
     decorator
     enum34
     executing
-    faulthandler
     filelock
     funcsigs
     graphviz

@@ -21,7 +21,7 @@ IF (PYTHON2)
     )
 
     PEERDIR(
-        contrib/python/faulthandler
+        contrib/deprecated/python/faulthandler
     )
 ELSE()
     PY_SRCS(
