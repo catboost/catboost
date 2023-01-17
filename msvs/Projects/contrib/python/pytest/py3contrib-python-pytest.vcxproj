@@ -132,6 +132,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3contrib-python-attrs.vcxproj">
       <Project>{87CA5CA6-1C23-2B8C-87B3-81C77768D493}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.vcxproj">
+      <Project>{222DCE03-FC37-31E2-263D-AC44A696AEBF}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\iniconfig\pycontrib-python-iniconfig.vcxproj">
       <Project>{E5D4459D-AE85-DB42-4536-28E4D10DAFE9}</Project>
     </ProjectReference>
@@ -146,9 +149,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py3contrib-python-pluggy.vcxproj">
       <Project>{8D7C2B39-EB57-DAD1-BEFC-79BDCA46798E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\py3contrib-python-py.vcxproj">
-      <Project>{F94F7527-BE66-A02A-C969-84198A7FBECB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py3\pypython-pyparsing-py3.vcxproj">
       <Project>{1C007609-3C2A-B92E-5A3B-C2BB9766A4B0}</Project>
