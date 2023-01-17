@@ -1,19 +1,19 @@
 {
     "by_platform": {
         "darwin": {
-            "uri": "sbr:3727003515"
+            "uri": "sbr:3780580764"
         },
         "darwin-arm64": {
-            "uri": "sbr:3727005472"
+            "uri": "sbr:3780581325"
         },
         "linux": {
-            "uri": "sbr:3727003324"
+            "uri": "sbr:3780581184"
         },
         "linux-ppc64le": {
-            "uri": "sbr:3727000999"
+            "uri": "sbr:3780579582"
         },
         "win32-clang-cl": {
-            "uri": "sbr:3727005980"
+            "uri": "sbr:3780581188"
         }
     }
 }
