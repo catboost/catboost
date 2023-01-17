@@ -5,6 +5,6 @@ The table below lists the names of parameters that define the metric values to o
 
 Command-line version parameters| Python parameters | R parameters
 -------------------------------|-------------------|------------------|
-`--custom-metric`              |  `custom_metric`  |  `custom_loss`   |
-`--loss-function`              | `--loss-function` | `--loss-function`|
-`--eval-metric`                | `--eval-metric`   | `--eval-metric`  |
+`--custom-metric`              | `custom_metric`   |  `custom_loss`   |
+`--loss-function`              | `loss-function`   |  `loss-function` |
+`--eval-metric`                | `eval-metric`     |  `eval-metric`   |
