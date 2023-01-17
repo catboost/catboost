@@ -7144,7 +7144,7 @@
             }
         },
         "clang14": {
-            "formula": "build/platform/clang/clang-default.json",
+            "formula": "build/platform/clang/clang14.json",
             "executable": {
                 "c++": [
                     "bin",
