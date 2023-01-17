@@ -1,5 +1,5 @@
 rootProject.name = "{{projectName}}"
 
 {% for subdir in subdirs -%}
-include(":{{ subdir | replace("/", ":") }}")
+include("{{ subdir | replace("/", ":") }}")
 {% endfor -%}
