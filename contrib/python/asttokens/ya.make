@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(2.1.0)
+VERSION(2.2.0)
 
 LICENSE(Apache-2.0)
 
@@ -17,6 +17,7 @@ NO_LINT()
 PY_SRCS(
     TOP_LEVEL
     asttokens/__init__.py
+    asttokens/astroid_compat.py
     asttokens/asttokens.py
     asttokens/line_numbers.py
     asttokens/mark_tokens.py

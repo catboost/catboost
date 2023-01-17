@@ -24,12 +24,7 @@ import six
 from . import util
 from .asttokens import ASTTokens
 from .util import AstConstant
-
-try:
-  import astroid.node_classes as nc
-except Exception:
-  # This is only used for type checking, we don't need it if astroid isn't installed.
-  nc = None
+from .astroid_compat import astroid_node_classes as nc
 
 if TYPE_CHECKING:
   from .util import AstNode
@@ -88,6 +83,9 @@ class MarkTokens(object):
     first = token
     last = None
     for child in cast(Callable, self._iter_children)(node):
+      # astroid slices have especially wrong positions, we don't want them to corrupt their parents.
+      if util.is_empty_astroid_slice(child):
+        continue
       if not first or child.first_token.index < first.index:
         first = child.first_token
       if not last or child.last_token.index > last.index:
