@@ -46,6 +46,7 @@ private:
 public:
     class const_iterator;
     using size_type = std::size_t;
+    using key_type = T;
 
     TCompactSet() {}
 
@@ -57,6 +58,9 @@ public:
 
     /// count - Return true if the element is in the set.
     size_type count(const T& v) const;
+
+    /// contains - Return true if the element is in the set.
+    bool contains(const T& v) const;
 
     /// insert - Insert an element into the set if it isn't already there.
     std::pair<const_iterator, bool> insert(const T& v);
