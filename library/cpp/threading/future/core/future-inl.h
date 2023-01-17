@@ -47,7 +47,7 @@ namespace NThreading {
             };
 
             void AccessValue(TDuration timeout, int acquireState) const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 if (Y_UNLIKELY(state == NotReady)) {
                     if (timeout == TDuration::Zero()) {
                         ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
@@ -109,7 +109,7 @@ namespace NThreading {
             }
 
             void TryRethrow() const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 TryRethrowWithState(state);
             }
 
@@ -141,7 +141,7 @@ namespace NThreading {
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -180,7 +180,7 @@ namespace NThreading {
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -210,7 +210,7 @@ namespace NThreading {
             template <typename F>
             bool Subscribe(F&& func) {
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state == NotReady) {
                         Callbacks.emplace_back(std::forward<F>(func));
                         return true;
@@ -231,7 +231,7 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state != NotReady) {
                         return true;
                     }
@@ -246,7 +246,7 @@ namespace NThreading {
                 return readyEvent->WaitD(deadline);
             }
 
-            void TryRethrowWithState(int state) const {
+            void TryRethrowWithState(TAtomicBase state) const {
                 if (Y_UNLIKELY(state == ExceptionSet)) {
                     Y_ASSERT(Exception);
                     std::rethrow_exception(Exception);
@@ -290,7 +290,7 @@ namespace NThreading {
             }
 
             void TryRethrow() const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 TryRethrowWithState(state);
             }
 
@@ -299,7 +299,7 @@ namespace NThreading {
             }
 
             void GetValue(TDuration timeout = TDuration::Zero()) const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 if (Y_UNLIKELY(state == NotReady)) {
                     if (timeout == TDuration::Zero()) {
                         ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
@@ -329,7 +329,7 @@ namespace NThreading {
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -366,7 +366,7 @@ namespace NThreading {
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -396,7 +396,7 @@ namespace NThreading {
             template <typename F>
             bool Subscribe(F&& func) {
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state == NotReady) {
                         Callbacks.emplace_back(std::forward<F>(func));
                         return true;
@@ -417,7 +417,7 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state != NotReady) {
                         return true;
                     }
@@ -432,7 +432,7 @@ namespace NThreading {
                 return readyEvent->WaitD(deadline);
             }
 
-            void TryRethrowWithState(int state) const {
+            void TryRethrowWithState(TAtomicBase state) const {
                 if (Y_UNLIKELY(state == ExceptionSet)) {
                     Y_ASSERT(Exception);
                     std::rethrow_exception(Exception);
