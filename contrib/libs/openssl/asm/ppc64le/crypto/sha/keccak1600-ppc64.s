@@ -1,8 +1,11 @@
+.abiversion	2
 .text
 
 .type	KeccakF1600_int,@function
 .align	5
 KeccakF1600_int:
+.localentry	KeccakF1600_int,0
+
 	li	0,24
 	mtctr	0
 	b	.Loop
@@ -180,6 +183,8 @@ KeccakF1600_int:
 .type	KeccakF1600,@function
 .align	5
 KeccakF1600:
+.localentry	KeccakF1600,0
+
 	stdu	1,-272(1)
 	mflr	0
 	std	14,128(1)
@@ -296,6 +301,8 @@ KeccakF1600:
 .type	dword_le_load,@function
 .align	5
 dword_le_load:
+.localentry	dword_le_load,0
+
 	lbzu	0,1(3)
 	lbzu	4,1(3)
 	lbzu	5,1(3)
@@ -319,14 +326,11 @@ dword_le_load:
 
 .globl	SHA3_absorb
 .type	SHA3_absorb,@function
-.section	".opd","aw"
-.align	3
-SHA3_absorb:
-.quad	.SHA3_absorb,.TOC.@tocbase,0
-.previous
 .type	SHA3_absorb,@function
 .align	5
-.SHA3_absorb:
+SHA3_absorb:
+.localentry	SHA3_absorb,0
+
 	stdu	1,-272(1)
 	mflr	0
 	std	14,128(1)
@@ -545,18 +549,14 @@ SHA3_absorb:
 .long	0
 .byte	0,12,4,1,0x80,18,4,0
 .long	0
-.size	.SHA3_absorb,.-.SHA3_absorb
-.size	SHA3_absorb,.-.SHA3_absorb
+.size	SHA3_absorb,.-SHA3_absorb
 .globl	SHA3_squeeze
 .type	SHA3_squeeze,@function
-.section	".opd","aw"
-.align	3
-SHA3_squeeze:
-.quad	.SHA3_squeeze,.TOC.@tocbase,0
-.previous
 .type	SHA3_squeeze,@function
 .align	5
-.SHA3_squeeze:
+SHA3_squeeze:
+.localentry	SHA3_squeeze,0
+
 	stdu	1,-80(1)
 	mflr	0
 	std	28,48(1)
@@ -626,8 +626,7 @@ SHA3_squeeze:
 .long	0
 .byte	0,12,4,1,0x80,4,4,0
 .long	0
-.size	.SHA3_squeeze,.-.SHA3_squeeze
-.size	SHA3_squeeze,.-.SHA3_squeeze
+.size	SHA3_squeeze,.-SHA3_squeeze
 .align	6
 PICmeup:
 	mflr	0
@@ -641,30 +640,30 @@ PICmeup:
 .space	28
 .type	iotas,@object
 iotas:
-.long	0x00000000,0x00000001
-.long	0x00000000,0x00008082
-.long	0x80000000,0x0000808a
-.long	0x80000000,0x80008000
-.long	0x00000000,0x0000808b
-.long	0x00000000,0x80000001
-.long	0x80000000,0x80008081
-.long	0x80000000,0x00008009
-.long	0x00000000,0x0000008a
-.long	0x00000000,0x00000088
-.long	0x00000000,0x80008009
-.long	0x00000000,0x8000000a
-.long	0x00000000,0x8000808b
-.long	0x80000000,0x0000008b
-.long	0x80000000,0x00008089
-.long	0x80000000,0x00008003
-.long	0x80000000,0x00008002
-.long	0x80000000,0x00000080
-.long	0x00000000,0x0000800a
-.long	0x80000000,0x8000000a
-.long	0x80000000,0x80008081
-.long	0x80000000,0x00008080
-.long	0x00000000,0x80000001
-.long	0x80000000,0x80008008
+.long	0x00000001,0x00000000
+.long	0x00008082,0x00000000
+.long	0x0000808a,0x80000000
+.long	0x80008000,0x80000000
+.long	0x0000808b,0x00000000
+.long	0x80000001,0x00000000
+.long	0x80008081,0x80000000
+.long	0x00008009,0x80000000
+.long	0x0000008a,0x00000000
+.long	0x00000088,0x00000000
+.long	0x80008009,0x00000000
+.long	0x8000000a,0x00000000
+.long	0x8000808b,0x00000000
+.long	0x0000008b,0x80000000
+.long	0x00008089,0x80000000
+.long	0x00008003,0x80000000
+.long	0x00008002,0x80000000
+.long	0x00000080,0x80000000
+.long	0x0000800a,0x00000000
+.long	0x8000000a,0x80000000
+.long	0x80008081,0x80000000
+.long	0x00008080,0x80000000
+.long	0x80000001,0x00000000
+.long	0x80008008,0x80000000
 .size	iotas,.-iotas
 .byte	75,101,99,99,97,107,45,49,54,48,48,32,97,98,115,111,114,98,32,97,110,100,32,115,113,117,101,101,122,101,32,102,111,114,32,80,80,67,54,52,44,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
 .align	2

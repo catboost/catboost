@@ -1,15 +1,13 @@
 .machine	"any"
+.abiversion	2
 .text
 
 .globl	ChaCha20_ctr32_int
 .type	ChaCha20_ctr32_int,@function
-.section	".opd","aw"
-.align	3
-ChaCha20_ctr32_int:
-.quad	.ChaCha20_ctr32_int,.TOC.@tocbase,0
-.previous
 .align	5
-.ChaCha20_ctr32_int:
+ChaCha20_ctr32_int:
+.localentry	ChaCha20_ctr32_int,0
+
 __ChaCha20_ctr32_int:
 	cmpldi	5,0
 	.long	0x4DC20020
@@ -69,8 +67,7 @@ __ChaCha20_ctr32_int:
 .long	0
 .byte	0,12,4,1,0x80,18,5,0
 .long	0
-.size	.ChaCha20_ctr32_int,.-.ChaCha20_ctr32_int
-.size	ChaCha20_ctr32_int,.-.ChaCha20_ctr32_int
+.size	ChaCha20_ctr32_int,.-ChaCha20_ctr32_int
 
 .align	5
 __ChaCha20_1x:
@@ -232,70 +229,6 @@ __ChaCha20_1x:
 	add	30,30,14
 	add	31,31,15
 	addi	11,11,1
-	mr	7,16
-	rotlwi	16,16,8
-	rlwimi	16,7,24,0,7
-	rlwimi	16,7,24,16,23
-	mr	8,17
-	rotlwi	17,17,8
-	rlwimi	17,8,24,0,7
-	rlwimi	17,8,24,16,23
-	mr	9,18
-	rotlwi	18,18,8
-	rlwimi	18,9,24,0,7
-	rlwimi	18,9,24,16,23
-	mr	10,19
-	rotlwi	19,19,8
-	rlwimi	19,10,24,0,7
-	rlwimi	19,10,24,16,23
-	mr	7,20
-	rotlwi	20,20,8
-	rlwimi	20,7,24,0,7
-	rlwimi	20,7,24,16,23
-	mr	8,21
-	rotlwi	21,21,8
-	rlwimi	21,8,24,0,7
-	rlwimi	21,8,24,16,23
-	mr	9,22
-	rotlwi	22,22,8
-	rlwimi	22,9,24,0,7
-	rlwimi	22,9,24,16,23
-	mr	10,23
-	rotlwi	23,23,8
-	rlwimi	23,10,24,0,7
-	rlwimi	23,10,24,16,23
-	mr	7,24
-	rotlwi	24,24,8
-	rlwimi	24,7,24,0,7
-	rlwimi	24,7,24,16,23
-	mr	8,25
-	rotlwi	25,25,8
-	rlwimi	25,8,24,0,7
-	rlwimi	25,8,24,16,23
-	mr	9,26
-	rotlwi	26,26,8
-	rlwimi	26,9,24,0,7
-	rlwimi	26,9,24,16,23
-	mr	10,27
-	rotlwi	27,27,8
-	rlwimi	27,10,24,0,7
-	rlwimi	27,10,24,16,23
-	mr	7,28
-	rotlwi	28,28,8
-	rlwimi	28,7,24,0,7
-	rlwimi	28,7,24,16,23
-	mr	8,29
-	rotlwi	29,29,8
-	rlwimi	29,8,24,0,7
-	rlwimi	29,8,24,16,23
-	mr	9,30
-	rotlwi	30,30,8
-	rlwimi	30,9,24,0,7
-	rlwimi	30,9,24,16,23
-	mr	10,31
-	rotlwi	31,31,8
-	rlwimi	31,10,24,0,7
-	rlwimi	31,10,24,16,23
 	bne	.Ltail
 
 	lwz	7,0(4)
@@ -409,13 +342,10 @@ __ChaCha20_1x:
 
 .globl	ChaCha20_ctr32_vmx
 .type	ChaCha20_ctr32_vmx,@function
-.section	".opd","aw"
-.align	3
-ChaCha20_ctr32_vmx:
-.quad	.ChaCha20_ctr32_vmx,.TOC.@tocbase,0
-.previous
 .align	5
-.ChaCha20_ctr32_vmx:
+ChaCha20_ctr32_vmx:
+.localentry	ChaCha20_ctr32_vmx,0
+
 	cmpldi	5,256
 	blt	__ChaCha20_ctr32_int
 
@@ -423,7 +353,7 @@ ChaCha20_ctr32_vmx:
 	mflr	0
 	li	10,127
 	li	11,143
-	mfspr	12,256
+	li	12,-1
 	stvx	23,10,1
 	addi	10,10,32
 	stvx	24,11,1
@@ -461,7 +391,7 @@ ChaCha20_ctr32_vmx:
 	std	31,408(1)
 	li	12,-4096+511
 	std	0, 432(1)
-	mtspr	256,12
+	or	12,12,12
 
 	bl	.Lconsts
 	li	16,16
@@ -472,12 +402,12 @@ ChaCha20_ctr32_vmx:
 	li	21,15
 
 	lvx	13,0,6
-	lvsl	29,0,6
+	lvsr	29,0,6
 	lvx	14,16,6
 	lvx	27,20,6
 
 	lvx	15,0,7
-	lvsl	30,0,7
+	lvsr	30,0,7
 	lvx	28,21,7
 
 	lvx	12,0,12
@@ -486,9 +416,9 @@ ChaCha20_ctr32_vmx:
 	lvx	19,18,12
 	lvx	23,19,12
 
-	vperm	13,13,14,29
-	vperm	14,14,27,29
-	vperm	15,15,28,30
+	vperm	13,14,13,29
+	vperm	14,27,14,29
+	vperm	15,28,15,30
 
 	lwz	11,0(7)
 	lwz	12,4(7)
@@ -500,15 +430,15 @@ ChaCha20_ctr32_vmx:
 
 	vxor	29,29,29
 	vspltisw	26,-1
-	lvsl	24,0,4
-	lvsr	25,0,3
-	vperm	26,29,26,25
+	lvsr	24,0,4
+	lvsl	25,0,3
+	vperm	26,26,29,25
 
-	lvsl	29,0,16
-	vspltisb	30,3
-	vxor	29,29,30
-	vxor	25,25,30
-	vperm	24,24,24,29
+
+
+
+
+
 
 	li	0,10
 	b	.Loop_outer_vmx
@@ -632,21 +562,21 @@ ChaCha20_ctr32_vmx:
 	rotlwi	29,29,8
 	rotlwi	30,30,8
 	rotlwi	31,31,8
-	vsldoi	2,2,2, 16-8
-	vsldoi	6,6,6, 16-8
-	vsldoi	10,10,10, 16-8
+	vsldoi	2,2,2, 8
+	vsldoi	6,6,6, 8
+	vsldoi	10,10,10, 8
 	add	24,24,28
 	add	25,25,29
 	add	26,26,30
-	vsldoi	1,1,1, 16-12
-	vsldoi	5,5,5, 16-12
-	vsldoi	9,9,9, 16-12
+	vsldoi	1,1,1, 12
+	vsldoi	5,5,5, 12
+	vsldoi	9,9,9, 12
 	add	27,27,31
 	xor	20,20,24
 	xor	21,21,25
-	vsldoi	3,3,3, 16-4
-	vsldoi	7,7,7, 16-4
-	vsldoi	11,11,11, 16-4
+	vsldoi	3,3,3, 4
+	vsldoi	7,7,7, 4
+	vsldoi	11,11,11, 4
 	xor	22,22,26
 	xor	23,23,27
 	rotlwi	20,20,7
@@ -725,21 +655,21 @@ ChaCha20_ctr32_vmx:
 	rotlwi	28,28,8
 	rotlwi	29,29,8
 	rotlwi	30,30,8
-	vsldoi	2,2,2, 16-8
-	vsldoi	6,6,6, 16-8
-	vsldoi	10,10,10, 16-8
+	vsldoi	2,2,2, 8
+	vsldoi	6,6,6, 8
+	vsldoi	10,10,10, 8
 	add	26,26,31
 	add	27,27,28
 	add	24,24,29
-	vsldoi	1,1,1, 16-4
-	vsldoi	5,5,5, 16-4
-	vsldoi	9,9,9, 16-4
+	vsldoi	1,1,1, 4
+	vsldoi	5,5,5, 4
+	vsldoi	9,9,9, 4
 	add	25,25,30
 	xor	21,21,26
 	xor	22,22,27
-	vsldoi	3,3,3, 16-12
-	vsldoi	7,7,7, 16-12
-	vsldoi	11,11,11, 16-12
+	vsldoi	3,3,3, 12
+	vsldoi	7,7,7, 12
+	vsldoi	11,11,11, 12
 	xor	23,23,24
 	xor	20,20,25
 	rotlwi	21,21,7
@@ -792,70 +722,6 @@ ChaCha20_ctr32_vmx:
 	vadduwm	16,16,18
 	vadduwm	17,17,18
 
-	mr	7,16
-	rotlwi	16,16,8
-	rlwimi	16,7,24,0,7
-	rlwimi	16,7,24,16,23
-	mr	8,17
-	rotlwi	17,17,8
-	rlwimi	17,8,24,0,7
-	rlwimi	17,8,24,16,23
-	mr	9,18
-	rotlwi	18,18,8
-	rlwimi	18,9,24,0,7
-	rlwimi	18,9,24,16,23
-	mr	10,19
-	rotlwi	19,19,8
-	rlwimi	19,10,24,0,7
-	rlwimi	19,10,24,16,23
-	mr	7,20
-	rotlwi	20,20,8
-	rlwimi	20,7,24,0,7
-	rlwimi	20,7,24,16,23
-	mr	8,21
-	rotlwi	21,21,8
-	rlwimi	21,8,24,0,7
-	rlwimi	21,8,24,16,23
-	mr	9,22
-	rotlwi	22,22,8
-	rlwimi	22,9,24,0,7
-	rlwimi	22,9,24,16,23
-	mr	10,23
-	rotlwi	23,23,8
-	rlwimi	23,10,24,0,7
-	rlwimi	23,10,24,16,23
-	mr	7,24
-	rotlwi	24,24,8
-	rlwimi	24,7,24,0,7
-	rlwimi	24,7,24,16,23
-	mr	8,25
-	rotlwi	25,25,8
-	rlwimi	25,8,24,0,7
-	rlwimi	25,8,24,16,23
-	mr	9,26
-	rotlwi	26,26,8
-	rlwimi	26,9,24,0,7
-	rlwimi	26,9,24,16,23
-	mr	10,27
-	rotlwi	27,27,8
-	rlwimi	27,10,24,0,7
-	rlwimi	27,10,24,16,23
-	mr	7,28
-	rotlwi	28,28,8
-	rlwimi	28,7,24,0,7
-	rlwimi	28,7,24,16,23
-	mr	8,29
-	rotlwi	29,29,8
-	rlwimi	29,8,24,0,7
-	rlwimi	29,8,24,16,23
-	mr	9,30
-	rotlwi	30,30,8
-	rlwimi	30,9,24,0,7
-	rlwimi	30,9,24,16,23
-	mr	10,31
-	rotlwi	31,31,8
-	rlwimi	31,10,24,0,7
-	rlwimi	31,10,24,16,23
 	lwz	7,0(4)
 	lwz	8,4(4)
 	lwz	9,8(4)
@@ -918,10 +784,10 @@ ChaCha20_ctr32_vmx:
 	lvx	31,10,4
 	addi	4,4,64
 
-	vperm	27,27,28,24
-	vperm	28,28,29,24
-	vperm	29,29,30,24
-	vperm	30,30,31,24
+	vperm	27,28,27,24
+	vperm	28,29,28,24
+	vperm	29,30,29,24
+	vperm	30,31,30,24
 	vxor	0,0,27
 	vxor	1,1,28
 	lvx	28,7,4
@@ -937,10 +803,10 @@ ChaCha20_ctr32_vmx:
 	vperm	2,2,2,25
 	vperm	3,3,3,25
 
-	vperm	31,31,28,24
-	vperm	28,28,29,24
-	vperm	29,29,30,24
-	vperm	30,30,27,24
+	vperm	31,28,31,24
+	vperm	28,29,28,24
+	vperm	29,30,29,24
+	vperm	30,27,30,24
 	vxor	4,4,31
 	vxor	5,5,28
 	lvx	28,7,4
@@ -955,10 +821,10 @@ ChaCha20_ctr32_vmx:
 	vperm	6,6,6,25
 	vperm	7,7,7,25
 
-	vperm	27,27,28,24
-	vperm	28,28,29,24
-	vperm	29,29,30,24
-	vperm	30,30,31,24
+	vperm	27,28,27,24
+	vperm	28,29,28,24
+	vperm	29,30,29,24
+	vperm	30,31,30,24
 	vxor	8,8,27
 	vxor	9,9,28
 	vxor	10,10,29
@@ -1036,7 +902,7 @@ ChaCha20_ctr32_vmx:
 	lwz	12,268(1)
 	li	10,127
 	li	11,143
-	mtspr	256,12
+	or	12,12,12
 	lvx	23,10,1
 	addi	10,10,32
 	lvx	24,11,1
@@ -1078,23 +944,19 @@ ChaCha20_ctr32_vmx:
 .long	0
 .byte	0,12,0x04,1,0x80,18,5,0
 .long	0
-.size	.ChaCha20_ctr32_vmx,.-.ChaCha20_ctr32_vmx
-.size	ChaCha20_ctr32_vmx,.-.ChaCha20_ctr32_vmx
+.size	ChaCha20_ctr32_vmx,.-ChaCha20_ctr32_vmx
 
 .globl	ChaCha20_ctr32_vsx
 .type	ChaCha20_ctr32_vsx,@function
-.section	".opd","aw"
-.align	3
-ChaCha20_ctr32_vsx:
-.quad	.ChaCha20_ctr32_vsx,.TOC.@tocbase,0
-.previous
 .align	5
-.ChaCha20_ctr32_vsx:
+ChaCha20_ctr32_vsx:
+.localentry	ChaCha20_ctr32_vsx,0
+
 	stdu	1,-224(1)
 	mflr	0
 	li	10,127
 	li	11,143
-	mfspr	12,256
+	li	12,-1
 	stvx	26,10,1
 	addi	10,10,32
 	stvx	27,11,1
@@ -1108,7 +970,7 @@ ChaCha20_ctr32_vsx:
 	stw	12,220(1)
 	li	12,-4096+63
 	std	0, 240(1)
-	mtspr	256,12
+	or	12,12,12
 
 	bl	.Lconsts
 	.long	0x7E006619
@@ -1129,9 +991,9 @@ ChaCha20_ctr32_vsx:
 	vsldoi	19,27,19,12
 	vadduwm	26,26,28
 
-	lvsl	31,0,8
-	vspltisb	27,3
-	vxor	31,31,27
+
+
+
 
 	li	0,10
 	mtctr	0
@@ -1308,10 +1170,10 @@ ChaCha20_ctr32_vsx:
 	vadduwm	8,8,18
 	vadduwm	12,12,19
 
-	vperm	0,0,0,31
-	vperm	4,4,4,31
-	vperm	8,8,8,31
-	vperm	12,12,12,31
+
+
+
+
 
 	cmpldi	5,0x40
 	blt	.Ltail_vsx
@@ -1340,10 +1202,10 @@ ChaCha20_ctr32_vsx:
 	vadduwm	8,9,18
 	vadduwm	12,13,19
 
-	vperm	0,0,0,31
-	vperm	4,4,4,31
-	vperm	8,8,8,31
-	vperm	12,12,12,31
+
+
+
+
 
 	cmpldi	5,0x40
 	blt	.Ltail_vsx
@@ -1372,10 +1234,10 @@ ChaCha20_ctr32_vsx:
 	vadduwm	8,10,18
 	vadduwm	12,14,19
 
-	vperm	0,0,0,31
-	vperm	4,4,4,31
-	vperm	8,8,8,31
-	vperm	12,12,12,31
+
+
+
+
 
 	cmpldi	5,0x40
 	blt	.Ltail_vsx
@@ -1404,10 +1266,10 @@ ChaCha20_ctr32_vsx:
 	vadduwm	8,11,18
 	vadduwm	12,15,19
 
-	vperm	0,0,0,31
-	vperm	4,4,4,31
-	vperm	8,8,8,31
-	vperm	12,12,12,31
+
+
+
+
 
 	cmpldi	5,0x40
 	blt	.Ltail_vsx
@@ -1437,7 +1299,7 @@ ChaCha20_ctr32_vsx:
 	li	10,127
 	li	11,143
 	ld	0, 240(1)
-	mtspr	256,12
+	or	12,12,12
 	lvx	26,10,1
 	addi	10,10,32
 	lvx	27,11,1
@@ -1480,8 +1342,7 @@ ChaCha20_ctr32_vsx:
 .long	0
 .byte	0,12,0x04,1,0x80,0,5,0
 .long	0
-.size	.ChaCha20_ctr32_vsx,.-.ChaCha20_ctr32_vsx
-.size	ChaCha20_ctr32_vsx,.-.ChaCha20_ctr32_vsx
+.size	ChaCha20_ctr32_vsx,.-ChaCha20_ctr32_vsx
 .align	5
 .Lconsts:
 	mflr	0
@@ -1497,8 +1358,8 @@ ChaCha20_ctr32_vsx:
 .long	0x61707865,0x3320646e,0x79622d32,0x6b206574
 .long	1,0,0,0
 .long	4,0,0,0
-.long	0x02030001,0x06070405,0x0a0b0809,0x0e0f0c0d
-.long	0x01020300,0x05060704,0x090a0b08,0x0d0e0f0c
+.long	0x0e0f0c0d,0x0a0b0809,0x06070405,0x02030001
+.long	0x0d0e0f0c,0x090a0b08,0x05060704,0x01020300
 .long	0x61707865,0x61707865,0x61707865,0x61707865
 .long	0x3320646e,0x3320646e,0x3320646e,0x3320646e
 .long	0x79622d32,0x79622d32,0x79622d32,0x79622d32

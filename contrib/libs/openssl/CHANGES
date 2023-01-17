@@ -7,6 +7,161 @@
  https://github.com/openssl/openssl/commits/ and pick the appropriate
  release branch.
 
+ Changes between 1.1.1r and 1.1.1s [1 Nov 2022]
+
+  *) Fixed a regression introduced in 1.1.1r version not refreshing the
+     certificate data to be signed before signing the certificate.
+
+     [Gibeom Gwon]
+
+ Changes between 1.1.1q and 1.1.1r [11 Oct 2022]
+
+  *) Fixed the linux-mips64 Configure target which was missing the
+     SIXTY_FOUR_BIT bn_ops flag. This was causing heap corruption on that
+     platform.
+     [Adam Joseph]
+
+  *) Fixed a strict aliasing problem in bn_nist. Clang-14 optimisation was
+     causing incorrect results in some cases as a result.
+     [Paul Dale]
+
+  *) Fixed SSL_pending() and SSL_has_pending() with DTLS which were failing to
+     report correct results in some cases
+     [Matt Caswell]
+
+  *) Fixed a regression introduced in 1.1.1o for re-signing certificates with
+     different key sizes
+     [Todd Short]
+
+  *) Added the loongarch64 target
+     [Shi Pujin]
+
+  *) Fixed a DRBG seed propagation thread safety issue
+     [Bernd Edlinger]
+
+  *) Fixed a memory leak in tls13_generate_secret
+     [Bernd Edlinger]
+
+  *) Fixed reported performance degradation on aarch64. Restored the
+     implementation prior to commit 2621751 ("aes/asm/aesv8-armx.pl: avoid
+     32-bit lane assignment in CTR mode") for 64bit targets only, since it is
+     reportedly 2-17% slower and the silicon errata only affects 32bit targets.
+     The new algorithm is still used for 32 bit targets.
+     [Bernd Edlinger]
+
+  *) Added a missing header for memcmp that caused compilation failure on some
+     platforms
+     [Gregor Jasny]
+
+ Changes between 1.1.1p and 1.1.1q [5 Jul 2022]
+
+  *) AES OCB mode for 32-bit x86 platforms using the AES-NI assembly optimised
+     implementation would not encrypt the entirety of the data under some
+     circumstances.  This could reveal sixteen bytes of data that was
+     preexisting in the memory that wasn't written.  In the special case of
+     "in place" encryption, sixteen bytes of the plaintext would be revealed.
+
+     Since OpenSSL does not support OCB based cipher suites for TLS and DTLS,
+     they are both unaffected.
+     (CVE-2022-2097)
+     [Alex Chernyakhovsky, David Benjamin, Alejandro Sedeño]
+
+ Changes between 1.1.1o and 1.1.1p [21 Jun 2022]
+
+  *) In addition to the c_rehash shell command injection identified in
+     CVE-2022-1292, further bugs where the c_rehash script does not
+     properly sanitise shell metacharacters to prevent command injection have been
+     fixed.
+
+     When the CVE-2022-1292 was fixed it was not discovered that there
+     are other places in the script where the file names of certificates
+     being hashed were possibly passed to a command executed through the shell.
+
+     This script is distributed by some operating systems in a manner where
+     it is automatically executed.  On such operating systems, an attacker
+     could execute arbitrary commands with the privileges of the script.
+
+     Use of the c_rehash script is considered obsolete and should be replaced
+     by the OpenSSL rehash command line tool.
+     (CVE-2022-2068)
+     [Daniel Fiala, Tomáš Mráz]
+
+  *) When OpenSSL TLS client is connecting without any supported elliptic
+     curves and TLS-1.3 protocol is disabled the connection will no longer fail
+     if a ciphersuite that does not use a key exchange based on elliptic
+     curves can be negotiated.
+     [Tomáš Mráz]
+
+ Changes between 1.1.1n and 1.1.1o [3 May 2022]
+
+  *) Fixed a bug in the c_rehash script which was not properly sanitising shell
+     metacharacters to prevent command injection.  This script is distributed
+     by some operating systems in a manner where it is automatically executed.
+     On such operating systems, an attacker could execute arbitrary commands
+     with the privileges of the script.
+
+     Use of the c_rehash script is considered obsolete and should be replaced
+     by the OpenSSL rehash command line tool.
+     (CVE-2022-1292)
+     [Tomáš Mráz]
+
+ Changes between 1.1.1m and 1.1.1n [15 Mar 2022]
+
+  *) Fixed a bug in the BN_mod_sqrt() function that can cause it to loop forever
+     for non-prime moduli.
+
+     Internally this function is used when parsing certificates that contain
+     elliptic curve public keys in compressed form or explicit elliptic curve
+     parameters with a base point encoded in compressed form.
+
+     It is possible to trigger the infinite loop by crafting a certificate that
+     has invalid explicit curve parameters.
+
+     Since certificate parsing happens prior to verification of the certificate
+     signature, any process that parses an externally supplied certificate may
+     thus be subject to a denial of service attack. The infinite loop can also
+     be reached when parsing crafted private keys as they can contain explicit
+     elliptic curve parameters.
+
+     Thus vulnerable situations include:
+
+      - TLS clients consuming server certificates
+      - TLS servers consuming client certificates
+      - Hosting providers taking certificates or private keys from customers
+      - Certificate authorities parsing certification requests from subscribers
+      - Anything else which parses ASN.1 elliptic curve parameters
+
+     Also any other applications that use the BN_mod_sqrt() where the attacker
+     can control the parameter values are vulnerable to this DoS issue.
+     (CVE-2022-0778)
+     [Tomáš Mráz]
+
+  *) Add ciphersuites based on DHE_PSK (RFC 4279) and ECDHE_PSK (RFC 5489)
+     to the list of ciphersuites providing Perfect Forward Secrecy as
+     required by SECLEVEL >= 3.
+
+     [Dmitry Belyavskiy, Nicola Tuveri]
+
+ Changes between 1.1.1l and 1.1.1m [14 Dec 2021]
+
+  *) Avoid loading of a dynamic engine twice.
+
+     [Bernd Edlinger]
+
+  *) Fixed building on Debian with kfreebsd kernels
+
+     [Mattias Ellert]
+
+  *) Prioritise DANE TLSA issuer certs over peer certs
+
+     [Viktor Dukhovni]
+
+  *) Fixed random API for MacOS prior to 10.12
+
+     These MacOS versions don't support the CommonCrypto APIs
+
+     [Lenny Primak]
+
  Changes between 1.1.1k and 1.1.1l [24 Aug 2021]
 
   *) Fixed an SM2 Decryption Buffer Overflow.
