@@ -16,9 +16,6 @@ target_compile_options(contrib-libs-libf2c PRIVATE
 target_include_directories(contrib-libs-libf2c PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/libf2c
 )
-target_include_directories(contrib-libs-libf2c PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libf2c
-)
 target_link_libraries(contrib-libs-libf2c PUBLIC
   contrib-libs-cxxsupp
   yutil

@@ -14,9 +14,6 @@ target_compile_options(absl-flags-marshalling PRIVATE
 target_include_directories(absl-flags-marshalling PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
-target_include_directories(absl-flags-marshalling PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
-)
 target_link_libraries(absl-flags-marshalling PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base

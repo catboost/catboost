@@ -15,9 +15,6 @@ target_compile_options(contrib-libs-onnx PUBLIC
 target_include_directories(contrib-libs-onnx PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
 )
-target_include_directories(contrib-libs-onnx PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
-)
 target_link_libraries(contrib-libs-onnx PUBLIC
   contrib-libs-cxxsupp
   yutil

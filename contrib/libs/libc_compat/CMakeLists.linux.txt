@@ -12,10 +12,6 @@ target_include_directories(contrib-libs-libc_compat PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
   ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/random
 )
-target_include_directories(contrib-libs-libc_compat PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/random
-)
 target_sources(contrib-libs-libc_compat PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/string.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/readpassphrase.c

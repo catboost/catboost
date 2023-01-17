@@ -14,9 +14,6 @@ target_compile_options(absl-random-seed_sequences PRIVATE
 target_include_directories(absl-random-seed_sequences PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
-target_include_directories(absl-random-seed_sequences PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
-)
 target_link_libraries(absl-random-seed_sequences PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base

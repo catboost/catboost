@@ -14,9 +14,6 @@ target_compile_options(libs-brotli-enc PRIVATE
 target_include_directories(libs-brotli-enc PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/include
 )
-target_include_directories(libs-brotli-enc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/include
-)
 target_link_libraries(libs-brotli-enc PUBLIC
   contrib-libs-cxxsupp
   libs-brotli-common

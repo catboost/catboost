@@ -14,9 +14,6 @@ target_compile_options(flags-internal-program_name PRIVATE
 target_include_directories(flags-internal-program_name PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
-target_include_directories(flags-internal-program_name PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
-)
 target_link_libraries(flags-internal-program_name PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base

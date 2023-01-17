@@ -14,9 +14,6 @@ target_compile_options(random-internal-absl_random_internal_distribution_test_ut
 target_include_directories(random-internal-absl_random_internal_distribution_test_util PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
-target_include_directories(random-internal-absl_random_internal_distribution_test_util PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
-)
 target_link_libraries(random-internal-absl_random_internal_distribution_test_util PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
