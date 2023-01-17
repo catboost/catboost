@@ -1264,3 +1264,7 @@ haas/vendor/php/php-src
 classifieds/panoramas
 haas/user-scripts/umka2yt
 haas/user-scripts/users
+haas/trash/dca-teamcity-settings
+haas/user-scripts/release-tool
+haas/user-scripts/idash
+haas/user-scripts/cmis-dc-growth
