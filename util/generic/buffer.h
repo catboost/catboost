@@ -4,6 +4,7 @@
 
 #include <util/generic/fwd.h>
 #include <util/system/align.h>
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 #include <cstring>
@@ -46,7 +47,7 @@ public:
         Pos_ -= n;
     }
 
-    inline void Reset() noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
         TBuffer().Swap(*this);
     }
 

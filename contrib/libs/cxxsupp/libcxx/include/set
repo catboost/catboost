@@ -745,7 +745,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     iterator  erase(const_iterator __f, const_iterator __l)
         {return __tree_.erase(__f, __l);}
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_REINITIALIZES_OBJECT _LIBCPP_INLINE_VISIBILITY
     void clear() _NOEXCEPT {__tree_.clear();}
 
 #if _LIBCPP_STD_VER > 14
@@ -1276,7 +1276,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     iterator  erase(const_iterator __f, const_iterator __l)
         {return __tree_.erase(__f, __l);}
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_REINITIALIZES_OBJECT _LIBCPP_INLINE_VISIBILITY
     void clear() _NOEXCEPT {__tree_.clear();}
 
 #if _LIBCPP_STD_VER > 14

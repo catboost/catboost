@@ -637,7 +637,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY iterator erase(const_iterator __position);
     iterator erase(const_iterator __first, const_iterator __last);
 
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_REINITIALIZES_OBJECT _LIBCPP_INLINE_VISIBILITY
     void clear() _NOEXCEPT
     {
         size_type __old_size = size();
@@ -2352,7 +2352,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY iterator erase(const_iterator __position);
     iterator erase(const_iterator __first, const_iterator __last);
 
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_REINITIALIZES_OBJECT _LIBCPP_INLINE_VISIBILITY
     void clear() _NOEXCEPT {__size_ = 0;}
 
     void swap(vector&)

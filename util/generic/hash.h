@@ -4,6 +4,7 @@
 #include "mapfindptr.h"
 
 #include <util/memory/alloc.h>
+#include <util/system/compiler.h>
 #include <util/system/type_name.h>
 #include <util/system/yassert.h>
 #include <util/str_stl.h>
@@ -820,7 +821,7 @@ public:
     void erase(const_iterator first, const_iterator last);
 
     bool reserve(size_type num_elements_hint);
-    void basic_clear();
+    Y_REINITIALIZES_OBJECT void basic_clear();
 
     /**
      * Clears the hashtable without deallocating the nodes.
@@ -841,7 +842,7 @@ public:
     template <class KeySaver>
     int save_for_st(IOutputStream* stream, KeySaver& ks, sthash<int, int, THash<int>, TEqualTo<int>, typename KeySaver::TSizeType>* stHash = nullptr) const;
 
-    void clear(size_type downsize) {
+    Y_REINITIALIZES_OBJECT void clear(size_type downsize) {
         basic_clear();
 
         if (downsize < buckets.size()) {
@@ -872,7 +873,7 @@ public:
      * Alternatively, the user can call `basic_clear`, which doesn't do the
      * downsizing.
      */
-    void clear() {
+    Y_REINITIALIZES_OBJECT void clear() {
         if (num_elements)
             clear((num_elements * 2 + buckets.size()) / 3);
     }
@@ -1715,13 +1716,13 @@ public:
     void erase(iterator f, iterator l) {
         rep.erase(f, l);
     }
-    void clear() {
+    Y_REINITIALIZES_OBJECT void clear() {
         rep.clear();
     }
-    void clear(size_t downsize_hint) {
+    Y_REINITIALIZES_OBJECT void clear(size_t downsize_hint) {
         rep.clear(downsize_hint);
     }
-    void basic_clear() {
+    Y_REINITIALIZES_OBJECT void basic_clear() {
         rep.basic_clear();
     }
     void release_nodes() {
@@ -1981,13 +1982,13 @@ public:
     void erase(iterator f, iterator l) {
         rep.erase(f, l);
     }
-    void clear() {
+    Y_REINITIALIZES_OBJECT void clear() {
         rep.clear();
     }
-    void clear(size_t downsize_hint) {
+    Y_REINITIALIZES_OBJECT void clear(size_t downsize_hint) {
         rep.clear(downsize_hint);
     }
-    void basic_clear() {
+    Y_REINITIALIZES_OBJECT void basic_clear() {
         rep.basic_clear();
     }
     void release_nodes() {
