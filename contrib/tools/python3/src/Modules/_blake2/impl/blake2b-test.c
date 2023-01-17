@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "blake2.h"
-#include "blake2-kat.h" // Y_IGNORE
+#error #include "blake2-kat.h"
 int main( int argc, char **argv )
 {
   uint8_t key[BLAKE2B_KEYBYTES];

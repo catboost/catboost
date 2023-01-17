@@ -8,7 +8,7 @@ extern "C" {
 
 #ifdef WITH_DTRACE
 
-#include "pydtrace_probes.h" // Y_IGNORE
+#error #include "pydtrace_probes.h"
 
 /* pydtrace_probes.h, on systems with DTrace, is auto-generated to include
    `PyDTrace_{PROBE}` and `PyDTrace_{PROBE}_ENABLED()` macros for every probe
