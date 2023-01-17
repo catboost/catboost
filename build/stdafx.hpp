@@ -104,7 +104,7 @@
 #include <util/system/pipe.h>
 #include <util/system/dynlib.h>
 #include <util/system/condvar.h>
-#include <util/system/atomic_ops.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/guard.h>
 #include <util/system/execpath.h>
 #include <util/system/spinlock.h>
@@ -136,7 +136,7 @@
 #include <util/system/rusage.h>
 #include <util/system/yassert.h>
 #include <util/system/tempfile.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/yield.h>
 #include <util/system/filemap.h>
 #include <library/cpp/deprecated/mapped_file/mapped_file.h>
@@ -157,7 +157,7 @@
 #include <util/system/unaligned_mem.h>
 #include <util/system/src_location.h>
 #include <util/system/fasttime.h>
-#include <util/system/atomic_gcc.h>
+#include <library/cpp/deprecated/atomic/atomic_gcc.h>
 #include <util/system/user.h>
 #include <util/system/mem_info.h>
 #include <util/system/datetime.h>
@@ -169,7 +169,7 @@
 #include <util/system/context_x86.h>
 #include <util/system/backtrace.h>
 #include <util/system/platform.h>
-//#include <util/system/atomic_win.h>
+//#include <library/cpp/deprecated/atomic/atomic_win.h>
 #include <util/system/context.h>
 #include <util/memory/segpool_alloc.h>
 #include <util/memory/tempbuf.h>

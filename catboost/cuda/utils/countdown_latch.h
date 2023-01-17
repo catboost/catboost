@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <condition_variable>
 #include <catboost/libs/helpers/exception.h>
 #include <util/system/mutex.h>

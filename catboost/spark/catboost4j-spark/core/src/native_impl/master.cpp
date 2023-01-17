@@ -17,7 +17,7 @@
 #include <util/stream/file.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/event.h>
 #include <util/system/info.h>
 #include <util/system/spin_wait.h>
