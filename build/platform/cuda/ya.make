@@ -26,7 +26,7 @@ IF (USE_ARCADIA_CUDA)
             ENDIF()
         ELSEIF(OS_LINUX AND ARCH_AARCH64)
             IF (CUDA_VERSION == "11.4")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2410761119) # CUDA Toolkin 11.4.2 for linux-x64_64 (host part only)
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2410761119) # CUDA Toolkit 11.4.2 for linux-x64_64 (host part only)
                 DECLARE_EXTERNAL_RESOURCE(CUDA_TARGET sbr:3840142733) # CUDA Toolkit 11.4.2 for linux-aarch64 (target part only)
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
@@ -58,8 +58,12 @@ IF (USE_ARCADIA_CUDA)
         ENDIF()
 
     ELSEIF (HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
+        # CUDA on Windows does not support cross-compilation,
+        # hence there is no need to divide it into HOST and TARGET resources.
         IF (OS_WINDOWS AND ARCH_X86_64)
-            IF (CUDA_VERSION == "11.3")
+            IF (CUDA_VERSION == "11.4")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:3866867639) # CDUA Toolkit 11.4.2 for windows-x86_64
+            ELSEIF (CUDA_VERSION == "11.3")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2215101513) # CUDA Toolkit 11.3.1 for Windows x86-64
             ELSEIF (CUDA_VERSION == "11.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1896564605) # CUDA Toolkit 11.1.1 for Windows x86-64
@@ -68,7 +72,6 @@ IF (USE_ARCADIA_CUDA)
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
-
         ELSE()
             ENABLE(CUDA_NOT_FOUND)
         ENDIF()
