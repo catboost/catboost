@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{8FAD9AA3-4FA6-3820-A99E-D95B5F36573F}</ProjectGUID>
+    <ProjectGUID>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-exceptiongroup.global</ProjectName>
+    <ProjectName>py3contrib-python-backcall.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-exceptiongroup.global</TargetName>
+    <TargetName>py3contrib-python-backcall.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\8FAD9AA3-4FA6-3820-A99E-D95B5F36573F\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\backcall\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\473BBBA7-56F6-21FD-E4E7-833A72D068E1\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,22 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\658865b48f97f276006f07310c.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\937bc2e895341880722694419d.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\b4bd1713df3cd1b915a60b2c2f.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\23219f30abd63b829a4d13a61f.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\4031a1027b2c7a9f415e84d5b2.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\b57275d124cd9c0f85245973df.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\exceptiongroup
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/exceptiongroup/658865b48f97f276006f07310c.cpp" "_c1c412c238fd567da1b171257a=py/namespace/1848df013548d7fb2d3ccae719e10824/contrib/python/exceptiongroup"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/23219f30abd63b829a4d13a61f.cpp" "_489d89f11a28f518802354256a=resfs/src/resfs/file/contrib/python/backcall/.dist-info/METADATA" "_04721e360304967071553cef1e=resfs/file/contrib/python/backcall/.dist-info/METADATA" "_92330c47e328ae4afc7a8cc642=resfs/src/resfs/file/contrib/python/backcall/.dist-info/top_level.txt" "_918165f0408c44365da543065c=resfs/file/contrib/python/backcall/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\exceptiongroup
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/exceptiongroup/937bc2e895341880722694419d.cpp" "_814cc70b8b71036a9cb435b2ca=resfs/src/resfs/file/py/exceptiongroup/__init__.py" "_73ee3138153bc7755e0b05393a=resfs/file/py/exceptiongroup/__init__.py" "_f597d9dde2301109710d41ecf2=resfs/src/resfs/file/py/exceptiongroup/__init__.py.yapyc3" "_065446fd6c7945b916a60e1af7=resfs/file/py/exceptiongroup/__init__.py.yapyc3" "_9d50332dcdeb25c49963388db9=resfs/src/resfs/file/py/exceptiongroup/_catch.py" "_23f5331098ce21eaba294114ae=resfs/file/py/exceptiongroup/_catch.py" "_0dc90d2f9570738dfa65076b03=resfs/src/resfs/file/py/exceptiongroup/_catch.py.yapyc3" "_8aab4e5bd185507f3f3e4fc833=resfs/file/py/exceptiongroup/_catch.py.yapyc3" "_be16de926060e12fbfc8926131=resfs/src/resfs/file/py/exceptiongroup/_exceptions.py" "_2f1796e48ae04328f1352122af=resfs/file/py/exceptiongroup/_exceptions.py" "_afca628c94959a673d1ef05947=resfs/src/resfs/file/py/exceptiongroup/_exceptions.py.yapyc3" "_1f651ba961f95df4ad1142a82d=resfs/file/py/exceptiongroup/_exceptions.py.yapyc3" "_fa1bfd91c70cb4e33ec48fcc3b=resfs/src/resfs/file/py/exceptiongroup/_formatting.py" "_49446aebca33d99a2ab1530c38=resfs/file/py/exceptiongroup/_formatting.py" "_d2a6a74a0025605b9138fbe01a=resfs/src/resfs/file/py/exceptiongroup/_formatting.py.yapyc3" "_15416404b7385cbf37534d6537=resfs/file/py/exceptiongroup/_formatting.py.yapyc3" "_4996e60bfe57b633a36fd4412a=resfs/src/resfs/file/py/exceptiongroup/_version.py" "_d06b60c5612c76e3dfc56f9211=resfs/file/py/exceptiongroup/_version.py" "_b5a1f99e3140b9e4ca6a5b35a1=resfs/src/resfs/file/py/exceptiongroup/_version.py.yapyc3" "_cdbfc7756400bcf6c0bc6abd46=resfs/file/py/exceptiongroup/_version.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/4031a1027b2c7a9f415e84d5b2.cpp" "_3b42f26870542493cb12304868=py/namespace/8f102f4d6ff4a221969252c9c77f9396/contrib/python/backcall"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\exceptiongroup
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/exceptiongroup/b4bd1713df3cd1b915a60b2c2f.cpp" "_30bc2946efa5050ada9049172d=resfs/src/resfs/file/contrib/python/exceptiongroup/.dist-info/METADATA" "_559783bd0ca0be537684038eb8=resfs/file/contrib/python/exceptiongroup/.dist-info/METADATA" "_247b0ccb0f4ab8fb8f4cdafc20=resfs/src/resfs/file/contrib/python/exceptiongroup/exceptiongroup/py.typed" "_c0ebd043bc91534e371c5177fa=resfs/file/contrib/python/exceptiongroup/exceptiongroup/py.typed"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/b57275d124cd9c0f85245973df.cpp" "_0b781406f2c50502c849c11bdf=resfs/src/resfs/file/py/backcall/__init__.py" "_b0d122a5d1325e3b06ba9fca83=resfs/file/py/backcall/__init__.py" "_f000ed4adb8f61a7c9fd63c664=resfs/src/resfs/file/py/backcall/__init__.py.yapyc3" "_4b5ade5b7db7a7f8122053c38b=resfs/file/py/backcall/__init__.py.yapyc3" "_822e3bfabc891b78088eb33c3d=resfs/src/resfs/file/py/backcall/_signatures.py" "_5666bd8dbccbd56b81850743a4=resfs/file/py/backcall/_signatures.py" "_3999ce206a2317c23a5e6e25b5=resfs/src/resfs/file/py/backcall/_signatures.py.yapyc3" "_f99a4178746c0702ff7812e5bd=resfs/file/py/backcall/_signatures.py.yapyc3" "_5759948372ddac80c221540280=resfs/src/resfs/file/py/backcall/backcall.py" "_48648e0960a2c6ef3699bbc819=resfs/file/py/backcall/backcall.py" "_2146d700eadd2987ffb5de4ce4=resfs/src/resfs/file/py/backcall/backcall.py.yapyc3" "_df15a5881363119e4ae40cfb34=resfs/file/py/backcall/backcall.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,17 +102,17 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\exceptiongroup
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/exceptiongroup/658865b48f97f276006f07310c.cpp" "_c1c412c238fd567da1b171257a=py/namespace/1848df013548d7fb2d3ccae719e10824/contrib/python/exceptiongroup"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/23219f30abd63b829a4d13a61f.cpp" "_489d89f11a28f518802354256a=resfs/src/resfs/file/contrib/python/backcall/.dist-info/METADATA" "_04721e360304967071553cef1e=resfs/file/contrib/python/backcall/.dist-info/METADATA" "_92330c47e328ae4afc7a8cc642=resfs/src/resfs/file/contrib/python/backcall/.dist-info/top_level.txt" "_918165f0408c44365da543065c=resfs/file/contrib/python/backcall/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\exceptiongroup
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/exceptiongroup/937bc2e895341880722694419d.cpp" "_814cc70b8b71036a9cb435b2ca=resfs/src/resfs/file/py/exceptiongroup/__init__.py" "_73ee3138153bc7755e0b05393a=resfs/file/py/exceptiongroup/__init__.py" "_f597d9dde2301109710d41ecf2=resfs/src/resfs/file/py/exceptiongroup/__init__.py.yapyc3" "_065446fd6c7945b916a60e1af7=resfs/file/py/exceptiongroup/__init__.py.yapyc3" "_9d50332dcdeb25c49963388db9=resfs/src/resfs/file/py/exceptiongroup/_catch.py" "_23f5331098ce21eaba294114ae=resfs/file/py/exceptiongroup/_catch.py" "_0dc90d2f9570738dfa65076b03=resfs/src/resfs/file/py/exceptiongroup/_catch.py.yapyc3" "_8aab4e5bd185507f3f3e4fc833=resfs/file/py/exceptiongroup/_catch.py.yapyc3" "_be16de926060e12fbfc8926131=resfs/src/resfs/file/py/exceptiongroup/_exceptions.py" "_2f1796e48ae04328f1352122af=resfs/file/py/exceptiongroup/_exceptions.py" "_afca628c94959a673d1ef05947=resfs/src/resfs/file/py/exceptiongroup/_exceptions.py.yapyc3" "_1f651ba961f95df4ad1142a82d=resfs/file/py/exceptiongroup/_exceptions.py.yapyc3" "_fa1bfd91c70cb4e33ec48fcc3b=resfs/src/resfs/file/py/exceptiongroup/_formatting.py" "_49446aebca33d99a2ab1530c38=resfs/file/py/exceptiongroup/_formatting.py" "_d2a6a74a0025605b9138fbe01a=resfs/src/resfs/file/py/exceptiongroup/_formatting.py.yapyc3" "_15416404b7385cbf37534d6537=resfs/file/py/exceptiongroup/_formatting.py.yapyc3" "_4996e60bfe57b633a36fd4412a=resfs/src/resfs/file/py/exceptiongroup/_version.py" "_d06b60c5612c76e3dfc56f9211=resfs/file/py/exceptiongroup/_version.py" "_b5a1f99e3140b9e4ca6a5b35a1=resfs/src/resfs/file/py/exceptiongroup/_version.py.yapyc3" "_cdbfc7756400bcf6c0bc6abd46=resfs/file/py/exceptiongroup/_version.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/4031a1027b2c7a9f415e84d5b2.cpp" "_3b42f26870542493cb12304868=py/namespace/8f102f4d6ff4a221969252c9c77f9396/contrib/python/backcall"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\exceptiongroup
+cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/exceptiongroup/b4bd1713df3cd1b915a60b2c2f.cpp" "_30bc2946efa5050ada9049172d=resfs/src/resfs/file/contrib/python/exceptiongroup/.dist-info/METADATA" "_559783bd0ca0be537684038eb8=resfs/file/contrib/python/exceptiongroup/.dist-info/METADATA" "_247b0ccb0f4ab8fb8f4cdafc20=resfs/src/resfs/file/contrib/python/exceptiongroup/exceptiongroup/py.typed" "_c0ebd043bc91534e371c5177fa=resfs/file/contrib/python/exceptiongroup/exceptiongroup/py.typed"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backcall/b57275d124cd9c0f85245973df.cpp" "_0b781406f2c50502c849c11bdf=resfs/src/resfs/file/py/backcall/__init__.py" "_b0d122a5d1325e3b06ba9fca83=resfs/file/py/backcall/__init__.py" "_f000ed4adb8f61a7c9fd63c664=resfs/src/resfs/file/py/backcall/__init__.py.yapyc3" "_4b5ade5b7db7a7f8122053c38b=resfs/file/py/backcall/__init__.py.yapyc3" "_822e3bfabc891b78088eb33c3d=resfs/src/resfs/file/py/backcall/_signatures.py" "_5666bd8dbccbd56b81850743a4=resfs/file/py/backcall/_signatures.py" "_3999ce206a2317c23a5e6e25b5=resfs/src/resfs/file/py/backcall/_signatures.py.yapyc3" "_f99a4178746c0702ff7812e5bd=resfs/file/py/backcall/_signatures.py.yapyc3" "_5759948372ddac80c221540280=resfs/src/resfs/file/py/backcall/backcall.py" "_48648e0960a2c6ef3699bbc819=resfs/file/py/backcall/backcall.py" "_2146d700eadd2987ffb5de4ce4=resfs/src/resfs/file/py/backcall/backcall.py.yapyc3" "_df15a5881363119e4ae40cfb34=resfs/file/py/backcall/backcall.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,17 +120,14 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/exceptiongroup/658865b48f97f276006f07310c.cpp	$B/contrib/python/exceptiongroup/937bc2e895341880722694419d.cpp	$B/contrib/python/exceptiongroup/b4bd1713df3cd1b915a60b2c2f.cpp	</Message>
+      <Message>$B/contrib/python/backcall/23219f30abd63b829a4d13a61f.cpp	$B/contrib/python/backcall/4031a1027b2c7a9f415e84d5b2.cpp	$B/contrib/python/backcall/b57275d124cd9c0f85245973df.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\658865b48f97f276006f07310c.cpp;$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\937bc2e895341880722694419d.cpp;$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\b4bd1713df3cd1b915a60b2c2f.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\23219f30abd63b829a4d13a61f.cpp;$(SolutionDir)$(Configuration)\contrib\python\backcall\4031a1027b2c7a9f415e84d5b2.cpp;$(SolutionDir)$(Configuration)\contrib\python\backcall\b57275d124cd9c0f85245973df.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

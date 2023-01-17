@@ -1081,9 +1081,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.pkg.fake.vcxproj">
       <Project>{607AFEC4-8A23-056F-2190-DCF65FF8934B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cpu_compatibility_helpers\catboost-cuda-cpu_compatibility_helpers.vcxproj">
       <Project>{25AC1B6D-6F5F-550C-B8D7-D7E344784C2E}</Project>
     </ProjectReference>
@@ -1812,6 +1809,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\yson_string\cpp-yt-yson_string.vcxproj">
       <Project>{941A9342-350F-D87A-1E89-C724B0F1F66C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\api\cpp-ytalloc-api.vcxproj">
+      <Project>{D0B26F3B-1FA2-DBBE-795F-70EF8DDE9BE1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\py3library-python-resource.vcxproj">
       <Project>{56BE61DD-902F-46E5-A0C0-F54A78D0B209}</Project>
