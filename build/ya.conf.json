@@ -7857,7 +7857,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    1369881728
+                    1406459595
                 ],
                 "match": "yp-util"
             },
@@ -7870,7 +7870,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    1369882204
+                    1406461325
                 ],
                 "match": "YP"
             },
@@ -7908,7 +7908,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1406145915,
+                "sandbox_id": 1406503633,
                 "match": "infractl"
             },
             "executable": {
@@ -8323,7 +8323,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1405738659,
+                "sandbox_id": 1407055664,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8379,8 +8379,16 @@
         },
         "saas2": {
             "formula": {
-                "sandbox_id": 1267928485,
-                "match": "saas2"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "SAAS_2_CLI_YA_TOOL",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "SAAS2"
+                    },
+                    "update_interval": 86400
+                }
             },
             "executable": {
                 "saas2": [
@@ -8442,7 +8450,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    1253668008
+                    1406120317
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -8615,7 +8623,7 @@
         "coronerctl": {
             "formula": {
                 "sandbox_id": [
-                    1243735992
+                    1403602183
                 ],
                 "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
@@ -8982,7 +8990,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1405738845,
+                "sandbox_id": 1407054799,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -9004,7 +9012,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1405741620,
+                "sandbox_id": 1407055395,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -9061,7 +9069,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1405741955,
+                "sandbox_id": 1407055108,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9072,7 +9080,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1405742016,
+                "sandbox_id": 1407055727,
                 "match": "exp_stats"
             },
             "executable": {
@@ -9152,7 +9160,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1405742018,
+                "sandbox_id": 1407054370,
                 "match": "profile_size_analyzer"
             },
             "executable": {

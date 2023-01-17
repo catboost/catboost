@@ -54,7 +54,7 @@ namespace NNetliba {
             return Data;
         }
         ui64 GetAddr() {
-            return Data - (char*)nullptr;
+            return reinterpret_cast<ui64>(Data) / sizeof(char);
         }
         size_t GetSize() {
             return Size;

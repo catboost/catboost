@@ -572,6 +572,9 @@ def onadd_check(unit, *args):
     script_rel_path = check_type
     test_files = flat_args[1:]
 
+    if check_type in ["check.data", "check.resource"]:
+        uid_ext = unit.get("SBR_UID_EXT").split(" ", 1)[-1]  # strip variable name
+
     if check_type in ["flake8.py2", "flake8.py3", "black"]:
         fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
@@ -587,7 +590,7 @@ def onadd_check(unit, *args):
             'library': '/yandex_checks_library.xml',
         }
         if check_level not in allowed_levels:
-            raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
+            raise Exception("'{}' is not allowed in LINT(), use one of {}".format(check_level, allowed_levels.keys()))
         test_files[0] = allowed_levels[check_level]  # replace check_level with path to config file
         script_rel_path = "java.style"
         test_timeout = '120'
@@ -604,7 +607,6 @@ def onadd_check(unit, *args):
         if test_files:
             test_dir = os.path.dirname(test_files[0]).lstrip("$S/")
     elif check_type == "check.data":
-        uid_ext = unit.get("SBR_UID_EXT").split(" ", 1)[-1]  # strip variable name
         data_re = re.compile(r"sbr:/?/?(\d+)=?.*")
         data = flat_args[1:]
         resources = []
