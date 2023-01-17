@@ -42,6 +42,18 @@ Y_UNIT_TEST_SUITE(TRequestServerDataTest) {
         UNIT_ASSERT_VALUES_EQUAL(sd.ServerPort(), "678");
     }
 
+    Y_UNIT_TEST(ParseInvalid) {
+        TServerRequestData rd;
+
+        //Not crashes on null
+        UNIT_ASSERT(!rd.Parse(" \0/yandsearch?&gta=fake&haha=da HTTP 1.1 OK"));
+
+        rd.Scan();
+        UNIT_ASSERT_VALUES_EQUAL(rd.Query(), "");
+        UNIT_ASSERT_VALUES_EQUAL(rd.CgiParam.size(), 0);
+        rd.Clear();
+    }
+
     Y_UNIT_TEST(ParseScan) {
         TServerRequestData rd;
 
