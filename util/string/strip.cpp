@@ -3,10 +3,6 @@
 
 #include <util/string/reverse.h>
 
-bool Collapse(const TString& from, TString& to, size_t maxLen) {
-    return CollapseImpl<TString, bool (*)(unsigned char)>(from, to, maxLen, IsAsciiSpace);
-}
-
 void CollapseText(const TString& from, TString& to, size_t maxLen) {
     Collapse(from, to, maxLen);
     StripInPlace(to);
