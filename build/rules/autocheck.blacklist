@@ -328,7 +328,6 @@ passport/backend/passport_stress_fake_services
 data-ui/ydb-nodejs-sdk-benchmarks
 library/python/cia_stuff
 portal/frontend/gitworker
-afisha/infra/projects/eve
 intranet/legacy/emission
 passport/backend/grants_configurator
 afisha/infra/projects/yandex-alet-logstore-stats
@@ -885,3 +884,4 @@ pythia/apps/frontend-constructor
 pythia/apps/frontend
 pythia/apps/push-client
 pythia/apps/migrator/alerts
+portal/main
