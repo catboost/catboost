@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 import argparse
+import codecs
 import copy
 import json
 import os
@@ -780,6 +781,11 @@ def do_link_test(args):
 
 
 if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+    sys.stderr = codecs.getwriter('utf8')(sys.stderr)
+
     args = pcf.get_args(sys.argv[1:])
 
     parser = argparse.ArgumentParser(prefix_chars='+')
