@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import xml.etree.ElementTree as et
 import argparse
@@ -56,7 +58,8 @@ def build_pom_and_export_to_maven(**kwargs):
     test_target_dependencies = kwargs.get('test_target_dependencies')
     test_target_dependencies_exclude = kwargs.get('test_target_dependencies_exclude')
     modules_path = kwargs.get('modules_path')
-    prop_vars = kwargs.get('properties')
+    base64_prop_vars = kwargs.get('properties')
+    prop_vars = kwargs.get('property')
     external_jars = kwargs.get('external_jars')
     resources = kwargs.get('resources')
     run_java_programs = [json.loads(base64.b64decode(i)) for i in kwargs.get('run_java_programs')]
@@ -96,9 +99,15 @@ def build_pom_and_export_to_maven(**kwargs):
     properties = et.SubElement(project, 'properties')
     et.SubElement(properties, 'project.build.sourceEncoding').text = 'UTF-8'
 
-    if prop_vars:
-        for property, value in json.loads(base64.b64decode(prop_vars)).items():
+    if base64_prop_vars:
+        for property, value in json.loads(base64.b64decode(base64_prop_vars)).items():
             et.SubElement(properties, property).text = value
+    for rawprop in prop_vars:
+        property, sep, value = rawprop.partition('=')
+        if sep != '=':
+            print("Can't find propertyr name and property value in {}. No '=' symbol found".format(rawprop))
+            sys.exit(1)
+        et.SubElement(properties, property).text = value
 
     if modules_path:
         with open(modules_path) as f:
@@ -268,6 +277,7 @@ if __name__ == '__main__':
     parser.add_argument('--test-target-dependencies-exclude', action='append', default=[])
     parser.add_argument('--modules-path', action='store')
     parser.add_argument('--properties')
+    parser.add_argument('--property', action='append', default=[])
     parser.add_argument('--test-source-dirs', action='append', default=[])
     parser.add_argument('--test-resource-dirs', action='append', default=[])
     args = parser.parse_args()
