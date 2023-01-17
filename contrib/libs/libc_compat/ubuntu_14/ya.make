@@ -29,7 +29,7 @@ IF (OS_SDK == "ubuntu-14")
         secure_getenv.cpp
         timespec_get.c
     )
-    SRC_CPP_PIC(
+    SRC_C_PIC(
         glibc.cpp
         -fno-lto
     )
