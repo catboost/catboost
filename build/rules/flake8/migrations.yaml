@@ -970,7 +970,6 @@ migrations:
     - modadvert/libs/http
     - modadvert/libs/laas/workers/domain_threats
     - modadvert/libs/laas/workers/features_from_href
-    - modadvert/libs/utils/dictutils/ut
     - modadvert/programs/cv_app/libs
     - modadvert/tools/accept_campaigns
     - mssngr/botfarm/src/bot
@@ -1916,7 +1915,6 @@ migrations:
     - maps/pylibs/utils/lib
     - maps/pymod/yandex/maps/test_utils
     - maps/renderer/designs_config/libs/pymod
-    - maps/routing/router/regression/gen-stopwatch-ammo-mt
     - maps/streetview/backoffice/lib
     - maps/streetview/backoffice/tools/cut_images_yt
     - maps/streetview/backoffice/tools/detect_session_privacy
