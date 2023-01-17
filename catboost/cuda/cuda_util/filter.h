@@ -2,8 +2,8 @@
 
 #include <catboost/cuda/cuda_lib/fwd.h>
 
-template <class TMapping, class TStatus>
+template <class TMapping>
 void NonZeroFilter(
     const NCudaLib::TCudaBuffer<float, TMapping>& weights,
-    NCudaLib::TCudaBuffer<TStatus, TMapping>& status,
+    NCudaLib::TCudaBuffer<ui32, TMapping>& status,
     ui32 stream = 0);

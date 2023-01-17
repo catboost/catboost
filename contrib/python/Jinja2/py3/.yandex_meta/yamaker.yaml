@@ -1,4 +1,4 @@
 exclude:
-  - examples/basic/test.py
+- examples/basic/test.py
 mark_as_sources:
-  - jinja2/tests.py
+- jinja2/tests.py

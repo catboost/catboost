@@ -1,6 +1,4 @@
 """Any shareable docstring components for rolling/expanding/ewm"""
-from __future__ import annotations
-
 from textwrap import dedent
 
 from pandas.core.shared_docs import _shared_docs
@@ -31,30 +29,17 @@ template_see_also = dedent(
     """
 ).replace("\n", "", 1)
 
-kwargs_numeric_only = dedent(
-    """
-    numeric_only : bool, default False
-        Include only float, int, boolean columns.
-
-        .. versionadded:: 1.5.0\n
-    """
-).replace("\n", "", 1)
-
 args_compat = dedent(
     """
     *args
-        For NumPy compatibility and will not have an effect on the result.
-
-        .. deprecated:: 1.5.0\n
+        For NumPy compatibility and will not have an effect on the result.\n
     """
 ).replace("\n", "", 1)
 
 kwargs_compat = dedent(
     """
     **kwargs
-        For NumPy compatibility and will not have an effect on the result.
-
-        .. deprecated:: 1.5.0\n
+        For NumPy compatibility and will not have an effect on the result.\n
     """
 ).replace("\n", "", 1)
 

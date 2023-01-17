@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import numba
 import numpy as np
 

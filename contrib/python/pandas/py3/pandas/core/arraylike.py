@@ -4,8 +4,6 @@ Methods that can be shared by many array-like classes or subclasses:
     Index
     ExtensionArray
 """
-from __future__ import annotations
-
 import operator
 from typing import Any
 import warnings
@@ -267,10 +265,7 @@ def array_ufunc(self, ufunc: np.ufunc, method: str, *inputs: Any, **kwargs: Any)
         return result
 
     # Determine if we should defer.
-    no_defer = (
-        np.ndarray.__array_ufunc__,
-        cls.__array_ufunc__,
-    )
+    no_defer = (np.ndarray.__array_ufunc__, cls.__array_ufunc__)
 
     for item in inputs:
         higher_priority = (

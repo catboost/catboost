@@ -18,11 +18,11 @@ from pandas._typing import (
 from pandas.errors import PerformanceWarning
 from pandas.util._exceptions import find_stack_level
 
-from pandas.core.dtypes.astype import astype_nansafe
 from pandas.core.dtypes.base import (
     ExtensionDtype,
     register_extension_dtype,
 )
+from pandas.core.dtypes.cast import astype_nansafe
 from pandas.core.dtypes.common import (
     is_bool_dtype,
     is_object_dtype,
@@ -81,7 +81,7 @@ class SparseDtype(ExtensionDtype):
     # hash(nan) is (sometimes?) 0.
     _metadata = ("_dtype", "_fill_value", "_is_na_fill_value")
 
-    def __init__(self, dtype: Dtype = np.float64, fill_value: Any = None) -> None:
+    def __init__(self, dtype: Dtype = np.float64, fill_value: Any = None):
 
         if isinstance(dtype, type(self)):
             if fill_value is None:
@@ -99,7 +99,7 @@ class SparseDtype(ExtensionDtype):
         self._fill_value = fill_value
         self._check_fill_value()
 
-    def __hash__(self) -> int:
+    def __hash__(self):
         # Python3 doesn't inherit __hash__ when a base class overrides
         # __eq__, so we explicitly do it here.
         return super().__hash__()
@@ -179,7 +179,7 @@ class SparseDtype(ExtensionDtype):
         return is_bool_dtype(self.subtype)
 
     @property
-    def kind(self) -> str:
+    def kind(self):
         """
         The sparse kind. Either 'integer', or 'block'.
         """
@@ -194,7 +194,7 @@ class SparseDtype(ExtensionDtype):
         return self._dtype
 
     @property
-    def name(self) -> str:
+    def name(self):
         return f"Sparse[{self.subtype.name}, {repr(self.fill_value)}]"
 
     def __repr__(self) -> str:
@@ -354,9 +354,7 @@ class SparseDtype(ExtensionDtype):
             if not isinstance(dtype, np.dtype):
                 raise TypeError("sparse arrays of extension dtypes not supported")
 
-            fvarr = astype_nansafe(np.array(self.fill_value), dtype)
-            # NB: not fv_0d.item(), as that casts dt64->int
-            fill_value = fvarr[0]
+            fill_value = astype_nansafe(np.array(self.fill_value), dtype).item()
             dtype = cls(dtype, fill_value=fill_value)
 
         return dtype

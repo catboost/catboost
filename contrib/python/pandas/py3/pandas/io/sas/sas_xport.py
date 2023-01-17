@@ -17,13 +17,10 @@ import warnings
 import numpy as np
 
 from pandas._typing import (
-    CompressionOptions,
-    DatetimeNaTType,
     FilePath,
     ReadBuffer,
 )
 from pandas.util._decorators import Appender
-from pandas.util._exceptions import find_stack_level
 
 import pandas as pd
 
@@ -142,7 +139,7 @@ A DataFrame.
 """
 
 
-def _parse_date(datestr: str) -> DatetimeNaTType:
+def _parse_date(datestr: str) -> datetime:
     """Given a date in xport format, return Python date."""
     try:
         # e.g. "16FEB11:10:07:55"
@@ -258,8 +255,7 @@ class XportReader(ReaderBase, abc.Iterator):
         index=None,
         encoding: str | None = "ISO-8859-1",
         chunksize=None,
-        compression: CompressionOptions = "infer",
-    ) -> None:
+    ):
 
         self._encoding = encoding
         self._lines_read = 0
@@ -267,11 +263,7 @@ class XportReader(ReaderBase, abc.Iterator):
         self._chunksize = chunksize
 
         self.handles = get_handle(
-            filepath_or_buffer,
-            "rb",
-            encoding=encoding,
-            is_text=False,
-            compression=compression,
+            filepath_or_buffer, "rb", encoding=encoding, is_text=False
         )
         self.filepath_or_buffer = self.handles.handle
 
@@ -281,7 +273,7 @@ class XportReader(ReaderBase, abc.Iterator):
             self.close()
             raise
 
-    def close(self) -> None:
+    def close(self):
         self.handles.close()
 
     def _get_row(self):
@@ -397,7 +389,7 @@ class XportReader(ReaderBase, abc.Iterator):
         dtype = np.dtype(dtypel)
         self._dtype = dtype
 
-    def __next__(self) -> pd.DataFrame:
+    def __next__(self):
         return self.read(nrows=self._chunksize or 1)
 
     def _record_count(self) -> int:
@@ -413,10 +405,7 @@ class XportReader(ReaderBase, abc.Iterator):
         total_records_length = self.filepath_or_buffer.tell() - self.record_start
 
         if total_records_length % 80 != 0:
-            warnings.warn(
-                "xport file may be corrupted.",
-                stacklevel=find_stack_level(),
-            )
+            warnings.warn("xport file may be corrupted.")
 
         if self.record_length > 80:
             self.filepath_or_buffer.seek(self.record_start)
@@ -438,7 +427,7 @@ class XportReader(ReaderBase, abc.Iterator):
 
         return (total_records_length - tail_pad) // self.record_length
 
-    def get_chunk(self, size=None) -> pd.DataFrame:
+    def get_chunk(self, size=None):
         """
         Reads lines from Xport file and returns as dataframe
 
@@ -467,7 +456,7 @@ class XportReader(ReaderBase, abc.Iterator):
         return miss
 
     @Appender(_read_method_doc)
-    def read(self, nrows: int | None = None) -> pd.DataFrame:
+    def read(self, nrows=None):
 
         if nrows is None:
             nrows = self.nobs

@@ -30,7 +30,7 @@ class NodeVisitor:
         exists for this node.  In that case the generic visit function is
         used instead.
         """
-        return getattr(self, f"visit_{type(node).__name__}", None)
+        return getattr(self, f"visit_{type(node).__name__}", None)  # type: ignore
 
     def visit(self, node: Node, *args: t.Any, **kwargs: t.Any) -> t.Any:
         """Visit a node."""
@@ -43,8 +43,8 @@ class NodeVisitor:
 
     def generic_visit(self, node: Node, *args: t.Any, **kwargs: t.Any) -> t.Any:
         """Called if no explicit visitor function exists for a node."""
-        for child_node in node.iter_child_nodes():
-            self.visit(child_node, *args, **kwargs)
+        for node in node.iter_child_nodes():
+            self.visit(node, *args, **kwargs)
 
 
 class NodeTransformer(NodeVisitor):

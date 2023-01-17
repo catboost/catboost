@@ -3,14 +3,14 @@ from __future__ import annotations
 from contextlib import contextmanager
 import os
 from pathlib import Path
+import random
 from shutil import rmtree
+import string
 import tempfile
 from typing import (
     IO,
     Any,
-    Iterator,
 )
-import uuid
 
 import numpy as np
 
@@ -20,7 +20,7 @@ from pandas.io.common import get_handle
 
 
 @contextmanager
-def decompress_file(path, compression) -> Iterator[IO[bytes]]:
+def decompress_file(path, compression):
     """
     Open a compressed file and return a file object.
 
@@ -41,7 +41,7 @@ def decompress_file(path, compression) -> Iterator[IO[bytes]]:
 
 
 @contextmanager
-def set_timezone(tz: str) -> Iterator[None]:
+def set_timezone(tz: str):
     """
     Context manager for temporarily setting a timezone.
 
@@ -107,7 +107,9 @@ def ensure_clean(filename=None, return_filelike: bool = False, **kwargs: Any):
 
     if filename is None:
         filename = ""
-    filename = str(uuid.uuid4()) + filename
+    filename = (
+        "".join(random.choices(string.ascii_letters + string.digits, k=30)) + filename
+    )
     path = folder / filename
 
     path.touch()
@@ -127,7 +129,7 @@ def ensure_clean(filename=None, return_filelike: bool = False, **kwargs: Any):
 
 
 @contextmanager
-def ensure_clean_dir() -> Iterator[str]:
+def ensure_clean_dir():
     """
     Get a temporary directory path and agrees to remove on close.
 
@@ -146,7 +148,7 @@ def ensure_clean_dir() -> Iterator[str]:
 
 
 @contextmanager
-def ensure_safe_environment_variables() -> Iterator[None]:
+def ensure_safe_environment_variables():
     """
     Get a context manager to safely set environment variables
 
@@ -162,7 +164,7 @@ def ensure_safe_environment_variables() -> Iterator[None]:
 
 
 @contextmanager
-def with_csv_dialect(name, **kwargs) -> Iterator[None]:
+def with_csv_dialect(name, **kwargs):
     """
     Context manager to temporarily register a CSV dialect for parsing CSV.
 
@@ -196,7 +198,7 @@ def with_csv_dialect(name, **kwargs) -> Iterator[None]:
 
 
 @contextmanager
-def use_numexpr(use, min_elements=None) -> Iterator[None]:
+def use_numexpr(use, min_elements=None):
     from pandas.core.computation import expressions as expr
 
     if min_elements is None:
@@ -229,14 +231,14 @@ class RNGContext:
         np.random.randn()
     """
 
-    def __init__(self, seed) -> None:
+    def __init__(self, seed):
         self.seed = seed
 
-    def __enter__(self) -> None:
+    def __enter__(self):
 
         self.start_state = np.random.get_state()
         np.random.seed(self.seed)
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(self, exc_type, exc_value, traceback):
 
         np.random.set_state(self.start_state)

@@ -1,8 +1,6 @@
 """
 Functions to generate methods and pin them to the appropriate classes.
 """
-from __future__ import annotations
-
 import operator
 
 from pandas.core.dtypes.generic import (
@@ -45,7 +43,7 @@ def _get_method_wrappers(cls):
     return arith_flex, comp_flex
 
 
-def add_flex_arithmetic_methods(cls) -> None:
+def add_flex_arithmetic_methods(cls):
     """
     Adds the full suite of flex arithmetic methods (``pow``, ``mul``, ``add``)
     to the class.

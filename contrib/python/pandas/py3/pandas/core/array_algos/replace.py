@@ -15,7 +15,6 @@ import numpy as np
 from pandas._typing import (
     ArrayLike,
     Scalar,
-    npt,
 )
 
 from pandas.core.dtypes.common import (
@@ -43,7 +42,7 @@ def should_use_regex(regex: bool, to_replace: Any) -> bool:
 
 
 def compare_or_regex_search(
-    a: ArrayLike, b: Scalar | Pattern, regex: bool, mask: npt.NDArray[np.bool_]
+    a: ArrayLike, b: Scalar | Pattern, regex: bool, mask: np.ndarray
 ) -> ArrayLike | bool:
     """
     Compare two array-like inputs of the same shape or two scalar values
@@ -117,9 +116,7 @@ def compare_or_regex_search(
     return result
 
 
-def replace_regex(
-    values: ArrayLike, rx: re.Pattern, value, mask: npt.NDArray[np.bool_] | None
-) -> None:
+def replace_regex(values: ArrayLike, rx: re.Pattern, value, mask: np.ndarray | None):
     """
     Parameters
     ----------

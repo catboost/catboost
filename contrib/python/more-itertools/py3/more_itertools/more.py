@@ -3,7 +3,7 @@ import warnings
 from collections import Counter, defaultdict, deque, abc
 from collections.abc import Sequence
 from functools import partial, reduce, wraps
-from heapq import heapify, heapreplace, heappop
+from heapq import merge, heapify, heapreplace, heappop
 from itertools import (
     chain,
     compress,
@@ -52,9 +52,9 @@ __all__ = [
     'chunked_even',
     'circular_shifts',
     'collapse',
+    'collate',
     'combination_index',
     'consecutive_groups',
-    'constrained_batches',
     'consumer',
     'count_cycle',
     'countable',
@@ -410,6 +410,44 @@ class peekable:
             self._cache.extend(islice(self._it, index + 1 - cache_len))
 
         return self._cache[index]
+
+
+def collate(*iterables, **kwargs):
+    """Return a sorted merge of the items from each of several already-sorted
+    *iterables*.
+
+        >>> list(collate('ACDZ', 'AZ', 'JKL'))
+        ['A', 'A', 'C', 'D', 'J', 'K', 'L', 'Z', 'Z']
+
+    Works lazily, keeping only the next value from each iterable in memory. Use
+    :func:`collate` to, for example, perform a n-way mergesort of items that
+    don't fit in memory.
+
+    If a *key* function is specified, the iterables will be sorted according
+    to its result:
+
+        >>> key = lambda s: int(s)  # Sort by numeric value, not by string
+        >>> list(collate(['1', '10'], ['2', '11'], key=key))
+        ['1', '2', '10', '11']
+
+
+    If the *iterables* are sorted in descending order, set *reverse* to
+    ``True``:
+
+        >>> list(collate([5, 3, 1], [4, 2, 0], reverse=True))
+        [5, 4, 3, 2, 1, 0]
+
+    If the elements of the passed-in iterables are out of order, you might get
+    unexpected results.
+
+    On Python 3.5+, this function is an alias for :func:`heapq.merge`.
+
+    """
+    warnings.warn(
+        "collate is no longer part of more_itertools, use heapq.merge",
+        DeprecationWarning,
+    )
+    return merge(*iterables, **kwargs)
 
 
 def consumer(func):
@@ -837,9 +875,7 @@ def windowed(seq, n, fillvalue=None, step=1):
             yield tuple(window)
 
     size = len(window)
-    if size == 0:
-        return
-    elif size < n:
+    if size < n:
         yield tuple(chain(window, repeat(fillvalue, n - size)))
     elif 0 < i < min(step, n):
         window += (fillvalue,) * i
@@ -4295,53 +4331,3 @@ def minmax(iterable_or_value, *others, key=None, default=_marker):
                 hi, hi_key = y, y_key
 
     return lo, hi
-
-
-def constrained_batches(
-    iterable, max_size, max_count=None, get_len=len, strict=True
-):
-    """Yield batches of items from *iterable* with a combined size limited by
-    *max_size*.
-
-    >>> iterable = [b'12345', b'123', b'12345678', b'1', b'1', b'12', b'1']
-    >>> list(constrained_batches(iterable, 10))
-    [(b'12345', b'123'), (b'12345678', b'1', b'1'), (b'12', b'1')]
-
-    If a *max_count* is supplied, the number of items per batch is also
-    limited:
-
-    >>> iterable = [b'12345', b'123', b'12345678', b'1', b'1', b'12', b'1']
-    >>> list(constrained_batches(iterable, 10, max_count = 2))
-    [(b'12345', b'123'), (b'12345678', b'1'), (b'1', b'12'), (b'1',)]
-
-    If a *get_len* function is supplied, use that instead of :func:`len` to
-    determine item size.
-
-    If *strict* is ``True``, raise ``ValueError`` if any single item is bigger
-    than *max_size*. Otherwise, allow single items to exceed *max_size*.
-    """
-    if max_size <= 0:
-        raise ValueError('maximum size must be greater than zero')
-
-    batch = []
-    batch_size = 0
-    batch_count = 0
-    for item in iterable:
-        item_len = get_len(item)
-        if strict and item_len > max_size:
-            raise ValueError('item size exceeds maximum size')
-
-        reached_count = batch_count == max_count
-        reached_size = item_len + batch_size > max_size
-        if batch_count and (reached_size or reached_count):
-            yield tuple(batch)
-            batch.clear()
-            batch_size = 0
-            batch_count = 0
-
-        batch.append(item)
-        batch_size += item_len
-        batch_count += 1
-
-    if batch:
-        yield tuple(batch)

@@ -10,7 +10,6 @@ TFloatFeatureStatistics::TFloatFeatureStatistics()
     : MinValue(std::numeric_limits<double>::max())
     , MaxValue(std::numeric_limits<double>::min())
     , Sum(0.)
-    , SumSqr(0.)
     , ObjectCount(0)
 {
 }
@@ -23,16 +22,14 @@ void TFloatFeatureStatistics::Update(float feature) {
         MinValue = Min<float>(MinValue, feature);
         MaxValue = Max<float>(MaxValue, feature);
         Sum += static_cast<long double>(feature);
-        long double featureCasted = feature;
-        SumSqr += featureCasted * featureCasted;
         ObjectCount += 1;
     }
 }
 
 bool TFloatFeatureStatistics::operator==(const TFloatFeatureStatistics& rhs) const {
     return (
-        std::tie(MinValue, Sum, SumSqr, ObjectCount) ==
-        std::tie(rhs.MinValue, rhs.Sum, SumSqr, rhs.ObjectCount)
+        std::tie(MinValue, Sum, ObjectCount) ==
+        std::tie(rhs.MinValue, rhs.Sum, rhs.ObjectCount)
     );
 }
 
@@ -51,7 +48,6 @@ NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
         result.InsertValue("MaxValue", MaxValue);
     }
     result.InsertValue("Sum", ToString(Sum));
-    result.InsertValue("SumSqr", ToString(SumSqr));
     result.InsertValue("ObjectCount", ObjectCount);
     return result;
 }
@@ -61,7 +57,6 @@ void TFloatFeatureStatistics::Update(const TFloatFeatureStatistics& update) {
         MinValue = Min<float>(MinValue, update.MinValue);
         MaxValue = Max<float>(MaxValue, update.MaxValue);
         Sum += update.Sum;
-        SumSqr += update.SumSqr;
         ObjectCount += update.ObjectCount;
     }
 }
@@ -81,7 +76,7 @@ void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo) {
             }
             break;
         default:
-            CB_ENSURE(false);
+            Y_ASSERT(false);
     }
 }
 
@@ -114,7 +109,7 @@ NJson::TJsonValue TTargetsStatistics::ToJson() const {
             result.InsertValue("TargetStatistics", AggregateStatistics(StringTargetStatistics));
             break;
         default:
-            CB_ENSURE(false);
+            Y_ASSERT(false);
     }
     return result;
 }
@@ -167,7 +162,7 @@ NJson::TJsonValue TStringTargetStatistic::ToJson() const {
             }
             break;
         default:
-            CB_ENSURE(false);
+            Y_ASSERT(false);
     }
     result.InsertValue("TargetsDistributionInSample", targetsDistribution);
     return result;
@@ -250,79 +245,8 @@ void TCatFeatureStatistics::Update(const TCatFeatureStatistics& update) {
     ImperfectHashSet.insert(update.ImperfectHashSet.begin(), update.ImperfectHashSet.end());
 }
 
-void TFloatFeaturePairwiseProduct::Init(ui32 featureCount) {
-    PairwiseProduct.resize(featureCount * (featureCount - 1) / 2, 0);
-    FeatureCount = featureCount;
-    PairwiseProductDocsUsed = 0;
-}
-
-void TFloatFeaturePairwiseProduct::Update(TConstArrayRef<float> features) {
-    TVector<long double> add(Min(PairwiseProduct.size(), size_t(1000)));
-    ui32 resIdx = 0;
-    ui32 idx = 0;
-    for (ui32 i = 0; i < FeatureCount; ++i) {
-        for (ui32 j = i + 1; j < FeatureCount; ++j) {
-            add[idx++] = features[i] * features[j];
-
-            if (idx == add.size()) {
-                idx = 0;
-                with_lock(Mutex) {
-                    for (; idx < add.size(); ++idx) {
-                        PairwiseProduct[resIdx + idx] += add[idx];
-                    }
-                }
-                resIdx += add.size();
-                idx = 0;
-            }
-        }
-    }
-
-    with_lock(Mutex) {
-        idx = 0;
-        for (; resIdx < PairwiseProduct.size(); ++resIdx) {
-            PairwiseProduct[resIdx] += add[idx++];
-        }
-        PairwiseProductDocsUsed++;
-    }
-}
-
-void TFloatFeaturePairwiseProduct::Update(const TFloatFeaturePairwiseProduct& update) {
-    CB_ENSURE(FeatureCount == update.FeatureCount);
-    for (ui32 idx = 0; idx < PairwiseProduct.size(); ++idx) {
-        PairwiseProduct[idx] += update.PairwiseProduct[idx];
-    }
-    PairwiseProductDocsUsed += update.PairwiseProductDocsUsed;
-}
-
-bool TFloatFeaturePairwiseProduct::operator==(const TFloatFeaturePairwiseProduct& rhs) const {
-    return (
-        std::tie(PairwiseProduct, PairwiseProductDocsUsed, FeatureCount) ==
-        std::tie(rhs.PairwiseProduct, rhs.PairwiseProductDocsUsed, rhs.FeatureCount)
-    );
-}
-
-NJson::TJsonValue TFloatFeaturePairwiseProduct::ToJson(const TVector<TFloatFeatureStatistics>& featureStats) const {
-    CB_ENSURE(FeatureCount == featureStats.size(), "" << FeatureCount << " != " << featureStats.size());
-    TVector<TVector<NJson::TJsonValue>> matrix(FeatureCount, TVector<NJson::TJsonValue>(FeatureCount));
-    ui32 idx = 0;
-    for (ui32 i = 0; i < FeatureCount; ++i) {
-        for (ui32 j = i + 1; j < FeatureCount; ++j) {
-            matrix[i][j] = ToString(PairwiseProduct[idx]);
-            matrix[j][i] = ToString(PairwiseProduct[idx]);
-            idx++;
-        }
-        matrix[i][i] = ToString(featureStats[i].SumSqr);
-    }
-    TVector<NJson::TJsonValue> vectorOfJsons;
-    for (ui32 i = 0; i < FeatureCount; ++i) {
-        vectorOfJsons.emplace_back(VectorToJson(matrix[i]));
-    }
-    return VectorToJson(vectorOfJsons);
-}
-
 void TFeatureStatistics::Init(const TDataMetaInfo& metaInfo) {
     FloatFeatureStatistics.resize(metaInfo.FeaturesLayout->GetFloatFeatureCount());
-    FloatFeaturePairwiseProduct.Init(metaInfo.FeaturesLayout->GetFloatFeatureCount());
     CatFeatureStatistics.resize(metaInfo.FeaturesLayout->GetCatFeatureCount());
     TextFeatureStatistics.resize(metaInfo.FeaturesLayout->GetTextFeatureCount());
 }
@@ -330,8 +254,6 @@ void TFeatureStatistics::Init(const TDataMetaInfo& metaInfo) {
 NJson::TJsonValue TFeatureStatistics::ToJson() const {
     NJson::TJsonValue result;
     result.InsertValue("FloatFeatureStatistics", AggregateStatistics(FloatFeatureStatistics));
-    result.InsertValue("FloatFeaturePairwiseProductSum", FloatFeaturePairwiseProduct.ToJson(FloatFeatureStatistics));
-    result.InsertValue("PairwiseProductDocsUsed", FloatFeaturePairwiseProduct.PairwiseProductDocsUsed);
     result.InsertValue("CatFeaturesStatistics", AggregateStatistics(CatFeatureStatistics));
     result.InsertValue("TextFeaturesStatistics", AggregateStatistics(TextFeatureStatistics));
     //  ToDo: add statistics for Embedding features
@@ -351,13 +273,12 @@ void TFeatureStatistics::Update(const TFeatureStatistics& update) {
     for (ui32 i = 0; i < TextFeatureStatistics.size(); ++i) {
         TextFeatureStatistics[i].Update(update.TextFeatureStatistics[i]);
     }
-    FloatFeaturePairwiseProduct.Update(update.FloatFeaturePairwiseProduct);
 }
 
 bool TFeatureStatistics::operator==(const TFeatureStatistics& a) const {
     return (
-        std::tie(FloatFeatureStatistics, CatFeatureStatistics, TextFeatureStatistics, FloatFeaturePairwiseProduct) ==
-        std::tie(a.FloatFeatureStatistics, a.CatFeatureStatistics, a.TextFeatureStatistics, FloatFeaturePairwiseProduct)
+        std::tie(FloatFeatureStatistics, CatFeatureStatistics, TextFeatureStatistics) ==
+        std::tie(a.FloatFeatureStatistics, a.CatFeatureStatistics, a.TextFeatureStatistics)
     );
 }
 
