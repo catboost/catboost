@@ -236,7 +236,8 @@ public:
         : my_lru_cache_ptr(other.my_lru_cache_ptr), my_map_record_ptr(other.my_map_record_ptr) {
 
         __TBB_ASSERT(
-            bool(other.my_lru_cache_ptr) == bool(other.my_map_record_ptr),
+            (other.my_lru_cache_ptr != nullptr && other.my_map_record_ptr != nullptr) ||
+            (other.my_lru_cache_ptr == nullptr && other.my_map_record_ptr == nullptr),
             "invalid state of moving object?");
 
         other.my_lru_cache_ptr = nullptr;
@@ -245,7 +246,8 @@ public:
 
     handle_object& operator=(handle_object&& other) {
         __TBB_ASSERT(
-            bool(other.my_lru_cache_ptr) == bool(other.my_map_record_ptr),
+            (other.my_lru_cache_ptr != nullptr && other.my_map_record_ptr != nullptr) ||
+            (other.my_lru_cache_ptr == nullptr && other.my_map_record_ptr == nullptr),
             "invalid state of moving object?");
 
         if (my_lru_cache_ptr)

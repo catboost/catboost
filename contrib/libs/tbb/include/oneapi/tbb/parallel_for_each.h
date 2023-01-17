@@ -32,6 +32,25 @@
 
 namespace tbb {
 namespace detail {
+#if __TBB_CPP20_CONCEPTS_PRESENT
+namespace d1 {
+template <typename Item>
+class feeder;
+
+} // namespace d1
+inline namespace d0 {
+
+template <typename Body, typename ItemType, typename FeederItemType>
+concept parallel_for_each_body = requires( const std::remove_reference_t<Body>& body, ItemType&& item ) {
+                                    body(std::forward<ItemType>(item));
+                                 } ||
+                                 requires( const std::remove_reference_t<Body>& body, ItemType&& item,
+                                           tbb::detail::d1::feeder<FeederItemType>& feeder ) {
+                                    body(std::forward<ItemType>(item), feeder);
+};
+
+} // namespace d0
+#endif // __TBB_CPP20_CONCEPTS_PRESENT
 namespace d2 {
 template<typename Body, typename Item> class feeder_impl;
 } // namespace d2
@@ -48,7 +67,7 @@ class feeder {
     virtual void internal_add_copy(const Item& item) = 0;
     virtual void internal_add_move(Item&& item) = 0;
 
-    template<typename Body_, typename Item_> friend class detail::d2::feeder_impl;
+    template<typename Body_, typename Item_> friend class d2::feeder_impl;
 public:
     //! Add a work item to a running parallel_for_each.
     void add(const Item& item) {internal_add_copy(item);}
@@ -557,6 +576,19 @@ template<typename Body, typename Item> Item get_item_type_impl(...); // stub
 template <typename Body, typename Item>
 using get_item_type = decltype(get_item_type_impl<Body, Item>(0));
 
+#if __TBB_CPP20_CONCEPTS_PRESENT
+template <typename Body, typename ItemType>
+using feeder_item_type = std::remove_cvref_t<get_item_type<Body, ItemType>>;
+
+template <typename Body, typename Iterator>
+concept parallel_for_each_iterator_body =
+    parallel_for_each_body<Body, iterator_reference_type<Iterator>, feeder_item_type<Body, iterator_reference_type<Iterator>>>;
+
+template <typename Body, typename Range>
+concept parallel_for_each_range_body =
+    parallel_for_each_body<Body, range_reference_type<Range>, feeder_item_type<Body, range_reference_type<Range>>>;
+#endif
+
 /** Implements parallel iteration over a range.
     @ingroup algorithms */
 template<typename Iterator, typename Body>
@@ -597,17 +629,20 @@ void run_parallel_for_each( Iterator first, Iterator last, const Body& body, tas
 //! Parallel iteration over a range, with optional addition of more work.
 /** @ingroup algorithms */
 template<typename Iterator, typename Body>
+    __TBB_requires(std::input_iterator<Iterator> && parallel_for_each_iterator_body<Body, Iterator>)
 void parallel_for_each(Iterator first, Iterator last, const Body& body) {
     task_group_context context(PARALLEL_FOR_EACH);
     run_parallel_for_each<Iterator, Body>(first, last, body, context);
 }
 
 template<typename Range, typename Body>
+    __TBB_requires(container_based_sequence<Range, std::input_iterator_tag> && parallel_for_each_range_body<Body, Range>)
 void parallel_for_each(Range& rng, const Body& body) {
     parallel_for_each(std::begin(rng), std::end(rng), body);
 }
 
 template<typename Range, typename Body>
+    __TBB_requires(container_based_sequence<Range, std::input_iterator_tag> && parallel_for_each_range_body<Body, Range>)
 void parallel_for_each(const Range& rng, const Body& body) {
     parallel_for_each(std::begin(rng), std::end(rng), body);
 }
@@ -615,16 +650,19 @@ void parallel_for_each(const Range& rng, const Body& body) {
 //! Parallel iteration over a range, with optional addition of more work and user-supplied context
 /** @ingroup algorithms */
 template<typename Iterator, typename Body>
+    __TBB_requires(std::input_iterator<Iterator> && parallel_for_each_iterator_body<Body, Iterator>)
 void parallel_for_each(Iterator first, Iterator last, const Body& body, task_group_context& context) {
     run_parallel_for_each<Iterator, Body>(first, last, body, context);
 }
 
 template<typename Range, typename Body>
+    __TBB_requires(container_based_sequence<Range, std::input_iterator_tag> && parallel_for_each_range_body<Body, Range>)
 void parallel_for_each(Range& rng, const Body& body, task_group_context& context) {
     parallel_for_each(std::begin(rng), std::end(rng), body, context);
 }
 
 template<typename Range, typename Body>
+    __TBB_requires(container_based_sequence<Range, std::input_iterator_tag> && parallel_for_each_range_body<Body, Range>)
 void parallel_for_each(const Range& rng, const Body& body, task_group_context& context) {
     parallel_for_each(std::begin(rng), std::end(rng), body, context);
 }

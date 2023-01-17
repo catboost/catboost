@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -26,11 +26,13 @@ namespace tbb {
 namespace detail {
 namespace r1 {
 
-// maximum number of times to retry
-// TODO: experiment on retry values.
-static constexpr int retry_threshold = 10;
 
 struct rtm_mutex_impl {
+    // maximum number of times to retry
+    // TODO: experiment on retry values.
+    static constexpr int retry_threshold = 10;
+    using transaction_result_type = decltype(begin_transaction());
+
     //! Release speculative mutex
     static void release(d1::rtm_mutex::scoped_lock& s) {
         switch(s.m_transaction_state) {
@@ -57,14 +59,14 @@ struct rtm_mutex_impl {
         __TBB_ASSERT(s.m_transaction_state == d1::rtm_mutex::rtm_state::rtm_none, "scoped_lock already in transaction");
         if(governor::speculation_enabled()) {
             int num_retries = 0;
-            unsigned int abort_code = 0;
+            transaction_result_type abort_code = 0;
             do {
                 if(m.m_flag.load(std::memory_order_acquire)) {
                     if(only_speculate) return;
                     spin_wait_while_eq(m.m_flag, true);
                 }
                 // _xbegin returns -1 on success or the abort code, so capture it
-                if((abort_code = begin_transaction()) == speculation_successful_begin)
+                if((abort_code = begin_transaction()) == transaction_result_type(speculation_successful_begin))
                 {
                     // started speculation
                     if(m.m_flag.load(std::memory_order_relaxed)) {
@@ -84,7 +86,6 @@ struct rtm_mutex_impl {
         s.m_mutex = &m;
         s.m_mutex->lock();
         s.m_transaction_state = d1::rtm_mutex::rtm_state::rtm_real;
-        return;
     }
 
     //! Try to acquire lock on the given mutex.
@@ -93,7 +94,7 @@ struct rtm_mutex_impl {
         if (s.m_transaction_state == d1::rtm_mutex::rtm_state::rtm_transacting) {
             return true;
         }
-        __TBB_ASSERT(s.m_transaction_state == d1::rtm_mutex::rtm_state::rtm_none, NULL);
+        __TBB_ASSERT(s.m_transaction_state == d1::rtm_mutex::rtm_state::rtm_none, nullptr);
         // transacting acquire failed. try_lock the real mutex
         if (m.try_lock()) {
             s.m_mutex = &m;

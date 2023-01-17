@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2020-2021 Intel Corporation
+    Copyright (c) 2020-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ void __TBB_EXPORTED_FUNC spawn(d1::task& t, d1::task_group_context& ctx, d1::slo
     // Mark isolation
     task_accessor::isolation(t) = ed.isolation;
 
-    if ( id != d1::no_slot && id != tls->my_arena_index ) {
+    if ( id != d1::no_slot && id != tls->my_arena_index && id < a->my_num_slots) {
         // Allocate proxy task
         d1::small_object_allocator alloc{};
         auto proxy = alloc.new_object<task_proxy>(static_cast<d1::execution_data&>(ed));
@@ -133,7 +133,7 @@ d1::slot_id __TBB_EXPORTED_FUNC execution_slot(const d1::execution_data* ed) {
         return ed_ext->task_disp->m_thread_data->my_arena_index;
     } else {
         thread_data* td = governor::get_thread_data_if_initialized();
-        return td ? int(td->my_arena_index) : -1;
+        return td ? td->my_arena_index : d1::slot_id(-1);
     }
 }
 
@@ -173,24 +173,27 @@ void task_dispatcher::execute_and_wait(d1::task* t, d1::wait_context& wait_ctx, 
         local_td.m_thread_data->my_inbox.set_is_idle(false);
     }
 
-    if (w_ctx.my_exception) {
+    auto exception = w_ctx.my_exception.load(std::memory_order_acquire);
+    if (exception) {
         __TBB_ASSERT(w_ctx.is_group_execution_cancelled(), "The task group context with an exception should be canceled.");
-        w_ctx.my_exception->throw_self();
+        exception->throw_self();
     }
 }
 
 #if __TBB_RESUMABLE_TASKS
 
 #if _WIN32
-/* [[noreturn]] */ void __stdcall co_local_wait_for_all(void* arg) noexcept
+/* [[noreturn]] */ void __stdcall co_local_wait_for_all(void* addr) noexcept
 #else
-/* [[noreturn]] */ void co_local_wait_for_all(void* arg)  noexcept
+/* [[noreturn]] */ void co_local_wait_for_all(unsigned hi, unsigned lo) noexcept
 #endif
 {
-    // Do not create non-trivial objects on the stack of this function. They will never be destroyed.
-    __TBB_ASSERT(arg != nullptr, nullptr);
-    task_dispatcher& task_disp = *static_cast<task_dispatcher*>(arg);
-
+#if !_WIN32
+    std::uintptr_t addr = lo;
+    __TBB_ASSERT(sizeof(addr) == 8 || hi == 0, nullptr);
+    addr += std::uintptr_t(std::uint64_t(hi) << 32);
+#endif
+    task_dispatcher& task_disp = *reinterpret_cast<task_dispatcher*>(addr);
     assert_pointers_valid(task_disp.m_thread_data, task_disp.m_thread_data->my_arena);
     task_disp.set_stealing_threshold(task_disp.m_thread_data->my_arena->calculate_stealing_threshold());
     __TBB_ASSERT(task_disp.can_steal(), nullptr);
@@ -202,21 +205,23 @@ void task_dispatcher::execute_and_wait(d1::task* t, d1::wait_context& wait_ctx, 
     // Do not create non-trivial objects on the stack of this function. They will never be destroyed.
     assert_pointer_valid(m_thread_data);
 
+    m_suspend_point->finilize_resume();
     // Basically calls the user callback passed to the tbb::task::suspend function
-    m_thread_data->do_post_resume_action();
+    do_post_resume_action();
 
     // Endless loop here because coroutine could be reused
-    for (;;) {
+    d1::task* resume_task{};
+    do {
         arena* a = m_thread_data->my_arena;
         coroutine_waiter waiter(*a);
-        d1::task* resume_task = local_wait_for_all(nullptr, waiter);
+        resume_task = local_wait_for_all(nullptr, waiter);
         assert_task_valid(resume_task);
         __TBB_ASSERT(this == m_thread_data->my_task_dispatcher, nullptr);
 
-        m_thread_data->set_post_resume_action(thread_data::post_resume_action::cleanup, this);
-        resume(static_cast<suspend_point_type::resume_task*>(resume_task)->m_target);
-    }
-    // This code is unreachable
+        m_thread_data->set_post_resume_action(post_resume_action::cleanup, this);
+
+    } while (resume(static_cast<suspend_point_type::resume_task*>(resume_task)->m_target));
+    // This code might be unreachable
 }
 
 d1::suspend_point task_dispatcher::get_suspend_point() {
@@ -237,4 +242,3 @@ void task_dispatcher::init_suspend_point(arena* a, std::size_t stack_size) {
 } // namespace r1
 } // namespace detail
 } // namespace tbb
-

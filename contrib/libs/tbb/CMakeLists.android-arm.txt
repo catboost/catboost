@@ -22,6 +22,7 @@ target_link_libraries(contrib-libs-tbb PUBLIC
   contrib-libs-cxxsupp
 )
 target_sources(contrib-libs-tbb PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/address_waiter.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/allocator.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/arena.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/arena_slot.cpp
