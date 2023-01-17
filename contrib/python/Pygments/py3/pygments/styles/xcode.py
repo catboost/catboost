@@ -18,8 +18,6 @@ class XcodeStyle(Style):
     Style similar to the Xcode default colouring theme.
     """
 
-    default_style = ''
-
     styles = {
         Comment:                '#177500',
         Comment.Preproc:        '#633820',

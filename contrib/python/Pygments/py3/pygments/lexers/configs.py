@@ -590,7 +590,7 @@ class TerraformLexer(ExtendedRegexLexer):
     mimetypes = ['application/x-tf', 'application/x-terraform']
 
     classes = ('backend', 'data', 'module', 'output', 'provider',
-             'provisioner', 'resource', 'variable')
+               'provisioner', 'resource', 'variable')
     classes_re = "({})".format(('|').join(classes))
 
     types = ('string', 'number', 'bool', 'list', 'tuple', 'map', 'set', 'object', 'null')
@@ -617,7 +617,6 @@ class TerraformLexer(ExtendedRegexLexer):
                           'csvdecode', 'jsondecode', 'jsonencode', 'textdecodebase64',
                           'textencodebase64', 'urlencode', 'yamldecode', 'yamlencode')
 
-
     filesystem_functions = ('abspath', 'dirname', 'pathexpand', 'basename',
                             'file', 'fileexists', 'fileset', 'filebase64', 'templatefile')
 
@@ -642,8 +641,8 @@ class TerraformLexer(ExtendedRegexLexer):
         # match: 1 = <<[-]?, 2 = name 3 = rest of line
 
         start = match.start(1)
-        yield start, Operator, match.group(1)        # <<[-~]?
-        yield match.start(2), String.Delimiter, match.group(2) # heredoc name
+        yield start, Operator, match.group(1)        # <<[-]?
+        yield match.start(2), String.Delimiter, match.group(2)  # heredoc name
 
         ctx.pos = match.start(3)
         ctx.end = match.end(3)
@@ -651,7 +650,7 @@ class TerraformLexer(ExtendedRegexLexer):
         ctx.pos = match.end()
 
         hdname = match.group(2)
-        tolerant = match.group(1)[-1] == "-"
+        tolerant = True  # leading whitespace is always accepted
 
         lines = []
         line_re = re.compile('.*?\n')

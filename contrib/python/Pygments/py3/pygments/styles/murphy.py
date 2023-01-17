@@ -18,8 +18,6 @@ class MurphyStyle(Style):
     Murphy's style from CodeRay.
     """
 
-    default_style = ""
-
     styles = {
         Whitespace:                "#bbbbbb",
         Comment:                   "#666 italic",

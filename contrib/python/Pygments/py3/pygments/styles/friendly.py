@@ -19,7 +19,6 @@ class FriendlyStyle(Style):
     """
 
     background_color = "#f0f0f0"
-    default_style = ""
     line_number_color = "#666666"
 
     styles = {

@@ -22,8 +22,6 @@ class SasStyle(Style):
     program editor syntax highlighting.
     """
 
-    default_style = ''
-
     styles = {
         Whitespace:            '#bbbbbb',
         Comment:               'italic #008800',

@@ -175,12 +175,11 @@ class PhpLexer(RegexLexer):
     filenames = ['*.php', '*.php[345]', '*.inc']
     mimetypes = ['text/x-php']
 
-    # Note that a backslash is included in the following two patterns
-    # PHP uses a backslash as a namespace separator
-    _ident_char = r'[\\\w]|[^\x00-\x7f]'
-    _ident_begin = r'(?:[\\_a-z]|[^\x00-\x7f])'
-    _ident_end = r'(?:' + _ident_char + ')*'
-    _ident_inner = _ident_begin + _ident_end
+    # Note that a backslash is included, PHP uses a backslash as a namespace
+    # separator.
+    _ident_inner = r'(?:[\\_a-z]|[^\x00-\x7f])(?:[\\\w]|[^\x00-\x7f])*'
+    # But not inside strings.
+    _ident_nons = r'(?:[_a-z]|[^\x00-\x7f])(?:\w|[^\x00-\x7f])*'
 
     flags = re.IGNORECASE | re.DOTALL | re.MULTILINE
     tokens = {
@@ -191,7 +190,7 @@ class PhpLexer(RegexLexer):
         ],
         'php': [
             (r'\?>', Comment.Preproc, '#pop'),
-            (r'(<<<)([\'"]?)(' + _ident_inner + r')(\2\n.*?\n\s*)(\3)(;?)(\n)',
+            (r'(<<<)([\'"]?)(' + _ident_nons + r')(\2\n.*?\n\s*)(\3)(;?)(\n)',
              bygroups(String, String, String.Delimiter, String, String.Delimiter,
                       Punctuation, Text)),
             (r'\s+', Text),
@@ -202,7 +201,7 @@ class PhpLexer(RegexLexer):
             (r'/\*\*/', Comment.Multiline),
             (r'/\*\*.*?\*/', String.Doc),
             (r'/\*.*?\*/', Comment.Multiline),
-            (r'(->|::)(\s*)(' + _ident_inner + ')',
+            (r'(->|::)(\s*)(' + _ident_nons + ')',
              bygroups(Operator, Text, Name.Attribute)),
             (r'[~!%^&*+=|:.<>/@-]+', Operator),
             (r'\?', Operator),  # don't add to the charclass above!
@@ -267,7 +266,7 @@ class PhpLexer(RegexLexer):
             (r'"', String.Double, '#pop'),
             (r'[^{$"\\]+', String.Double),
             (r'\\([nrt"$\\]|[0-7]{1,3}|x[0-9a-f]{1,2})', String.Escape),
-            (r'\$' + _ident_inner + r'(\[\S+?\]|->' + _ident_inner + ')?',
+            (r'\$' + _ident_nons + r'(\[\S+?\]|->' + _ident_nons + ')?',
              String.Interpol),
             (r'(\{\$\{)(.*?)(\}\})',
              bygroups(String.Interpol, using(this, _startinline=True),

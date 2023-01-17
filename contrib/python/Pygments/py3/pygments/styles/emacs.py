@@ -19,7 +19,6 @@ class EmacsStyle(Style):
     """
 
     background_color = "#f8f8f8"
-    default_style = ""
 
     styles = {
         Whitespace:                "#bbbbbb",

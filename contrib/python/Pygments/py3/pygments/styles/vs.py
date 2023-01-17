@@ -16,7 +16,6 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
 class VisualStudioStyle(Style):
 
     background_color = "#ffffff"
-    default_style = ""
 
     styles = {
         Comment:                   "#008000",

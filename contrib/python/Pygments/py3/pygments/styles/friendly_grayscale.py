@@ -24,7 +24,6 @@ class FriendlyGrayscaleStyle(Style):
     """
 
     background_color = "#f0f0f0"
-    default_style = ""
 
     styles = {
         Whitespace:                "#bbbbbb",

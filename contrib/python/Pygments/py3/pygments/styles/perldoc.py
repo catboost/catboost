@@ -21,7 +21,6 @@ class PerldocStyle(Style):
     """
 
     background_color = '#eeeedd'
-    default_style = ''
 
     styles = {
         Whitespace:             '#bbbbbb',

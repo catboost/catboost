@@ -387,11 +387,12 @@ class BooLexer(RegexLexer):
 class VbNetLexer(RegexLexer):
     """
     For Visual Basic.NET source code.
+    Also LibreOffice Basic, OpenOffice Basic, and StarOffice Basic.
     """
 
     name = 'VB.net'
     url = 'https://docs.microsoft.com/en-us/dotnet/visual-basic/'
-    aliases = ['vb.net', 'vbnet']
+    aliases = ['vb.net', 'vbnet', 'lobas', 'oobas', 'sobas']
     filenames = ['*.vb', '*.bas']
     mimetypes = ['text/x-vbnet', 'text/x-vba']  # (?)
 

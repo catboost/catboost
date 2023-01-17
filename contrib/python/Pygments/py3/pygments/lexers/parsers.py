@@ -33,12 +33,13 @@ __all__ = ['RagelLexer', 'RagelEmbeddedLexer', 'RagelCLexer', 'RagelDLexer',
 
 
 class RagelLexer(RegexLexer):
-    """
-    A pure Ragel lexer.  Use this for
-    fragments of Ragel.  For ``.rl`` files, use RagelEmbeddedLexer instead
-    (or one of the language-specific subclasses).
+    """A pure `Ragel <www.colm.net/open-source/ragel>`_ lexer.  Use this
+    for fragments of Ragel.  For ``.rl`` files, use
+    :class:`RagelEmbeddedLexer` instead (or one of the
+    language-specific subclasses).
 
     .. versionadded:: 1.1
+
     """
 
     name = 'Ragel'
@@ -128,7 +129,7 @@ class RagelLexer(RegexLexer):
 
 class RagelEmbeddedLexer(RegexLexer):
     """
-    A lexer for `Ragel`_ embedded in a host language file.
+    A lexer for Ragel embedded in a host language file.
 
     This will only highlight Ragel statements. If you want host language
     highlighting then call the language-specific Ragel lexer.
@@ -211,7 +212,7 @@ class RagelEmbeddedLexer(RegexLexer):
 
 class RagelRubyLexer(DelegatingLexer):
     """
-    A lexer for `Ragel`_ in a Ruby host file.
+    A lexer for Ragel in a Ruby host file.
 
     .. versionadded:: 1.1
     """
@@ -229,7 +230,7 @@ class RagelRubyLexer(DelegatingLexer):
 
 class RagelCLexer(DelegatingLexer):
     """
-    A lexer for `Ragel`_ in a C host file.
+    A lexer for Ragel in a C host file.
 
     .. versionadded:: 1.1
     """
@@ -247,7 +248,7 @@ class RagelCLexer(DelegatingLexer):
 
 class RagelDLexer(DelegatingLexer):
     """
-    A lexer for `Ragel`_ in a D host file.
+    A lexer for Ragel in a D host file.
 
     .. versionadded:: 1.1
     """
@@ -265,7 +266,7 @@ class RagelDLexer(DelegatingLexer):
 
 class RagelCppLexer(DelegatingLexer):
     """
-    A lexer for `Ragel`_ in a CPP host file.
+    A lexer for Ragel in a C++ host file.
 
     .. versionadded:: 1.1
     """
@@ -283,7 +284,7 @@ class RagelCppLexer(DelegatingLexer):
 
 class RagelObjectiveCLexer(DelegatingLexer):
     """
-    A lexer for `Ragel`_ in an Objective C host file.
+    A lexer for Ragel in an Objective C host file.
 
     .. versionadded:: 1.1
     """
@@ -301,7 +302,7 @@ class RagelObjectiveCLexer(DelegatingLexer):
 
 class RagelJavaLexer(DelegatingLexer):
     """
-    A lexer for `Ragel`_ in a Java host file.
+    A lexer for Ragel in a Java host file.
 
     .. versionadded:: 1.1
     """
@@ -514,7 +515,7 @@ class AntlrLexer(RegexLexer):
 
 class AntlrCppLexer(DelegatingLexer):
     """
-    `ANTLR`_ with CPP Target
+    ANTLR with C++ Target
 
     .. versionadded:: 1.1
     """
@@ -533,7 +534,7 @@ class AntlrCppLexer(DelegatingLexer):
 
 class AntlrObjectiveCLexer(DelegatingLexer):
     """
-    `ANTLR`_ with Objective-C Target
+    ANTLR with Objective-C Target
 
     .. versionadded:: 1.1
     """
@@ -552,7 +553,7 @@ class AntlrObjectiveCLexer(DelegatingLexer):
 
 class AntlrCSharpLexer(DelegatingLexer):
     """
-    `ANTLR`_ with C# Target
+    ANTLR with C# Target
 
     .. versionadded:: 1.1
     """
@@ -571,7 +572,7 @@ class AntlrCSharpLexer(DelegatingLexer):
 
 class AntlrPythonLexer(DelegatingLexer):
     """
-    `ANTLR`_ with Python Target
+    ANTLR with Python Target
 
     .. versionadded:: 1.1
     """
@@ -590,7 +591,7 @@ class AntlrPythonLexer(DelegatingLexer):
 
 class AntlrJavaLexer(DelegatingLexer):
     """
-    `ANTLR`_ with Java Target
+    ANTLR with Java Target
 
     .. versionadded:: 1.
     """
@@ -609,7 +610,7 @@ class AntlrJavaLexer(DelegatingLexer):
 
 class AntlrRubyLexer(DelegatingLexer):
     """
-    `ANTLR`_ with Ruby Target
+    ANTLR with Ruby Target
 
     .. versionadded:: 1.1
     """
@@ -628,7 +629,7 @@ class AntlrRubyLexer(DelegatingLexer):
 
 class AntlrPerlLexer(DelegatingLexer):
     """
-    `ANTLR`_ with Perl Target
+    ANTLR with Perl Target
 
     .. versionadded:: 1.1
     """
@@ -647,7 +648,7 @@ class AntlrPerlLexer(DelegatingLexer):
 
 class AntlrActionScriptLexer(DelegatingLexer):
     """
-    `ANTLR`_ with ActionScript Target
+    ANTLR with ActionScript Target
 
     .. versionadded:: 1.1
     """
@@ -668,7 +669,7 @@ class AntlrActionScriptLexer(DelegatingLexer):
 class TreetopBaseLexer(RegexLexer):
     """
     A base lexer for `Treetop <http://treetop.rubyforge.org/>`_ grammars.
-    Not for direct use; use TreetopLexer instead.
+    Not for direct use; use :class:`TreetopLexer` instead.
 
     .. versionadded:: 1.6
     """

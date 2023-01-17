@@ -20,7 +20,6 @@ from pygments.token import (
 
 class DraculaStyle(Style):
 
-    default_style = ""
     background_color = "#282a36"
     highlight_color = "#44475a"
     line_number_color = "#f1fa8c"

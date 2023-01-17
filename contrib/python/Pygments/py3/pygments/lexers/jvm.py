@@ -65,6 +65,7 @@ class JavaLexer(RegexLexer):
             (r'(var)(\s+)', bygroups(Keyword.Declaration, Whitespace), 'var'),
             (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Whitespace),
              'import'),
+            (r'"""\n', String, 'multiline_string'),
             (r'"', String, 'string'),
             (r"'\\.'|'[^\\]'|'\\u[0-9a-fA-F]{4}'", String.Char),
             (r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Punctuation,
@@ -98,6 +99,11 @@ class JavaLexer(RegexLexer):
         ],
         'import': [
             (r'[\w.]+\*?', Name.Namespace, '#pop')
+        ],
+        'multiline_string': [
+            (r'"""', String, '#pop'),
+            (r'"', String),
+            include('string')
         ],
         'string': [
             (r'[^\\"]+', String),
@@ -1114,7 +1120,7 @@ class KotlinLexer(RegexLexer):
     modifiers = (r'actual|abstract|annotation|companion|const|crossinline|'
                 r'data|enum|expect|external|final|infix|inline|inner|'
                 r'internal|lateinit|noinline|open|operator|override|private|'
-                r'protected|public|sealed|suspend|tailrec')
+                r'protected|public|sealed|suspend|tailrec|value')
 
     tokens = {
         'root': [

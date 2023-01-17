@@ -17,8 +17,6 @@ from pygments.token import Token, Keyword, Name, Comment, String, Error, \
 
 class StataDarkStyle(Style):
 
-    default_style = ''
-
     background_color = "#232629"
     highlight_color = "#49483e"
 

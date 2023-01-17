@@ -33,8 +33,6 @@ class LovelaceStyle(Style):
     _LABEL_CYAN =    '#289870'
     _EXCEPT_YELLOW = '#908828'
 
-    default_style =  '#222222'
-
     styles = {
         Whitespace:          '#a89028',
         Comment:             'italic #888888',

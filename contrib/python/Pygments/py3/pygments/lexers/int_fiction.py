@@ -175,6 +175,10 @@ class Inform6Lexer(RegexLexer):
             # Other values
             (_name, Name, '#pop')
         ],
+        'value?': [
+            include('value'),
+            default('#pop')
+        ],
         # Strings
         'dictionary-word': [
             (r'[~^]+', String.Escape),
@@ -191,8 +195,8 @@ class Inform6Lexer(RegexLexer):
             (r'\\', String.Escape),
             (r'@(\\\s*[%s]\s*)*@((\\\s*[%s]\s*)*[0-9])*' %
              (_newline, _newline), String.Escape),
-            (r'@(\\\s*[%s]\s*)*\{((\\\s*[%s]\s*)*[0-9a-fA-F])*'
-             r'(\\\s*[%s]\s*)*\}' % (_newline, _newline, _newline),
+            (r'@(\\\s*[%s]\s*)*[({]((\\\s*[%s]\s*)*[0-9a-zA-Z_])*'
+             r'(\\\s*[%s]\s*)*[)}]' % (_newline, _newline, _newline),
              String.Escape),
             (r'@(\\\s*[%s]\s*)*.(\\\s*[%s]\s*)*.' % (_newline, _newline),
              String.Escape),
@@ -209,6 +213,13 @@ class Inform6Lexer(RegexLexer):
             include('_whitespace'),
             (_name, Name.Constant, '#pop'),
             include('value')
+        ],
+        'constant*': [
+            include('_whitespace'),
+            (r',', Punctuation),
+            (r'=', Punctuation, 'value?'),
+            (_name, Name.Constant, 'value?'),
+            default('#pop')
         ],
         '_global': [
             include('_whitespace'),
@@ -252,7 +263,7 @@ class Inform6Lexer(RegexLexer):
             (r'(?i)class\b', Keyword,
              ('object-body', 'duplicates', 'class-name')),
             (r'(?i)(constant|default)\b', Keyword,
-             ('default', 'expression', '_constant')),
+             ('default', 'constant*')),
             (r'(?i)(end\b)(.*)', bygroups(Keyword, Text)),
             (r'(?i)(extend|verb)\b', Keyword, 'grammar'),
             (r'(?i)fake_action\b', Keyword, ('default', '_constant')),

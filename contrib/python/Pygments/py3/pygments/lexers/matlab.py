@@ -2776,7 +2776,7 @@ class MatlabSessionLexer(Lexer):
                 # line = "\n" + line
                 token = (0, Generic.Traceback, line)
                 insertions.append((idx, [token]))
-            elif continuation:
+            elif continuation and insertions:
                 # line_start is the length of the most recent prompt symbol
                 line_start = len(insertions[-1][-1][-1])
                 # Set leading spaces with the length of the prompt to be a generic prompt

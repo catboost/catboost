@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, include, bygroups
 from pygments.token import Text, Comment, Operator, Name, String, \
-    Number, Keyword
+    Number, Keyword, Error
 
 __all__ = ['TeraTermLexer']
 
@@ -52,7 +52,7 @@ class TeraTermLexer(RegexLexer):
             (r'[*/]', Comment.Multiline)
         ],
         'labels': [
-            (r'(?i)^(\s*)(:[a-z0-9_]+)', bygroups(Text, Name.Label)),
+            (r'(?i)^(\s*)(:[a-z0-9_]+)', bygroups(Text.Whitespace, Name.Label)),
         ],
         'commands': [
             (
@@ -260,7 +260,7 @@ class TeraTermLexer(RegexLexer):
                 Keyword,
             ),
             (r'(?i)(call|goto)([ \t]+)([a-z0-9_]+)',
-             bygroups(Keyword, Text, Name.Label)),
+             bygroups(Keyword, Text.Whitespace, Name.Label)),
         ],
         'builtin-variables': [
             (
@@ -303,20 +303,11 @@ class TeraTermLexer(RegexLexer):
         ],
         'string-literals': [
             (r'(?i)#(?:[0-9]+|\$[0-9a-f]+)', String.Char),
-            (r"'", String.Single, 'in-single-string'),
-            (r'"', String.Double, 'in-double-string'),
-        ],
-        'in-general-string': [
-            (r'\\[\\nt]', String.Escape),  # Only three escapes are supported.
-            (r'.', String),
-        ],
-        'in-single-string': [
-            (r"'", String.Single, '#pop'),
-            include('in-general-string'),
-        ],
-        'in-double-string': [
-            (r'"', String.Double, '#pop'),
-            include('in-general-string'),
+            (r"'[^'\n]*'", String.Single),
+            (r'"[^"\n]*"', String.Double),
+            # Opening quotes without a closing quote on the same line are errors.
+            (r"('[^']*)(\n)", bygroups(Error, Text.Whitespace)),
+            (r'("[^"]*)(\n)', bygroups(Error, Text.Whitespace)),
         ],
         'operators': [
             (r'and|not|or|xor', Operator.Word),
@@ -324,7 +315,7 @@ class TeraTermLexer(RegexLexer):
             (r'[()]', String.Symbol),
         ],
         'all-whitespace': [
-            (r'\s+', Text),
+            (r'\s+', Text.Whitespace),
         ],
     }
 

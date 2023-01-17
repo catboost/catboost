@@ -34,12 +34,13 @@ class NimrodLexer(RegexLexer):
 
     def underscorize(words):
         newWords = []
-        new = ""
+        new = []
         for word in words:
             for ch in word:
-                new += (ch + "_?")
-            newWords.append(new)
-            new = ""
+                new.append(ch)
+                new.append("_?")
+            newWords.append(''.join(new))
+            new = []
         return "|".join(newWords)
 
     keywords = [
@@ -87,10 +88,10 @@ class NimrodLexer(RegexLexer):
             (r'(%s)\b' % underscorize(opWords), Operator.Word),
             (r'(p_?r_?o_?c_?\s)(?![(\[\]])', Keyword, 'funcname'),
             (r'(%s)\b' % underscorize(keywords), Keyword),
-            (r'(%s)\b' % underscorize(['from', 'import', 'include']),
+            (r'(%s)\b' % underscorize(['from', 'import', 'include', 'export']),
              Keyword.Namespace),
             (r'(v_?a_?r)\b', Keyword.Declaration),
-            (r'(%s)\b' % underscorize(types), Keyword.Type),
+            (r'(%s)\b' % underscorize(types), Name.Builtin),
             (r'(%s)\b' % underscorize(keywordsPseudo), Keyword.Pseudo),
             # Identifiers
             (r'\b((?![_\d])\w)(((?!_)\w)|(_(?!_)\w))*', Name),

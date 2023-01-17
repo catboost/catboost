@@ -14,7 +14,7 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
 
 
 class AbapStyle(Style):
-    default_style = ""
+
     styles = {
         Comment:                'italic #888',
         Comment.Special:        '#888',
