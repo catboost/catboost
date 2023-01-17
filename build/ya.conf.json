@@ -1813,7 +1813,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1823,7 +1823,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1833,7 +1833,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1843,7 +1843,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1853,7 +1853,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1863,7 +1863,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1873,7 +1873,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1883,7 +1883,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1893,7 +1893,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1903,7 +1903,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1913,7 +1913,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1923,7 +1923,7 @@
                         "os": "YOCTO",
                         "arch": "armv7a"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2164,7 +2164,7 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2174,7 +2174,7 @@
                         "os": "LINUX",
                         "arch": "armv7a_cortex_a9"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2184,7 +2184,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a35"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2194,7 +2194,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a53"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2204,7 +2204,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2214,7 +2214,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a35"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2224,7 +2224,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a53"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2417,7 +2417,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2427,7 +2427,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2437,7 +2437,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2447,7 +2447,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2457,7 +2457,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2467,7 +2467,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2477,7 +2477,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2487,7 +2487,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2497,7 +2497,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2507,7 +2507,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2517,7 +2517,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2527,7 +2527,7 @@
                         "os": "YOCTO",
                         "arch": "armv7a"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2768,7 +2768,7 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2778,7 +2778,7 @@
                         "os": "LINUX",
                         "arch": "armv7a_cortex_a9"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2788,7 +2788,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a35"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2798,7 +2798,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a53"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2808,7 +2808,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2818,7 +2818,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a35"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2828,7 +2828,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a53"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
