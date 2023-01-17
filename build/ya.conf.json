@@ -9120,10 +9120,7 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "ABCD_CLI",
-                        "owner": "atridis",
-                        "attributes": {
-                            "released": "stable"
-                        }
+                        "owner": "CAPACITY-PLANNING"
                     },
                     "update_interval": 86400
                 }
