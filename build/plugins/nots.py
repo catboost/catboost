@@ -1,8 +1,10 @@
 import fnmatch
 import os
 import ytest
+from os.path import exists as file_exists
 
 from _common import to_yesno, strip_roots, rootrel_arc_src
+from lib.nots.package_manager import utils
 
 
 def _create_pm(unit):
@@ -69,6 +71,7 @@ def on_ts_configure(unit, tsconfig_path):
     unit.set(["TS_CONFIG_DECLARATION_MAP", to_yesno(tsconfig.compiler_option("declarationMap"))])
     unit.set(["TS_CONFIG_PRESERVE_JSX", to_yesno(tsconfig.compiler_option("jsx") == "preserve")])
 
+    _set_nodejs_root(unit)
     _setup_eslint(unit)
 
 
@@ -238,6 +241,7 @@ def _add_test_type(unit, test_type, test_files, test_record_args=None, test_cwd=
         "TEST-CWD": test_cwd or "",
         "TAG": ytest.serialize_list(ytest.get_values_list(unit, "TEST_TAGS_VALUE")),
         "REQUIREMENTS": ytest.serialize_list(ytest.get_values_list(unit, "TEST_REQUIREMENTS_VALUE")),
+        "NODEJS-ROOT-VAR-NAME": unit.get("NODEJS_ROOT_VAR_NAME"),
     }
     test_record.update(test_record_args)
 
@@ -245,3 +249,41 @@ def _add_test_type(unit, test_type, test_files, test_record_args=None, test_cwd=
     if data:
         unit.set_property(["DART_DATA", data])
         ytest.save_in_file(unit.get("TEST_DART_OUT_FILE"), data)
+
+def _set_nodejs_root(unit):
+    node_version = _get_node_version_from_package_json(unit) # example: 12.18.4
+    yamake_node_version_var = _convert_node_version_to_yamake_var(node_version) # example: NODEJS_12_18_4
+
+    unit.set(["NODEJS_ROOT", "${}_RESOURCE_GLOBAL".format(yamake_node_version_var)])
+    unit.set(["NODEJS_BIN", "${}_RESOURCE_GLOBAL/node".format(yamake_node_version_var)])
+    unit.set(["NODEJS_ROOT_VAR_NAME", "{}_RESOURCE_GLOBAL".format(yamake_node_version_var)])
+
+def _get_node_version_from_package_json(unit):
+    pm = _create_pm(unit)
+
+    # for test modules we use node.js version from the parent module (the one being tested)
+    module_path = unit.get("TS_TEST_FOR_PATH") if unit.get("TS_TEST_FOR") else unit.path()
+    module_abs_path = unit.resolve(unit.resolve_arc_path(module_path))
+
+    package_json = pm.load_package_json_from_dir(module_abs_path)
+
+    return package_json.get_nodejs_version()
+
+
+def _convert_node_version_to_yamake_var(input):
+    """
+    :param input: nodejs version string from package.json
+    :type input: str
+    :rtype: str
+    """
+
+    from lib.nots.constants import SUPPORTED_NODE_VERSIONS, DEFAULT_NODE_VERSION
+
+    if input is None:
+        input = DEFAULT_NODE_VERSION
+
+    if input in SUPPORTED_NODE_VERSIONS:
+        snake_case_version = input.replace(".", "_")
+        return "NODEJS_{}".format(snake_case_version)
+
+    raise Exception("Unsupported nodejs version {}, please specify one of the following: {}".format(input, SUPPORTED_NODE_VERSIONS))
