@@ -8,4 +8,3 @@ ipython3 = IPython:start_ipython
 ipython = IPython.lib.lexers:IPythonLexer
 ipython3 = IPython.lib.lexers:IPython3Lexer
 ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer
-
