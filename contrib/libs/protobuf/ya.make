@@ -13,9 +13,9 @@ PROVIDES(protobuf)
 
 
 
-VERSION(3.18.1)
+VERSION(3.18.3)
 
-ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.18.1.tar.gz)
+ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.18.3.tar.gz)
 
 PEERDIR(
     contrib/libs/zlib
