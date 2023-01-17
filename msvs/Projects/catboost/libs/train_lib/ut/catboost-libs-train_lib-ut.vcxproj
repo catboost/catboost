@@ -431,6 +431,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.global.vcxproj">
       <Project>{6527DE75-3D64-75BC-A55F-253CC0F272DA}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.global.vcxproj">
+      <Project>{8FAD9AA3-4FA6-3820-A99E-D95B5F36573F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.global.vcxproj">
       <Project>{C6896F31-8B91-4391-9F1C-0EB8F10B43B7}</Project>
     </ProjectReference>
