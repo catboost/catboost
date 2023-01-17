@@ -13,6 +13,7 @@ import tempfile
 import threading
 import six
 from functools import reduce
+from six import ensure_str as s
 
 import process_command_files as pcf
 import process_whole_archive_option as pwa
@@ -601,10 +602,13 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
     os.makedirs(test_pkg_dir)
 
     my_env = os.environ.copy()
-    my_env['GOROOT'] = ''
-    my_env['GOPATH'] = go_path_root
-    my_env['GOARCH'] = args.targ_arch
-    my_env['GOOS'] = args.targ_os
+    # This code suffers from Python2/3 incompatibilty incurred by unicode_literals
+    # see https://python-future.org/unicode_literals.html#drawbacks for details.
+    # Simplify the code after switch to Python3
+    my_env[s(b'GOROOT')] = s(b'')
+    my_env[s(b'GOPATH')] = s(go_path_root)
+    my_env[s(b'GOARCH')] = s(args.targ_arch)
+    my_env[s(b'GOOS')] = s(args.targ_os)
 
     tests = []
     xtests = []
