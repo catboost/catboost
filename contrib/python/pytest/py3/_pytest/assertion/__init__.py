@@ -39,7 +39,7 @@ def pytest_addoption(parser: Parser) -> None:
         "enable_assertion_pass_hook",
         type="bool",
         default=False,
-        help="Enables the pytest_assertion_pass hook."
+        help="Enables the pytest_assertion_pass hook. "
         "Make sure to delete any previously generated pyc cache files.",
     )
 
@@ -53,7 +53,7 @@ def register_assert_rewrite(*names: str) -> None:
     actually imported, usually in your __init__.py if you are a plugin
     using a package.
 
-    :raises TypeError: If the given module names are not strings.
+    :param names: The module names to register.
     """
     for name in names:
         if not isinstance(name, str):

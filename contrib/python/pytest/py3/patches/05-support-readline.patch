@@ -1,16 +1,10 @@
 --- contrib/python/pytest/py3/_pytest/debugging.py	(index)
 +++ contrib/python/pytest/py3/_pytest/debugging.py	(working tree)
-@@ -1,6 +1,7 @@ from __future__ import absolute_import
- """Interactive debugging with PDB, the Python Debugger."""
- import argparse
+@@ -3,2 +3,3 @@ from __future__ import absolute_import
  import functools
 +import os
  import sys
- import types
- from typing import Any
-@@ -29,6 +30,42 @@ from _pytest import outcomes
-     from _pytest.runner import CallInfo
- 
+@@ -32,2 +33,38 @@ from _pytest import outcomes
  
 +def import_readline():
 +    try:
@@ -49,21 +43,12 @@
 +
 +
  def _validate_usepdb_cls(value: str) -> Tuple[str, str]:
-     """Validate syntax of --pdbcls option."""
-     try:
-@@ -277,6 +314,7 @@ class pytestPDB(object):
-     @classmethod
-     def set_trace(cls, *args, **kwargs) -> None:
+@@ -280,2 +317,3 @@ class pytestPDB(object):
          """Invoke debugging via ``Pdb.set_trace``, dropping any IO capturing."""
 +        tty()
          frame = sys._getframe().f_back
-         _pdb = cls._init_pdb("set_trace", *args, **kwargs)
-         _pdb.set_trace(frame)
-@@ -292,6 +330,7 @@ class PdbInvoke(object):
-             out, err = capman.read_global_capture()
-             sys.stdout.write(out)
+@@ -295,2 +333,3 @@ class PdbInvoke(object):
              sys.stdout.write(err)
 +        tty()
          assert call.excinfo is not None
-         _enter_pdb(node, call.excinfo, report)
  
