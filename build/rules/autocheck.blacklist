@@ -130,3 +130,4 @@ marketing/promo-yandex42-2019
 classifieds/infra/zoonavigator
 contest/experiments/kafka/streams
 portal/infra-scripts
+market/ir/lib/robot-storage
