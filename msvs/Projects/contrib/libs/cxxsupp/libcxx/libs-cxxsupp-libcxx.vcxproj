@@ -479,7 +479,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__variant\monostate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\complex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\ctype.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\cxxabi.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\errno.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\fenv.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\float.h"/>
