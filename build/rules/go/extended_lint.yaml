@@ -6,3 +6,5 @@ scopes:
     - importcheck
   a.yandex-team.ru/portal/morda-go:
     - importcheck
+  a.yandex-team.ru/security:
+    - importcheck
