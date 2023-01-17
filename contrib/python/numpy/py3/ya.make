@@ -6,7 +6,7 @@ LICENSE(BSD-3-Clause)
 
 PROVIDES(numpy)
 
-VERSION(1.22.3)
+VERSION(1.22.4)
 
 NO_COMPILER_WARNINGS()
 NO_EXTENDED_SOURCE_SEARCH()
@@ -124,7 +124,6 @@ PY_SRCS(
     numpy/core/overrides.py
     numpy/core/records.py
     numpy/core/records.pyi
-    numpy/core/setup_common.py
     numpy/core/shape_base.py
     numpy/core/shape_base.pyi
     numpy/core/umath.py

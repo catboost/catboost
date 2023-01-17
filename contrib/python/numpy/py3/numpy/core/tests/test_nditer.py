@@ -2015,7 +2015,6 @@ def test_buffered_cast_error_paths():
             buf = next(it)
             buf[...] = "a"  # cannot be converted to int.
 
-
 @pytest.mark.skipif(not HAS_REFCOUNT, reason="PyPy seems to not hit this.")
 def test_buffered_cast_error_paths_unraisable():
     # The following gives an unraisable error. Pytest sometimes captures that
