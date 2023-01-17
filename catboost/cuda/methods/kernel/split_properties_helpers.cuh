@@ -22,9 +22,9 @@ namespace NKernel {
         return multiplier;
     }
 
-    __forceinline__ __device__ int GetMaxBinCount(const TCFeature* features, int fCount, int* smem) {
+    __forceinline__ __device__ ui32 GetMaxBinCount(const TCFeature* features, int fCount, ui32* smem) {
 
-        int binCount = threadIdx.x < fCount ? features[threadIdx.x].Folds : 0;
+        ui32 binCount = threadIdx.x < fCount ? features[threadIdx.x].Folds : 0;
         smem[threadIdx.x] = binCount;
         __syncthreads();
 
@@ -37,7 +37,7 @@ namespace NKernel {
             smem[threadIdx.x] = max(smem[threadIdx.x], smem[threadIdx.x + 1]);
         }
         __syncthreads();
-        int result = smem[0];
+        ui32 result = smem[0];
         __syncthreads();
 
         return result;
@@ -185,11 +185,11 @@ namespace NKernel {
 
 
     template <int BLOCK_SIZE>
-    __forceinline__ __device__  float ComputeSum(const float* buffer, int count) {
+    __forceinline__ __device__  float ComputeSum(const float* buffer, ui32 count) {
         float sum = 0.f;
-        const int tid = threadIdx.x;
+        const ui32 tid = threadIdx.x;
 #pragma unroll 16
-        for (int i = tid; i < count; i += BLOCK_SIZE) {
+        for (ui32 i = tid; i < count; i += BLOCK_SIZE) {
             sum += __ldg(buffer + i);
         }
         return sum;
