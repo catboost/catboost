@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{AD4A4B13-2D84-78DE-A26F-CB7E85542D3F}</ProjectGUID>
+    <ProjectGUID>{D8925BEF-D579-18C5-FE7E-08030154A670}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-enum34.global</ProjectName>
+    <ProjectName>pydeprecated-python-enum34.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-enum34.global</TargetName>
+    <TargetName>pydeprecated-python-enum34.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\enum34\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\AD4A4B13-2D84-78DE-A26F-CB7E85542D3F\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D8925BEF-D579-18C5-FE7E-08030154A670\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\0536fa03d6f33efaf60b0403f4.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\c9e67d8f763378ecda909426d9.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\098cf3cdfd2e4eedb36306e612.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\e652f13f3c371397a9cba7dea5.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/0536fa03d6f33efaf60b0403f4.cpp" "_93c206a031cd1696826936df42=/py_modules/enum.__init__" "_a1d7ba02d04a38e64c1f5ca7f3=resfs/src//py_modules/enum.__init__" "_2cb8fa859b14d7006ec00ffb41=/py_code/enum.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/098cf3cdfd2e4eedb36306e612.cpp" "_74d96e542a421cfc752f900255=/py_modules/enum.__init__" "_10f394710abe2f63a4fd5d5718=resfs/src//py_modules/enum.__init__" "_4b0f0122d75e458b7721627f3e=/py_code/enum.__init__"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/c9e67d8f763378ecda909426d9.cpp" "_177672119da9e0e17382919f7e=resfs/src/resfs/file/contrib/python/enum34/.dist-info/METADATA" "_ffdb1555e68b6649a123f93360=resfs/file/contrib/python/enum34/.dist-info/METADATA" "_ce21a79943e00bf05250fe78f9=resfs/src/resfs/file/contrib/python/enum34/.dist-info/top_level.txt" "_89399a990a590a7b4be8d5fe9d=resfs/file/contrib/python/enum34/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/e652f13f3c371397a9cba7dea5.cpp" "_22f3ffeaa0a160b668ff4c5ff4=resfs/src/resfs/file/contrib/deprecated/python/enum34/.dist-info/METADATA" "_b12957ff097f860504ac035caa=resfs/file/contrib/deprecated/python/enum34/.dist-info/METADATA" "_59c82ee693411c0a0fbdfaf89f=resfs/src/resfs/file/contrib/deprecated/python/enum34/.dist-info/top_level.txt" "_728936c9596de8724ec2d3bff5=resfs/file/contrib/deprecated/python/enum34/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/0536fa03d6f33efaf60b0403f4.cpp" "_93c206a031cd1696826936df42=/py_modules/enum.__init__" "_a1d7ba02d04a38e64c1f5ca7f3=resfs/src//py_modules/enum.__init__" "_2cb8fa859b14d7006ec00ffb41=/py_code/enum.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/098cf3cdfd2e4eedb36306e612.cpp" "_74d96e542a421cfc752f900255=/py_modules/enum.__init__" "_10f394710abe2f63a4fd5d5718=resfs/src//py_modules/enum.__init__" "_4b0f0122d75e458b7721627f3e=/py_code/enum.__init__"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/c9e67d8f763378ecda909426d9.cpp" "_177672119da9e0e17382919f7e=resfs/src/resfs/file/contrib/python/enum34/.dist-info/METADATA" "_ffdb1555e68b6649a123f93360=resfs/file/contrib/python/enum34/.dist-info/METADATA" "_ce21a79943e00bf05250fe78f9=resfs/src/resfs/file/contrib/python/enum34/.dist-info/top_level.txt" "_89399a990a590a7b4be8d5fe9d=resfs/file/contrib/python/enum34/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/e652f13f3c371397a9cba7dea5.cpp" "_22f3ffeaa0a160b668ff4c5ff4=resfs/src/resfs/file/contrib/deprecated/python/enum34/.dist-info/METADATA" "_b12957ff097f860504ac035caa=resfs/file/contrib/deprecated/python/enum34/.dist-info/METADATA" "_59c82ee693411c0a0fbdfaf89f=resfs/src/resfs/file/contrib/deprecated/python/enum34/.dist-info/top_level.txt" "_728936c9596de8724ec2d3bff5=resfs/file/contrib/deprecated/python/enum34/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/0536fa03d6f33efaf60b0403f4.cpp	$B/contrib/python/enum34/c9e67d8f763378ecda909426d9.cpp	</Message>
+      <Message>$B/contrib/deprecated/python/enum34/098cf3cdfd2e4eedb36306e612.cpp	$B/contrib/deprecated/python/enum34/e652f13f3c371397a9cba7dea5.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\0536fa03d6f33efaf60b0403f4.cpp;$(SolutionDir)$(Configuration)\contrib\python\enum34\c9e67d8f763378ecda909426d9.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\098cf3cdfd2e4eedb36306e612.cpp;$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\e652f13f3c371397a9cba7dea5.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

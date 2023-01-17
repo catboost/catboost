@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</ProjectGUID>
+    <ProjectGUID>{DAC01015-4A7E-39B7-6C6C-6D8121B7840C}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-enum34</ProjectName>
+    <ProjectName>pydeprecated-python-enum34</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-enum34</TargetName>
+    <TargetName>pydeprecated-python-enum34</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\enum34\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A4701379-95E5-BF2B-2E20-B71461B5CC55\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\DAC01015-4A7E-39B7-6C6C-6D8121B7840C\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_098cf3cdfd2e4eedb36306e612.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,9 +91,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_098cf3cdfd2e4eedb36306e612.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_098cf3cdfd2e4eedb36306e612.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\enum34\_c9e67d8f763378ecda909426d9.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_e652f13f3c371397a9cba7dea5.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -118,9 +118,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.obj" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,15 +128,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/_c9e67d8f763378ecda909426d9.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_c9e67d8f763378ecda909426d9.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_c9e67d8f763378ecda909426d9.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_e652f13f3c371397a9cba7dea5.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_e652f13f3c371397a9cba7dea5.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/enum34/enum/__init__.py-" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/deprecated/python/enum34/enum/__init__.py-" "$(SolutionDir)../contrib/deprecated/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/enum/__init__.py.y7lh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -145,9 +145,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/enum34/enum/__init__.py-" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/deprecated/python/enum34/enum/__init__.py-" "$(SolutionDir)../contrib/deprecated/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/enum/__init__.py.y7lh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,15 +155,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/enum/__init__.py.y7lh.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\enum34\enum\__init__.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\__init__.py.y7lh.yapyc;</Outputs>
+      <Message>$B/contrib/deprecated/python/enum34/enum/__init__.py.y7lh.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\deprecated\python\enum34\enum\__init__.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\enum\__init__.py.y7lh.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\enum34\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\deprecated\python\enum34\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm" "-" "contrib/python/enum34/.dist-info/METADATA" "_177672119da9e0e17382919f7e.rodata" "$(SolutionDir)../contrib/python/enum34/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_ffdb1555e68b6649a123f93360.rodata" "-" "contrib/python/enum34/.dist-info/top_level.txt" "_ce21a79943e00bf05250fe78f9.rodata" "$(SolutionDir)../contrib/python/enum34/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_89399a990a590a7b4be8d5fe9d.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.yasm" "-" "contrib/deprecated/python/enum34/.dist-info/METADATA" "_22f3ffeaa0a160b668ff4c5ff4.rodata" "$(SolutionDir)../contrib/deprecated/python/enum34/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_b12957ff097f860504ac035caa.rodata" "-" "contrib/deprecated/python/enum34/.dist-info/top_level.txt" "_59c82ee693411c0a0fbdfaf89f.rodata" "$(SolutionDir)../contrib/deprecated/python/enum34/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_728936c9596de8724ec2d3bff5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -172,9 +172,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm" "-" "contrib/python/enum34/.dist-info/METADATA" "_177672119da9e0e17382919f7e.rodata" "$(SolutionDir)../contrib/python/enum34/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_ffdb1555e68b6649a123f93360.rodata" "-" "contrib/python/enum34/.dist-info/top_level.txt" "_ce21a79943e00bf05250fe78f9.rodata" "$(SolutionDir)../contrib/python/enum34/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_89399a990a590a7b4be8d5fe9d.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.yasm" "-" "contrib/deprecated/python/enum34/.dist-info/METADATA" "_22f3ffeaa0a160b668ff4c5ff4.rodata" "$(SolutionDir)../contrib/deprecated/python/enum34/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_b12957ff097f860504ac035caa.rodata" "-" "contrib/deprecated/python/enum34/.dist-info/top_level.txt" "_59c82ee693411c0a0fbdfaf89f.rodata" "$(SolutionDir)../contrib/deprecated/python/enum34/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_728936c9596de8724ec2d3bff5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,15 +182,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/_c9e67d8f763378ecda909426d9.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\enum34\.dist-info\METADATA;$(SolutionDir)..\contrib\python\enum34\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_c9e67d8f763378ecda909426d9.yasm;$(SolutionDir)$(Configuration)\contrib\python\enum34\_ffdb1555e68b6649a123f93360.rodata;$(SolutionDir)$(Configuration)\contrib\python\enum34\_89399a990a590a7b4be8d5fe9d.rodata;</Outputs>
+      <Message>$B/contrib/deprecated/python/enum34/_e652f13f3c371397a9cba7dea5.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\deprecated\python\enum34\.dist-info\METADATA;$(SolutionDir)..\contrib\deprecated\python\enum34\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_e652f13f3c371397a9cba7dea5.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_b12957ff097f860504ac035caa.rodata;$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_728936c9596de8724ec2d3bff5.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\enum34\enum\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\deprecated\python\enum34\enum\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_93c206a031cd1696826936df42.rodata" "-" "contrib/python/enum34/enum/__init__.py" "_a1d7ba02d04a38e64c1f5ca7f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2cb8fa859b14d7006ec00ffb41.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.yasm" "$(SolutionDir)../contrib/deprecated/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_74d96e542a421cfc752f900255.rodata" "-" "contrib/deprecated/python/enum34/enum/__init__.py" "_10f394710abe2f63a4fd5d5718.rodata" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_4b0f0122d75e458b7721627f3e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -199,9 +199,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\enum34
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm" "$(SolutionDir)../contrib/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_93c206a031cd1696826936df42.rodata" "-" "contrib/python/enum34/enum/__init__.py" "_a1d7ba02d04a38e64c1f5ca7f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/enum34/_2cb8fa859b14d7006ec00ffb41.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.yasm" "$(SolutionDir)../contrib/deprecated/python/enum34/enum/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_74d96e542a421cfc752f900255.rodata" "-" "contrib/deprecated/python/enum34/enum/__init__.py" "_10f394710abe2f63a4fd5d5718.rodata" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/enum/__init__.py.y7lh.yapyc" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/enum34/_4b0f0122d75e458b7721627f3e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,9 +209,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/enum34/_0536fa03d6f33efaf60b0403f4.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\enum34\enum\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\enum34\enum\__init__.py.y7lh.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\enum34\_0536fa03d6f33efaf60b0403f4.yasm;$(SolutionDir)$(Configuration)\contrib\python\enum34\_93c206a031cd1696826936df42.rodata;$(SolutionDir)$(Configuration)\contrib\python\enum34\_2cb8fa859b14d7006ec00ffb41.rodata;</Outputs>
+      <Message>$B/contrib/deprecated/python/enum34/_098cf3cdfd2e4eedb36306e612.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\deprecated\python\enum34\enum\__init__.py;$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\enum\__init__.py.y7lh.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_098cf3cdfd2e4eedb36306e612.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_74d96e542a421cfc752f900255.rodata;$(SolutionDir)$(Configuration)\contrib\deprecated\python\enum34\_4b0f0122d75e458b7721627f3e.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
