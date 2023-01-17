@@ -10,6 +10,9 @@
 #include <util/generic/map.h>
 #include <util/ysaveload.h>
 
+#include <limits>
+
+
 namespace  NCB {
 enum class EHistogramType {
     Uniform,   // (-inf, MinValue], (MinValue, MinValue + step], ... , (MaxValue - step, MaxValue]
@@ -23,6 +26,7 @@ struct TBorders {
 public:
     TBorders()
         : HistogramType(EHistogramType::Exact)
+        , OutOfDomainValuesCount(0)
     {}
 
     TVector<float> GetBorders() const;
@@ -97,12 +101,12 @@ private:
 
 public:
     EHistogramType HistogramType;
-    TVector<float> Borders;
-    ui32 MaxBorderCount;
-    float MinValue;
-    float MaxValue;
-    TMap<float, ui64> BitHistogram;
-    ui64 OutOfDomainValuesCount;
+    TVector<float> Borders;         // valid only if HistogramType == EHistogramType::Borders
+    ui32 MaxBorderCount = 0;
+    float MinValue = std::numeric_limits<float>::quiet_NaN();
+    float MaxValue = std::numeric_limits<float>::quiet_NaN();
+    TMap<float, ui64> BitHistogram; // valid only if HistogramType == EHistogramType::Exact
+    ui64 OutOfDomainValuesCount = 0;
 };
 
 struct TFloatFeatureHistogram {
