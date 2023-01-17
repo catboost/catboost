@@ -1,16 +1,7 @@
 # hermione bundle
 
-Ресурс должен быть tar.gz-архивом с пакетом `hermione`, `@yandex-int/hermione-cli` и поддерживаемыми hermione-плагинами. Каждый пакет поставляется со всеми транзитивными зависимостями. Структура:
+Для обновления зависимостей ресурса необходимо использовать команду `create-external-resource` из `tools/nots` -  https://a.yandex-team.ru/svn/trunk/arcadia/tools/nots.
+Для этого из текущей папки вызываем сборку nots командой - `ya make ../../../tools/nots` и удаляем `ya.make` (он перегенерится).
+После чего вызываем создание ресурса с помощью команды: `../../../tools/nots/nots create-external-resource --external-resources-meta "meta.json" --yamake-owner "g:hermione" --resource-owner "HERMIONE"`.
 
-```
-node_modules/
-    .bin/
-        hermione
-        hermione-cli
-    @yandex-int/
-        hermione-cli/
-    hermione/
-    html-reporter/
-    hermione-chunks/
-    hermione-passive-browsers/
-```
+В результате сгенерится ресурс с пакетами указанными в package.json.
