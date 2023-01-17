@@ -337,7 +337,7 @@
             "description": "Debugger for the Go programming language"
         },
         "node-search": {
-            "description": "Autocheck data inspector tool",
+            "description": "Autocheck data inspection tool",
             "visible": false
         },
         "releaser": {
@@ -7903,10 +7903,17 @@
         },
         "node-search": {
             "formula": {
-                "sandbox_id": [
-                    1293225955
-                ],
-                "match": "node_search"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "NODE_SEARCH_BIN",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "YATOOL"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "node-search": [
@@ -8075,7 +8082,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1387425137,
+                "sandbox_id": 1388598338,
                 "match": "horadric"
             },
             "executable": {
@@ -8218,7 +8225,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1386550969,
+                "sandbox_id": 1388597054,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8854,7 +8861,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1386553381,
+                "sandbox_id": 1388596673,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8865,7 +8872,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1386555289,
+                "sandbox_id": 1388598328,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8887,7 +8894,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1387425150,
+                "sandbox_id": 1388598998,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8933,7 +8940,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1387425203,
+                "sandbox_id": 1388596671,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8944,7 +8951,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1387426392,
+                "sandbox_id": 1388598376,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8955,7 +8962,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1387427151,
+                "sandbox_id": 1388596667,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8990,7 +8997,7 @@
         },
         "marketsre": {
             "formula": {
-                "sandbox_id": 1376460721,
+                "sandbox_id": 1388185218,
                 "match": "marketsre"
             },
             "executable": {
@@ -9001,7 +9008,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1387425230,
+                "sandbox_id": 1388597082,
                 "match": "profile_size_analyzer"
             },
             "executable": {
