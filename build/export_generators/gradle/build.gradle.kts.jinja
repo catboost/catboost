@@ -13,21 +13,21 @@ repositories {
 }
 
 dependencies {
-{% for target in targets -%}
-{% for library in target.consumer_classpath -%}
+{% for library in targets[0].consumer_classpath -%}
     implementation({{ library }})
 {% endfor -%}
-{% endfor -%}
 
+{% if targets[0].proto_namespace is defined -%}
+    protobuf(files(File(buildProtoDir, "{{ targets[0].proto_namespace[0] }}")))
+{% else -%}
     protobuf(files(buildProtoDir))
+{% endif -%}
 }
 
 val prepareProto = tasks.register<Copy>("prepareProto") {
     from(rootDir) {
-{% for target in targets -%}
-{% for proto in target.proto_files -%}
+{% for proto in targets[0].proto_files -%}
         include("{{ proto }}")
-{% endfor -%}
 {% endfor -%}
     }
     into(buildProtoDir)
