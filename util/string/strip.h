@@ -4,6 +4,7 @@
 
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/typetraits.h>
 #include <utility>
 
 template <class It>
@@ -86,7 +87,11 @@ struct TStripImpl {
         auto e = from.end();
 
         if (StripRange(b, e, criterion)) {
-            to = T(b, e - b);
+            if constexpr (::TIsTemplateBaseOf<std::basic_string_view, T>::value) {
+                to = T(b, e - b);
+            } else {
+                to.assign(b, e - b);
+            }
 
             return true;
         }
