@@ -8,7 +8,6 @@ ALLOW taxi/tools/dorblu -> maps/libs/deprecated/mongo
 # Use maps/libs/locale instead
 ALLOW maps/automotive/remote_access/libs/i18n -> maps/libs/deprecated/localeutils
 ALLOW maps/carparks/renderer/datasource -> maps/libs/deprecated/localeutils
-ALLOW maps/fastcgi/tilerenderer-serv -> maps/libs/deprecated/localeutils
 ALLOW maps/garden/modules/renderer_denormalization -> maps/libs/deprecated/localeutils
 ALLOW maps/infopoint -> maps/libs/deprecated/localeutils
 ALLOW maps/jams/renderer2 -> maps/libs/deprecated/localeutils
