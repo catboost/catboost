@@ -94,6 +94,8 @@ class Ya(object):
         self._context["work_path"] = to_str(context_runtime.get("work_path"))
         self._context["test_tool_path"] = context_runtime.get("test_tool_path")
         self._context["test_output_ram_drive_path"] = to_str(context_runtime.get("test_output_ram_drive_path"))
+        self._context["retry_index"] = context_runtime.get("retry_index")
+
         self._context["ya_global_resources"] = context_resources.get("global")
 
         self._context["sanitize"] = context_build.get("sanitizer")

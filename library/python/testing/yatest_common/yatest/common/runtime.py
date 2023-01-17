@@ -424,6 +424,11 @@ class Context(object):
         return _get_ya_plugin_instance().get_context("test_tool_path")
 
     @property
+    @default_value(None)
+    def retry_index(self):
+        return _get_ya_plugin_instance().get_context("retry_index")
+
+    @property
     @default_value(False)
     def sanitize(self):
         """
