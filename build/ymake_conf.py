@@ -1153,9 +1153,16 @@ class GnuToolchain(Toolchain):
         macos_version_min = '10.12'
         macos_arm64_version_min = '11.0'
         ios_version_min = '11.0'
-        if preset('MAPSMOBI_BUILD_TARGET'):
+        # min ios simulator version for Metal App is 13.0
+        # https://developer.apple.com/documentation/metal/supporting_simulator_in_a_metal_app
+        # Mapkit (MAPSMOBI_BUILD_TARGET) uses Metal Framework
+        if preset('MAPSMOBI_BUILD_TARGET') and target.is_iossim and target.is_armv8:
             macos_version_min = '10.14'
             ios_version_min = '13.0'
+        # Mapkit uses SecTrustEvaluateWithError function and these are min versions for it
+        elif preset('MAPSMOBI_BUILD_TARGET'):
+            macos_version_min = '10.14'
+            ios_version_min = '12.0'
 
         swift_target = select(default=None, selectors=[
             (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios{}-simulator'.format(ios_version_min)),
