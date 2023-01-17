@@ -12,6 +12,10 @@ SRCS(
     folder/pathsplit_ut.cpp
 )
 
+PEERDIR(
+    library/cpp/threading/future
+)
+
 INCLUDE(${ARCADIA_ROOT}/util/tests/ya_util_tests.inc)
 
 END()
