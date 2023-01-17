@@ -2848,7 +2848,7 @@ class LoglossObjectiveNumpy32(object):
 
 
 @pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
-@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
+@fails_on_gpu(how='User defined loss functions, metrics and callbacks are not supported for GPU')
 def test_custom_objective(task_type, loss_objective):
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
