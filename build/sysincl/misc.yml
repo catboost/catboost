@@ -478,3 +478,7 @@
 - source_filter: "^contrib/libs/cxxsupp/libcxxrt"
   includes:
     - atomic.h: contrib/libs/cxxsupp/libcxxrt/atomic.h
+
+- source_filter: "^contrib/libs/util-linux"
+  includes:
+    - procfs.h: contrib/libs/util-linux/include/procfs.h
