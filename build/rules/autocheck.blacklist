@@ -875,3 +875,6 @@ taxi/lavka/platform/wms-front
 portal/archive/achievement-api
 portal/archive/morda-exports
 partner/perl/partner2
+portal/frontend/dev-proxy
+partner/frontend/yharnam
+taxi/dmp/logging-conf
