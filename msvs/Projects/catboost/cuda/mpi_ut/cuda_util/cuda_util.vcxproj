@@ -119,6 +119,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\subprocess32\pydeprecated-python-subprocess32.global.vcxproj">
       <Project>{9C2DB381-F799-1815-9F76-851209B5D6DB}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.global.vcxproj">
+      <Project>{1513F9B1-F45F-6E25-2628-5D3B5FC981FE}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.global.vcxproj">
       <Project>{692892C2-46FA-0173-23C7-F26800D6F0A9}</Project>
     </ProjectReference>
@@ -403,9 +406,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\types-protobuf\pycontrib-python-types-protobuf.global.vcxproj">
       <Project>{EA6763B1-F55C-7DAE-A23C-44726828545D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.global.vcxproj">
-      <Project>{4E507DA8-7440-F9EE-B41C-1180E1585413}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\py3contrib-python-wcwidth.global.vcxproj">
       <Project>{D9E60A5B-06FF-5A6D-A001-7A0ACCD3118C}</Project>
