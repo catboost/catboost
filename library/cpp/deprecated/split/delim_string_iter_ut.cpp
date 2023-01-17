@@ -10,7 +10,7 @@ static void AssertStringSplit(const TString& str, const TString& delim, const TV
     for (const auto& expectedString : expected) {
         UNIT_ASSERT(it.Valid());
         UNIT_ASSERT(bool(it));
-        UNIT_ASSERT_STRINGS_EQUAL(it->ToString(), expectedString);
+        UNIT_ASSERT_STRINGS_EQUAL(*it, expectedString);
         ++it;
     }
     UNIT_ASSERT(!it.Valid());

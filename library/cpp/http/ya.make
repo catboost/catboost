@@ -1,7 +1,5 @@
 RECURSE(
     io
-    io/fuzz
-    io/list_codings
     misc
     push_parser
 )

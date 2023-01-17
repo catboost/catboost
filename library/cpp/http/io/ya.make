@@ -17,3 +17,9 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    fuzz
+    list_codings
+    ut
+)

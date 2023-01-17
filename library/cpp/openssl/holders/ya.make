@@ -13,4 +13,6 @@ SRCS(
 
 END()
 
-NEED_CHECK()
+RECURSE_FOR_TESTS(
+    ut
+)

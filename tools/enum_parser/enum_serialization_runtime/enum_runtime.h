@@ -1,14 +1,16 @@
 #pragma once
 
+#include "dispatch_methods.h"
+#include "ordered_pairs.h"
+
 #include <util/generic/array_ref.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/generic/serialized_enum.h>
+#include <util/stream/fwd.h>
 
 #include <utility>
-
-class IOutputStream;
 
 namespace NEnumSerializationRuntime {
     /// Stores all information about enumeration except its real type
@@ -16,11 +18,7 @@ namespace NEnumSerializationRuntime {
     class TEnumDescriptionBase {
     public:
         using TRepresentationType = TEnumRepresentationType;
-
-        struct TEnumStringPair {
-            const TRepresentationType Key;
-            const TStringBuf Name;
-        };
+        using TEnumStringPair = ::NEnumSerializationRuntime::TEnumStringPair<TRepresentationType>;
 
         /// Refers initialization data stored in constexpr-friendly format
         struct TInitializationData {
@@ -36,9 +34,24 @@ namespace NEnumSerializationRuntime {
         ~TEnumDescriptionBase();
 
         const TString& ToString(TRepresentationType key) const;
+
+        TStringBuf ToStringBuf(TRepresentationType key) const;
+        static TStringBuf ToStringBufFullScan(const TRepresentationType key, const TInitializationData& enumInitData);
+        static TStringBuf ToStringBufSorted(const TRepresentationType key, const TInitializationData& enumInitData);
+        static TStringBuf ToStringBufDirect(const TRepresentationType key, const TInitializationData& enumInitData);
+
         std::pair<bool, TRepresentationType> TryFromString(const TStringBuf name) const;
+        static std::pair<bool, TRepresentationType> TryFromStringFullScan(const TStringBuf name, const TInitializationData& enumInitData);
+        static std::pair<bool, TRepresentationType> TryFromStringSorted(const TStringBuf name, const TInitializationData& enumInitData);
+
         TRepresentationType FromString(const TStringBuf name) const;
+        static TRepresentationType FromStringFullScan(const TStringBuf name, const TInitializationData& enumInitData);
+        static TRepresentationType FromStringSorted(const TStringBuf name, const TInitializationData& enumInitData);
+
         void Out(IOutputStream* os, const TRepresentationType key) const;
+        static void OutFullScan(IOutputStream* os, const TRepresentationType key, const TInitializationData& enumInitData);
+        static void OutSorted(IOutputStream* os, const TRepresentationType key, const TInitializationData& enumInitData);
+        static void OutDirect(IOutputStream* os, const TRepresentationType key, const TInitializationData& enumInitData);
 
         const TString& AllEnumNames() const noexcept {
             return AllNames;
@@ -77,6 +90,15 @@ namespace NEnumSerializationRuntime {
         using typename TBase::TRepresentationType;
         using typename TBase::TInitializationData;
 
+    private:
+        static bool MapFindResult(std::pair<bool, TEnumRepresentationType> findResult, EEnum& ret) {
+            if (findResult.first) {
+                ret = TCast::CastFromRepresentationType(findResult.second);
+                return true;
+            }
+            return false;
+        }
+
     public:
         using TBase::TBase;
 
@@ -85,16 +107,27 @@ namespace NEnumSerializationRuntime {
         }
 
         bool FromString(const TStringBuf name, EEnum& ret) const {
-            const auto findResult = TBase::TryFromString(name);
-            if (findResult.first) {
-                ret = TCast::CastFromRepresentationType(findResult.second);
-                return true;
-            }
-            return false;
+            return MapFindResult(TBase::TryFromString(name), ret);
         }
 
         EEnum FromString(const TStringBuf name) const {
             return TCast::CastFromRepresentationType(TBase::FromString(name));
+        }
+
+        static bool TryFromStringFullScan(const TStringBuf name, EEnum& ret, const TInitializationData& enumInitData) {
+            return MapFindResult(TBase::TryFromStringFullScan(name, enumInitData), ret);
+        }
+
+        static bool TryFromStringSorted(const TStringBuf name, EEnum& ret, const TInitializationData& enumInitData) {
+            return MapFindResult(TBase::TryFromStringSorted(name, enumInitData), ret);
+        }
+
+        static EEnum FromStringFullScan(const TStringBuf name, const TInitializationData& enumInitData) {
+            return TCast::CastFromRepresentationType(TBase::FromStringFullScan(name, enumInitData));
+        }
+
+        static EEnum FromStringSorted(const TStringBuf name, const TInitializationData& enumInitData) {
+            return TCast::CastFromRepresentationType(TBase::FromStringSorted(name, enumInitData));
         }
 
         TMappedDictView<EEnum, TString> EnumNames() const noexcept {
@@ -107,6 +140,18 @@ namespace NEnumSerializationRuntime {
 
         void Out(IOutputStream* os, const EEnum key) const {
             TBase::Out(os, TCast::CastToRepresentationType(key));
+        }
+
+        static void OutFullScan(IOutputStream* os, const EEnum key, const TInitializationData& enumInitData) {
+            TBase::OutFullScan(os, TCast::CastToRepresentationType(key), enumInitData);
+        }
+
+        static void OutSorted(IOutputStream* os, const EEnum key, const TInitializationData& enumInitData) {
+            TBase::OutSorted(os, TCast::CastToRepresentationType(key), enumInitData);
+        }
+
+        static void OutDirect(IOutputStream* os, const EEnum key, const TInitializationData& enumInitData) {
+            TBase::OutDirect(os, TCast::CastToRepresentationType(key), enumInitData);
         }
 
         static constexpr TEnumStringPair EnumStringPair(const EEnum key, const TStringBuf name) noexcept {
