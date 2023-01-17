@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(0.3.0)
+VERSION(0.4.0)
 
 LICENSE(MIT)
 
@@ -30,6 +30,7 @@ RESOURCE_FILES(
     PREFIX contrib/python/stack-data/
     .dist-info/METADATA
     .dist-info/top_level.txt
+    stack_data/py.typed
 )
 
 END()

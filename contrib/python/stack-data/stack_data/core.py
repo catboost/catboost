@@ -324,9 +324,7 @@ class Line(object):
             except AttributeError:
                 range_start = node.col_offset
         else:
-            range_start = 0
-
-        range_start = max(range_start, common_indent)
+            range_start = common_indent
 
         if end == self.lineno:
             try:
@@ -678,7 +676,10 @@ class FrameInfo(object):
                 indent = max(rang.start, begin_text)
                 indents.append(indent)
 
-        return min(indents) if indents else 0
+        if len(indents) <= 1:
+            return 0
+
+        return min(indents[1:])
 
     @cached_property
     def lines(self) -> List[Union[Line, LineGap]]:
