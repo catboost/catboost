@@ -559,6 +559,9 @@ def onadd_check(unit, *args):
     if check_type in ["flake8.py2", "flake8.py3"]:
         script_rel_path = check_type
         fork_mode = unit.get('TEST_FORK_MODE') or ''
+    elif check_type == "black":
+        script_rel_path = check_type
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
         if ymake_java_test and not unit.get('ALL_SRCDIRS') or '':
             return
