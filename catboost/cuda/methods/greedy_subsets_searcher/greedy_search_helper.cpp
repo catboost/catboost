@@ -607,7 +607,7 @@ namespace NCatboostCuda {
 
         if (ShouldTerminate(subsets)) {
             const ui32 numStats = static_cast<const ui32>(subsetsPtr->PartitionStats.GetMapping().SingleObjectSize());
-            Y_VERIFY(numStats);
+            CB_ENSURE(numStats, "Size of stats should be > 0");
             const ui32 numLeaves = static_cast<const ui32>(subsets.Leaves.size());
             auto currentPartStats = NCudaLib::ParallelStripeView(subsetsPtr->PartitionStats, TSlice(0, numLeaves));
 

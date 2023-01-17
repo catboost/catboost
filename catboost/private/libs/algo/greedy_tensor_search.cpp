@@ -111,6 +111,8 @@ static double CalcDerivativesStDevFromZero(
             return CalcDerivativesStDevFromZeroOrderedBoosting(fold, localExecutor);
         case EBoostingType::Plain:
             return CalcDerivativesStDevFromZeroPlainBoosting(fold, localExecutor);
+        default:
+            CB_ENSURE(false, "Unexpected boosting type");
     }
     Y_UNREACHABLE();
 }

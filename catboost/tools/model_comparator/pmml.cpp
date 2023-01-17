@@ -2,6 +2,8 @@
 
 #include "decl.h"
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/hash.h>
 #include <util/generic/hash_set.h>
@@ -112,7 +114,7 @@ static bool CompareNodes(
     TString* diffString) {
 
     if (node1.type() == pugi::node_document) {
-        Y_ENSURE(node2.type() == pugi::node_document, "Document node is compared with non-document node");
+        CB_ENSURE(node2.type() == pugi::node_document, "Document node is compared with non-document node");
     } else {
         if (std::strcmp(node1.name(), node2.name())) {
             TStringOutput out(*diffString);
@@ -185,7 +187,7 @@ namespace NCB {
         : Model(MakeHolder<pugi::xml_document>())
     {
         auto parseResult = Model->load_file(fileName.c_str());
-        Y_ENSURE(parseResult, "Failed to load_file " << fileName << ": " << parseResult.description());
+        CB_ENSURE(parseResult, "Failed to load_file " << fileName << ": " << parseResult.description());
     }
 
     template <>

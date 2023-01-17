@@ -307,7 +307,7 @@ namespace NCudaLib {
 
         void Reset(const TMapping& mapping) {
             CB_ENSURE(CanReset());
-            Y_VERIFY(std::is_const<T>::value == false, "Can't reset const buffer");
+            static_assert(!std::is_const<T>::value, "Can't reset const buffer");
             ColumnCount = 1;
             TCudaBuffer::SetMapping(mapping, *this, false);
         }
@@ -434,7 +434,7 @@ namespace NCudaLib {
             using TBuffer = typename NKernelHost::TDeviceBuffer<const T, Type>;
             TRemoteObject deviceVector;
             for (auto ptr : object) {
-                Y_ENSURE(ptr != nullptr, "Error: nullptr found");
+                CB_ENSURE(ptr != nullptr, "Error: nullptr found");
                 TBuffer buffer = ptr->At(devId);
                 deviceVector.push_back(std::move(buffer));
             }

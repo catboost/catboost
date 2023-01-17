@@ -106,7 +106,7 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
                         ui32 lastIdx = segmentEnds[i];
 
                         ui32 size = (lastIdx - firstIdx);
-                        Y_VERIFY(size > 2);
+                        CB_ENSURE(size > 2);
                         for (ui32 j = 0; j < size / 2; ++j) {
                             std::swap(segmentKeys[firstIdx + j], segmentKeys[firstIdx + size - j - 1]);
                             std::swap(segmentValues[firstIdx + j], segmentValues[firstIdx + size - j - 1]);

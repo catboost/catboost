@@ -131,7 +131,7 @@ inline static void ExtractBucketIndex(
             }
         );
     } else {
-        Y_FAIL("ExtractBucketIndex: unexpected column type");
+        CB_ENSURE(false, "ExtractBucketIndex: unexpected column type");
     }
 }
 
@@ -506,7 +506,7 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
                     ctx,
                     &scoreCalcer);
             } else {
-                Y_UNREACHABLE();
+                CB_ENSURE(false, "Unexpected bit count");
             }
 
             scores[subCandId] = scoreCalcer.GetScores();

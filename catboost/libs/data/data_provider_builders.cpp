@@ -895,11 +895,13 @@ namespace NCB {
                             auto& maybeSharedStoragePtr = perFeatureData.DenseDataStorage;
 
                             if (!maybeSharedStoragePtr) {
-                                Y_VERIFY(!prevTailSize);
+                                CB_ENSURE(!prevTailSize, "No dense data storage to store remainder of previous block");
                                 maybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
                                 maybeSharedStoragePtr->Data.yresize(objectCount);
                             } else {
-                                Y_VERIFY(prevTailSize <= maybeSharedStoragePtr->Data.size());
+                                CB_ENSURE(
+                                    prevTailSize <= maybeSharedStoragePtr->Data.size(),
+                                    "Dense data storage is too small to to store remainder of previous block");
                                 auto newMaybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
                                 newMaybeSharedStoragePtr->Data.yresize(objectCount);
                                 if (prevTailSize) {

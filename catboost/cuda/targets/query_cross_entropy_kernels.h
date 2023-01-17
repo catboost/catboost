@@ -81,7 +81,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream,
                  TKernelContext& context) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::QueryCrossEntropy(context.QidCursor,
@@ -129,7 +129,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(QueryOffsets.Size() == MatrixSize.Size());
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::ComputeQueryLogitMatrixSizes(QueryOffsets.Get(), IsSingleQueryFlags.Get(), queryCount, MatrixSize.Get(), stream.GetStream());
@@ -163,7 +163,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QueryOffsets, MatrixOffset, IsSingleQueryFlags, MeanQuerySize, Pairs);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::MakeQueryLogitPairs(QueryOffsets.Get(),
@@ -206,9 +206,9 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Targets, QueryOffsets, MeanQuerySize, LoadIndices, IsSingleClassQuery, TrueClassCount);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
-            Y_VERIFY(LoadIndices.Size() == IsSingleClassQuery.Size());
-            Y_VERIFY(LoadIndices.Size() == TrueClassCount.Size());
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
+            CB_ENSURE(LoadIndices.Size() == IsSingleClassQuery.Size(), "Unexcepted size of buffer");
+            CB_ENSURE(LoadIndices.Size() == TrueClassCount.Size(), "Unexcepted size of buffer");
 
             const ui32 queryCount = QueryOffsets.Size() - 1;
             NKernel::MakeIsSingleClassFlags(Targets.Get(), LoadIndices.Get(),

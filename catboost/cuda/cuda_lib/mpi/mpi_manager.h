@@ -59,7 +59,7 @@ namespace NCudaLib {
                 if (!IsComplete()) {
                     WaitEvent.WaitT(interval);
                 }
-                Y_VERIFY(IsComplete(), "Error: event is not complete");
+                CB_ENSURE(IsComplete(), "Error: event is not complete");
             }
 
             void Abort() {
@@ -83,7 +83,7 @@ namespace NCudaLib {
                 } else if (state == 2) {
                     return EState::Completed;
                 } else {
-                    Y_VERIFY(state == 3);
+                    CB_ENSURE(state == 3, "Unexpected request state");
                     return EState::Canceled;
                 }
             }
@@ -96,7 +96,7 @@ namespace NCudaLib {
                 } else if (state == EState::Completed) {
                     AtomicSet(State, 2);
                 } else {
-                    Y_VERIFY(state == EState::Canceled);
+                    CB_ENSURE(state == EState::Canceled, "Unexpected request state");
                     AtomicSet(State, 3);
                 }
             }

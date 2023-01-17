@@ -121,7 +121,7 @@ static void GetClassLabelsImpl(
     TVector<i64>* classLabelsInt64,
     TVector<TString>* classLabelsString) {
 
-    Y_VERIFY(!classLabels.empty());
+    CB_ENSURE(!classLabels.empty(), "Class labels are missing");
 
     classLabelsInt64->clear();
     classLabelsString->clear();
@@ -142,7 +142,7 @@ static void GetClassLabelsImpl(
             }
             break;
         default:
-            Y_FAIL("Unexpected label type");
+            CB_ENSURE(false, "Unexpected label type");
     }
 }
 
@@ -711,8 +711,9 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
             head->Right = BuildNonSymmetricTree(tree, node.TrueNodeId);
             return head;
         }
+        default:
+            CB_ENSURE(false, "Unexpected ONNX node type");
     }
-    Y_UNREACHABLE();
 }
 
 

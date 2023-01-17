@@ -95,7 +95,7 @@ static TVector<T> GetVectorFromSEXP(SEXP arg) {
                 result[i] = static_cast<T>(LOGICAL(arg)[i]);
                 break;
             default:
-                Y_ENSURE(false, "unsupported vector type: int, real or logical is required");
+                CB_ENSURE(false, "unsupported vector type: int, real or logical is required");
         }
     }
     return result;

@@ -23,6 +23,8 @@ TString NCatboostOptions::GetModelExtensionFromType(const EModelType modelType) 
             return "pmml";
         case EModelType::CPUSnapshot:
             return "cbsnapshot";
+        default:
+            CB_ENSURE(false, "Unexpected model type");
     }
     Y_UNREACHABLE();
 }

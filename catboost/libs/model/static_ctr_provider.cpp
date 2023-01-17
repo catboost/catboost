@@ -278,8 +278,9 @@ static void MergeBuckets(const TVector<const TCtrValueTable*>& tables, TCtrValue
         break;
 
     case ECtrType::CtrTypesCount:
+        CB_ENSURE(false, "Unsupported CTR type");
     default:
-        Y_UNREACHABLE();
+        CB_ENSURE(false, "Unexpected CTR type");
     }
 }
 
@@ -328,7 +329,7 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
             MergeBuckets(ctrValueTables, &target);
             break;
         default:
-            Y_UNREACHABLE();
+            CB_ENSURE(false, "Unexpected CTR table merge policy");
         }
     }
     return result;

@@ -129,6 +129,8 @@ int GetBucketCount(
             return exclusiveFeaturesBundles[splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx].GetBinCount();
         case ESplitEnsembleType::FeaturesGroup:
             return featuresGroups[splitEnsemble.FeaturesGroupRef.GroupIdx].TotalBucketCount;
+        default:
+            CB_ENSURE(false, "Unexpected split ensemble type");
     }
     Y_UNREACHABLE();
 }

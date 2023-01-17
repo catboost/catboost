@@ -32,11 +32,11 @@ namespace NCB {
         }
 
         virtual void Save(IOutputStream*) const {
-            Y_FAIL("Serialization not allowed");
+            CB_ENSURE(false, "Serialization not allowed");
         };
 
         virtual void Load(IInputStream*) {
-            Y_FAIL("Deserialization not allowed");
+            CB_ENSURE(false, "Deserialization not allowed");
         };
 
         virtual void TrimFeatures(TConstArrayRef<ui32> featureIndices) = 0;

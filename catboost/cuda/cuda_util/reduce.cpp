@@ -292,7 +292,7 @@ namespace {
         Y_SAVELOAD_DEFINE(Input, Offsets, Output, Type);
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
-            Y_ENSURE(Output.Size() + 1 == Offsets.Size(), TStringBuilder() << "Error: outputSize " << Output.Size() << "; Offsets size " << Offsets.Size());
+            CB_ENSURE(Output.Size() + 1 == Offsets.Size(), TStringBuilder() << "Error: outputSize " << Output.Size() << "; Offsets size " << Offsets.Size());
             CUDA_SAFE_CALL(NKernel::SegmentedReduce(Input.Get(), Input.Size(),
                                                     Offsets.Get(), Offsets.Size() - 1,
                                                     Output.Get(), Type, context, stream.GetStream()));

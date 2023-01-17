@@ -479,7 +479,7 @@ namespace NCatboostCuda {
                 }
 
                 if (iterationProgressTracker.IsBestTestIteration() && bestTestCursor) {
-                    Y_VERIFY(testCursor);
+                    CB_ENSURE(testCursor, "Need cursor for test data");
                     bestTestCursor->Copy(*testCursor);
                 }
             }

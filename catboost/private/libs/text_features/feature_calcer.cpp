@@ -77,19 +77,19 @@ namespace NCB {
     }
 
     TTextFeatureCalcer::TFeatureCalcerFbs TTextFeatureCalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const {
-        Y_FAIL("Serialization to flatbuffer is not implemented");
+        CB_ENSURE(false, "Serialization to flatbuffer is not implemented");
     }
 
     void TTextFeatureCalcer::SaveLargeParameters(IOutputStream*) const {
-        Y_FAIL("Serialization is not implemented");
+        CB_ENSURE(false, "Serialization is not implemented");
     }
 
     void TTextFeatureCalcer::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer*) {
-        Y_FAIL("Deserialization from flatbuffer is not implemented");
+        CB_ENSURE(false, "Deserialization from flatbuffer is not implemented");
     }
 
     void TTextFeatureCalcer::LoadLargeParameters(IInputStream*) {
-        Y_FAIL("Deserialization is not implemented");
+        CB_ENSURE(false, "Deserialization is not implemented");
     }
 
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> TTextFeatureCalcer::ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const {

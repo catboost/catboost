@@ -61,7 +61,7 @@ void TComputeHist2Kernel::Run(const TCudaStream& stream) const {
             break;
         }
         default: {
-            Y_ENSURE(false);
+            CB_ENSURE(false, "Unexpected feature grouping policy");
         }
     }
 #undef DISPATCH
@@ -121,7 +121,7 @@ void TComputeHist1Kernel::Run(const TCudaStream& stream) const {
             break;
         }
         default: {
-            Y_ENSURE(false);
+            CB_ENSURE(false, "Unexpected feature grouping policy");
         }
     }
 #undef DISPATCH

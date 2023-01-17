@@ -47,7 +47,7 @@ struct TMinMax {
 template <typename TForwardIterator, typename T = typename std::iterator_traits<TForwardIterator>::value_type>
 inline TMinMax<T> CalcMinMax(TForwardIterator begin, TForwardIterator end) {
     auto minmax = std::minmax_element(begin, end);
-    Y_VERIFY(minmax.first != end);
+    CB_ENSURE(minmax.first != end, "Empty iterator range in CalcMinMax");
     return {*minmax.first, *minmax.second};
 }
 

@@ -64,7 +64,7 @@ namespace NCB {
                     1,
                     NPar::TLocalExecutor::HIGH_PRIORITY
                 );
-                Y_VERIFY(readFuturesVector.size() == 1);
+                CB_ENSURE(readFuturesVector.size() == 1, "ExecRangeWithFutures returned unexpected number of futures");
                 ReadFuture = std::move(readFuturesVector[0]);
             } else {
                 readLineBufferLambda(0);

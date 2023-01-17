@@ -330,8 +330,9 @@ bool IsPrepareTreesCalcShapValues(
             double treesAverageLeafCount = forest.GetModelTreeData()->GetLeafValues().size() / treeCount;
             return treesAverageLeafCount < *datasetObjectCount;
         }
+        default:
+            CB_ENSURE(false, "Unexpected type of SHAP precalculation");
     }
-    Y_UNREACHABLE();
 }
 
 static bool AreApproxesZeroForLastClass(

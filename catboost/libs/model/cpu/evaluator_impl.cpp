@@ -409,7 +409,7 @@ namespace NCB::NModelEvaluation {
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             default:
-                Y_UNREACHABLE();
+                CB_ENSURE(false, "Unexpected number of SSE blocks");
         }
     }
 

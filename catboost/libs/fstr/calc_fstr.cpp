@@ -525,7 +525,7 @@ TVector<TVector<double>> GetFeatureImportances(
             return GetPredictionDiff(model, *dataset, &localExecutor);
         }
         default:
-            Y_UNREACHABLE();
+            CB_ENSURE(false, "Unexpected Fstr type");
     }
 }
 

@@ -199,7 +199,7 @@ namespace NCB::NModelEvaluation {
                         }
                         break;
                     default:
-                        Y_ENSURE(false, "unsupported prediction type");
+                        CB_ENSURE(false, "unsupported prediction type");
                 }
             } else {
                 switch (PredictionType) {

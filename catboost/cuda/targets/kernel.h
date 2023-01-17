@@ -680,8 +680,8 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QOffsets, MatrixOffsets, Pairs);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(QOffsets.Size() > 0);
-            Y_VERIFY(QOffsets.Size() == MatrixOffsets.Size());
+            CB_ENSURE(QOffsets.Size() > 0, "Need some query offsets");
+            CB_ENSURE(QOffsets.Size() == MatrixOffsets.Size(), "Number of query offsets and matrix offsets should be same");
             const ui32 queryCount = QOffsets.Size() - 1;
 
             NKernel::MakePairs(QOffsets.Get(),
@@ -732,7 +732,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream,
                  TKernelContext& context) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
             NKernel::PFoundFGradient(Seed, DecaySpeed, BootstrapIter,
                                      QueryOffsets.Get(),

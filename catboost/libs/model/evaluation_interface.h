@@ -4,6 +4,8 @@
 
 #include "features.h"
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/array_ref.h>
@@ -92,7 +94,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 case EPredictionType::Class:
                     return 1;
                 default:
-                    Y_UNREACHABLE();
+                    CB_ENSURE(false, "Unexpected prediction type");
                 }
             }
 

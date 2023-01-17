@@ -42,7 +42,7 @@ struct IJVMLineDataReader : public NCB::ILineDataReader {
     }
 
     bool ReadLine(TString*, TString*, ui64*) override {
-        Y_UNREACHABLE();
+        CB_ENSURE(false, "Unimplemented");
     }
 
     // override this method in derived JVM classes

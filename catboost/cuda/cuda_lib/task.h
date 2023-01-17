@@ -60,11 +60,11 @@ namespace NCudaLib {
 //for local shared memory tasks
 #define Y_NON_SERIALIZABLE_TASK()                          \
     void Save(IOutputStream*) const final {                \
-        Y_VERIFY(false, "Error: can't save this command"); \
+        CB_ENSURE(false, "Error: can't save this command"); \
     }                                                      \
                                                            \
     void Load(IInputStream*) override {                    \
-        Y_VERIFY(false, "Error: can't load this command"); \
+        CB_ENSURE(false, "Error: can't load this command"); \
     }
 
 #define Y_SAVELOAD_TASK(...)                  \
