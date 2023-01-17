@@ -11,9 +11,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(2022-06-01)
+VERSION(2022-12-01)
 
-ORIGINAL_SOURCE(https://github.com/google/re2/archive/2022-06-01.tar.gz)
+ORIGINAL_SOURCE(https://github.com/google/re2/archive/2022-12-01.tar.gz)
 
 ADDINCL(
     GLOBAL contrib/libs/re2/include
