@@ -75,7 +75,8 @@ endif()
 set(CUDACXX ${CLANGPLUSPLUS})
 
 link_directories(${CUDAToolkit_LIBRARY_DIR})
-include_directories(${CUDAToolkit_INCLUDE_DIRS})
+include_directories(SYSTEM ${CUDAToolkit_INCLUDE_DIRS})
+add_compile_definitions(THRUST_IGNORE_CUB_VERSION_CHECK)
 
 function(target_cuda_flags Tgt)
   set_property(TARGET ${Tgt} APPEND PROPERTY
