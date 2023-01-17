@@ -10,6 +10,7 @@
 add_library(absl-base-log_severity)
 target_compile_options(absl-base-log_severity PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-base-log_severity PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

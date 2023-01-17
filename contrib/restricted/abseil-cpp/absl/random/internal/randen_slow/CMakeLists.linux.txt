@@ -10,6 +10,7 @@
 add_library(random-internal-randen_slow)
 target_compile_options(random-internal-randen_slow PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(random-internal-randen_slow PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

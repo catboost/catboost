@@ -12,6 +12,9 @@ target_compile_options(contrib-libs-onnx PUBLIC
   -DONNX_ML=1
   -DONNX_NAMESPACE=onnx
 )
+target_compile_options(contrib-libs-onnx PRIVATE
+  -Wno-everything
+)
 target_include_directories(contrib-libs-onnx PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
 )

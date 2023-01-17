@@ -12,6 +12,7 @@ target_compile_options(contrib-libs-libf2c PRIVATE
   -DNO_FPINIT
   -DSkip_f2c_Undefs
   -DNO_My_ctype
+  -Wno-everything
 )
 target_include_directories(contrib-libs-libf2c PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/libf2c

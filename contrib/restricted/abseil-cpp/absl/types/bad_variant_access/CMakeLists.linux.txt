@@ -10,6 +10,7 @@
 add_library(absl-types-bad_variant_access)
 target_compile_options(absl-types-bad_variant_access PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-types-bad_variant_access PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

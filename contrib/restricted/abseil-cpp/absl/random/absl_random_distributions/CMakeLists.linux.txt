@@ -10,6 +10,7 @@
 add_library(absl-random-absl_random_distributions)
 target_compile_options(absl-random-absl_random_distributions PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-random-absl_random_distributions PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

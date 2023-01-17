@@ -8,6 +8,9 @@
 
 
 add_library(contrib-libs-pugixml)
+target_compile_options(contrib-libs-pugixml PRIVATE
+  -Wno-everything
+)
 target_link_libraries(contrib-libs-pugixml PUBLIC
   contrib-libs-cxxsupp
   yutil

@@ -10,6 +10,7 @@
 add_library(base-internal-scoped_set_env)
 target_compile_options(base-internal-scoped_set_env PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(base-internal-scoped_set_env PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

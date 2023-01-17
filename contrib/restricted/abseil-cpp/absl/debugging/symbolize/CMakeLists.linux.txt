@@ -10,6 +10,7 @@
 add_library(absl-debugging-symbolize)
 target_compile_options(absl-debugging-symbolize PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-debugging-symbolize PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

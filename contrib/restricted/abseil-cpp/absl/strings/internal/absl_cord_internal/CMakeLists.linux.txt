@@ -10,6 +10,7 @@
 add_library(strings-internal-absl_cord_internal)
 target_compile_options(strings-internal-absl_cord_internal PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(strings-internal-absl_cord_internal PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

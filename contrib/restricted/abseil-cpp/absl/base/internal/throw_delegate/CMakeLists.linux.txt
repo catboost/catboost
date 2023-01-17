@@ -10,6 +10,7 @@
 add_library(base-internal-throw_delegate)
 target_compile_options(base-internal-throw_delegate PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(base-internal-throw_delegate PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

@@ -10,6 +10,7 @@
 add_library(flags-internal-flag)
 target_compile_options(flags-internal-flag PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(flags-internal-flag PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

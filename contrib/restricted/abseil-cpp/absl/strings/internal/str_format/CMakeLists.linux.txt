@@ -10,6 +10,7 @@
 add_library(strings-internal-str_format)
 target_compile_options(strings-internal-str_format PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(strings-internal-str_format PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

@@ -8,6 +8,9 @@
 
 
 add_library(contrib-libs-libbz2)
+target_compile_options(contrib-libs-libbz2 PRIVATE
+  -Wno-everything
+)
 target_sources(contrib-libs-libbz2 PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/blocksort.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/bzlib.c

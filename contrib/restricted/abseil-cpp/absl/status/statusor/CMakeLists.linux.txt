@@ -10,6 +10,7 @@
 add_library(absl-status-statusor)
 target_compile_options(absl-status-statusor PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-status-statusor PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

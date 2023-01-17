@@ -8,6 +8,9 @@
 
 
 add_library(contrib-libs-libc_compat)
+target_compile_options(contrib-libs-libc_compat PRIVATE
+  -Wno-everything
+)
 target_include_directories(contrib-libs-libc_compat PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
   ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/random

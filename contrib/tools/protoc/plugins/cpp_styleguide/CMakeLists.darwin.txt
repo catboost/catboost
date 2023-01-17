@@ -8,6 +8,9 @@
 
 
 add_executable(cpp_styleguide)
+target_compile_options(cpp_styleguide PRIVATE
+  -Wno-everything
+)
 target_link_libraries(cpp_styleguide PUBLIC
   contrib-libs-cxxsupp
   yutil

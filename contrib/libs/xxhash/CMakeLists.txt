@@ -8,6 +8,9 @@
 
 
 add_library(contrib-libs-xxhash)
+target_compile_options(contrib-libs-xxhash PRIVATE
+  -Wno-everything
+)
 target_sources(contrib-libs-xxhash PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/xxhash/xxhash.c
 )

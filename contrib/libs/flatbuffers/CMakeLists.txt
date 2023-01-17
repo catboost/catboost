@@ -10,6 +10,7 @@
 add_library(contrib-libs-flatbuffers)
 target_compile_options(contrib-libs-flatbuffers PRIVATE
   -DFLATBUFFERS_LOCALE_INDEPENDENT=1
+  -Wno-everything
 )
 target_include_directories(contrib-libs-flatbuffers PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include

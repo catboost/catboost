@@ -10,6 +10,7 @@
 add_library(strings-internal-cordz_functions)
 target_compile_options(strings-internal-cordz_functions PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(strings-internal-cordz_functions PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
