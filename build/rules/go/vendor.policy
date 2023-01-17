@@ -120,7 +120,7 @@ ALLOW .* -> vendor/github.com/sony/gobreaker
 ALLOW .* -> vendor/cuelang.org/go
 
 # driver for write to and read from XLSX files
-ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
+ALLOW .* -> vendor/github.com/xuri/excelize/v2
 
 # in-process redis server for tests
 ALLOW .* -> vendor/github.com/alicebob/miniredis/v2
