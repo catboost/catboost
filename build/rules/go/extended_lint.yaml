@@ -41,3 +41,4 @@ scopes:
     - exhaustivestruct
   a.yandex-team.ru/browser/backend:
     - sqlclosecheck
+    - structtagcase
