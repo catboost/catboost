@@ -30,4 +30,7 @@ ALLOW contrib/go/patched/gobgp -> vendor/github.com/jessevdk/go-flags
 ALLOW contrib/go/patched/gobgp -> vendor/github.com/kr/pretty
 ALLOW contrib/go/patched/gobgp -> vendor/github.com/go-test/deep
 
+# CONTRIB-2469, responsible: diman@
+ALLOW noc/nocauth -> contrib/go/patched/tacplus
+
 DENY .* -> contrib/go/patched/
