@@ -78,11 +78,15 @@ public:
 
     void StartNextBlock(ui32 blockSize) override {
         NextCursor += blockSize;
+        if (DatasetStatistics.GroupwiseStats.Defined()) {
+            DatasetStatistics.GroupwiseStats->Flush();
+        }
     }
 
     // TCommonObjectsData
     void AddGroupId(ui32 localObjectIdx, TGroupId value) override {
-        Y_UNUSED(localObjectIdx, value);
+        Y_UNUSED(localObjectIdx);
+        DatasetStatistics.GroupwiseStats->Update(value);
     }
     void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) override {
         Y_UNUSED(localObjectIdx, value);
@@ -241,6 +245,10 @@ public:
         CB_ENSURE(
             !IsLocal || NextCursor >= ObjectCount,
             "processed object count is less than than specified in metadata: " << NextCursor << "<" << ObjectCount);
+
+        if (DatasetStatistics.GroupwiseStats.Defined()) {
+            DatasetStatistics.GroupwiseStats->Flush();
+        }
 
         if (ObjectCount != 0) {
             CATBOOST_INFO_LOG << "Object info sizes: " << ObjectCount << " "

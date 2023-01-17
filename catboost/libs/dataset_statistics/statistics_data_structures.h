@@ -353,6 +353,19 @@ public:
 };
 
 struct TGroupwiseStats {
+    TGroupwiseStats() = default;
+    TGroupwiseStats(TGroupwiseStats& rhs)
+        : GroupsTotalSize(rhs.GroupsTotalSize)
+        , GroupsTotalSqrSize(rhs.GroupsTotalSqrSize)
+        , GroupsMaxSize(rhs.GroupsMaxSize)
+        , GroupsCount(rhs.GroupsCount)
+    {}
+
+    TGroupwiseStats(TGroupwiseStats&& rhs) = default;
+
+    TGroupwiseStats& operator=(TGroupwiseStats& rhs);
+    TGroupwiseStats& operator=(TGroupwiseStats&& rhs);
+
     double GetAverageGroupSize() const {
         return static_cast<long double>(GroupsTotalSize) / static_cast<long double>(GroupsCount);
     }
@@ -360,6 +373,10 @@ struct TGroupwiseStats {
     double GetAverageGroupSqrSize() const {
         return static_cast<long double>(GroupsTotalSqrSize) / static_cast<long double>(GroupsCount);
     }
+
+    void Update(TGroupId groupId);
+
+    void Flush();
 
     NJson::TJsonValue ToJson() const;
 
@@ -384,10 +401,16 @@ struct TGroupwiseStats {
             std::tie(a.GroupsTotalSize, a.GroupsTotalSqrSize, a.GroupsMaxSize, a.GroupsCount);
     }
 
+    // for updating: groupId -> size
+    THashMap<TGroupId, ui64> GroupSizes;
+
+    // result
     ui64 GroupsTotalSize = 0;
     ui64 GroupsTotalSqrSize = 0;
     ui64 GroupsMaxSize = 0;
     ui64 GroupsCount = 0;
+private:
+    TMutex Mutex;
 };
 
 struct TDatasetStatistics {
@@ -427,6 +450,9 @@ public:
     ) {
         FeatureStatistics.Init(metaInfo, customBorders, calculatePairwiseStatistics);
         TargetsStatistics.Init(metaInfo, targetCustomBorders);
+        if (metaInfo.HasGroupId) {
+            GroupwiseStats = MakeMaybe(TGroupwiseStats());
+        }
     }
 
     void SetTargetHistogram(const TVector<TFloatFeatureHistogram>& targetHistogram) {
