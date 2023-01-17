@@ -171,6 +171,7 @@ def colorize_backtrace(text):
         (re.compile(r"\b(0x[a-f0-9]{6,})\b"), r"[[c:light-grey]]\1[[rst]]"),
     ]
 
+    text = six.ensure_str(text)
     for regex, substitution in filters:
         text = regex.sub(substitution, text)
     return text
