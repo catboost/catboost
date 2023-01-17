@@ -42,14 +42,14 @@ def pytest_addoption(parser: Parser) -> None:
         default="fd",
         metavar="method",
         choices=["fd", "sys", "no", "tee-sys"],
-        help="per-test capturing method: one of fd|sys|no|tee-sys.",
+        help="Per-test capturing method: one of fd|sys|no|tee-sys",
     )
     group._addoption(
         "-s",
         action="store_const",
         const="no",
         dest="capture",
-        help="shortcut for --capture=no.",
+        help="Shortcut for --capture=no",
     )
 
 
@@ -203,11 +203,38 @@ class DontReadFromInput:
     def fileno(self) -> int:
         raise UnsupportedOperation("redirected stdin is pseudofile, has no fileno()")
 
+    def flush(self) -> None:
+        raise UnsupportedOperation("redirected stdin is pseudofile, has no flush()")
+
     def isatty(self) -> bool:
         return False
 
     def close(self) -> None:
         pass
+
+    def readable(self) -> bool:
+        return False
+
+    def seek(self, offset: int) -> int:
+        raise UnsupportedOperation("redirected stdin is pseudofile, has no seek(int)")
+
+    def seekable(self) -> bool:
+        return False
+
+    def tell(self) -> int:
+        raise UnsupportedOperation("redirected stdin is pseudofile, has no tell()")
+
+    def truncate(self, size: int) -> None:
+        raise UnsupportedOperation("cannont truncate stdin")
+
+    def write(self, *args) -> None:
+        raise UnsupportedOperation("cannot write to stdin")
+
+    def writelines(self, *args) -> None:
+        raise UnsupportedOperation("Cannot write to stdin")
+
+    def writable(self) -> bool:
+        return False
 
     @property
     def buffer(self):
@@ -354,7 +381,7 @@ class FDCaptureBinary:
         self.targetfd_save = os.dup(targetfd)
 
         if targetfd == 0:
-            self.tmpfile = open(os.devnull)
+            self.tmpfile = open(os.devnull, encoding="utf-8")
             self.syscapture = SysCapture(targetfd)
         else:
             self.tmpfile = EncodedFile(

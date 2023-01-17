@@ -1,6 +1,6 @@
 --- contrib/python/pytest/py3/_pytest/mark/structures.py	(index)
 +++ contrib/python/pytest/py3/_pytest/mark/structures.py	(working tree)
-@@ -501,7 +501,10 @@ class MarkGenerator(object):
+@@ -524,7 +524,10 @@ class MarkGenerator(object):
                      # example lines: "skipif(condition): skip the given test if..."
                      # or "hypothesis: tests which use Hypothesis", so to get the
                      # marker name we split on both `:` and `(`.
