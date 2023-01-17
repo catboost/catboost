@@ -32,3 +32,5 @@ metrika/analytics
 hrtech/frontend
 ci/registry
 market/front/apps
+classifieds/verticals-backend
+classifieds/schema-registry
