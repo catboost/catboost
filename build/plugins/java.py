@@ -226,6 +226,8 @@ def onjava_module(unit, *args):
 
 def on_add_java_style_checks(unit, *args):
     if unit.get('LINT_LEVEL_VALUE') != "none":
+        # if unit.get('WITH_KOTLIN_VALUE') == 'yes':
+        #     unit.onadd_check(['ktlint'] + list(args))
         unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')] + list(args))
 
 
