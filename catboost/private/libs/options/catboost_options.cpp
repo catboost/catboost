@@ -618,6 +618,8 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         }
     }
 
+    DataProcessingOptions->TextProcessingOptions->Validate(IsClassificationObjective(lossFunction));
+
     ESamplingUnit samplingUnit = ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
     if (GetTaskType() == ETaskType::GPU) {
         if (!IsPairwiseScoring(lossFunction)) {
@@ -1013,6 +1015,8 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     if (CatFeatureParams->MaxTensorComplexity.NotSet() && IsSmallIterationCount(BoostingOptions->IterationCount)) {
         CatFeatureParams->MaxTensorComplexity = 1;
     }
+
+    DataProcessingOptions->TextProcessingOptions->SetDefault(IsClassificationObjective(lossFunction));
 }
 
 static TVector<ui32> GetIndices(const NJson::TJsonValue& catBoostJsonOptions, const TString& key, const TString& subKey) {

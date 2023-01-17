@@ -832,6 +832,10 @@ bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType) {
     );
 }
 
+bool IsClassificationOnlyEstimator(EFeatureCalcerType estimatorType) {
+    return (estimatorType == EFeatureCalcerType::NaiveBayes || estimatorType == EFeatureCalcerType::BM25);
+}
+
 bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy) {
     return (
         growPolicy == EGrowPolicy::SymmetricTree ||

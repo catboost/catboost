@@ -4100,20 +4100,80 @@
             "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/test.eval"
         }
     ],
-    "test.test_fit_with_per_feature_text_options[Ordered]": [
+    "test.test_fit_regression_with_text_features[BoW-ByDelimiter-Ordered]": [
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/learn.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Ordered_/learn.tsv"
         },
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/test.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Ordered_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Ordered_/test.eval"
         }
     ],
-    "test.test_fit_with_per_feature_text_options[Plain]": [
+    "test.test_fit_regression_with_text_features[BoW-ByDelimiter-Plain]": [
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/learn.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Plain_/learn.tsv"
         },
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/test.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Plain_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Plain_/test.eval"
+        }
+    ],
+    "test.test_fit_regression_with_text_features[BoW-BySense-Ordered]": [
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Ordered_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Ordered_/test.eval"
+        }
+    ],
+    "test.test_fit_regression_with_text_features[BoW-BySense-Plain]": [
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Plain_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Plain_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Plain_/test.eval"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Ordered-binclass]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-binclass_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-binclass_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Ordered-regression]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-regression_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-regression_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Plain-binclass]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-binclass_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-binclass_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Plain-regression]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-regression_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-regression_/test.tsv"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=5000000-Ordered]": [

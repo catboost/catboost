@@ -181,17 +181,6 @@
                         "tokenizers_names": [
                             "Space"
                         ]
-                    },
-                    {
-                        "dictionaries_names": [
-                            "Word"
-                        ],
-                        "feature_calcers": [
-                            "NaiveBayes"
-                        ],
-                        "tokenizers_names": [
-                            "Space"
-                        ]
                     }
                 ]
             },

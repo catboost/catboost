@@ -73,6 +73,7 @@ bool HasGpuImplementation(ELossFunction loss);
 bool HasGpuImplementation(TStringBuf metricName);
 
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType);
+bool IsClassificationOnlyEstimator(EFeatureCalcerType estimatorType);
 
 bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy);
 
