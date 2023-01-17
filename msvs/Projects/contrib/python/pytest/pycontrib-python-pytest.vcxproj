@@ -189,12 +189,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
       <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
-      <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
-      <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
     </ProjectReference>

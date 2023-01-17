@@ -105,11 +105,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_09ae7054845a4a475bf3c9b908.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_09ae7054845a4a475bf3c9b908.py2.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_eba70071a77093dc8176c1c98c.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_850f9f70467807a358f4a66b15.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_eba70071a77093dc8176c1c98c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_eba70071a77093dc8176c1c98c.py2.obj;</Outputs>
+      <Message>$B/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_850f9f70467807a358f4a66b15.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_850f9f70467807a358f4a66b15.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -195,7 +195,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata" "-" "contrib/python/wcwidth/wcwidth/version.json" "_bb55b0a3acecc3e68c6a06efe2.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/version.json" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_c083cc0d5b5beb5f62f68e9f00.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -206,7 +206,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata" "-" "contrib/python/wcwidth/wcwidth/version.json" "_bb55b0a3acecc3e68c6a06efe2.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/version.json" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_c083cc0d5b5beb5f62f68e9f00.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -214,9 +214,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\.dist-info\METADATA;$(SolutionDir)..\contrib\python\wcwidth\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_eba70071a77093dc8176c1c98c.yasm;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_9874134f4dcf4f23b8e018324f.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_7f036cdd07c599e74ad9c79548.rodata;</Outputs>
+      <Message>$B/contrib/python/wcwidth/_850f9f70467807a358f4a66b15.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\.dist-info\METADATA;$(SolutionDir)..\contrib\python\wcwidth\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\wcwidth\wcwidth\version.json;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_850f9f70467807a358f4a66b15.yasm;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_9874134f4dcf4f23b8e018324f.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_7f036cdd07c599e74ad9c79548.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_c083cc0d5b5beb5f62f68e9f00.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\wcwidth\wcwidth\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -297,15 +297,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports.functools-lru-cache\pycontrib-python-backports.functools-lru-cache.vcxproj">
       <Project>{72CAF43F-970B-5E9F-7DD3-7C13627D483E}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
-      <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
-      <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
-      <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -329,9 +320,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
-      <Project>{37AC15B4-A170-D4C8-25DC-6474572B40BA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
