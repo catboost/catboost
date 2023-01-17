@@ -1452,7 +1452,7 @@ public:
     { return ends_with(__self_view(__s)); }
 //#endif
 
-#if _LIBCPP_STD_VER > 20
+#if _LIBCPP_STD_VER >= 20
     constexpr _LIBCPP_INLINE_VISIBILITY
     bool contains(__self_view __sv) const noexcept
     { return __self_view(data(), size()).contains(__sv); }

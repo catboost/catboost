@@ -700,7 +700,7 @@ public:
     { return ends_with(basic_string_view(__s)); }
 //#endif
 
-#if _LIBCPP_STD_VER > 20
+#if _LIBCPP_STD_VER >= 20
     constexpr _LIBCPP_INLINE_VISIBILITY
     bool contains(basic_string_view __sv) const noexcept
     { return find(__sv) != npos; }
