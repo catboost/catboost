@@ -143,7 +143,7 @@
  void copy_probB(char *data, struct svm_model *model, npy_intp * dims)
  {
      memcpy(data, model->probB, dims[0] * sizeof(double));
-@@ -354,7 +366,7 @@ int copy_predict_proba(char *predict, struct svm_model *model, npy_intp *predict
+@@ -356,7 +368,7 @@ int copy_predict_proba(char *predict, struct svm_model *model, npy_intp *predict
   * sharing happens across objects (they *must* be called in the
   * correct order)
   */
@@ -152,7 +152,7 @@
  int free_model(struct svm_model *model)
  {
      /* like svm_free_and_destroy_model, but does not free sv_coef[i] */
-@@ -375,6 +387,7 @@ int free_model(struct svm_model *model)
+@@ -377,6 +389,7 @@ int free_model(struct svm_model *model)
      return 0;
  }
  
@@ -160,7 +160,7 @@
  int free_param(struct svm_parameter *param)
  {
      if (param == NULL) return -1;
-@@ -393,6 +406,7 @@ static void print_string_stdout(const char *s)
+@@ -395,6 +408,7 @@ static void print_string_stdout(const char *s)
  }
  
  /* provide convenience wrapper */
@@ -219,7 +219,7 @@
  npy_intp get_nonzero_SV (struct svm_csr_model *model) {
  	int i, j;
  	npy_intp count=0;
-@@ -309,11 +314,13 @@ int csr_copy_predict_proba (npy_intp *data_size, char *data, npy_intp *index_siz
+@@ -310,11 +315,13 @@ int csr_copy_predict_proba (npy_intp *data_size, char *data, npy_intp *index_siz
  }
  
  
@@ -233,7 +233,7 @@
  void copy_intercept(char *data, struct svm_csr_model *model, npy_intp *dims)
  {
      /* intercept = -rho */
-@@ -327,6 +334,7 @@ void copy_intercept(char *data, struct svm_csr_model *model, npy_intp *dims)
+@@ -328,6 +335,7 @@ void copy_intercept(char *data, struct svm_csr_model *model, npy_intp *dims)
      }
  }
  
@@ -241,7 +241,7 @@
  void copy_support (char *data, struct svm_csr_model *model)
  {
      memcpy (data, model->sv_ind, (model->l) * sizeof(int));
-@@ -337,6 +345,7 @@ void copy_support (char *data, struct svm_csr_model *model)
+@@ -338,6 +346,7 @@ void copy_support (char *data, struct svm_csr_model *model)
   * model->sv_coef is a double **, whereas data is just a double *,
   * so we have to do some stupid copying.
   */
@@ -249,7 +249,7 @@
  void copy_sv_coef(char *data, struct svm_csr_model *model)
  {
      int i, len = model->nr_class-1;
-@@ -350,11 +359,13 @@ void copy_sv_coef(char *data, struct svm_csr_model *model)
+@@ -351,11 +360,13 @@ void copy_sv_coef(char *data, struct svm_csr_model *model)
  /*
   * Get the number of support vectors in a model.
   */
@@ -263,7 +263,7 @@
  void copy_nSV(char *data, struct svm_csr_model *model)
  {
      if (model->label == NULL) return;
-@@ -371,11 +382,13 @@ void copy_label(char *data, struct svm_csr_model *model)
+@@ -372,11 +383,13 @@ void copy_label(char *data, struct svm_csr_model *model)
      memcpy(data, model->label, model->nr_class * sizeof(int));
  }
  
@@ -277,7 +277,7 @@
  void copy_probB(char *data, struct svm_csr_model *model, npy_intp * dims)
  {
      memcpy(data, model->probB, dims[0] * sizeof(double));
-@@ -387,6 +400,7 @@ void copy_probB(char *data, struct svm_csr_model *model, npy_intp * dims)
+@@ -388,6 +401,7 @@ void copy_probB(char *data, struct svm_csr_model *model, npy_intp * dims)
   * sharing happens across objects (they *must* be called in the
   * correct order)
   */
@@ -285,7 +285,7 @@
  int free_problem(struct svm_csr_problem *problem)
  {
      int i;
-@@ -398,6 +412,7 @@ int free_problem(struct svm_csr_problem *problem)
+@@ -399,6 +413,7 @@ int free_problem(struct svm_csr_problem *problem)
      return 0;
  }
  
@@ -293,7 +293,7 @@
  int free_model(struct svm_csr_model *model)
  {
      /* like svm_free_and_destroy_model, but does not free sv_coef[i] */
-@@ -414,6 +429,7 @@ int free_model(struct svm_csr_model *model)
+@@ -415,6 +430,7 @@ int free_model(struct svm_csr_model *model)
      return 0;
  }
  
@@ -303,7 +303,7 @@
      if (param == NULL) return -1;
 --- contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm/svm.cpp	(index)
 +++ contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm/svm.cpp	(working tree)
-@@ -3110,7 +3110,7 @@ const char *PREFIX(check_parameter)(const PREFIX(problem) *prob, const svm_param
+@@ -3124,7 +3124,7 @@ const char *PREFIX(check_parameter)(const PREFIX(problem) *prob, const svm_param
  		// filter samples with negative and null weights 
  		remove_zero_weight(&newprob, prob);
  
