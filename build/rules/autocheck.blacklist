@@ -1236,3 +1236,13 @@ haas/bot/vintage/docker
 haas/bot/vintage/sip
 haas/bot/vintage/scm
 haas/bot/vintage/api
+passport/frontend/core
+intranet/staff-reader
+haas/bot/vintage/sat
+haas/libs/php/http-searcher
+haas/libs/python/http-searcher
+haas/libs/php/security-bundle
+haas/libs/php/avatars-client
+haas/libs/php/staff-api-client
+haas/libs/php/library-datetime
+haas/libs/php/qloud-monolog-bundle
