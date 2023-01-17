@@ -1443,3 +1443,6 @@ taxi/frontend
 surfwax/frontend
 noc/mondata/check
 strm/salt-configs
+divkit/public/client/web
+divkit/public/json-builder/typescript
+data-ui/wf-core
