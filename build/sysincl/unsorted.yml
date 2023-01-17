@@ -262,7 +262,6 @@
   - cpuid.h
   - nan.h
   - omp.h
-  - stdatomic.h
   - unlocked-io.h
   - cygwin/version.h
   - zircon/syscalls.h
