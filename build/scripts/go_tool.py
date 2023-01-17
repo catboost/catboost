@@ -18,7 +18,7 @@ import process_command_files as pcf
 import process_whole_archive_option as pwa
 
 arc_project_prefix = 'a.yandex-team.ru/'
-std_lib_prefix = 'contrib/go/_std/src/'
+std_lib_prefix = 'contrib/go/_std_1.18/src/'
 vendor_prefix = 'vendor/'
 vet_info_ext = '.vet.out'
 vet_report_ext = '.vet.txt'
