@@ -5548,6 +5548,12 @@ class CatBoostRegressor(CatBoost):
         diffusion_temperature=None,
         posterior_sampling=None,
         boost_from_average=None,
+        text_features=None,
+        tokenizers=None,
+        dictionaries=None,
+        feature_calcers=None,
+        text_processing=None,
+        embedding_features=None,
         eval_fraction=None
     ):
         params = {}
@@ -5558,7 +5564,8 @@ class CatBoostRegressor(CatBoost):
 
         super(CatBoostRegressor, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
+    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None,
+            sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
@@ -5577,6 +5584,14 @@ class CatBoostRegressor(CatBoost):
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
+            Use only if X is not catboost.Pool.
+            
+        text_features : list or numpy.ndarray, optional (default=None)
+            If not None, giving the list of Text columns indices.
+            Use only if X is not catboost.Pool.
+        
+        embedding_features : list or numpy.ndarray, optional (default=None)
+            If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
 
         sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
@@ -5655,7 +5670,7 @@ class CatBoostRegressor(CatBoost):
         if 'loss_function' in params:
             CatBoostRegressor._check_is_compatible_loss(params['loss_function'])
 
-        return self._fit(X, y, cat_features, None, None, None, sample_weight, None, None, None, None, baseline,
+        return self._fit(X, y, cat_features, text_features, embedding_features, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, plot_file, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
