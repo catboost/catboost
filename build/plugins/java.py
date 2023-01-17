@@ -389,7 +389,7 @@ def on_jdk_version_macro_check(unit, *args):
     available_versions = ('10', '11', '15', '16', '17', '18', '19',)
     if jdk_version not in available_versions:
         ymake.report_configure_error("Invalid jdk version: {}. {} are available".format(jdk_version, available_versions))
-    if int(jdk_version) >= 19 and unit.get('WITH_JDK_VALUE') != 'yes' and unit.get('MODULE_TYPE') == 'JAVA_PROGRAM':
+    if int(jdk_version) >= 19 and unit.get('WITH_JDK_VALUE') != 'yes' and unit.get('MODULE_TAG') == 'JAR_RUNNABLE':
         msg = (
             "Missing WITH_JDK() macro for JDK version >= 19"
             # temporary link with additional explanation
