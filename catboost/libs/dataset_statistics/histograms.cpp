@@ -130,10 +130,15 @@ NJson::TJsonValue TBorders::ToJson() const {
             result.InsertValue("MaxValue", MaxValue);
             break;
         case EHistogramType::Exact:
-            result.InsertValue("Bins", VectorToJson(GetBins()));
-            result.InsertValue("Hist", VectorToJson(GetExactHistogram()));
-            result.InsertValue("MinValue", MinValue);
-            result.InsertValue("MaxValue", MaxValue);
+            {
+                auto bins = GetBins();
+                result.InsertValue("Bins", VectorToJson(bins));
+                result.InsertValue("Hist", VectorToJson(GetExactHistogram()));
+                if (!bins.empty()) {
+                    result.InsertValue("MinValue", bins.front());
+                    result.InsertValue("MaxValue", bins.back());
+                }
+            }
             break;
         case EHistogramType::Borders:
             result.InsertValue("Borders", VectorToJson(GetBorders()));
