@@ -2282,6 +2282,9 @@ TMetricHolder TPairLogitMetric::EvalSingleThread(
                     approxVal -= maxQueryApprox;
                 }
                 FastExpInplace(approxExpShifted.data(), querySize);
+                for (double& approxVal : approxExpShifted) {
+                    approxVal += 1e-38;
+                }
             }
 
             for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
