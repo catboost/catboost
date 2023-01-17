@@ -10242,3 +10242,36 @@ def test_hashed_categ():
 
     assert filecmp.cmp(learn_error_path_with_hashed_categ, learn_error_path)
     assert filecmp.cmp(test_error_path_with_hashed_categ, test_error_path)
+
+
+@pytest.mark.parametrize('leaf_estimation_method', ['Gradient', 'Exact'])
+def test_multi_quantile(leaf_estimation_method):
+    def run_cmd(eval_path, additional_params):
+        cmd = (
+            '--use-best-model', 'false',
+            '--learn-set', data_file('querywise', 'train'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--boosting-type', 'Plain',
+            '--leaf-estimation-method', leaf_estimation_method,
+            '-i', '10',
+            '-w', '0.03',
+            '-T', '4',
+            '--eval-file', eval_path,
+            '--random-strength', '0',
+            '--bootstrap-type', 'No'
+        ) + additional_params
+        execute_catboost_fit('CPU', cmd)
+
+    quantile_path = yatest.common.test_output_path('quantile')
+    run_cmd(
+        quantile_path,
+        ('--loss-function', 'Quantile:alpha=0.375')
+    )
+
+    multi_quantile_path = yatest.common.test_output_path('multi_quantile')
+    run_cmd(
+        multi_quantile_path,
+        ('--loss-function', 'MultiQuantile:alpha=0.375,0.375')
+    )
+
+    assert filecmp.cmp(quantile_path, multi_quantile_path)

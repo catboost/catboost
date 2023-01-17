@@ -70,6 +70,19 @@ inline bool IsConst(TConstArrayRef<float> array) {
     ) == array.end();
 }
 
+template <typename TArrayLike>
+inline TArrayRef<typename TArrayLike::value_type> GetSlice(TArrayLike& array, size_t offset, size_t count) {
+    if (array.empty()) {
+        return TArrayRef<typename TArrayLike::value_type>();
+    }
+    return TArrayRef<typename TArrayLike::value_type>(array.begin() + offset, count);
+}
+
+template <typename TArrayLike, typename TIsDefined>
+inline typename TArrayLike::value_type GetIf(TIsDefined isDefined, const TArrayLike& array, size_t index, typename TArrayLike::value_type orElse) {
+    return isDefined ? array.at(index) : orElse;
+}
+
 template <typename Int1, typename Int2, typename T>
 inline void ResizeRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
     vvt.resize(dim1);
@@ -104,6 +117,15 @@ inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& a
     auto arrayView = TVector<TConstArrayRef<T>>();
     for (const auto& subArray : array) {
         arrayView.emplace_back(subArray);
+    }
+    return arrayView;
+}
+
+template <typename T, typename T2DArrayLike>
+inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array, size_t offset, size_t count) {
+    auto arrayView = TVector<TConstArrayRef<T>>();
+    for (const auto& subArray : array) {
+        arrayView.emplace_back(MakeArrayRef(subArray.begin() + offset, count));
     }
     return arrayView;
 }

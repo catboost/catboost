@@ -740,7 +740,7 @@ void MapSetApproxes(
         };
 
         averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
-        GradientWalker</*IsLeafwise*/ false>(
+        GradientWalker(
             /*isTrivialWalker*/ !haveBacktrackingObjective,
             gradientIterations,
             leafCount,

@@ -12,6 +12,7 @@ target_link_libraries(libs-algo-approx_calcer PUBLIC
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers
+  catboost-libs-metrics
   private-libs-algo_helpers
   private-libs-options
 )
