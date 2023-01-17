@@ -418,6 +418,6 @@ namespace NCB {
         TExistsCheckerFactory::TRegistrator<TFSExistsChecker> LibSvmExistsCheckerReg("libsvm");
         TLineDataReaderFactory::TRegistrator<TFileLineDataReader> LibSvmLineDataReaderReg("libsvm");
         TDatasetLoaderFactory::TRegistrator<TLibSvmDataLoader> LibSvmDataLoaderReg("libsvm");
+        TDatasetLineDataLoaderFactory::TRegistrator<TLibSvmDataLoader> LibSvmLineDataLoader("libsvm");
     }
 }
-

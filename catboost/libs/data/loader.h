@@ -153,6 +153,10 @@ namespace NCB {
                                                    TString,
                                                    TDatasetLoaderPullArgs>;
 
+    using TDatasetLineDataLoaderFactory =
+        NObjectFactory::TParametrizedObjectFactory<IDatasetLoader,
+                                                   TString,
+                                                   TLineDataLoaderPushArgs>;
 
     ///////////////////////////////////////////////////////////////////////////
     // Common functionality used in IDatasetLoader implementations

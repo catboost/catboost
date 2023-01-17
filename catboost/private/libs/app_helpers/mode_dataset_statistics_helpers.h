@@ -4,12 +4,15 @@
 
 #include <catboost/libs/data/data_provider.h>
 #include "catboost/libs/dataset_statistics/visitors.h"
+#include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/private/libs/options/dataset_reading_params.h>
 
 #include <library/cpp/getopt/small/last_getopt_opts.h>
 #include <library/cpp/object_factory/object_factory.h>
 
+#include <util/generic/vector.h>
 #include <util/system/info.h>
+#include <util/system/types.h>
 
 using namespace NCB;
 
@@ -18,6 +21,8 @@ struct TCalculateStatisticsParams {
     NCatboostOptions::TDatasetReadingParams DatasetReadingParams;
     int ThreadCount = NSystemInfo::CachedNumberOfCpus();
     bool OnlyGroupStatistics = false;
+    ui32 SpotSize = 0;
+    ui32 SpotCount = 0;
 
     void ProcessParams(int argc, const char *argv[], NLastGetopt::TOpts* parserPtr = nullptr);
 
@@ -36,4 +41,6 @@ namespace NCB {
     using TModeDatasetStatisticsImplementationFactory = NObjectFactory::TParametrizedObjectFactory<IModeDatasetStatisticsImplementation, EImplementationType>;
 
     void CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams);
+
+    TVector<TIndexRange<ui64>> GetSpots(ui64 datasetSize, ui64 spotSize, ui64 spotCount);
 };
