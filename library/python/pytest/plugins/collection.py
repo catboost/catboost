@@ -1,6 +1,7 @@
 import os
 import sys
 from six import reraise
+import logging
 
 import py
 
@@ -37,7 +38,7 @@ class LoadedModule(_pytest.python.Module):
             return self._getobj().__file__
         else:
             return self.name
-    
+
     @property
     def nodeid(self):
         return self._nodeid
@@ -46,7 +47,14 @@ class LoadedModule(_pytest.python.Module):
         module_name = self.name[:-len('.py')]
         if self.namespace:
             module_name = '__tests__.' + module_name
-        __import__(module_name)
+        try:
+            __import__(module_name)
+        except Exception as e:
+            msg = 'Failed to load module "{}" and obtain list of tests due to an error'.format(module_name)
+            logging.exception('%s: %s', msg, e)
+            etype, exc, tb = sys.exc_info()
+            reraise(etype, type(exc)('{}\n{}'.format(exc, msg)), tb)
+
         return sys.modules[module_name]
 
 
@@ -70,7 +78,6 @@ class DoctestModule(LoadedModule):
                         runner=runner,
                         dtest=test)
         except Exception:
-            import logging
             logging.exception('DoctestModule failed, probably you can add NO_DOCTESTS() macro to ya.make')
             etype, exc, tb = sys.exc_info()
             msg = 'DoctestModule failed, probably you can add NO_DOCTESTS() macro to ya.make'
