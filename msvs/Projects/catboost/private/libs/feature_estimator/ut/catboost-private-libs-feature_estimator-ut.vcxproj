@@ -485,6 +485,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dbg_output\library-cpp-dbg_output.vcxproj">
       <Project>{FAD72648-D1D4-61AA-86EF-81FACE7EE467}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\atomic\cpp-deprecated-atomic.vcxproj">
+      <Project>{431AA21E-81D1-AE9C-9176-FDB24F2BC358}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\diff\library-cpp-diff.vcxproj">
       <Project>{0E7915BD-803C-8F29-4ECB-42637EED30E3}</Project>
     </ProjectReference>

@@ -134,6 +134,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
       <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\atomic\cpp-deprecated-atomic.vcxproj">
+      <Project>{431AA21E-81D1-AE9C-9176-FDB24F2BC358}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
       <Project>{6330870F-DABE-D84D-BCA5-C0A181746B9E}</Project>
     </ProjectReference>

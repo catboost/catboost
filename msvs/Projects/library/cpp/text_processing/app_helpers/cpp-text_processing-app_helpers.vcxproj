@@ -117,6 +117,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\cpp-containers-flat_hash.vcxproj">
       <Project>{04DA2786-9E81-9095-5FF3-4808684F4945}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\atomic\cpp-deprecated-atomic.vcxproj">
+      <Project>{431AA21E-81D1-AE9C-9176-FDB24F2BC358}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>

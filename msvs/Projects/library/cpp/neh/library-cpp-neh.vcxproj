@@ -269,6 +269,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\listener\cpp-coroutine-listener.vcxproj">
       <Project>{C43D7284-E485-A23F-D1EB-E5104D32806A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\atomic\cpp-deprecated-atomic.vcxproj">
+      <Project>{431AA21E-81D1-AE9C-9176-FDB24F2BC358}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
