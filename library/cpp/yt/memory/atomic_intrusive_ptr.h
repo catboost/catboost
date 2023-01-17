@@ -28,7 +28,7 @@ public:
     TAtomicIntrusivePtr& operator=(TIntrusivePtr<T> other);
     TAtomicIntrusivePtr& operator=(std::nullptr_t);
 
-    TIntrusivePtr<T> Acquire();
+    TIntrusivePtr<T> Acquire() const;
 
     TIntrusivePtr<T> Exchange(TIntrusivePtr<T> other);
 
@@ -58,7 +58,8 @@ private:
     // Atomic ptr holds N references, where N = ReservedRefCount - localRefCount.
     // LocalRefCount is incremented in Acquire method.
     // When localRefCount exceeds ReservedRefCount / 2 a new portion of refs are required globally.
-    std::atomic<char*> Ptr_ = nullptr;
+    // This field is marked mutable in order to make Acquire const-qualified in accordance to its semantics.
+    mutable std::atomic<char*> Ptr_ = nullptr;
 
     constexpr static int CounterBits = 64 - PtrBits;
     constexpr static int ReservedRefCount = (1 << CounterBits) - 1;

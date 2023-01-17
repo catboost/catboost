@@ -48,7 +48,7 @@ TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(std::nullptr_t)
 }
 
 template <class T>
-TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire()
+TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
 {
     char* ptr = Ptr_.load();
     while (true) {
