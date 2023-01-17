@@ -114,6 +114,7 @@
   - objc/objc-sync.h
   - objc/runtime.h
   - os/lock.h
+  - os/log.h
   - os/proc.h
   - os/trace.h
   - panel.h
