@@ -56,6 +56,7 @@
   - libkern/OSCacheControl.h
   - libproc.h
   - mach-o/dyld.h
+  - mach-o/fixup-chains.h
   - mach-o/getsect.h
   - mach-o/loader.h
   - mach/clock.h
