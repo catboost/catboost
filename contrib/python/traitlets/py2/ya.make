@@ -12,7 +12,7 @@ LICENSE(BSD-3-Clause)
 
 PEERDIR(
     contrib/python/decorator
-    contrib/python/enum34
+    contrib/deprecated/python/enum34
     contrib/python/ipython-genutils
     contrib/python/six
 )
