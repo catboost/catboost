@@ -538,6 +538,9 @@
         },
         "abcd": {
             "description": "Run abcd cli"
+        },
+        "tasklet": {
+            "description": "Run tasklet CLI"
         }
     },
     "toolchain": {
@@ -6518,6 +6521,28 @@
                     "default": true
                 }
             ]
+        },
+        "tasklet": {
+            "tools": {
+                "tasklet": {
+                    "bottle": "tasklet",
+                    "executable": "tasklet"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -7740,7 +7765,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1358755161,
+                "sandbox_id": 1359955765,
                 "match": "infractl"
             },
             "executable": {
@@ -9040,6 +9065,18 @@
                 "abcd": [
                     "bin",
                     "quota_mover"
+                ]
+            }
+        },
+        "tasklet": {
+            "formula": {
+                "sandbox_id": 1359695732,
+                "match": "cli"
+            },
+            "executable": {
+                "tasklet": [
+                    "cli",
+                    "tasklet-tool"
                 ]
             }
         }
