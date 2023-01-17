@@ -286,18 +286,6 @@ IF (OS_IOS AND ARCH_X86_64)
     )
 ENDIF()
 
-IF (OS_IOS AND ARCH_I386)
-    CFLAGS(
-        -DPADLOCK_ASM
-        -D_REENTRANT
-    )
-    SRCS(
-        asm/ios/i386/engines/e_padlock-x86.s
-        engines/e_dasync.c
-        engines/e_ossltest.c
-    )
-ENDIF()
-
 IF (OS_ANDROID AND ARCH_X86_64)
     CFLAGS(
         -DOPENSSL_PIC
