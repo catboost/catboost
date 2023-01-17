@@ -1,7 +1,7 @@
 import os.path
 
 import ytest
-from _common import to_yesno, resolve_common_const, rootrel_arc_src
+from _common import to_yesno, rootrel_arc_src
 from lib.nots.package_manager import manager
 from lib.nots.typescript import TsConfig
 
@@ -46,7 +46,8 @@ def on_ts_configure(unit, tsconfig_path):
     unit.set(["TS_CONFIG_DECLARATION_MAP", to_yesno(tsconfig.compiler_option("declarationMap"))])
     unit.set(["TS_CONFIG_PRESERVE_JSX", to_yesno(tsconfig.compiler_option("jsx") == "preserve")])
 
-    _setup_eslint(unit)
+    if unit.get('LINT_LEVEL_VALUE') != "none":
+        _setup_eslint(unit)
 
 
 def _setup_eslint(unit):
@@ -57,7 +58,9 @@ def _setup_eslint(unit):
     lint_files = ytest.get_values_list(unit, '_TS_LINT_SRCS_VALUE')
     resolved_files = []
     for path in lint_files:
-        resolved = rootrel_arc_src(resolve_common_const(path), unit)
+        resolved = rootrel_arc_src(path, unit)
+        if resolved.startswith(mod_dir):
+            resolved = resolved[len(mod_dir) + 1:]
         resolved_files.append(resolved)
 
     if resolved_files:
