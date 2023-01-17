@@ -1077,7 +1077,8 @@ class Application(Generic[_AppResult]):
 
         This is not threadsafe.
         """
-        task: asyncio.Task[None] = get_event_loop().create_task(coroutine)
+        loop = self.loop or get_event_loop()
+        task: asyncio.Task[None] = loop.create_task(coroutine)
         self._background_tasks.add(task)
 
         task.add_done_callback(self._on_background_task_done)
@@ -1469,7 +1470,10 @@ async def _do_wait_for_enter(wait_text: AnyFormattedText) -> None:
     session: PromptSession[None] = PromptSession(
         message=wait_text, key_bindings=key_bindings
     )
-    await session.app.run_async()
+    try:
+        await session.app.run_async()
+    except KeyboardInterrupt:
+        pass  # Control-c pressed. Don't propagate this error.
 
 
 @contextmanager
