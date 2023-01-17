@@ -15,6 +15,7 @@ SRCS(
     element_ut.cpp
     rotating_file_ut.cpp
     composite_ut.cpp
+    reopen_ut.cpp
 )
 
 END()

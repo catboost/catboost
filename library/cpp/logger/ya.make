@@ -35,6 +35,7 @@ SRCS(
     thread.cpp
     thread_creator.cpp
     GLOBAL uninitialized_creator.cpp
+    reopen.h
 )
 
 END()
