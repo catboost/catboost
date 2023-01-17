@@ -127,11 +127,13 @@ namespace NCatboostCuda {
         static void WriteToLazyCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
                                            const NCB::TLazyQuantizedFloatValuesHolder* lazyQuantizedColumn,
                                            ui32 featureId,
+                                           TMaybe<ui16> baseValue,
                                            const NCudaLib::TMirrorMapping& docsMapping,
                                            TStripeBuffer<ui32>* compressedIndex) {
             Y_UNUSED(feature);
             Y_UNUSED(lazyQuantizedColumn);
             Y_UNUSED(featureId);
+            Y_UNUSED(baseValue);
             Y_UNUSED(docsMapping);
             Y_UNUSED(compressedIndex);
             CB_ENSURE_INTERNAL(false, "Lazy dataset loading does not support feature parallel layout");

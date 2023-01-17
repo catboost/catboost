@@ -10,13 +10,9 @@ namespace NCB {
     template <class TBase>
     class TLazyCompressedValuesHolderImpl : public TBase {
     public:
-        TLazyCompressedValuesHolderImpl(
-            ui32 featureId,
-            const TFeaturesArraySubsetIndexing* subsetIndexing,
-            TAtomicSharedPtr<IQuantizedPoolLoader> poolLoader)
-        : TBase(featureId, subsetIndexing->Size())
-        , SubsetIndexing(subsetIndexing)
-        , PoolLoader(poolLoader)
+        TLazyCompressedValuesHolderImpl(ui32 featureId, const TPathWithScheme& pathWithScheme, ui64 size)
+        : TBase(featureId, size)
+        , PathWithScheme(pathWithScheme)
         {
         }
 
@@ -31,26 +27,25 @@ namespace NCB {
             return 0;
         }
 
-        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
-            Y_UNUSED(localExecutor);
+        ui32 CalcChecksum(NPar::ILocalExecutor* /*localExecutor*/) const override {
             return 0;
         }
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::ILocalExecutor* localExecutor
+            NPar::ILocalExecutor* /*localExecutor*/
         ) const override {
-            Y_UNUSED(localExecutor);
-            CB_ENSURE_INTERNAL(!cloningParams.MakeConsecutive, "Making consecutive not supported on Lazy columns for now");
+            CB_ENSURE_INTERNAL(
+                cloningParams.SubsetIndexing == nullptr || cloningParams.SubsetIndexing->IsFullSubset(),
+                "Lazy columns support only full subset indexing");
             return MakeHolder<TLazyCompressedValuesHolderImpl>(
                 TBase::GetId(),
-                cloningParams.SubsetIndexing,
-                PoolLoader
-            );
+                PathWithScheme,
+                TBase::GetSize());
         }
 
-        TPathWithScheme GetPoolPathWithScheme() const {
-            return PoolLoader->GetPoolPathWithScheme();
+        TPathWithScheme GetPathWithScheme() const {
+            return PathWithScheme;
         }
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 /*offset*/) const override {
@@ -58,8 +53,7 @@ namespace NCB {
         }
 
     private:
-        const TFeaturesArraySubsetIndexing* SubsetIndexing;
-        TAtomicSharedPtr<IQuantizedPoolLoader> PoolLoader;
+        TPathWithScheme PathWithScheme;
     };
 
     using TLazyQuantizedFloatValuesHolder = TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>;
