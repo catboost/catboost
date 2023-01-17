@@ -912,11 +912,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\pycontrib-python-ipython.vcxproj">
       <Project>9FAEC26D-0991-B9F6-A63C-ABE29C2D36E8</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.global.vcxproj">
-      <Project>FFD04B57-AAF4-4AF2-EDB6-4395B3523C3C</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3contrib-python-jedi.global.vcxproj">
+      <Project>CF91153E-AD72-CAB4-616C-76D51A595A0C</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.vcxproj">
-      <Project>AF98D35C-6213-F443-EAEA-248AA9199493</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3contrib-python-jedi.vcxproj">
+      <Project>F6465833-B229-2EDB-F19D-A5A2812C4DC5</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\joblib\pycontrib-python-joblib.global.vcxproj">
       <Project>D718789F-C2A7-D99C-708F-BC90D83E78F0</Project>
