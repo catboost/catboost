@@ -126,7 +126,11 @@ class KeyWordMap {
     DOMAIN_KW,
     MODEL_VERSION,
     DOC_STRING,
-    METADATA_PROPS
+    METADATA_PROPS,
+    SEQ_TYPE,
+    MAP_TYPE,
+    OPTIONAL_TYPE,
+    SPARSE_TENSOR_TYPE
   };
 
   KeyWordMap() {
@@ -138,6 +142,10 @@ class KeyWordMap {
     map_["model_version"] = KeyWord::MODEL_VERSION;
     map_["doc_string"] = KeyWord::DOC_STRING;
     map_["metadata_props"] = KeyWord::METADATA_PROPS;
+    map_["seq"] = KeyWord::SEQ_TYPE;
+    map_["map"] = KeyWord::MAP_TYPE;
+    map_["optional"] = KeyWord::OPTIONAL_TYPE;
+    map_["sparse_tensor"] = KeyWord::SPARSE_TENSOR_TYPE;
   }
 
   static const std::unordered_map<TString, KeyWord>& Instance() {
@@ -197,7 +205,7 @@ class ParserBase {
     const char* context_start = (p > start_) ? (p + 1) : start_;
     for (p = context_start; (p < end_) && (*p != '\n'); ++p)
       ;
-    return TString(context_start, p-context_start);
+    return TString(context_start, p - context_start);
   }
 
   template <typename... Args>

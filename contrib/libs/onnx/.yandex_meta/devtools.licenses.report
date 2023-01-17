@@ -201,7 +201,7 @@ BELONGS ya.make
         Match type      : TAG
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        README.md [280:282]
+        README.md [278:280]
 
 KEEP     Apache-2.0           2b42edef8fa55315f34f2370b4715ca9
 BELONGS ya.make
@@ -229,6 +229,7 @@ BELONGS ya.make
         onnx/compose.py [1:1]
         onnx/defs/__init__.py [1:1]
         onnx/external_data_helper.py [1:1]
+        onnx/helper.py [1:1]
         onnx/mapping.py [1:1]
         onnx/numpy_helper.py [1:1]
         onnx/parser.py [1:1]
@@ -266,7 +267,7 @@ BELONGS ya.make
 KEEP     Apache-2.0           9dd9e817662fd0380ddd3711059a09de
 BELONGS ya.make
     License text:
-        \# SPDX-License-Identifier: Apache-2.0
+         * SPDX-License-Identifier: Apache-2.0
     Scancode info:
         Original SPDX id: Apache-2.0
         Score           : 100.00
@@ -274,7 +275,6 @@ BELONGS ya.make
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
         onnx/defs/traditionalml/defs.cc [2:2]
-        onnx/helper.py [1:1]
 
 KEEP     Apache-2.0           acd1b3b1a87a384b2c9375977b92fe1f
 BELONGS ya.make

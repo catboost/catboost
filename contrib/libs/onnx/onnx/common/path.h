@@ -13,7 +13,7 @@ namespace ONNX_NAMESPACE {
 
 #ifdef _WIN32
 const TString k_preferred_path_separator = "\\";
-#else  // POSIX
+#else // POSIX
 const TString k_preferred_path_separator = "/";
 #endif
 
