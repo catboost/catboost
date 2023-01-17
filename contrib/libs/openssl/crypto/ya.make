@@ -493,6 +493,28 @@ SRCS(
     ec/ecp_oct.c
     ec/ecp_smpl.c
     ec/ecx_meth.c
+    engine/eng_all.c
+    engine/eng_cnf.c
+    engine/eng_ctrl.c
+    engine/eng_dyn.c
+    engine/eng_err.c
+    engine/eng_fat.c
+    engine/eng_init.c
+    engine/eng_lib.c
+    engine/eng_list.c
+    engine/eng_openssl.c
+    engine/eng_pkey.c
+    engine/eng_rdrand.c
+    engine/eng_table.c
+    engine/tb_asnmth.c
+    engine/tb_cipher.c
+    engine/tb_dh.c
+    engine/tb_digest.c
+    engine/tb_dsa.c
+    engine/tb_eckey.c
+    engine/tb_pkmeth.c
+    engine/tb_rand.c
+    engine/tb_rsa.c
     err/err.c
     err/err_all.c
     err/err_prn.c
@@ -817,33 +839,6 @@ SRCS(
 IF (NOT WINDOWS_I686)
     SRCS(
         ec/ecp_nistz256.c
-    )
-ENDIF()
-
-IF (NOT IOS_ARM64 AND NOT IOS_ARMV7)
-    SRCS(
-        engine/eng_all.c
-        engine/eng_cnf.c
-        engine/eng_ctrl.c
-        engine/eng_dyn.c
-        engine/eng_err.c
-        engine/eng_fat.c
-        engine/eng_init.c
-        engine/eng_lib.c
-        engine/eng_list.c
-        engine/eng_openssl.c
-        engine/eng_pkey.c
-        engine/eng_rdrand.c
-        engine/eng_table.c
-        engine/tb_asnmth.c
-        engine/tb_cipher.c
-        engine/tb_dh.c
-        engine/tb_digest.c
-        engine/tb_dsa.c
-        engine/tb_eckey.c
-        engine/tb_pkmeth.c
-        engine/tb_rand.c
-        engine/tb_rsa.c
     )
 ENDIF()
 
@@ -1459,7 +1454,7 @@ ENDIF()
 # https://github.com/openssl/openssl/issues/17009
 IF (ARCADIA_OPENSSL_DISABLE_ARMV7_TICK)
     CFLAGS(
-        -DARCADIA_OPENSSL_DISABLE_ARMV7_TICK        
+        -DARCADIA_OPENSSL_DISABLE_ARMV7_TICK
     )
 ENDIF()
 
