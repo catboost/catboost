@@ -707,6 +707,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_lib\py3python-testing-yatest_lib.vcxproj">
+      <Project>{E6C9003E-D9F6-7079-5E65-41CFA0310C70}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\windows\py3library-python-windows.vcxproj">
       <Project>{D61B5AB7-0794-943C-D6E6-EC7ABA106E38}</Project>
     </ProjectReference>

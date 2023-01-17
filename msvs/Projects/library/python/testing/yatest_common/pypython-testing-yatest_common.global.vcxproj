@@ -429,6 +429,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
+      <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\py2\pypython-packaging-py2.vcxproj">
       <Project>{A2F70579-7ECE-E837-AF99-B057F2FBD192}</Project>
     </ProjectReference>
@@ -500,6 +503,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_lib\pypython-testing-yatest_lib.vcxproj">
+      <Project>{E9E19560-2F86-3D7F-DDCD-A6879E312823}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\windows\pylibrary-python-windows.vcxproj">
       <Project>{73CACD62-64C7-DBB4-CF29-B554C02CAA74}</Project>
