@@ -627,12 +627,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\conf\conf_ssl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cpt_err.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cryptlib.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ct\ct_b64.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -661,12 +655,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ct\ct_x509v3.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ctype.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cversion.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\des\cbc_cksm.c">
@@ -823,9 +811,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dso\dso_win32.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ebcdic.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve25519.c">
@@ -1200,12 +1185,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\evp\pmeth_lib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ex_data.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\getenv.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\hmac\hm_ameth.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -1228,9 +1207,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\idea\i_skey.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\init.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\kdf\hkdf.c">
@@ -1269,15 +1245,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mdc2\mdc2dgst.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_dbg.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_sec.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\modes\cbc128.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -1306,24 +1273,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\modes\xts128.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_dir.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fips.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fopen.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_init.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_str.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_time.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\objects\o_names.c">
@@ -1680,15 +1629,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\store\store_strings.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_none.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_pthread.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_win.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ts\ts_asn1.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -1738,9 +1678,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ui\ui_util.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\uid.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\whrlpool\wp_dgst.c">
@@ -1963,6 +1900,69 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509v3\v3err.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cpt_err.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cryptlib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ctype.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cversion.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ebcdic.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ex_data.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\getenv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\init.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_dbg.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_sec.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_dir.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fips.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fopen.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_init.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_str.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_time.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_none.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_pthread.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_win.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\uid.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-mb-x86_64.masm">
