@@ -10,35 +10,6 @@ namespace NCB {
     template <class TBase>
     class TLazyCompressedValuesHolderImpl : public TBase {
     public:
-        using TLoadedColumnData = TVector<ui8>; // TODO(kirillovs): support wide historgrams in "lazy" columns
-
-        template<typename T>
-        class TLazyCompressedValuesIterator : public IDynamicBlockIterator<T> {
-        public:
-            TLazyCompressedValuesIterator(
-                const TFeaturesArraySubsetIndexing* subsetIndexing,
-                std::shared_ptr<TLoadedColumnData>&& columnData,
-                size_t offset
-            )
-                : SubsetIndexing(subsetIndexing)
-                , ColumnData(std::move(columnData))
-            {
-                Iterator = MakeArraySubsetBlockIterator<T>(
-                    SubsetIndexing,
-                    MakeArrayRef(*ColumnData),
-                    offset
-                );
-            }
-
-            TConstArrayRef<T> Next(size_t blockSize) {
-                return Iterator->Next(blockSize);
-            }
-        private:
-            const TFeaturesArraySubsetIndexing* SubsetIndexing;
-            std::shared_ptr<TLoadedColumnData> ColumnData;
-            IDynamicBlockIteratorPtr<T> Iterator;
-        };
-
         TLazyCompressedValuesHolderImpl(
             ui32 featureId,
             const TFeaturesArraySubsetIndexing* subsetIndexing,
@@ -82,36 +53,11 @@ namespace NCB {
             return PoolLoader->GetPoolPathWithScheme();
         }
 
-        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset) const override {
-            return MakeHolder<TLazyCompressedValuesIterator<ui8>>(
-                SubsetIndexing,
-                GetColumnData(),
-                offset
-            );
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 /*offset*/) const override {
+            CB_ENSURE(false);
         }
 
     private:
-        std::shared_ptr<TLoadedColumnData> GetColumnData() const {
-            auto cachedResult = LoadedColumnDataWeakPtr.lock();
-            if (cachedResult) {
-                return cachedResult;
-            }
-            with_lock(LoadDataLock) {
-                auto cachedResult = LoadedColumnDataWeakPtr.lock();
-                if (cachedResult) {
-                    return cachedResult;
-                }
-                std::shared_ptr<TLoadedColumnData> loadedColumn = std::make_shared<TLoadedColumnData>(
-                    PoolLoader->LoadQuantizedColumn(TBase::GetId())
-                );
-                LoadedColumnDataWeakPtr = loadedColumn;
-                return loadedColumn;
-            }
-        }
-    private:
-        mutable TMutex LoadDataLock;
-        mutable std::weak_ptr<TVector<ui8>> LoadedColumnDataWeakPtr;
-
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
         TAtomicSharedPtr<IQuantizedPoolLoader> PoolLoader;
     };
