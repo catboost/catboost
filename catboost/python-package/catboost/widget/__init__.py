@@ -1,4 +1,6 @@
 from .ipythonwidget import MetricVisualizer
+from .metrics_plotter import MetricsPlotter
+from .callbacks import XGBPlottingCallback, lgbm_plotting_callback
 
 
 def _jupyter_labextension_paths():
