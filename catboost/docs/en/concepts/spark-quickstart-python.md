@@ -21,7 +21,7 @@ from pyspark.sql.types import *
 
 spark = (SparkSession.builder
   .master("local[*]")
-  .config("spark.jars.packages", "ai.catboost:catboost-spark_2.4_2.12:0.25")
+  .config("spark.jars.packages", "ai.catboost:catboost-spark_3.1_2.12:1.0.6")
   .appName("ClassifierTest")
   .getOrCreate()
 )
@@ -54,7 +54,7 @@ evalPool = catboost_spark.Pool(evalDf)
 classifier = catboost_spark.CatBoostClassifier()
     
 # train a model
-model = classifier.fit(trainPool, [evalPool])
+model = classifier.fit(trainPool, eval_set=[evalPool])
 
 # apply the model
 predictions = model.transform(evalPool.data)
@@ -128,7 +128,7 @@ evalPool = catboost_spark.Pool(evalDf)
 classifier = catboost_spark.CatBoostClassifier()
     
 # train a model
-model = classifier.fit(trainPool, [evalPool])
+model = classifier.fit(trainPool, eval_set=[evalPool])
 
 # apply the model
 predictions = model.transform(evalPool.data)
@@ -202,7 +202,7 @@ evalPool = catboost_spark.Pool(evalDf)
 regressor = catboost_spark.CatBoostRegressor()
     
 # train a model
-model = regressor.fit(trainPool, [evalPool])
+model = regressor.fit(trainPool, eval_set=[evalPool])
 
 # apply the model
 predictions = model.transform(evalPool.data)
