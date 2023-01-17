@@ -41,10 +41,6 @@ struct IJVMLineDataReader : public NCB::ILineDataReader {
         return ReadLineJVM(TStringOutWrapper(line));
     }
 
-    bool ReadLine(TString*, TString*, ui64*) override {
-        CB_ENSURE(false, "Unimplemented");
-    }
-
     // override this method in derived JVM classes
     virtual bool ReadLineJVM(TStringOutWrapper line) = 0;
 
