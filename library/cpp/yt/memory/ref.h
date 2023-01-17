@@ -111,13 +111,13 @@ public:
     TSharedRef() = default;
 
     //! Creates a TSharedRef with a given holder.
-    TSharedRef(TRef ref, ISharedRangeHolderPtr holder);
+    TSharedRef(TRef ref, TSharedRangeHolderPtr holder);
 
     //! Creates a TSharedRef from a pointer and length.
-    TSharedRef(const void* data, size_t length, ISharedRangeHolderPtr holder);
+    TSharedRef(const void* data, size_t length, TSharedRangeHolderPtr holder);
 
     //! Creates a TSharedRef from a range.
-    TSharedRef(const void* begin, const void* end, ISharedRangeHolderPtr holder);
+    TSharedRef(const void* begin, const void* end, TSharedRangeHolderPtr holder);
 
     //! Creates an empty TSharedRef.
     static TSharedRef MakeEmpty();
@@ -189,13 +189,13 @@ public:
     TSharedMutableRef() = default;
 
     //! Creates a TSharedMutableRef with a given holder.
-    TSharedMutableRef(const TMutableRef& ref, ISharedRangeHolderPtr holder);
+    TSharedMutableRef(const TMutableRef& ref, TSharedRangeHolderPtr holder);
 
     //! Creates a TSharedMutableRef from a pointer and length.
-    TSharedMutableRef(void* data, size_t length, ISharedRangeHolderPtr holder);
+    TSharedMutableRef(void* data, size_t length, TSharedRangeHolderPtr holder);
 
     //! Creates a TSharedMutableRef from a range.
-    TSharedMutableRef(void* begin, void* end, ISharedRangeHolderPtr holder);
+    TSharedMutableRef(void* begin, void* end, TSharedRangeHolderPtr holder);
 
     //! Creates an empty TSharedMutableRef.
     static TSharedMutableRef MakeEmpty();

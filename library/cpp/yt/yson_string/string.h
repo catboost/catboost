@@ -111,7 +111,7 @@ private:
     struct TNullPayload
     { };
 
-    std::variant<TNullPayload, ISharedRangeHolderPtr, TString> Payload_;
+    std::variant<TNullPayload, TSharedRangeHolderPtr, TString> Payload_;
 
     const char* Begin_;
     ui64 Size_ : 56;

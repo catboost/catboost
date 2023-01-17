@@ -72,7 +72,7 @@ TYsonString::TYsonString(const TYsonStringBuf& ysonStringBuf)
 {
     if (ysonStringBuf) {
         struct TCapturedYsonStringPayload
-            : public ISharedRangeHolder
+            : public TSharedRangeHolder
             , public TWithExtraSpace<TCapturedYsonStringPayload>
         {
             char* GetData()
@@ -155,7 +155,7 @@ TString TYsonString::ToString() const
         [] (const TNullPayload&) -> TString {
             YT_ABORT();
         },
-        [&] (const ISharedRangeHolderPtr&) {
+        [&] (const TSharedRangeHolderPtr&) {
             return TString(AsStringBuf());
         },
         [] (const TString& payload) {
@@ -170,7 +170,7 @@ TSharedRef TYsonString::ToSharedRef() const
         [] (const TNullPayload&) -> TSharedRef {
             YT_ABORT();
         },
-        [&] (const ISharedRangeHolderPtr& holder) {
+        [&] (const TSharedRangeHolderPtr& holder) {
             return TSharedRef(Begin_, Size_, holder);
         },
         [] (const TString& payload) {
