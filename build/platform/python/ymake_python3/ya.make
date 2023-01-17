@@ -34,3 +34,7 @@ ELSEIF (OS_WINDOWS)
 ENDIF()
 
 END()
+
+RECURSE(
+    bin
+)
