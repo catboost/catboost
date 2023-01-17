@@ -13,6 +13,16 @@ def test_workspace_get_paths():
     ]
 
 
+def test_workspace_get_paths_with_custom_base_path_without_self():
+    ws = PnpmWorkspace(path="/packages/foo/pnpm-workspace.yaml")
+    ws.packages = set([".", "../bar", "../../another/baz"])
+
+    assert sorted(ws.get_paths(base_path="some/custom/dir", ignore_self=True)) == [
+        "some/another/baz",
+        "some/custom/bar",
+    ]
+
+
 def test_workspace_set_from_package_json():
     ws = PnpmWorkspace(path="/packages/foo/pnpm-workspace.yaml")
     pj = PackageJson(path="/packages/foo/package.json")

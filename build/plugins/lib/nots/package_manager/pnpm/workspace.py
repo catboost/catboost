@@ -32,14 +32,20 @@ class PnpmWorkspace(object):
             }
             yaml.dump(data, f, Dumper=yaml.CSafeDumper)
 
-    def get_paths(self):
+    def get_paths(self, base_path=None, ignore_self=False):
         """
-        Returns absolute paths of workspace packages.
+        Returns absolute paths of the workspace packages.
+        :param base_path: base path to resolve relative dep paths
+        :type base_path: str
+        :param ignore_self: whether path of the current module will be excluded (if present)
+        :type ignore_self: bool
         :rtype: list of str
         """
-        dir_path = os.path.dirname(self.path)
+        if base_path is None:
+            base_path = os.path.dirname(self.path)
 
-        return [os.path.normpath(os.path.join(dir_path, pkg_path)) for pkg_path in self.packages]
+        return [os.path.normpath(os.path.join(base_path, pkg_path))
+                for pkg_path in self.packages if not ignore_self or pkg_path != "."]
 
     def set_from_package_json(self, package_json):
         """
@@ -51,7 +57,7 @@ class PnpmWorkspace(object):
             raise TypeError(
                 "package.json should be in workspace directory {}, given: {}".format(os.path.dirname(self.path), package_json.path))
 
-        self.packages = set(path for name, path in package_json.get_workspace_dep_paths())
+        self.packages = set(path for _, path in package_json.get_workspace_dep_spec_paths())
         # Add relative path to self.
         self.packages.add(".")
 
