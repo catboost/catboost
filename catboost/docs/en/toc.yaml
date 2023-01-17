@@ -78,6 +78,8 @@ items:
             name: Build the binary with make on Linux (CPU only)
           - href: installation/cli-installation-multi-node-installation.md
             name: Build the binary with MPI support from a local copy (GPU only)
+          - href: installation/cli-installation-cmake-install.md
+            name: Build the binary with CMake
         name: Command-line version binary
   - name: Key Features
     items:
