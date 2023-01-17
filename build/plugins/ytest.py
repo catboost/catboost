@@ -17,7 +17,7 @@ import ymake
 
 
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
-MDS_SHEME = 'mds'
+MDS_SCHEME = 'mds'
 CANON_DATA_DIR_NAME = 'canondata'
 CANON_OUTPUT_STORAGE = 'canondata_storage'
 CANON_RESULT_FILE_NAME = 'result.json'
@@ -1070,7 +1070,7 @@ def _get_resource_from_uri(uri):
     m = CANON_MDS_RESOURCE_REGEX.match(uri)
     if m:
         res_id = m.group(1)
-        return "{}:{}".format(MDS_SHEME, res_id)
+        return "{}:{}".format(MDS_SCHEME, res_id)
 
     m = CANON_SBR_RESOURCE_REGEX.match(uri)
     if m:
