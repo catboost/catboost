@@ -25,7 +25,7 @@ JAVA10_EXPORTS = [
 def get_java_version(exe):
     p = subprocess.Popen([exe, '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    for line in ((out or '').strip() + (err or '').strip()).split("\n"):
+    for line in (out or '').strip().split("\n") + (err or '').strip().split("\n"):
         m = re.match(r'java version "(.+)"', line)
         if m:
             parts = m.groups()[0].split(".")
