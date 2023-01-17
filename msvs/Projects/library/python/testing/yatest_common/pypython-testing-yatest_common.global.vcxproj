@@ -192,7 +192,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/testing/yatest_common/join_f4b06a392efdd1e9455955f2be.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_664f8fb25cb7da884d4b741a26.yasm;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_5bda94cc734096a1883ec7171c.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_664f8fb25cb7da884d4b741a26.yasm;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_5bda94cc734096a1883ec7171c.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_f4b06a392efdd1e9455955f2be.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -219,7 +219,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/testing/yatest_common/join_72733866eb0aefd6feb08ecbcd.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\664f8fb25cb7da884d4b741a26.cpp;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\5bda94cc734096a1883ec7171c.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\664f8fb25cb7da884d4b741a26.cpp;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\5bda94cc734096a1883ec7171c.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_72733866eb0aefd6feb08ecbcd.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">

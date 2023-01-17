@@ -209,7 +209,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/Jinja2/py2/join_aafbfbd90ae0483d500121522c.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\_c1320468ad8a3cc7e3f51fd65f.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\_8ec9949696a0464a15610dd25c.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\_93a17bea14bcfa56df9b4f7a64.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\_c1320468ad8a3cc7e3f51fd65f.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\_8ec9949696a0464a15610dd25c.yasm;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\_93a17bea14bcfa56df9b4f7a64.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\join_aafbfbd90ae0483d500121522c.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -236,7 +236,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/Jinja2/py2/join_f54351f8253434098629b43327.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\c1320468ad8a3cc7e3f51fd65f.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\8ec9949696a0464a15610dd25c.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\93a17bea14bcfa56df9b4f7a64.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\c1320468ad8a3cc7e3f51fd65f.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\8ec9949696a0464a15610dd25c.cpp;$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\93a17bea14bcfa56df9b4f7a64.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2\join_f54351f8253434098629b43327.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">

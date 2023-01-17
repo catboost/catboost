@@ -237,7 +237,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/protobuf/py2/join_3197cbb0ae120511f37f685fd9.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_6240bf4745e14a43b46bebb56f.yasm;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_51b8ab3baa061b6c84eff6f0c4.yasm;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_7be99f6fefa3ba0ffd9ab187a9.yasm;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_1043b6ba2b56207930f4060231.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_6240bf4745e14a43b46bebb56f.yasm;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_51b8ab3baa061b6c84eff6f0c4.yasm;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_7be99f6fefa3ba0ffd9ab187a9.yasm;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\_1043b6ba2b56207930f4060231.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\join_3197cbb0ae120511f37f685fd9.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -264,7 +264,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/protobuf/py2/join_030c10f5e4838bddfd51214d0e.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\6240bf4745e14a43b46bebb56f.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\51b8ab3baa061b6c84eff6f0c4.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\7be99f6fefa3ba0ffd9ab187a9.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\1043b6ba2b56207930f4060231.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\6240bf4745e14a43b46bebb56f.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\51b8ab3baa061b6c84eff6f0c4.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\7be99f6fefa3ba0ffd9ab187a9.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\1043b6ba2b56207930f4060231.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\protobuf\py2\join_030c10f5e4838bddfd51214d0e.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">

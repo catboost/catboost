@@ -109,7 +109,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/util/charset/all_charset.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\util\charset\generated\unidata.cpp;$(SolutionDir)..\util\charset\recode_result.cpp;$(SolutionDir)..\util\charset\unicode_table.cpp;$(SolutionDir)..\util\charset\unidata.cpp;$(SolutionDir)..\util\charset\utf8.cpp;$(SolutionDir)..\util\charset\wide.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\util\charset\generated\unidata.cpp;$(SolutionDir)..\util\charset\recode_result.cpp;$(SolutionDir)..\util\charset\unicode_table.cpp;$(SolutionDir)..\util\charset\unidata.cpp;$(SolutionDir)..\util\charset\utf8.cpp;$(SolutionDir)..\util\charset\wide.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\util\charset\all_charset.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\util\charset\recode_result.h"/>

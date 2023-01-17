@@ -305,7 +305,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/py/join_2347b952db81a7208c50559665.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\py\_86508f5842b01fbcf7d3d42f68.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_a36aee3bd5285aada72a74d53a.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_1ccc4939a9e3f1cc73d9c69f39.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_7de20dc7ffe03934a228e822b5.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_86e908c76085f52f6c5db63843.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_ea3f50c640c2f2d888c0539e8d.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\py\_86508f5842b01fbcf7d3d42f68.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_a36aee3bd5285aada72a74d53a.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_1ccc4939a9e3f1cc73d9c69f39.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_7de20dc7ffe03934a228e822b5.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_86e908c76085f52f6c5db63843.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_ea3f50c640c2f2d888c0539e8d.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_2347b952db81a7208c50559665.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -332,7 +332,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/py/join_632c1494173bdb39c3630fdfc1.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\py\86508f5842b01fbcf7d3d42f68.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\a36aee3bd5285aada72a74d53a.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\1ccc4939a9e3f1cc73d9c69f39.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\7de20dc7ffe03934a228e822b5.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\86e908c76085f52f6c5db63843.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\ea3f50c640c2f2d888c0539e8d.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\py\86508f5842b01fbcf7d3d42f68.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\a36aee3bd5285aada72a74d53a.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\1ccc4939a9e3f1cc73d9c69f39.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\7de20dc7ffe03934a228e822b5.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\86e908c76085f52f6c5db63843.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\ea3f50c640c2f2d888c0539e8d.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_632c1494173bdb39c3630fdfc1.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\py\py\__init__.py">
