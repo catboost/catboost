@@ -93,7 +93,6 @@ RECURSE(
     yson
     yson/json
     yson/node
-    yson/node/pybind
     yt
 )
 
