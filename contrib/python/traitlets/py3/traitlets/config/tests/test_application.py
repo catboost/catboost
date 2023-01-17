@@ -805,6 +805,50 @@ def test_logging_config(tmp_path, capsys):
     assert capsys.readouterr().err == "[Application] WARNING | warn\n"
 
 
+@pytest.fixture
+def caplogconfig(monkeypatch):
+    """Capture logging config events for DictConfigurator objects.
+
+    This suppresses the event (so the configuration doesn't happen).
+
+    Returns a list of (args, kwargs).
+    """
+    calls = []
+
+    def _configure(*args, **kwargs):
+        nonlocal calls
+        calls.append((args, kwargs))
+
+    monkeypatch.setattr(
+        "logging.config.DictConfigurator.configure",
+        _configure,
+    )
+
+    return calls
+
+
+def test_logging_teardown_on_error(capsys, caplogconfig):
+    """Ensure we don't try to open logs in order to close them (See #722).
+
+    If you try to configure logging handlers whilst Python is shutting down
+    you may get traceback.
+    """
+    # create and destroy an app (without configuring logging)
+    # (ensure that the logs were not configured)
+    app = Application()
+    del app
+    assert len(caplogconfig) == 0  # logging was not configured
+    out, err = capsys.readouterr()
+    assert "Traceback" not in err
+
+    # ensure that the logs would have been configured otherwise
+    # (to prevent this test from yielding false-negatives)
+    app = Application()
+    app._logging_configured = True  # make it look like logging was configured
+    del app
+    assert len(caplogconfig) == 1  # logging was configured
+
+
 if __name__ == "__main__":
     # for test_help_output:
     MyApp.launch_instance()

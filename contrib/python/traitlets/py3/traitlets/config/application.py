@@ -276,6 +276,8 @@ class Application(SingletonConfigurable):
         config = self.get_default_logging_config()
         nested_update(config, self.logging_config or {})
         dictConfig(config)
+        # make a note that we have configured logging
+        self._logging_configured = True
 
     @default("log")
     def _log_default(self):
@@ -942,9 +944,14 @@ class Application(SingletonConfigurable):
         return "\n".join(lines)
 
     def close_handlers(self):
-        for handler in self.log.handlers:
-            with suppress(Exception):
-                handler.close()
+        if getattr(self, "_logging_configured", False):
+            # don't attempt to close handlers unless they have been opened
+            # (note accessing self.log.handlers will create handlers if they
+            # have not yet been initialised)
+            for handler in self.log.handlers:
+                with suppress(Exception):
+                    handler.close()
+            self._logging_configured = False
 
     def exit(self, exit_status=0):
         self.log.debug("Exiting application: %s" % self.name)
