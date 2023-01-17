@@ -288,7 +288,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_1e805adf11a1f84b57a16493eb.cpp" "--ya-start-command-file" "contrib/python/protobuf/py3/01e3570760f9a9afa33befc1a2.cpp" "contrib/python/protobuf/py3/7a51cb3f90109a28db17da307f.cpp" "contrib/python/protobuf/py3/0c964918f49444fe3a6f0fe2dd.cpp" "contrib/python/protobuf/py3/7dc62c8beafc81c4d45d8e0da4.cpp" "contrib/python/protobuf/py3/82ab5d875f369091375d9f658d.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_1e805adf11a1f84b57a16493eb.cpp" "--ya-start-command-file" "contrib/python/protobuf/py3/01e3570760f9a9afa33befc1a2.cpp" "contrib/python/protobuf/py3/7a51cb3f90109a28db17da307f.cpp" "contrib/python/protobuf/py3/0c964918f49444fe3a6f0fe2dd.cpp" "contrib/python/protobuf/py3/7dc62c8beafc81c4d45d8e0da4.cpp" "contrib/python/protobuf/py3/82ab5d875f369091375d9f658d.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -299,7 +299,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_1e805adf11a1f84b57a16493eb.cpp" "--ya-start-command-file" "contrib/python/protobuf/py3/01e3570760f9a9afa33befc1a2.cpp" "contrib/python/protobuf/py3/7a51cb3f90109a28db17da307f.cpp" "contrib/python/protobuf/py3/0c964918f49444fe3a6f0fe2dd.cpp" "contrib/python/protobuf/py3/7dc62c8beafc81c4d45d8e0da4.cpp" "contrib/python/protobuf/py3/82ab5d875f369091375d9f658d.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_1e805adf11a1f84b57a16493eb.cpp" "--ya-start-command-file" "contrib/python/protobuf/py3/01e3570760f9a9afa33befc1a2.cpp" "contrib/python/protobuf/py3/7a51cb3f90109a28db17da307f.cpp" "contrib/python/protobuf/py3/0c964918f49444fe3a6f0fe2dd.cpp" "contrib/python/protobuf/py3/7dc62c8beafc81c4d45d8e0da4.cpp" "contrib/python/protobuf/py3/82ab5d875f369091375d9f658d.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -308,7 +308,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/protobuf/py3/join_1e805adf11a1f84b57a16493eb.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\01e3570760f9a9afa33befc1a2.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\7a51cb3f90109a28db17da307f.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\0c964918f49444fe3a6f0fe2dd.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\7dc62c8beafc81c4d45d8e0da4.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\82ab5d875f369091375d9f658d.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\01e3570760f9a9afa33befc1a2.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\7a51cb3f90109a28db17da307f.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\0c964918f49444fe3a6f0fe2dd.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\7dc62c8beafc81c4d45d8e0da4.cpp;$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\82ab5d875f369091375d9f658d.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\protobuf\py3\join_1e805adf11a1f84b57a16493eb.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
@@ -404,6 +404,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
