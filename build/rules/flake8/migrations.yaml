@@ -1322,7 +1322,6 @@ migrations:
     - sandbox/projects/mail/Load/FuritaShooting
     - sandbox/projects/mail/Load/LizaShooting
     - sandbox/projects/mail/Load/MobileApiShooting
-    - sandbox/projects/mail/Load/QuinnShooting
     - sandbox/projects/mail/Load/WebApiShooting
     - sandbox/projects/mail/RotateMailNotifyRules
     - sandbox/projects/marty

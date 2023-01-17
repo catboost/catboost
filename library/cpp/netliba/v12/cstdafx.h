@@ -9,7 +9,7 @@
 #include <util/system/defaults.h>
 #include <util/system/mutex.h>
 #include <util/system/event.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/yassert.h>
 #include <util/system/compat.h>
 

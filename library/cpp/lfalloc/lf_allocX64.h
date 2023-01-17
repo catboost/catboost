@@ -59,7 +59,7 @@ static inline long AtomicSub(TAtomic& a, long b) {
 #else
 
 #include <util/system/defaults.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/yassert.h>
 
 #if !defined(NDEBUG) && !defined(__GCCXML__)

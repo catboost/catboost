@@ -5,7 +5,7 @@
 #include <util/network/address.h>
 #include <util/system/thread.h>
 #include <util/generic/cast.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 
 namespace NNeh {
     typedef TAutoPtr<TThread> TThreadRef;

@@ -6,7 +6,7 @@
 #include <library/cpp/http/io/headers.h>
 
 #include <util/generic/singleton.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 
 namespace NNeh {
     class TNotifyHandle: public THandle {

@@ -8,8 +8,8 @@
 #include <library/cpp/chromium_trace/interface.h>
 
 #include <util/random/random.h>
-#include <util/system/atomic.h>
-#include <util/system/atomic_ops.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/event.h>
 #include <util/system/fs.h>
 #include <util/system/hostname.h>

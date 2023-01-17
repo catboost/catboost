@@ -4,7 +4,7 @@
 #include <util/generic/utility.h>
 #include <util/generic/yexception.h>
 #include <util/system/info.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/condvar.h>
 #include <util/system/mutex.h>
 #include <util/stream/output.h>

@@ -8,7 +8,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 #include <util/thread/lfqueue.h>

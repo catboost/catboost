@@ -5,10 +5,10 @@
 #include <library/cpp/threading/chunk_queue/queue.h>
 
 #include <util/network/init.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/event.h>
 #include <util/system/yassert.h>
-#include <util/system/atomic_ops.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <utility>
 
 namespace NNetlibaSocket {

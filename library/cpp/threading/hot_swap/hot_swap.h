@@ -3,7 +3,7 @@
 #include <util/generic/cast.h>
 #include <util/generic/ptr.h>
 #include <util/generic/utility.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/guard.h>
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>
