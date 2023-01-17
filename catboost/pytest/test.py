@@ -378,9 +378,14 @@ def test_multiregression_target_permutation_invariance(boosting_type, n_trees, t
     train_file = yatest.common.test_output_path('train')
     test_file = yatest.common.test_output_path('test')
 
-    get_eval_path = lambda i: yatest.common.test_output_path('test_{}.eval'.format(i))
-    get_model_path = lambda i: yatest.common.test_output_path('model_{}.bin'.format(i))
-    get_cd_path = lambda i: yatest.common.test_output_path('cd_{}'.format(i))
+    def get_eval_path(i):
+        return yatest.common.test_output_path('test_{}.eval'.format(i))
+
+    def get_model_path(i):
+        return yatest.common.test_output_path('model_{}.bin'.format(i))
+
+    def get_cd_path(i):
+        return yatest.common.test_output_path('cd_{}'.format(i))
 
     with open(get_cd_path(target_count), 'w') as cd:
         cd.write(''.join(('{}\tTarget\tm\n'.format(i) for i in range(target_count))))
@@ -439,9 +444,14 @@ def test_compare_multiregression_with_regression(boosting_type, n_trees, target_
     np.savetxt(train_file, np.hstack([y_train, x_train]), delimiter='\t')
     np.savetxt(test_file, np.hstack([y_test, x_test]), delimiter='\t')
 
-    get_eval_path = lambda i: yatest.common.test_output_path('test_{}.eval'.format(i))
-    get_model_path = lambda i: yatest.common.test_output_path('model_{}.bin'.format(i))
-    get_cd_path = lambda i: yatest.common.test_output_path('cd_{}'.format(i))
+    def get_eval_path(i):
+        return yatest.common.test_output_path('test_{}.eval'.format(i))
+
+    def get_model_path(i):
+        return yatest.common.test_output_path('model_{}.bin'.format(i))
+
+    def get_cd_path(i):
+        return yatest.common.test_output_path('cd_{}'.format(i))
 
     with open(get_cd_path(target_count), 'w') as cd:
         cd.write(''.join(('{}\tTarget\tm\n'.format(i) for i in range(target_count))))
@@ -1870,7 +1880,7 @@ def test_multi_leaf_estimation_method(leaf_estimation_method, boosting_type, gro
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-    assert(compare_evals(output_eval_path, formula_predict_path))
+    assert (compare_evals(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path)]
 
 
@@ -1919,7 +1929,7 @@ def test_sample_id(loss_function, column_name):
     )
     yatest.common.execute(cmd)
 
-    assert(compare_evals(output_eval_path, formula_predict_path))
+    assert (compare_evals(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path)]
 
 
@@ -2180,7 +2190,7 @@ def test_baseline(boosting_type, grow_policy):
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-    assert(compare_evals(output_eval_path, formula_predict_path))
+    assert (compare_evals(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path)]
 
 
@@ -2230,7 +2240,7 @@ def test_multiclass_baseline(boosting_type, loss_function):
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-    assert(compare_evals(eval_path, formula_predict_path))
+    assert (compare_evals(eval_path, formula_predict_path))
     return [local_canonical_file(eval_path)]
 
 
@@ -2446,11 +2456,11 @@ def test_all_targets(loss_function, boosting_type, grow_policy, dev_score_calc_o
     yatest.common.execute(calc_cmd_without_test)
     if loss_function == 'MAPE':
         # TODO(kirillovs): uncomment this after resolving MAPE problems
-        # assert(compare_evals(output_eval_path, formula_predict_path))
+        # assert (compare_evals(output_eval_path, formula_predict_path))
         return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
     else:
-        assert(compare_evals(output_eval_path, formula_predict_path))
-        assert(filecmp.cmp(formula_predict_without_test_path, formula_predict_path))
+        assert (compare_evals(output_eval_path, formula_predict_path))
+        assert (filecmp.cmp(formula_predict_without_test_path, formula_predict_path))
         return [local_canonical_file(output_eval_path)]
 
 
@@ -2966,8 +2976,12 @@ def test_fstr_with_text_features_shap(fstr_type, boosting_type, grow_policy):
         boosting_type=boosting_type,
         grow_policy=grow_policy,
         normalize=False,
-        additional_train_params=('--random-strength', '0', '--text-processing', json.dumps(text_processing)) +
+        additional_train_params=(
+            (
+                '--random-strength', '0', '--text-processing', json.dumps(text_processing)
+            ) +
             (('--max-ctr-complexity', '1') if fstr_type == 'ShapValues' else ())
+        )
     )
 
 
@@ -3112,9 +3126,9 @@ def do_test_fstr(
 
     if normalize:
         make_model_normalized(model_path)
-        if not(
-                fstr_type == 'PredictionValuesChange' or
-                fstr_type == 'InternalFeatureImportance' and loss_function not in RANKING_LOSSES
+        if not (
+            fstr_type == 'PredictionValuesChange' or
+            fstr_type == 'InternalFeatureImportance' and loss_function not in RANKING_LOSSES
         ):
             with pytest.raises(yatest.common.ExecutionError):
                 yatest.common.execute(fstr_cmd)
@@ -3196,7 +3210,7 @@ def do_test_loss_change_fstr(loss_function, normalize):
 
     fit_output = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
     fstr_output = np.loadtxt(output_fstr_path, dtype='float', delimiter='\t')
-    assert(np.allclose(fit_output, fstr_output, rtol=1e-6))
+    assert (np.allclose(fit_output, fstr_output, rtol=1e-6))
 
     return [local_canonical_file(output_fstr_path)]
 
@@ -3365,8 +3379,8 @@ def test_loss_change_fstr_on_different_pool_type():
     fstr_dsv = np.loadtxt(output_dsv_fstr_path, dtype='float', delimiter='\t')
     fstr_quantized = np.loadtxt(output_quantized_fstr_path, dtype='float', delimiter='\t')
     train_fstr = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
-    assert(np.allclose(fstr_dsv, fstr_quantized, rtol=1e-6))
-    assert(np.allclose(fstr_dsv, train_fstr, rtol=1e-6))
+    assert (np.allclose(fstr_dsv, fstr_quantized, rtol=1e-6))
+    assert (np.allclose(fstr_dsv, train_fstr, rtol=1e-6))
 
 
 @pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
@@ -3578,7 +3592,7 @@ def test_multi_targets(loss_function, boosting_type, dev_score_calc_obj_block_si
         '--prediction-type', 'RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
-    assert(compare_evals(output_eval_path, formula_predict_path))
+    assert (compare_evals(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path)]
 
 
@@ -3915,7 +3929,7 @@ def test_calc_no_target(boosting_type):
     )
     yatest.common.execute(calc_cmd)
 
-    assert(compare_evals(fit_output_eval_path, calc_output_eval_path))
+    assert (compare_evals(fit_output_eval_path, calc_output_eval_path))
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -4618,7 +4632,7 @@ def test_one_hot(boosting_type, dev_score_calc_obj_block_size):
     )
     yatest.common.execute(calc_cmd)
 
-    assert(compare_evals(output_eval_path, calc_eval_path))
+    assert (compare_evals(output_eval_path, calc_eval_path))
     return [local_canonical_file(output_eval_path)]
 
 
@@ -4968,8 +4982,8 @@ def test_bootstrap(boosting_type, dev_score_calc_obj_block_size):
         execute_catboost_fit('CPU', cmd + ('-m', model_path, '--eval-file', eval_path,) + bootstrap_option[bootstrap])
 
     ref_eval_path = yatest.common.test_output_path('test_no.eval')
-    assert(filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bayes.eval')))
-    assert(filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bernoulli.eval')))
+    assert (filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bayes.eval')))
+    assert (filecmp.cmp(ref_eval_path, yatest.common.test_output_path('test_bernoulli.eval')))
 
     return [local_canonical_file(ref_eval_path)]
 
@@ -5453,7 +5467,7 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
 
     eval_0 = np.loadtxt(eval_0_path, dtype='float', delimiter='\t', skiprows=1)
     eval_1 = np.loadtxt(eval_1_path, dtype='float', delimiter='\t', skiprows=1)
-    assert(np.allclose(eval_0, eval_1, atol=1e-5))
+    assert (np.allclose(eval_0, eval_1, atol=1e-5))
     return eval_1_path
 
 
@@ -5727,7 +5741,7 @@ def test_dist_train_snapshot(schema, train):
     eval_5_plus_5_trees_path = yatest.common.test_output_path('5_plus_5_trees.eval')
     execute_dist_train(train_cmd + ('-i', '10', '--eval-file', eval_5_plus_5_trees_path, '--snapshot-file', snapshot_path,))
 
-    assert(filecmp.cmp(eval_10_trees_path, eval_5_plus_5_trees_path))
+    assert (filecmp.cmp(eval_10_trees_path, eval_5_plus_5_trees_path))
     return [local_canonical_file(eval_5_plus_5_trees_path)]
 
 
@@ -6538,7 +6552,7 @@ def test_eval_eq_calc(boosting_type, grow_policy, max_ctr_complexity):
                 )
     execute_catboost_fit('CPU', cmd_fit)
     yatest.common.execute(cmd_calc)
-    assert(compare_evals(test_eval_path, calc_eval_path))
+    assert (compare_evals(test_eval_path, calc_eval_path))
 
 
 def do_test_object_importances(pool, loss_function, additional_train_params):
@@ -6650,7 +6664,7 @@ def fit_calc_cksum(fit_stem, calc_stem, test_shuffles):
         if last_cksum is None:
             last_cksum = cksum
             continue
-        assert(last_cksum == cksum)
+        assert (last_cksum == cksum)
 
 
 @pytest.mark.parametrize('num_tests', [3, 4])
@@ -9729,7 +9743,7 @@ def test_uncertainty_prediction(virtual_ensembles_count, prediction_type, loss_f
         delimiter='\t',
         dtype=float,
         skip_header=True)
-    assert(np.allclose(py_preds.reshape(-1,), cli_preds[:, 1:].reshape(-1,), rtol=1e-10))
+    assert (np.allclose(py_preds.reshape(-1,), cli_preds[:, 1:].reshape(-1,), rtol=1e-10))
 
     return local_canonical_file(formula_predict_path)
 
