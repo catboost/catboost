@@ -55,11 +55,11 @@ namespace NCatboostCuda {
 
             bool IsSatisfied(double step,
                              double nextFuncValue,
-                             const TVector<double>& nextFuncGradient) const override {
-                double directionNextGradDot = 0;
+                             const TVector<double>& /*nextFuncGradient*/) const override {
+                /*double directionNextGradDot = 0;
                 for (ui32 i = 0; i < Gradient.size(); ++i) {
                     directionNextGradDot += Gradient[i] * nextFuncGradient[i];
-                }
+                }*/
                 return (nextFuncValue >= (FunctionValue + C * step * DirGradDot));
             }
         };
