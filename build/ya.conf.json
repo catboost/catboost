@@ -7826,7 +7826,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 86400
+                    "update_interval": 21600
                 }
             },
             "executable": {
@@ -8185,7 +8185,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1565633872,
+                "sandbox_id": 1567016887,
                 "match": "app_host_launcher"
             },
             "executable": {
