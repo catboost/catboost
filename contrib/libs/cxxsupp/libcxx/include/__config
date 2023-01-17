@@ -52,14 +52,6 @@
 
 #define _LIBCPP_VERSION 15000
 
-#ifdef _LIBCPP_ABI_UNSTABLE
-#  define _LIBCPP_ABI_VERSION 2
-#endif
-
-#ifndef _LIBCPP_ABI_VERSION
-#  define _LIBCPP_ABI_VERSION 1
-#endif
-
 #if __STDC_HOSTED__ == 0
 #  define _LIBCPP_FREESTANDING
 #endif
@@ -164,23 +156,6 @@
 #  endif
 #endif
 
-// By default, don't use a nullptr_t emulation type in C++03.
-//
-// This is technically an ABI break from previous releases, however it is
-// very unlikely to impact anyone. If a user is impacted by this break,
-// they can return to using the C++03 nullptr emulation by defining
-// _LIBCPP_ABI_USE_CXX03_NULLPTR_EMULATION.
-//
-// This switch will be removed entirely in favour of never providing a
-// C++03 emulation after one release.
-//
-// IMPORTANT: IF YOU ARE READING THIS AND YOU TURN THIS MACRO ON, PLEASE LEAVE
-//            A COMMENT ON https://reviews.llvm.org/D109459 OR YOU WILL BE BROKEN
-//            IN THE FUTURE WHEN WE REMOVE THE ABILITY TO USE THE C++03 EMULATION.
-#ifndef _LIBCPP_ABI_USE_CXX03_NULLPTR_EMULATION
-# define _LIBCPP_ABI_ALWAYS_USE_CXX11_NULLPTR
-#endif
-
 #if defined(_LIBCPP_BUILDING_LIBRARY) || _LIBCPP_ABI_VERSION >= 2
 // Enable additional explicit instantiations of iostreams components. This
 // reduces the number of weak definitions generated in programs that use
@@ -191,13 +166,6 @@
 // its vtable and typeinfo to libc++ rather than having all other libraries
 // using that class define their own copies.
 #  define _LIBCPP_ABI_BAD_FUNCTION_CALL_KEY_FUNCTION
-#endif
-
-#define _LIBCPP_CONCAT1(_LIBCPP_X,_LIBCPP_Y) _LIBCPP_X##_LIBCPP_Y
-#define _LIBCPP_CONCAT(_LIBCPP_X,_LIBCPP_Y) _LIBCPP_CONCAT1(_LIBCPP_X,_LIBCPP_Y)
-
-#ifndef _LIBCPP_ABI_NAMESPACE
-# define _LIBCPP_ABI_NAMESPACE _LIBCPP_CONCAT(__y,_LIBCPP_ABI_VERSION)
 #endif
 
 #if __cplusplus < 201103L && !defined(_LIBCPP_COMPILER_MSVC)
@@ -546,12 +514,8 @@ typedef __char32_t char32_t;
 #  define _LIBCPP_NORETURN __attribute__ ((noreturn))
 #endif
 
-#if !(__has_feature(cxx_nullptr))
-#  if (__has_extension(cxx_nullptr) || __has_keyword(__nullptr)) && defined(_LIBCPP_ABI_ALWAYS_USE_CXX11_NULLPTR)
-#    define nullptr __nullptr
-#  else
-#    define _LIBCPP_HAS_NO_NULLPTR
-#  endif
+#ifdef _LIBCPP_CXX03_LANG
+# define nullptr __nullptr
 #endif
 
 // Objective-C++ features (opt-in)
@@ -1500,6 +1464,28 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
     __attribute__((__format__(archetype, format_string_index, first_format_arg_index)))
 #else
 # define _LIBCPP_ATTRIBUTE_FORMAT(archetype, format_string_index, first_format_arg_index) /* nothing */
+#endif
+
+#if __has_cpp_attribute(msvc::no_unique_address)
+   // MSVC implements [[no_unique_address]] as a silent no-op currently.
+   // (If/when MSVC breaks its C++ ABI, it will be changed to work as intended.)
+   // However, MSVC implements [[msvc::no_unique_address]] which does what
+   // [[no_unique_address]] is supposed to do, in general.
+
+   // Clang-cl does not yet (14.0) implement either [[no_unique_address]] or
+   // [[msvc::no_unique_address]] though. If/when it does implement
+   // [[msvc::no_unique_address]], this should be preferred though.
+#  define _LIBCPP_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address)
+#  define _LIBCPP_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#else
+#  define _LIBCPP_NO_UNIQUE_ADDRESS /* nothing */
+   // Note that this can be replaced by #error as soon as clang-cl
+   // implements msvc::no_unique_address, since there should be no C++20
+   // compiler that doesn't support one of the two attributes at that point.
+   // We geenrally don't want to use this macro outside of C++20-only code,
+   // because using it conditionally in one language version only would make
+   // the ABI inconsistent.
 #endif
 
 #if __has_cpp_attribute(msvc::no_unique_address)

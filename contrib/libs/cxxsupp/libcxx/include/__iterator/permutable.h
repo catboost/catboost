@@ -1,3 +1,4 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -6,11 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___ALGORITHM_SWAP_RANGES_H
-#define _LIBCPP___ALGORITHM_SWAP_RANGES_H
+#ifndef _LIBCPP___ITERATOR_PERMUTABLE_H
+#define _LIBCPP___ITERATOR_PERMUTABLE_H
 
 #include <__config>
-#include <__utility/swap.h>
+#include <__iterator/concepts.h>
+#include <__iterator/iter_swap.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -18,14 +20,16 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-template <class _ForwardIterator1, class _ForwardIterator2>
-inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17 _ForwardIterator2
-swap_ranges(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2) {
-  for (; __first1 != __last1; ++__first1, (void)++__first2)
-    swap(*__first1, *__first2);
-  return __first2;
-}
+#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
+template <class _Iterator>
+concept permutable =
+    forward_iterator<_Iterator> &&
+    indirectly_movable_storable<_Iterator, _Iterator> &&
+    indirectly_swappable<_Iterator, _Iterator>;
+
+#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP___ALGORITHM_SWAP_RANGES_H
+#endif // _LIBCPP___ITERATOR_PERMUTABLE_H

@@ -1,5 +1,8 @@
 #pragma once
 
+#define _LIBCPP_ABI_VERSION 1
+#define _LIBCPP_ABI_NAMESPACE __y1
+
 #if !defined(NDEBUG) && !defined(_LIBCPP_DEBUG)
 #   define _LIBCPP_DEBUG 0
 #endif
