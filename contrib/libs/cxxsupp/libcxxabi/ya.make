@@ -13,9 +13,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(14.0.5)
+VERSION(14.0.6)
 
-ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-14.0.5.tar.gz)
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-14.0.6.tar.gz)
 
 ADDINCL(
     contrib/libs/cxxsupp/libcxxabi/include
