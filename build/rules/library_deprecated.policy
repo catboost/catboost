@@ -14,7 +14,7 @@ DENY .* -> library/python/clickhouse_client
 # https://clubs.at.yandex-team.ru/passport/3619
 ALLOW addappter/backend/addappter -> library/python/deprecated/ticket_parser2
 ALLOW ads/bsyeti/bb_viewer/viewer -> library/python/deprecated/ticket_parser2
-ALLOW ads/bsyeti/caesar/tools/logtests/samplers -> library/python/deprecated/ticket_parser2
+ALLOW ads/bsyeti/big_rt/py_test_lib/logsampler/samplers -> library/python/deprecated/ticket_parser2
 ALLOW ads/bsyeti/tests/test_lib/data_collector -> library/python/deprecated/ticket_parser2
 ALLOW ads/bsyeti/tools/bb_requester -> library/python/deprecated/ticket_parser2
 ALLOW alice/uniproxy/library/auth -> library/python/deprecated/ticket_parser2
