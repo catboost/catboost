@@ -46,7 +46,7 @@ Supported [training parameters](../references/training-parameters/index.md):
 
 This parameter works with `dictionaries` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% endnote %}
 
@@ -98,7 +98,7 @@ tokenizers = [{
 
 This parameter works with `tokenizers` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% endnote %}
 
@@ -152,7 +152,7 @@ dictionaries = [{
 
 This parameter works with `tokenizers` and `dictionaries` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 
@@ -283,7 +283,7 @@ DictionaryId[:option_name=option_value]
 
 This parameter works with `--tokenizers` and `--feature-calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 
@@ -316,7 +316,7 @@ FeatureCalcerName[:option_name=option_value]
 
 This parameter works with `--tokenizers` and `--dictionaries` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 

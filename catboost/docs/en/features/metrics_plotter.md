@@ -54,7 +54,7 @@ To save plot in the notebook, use the `Widget` → `Save Widget State` menu opti
 
 `MetricsPlotter` constructor arguments:
 
-Aguments | Type | Description
+Arguments | Type | Description
 ----- |  ----- | -----
 `train_metrics` | `list` of `str` or `list` of `dict` | List of train metrics to be tracked. </br> Each item in the list can be either string with a metric name or a dict with the fields `name` and `best_value`, where the latter can be one of the following: `Max`, `Min`, `Undefined`.
 `test_metrics` | `list` of `str` or `list` of `dict`, optional (default=`None`) | List of test metrics to be tracked. </br> Has the same format as `train_metrics`. Equals to `train_metrics` if it is not defined.

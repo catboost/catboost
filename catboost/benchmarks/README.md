@@ -30,4 +30,4 @@ This benchmark will show the complexity of SHAP calculation for each library. An
 ## Kaggle
 
 This is the folder where we are adding quality comparisons on some kaggle datasets.
-Corrently it only contains comparison of different libraries on Rossman store sales competition.
+Currently, it only contains comparison of different libraries on Rossman store sales competition.

@@ -554,7 +554,7 @@ default:
   loss-functions__obligatory-text: This parameter is obligatory (the default value is not defined)
   loss-functions__params__default: 'true'
   ctr-types__TargetBorderCount: TargetBorderCount
-  parameters__ctr-targer-border-count__default: >-
+  parameters__ctr-target-border-count__default: >-
     Number_of_classes - 1 for Multiclassification problems when training on CPU,
     1 otherwise
   title__missing-values-processing: Missing values processing

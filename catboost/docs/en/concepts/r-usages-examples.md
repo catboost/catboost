@@ -202,7 +202,7 @@ head(pool, n = 10)
 ```
 
 
-## Select hyperparameters {#selectin-hyperparameters}
+## Select hyperparameters {#selecting-hyperparameters}
 
 Return the identifier of the iteration with the best result of the evaluation metric or loss function on the last validation set
 

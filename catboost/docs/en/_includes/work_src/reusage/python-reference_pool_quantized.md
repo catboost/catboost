@@ -354,7 +354,7 @@ The value of the `{{ ctr-types__TargetBorderCount }}` component overrides this p
 
 **Default value**
 
-{{ parameters__ctr-targer-border-count__default }}
+{{ parameters__ctr-target-border-count__default }}
 
 **Supported processing units**
 

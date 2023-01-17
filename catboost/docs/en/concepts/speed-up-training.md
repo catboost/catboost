@@ -166,7 +166,7 @@ Command-line version parameters|Python parameters|R parameters|
 {% endcut %}
 
 
-## Reusing quantized datasets in Python {#reuzing-quantized-datasets}
+## Reusing quantized datasets in Python {#reusing-quantized-datasets}
 
 By default, the train and test datasets are quantized each time that the boosting is run.
 

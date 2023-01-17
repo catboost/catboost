@@ -995,7 +995,7 @@ Examples:
 
 #### {{ error-function--Logit }}
 
-{% include [reusage-common-phrases-implemantation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implementation-example.md) %}
 
 
 ```python
@@ -1029,7 +1029,7 @@ model = CatBoostClassifier(loss_function=LoglossObjective())
 
 #### {{ error-function--RMSE }}
 
-{% include [reusage-common-phrases-implemantation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implementation-example.md) %}
 
 
 ```python
@@ -1061,7 +1061,7 @@ model = CatBoostRegressor(loss_function=RmseObjective())
 
 #### {{ error-function--MultiClass }}
 
-{% include [reusage-common-phrases-implemantation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implementation-example.md) %}
 
 
 ```python
@@ -1129,7 +1129,7 @@ Implementation examples:
 
 #### {{ error-function--Logit }}
 
-{% include [reusage-common-phrases-implemantation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implementation-example.md) %}
 
 
 ```python
@@ -1168,7 +1168,7 @@ model = CatBoostClassifier(eval_metric=LoglossMetric())
 
 #### {{ error-function--RMSE }}
 
-{% include [reusage-common-phrases-implemantation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implementation-example.md) %}
 
 
 ```python
@@ -1205,7 +1205,7 @@ model = CatBoostRegressor(eval_metric=RmseMetric())
 
 #### {{ error-function--Accuracy }}
 
-{% include [reusage-common-phrases-implemantation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implementation-example.md) %}
 
 
 ```python
