@@ -387,7 +387,7 @@ inline void ComputeHistogram2(NCatboostCuda::EFeaturesGroupingPolicy policy,
     using TKernel = NKernelHost::TComputeHist2Kernel;
 
     const auto& grid = dataSet.GetGrid(policy);
-    LaunchKernels<TKernel>(grid.NonEmptyDevices(),
+    LaunchKernels<TKernel>(targets.NonEmptyDevices(),
                            stream,
                            grid,
                            dataSet.GetCompressedIndex(),
@@ -423,7 +423,7 @@ inline void ComputeBlockHistogram2(NCatboostCuda::EFeaturesGroupingPolicy policy
                                    ui32 stream) {
     using TKernel = NKernelHost::TComputeHist2Kernel;
 
-    LaunchKernels<TKernel>(gridBlock.NonEmptyDevices(),
+    LaunchKernels<TKernel>(targets.NonEmptyDevices(),
                            stream,
                            gridBlock,
                            binFeaturesSlice,
@@ -458,7 +458,7 @@ inline void ComputeBlockHistogram1(NCatboostCuda::EFeaturesGroupingPolicy policy
                                    ui32 stream) {
     using TKernel = NKernelHost::TComputeHist1Kernel;
 
-    LaunchKernels<TKernel>(gridBlock.NonEmptyDevices(),
+    LaunchKernels<TKernel>(targets.NonEmptyDevices(),
                            stream,
                            gridBlock,
                            binFeaturesSlice,
