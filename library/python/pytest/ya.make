@@ -20,6 +20,10 @@ PEERDIR(
     library/python/testing/yatest_lib
 )
 
+IF (NOT OPENSOURCE)
+    PEERDIR(contrib/tools/gprof2dot)
+ENDIF()
+
 RESOURCE_FILES(
     PREFIX library/python/pytest/
     pytest.yatest.ini
