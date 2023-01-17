@@ -2,9 +2,6 @@
 
 RECURSE(
     accurate_accumulate
-    accurate_accumulate/benchmark
-    accurate_accumulate/benchmark/metrics
-    archive/ut
     binsaver
     blockcodecs
     blockcodecs/fuzz
@@ -12,22 +9,16 @@ RECURSE(
     cache
     case_insensitive_string
     cgiparam
-    cgiparam/fuzz
-    cgiparam/ut
     charset
-    charset/ut
     chromium_trace
     colorizer
-    colorizer/ut
     containers
     coroutine
     cppparser
     cpuid_check
     dbg_output
-    dbg_output/ut
     deprecated
     diff
-    diff/ut
     digest
     dns
     dns/ut
@@ -35,7 +26,6 @@ RECURSE(
     dot_product/bench
     dot_product/ut
     enumbitset
-    enumbitset/ut
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
@@ -43,9 +33,6 @@ RECURSE(
     float16
     float16/ut
     getopt
-    getopt/last_getopt_demo
-    getopt/small
-    getopt/ut
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
@@ -56,11 +43,6 @@ RECURSE(
     json/fast_sax
     json/flex_buffers
     json/flex_buffers/ut
-    json/fuzzy_test
-    json/ut
-    json/writer/ut
-    json/yson
-    json/yson/ut
     l1_distance
     l1_distance/bench
     l1_distance/ut

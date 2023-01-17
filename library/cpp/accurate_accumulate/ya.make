@@ -8,3 +8,7 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    benchmark
+)

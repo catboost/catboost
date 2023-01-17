@@ -13,3 +13,9 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    last_getopt_demo
+    small
+    ut
+)
