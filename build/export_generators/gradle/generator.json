@@ -26,6 +26,7 @@
       "proto_grpc",
       "proto_namespace",
       "required_jdk",
+      "add_vcs_info_to_mf",
       "junit4_test",
       "junit5_test"
     ],
