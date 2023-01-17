@@ -2004,7 +2004,7 @@ cdef void list_to_vector(values_list, TVector[ui32]* values_vector) except *:
 
 cdef TFeaturesLayout* _init_features_layout(
     data,
-    embedding_features_data, 
+    embedding_features_data,
     cat_features,
     text_features,
     embedding_features,
@@ -2043,7 +2043,7 @@ cdef TFeaturesLayout* _init_features_layout(
 
     all_features_are_sparse = False
     if isinstance(data, SPARSE_MATRIX_TYPES):
-        if embedding_features_data is not None:    
+        if embedding_features_data is not None:
             all_features_are_sparse = all([isinstance(embedding_data, SPARSE_MATRIX_TYPES) for embedding_data in embedding_features_data])
         else:
             all_features_are_sparse = True
@@ -2741,7 +2741,7 @@ cdef object _set_features_order_data_pd_data_frame(
                 builder_visitor
             )
         else:
-            column_values = column_data.values
+            column_values = column_data.to_numpy()
             if is_cat_feature_mask[flat_feature_idx]:
                 string_factor_data.clear()
                 for doc_idx in range(doc_count):
@@ -3962,7 +3962,7 @@ cdef class _PoolBase:
 
         data_meta_info.FeaturesLayout = _init_features_layout(
             data,
-            embedding_features_data, 
+            embedding_features_data,
             cat_features,
             text_features,
             embedding_features,
