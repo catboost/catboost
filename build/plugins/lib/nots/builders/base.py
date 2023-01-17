@@ -52,7 +52,8 @@ class BaseBuilder(object):
         )
 
     def _prepare_dependencies(self):
-        self._link_external_dependencies()
+        if self.external_dependencies:
+            self._link_external_dependencies()
 
         if not os.path.isfile(self.node_modules_bundle_path):
             return
