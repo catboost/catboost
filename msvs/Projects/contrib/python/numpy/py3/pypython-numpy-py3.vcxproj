@@ -413,8 +413,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\src\_simd\_simd.dispatch.fma3.avx2.c">
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)_simd.dispatch.fma3.avx2.c.avx2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)_simd.dispatch.fma3.avx2.c.avx2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -423,8 +421,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\src\umath\_umath_tests.dispatch.avx2.c">
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)_umath_tests.dispatch.avx2.c.avx2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)_umath_tests.dispatch.avx2.c.avx2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -433,8 +429,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\src\umath\loops_arithm_fp.dispatch.avx2.c">
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)loops_arithm_fp.dispatch.avx2.c.avx2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)loops_arithm_fp.dispatch.avx2.c.avx2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -445,8 +439,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\src\umath\loops_arithmetic.dispatch.avx2.c">
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)loops_arithmetic.dispatch.avx2.c.avx2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)loops_arithmetic.dispatch.avx2.c.avx2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -475,8 +467,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\src\umath\loops_exponent_log.dispatch.fma3.avx2.c">
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)loops_exponent_log.dispatch.fma3.avx2.c.avx2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)loops_exponent_log.dispatch.fma3.avx2.c.avx2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -487,8 +477,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py3\numpy\core\src\umath\loops_trigonometric.dispatch.fma3.avx2.c">
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)loops_trigonometric.dispatch.fma3.avx2.c.avx2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)loops_trigonometric.dispatch.fma3.avx2.c.avx2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
