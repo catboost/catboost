@@ -1,3 +1,42 @@
+{% if isProtoLibrary -%}
+import com.google.protobuf.gradle.*
+
+val buildProtoDir = File("${buildDir}", "__proto__")
+
+plugins {
+    id("java")
+    id("com.google.protobuf") version "0.8.19"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+{% for target in targets -%}
+{% for library in target.consumer_classpath -%}
+    implementation({{ library }})
+{% endfor -%}
+{% endfor -%}
+
+    protobuf(files(buildProtoDir))
+}
+
+val prepareProto = tasks.register<Copy>("prepareProto") {
+    from(rootDir) {
+{% for target in targets -%}
+{% for proto in target.proto_files -%}
+        include("{{ proto }}")
+{% endfor -%}
+{% endfor -%}
+    }
+    into(buildProtoDir)
+}
+
+afterEvaluate {
+    tasks.getByName("extractProto").dependsOn(prepareProto)
+}
+{% else -%}
 plugins {
     `java-library`
 }
@@ -29,4 +68,5 @@ dependencies{
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
+{% endif -%}
 {% endif -%}
