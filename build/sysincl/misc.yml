@@ -47,8 +47,9 @@
     - contrib/libs/jdk/include/linux/jni_md.h
     - contrib/libs/jdk/include/win32/jni_md.h
 
-# libunistring has its own libc header wrappers that are added to ADDINCL and
-# need to be added here for consistensy between ADDINCL and sysincl resolving.
+# libunistring, libidn and libidn2
+# have its own libc header wrappers that are added to ADDINCL
+# and need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,
 # but sysincl resolving will save us here, as it will resolve to both of them.
 - source_filter: "^contrib/libs/libunistring"
@@ -65,6 +66,10 @@
     - unistd.h:      contrib/libs/libunistring/unistd.h
     - wchar.h:       contrib/libs/libunistring/wchar.h
     - wctype.h:      contrib/libs/libunistring/wctype.h
+
+- source_filter: "^contrib/libs/libidn"
+  includes:
+    - iconv.h:       contrib/libs/libidn/lib/gl/iconv.h
 
 - source_filter: "^contrib/libs/libidn2/"
   includes:
