@@ -207,7 +207,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "--ya-start-command-file" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "--ya-start-command-file" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -218,7 +218,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "--ya-start-command-file" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp" "--ya-start-command-file" "contrib/python/dateutil/e58b4203614322d2e32cb040f5.cpp" "contrib/python/dateutil/703937c056e520c87deeb34f4d.cpp" "contrib/python/dateutil/64808b10dcc67cdc847d9c1db5.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -227,7 +227,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/dateutil/join_2b61eafb7befdc8258ba4ef348.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\e58b4203614322d2e32cb040f5.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\703937c056e520c87deeb34f4d.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\64808b10dcc67cdc847d9c1db5.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\e58b4203614322d2e32cb040f5.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\703937c056e520c87deeb34f4d.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\64808b10dcc67cdc847d9c1db5.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\join_2b61eafb7befdc8258ba4ef348.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\__init__.py">
@@ -315,6 +315,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
