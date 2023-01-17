@@ -6,6 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-if (UNIX AND NOT APPLE)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE)
   include(CMakeLists.linux.txt)
 endif()

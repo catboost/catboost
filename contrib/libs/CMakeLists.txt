@@ -8,6 +8,6 @@
 
 if (APPLE)
   include(CMakeLists.darwin.txt)
-elseif (UNIX AND NOT APPLE)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE)
   include(CMakeLists.linux.txt)
 endif()
