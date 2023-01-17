@@ -9,6 +9,7 @@
 
 add_library(cpp-streams-lzma)
 target_link_libraries(cpp-streams-lzma PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-lzmasdk

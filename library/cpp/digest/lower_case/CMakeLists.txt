@@ -6,14 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-digest-lower_case)
-target_link_libraries(cpp-digest-lower_case PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(cpp-digest-lower_case PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/digest/lower_case/lciter.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/digest/lower_case/lchash.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/digest/lower_case/hash_ops.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

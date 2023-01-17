@@ -9,6 +9,7 @@
 
 add_library(cpp-string_utils-url)
 target_link_libraries(cpp-string_utils-url PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

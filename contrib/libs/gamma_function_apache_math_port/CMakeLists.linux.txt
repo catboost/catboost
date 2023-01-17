@@ -9,6 +9,7 @@
 
 add_library(contrib-libs-gamma_function_apache_math_port)
 target_link_libraries(contrib-libs-gamma_function_apache_math_port PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

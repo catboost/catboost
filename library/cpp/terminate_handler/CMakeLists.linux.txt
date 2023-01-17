@@ -9,6 +9,7 @@
 
 add_library(library-cpp-terminate_handler)
 target_link_libraries(library-cpp-terminate_handler PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
@@ -18,6 +19,7 @@ target_sources(library-cpp-terminate_handler PRIVATE
 
 add_global_library_for(library-cpp-terminate_handler.global library-cpp-terminate_handler)
 target_link_libraries(library-cpp-terminate_handler.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

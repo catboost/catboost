@@ -12,6 +12,7 @@ target_compile_options(protoc PRIVATE
   -Wno-everything
 )
 target_link_libraries(protoc PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

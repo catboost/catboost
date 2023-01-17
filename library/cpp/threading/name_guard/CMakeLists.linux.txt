@@ -9,6 +9,7 @@
 
 add_library(cpp-threading-name_guard)
 target_link_libraries(cpp-threading-name_guard PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

@@ -9,6 +9,7 @@
 
 add_library(catboost-libs-calc_metrics)
 target_link_libraries(catboost-libs-calc_metrics PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-threading-local_executor

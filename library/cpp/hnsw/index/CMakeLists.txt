@@ -6,17 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-hnsw-index)
-target_link_libraries(cpp-hnsw-index PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-containers-dense_hash
-  library-cpp-dot_product
-  library-cpp-l1_distance
-  library-cpp-l2_distance
-)
-target_sources(cpp-hnsw-index PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/hnsw/index/all.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/hnsw/index/index_reader.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

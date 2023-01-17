@@ -9,6 +9,7 @@
 
 add_executable(enum_parser)
 target_link_libraries(enum_parser PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

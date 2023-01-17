@@ -10,6 +10,7 @@ add_subdirectory(lib)
 
 add_executable(model_perftest)
 target_link_libraries(model_perftest PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

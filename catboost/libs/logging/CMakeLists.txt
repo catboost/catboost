@@ -6,20 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-logging)
-target_link_libraries(catboost-libs-logging PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-logger
-  cpp-logger-global
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(catboost-libs-logging PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/logging/logging.cpp
-)
-generate_enum_serilization(catboost-libs-logging
-  ${CMAKE_SOURCE_DIR}/catboost/libs/logging/logging_level.h
-  INCLUDE_HEADERS
-  catboost/libs/logging/logging_level.h
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

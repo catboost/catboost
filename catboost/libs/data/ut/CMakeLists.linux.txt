@@ -13,6 +13,7 @@ target_include_directories(catboost-libs-data-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/data
 )
 target_link_libraries(catboost-libs-data-ut PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

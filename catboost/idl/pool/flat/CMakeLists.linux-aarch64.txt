@@ -9,6 +9,7 @@
 
 add_library(idl-pool-flat)
 target_link_libraries(idl-pool-flat PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-flatbuffers

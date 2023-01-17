@@ -25,6 +25,7 @@ target_include_directories(libs-cxxsupp-libcxx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
 )
 target_link_libraries(libs-cxxsupp-libcxx PUBLIC
+  contrib-libs-linux-headers
   libs-cxxsupp-libcxxabi-parts
   libs-cxxsupp-libcxxrt
   libs-cxxsupp-builtins

@@ -9,6 +9,7 @@
 
 add_library(catboost-libs-eval_result)
 target_link_libraries(catboost-libs-eval_result PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-threading-local_executor
@@ -37,6 +38,7 @@ generate_enum_serilization(catboost-libs-eval_result
 
 add_global_library_for(catboost-libs-eval_result.global catboost-libs-eval_result)
 target_link_libraries(catboost-libs-eval_result.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-threading-local_executor

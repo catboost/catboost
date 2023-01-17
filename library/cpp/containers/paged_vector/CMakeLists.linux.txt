@@ -9,6 +9,7 @@
 
 add_library(cpp-containers-paged_vector)
 target_link_libraries(cpp-containers-paged_vector PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

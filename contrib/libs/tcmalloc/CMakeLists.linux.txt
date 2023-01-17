@@ -15,6 +15,7 @@ target_compile_options(contrib-libs-tcmalloc PRIVATE
   -Wno-everything
 )
 target_link_libraries(contrib-libs-tcmalloc PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension
@@ -29,6 +30,7 @@ target_compile_options(contrib-libs-tcmalloc.global PRIVATE
   -Wno-everything
 )
 target_link_libraries(contrib-libs-tcmalloc.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension

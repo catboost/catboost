@@ -9,6 +9,7 @@
 
 add_library(libs-gpu_config-interface INTERFACE)
 target_link_libraries(libs-gpu_config-interface INTERFACE
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

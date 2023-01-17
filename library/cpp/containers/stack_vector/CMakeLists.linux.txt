@@ -9,6 +9,7 @@
 
 add_library(cpp-containers-stack_vector)
 target_link_libraries(cpp-containers-stack_vector PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

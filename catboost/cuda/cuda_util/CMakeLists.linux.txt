@@ -39,6 +39,7 @@ target_cuda_sources(catboost-cuda-cuda_util PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/update_part_props.cu
 )
 target_link_libraries(catboost-cuda-cuda_util PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers
@@ -70,6 +71,7 @@ target_cuda_flags(catboost-cuda-cuda_util
 
 add_global_library_for(catboost-cuda-cuda_util.global catboost-cuda-cuda_util)
 target_link_libraries(catboost-cuda-cuda_util.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers

@@ -9,6 +9,7 @@
 
 add_executable(catboost-libs-helpers-parallel_sort-ut)
 target_link_libraries(catboost-libs-helpers-parallel_sort-ut PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

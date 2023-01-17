@@ -6,28 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-getopt-small)
-target_link_libraries(cpp-getopt-small PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-colorizer
-)
-target_sources(cpp-getopt-small PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/completer.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/completer_command.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/completion_generator.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/formatted_output.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/last_getopt.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/last_getopt_easy_setup.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/last_getopt_opt.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/last_getopt_opts.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/last_getopt_parser.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/last_getopt_parse_result.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/modchooser.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/opt.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/opt2.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/posix_getopt.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/wrap.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/small/ygetopt.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

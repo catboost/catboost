@@ -9,6 +9,7 @@
 
 add_library(util-charset)
 target_link_libraries(util-charset PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
 target_sources(util-charset PRIVATE

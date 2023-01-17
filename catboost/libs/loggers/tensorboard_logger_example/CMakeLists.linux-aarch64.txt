@@ -9,6 +9,7 @@
 
 add_executable(tensorboard_logger_example)
 target_link_libraries(tensorboard_logger_example PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

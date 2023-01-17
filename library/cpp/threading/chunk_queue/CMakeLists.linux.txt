@@ -9,6 +9,7 @@
 
 add_library(cpp-threading-chunk_queue)
 target_link_libraries(cpp-threading-chunk_queue PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-deprecated-atomic

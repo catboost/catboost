@@ -9,6 +9,7 @@
 
 add_library(model-ut-lib)
 target_link_libraries(model-ut-lib PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-data

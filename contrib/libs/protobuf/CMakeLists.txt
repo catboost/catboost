@@ -6,123 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-find_package(ZLIB REQUIRED)
-
-add_library(contrib-libs-protobuf)
-target_compile_options(contrib-libs-protobuf PRIVATE
-  -DHAVE_CONFIG_H
-  -DHAVE_PTHREAD=1
-  -DHAVE_ZLIB=1
-  -Wno-everything
-)
-target_include_directories(contrib-libs-protobuf PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-)
-target_link_libraries(contrib-libs-protobuf PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  ZLIB::ZLIB
-)
-target_sources(contrib-libs-protobuf PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arena.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arenastring.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor_database.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/dynamic_message.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set_heavy.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_enum_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_bases.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_reflection.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/implicit_weak_message.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/inlined_string_field.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/coded_stream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/gzip_stream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/io_win32.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/printer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/strtod.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/tokenizer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map_field.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/message.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/message_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/messagext.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/parse_context.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/reflection_ops.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/repeated_field.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/service.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/bytestream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/common.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/int128.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/status.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/statusor.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringpiece.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringprintf.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/structurally_valid.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/strutil.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/substitute.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/time.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/text_format.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/unknown_field_set.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/delimited_message_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_comparator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_mask_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/datapiece.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/default_value_objectwriter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/error_listener.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/field_mask_utility.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_escaping.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_objectwriter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_stream_parser.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/object_writer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/proto_writer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectsource.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectwriter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/type_info.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/type_info_test_helper.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/utility.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/json_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/message_differencer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/time_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/type_resolver_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.pb.cc
-)
-
-add_global_library_for(contrib-libs-protobuf.global contrib-libs-protobuf)
-target_compile_options(contrib-libs-protobuf.global PRIVATE
-  -DHAVE_CONFIG_H
-  -DHAVE_PTHREAD=1
-  -DHAVE_ZLIB=1
-  -Wno-everything
-)
-target_include_directories(contrib-libs-protobuf.global PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-)
-target_link_libraries(contrib-libs-protobuf.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  ZLIB::ZLIB
-)
-target_sources(contrib-libs-protobuf.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_util.cc
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

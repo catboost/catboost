@@ -38,8 +38,6 @@ DISABLE(NEED_PLATFORM_PEERDIRS)
 
 DISABLE(WITH_VALGRIND)
 
-DISABLE(OPENSOURCE_EXPORT)
-
 ADDINCL(
     GLOBAL contrib/libs/linux-headers
     GLOBAL contrib/libs/linux-headers/_nf

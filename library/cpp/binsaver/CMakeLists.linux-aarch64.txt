@@ -10,6 +10,7 @@ add_subdirectory(ut_util)
 
 add_library(library-cpp-binsaver)
 target_link_libraries(library-cpp-binsaver PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-containers-2d_array

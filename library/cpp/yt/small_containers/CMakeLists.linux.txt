@@ -9,6 +9,7 @@
 
 add_library(cpp-yt-small_containers INTERFACE)
 target_link_libraries(cpp-yt-small_containers INTERFACE
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-yt-assert

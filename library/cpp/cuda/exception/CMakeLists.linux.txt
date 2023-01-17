@@ -9,6 +9,7 @@
 
 add_library(cpp-cuda-exception)
 target_link_libraries(cpp-cuda-exception PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

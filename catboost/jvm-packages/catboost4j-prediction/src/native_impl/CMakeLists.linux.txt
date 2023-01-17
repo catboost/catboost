@@ -10,6 +10,7 @@ find_package(JNITarget REQUIRED)
 
 add_library(catboost4j-prediction SHARED)
 target_link_libraries(catboost4j-prediction PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-mimalloc

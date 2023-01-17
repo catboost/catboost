@@ -1,0 +1,27 @@
+
+# This file was gererated by the build system used internally in the Yandex monorepo.
+# Only simple modifications are allowed (adding source-files to targets, adding simple properties
+# like target_include_directories). These modifications will be ported to original
+# ya.make files by maintainers. Any complex modifications which can't be ported back to the
+# original buildsystem will not be accepted.
+
+
+add_subdirectory(flatc)
+
+add_library(contrib-libs-flatbuffers)
+target_compile_options(contrib-libs-flatbuffers PRIVATE
+  -DFLATBUFFERS_LOCALE_INDEPENDENT=1
+  -Wno-everything
+)
+target_include_directories(contrib-libs-flatbuffers PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
+)
+target_link_libraries(contrib-libs-flatbuffers PUBLIC
+  contrib-libs-cxxsupp
+)
+target_sources(contrib-libs-flatbuffers PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
+)
