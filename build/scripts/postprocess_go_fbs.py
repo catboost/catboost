@@ -37,7 +37,7 @@ def process_go_file(file_name, import_map):
         return
 
     imports = content[start:end]
-    for namespace, path in import_map.iteritems():
+    for namespace, path in import_map.items():
         ns = namespace.split('.')
         name = '__'.join(ns)
         import_path = '/'.join(ns)
