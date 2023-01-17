@@ -11,7 +11,7 @@ from stack_data.utils import assert_
 class Formatter:
     def __init__(
             self, *,
-            options=Options(),
+            options=None,
             pygmented=False,
             show_executing_node=True,
             pygments_formatter_cls=None,
@@ -29,6 +29,9 @@ class Formatter:
             chain=True,
             collapse_repeated_frames=True
     ):
+        if options is None:
+            options = Options()
+
         if pygmented and not options.pygments_formatter:
             if show_executing_node:
                 pygments_style = style_with_executing_node(
