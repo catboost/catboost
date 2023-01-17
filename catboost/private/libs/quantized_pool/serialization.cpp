@@ -354,7 +354,7 @@ void NCB::AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* co
         LabeledOutput(metainfo.GetColumnIndexToType().size(), pool->ColumnIndexToLocalIndex.size()));
 
     if (metainfo.GetColumnIndexToType().size() != pool->ColumnIndexToLocalIndex.size()) {
-        for (const auto [columnIndex, columnType] : metainfo.GetColumnIndexToType()) {
+        for (const auto& [columnIndex, columnType] : metainfo.GetColumnIndexToType()) {
             const auto inserted  = pool->ColumnIndexToLocalIndex.emplace(
                 columnIndex,
                 pool->ColumnIndexToLocalIndex.size()).second;
