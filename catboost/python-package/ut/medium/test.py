@@ -2405,6 +2405,17 @@ def test_duplicate_params_regressor():
         model.fit(data, label)
 
 
+def test_clearing_parameters_in_loading_model():
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
+    model_path = test_output_path(OUTPUT_MODEL_PATH)
+    fit = CatBoostRegressor(max_depth=3, verbose=False).fit(data, label)
+    fit.save_model(model_path)
+    fit.load_model(model_path).predict(label)
+    CatBoostRegressor(depth=3).load_model(model_path).predict(label)
+
+
 def test_generated_metrics_default_params():
     metrics_without_default_params = (
         metrics.TotalF1, metrics.AUC, metrics.NDCG, metrics.CtrFactor, metrics.RecallAt, metrics.QueryCrossEntropy,
