@@ -51,6 +51,7 @@ PEERDIR(
     library/cpp/binsaver
     library/cpp/netliba/socket
     library/cpp/string_utils/url
+    library/cpp/threading/future
     library/cpp/containers/disjoint_interval_tree
 )
 
