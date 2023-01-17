@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pandas
-Version: 1.4.4
+Version: 1.5.1
 Summary: Powerful data structures for data analysis, time series, and statistics
 Home-page: https://pandas.pydata.org
 Author: The Pandas Development Team
@@ -28,9 +28,7 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: python-dateutil (>=2.8.1)
 Requires-Dist: pytz (>=2020.1)
-Requires-Dist: numpy (>=1.18.5) ; platform_machine != "aarch64" and platform_machine != "arm64" and python_version < "3.10"
-Requires-Dist: numpy (>=1.19.2) ; platform_machine == "aarch64" and python_version < "3.10"
-Requires-Dist: numpy (>=1.20.0) ; platform_machine == "arm64" and python_version < "3.10"
+Requires-Dist: numpy (>=1.20.3) ; python_version < "3.10"
 Requires-Dist: numpy (>=1.21.0) ; python_version >= "3.10"
 Provides-Extra: test
 Requires-Dist: hypothesis (>=5.5.3) ; extra == 'test'
@@ -174,7 +172,7 @@ or alternatively
 python setup.py develop
 ```
 
-See the full instructions for [installing from source](https://pandas.pydata.org/pandas-docs/stable/install.html#installing-from-source).
+See the full instructions for [installing from source](https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html#installing-from-source).
 
 ## License
 [BSD 3](LICENSE)
@@ -208,4 +206,4 @@ Or maybe through using pandas you have an idea of your own or are looking for so
 
 Feel free to ask questions on the [mailing list](https://groups.google.com/forum/?fromgroups#!forum/pydata) or on [Gitter](https://gitter.im/pydata/pandas).
 
-As contributors and maintainers to this project, you are expected to abide by pandas' code of conduct. More information can be found at: [Contributor Code of Conduct](https://github.com/pandas-dev/pandas/blob/main/.github/CODE_OF_CONDUCT.md)
+As contributors and maintainers to this project, you are expected to abide by pandas' code of conduct. More information can be found at: [Contributor Code of Conduct](https://github.com/pandas-dev/.github/blob/master/CODE_OF_CONDUCT.md)
