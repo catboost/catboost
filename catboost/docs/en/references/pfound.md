@@ -16,7 +16,7 @@
 
 1. {% include [loss-functions-ascending_a_i](../_includes/work_src/reusage-common-phrases/ascending_a_i.md) %}
 
-1. The {{ error-function__PFound }} metric is calculated for each group ($group \in groups$). To do this, the label values ($t_{i}$) of the objects from the sorted list are multiplied by their weight ($P(i, group, dacay)$) and summed up as follows:
+1. The {{ error-function__PFound }} metric is calculated for each group ($group \in groups$). To do this, the label values ($t_{i}$) of the objects from the sorted list are multiplied by their weight ($P(i, group, decay)$) and summed up as follows:
 
     $PFound(group, top, decay) = \sum_{i = 0}^{top} P(i, group, decay) * t_{g(i, group)}{, where}$
 
