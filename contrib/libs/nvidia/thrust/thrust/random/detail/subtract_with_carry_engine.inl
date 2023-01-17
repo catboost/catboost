@@ -14,13 +14,14 @@
  *  limitations under the License.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/random/linear_congruential_engine.h>
 #include <thrust/random/subtract_with_carry_engine.h>
 #include <thrust/random/detail/mod.h>
 #include <thrust/random/detail/random_core_access.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -206,5 +207,5 @@ template<typename UIntType, size_t w, size_t s, size_t r>
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

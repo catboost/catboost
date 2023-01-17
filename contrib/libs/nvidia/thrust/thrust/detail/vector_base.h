@@ -30,8 +30,7 @@
 #include <thrust/detail/contiguous_storage.h>
 #include <vector>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -582,7 +581,7 @@ template<typename T1, typename Alloc1,
 bool operator!=(const std::vector<T1,Alloc1>&         lhs,
                 const detail::vector_base<T2,Alloc2>& rhs);
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/vector_base.inl>
 

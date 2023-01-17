@@ -23,14 +23,15 @@
 
 #include <thrust/tuple.h>
 #include <thrust/iterator/iterator_traits.h>
+#include <thrust/detail/config.h>
 #include <thrust/detail/static_assert.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/iterator/detail/tuple_of_iterator_references.h>
 #include <thrust/detail/raw_reference_cast.h>
 #include <thrust/detail/memory_wrapper.h> // for ::new
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -553,5 +554,5 @@ template<typename Compare>
 
 
 } // end namespace detail
-} // end namespace thrust
 
+THRUST_NAMESPACE_END

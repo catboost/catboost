@@ -21,8 +21,7 @@
 #include <thrust/detail/raw_pointer_cast.h>
 #include <thrust/detail/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -60,5 +59,5 @@ template<typename T, typename System, typename Pointer>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -19,8 +19,7 @@
 #include <thrust/system/detail/generic/reduce_by_key.h>
 #include <thrust/distance.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -53,5 +52,5 @@ template <typename DerivedPolicy,
 } // end detail
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

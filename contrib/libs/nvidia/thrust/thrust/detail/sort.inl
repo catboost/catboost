@@ -26,8 +26,7 @@
 #include <thrust/system/detail/generic/sort.h>
 #include <thrust/system/detail/adl/sort.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -404,5 +403,5 @@ template<typename ForwardIterator,
 } // end is_sorted_until()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

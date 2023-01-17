@@ -42,11 +42,7 @@
 #include "../util_type.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /******************************************************************************
  * Tuning policy types
@@ -521,6 +517,5 @@ struct AgentRadixSortUpsweep
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

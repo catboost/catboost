@@ -19,8 +19,7 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/tabulate.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -53,8 +52,21 @@ __host__ __device__
 
 namespace detail
 {
-template <typename T>
+template <typename T, typename = void>
 struct compute_sequence_value
+{
+  T init;
+  T step;
+
+  __thrust_exec_check_disable__
+  __host__ __device__
+  T operator()(std::size_t i) const
+  {
+    return init + step * i;
+  }
+};
+template <typename T>
+struct compute_sequence_value<T, typename std::enable_if<std::is_arithmetic<T>::value>::type>
 {
   T init;
   T step;
@@ -88,5 +100,5 @@ __host__ __device__
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

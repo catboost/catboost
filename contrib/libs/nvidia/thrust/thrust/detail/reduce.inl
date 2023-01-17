@@ -19,6 +19,8 @@
  *  \brief Inline file for reduce.h.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/reduce.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/system/detail/generic/select_system.h>
@@ -27,8 +29,7 @@
 #include <thrust/system/detail/adl/reduce.h>
 #include <thrust/system/detail/adl/reduce_by_key.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -274,5 +275,5 @@ template<typename InputIterator1,
 }
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

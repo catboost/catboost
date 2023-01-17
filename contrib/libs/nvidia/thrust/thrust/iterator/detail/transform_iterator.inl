@@ -14,14 +14,15 @@
  *  limitations under the License.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/transform_iterator.h>
 #include <thrust/iterator/iterator_adaptor.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/type_traits/result_of_adaptable_function.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <class UnaryFunction, class Iterator, class Reference, class Value>
   class transform_iterator;
@@ -68,5 +69,5 @@ struct transform_iterator_base
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup transformations
  *  \{
@@ -122,8 +120,6 @@ template<typename ForwardIterator, typename UnaryOperation>
 /*! \} // end transformations
  */
 
-
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/tabulate.inl>
-

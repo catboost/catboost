@@ -24,8 +24,7 @@
 // pollute the global namespace. These identifiers are in lowercase to avoid
 // colliding with the real macros in errno.h.
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -116,5 +115,5 @@ static const int emlink          = 9979;
 
 } // end system
 
-} // end thrust
+THRUST_NAMESPACE_END
 

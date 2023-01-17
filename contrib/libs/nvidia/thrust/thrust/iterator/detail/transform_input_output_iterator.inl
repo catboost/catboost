@@ -14,10 +14,11 @@
  *  limitations under the License.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/iterator_adaptor.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename InputFunction, typename OutputFunction, typename Iterator>
   class transform_input_output_iterator;
@@ -110,5 +111,5 @@ struct is_proxy_reference<
     : public thrust::detail::true_type {};
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

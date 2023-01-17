@@ -18,10 +18,7 @@
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/type_traits.h>
 
-
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 template<typename Element, typename Tag, typename Reference, typename Derived>
   __host__ __device__
@@ -206,5 +203,4 @@ bool operator!=(pointer<Element, Tag, Reference, Derived> p, decltype(nullptr))
   return !(nullptr == p);
 }
 
-} // namespace thrust
-
+THRUST_NAMESPACE_END

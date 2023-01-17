@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -71,7 +69,6 @@ inline __host__ __device__
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/distance.inl>
-

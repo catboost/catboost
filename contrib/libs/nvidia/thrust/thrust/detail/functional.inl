@@ -14,10 +14,11 @@
  *  limitations under the License.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -120,5 +121,4 @@ template<typename BinaryPredicate>
   return binary_negate<BinaryPredicate>(pred);
 } // end not2()
 
-} // end thrust
-
+THRUST_NAMESPACE_END

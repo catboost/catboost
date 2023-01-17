@@ -25,8 +25,8 @@
 #include <thrust/detail/allocator/allocator_traits.h>
 #include <thrust/detail/integer_math.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -144,5 +144,6 @@ return_temporary_buffer(
 
 #endif
 
-}} // namespace thrust::detail
+} // namespace detail
 
+THRUST_NAMESPACE_END

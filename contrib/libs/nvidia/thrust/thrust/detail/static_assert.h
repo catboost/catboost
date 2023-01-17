@@ -29,8 +29,7 @@
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/preprocessor.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -66,16 +65,16 @@ template <int x> struct static_assert_test {};
   // Clang and GCC 4.8+ will complain about this typedef being unused unless we
   // annotate it as such.
 #  define THRUST_STATIC_ASSERT(B)                                             \
-    typedef ::thrust::detail::static_assert_test<                             \
-      sizeof(::thrust::detail::STATIC_ASSERTION_FAILURE<(bool)(B)>)           \
+    typedef THRUST_NS_QUALIFIER::detail::static_assert_test<                  \
+      sizeof(THRUST_NS_QUALIFIER::detail::STATIC_ASSERTION_FAILURE<(bool)(B)>)\
     >                                                                         \
       THRUST_PP_CAT2(thrust_static_assert_typedef_, __LINE__)                 \
       __attribute__((unused))                                                 \
     /**/      
 #else
 #  define THRUST_STATIC_ASSERT(B)                                             \
-    typedef ::thrust::detail::static_assert_test<                             \
-      sizeof(::thrust::detail::STATIC_ASSERTION_FAILURE<(bool)(B)>)           \
+    typedef THRUST_NS_QUALIFIER::detail::static_assert_test<                  \
+      sizeof(THRUST_NS_QUALIFIER::detail::STATIC_ASSERTION_FAILURE<(bool)(B)>)\
     >                                                                         \
       THRUST_PP_CAT2(thrust_static_assert_typedef_, __LINE__)                 \
     /**/      
@@ -87,6 +86,6 @@ template <int x> struct static_assert_test {};
 
 } // namespace detail
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 

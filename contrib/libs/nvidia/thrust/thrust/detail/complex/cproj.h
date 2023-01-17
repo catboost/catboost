@@ -17,11 +17,13 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/complex.h>
 #include <thrust/detail/complex/math_private.h>
 #include <cmath>
 
-namespace thrust{
+THRUST_NAMESPACE_BEGIN
 namespace detail{
 namespace complex{	 
 __host__ __device__
@@ -67,5 +69,4 @@ inline thrust::complex<float> proj(const thrust::complex<float>& z){
   return detail::complex::cprojf(z);
 }
 
-}
-
+THRUST_NAMESPACE_END

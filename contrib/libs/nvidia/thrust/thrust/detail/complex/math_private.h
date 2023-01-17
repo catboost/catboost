@@ -35,7 +35,7 @@
 #include <thrust/complex.h>
 #include <thrust/detail/cstdint.h>
 
-namespace thrust{
+THRUST_NAMESPACE_BEGIN
 namespace detail{
 namespace complex{
 
@@ -130,7 +130,7 @@ void  extract_words(int32_t & ix0,int32_t & ix1, double d){
 
 } // namespace detail
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 
 #include <thrust/detail/complex/c99math.h>

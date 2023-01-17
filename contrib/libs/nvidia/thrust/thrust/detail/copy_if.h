@@ -19,9 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 template<typename DerivedPolicy,
          typename InputIterator,
@@ -68,8 +66,6 @@ template<typename InputIterator1,
                          OutputIterator result,
                          Predicate pred);
 
-
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/copy_if.inl>
-

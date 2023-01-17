@@ -1,6 +1,209 @@
+# Thrust 1.16.0
+
+## Summary
+
+Thrust 1.16.0 provides a new “nosync” hint for the CUDA backend, as well as
+numerous bugfixes and stability improvements.
+
+### New `thrust::cuda::par_nosync` Execution Policy
+
+Most of Thrust’s parallel algorithms are fully synchronous and will block the
+calling CPU thread until all work is completed. This design avoids many pitfalls
+associated with asynchronous GPU programming, resulting in simpler and
+less-error prone usage for new CUDA developers. Unfortunately, this improvement
+in user experience comes at a performance cost that often frustrates more
+experienced CUDA programmers.
+
+Prior to this release, the only synchronous-to-asynchronous migration path for
+existing Thrust codebases involved significant refactoring, replacing calls
+to `thrust` algorithms with a limited set of `future`-based `thrust::async`
+algorithms or lower-level CUB kernels. The new `thrust::cuda::par_nosync`
+execution policy provides a new, less-invasive entry point for asynchronous
+computation.
+
+`par_nosync` is a hint to the Thrust execution engine that any non-essential
+internal synchronizations should be skipped and that an explicit synchronization
+will be performed by the caller before accessing results.
+
+While some Thrust algorithms require internal synchronization to safely compute
+their results, many do not. For example, multiple `thrust::for_each` invocations
+can be launched without waiting for earlier calls to complete:
+
+```cpp
+// Queue three `for_each` kernels:
+thrust::for_each(thrust::cuda::par_nosync, vec1.begin(), vec1.end(), Op{});
+thrust::for_each(thrust::cuda::par_nosync, vec2.begin(), vec2.end(), Op{});
+thrust::for_each(thrust::cuda::par_nosync, vec3.begin(), vec3.end(), Op{});
+
+// Do other work while kernels execute:
+do_something();
+
+// Must explictly synchronize before accessing `for_each` results:
+cudaDeviceSynchronize();
+```
+
+Thanks to @fkallen for this contribution.
+
+## Deprecation Notices
+
+### CUDA Dynamic Parallelism Support
+
+**A future version of Thrust will remove support for CUDA Dynamic Parallelism
+(CDP).**
+
+This will only affect calls to Thrust algorithms made from CUDA device-side code
+that currently launches a kernel; such calls will instead execute sequentially
+on the calling GPU thread instead of launching a device-wide kernel.
+
+## Breaking Changes
+
+- Thrust 1.14.0 included a change that aliased the `cub` namespace
+  to `thrust::cub`. This has caused issues with ambiguous namespaces for
+  projects that declare `using namespace thrust;` from the global namespace. We
+  recommend against this practice.
+- NVIDIA/thrust#1572: Removed several unnecessary header includes. Downstream
+  projects may need to update their includes if they were relying on this
+  behavior.
+
+## New Features
+
+- NVIDIA/thrust#1568: Add `thrust::cuda::par_nosync` policy. Thanks to @fkallen
+  for this contribution.
+
+## Enhancements
+
+- NVIDIA/thrust#1511: Use CUB’s new `DeviceMergeSort` API and remove Thrust’s
+  internal implementation.
+- NVIDIA/thrust#1566: Improved performance of `thrust::shuffle`. Thanks to
+  @djns99 for this contribution.
+- NVIDIA/thrust#1584: Support user-defined `CMAKE_INSTALL_INCLUDEDIR` values in
+  Thrust’s CMake install rules. Thanks to @robertmaynard for this contribution.
+
+## Bug Fixes
+
+- NVIDIA/thrust#1496: Fix some issues affecting `icc` builds.
+- NVIDIA/thrust#1552: Fix some collisions with the `min`/`max`  macros defined
+  in `windows.h`.
+- NVIDIA/thrust#1582: Fix issue with function type alias on 32-bit MSVC builds.
+- NVIDIA/thrust#1591: Workaround issue affecting compilation with `nvc++`.
+- NVIDIA/thrust#1597: Fix some collisions with the `small` macro defined
+  in `windows.h`.
+- NVIDIA/thrust#1599, NVIDIA/thrust#1603: Fix some issues with version handling
+  in Thrust’s CMake packages.
+- NVIDIA/thrust#1614: Clarify that scan algorithm results are non-deterministic
+  for pseudo-associative operators (e.g. floating-point addition).
+
+# Thrust 1.15.0 (NVIDIA HPC SDK 22.1, CUDA Toolkit 11.6)
+
+## Summary
+
+Thrust 1.15.0 provides numerous bugfixes, including non-numeric
+`thrust::sequence` support, several MSVC-related compilation fixes, fewer
+conversion warnings, `counting_iterator` initialization, and documentation
+updates.
+
+## Deprecation Notices
+
+**A future version of Thrust will remove support for CUDA Dynamic Parallelism
+(CDP).**
+
+This will only affect calls to Thrust algorithms made from CUDA device-side code
+that currently launches a kernel; such calls will instead execute sequentially
+on the calling GPU thread instead of launching a device-wide kernel.
+
+## Bug Fixes
+
+- NVIDIA/thrust#1507: Allow `thrust::sequence` to work with non-numeric types.
+  Thanks to Ben Jude (@bjude) for this contribution.
+- NVIDIA/thrust#1509: Avoid macro collision when calling `max()` on MSVC. Thanks
+  to Thomas (@tomintheshell) for this contribution.
+- NVIDIA/thrust#1514: Initialize all members in `counting_iterator`'s default
+  constructor.
+- NVIDIA/thrust#1518: Fix `std::allocator_traits` on MSVC + C++17.
+- NVIDIA/thrust#1530: Fix several `-Wconversion` warnings. Thanks to Matt
+  Stack (@matt-stack) for this contribution.
+- NVIDIA/thrust#1539: Fixed typo in `thrust::for_each` documentation. Thanks to
+  Salman (@untamedImpala) for this contribution.
+- NVIDIA/thrust#1548: Avoid name collision with `B0` macro in termios.h system
+  header. Thanks to Philip Deegan (@PhilipDeegan) for this contribution.
+
+# Thrust 1.14.0 (NVIDIA HPC SDK 21.9)
+
+## Summary
+
+Thrust 1.14.0 is a major release accompanying the NVIDIA HPC SDK 21.9.
+
+This release adds the ability to wrap the `thrust::` namespace in an external
+namespace, providing a workaround for a variety of shared library linking
+issues. Thrust also learned to detect when CUB's symbols are in a wrapped
+namespace and properly import them. To enable this feature, use
+`#define THRUST_CUB_WRAPPED_NAMESPACE foo` to wrap both Thrust and CUB in the
+`foo::` namespace. See `thrust/detail/config/namespace.h` for details and more
+namespace options.
+
+Several bugfixes are also included: The `tuple_size` and `tuple_element` helpers
+now support cv-qualified types. `scan_by_key` uses less memory.
+`thrust::iterator_traits` is better integrated with `std::iterator_traits`.
+See below for more details and references.
+
+## Breaking Changes
+
+- Thrust 1.14.0 included a change that aliased the `cub` namespace
+  to `thrust::cub`. This has caused issues with ambiguous namespaces for
+  projects that declare `using namespace thrust;` from the global namespace. We
+  recommend against this practice.
+
+## New Features
+
+- NVIDIA/thrust#1464: Add preprocessor hooks that allow `thrust::` to be wrapped
+  in an external namespace, and support cases when CUB is wrapped in an external
+  namespace.
+
+## Bug Fixes
+
+- NVIDIA/thrust#1457: Support cv-qualified types in `thrust::tuple_size` and
+  `thrust::tuple_element`. Thanks to Jake Hemstad for this contribution.
+- NVIDIA/thrust#1471: Fixed excessive memory allocation in `scan_by_key`. Thanks
+  to Lilo Huang for this contribution.
+- NVIDIA/thrust#1476: Removed dead code from the `expand` example. Thanks to
+  Lilo Huang for this contribution.
+- NVIDIA/thrust#1488: Fixed the path to the installed CUB headers in the CMake
+  `find_package` configuration files.
+- NVIDIA/thrust#1491: Fallback to `std::iterator_traits` when no
+  `thrust::iterator_traits` specialization exists for an iterator type. Thanks
+  to Divye Gala for this contribution.
+
+# Thrust 1.13.1 (CUDA Toolkit 11.5)
+
+Thrust 1.13.1 is a minor release accompanying the CUDA Toolkit 11.5.
+
+This release provides a new hook for embedding the `thrust::` namespace inside a
+custom namespace. This is intended to work around various issues related to
+linking multiple shared libraries that use Thrust. The existing `CUB_NS_PREFIX`
+and `CUB_NS_POSTFIX` macros already provided this capability for CUB; this
+update provides a simpler mechanism that is extended to and integrated with
+Thrust. Simply define `THRUST_CUB_WRAPPED_NAMESPACE` to a namespace name, and
+both `thrust::` and `cub::` will be placed inside the new namespace. Using
+different wrapped namespaces for each shared library will prevent issues like
+those reported in NVIDIA/thrust#1401.
+
+## New Features
+
+- NVIDIA/thrust#1464: Add `THRUST_CUB_WRAPPED_NAMESPACE` hooks.
+
+## Bug Fixes
+
+- NVIDIA/thrust#1488: Fix path to installed CUB in Thrust's CMake config files.
+
 # Thrust 1.13.0 (NVIDIA HPC SDK 21.7)
 
 Thrust 1.13.0 is the major release accompanying the NVIDIA HPC SDK 21.7 release.
+
+Notable changes include `bfloat16` radix sort support (via `thrust::sort`) and
+memory handling fixes in the `reserve` method of Thrust's vectors.
+The `CONTRIBUTING.md` file has been expanded to include instructions for
+building CUB as a component of Thrust, and API documentation now refers to
+cppreference instead of SGI's STL reference.
 
 ## Breaking Changes
 

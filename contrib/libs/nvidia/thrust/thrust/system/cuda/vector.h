@@ -26,7 +26,8 @@
 #include <thrust/detail/vector_base.h>
 #include <vector>
 
-namespace thrust { namespace cuda_cub
+THRUST_NAMESPACE_BEGIN
+namespace cuda_cub
 {
 
 /*! \p cuda::vector is a container that supports random access to elements,
@@ -84,5 +85,5 @@ using thrust::cuda_cub::vector;
 using thrust::cuda_cub::universal_vector;
 }
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

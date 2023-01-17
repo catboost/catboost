@@ -25,8 +25,7 @@
 #include <thrust/device_ptr.h>
 #include <cstddef> // for std::size_t
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup allocation_functions Allocation Functions
  *  \ingroup memory_management_functions
@@ -97,7 +96,7 @@ template<typename T>
 /*! \}
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_malloc.inl>
 

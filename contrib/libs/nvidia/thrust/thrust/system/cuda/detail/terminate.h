@@ -31,8 +31,7 @@
 #include <thrust/system/cuda/detail/util.h>
 #include <cstdio>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace cuda
@@ -59,5 +58,5 @@ void terminate_with_message(const char* message)
 } // end detail
 } // end cuda
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

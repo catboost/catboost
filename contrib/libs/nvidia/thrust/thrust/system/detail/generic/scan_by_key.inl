@@ -27,8 +27,7 @@
 #include <thrust/detail/internal_functional.h>
 #include <thrust/scan.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -109,7 +108,7 @@ __host__ __device__
                                        AssociativeOperator binary_op)
 {
   using OutputType = typename thrust::iterator_traits<InputIterator2>::value_type;
-  using HeadFlagType = thrust::detail::uint32_t;
+  using HeadFlagType = thrust::detail::uint8_t;
 
   const size_t n = last1 - first1;
 
@@ -205,7 +204,7 @@ __host__ __device__
                                        AssociativeOperator binary_op)
 {
   using OutputType = T;
-  using HeadFlagType = thrust::detail::uint32_t;
+  using HeadFlagType = thrust::detail::uint8_t;
 
   const size_t n = last1 - first1;
 
@@ -241,5 +240,5 @@ __host__ __device__
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

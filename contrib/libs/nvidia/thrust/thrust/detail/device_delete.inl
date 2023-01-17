@@ -19,12 +19,13 @@
  *  \brief Inline file for device_delete.h.
  */
 
+#include <thrust/detail/config.h>
 #include <thrust/device_delete.h>
 #include <thrust/device_free.h>
 #include <thrust/detail/allocator/destroy_range.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -43,5 +44,4 @@ template<typename T>
   thrust::device_free(ptr);
 } // end device_delete()
 
-} // end thrust
-
+THRUST_NAMESPACE_END

@@ -26,7 +26,8 @@
 
 #include <thrust/system/omp/pointer.h>
 
-namespace thrust { namespace system { namespace omp
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace omp
 {
 
 //! \cond
@@ -63,5 +64,6 @@ typedef detail::native_resource universal_host_pinned_memory_resource;
 /*! \}
  */
 
-}}} // namespace thrust::system::omp
+}} // namespace system::omp
 
+THRUST_NAMESPACE_END

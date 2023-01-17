@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup scattering
  *  \ingroup copying
@@ -416,8 +414,6 @@ template<typename InputIterator1,
 /*! \} // end scattering
  */
 
-
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/scatter.inl>
-

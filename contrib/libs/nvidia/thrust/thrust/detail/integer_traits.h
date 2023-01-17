@@ -20,8 +20,7 @@
 #include <limits>
 #include <limits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -30,16 +29,16 @@ template<typename T>
   class integer_traits
 {
   public:
-    static const bool is_integral = false;
+    static constexpr bool is_integral = false;
 };
 
 template<typename T, T min_val, T max_val>
   class integer_traits_base
 {
   public:
-    static const bool is_integral = true;
-    static const T const_min = min_val;
-    static const T const_max = max_val;
+    static constexpr bool is_integral = true;
+    static constexpr T const_min = min_val;
+    static constexpr T const_max = max_val;
 };
 
 
@@ -128,5 +127,4 @@ template<>
 
 } // end detail
 
-} // end thrust
-
+THRUST_NAMESPACE_END

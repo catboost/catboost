@@ -26,8 +26,7 @@
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -73,5 +72,5 @@ struct is_operator_plus_function_object_impl<std::plus<T>    > : true_type {};
 
 } // namespace detail
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

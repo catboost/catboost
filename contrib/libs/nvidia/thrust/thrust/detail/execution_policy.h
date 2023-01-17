@@ -18,8 +18,8 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -73,5 +73,4 @@ template<typename DerivedPolicy>
     : thrust::detail::execution_policy_base<DerivedPolicy>
 {};
 
-} // end thrust
-
+THRUST_NAMESPACE_END

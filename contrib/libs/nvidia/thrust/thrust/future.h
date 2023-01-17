@@ -54,8 +54,7 @@
   #include __THRUST_DEVICE_SYSTEM_FUTURE_HEADER
 #undef __THRUST_DEVICE_SYSTEM_FUTURE_HEADER
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -172,7 +171,6 @@ using thrust::system::__THRUST_DEVICE_SYSTEM_NAMESPACE::when_all;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif
-

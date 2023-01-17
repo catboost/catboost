@@ -19,8 +19,8 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/raw_reference_cast.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -157,4 +157,5 @@ struct wrapped_function<Function, void>
 }; // end wrapped_function
 
 } // namespace detail
-} // namespace thrust
+
+THRUST_NAMESPACE_END

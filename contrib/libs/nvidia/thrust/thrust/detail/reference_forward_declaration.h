@@ -19,11 +19,10 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/use_default.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename Element, typename Pointer, typename Derived = use_default>
 class reference;
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

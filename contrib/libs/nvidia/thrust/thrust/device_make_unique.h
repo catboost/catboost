@@ -32,8 +32,7 @@
 #include <thrust/device_allocator.h>
 #include <thrust/detail/type_deduction.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +53,6 @@ auto device_make_unique(Args&&... args)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011

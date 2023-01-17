@@ -20,8 +20,7 @@
 #include <thrust/system/omp/detail/default_decomposition.h>
 #include <thrust/system/omp/detail/reduce_intervals.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -68,5 +67,5 @@ template<typename DerivedPolicy,
 } // end detail
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

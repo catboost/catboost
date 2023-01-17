@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <stdio.h>
 #include <iterator>
 
 #include "../../agent/agent_scan.cuh"
@@ -47,12 +46,7 @@
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
-
+CUB_NAMESPACE_BEGIN
 
 /******************************************************************************
  * Kernel entry points
@@ -112,6 +106,7 @@ __global__ void DeviceScanKernel(
     InitValueT          init_value,         ///< Initial value to seed the exclusive scan
     OffsetT             num_items)          ///< Total number of scan items for the entire problem
 {
+    using RealInitValueT = typename InitValueT::value_type;
     typedef typename ChainedPolicyT::ActivePolicy::ScanPolicyT ScanPolicyT;
 
     // Thread block type for scanning input tiles
@@ -120,14 +115,16 @@ __global__ void DeviceScanKernel(
         InputIteratorT,
         OutputIteratorT,
         ScanOpT,
-        InitValueT,
+        RealInitValueT,
         OffsetT> AgentScanT;
 
     // Shared memory for AgentScan
     __shared__ typename AgentScanT::TempStorage temp_storage;
 
+    RealInitValueT real_init_value = init_value;
+
     // Process tiles
-    AgentScanT(temp_storage, d_in, d_out, scan_op, init_value).ConsumeRange(
+    AgentScanT(temp_storage, d_in, d_out, scan_op, real_init_value).ConsumeRange(
         num_items,
         tile_state,
         start_tile);
@@ -151,7 +148,7 @@ struct DeviceScanPolicy
       LargeValues ? BLOCK_STORE_WARP_TRANSPOSE_TIMESLICED
                   : BLOCK_STORE_WARP_TRANSPOSE;
 
-    /// SM35
+    /// SM350
     struct Policy350 : ChainedPolicy<350, Policy350, Policy350>
     {
         // GTX Titan: 29.5B items/s (232.4 GB/s) @ 48M 32-bit T
@@ -209,13 +206,13 @@ template <
     typename InputIteratorT,     ///< Random-access input iterator type for reading scan inputs \iterator
     typename OutputIteratorT,    ///< Random-access output iterator type for writing scan outputs \iterator
     typename ScanOpT,            ///< Binary scan functor type having member <tt>T operator()(const T &a, const T &b)</tt>
-    typename InitValueT,          ///< The init_value element type for ScanOpT (cub::NullType for inclusive scans)
+    typename InitValueT,         ///< The init_value element type for ScanOpT (cub::NullType for inclusive scans)
     typename OffsetT,            ///< Signed integer type for global offsets
     typename SelectedPolicy = DeviceScanPolicy<
       // Accumulator type.
-      typename If<Equals<InitValueT, NullType>::VALUE,
-                  typename std::iterator_traits<InputIteratorT>::value_type,
-                  InitValueT>::Type>>
+      cub::detail::conditional_t<std::is_same<InitValueT, NullType>::value,
+                                 cub::detail::value_t<InputIteratorT>,
+                                 typename InitValueT::value_type>>>
 struct DispatchScan:
     SelectedPolicy
 {
@@ -229,18 +226,20 @@ struct DispatchScan:
     };
 
     // The input value type
-    using InputT = typename std::iterator_traits<InputIteratorT>::value_type;
+    using InputT = cub::detail::value_t<InputIteratorT>;
 
     // The output value type -- used as the intermediate accumulator
-    // Per https://wg21.link/P0571, use InitValueT if provided, otherwise the
+    // Per https://wg21.link/P0571, use InitValueT::value_type if provided, otherwise the
     // input iterator's value type.
     using OutputT =
-      typename If<Equals<InitValueT, NullType>::VALUE, InputT, InitValueT>::Type;
+      cub::detail::conditional_t<std::is_same<InitValueT, NullType>::value,
+                                 InputT,
+                                 typename InitValueT::value_type>;
 
-    void*           d_temp_storage;         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+    void*           d_temp_storage;         ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
     size_t&         temp_storage_bytes;     ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-    InputIteratorT  d_in;                   ///< [in] Pointer to the input sequence of data items
-    OutputIteratorT d_out;                  ///< [out] Pointer to the output sequence of data items
+    InputIteratorT  d_in;                   ///< [in] Iterator to the input sequence of data items
+    OutputIteratorT d_out;                  ///< [out] Iterator to the output sequence of data items
     ScanOpT         scan_op;                ///< [in] Binary scan functor
     InitValueT      init_value;             ///< [in] Initial value to seed the exclusive scan
     OffsetT         num_items;              ///< [in] Total number of input items (i.e., the length of \p d_in)
@@ -250,10 +249,10 @@ struct DispatchScan:
 
     CUB_RUNTIME_FUNCTION __forceinline__
     DispatchScan(
-        void*           d_temp_storage,         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*           d_temp_storage,         ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&         temp_storage_bytes,     ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT  d_in,                   ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT d_out,                  ///< [out] Pointer to the output sequence of data items
+        InputIteratorT  d_in,                   ///< [in] Iterator to the input sequence of data items
+        OutputIteratorT d_out,                  ///< [out] Iterator to the output sequence of data items
         OffsetT         num_items,              ///< [in] Total number of input items (i.e., the length of \p d_in)
         ScanOpT         scan_op,                ///< [in] Binary scan functor
         InitValueT      init_value,             ///< [in] Initial value to seed the exclusive scan
@@ -261,16 +260,16 @@ struct DispatchScan:
         bool            debug_synchronous,
         int             ptx_version
     ):
-    d_temp_storage(d_temp_storage),
-    temp_storage_bytes(temp_storage_bytes),
-    d_in(d_in),
-    d_out(d_out),
-    num_items(num_items),
-    scan_op(scan_op),
-    init_value(init_value),
-    stream(stream),
-    debug_synchronous(debug_synchronous),
-    ptx_version(ptx_version)
+        d_temp_storage(d_temp_storage),
+        temp_storage_bytes(temp_storage_bytes),
+        d_in(d_in),
+        d_out(d_out),
+        scan_op(scan_op),
+        init_value(init_value),
+        num_items(num_items),
+        stream(stream),
+        debug_synchronous(debug_synchronous),
+        ptx_version(ptx_version)
     {}
 
     template <typename ActivePolicyT, typename InitKernel, typename ScanKernel>
@@ -327,7 +326,7 @@ struct DispatchScan:
             if (debug_synchronous) _CubLog("Invoking init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
 
             // Invoke init_kernel to initialize tile descriptors
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 init_grid_size, INIT_KERNEL_THREADS, 0, stream
             ).doit(init_kernel,
                 tile_state,
@@ -349,7 +348,7 @@ struct DispatchScan:
 
             // Get max x-dimension of grid
             int max_dim_x;
-            if (CubDebug(error = cudaDeviceGetAttribute(&max_dim_x, cudaDevAttrMaxGridDimX, device_ordinal))) break;;
+            if (CubDebug(error = cudaDeviceGetAttribute(&max_dim_x, cudaDevAttrMaxGridDimX, device_ordinal))) break;
 
             // Run grids in epochs (in case number of tiles exceeds max x-dimension
             int scan_grid_size = CUB_MIN(num_tiles, max_dim_x);
@@ -360,7 +359,7 @@ struct DispatchScan:
                     start_tile, scan_grid_size, Policy::BLOCK_THREADS, (long long) stream, Policy::ITEMS_PER_THREAD, scan_sm_occupancy);
 
                 // Invoke scan_kernel
-                thrust::cuda_cub::launcher::triple_chevron(
+                THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                     scan_grid_size, Policy::BLOCK_THREADS, 0, stream
                 ).doit(scan_kernel,
                     d_in,
@@ -404,10 +403,10 @@ struct DispatchScan:
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*           d_temp_storage,         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*           d_temp_storage,         ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&         temp_storage_bytes,     ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        InputIteratorT  d_in,                   ///< [in] Pointer to the input sequence of data items
-        OutputIteratorT d_out,                  ///< [out] Pointer to the output sequence of data items
+        InputIteratorT  d_in,                   ///< [in] Iterator to the input sequence of data items
+        OutputIteratorT d_out,                  ///< [out] Iterator to the output sequence of data items
         ScanOpT         scan_op,                ///< [in] Binary scan functor
         InitValueT      init_value,             ///< [in] Initial value to seed the exclusive scan
         OffsetT         num_items,              ///< [in] Total number of input items (i.e., the length of \p d_in)
@@ -425,16 +424,16 @@ struct DispatchScan:
 
             // Create dispatch functor
             DispatchScan dispatch(
-            d_temp_storage,
-            temp_storage_bytes,
-            d_in,
-            d_out,
-            num_items,
-            scan_op,
-            init_value,
-            stream,
-            debug_synchronous,
-            ptx_version
+                d_temp_storage,
+                temp_storage_bytes,
+                d_in,
+                d_out,
+                num_items,
+                scan_op,
+                init_value,
+                stream,
+                debug_synchronous,
+                ptx_version
             );
             // Dispatch to chained policy
             if (CubDebug(error = MaxPolicyT::Invoke(ptx_version, dispatch))) break;
@@ -447,5 +446,4 @@ struct DispatchScan:
 
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

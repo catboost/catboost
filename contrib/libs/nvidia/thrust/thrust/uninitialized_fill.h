@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup filling
  *  \ingroup transformations
@@ -269,7 +267,6 @@ template<typename ForwardIterator, typename Size, typename T>
  *  \} // transformations
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/uninitialized_fill.inl>
-

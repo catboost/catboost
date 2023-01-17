@@ -29,8 +29,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup memory_management_classes Memory Management Classes
  *  \ingroup memory_management
@@ -168,5 +167,4 @@ template<typename T>
 /*! \}
  */
 
-} // end thrust
-
+THRUST_NAMESPACE_END

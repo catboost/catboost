@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -49,8 +50,7 @@
 
 #include <cub/util_math.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename DerivedPolicy,
           typename InputIterator1,
@@ -115,9 +115,9 @@ namespace __reduce_by_key {
           mpl::max<
               int,
               1,
-              ((NOMINAL_4B_ITEMS_PER_THREAD * 8) +
+              static_cast<int>(((NOMINAL_4B_ITEMS_PER_THREAD * 8) +
                COMBINED_INPUT_BYTES - 1) /
-                  COMBINED_INPUT_BYTES>::value>::value,
+                  COMBINED_INPUT_BYTES)>::value>::value,
     };
 
     typedef PtxPolicy<128,
@@ -1162,7 +1162,7 @@ reduce_by_key(execution_policy<Derived> &policy,
 
 } // namespace cuda_
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/memory.h>
 #include <thrust/reduce.h>

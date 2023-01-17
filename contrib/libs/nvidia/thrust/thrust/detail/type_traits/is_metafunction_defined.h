@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/detail/type_traits/has_nested_type.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -37,5 +38,5 @@ template<typename Metafunction>
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

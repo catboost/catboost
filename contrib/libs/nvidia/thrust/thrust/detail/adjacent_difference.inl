@@ -24,9 +24,7 @@
 #include <thrust/system/detail/generic/adjacent_difference.h>
 #include <thrust/system/detail/adl/adjacent_difference.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__ 
 template <typename DerivedPolicy, typename InputIterator, typename OutputIterator>
@@ -88,5 +86,4 @@ OutputIterator adjacent_difference(InputIterator first, InputIterator last,
 } // end adjacent_difference()
 
 
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

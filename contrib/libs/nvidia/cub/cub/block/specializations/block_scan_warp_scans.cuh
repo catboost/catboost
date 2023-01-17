@@ -37,11 +37,7 @@
 #include "../../util_ptx.cuh"
 #include "../../warp/warp_scan.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \brief BlockScanWarpScans provides warpscan-based variants of parallel prefix scan across a CUDA thread block.
@@ -386,6 +382,5 @@ struct BlockScanWarpScans
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

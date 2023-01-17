@@ -24,8 +24,7 @@
   #include <type_traits>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace mr
 {
@@ -97,5 +96,6 @@ struct allocator_aware_execution_policy
 #endif
 };
 
-}
-}
+} // end namespace detail
+
+THRUST_NAMESPACE_END

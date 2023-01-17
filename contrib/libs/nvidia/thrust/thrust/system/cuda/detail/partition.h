@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -45,8 +46,7 @@
 
 #include <cub/util_math.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 namespace __partition {
@@ -663,9 +663,9 @@ namespace __partition {
 
     void* allocations[2] = {NULL, NULL};
     status = cub::AliasTemporaries(d_temp_storage,
-                                   temp_storage_bytes,
-                                   allocations,
-                                   allocation_sizes);
+                                                temp_storage_bytes,
+                                                allocations,
+                                                allocation_sizes);
     CUDA_CUB_RET_IF_FAIL(status);
 
     if (d_temp_storage == NULL)
@@ -1144,5 +1144,5 @@ is_partitioned(execution_policy<Derived> &policy,
 
 
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

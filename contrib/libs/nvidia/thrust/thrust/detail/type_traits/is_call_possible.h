@@ -16,14 +16,15 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/type_traits/has_member_function.h>
 
 // inspired by Roman Perepelitsa's presentation from comp.lang.c++.moderated
 // based on the implementation here: http://www.rsdn.ru/forum/cpp/2759773.1.aspx
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace is_call_possible_detail
@@ -51,7 +52,7 @@ struct clone_constness<const src_type, dest_type>
 
 } // end is_call_possible_detail
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #define __THRUST_DEFINE_IS_CALL_POSSIBLE(trait_name, member_function_name)                                                                \
 __THRUST_DEFINE_HAS_MEMBER_FUNCTION(trait_name##_has_member, member_function_name)                                                        \

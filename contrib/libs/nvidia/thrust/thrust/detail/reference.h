@@ -28,8 +28,7 @@
 #include <type_traits>
 #include <ostream>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -507,5 +506,5 @@ void swap(tagged_reference<Element, Tag>& x, tagged_reference<Element, Tag>& y)
   x.swap(y);
 }
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

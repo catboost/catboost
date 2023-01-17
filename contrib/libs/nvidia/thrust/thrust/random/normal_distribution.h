@@ -27,8 +27,7 @@
 #include <thrust/random/detail/normal_distribution_base.h>
 #include <iostream>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -269,7 +268,7 @@ operator>>(std::basic_istream<CharT,Traits> &is,
 
 using random::normal_distribution;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/random/detail/normal_distribution.inl>
 

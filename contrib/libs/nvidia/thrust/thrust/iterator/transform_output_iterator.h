@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/iterator/detail/transform_output_iterator.inl>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -159,5 +158,5 @@ make_transform_output_iterator(OutputIterator out, UnaryFunction fun)
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

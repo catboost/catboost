@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/tag.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -52,7 +51,7 @@ OutputIterator adjacent_difference(thrust::execution_policy<DerivedPolicy> &exec
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/adjacent_difference.inl>
 

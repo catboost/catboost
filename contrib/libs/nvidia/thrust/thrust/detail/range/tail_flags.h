@@ -23,8 +23,7 @@
 #include <thrust/tuple.h>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -130,5 +129,5 @@ tail_flags<RandomAccessIterator>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

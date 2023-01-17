@@ -29,8 +29,7 @@
 #include __THRUST_DEVICE_SYSTEM_MEMORY_HEADER
 #undef __THRUST_DEVICE_SYSTEM_MEMORY_HEADER
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /** \addtogroup memory_resources Memory Resources
  *  \ingroup memory_management_classes
@@ -75,5 +74,4 @@ using universal_ptr =
 /*! \}
  */
 
-} // end thrust
-
+THRUST_NAMESPACE_END

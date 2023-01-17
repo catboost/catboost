@@ -16,16 +16,17 @@
 
 #pragma once
 
-#if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/detail/config.h>
+
+#if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
+
 #include <thrust/system/cuda/config.h>
 
 #include <thrust/detail/raw_pointer_cast.h>
 #include <thrust/system/cuda/detail/execution_policy.h>
 #include <thrust/swap.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 
@@ -62,5 +63,5 @@ void iter_swap(thrust::cuda::execution_policy<DerivedPolicy> &, Pointer1 a, Poin
 
 
 } // end cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

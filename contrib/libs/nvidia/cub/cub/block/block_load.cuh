@@ -34,18 +34,15 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 
-#include "block_exchange.cuh"
+#include "../block/block_exchange.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
 #include "../config.cuh"
 #include "../util_ptx.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \addtogroup UtilIo
@@ -454,10 +451,6 @@ __device__ __forceinline__ void LoadDirectWarpStriped(
 /**
  * \brief cub::BlockLoadAlgorithm enumerates alternative algorithms for cub::BlockLoad to read a linear segment of data from memory into a blocked arrangement across a CUDA thread block.
  */
-
-/**
- * \brief cub::BlockLoadAlgorithm enumerates alternative algorithms for cub::BlockLoad to read a linear segment of data from memory into a blocked arrangement across a CUDA thread block.
- */
 enum BlockLoadAlgorithm
 {
     /**
@@ -467,21 +460,21 @@ enum BlockLoadAlgorithm
      * directly from memory.
      *
      * \par Performance Considerations
-     * - The utilization of memory transactions (coalescing) decreases as the
-     *   access stride between threads increases (i.e., the number items per thread).
+     * The utilization of memory transactions (coalescing) decreases as the
+     * access stride between threads increases (i.e., the number items per thread).
      */
     BLOCK_LOAD_DIRECT,
 
     /**
-    * \par Overview
-    *
-    * A [<em>striped arrangement</em>](index.html#sec5sec3) of data is read
-    * directly from memory.
-    *
-    * \par Performance Considerations
-    * - The utilization of memory transactions (coalescing) decreases as the
-    *   access stride between threads increases (i.e., the number items per thread).
-    */
+     * \par Overview
+     *
+     * A [<em>striped arrangement</em>](index.html#sec5sec3) of data is read
+     * directly from memory.
+     *
+     * \par Performance Considerations
+     * The utilization of memory transactions (coalescing) doesn't depend on
+     * the number of items per thread.
+     */
     BLOCK_LOAD_STRIPED,
 
     /**
@@ -496,11 +489,13 @@ enum BlockLoadAlgorithm
      * - The utilization of memory transactions (coalescing) remains high until the the
      *   access stride between threads (i.e., the number items per thread) exceeds the
      *   maximum vector load width (typically 4 items or 64B, whichever is lower).
-     * - The following conditions will prevent vectorization and loading will fall back to cub::BLOCK_LOAD_DIRECT:
+     * - The following conditions will prevent vectorization and loading will fall
+     *   back to cub::BLOCK_LOAD_DIRECT:
      *   - \p ITEMS_PER_THREAD is odd
-     *   - The \p InputIteratorTis not a simple pointer type
+     *   - The \p InputIteratorT is not a simple pointer type
      *   - The block input offset is not quadword-aligned
-     *   - The data type \p T is not a built-in primitive or CUDA vector type (e.g., \p short, \p int2, \p double, \p float2, etc.)
+     *   - The data type \p T is not a built-in primitive or CUDA vector type
+     *     (e.g., \p short, \p int2, \p double, \p float2, etc.)
      */
     BLOCK_LOAD_VECTORIZE,
 
@@ -628,6 +623,13 @@ enum BlockLoadAlgorithm
  * The set of \p thread_data across the block of threads in those threads will be
  * <tt>{ [0,1,2,3], [4,5,6,7], ..., [508,509,510,511] }</tt>.
  *
+ * \par Re-using dynamically allocating shared memory
+ * The following example under the examples/block folder illustrates usage of
+ * dynamically shared memory with BlockReduce and how to re-purpose
+ * the same memory region:
+ * <a href="../../examples/block/example_block_reduce_dyn_smem.cu">example_block_reduce_dyn_smem.cu</a>
+ *
+ * This example can be easily adapted to the storage required by BlockLoad.
  */
 template <
     typename            InputT,
@@ -739,7 +741,7 @@ private:
         template <typename InputIteratorT>
         __device__ __forceinline__ void Load(
             InputIteratorT  block_itr,                      ///< [in] The thread block's base input iterator for loading from
-            InputT          (&items)[ITEMS_PER_THREAD])     ///< [out] Data to load{
+            InputT          (&items)[ITEMS_PER_THREAD])     ///< [out] Data to load
         {
             LoadDirectStriped<BLOCK_THREADS>(linear_tid, block_itr, items);
         }
@@ -1288,7 +1290,17 @@ public:
 
 };
 
+template <class Policy,
+          class It,
+          class T = cub::detail::value_t<It>>
+struct BlockLoadType
+{
+  using type = cub::BlockLoad<T,
+                              Policy::BLOCK_THREADS,
+                              Policy::ITEMS_PER_THREAD,
+                              Policy::LOAD_ALGORITHM>;
+};
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+
+CUB_NAMESPACE_END
 

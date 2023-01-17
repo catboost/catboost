@@ -44,11 +44,7 @@
 #include "../iterator/cache_modified_input_iterator.cuh"
 
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -105,21 +101,22 @@ struct AgentReduce
     //---------------------------------------------------------------------
 
     /// The input value type
-    typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
+    using InputT = cub::detail::value_t<InputIteratorT>;
 
     /// The output value type
-    typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
-        typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
+    using OutputT = cub::detail::non_void_value_t<OutputIteratorT, InputT>;
 
     /// Vector type of InputT for data movement
-    typedef typename CubVector<InputT, AgentReducePolicy::VECTOR_LOAD_LENGTH>::Type VectorT;
+    using VectorT =
+      typename CubVector<InputT, AgentReducePolicy::VECTOR_LOAD_LENGTH>::Type;
 
     /// Input iterator wrapper type (for applying cache modifier)
-    typedef typename If<IsPointer<InputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentReducePolicy::LOAD_MODIFIER, InputT, OffsetT>,      // Wrap the native input pointer with CacheModifiedInputIterator
-            InputIteratorT>::Type                                                               // Directly use the supplied input iterator type
-        WrappedInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<InputIteratorT>::value,
+      CacheModifiedInputIterator<AgentReducePolicy::LOAD_MODIFIER, InputT, OffsetT>,
+      InputIteratorT>;
 
     /// Constants
     enum
@@ -132,7 +129,7 @@ struct AgentReduce
         // Can vectorize according to the policy if the input iterator is a native pointer to a primitive type
         ATTEMPT_VECTORIZATION   = (VECTOR_LOAD_LENGTH > 1) &&
                                     (ITEMS_PER_THREAD % VECTOR_LOAD_LENGTH == 0) &&
-                                    (IsPointer<InputIteratorT>::VALUE) && Traits<InputT>::PRIMITIVE,
+                                    (std::is_pointer<InputIteratorT>::value) && Traits<InputT>::PRIMITIVE,
 
     };
 
@@ -140,7 +137,8 @@ struct AgentReduce
     static const BlockReduceAlgorithm BLOCK_ALGORITHM = AgentReducePolicy::BLOCK_ALGORITHM;
 
     /// Parameterized BlockReduce primitive
-    typedef BlockReduce<OutputT, BLOCK_THREADS, AgentReducePolicy::BLOCK_ALGORITHM> BlockReduceT;
+    using BlockReduceT =
+      BlockReduce<OutputT, BLOCK_THREADS, AgentReducePolicy::BLOCK_ALGORITHM>;
 
     /// Shared memory type required by this thread block
     struct _TempStorage
@@ -381,6 +379,5 @@ struct AgentReduce
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

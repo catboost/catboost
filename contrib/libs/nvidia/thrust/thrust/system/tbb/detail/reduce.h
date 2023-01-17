@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/tbb/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -48,7 +47,7 @@ template<typename DerivedPolicy,
 } // end namespace detail
 } // end namespace tbb
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/tbb/detail/reduce.inl>
 

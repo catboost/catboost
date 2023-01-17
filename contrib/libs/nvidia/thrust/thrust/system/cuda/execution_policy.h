@@ -26,59 +26,6 @@
  ******************************************************************************/
 #pragma once
 
-// histogram
-// sort (radix-sort, merge-sort)
-
 #include <thrust/detail/config.h>
 #include <thrust/system/cuda/detail/execution_policy.h>
 #include <thrust/system/cuda/detail/par.h>
-
-// pass
-// ----------------
-#include <thrust/system/cuda/detail/adjacent_difference.h>
-#include <thrust/system/cuda/detail/copy.h>
-#include <thrust/system/cuda/detail/copy_if.h>
-#include <thrust/system/cuda/detail/count.h>
-#include <thrust/system/cuda/detail/equal.h>
-#include <thrust/system/cuda/detail/extrema.h>
-#include <thrust/system/cuda/detail/fill.h>
-#include <thrust/system/cuda/detail/find.h>
-#include <thrust/system/cuda/detail/for_each.h>
-#include <thrust/system/cuda/detail/gather.h>
-#include <thrust/system/cuda/detail/generate.h>
-#include <thrust/system/cuda/detail/inner_product.h>
-#include <thrust/system/cuda/detail/mismatch.h>
-#include <thrust/system/cuda/detail/partition.h>
-#include <thrust/system/cuda/detail/reduce_by_key.h>
-#include <thrust/system/cuda/detail/remove.h>
-#include <thrust/system/cuda/detail/replace.h>
-#include <thrust/system/cuda/detail/reverse.h>
-#include <thrust/system/cuda/detail/scatter.h>
-#include <thrust/system/cuda/detail/swap_ranges.h>
-#include <thrust/system/cuda/detail/tabulate.h>
-#include <thrust/system/cuda/detail/transform.h>
-#include <thrust/system/cuda/detail/transform_reduce.h>
-#include <thrust/system/cuda/detail/transform_scan.h>
-#include <thrust/system/cuda/detail/uninitialized_copy.h>
-#include <thrust/system/cuda/detail/uninitialized_fill.h>
-#include <thrust/system/cuda/detail/unique.h>
-#include <thrust/system/cuda/detail/unique_by_key.h>
-
-// fail
-// ----------------
-// fails with mixed types
-#include <thrust/system/cuda/detail/reduce.h>
-
-// mixed types are not compiling, commented in testing/scan.cu
-#include <thrust/system/cuda/detail/scan.h>
-
-// stubs passed
-// ----------------
-#include <thrust/system/cuda/detail/binary_search.h>
-#include <thrust/system/cuda/detail/merge.h>
-#include <thrust/system/cuda/detail/scan_by_key.h>
-#include <thrust/system/cuda/detail/set_operations.h>
-#include <thrust/system/cuda/detail/sort.h>
-
-// work in progress
-

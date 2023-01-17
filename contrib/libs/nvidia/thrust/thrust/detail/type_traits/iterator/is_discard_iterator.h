@@ -20,8 +20,7 @@
 #include <thrust/detail/type_traits.h>
 #include <thrust/iterator/discard_iterator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -36,5 +35,5 @@ struct is_discard_iterator< thrust::discard_iterator<System> >
 {};
 
 } // end namespace detail
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

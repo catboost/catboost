@@ -27,8 +27,7 @@
 #include <thrust/random/detail/random_core_access.h>
 #include <iostream>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -110,7 +109,8 @@ template<typename IntType = int>
      *           the platform.
      */
     __host__ __device__
-    explicit uniform_int_distribution(IntType a = 0, IntType b = thrust::detail::integer_traits<IntType>::const_max);
+    explicit uniform_int_distribution(IntType a = 0,
+                                      IntType b = THRUST_NS_QUALIFIER::detail::integer_traits<IntType>::const_max);
 
     /*! This constructor creates a new \p uniform_int_distribution from a \p param_type object
      *  encapsulating the range of the distribution.
@@ -270,7 +270,7 @@ operator>>(std::basic_istream<CharT,Traits> &is,
 
 using random::uniform_int_distribution;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/random/detail/uniform_int_distribution.inl>
 

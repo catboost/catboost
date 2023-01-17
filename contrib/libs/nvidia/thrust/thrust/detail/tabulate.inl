@@ -21,8 +21,7 @@
 #include <thrust/system/detail/generic/tabulate.h>
 #include <thrust/system/detail/adl/tabulate.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -53,5 +52,5 @@ template<typename ForwardIterator, typename UnaryOperation>
 } // end tabulate()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

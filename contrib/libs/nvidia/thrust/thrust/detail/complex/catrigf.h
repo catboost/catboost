@@ -54,7 +54,7 @@
 #include <cfloat>
 #include <cmath>
 
-namespace thrust{
+THRUST_NAMESPACE_BEGIN
 namespace detail{
 namespace complex{		      	
 
@@ -497,4 +497,4 @@ inline complex<float> atanh(const complex<float>& z){
 }
 #endif
 
-} // namespace thrust
+THRUST_NAMESPACE_END

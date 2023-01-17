@@ -34,14 +34,11 @@
 #pragma once
 
 #include <iterator>
-#include "../util_namespace.cuh"
-#include "../config.cuh"
+#include <cub/util_namespace.cuh>
+#include <cub/util_type.cuh>
+#include <cub/config.cuh>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -61,7 +58,7 @@ __host__ __device__ __forceinline__ void MergePathSearch(
     CoordinateT&    path_coordinate)
 {
     /// The value type of the input iterator
-    typedef typename std::iterator_traits<AIteratorT>::value_type T;
+    using T = cub::detail::value_t<AIteratorT>;
 
     OffsetT split_min = CUB_MAX(diagonal - b_len, 0);
     OffsetT split_max = CUB_MIN(diagonal, a_len);
@@ -152,5 +149,4 @@ __device__ __forceinline__ OffsetT UpperBound(
 
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

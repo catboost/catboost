@@ -26,7 +26,8 @@
 #include <thrust/detail/vector_base.h>
 #include <vector>
 
-namespace thrust { namespace system { namespace cpp
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace cpp
 {
 
 /*! \p cpp::vector is a container that supports random access to elements,
@@ -78,4 +79,4 @@ using thrust::system::cpp::vector;
 using thrust::system::cpp::universal_vector;
 }
 
-} // end thrust
+THRUST_NAMESPACE_END

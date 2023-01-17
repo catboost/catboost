@@ -76,8 +76,7 @@
 // define these entities here for the purpose of Doxygenating them
 // they are actually defined elsewhere
 #if 0
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -150,7 +149,7 @@ static const unspecified par;
 
 } // end cpp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 #endif
 
 

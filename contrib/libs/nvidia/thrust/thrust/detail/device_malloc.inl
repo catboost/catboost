@@ -25,9 +25,7 @@
 #include <thrust/system/detail/generic/select_system.h>
 #include <thrust/detail/malloc_and_free.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 thrust::device_ptr<void> device_malloc(const std::size_t n)
 {
@@ -55,6 +53,4 @@ template<typename T>
   return thrust::device_ptr<T>(thrust::malloc<T>(s,n).get());
 } // end device_malloc()
 
-
-} // end thrust
-
+THRUST_NAMESPACE_END

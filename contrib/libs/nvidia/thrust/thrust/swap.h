@@ -23,12 +23,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-// empty Doxygen comment below so namespace thrust's documentation will be extracted
-
-/*!
- */
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup utility
  *  \{
@@ -184,8 +179,6 @@ template<typename ForwardIterator1,
 /*! \} // copying
  */
 
-
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/swap.inl>
-

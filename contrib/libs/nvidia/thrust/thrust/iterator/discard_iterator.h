@@ -27,8 +27,7 @@
 
 THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -169,7 +168,7 @@ discard_iterator<> make_discard_iterator(discard_iterator<>::difference_type i =
 /*! \} // end iterators
  */
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END
 

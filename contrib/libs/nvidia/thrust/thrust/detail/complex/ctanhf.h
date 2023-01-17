@@ -52,11 +52,13 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/complex.h>
 #include <thrust/detail/complex/math_private.h>
 #include <cmath>
 
-namespace thrust{
+THRUST_NAMESPACE_BEGIN
 namespace detail{
 namespace complex{		      	
 
@@ -121,4 +123,4 @@ inline complex<float> tanh(const complex<float>& z){
   return detail::complex::ctanhf(z);
 }
 
-} // namespace thrust
+THRUST_NAMESPACE_END

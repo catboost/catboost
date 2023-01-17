@@ -28,8 +28,7 @@
 #include <thrust/detail/malloc_and_free.h>
 #include <thrust/detail/temporary_buffer.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \defgroup memory_management Memory Management
  *
@@ -543,5 +542,4 @@ typename detail::raw_reference<const T>::type
 /*! \}
  */
 
-} // end thrust
-
+THRUST_NAMESPACE_END

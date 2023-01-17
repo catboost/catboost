@@ -20,8 +20,7 @@
 #include <thrust/detail/config.h>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace static_map_detail
@@ -166,5 +165,5 @@ unsigned int lookup(unsigned int key)
 
 
 } // end namespace detail
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -22,8 +22,7 @@
 #include <thrust/mr/memory_resource.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -43,5 +42,5 @@ MR * get_per_device_resource(thrust::detail::execution_policy_base<DerivedPolicy
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

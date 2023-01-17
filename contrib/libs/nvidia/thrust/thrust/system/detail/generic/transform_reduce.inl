@@ -19,8 +19,7 @@
 #include <thrust/reduce.h>
 #include <thrust/iterator/transform_iterator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -52,5 +51,5 @@ __host__ __device__
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

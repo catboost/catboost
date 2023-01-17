@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/iterator_adaptor.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename> class reverse_iterator;
 
@@ -38,5 +39,5 @@ template<typename BidirectionalIterator>
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

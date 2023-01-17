@@ -18,8 +18,7 @@
 #include <utility>
 #include <thrust/detail/memory_wrapper.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // wg21.link/p0316r0
 
@@ -438,7 +437,7 @@ uninitialized_allocate_unique_n(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011
 

@@ -27,8 +27,8 @@
 #include <tuple>
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -261,7 +261,7 @@ extract_dependencies(System &&)
 }
 
 } // end detail
-} // end thrust
+
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011
-

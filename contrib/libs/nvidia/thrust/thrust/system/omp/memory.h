@@ -27,7 +27,8 @@
 #include <thrust/mr/allocator.h>
 #include <ostream>
 
-namespace thrust { namespace system { namespace omp
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace omp
 {
 
 /*! Allocates an area of memory available to Thrust's <tt>omp</tt> system.
@@ -94,7 +95,7 @@ using thrust::system::omp::allocator;
 using thrust::system::omp::universal_allocator;
 } // namespace omp
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/omp/detail/memory.inl>
 

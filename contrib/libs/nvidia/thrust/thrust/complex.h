@@ -44,8 +44,7 @@
 #  define THRUST_STD_COMPLEX_DEVICE
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*
  *  Calls to the standard math library from inside the thrust namespace
@@ -1026,7 +1025,7 @@ template <typename T0, typename T1>
 __host__ __device__
 bool operator!=(const complex<T0>& x, const T1& y);
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/complex/complex.inl>
 

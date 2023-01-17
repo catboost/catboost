@@ -21,11 +21,10 @@
 // #include the host system's memory_resource header
 #include <thrust/system/cpp/memory_resource.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 typedef thrust::system::cpp::memory_resource
     host_memory_resource;
 
-} // end thrust
+THRUST_NAMESPACE_END
 

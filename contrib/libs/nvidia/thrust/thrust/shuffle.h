@@ -28,7 +28,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust {
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup reordering
 *  \ingroup algorithms
@@ -173,7 +173,7 @@ template <typename RandomIterator, typename OutputIterator, typename URBG>
 __host__ __device__ void shuffle_copy(RandomIterator first, RandomIterator last,
                                       OutputIterator result, URBG&& g);
 
-}  // namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/shuffle.inl>
 #endif

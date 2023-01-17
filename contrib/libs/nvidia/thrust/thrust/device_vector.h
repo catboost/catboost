@@ -29,8 +29,7 @@
 #include <vector>
 #include <utility>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup container_classes Container Classes
  *  \addtogroup device_containers Device Containers
@@ -489,6 +488,4 @@ template<typename T, typename Alloc>
 /*! \}
  */
 
-} // namespace thrust
-
-
+THRUST_NAMESPACE_END

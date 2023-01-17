@@ -24,8 +24,7 @@
 #include <thrust/detail/seq.h>
 #include <tbb/parallel_invoke.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -261,5 +260,5 @@ template<typename DerivedPolicy,
 } // end namespace detail
 } // end namespace tbb
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

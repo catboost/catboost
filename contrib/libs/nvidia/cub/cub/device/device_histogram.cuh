@@ -41,11 +41,7 @@
 #include "dispatch/dispatch_histogram.cuh"
 #include "../config.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -86,8 +82,8 @@ struct DeviceHistogram
      * // Declare, allocate, and initialize device-accessible pointers for input samples and
      * // output histogram
      * int      num_samples;    // e.g., 10
-     * float*   d_samples;      // e.g., [2.2, 6.0, 7.1, 2.9, 3.5, 0.3, 2.9, 2.0, 6.1, 999.5]
-     * int*     d_histogram;    // e.g., [ -, -, -, -, -, -, -, -]
+     * float*   d_samples;      // e.g., [2.2, 6.1, 7.1, 2.9, 3.5, 0.3, 2.9, 2.1, 6.1, 999.5]
+     * int*     d_histogram;    // e.g., [ -, -, -, -, -, -]
      * int      num_levels;     // e.g., 7       (seven level boundaries for six bins)
      * float    lower_level;    // e.g., 0.0     (lower sample value boundary of lowest bin)
      * float    upper_level;    // e.g., 12.0    (upper sample value boundary of upper bin)
@@ -106,7 +102,7 @@ struct DeviceHistogram
      * cub::DeviceHistogram::HistogramEven(d_temp_storage, temp_storage_bytes,
      *     d_samples, d_histogram, num_levels, lower_level, upper_level, num_samples);
      *
-     * // d_histogram   <-- [1, 0, 5, 0, 3, 0, 0, 0];
+     * // d_histogram   <-- [1, 5, 0, 3, 0, 0];
      *
      * \endcode
      *
@@ -122,8 +118,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                             ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                         ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                                ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
         int                 num_levels,                                 ///< [in] The number of boundaries (levels) for delineating histogram samples.  Implies that the number of bins is <tt>num_levels</tt> - 1.
@@ -134,7 +130,7 @@ struct DeviceHistogram
         bool                debug_synchronous       = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
         /// The sample value type of the input iterator
-        typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
+        using SampleT = cub::detail::value_t<SampleIteratorT>;
 
         CounterT*           d_histogram1[1]     = {d_histogram};
         int                 num_levels1[1]      = {num_levels};
@@ -182,9 +178,9 @@ struct DeviceHistogram
      * int      num_row_samples;    // e.g., 5
      * int      num_rows;           // e.g., 2;
      * size_t   row_stride_bytes;   // e.g., 7 * sizeof(float)
-     * float*   d_samples;          // e.g., [2.2, 6.0, 7.1, 2.9, 3.5,   -, -,
-     *                              //        0.3, 2.9, 2.0, 6.1, 999.5, -, -]
-     * int*     d_histogram;        // e.g., [ -, -, -, -, -, -, -, -]
+     * float*   d_samples;          // e.g., [2.2, 6.1, 7.1, 2.9, 3.5,   -, -,
+     *                              //        0.3, 2.9, 2.1, 6.1, 999.5, -, -]
+     * int*     d_histogram;        // e.g., [ -, -, -, -, -, -]
      * int      num_levels;         // e.g., 7       (seven level boundaries for six bins)
      * float    lower_level;        // e.g., 0.0     (lower sample value boundary of lowest bin)
      * float    upper_level;        // e.g., 12.0    (upper sample value boundary of upper bin)
@@ -205,7 +201,7 @@ struct DeviceHistogram
      *     d_samples, d_histogram, num_levels, lower_level, upper_level,
      *     num_row_samples, num_rows, row_stride_bytes);
      *
-     * // d_histogram   <-- [1, 0, 5, 0, 3, 0, 0, 0];
+     * // d_histogram   <-- [1, 5, 0, 3, 0, 0];
      *
      * \endcode
      *
@@ -221,8 +217,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                             ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                         ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                                ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
         int                 num_levels,                                 ///< [in] The number of boundaries (levels) for delineating histogram samples.  Implies that the number of bins is <tt>num_levels</tt> - 1.
@@ -323,8 +319,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                             ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                         ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],           ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
         int                 num_levels[NUM_ACTIVE_CHANNELS],            ///< [in] The number of boundaries (levels) for delineating histogram samples in each active channel.  Implies that the number of bins for channel<sub><em>i</em></sub> is <tt>num_levels[i]</tt> - 1.
@@ -335,7 +331,7 @@ struct DeviceHistogram
         bool                debug_synchronous       = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
         /// The sample value type of the input iterator
-        typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
+        using SampleT = cub::detail::value_t<SampleIteratorT>;
 
         return MultiHistogramEven<NUM_CHANNELS, NUM_ACTIVE_CHANNELS>(
             d_temp_storage,
@@ -430,8 +426,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramEven(
-        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                             ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                         ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],           ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
         int                 num_levels[NUM_ACTIVE_CHANNELS],            ///< [in] The number of boundaries (levels) for delineating histogram samples in each active channel.  Implies that the number of bins for channel<sub><em>i</em></sub> is <tt>num_levels[i]</tt> - 1.
@@ -444,7 +440,7 @@ struct DeviceHistogram
         bool                debug_synchronous       = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
         /// The sample value type of the input iterator
-        typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
+        using SampleT = cub::detail::value_t<SampleIteratorT>;
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
         if ((sizeof(OffsetT) > sizeof(int)) &&
@@ -492,7 +488,7 @@ struct DeviceHistogram
      * // output histogram
      * int      num_samples;    // e.g., 10
      * float*   d_samples;      // e.g., [2.2, 6.0, 7.1, 2.9, 3.5, 0.3, 2.9, 2.0, 6.1, 999.5]
-     * int*     d_histogram;    // e.g., [ -, -, -, -, -, -, -, -]
+     * int*     d_histogram;    // e.g., [ -, -, -, -, -, -]
      * int      num_levels      // e.g., 7 (seven level boundaries for six bins)
      * float*   d_levels;       // e.g., [0.0, 2.0, 4.0, 6.0, 8.0, 12.0, 16.0]
      * ...
@@ -510,7 +506,7 @@ struct DeviceHistogram
      * cub::DeviceHistogram::HistogramRange(d_temp_storage, temp_storage_bytes,
      *     d_samples, d_histogram, num_levels, d_levels, num_samples);
      *
-     * // d_histogram   <-- [1, 0, 5, 0, 3, 0, 0, 0];
+     * // d_histogram   <-- [1, 5, 0, 3, 0, 0];
      *
      * \endcode
      *
@@ -526,8 +522,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                         ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                     ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                            ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
         int                 num_levels,                             ///< [in] The number of boundaries (levels) for delineating histogram samples.  Implies that the number of bins is <tt>num_levels</tt> - 1.
@@ -537,7 +533,7 @@ struct DeviceHistogram
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
         /// The sample value type of the input iterator
-        typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
+        using SampleT = cub::detail::value_t<SampleIteratorT>;
 
         CounterT*           d_histogram1[1] = {d_histogram};
         int                 num_levels1[1]  = {num_levels};
@@ -585,7 +581,7 @@ struct DeviceHistogram
      * int      row_stride_bytes;   // e.g., 7 * sizeof(float)
      * float*   d_samples;          // e.g., [2.2, 6.0, 7.1, 2.9, 3.5,   -, -,
      *                              //        0.3, 2.9, 2.0, 6.1, 999.5, -, -]
-     * int*     d_histogram;        // e.g., [ , , , , , , , ]
+     * int*     d_histogram;        // e.g., [ -, -, -, -, -, -]
      * int      num_levels          // e.g., 7 (seven level boundaries for six bins)
      * float    *d_levels;          // e.g., [0.0, 2.0, 4.0, 6.0, 8.0, 12.0, 16.0]
      * ...
@@ -605,7 +601,7 @@ struct DeviceHistogram
      *     d_samples, d_histogram, num_levels, d_levels,
      *     num_row_samples, num_rows, row_stride_bytes);
      *
-     * // d_histogram   <-- [1, 0, 5, 0, 3, 0, 0, 0];
+     * // d_histogram   <-- [1, 5, 0, 3, 0, 0];
      *
      * \endcode
      *
@@ -621,8 +617,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t HistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                         ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                     ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the input sequence of data samples.
         CounterT*           d_histogram,                            ///< [out] The pointer to the histogram counter output array of length <tt>num_levels</tt> - 1.
         int                 num_levels,                             ///< [in] The number of boundaries (levels) for delineating histogram samples.  Implies that the number of bins is <tt>num_levels</tt> - 1.
@@ -720,8 +716,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                         ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                     ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],       ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
         int                 num_levels[NUM_ACTIVE_CHANNELS],        ///< [in] The number of boundaries (levels) for delineating histogram samples in each active channel.  Implies that the number of bins for channel<sub><em>i</em></sub> is <tt>num_levels[i]</tt> - 1.
@@ -731,7 +727,7 @@ struct DeviceHistogram
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
         /// The sample value type of the input iterator
-        typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
+        using SampleT = cub::detail::value_t<SampleIteratorT>;
 
         return MultiHistogramRange<NUM_CHANNELS, NUM_ACTIVE_CHANNELS>(
             d_temp_storage,
@@ -823,8 +819,8 @@ struct DeviceHistogram
         typename            OffsetT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t MultiHistogramRange(
-        void*               d_temp_storage,                         ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                         ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                     ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                              ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four <em>RGBA</em> 8-bit samples).
         CounterT*           d_histogram[NUM_ACTIVE_CHANNELS],       ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histogram[i]</tt> should be <tt>num_levels[i]</tt> - 1.
         int                 num_levels[NUM_ACTIVE_CHANNELS],        ///< [in] The number of boundaries (levels) for delineating histogram samples in each active channel.  Implies that the number of bins for channel<sub><em>i</em></sub> is <tt>num_levels[i]</tt> - 1.
@@ -836,7 +832,7 @@ struct DeviceHistogram
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
         /// The sample value type of the input iterator
-        typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
+        using SampleT = cub::detail::value_t<SampleIteratorT>;
         Int2Type<sizeof(SampleT) == 1> is_byte_sample;
 
         if ((sizeof(OffsetT) > sizeof(int)) &&
@@ -860,7 +856,6 @@ struct DeviceHistogram
     //@}  end member group
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

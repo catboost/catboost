@@ -21,8 +21,7 @@
 #include <thrust/detail/static_assert.h>
 #include <thrust/detail/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -100,5 +99,5 @@ void iter_swap(thrust::execution_policy<DerivedPolicy> &, Pointer1, Pointer2)
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

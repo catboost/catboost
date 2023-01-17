@@ -47,11 +47,7 @@
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -128,12 +124,11 @@ struct DeviceRleDispatch
      ******************************************************************************/
 
     // The input value type
-    typedef typename std::iterator_traits<InputIteratorT>::value_type T;
+    using T = cub::detail::value_t<InputIteratorT>;
 
     // The lengths output value type
-    typedef typename If<(Equals<typename std::iterator_traits<LengthsOutputIteratorT>::value_type, void>::VALUE),   // LengthT =  (if output iterator's value type is void) ?
-        OffsetT,                                                                                                    // ... then the OffsetT type,
-        typename std::iterator_traits<LengthsOutputIteratorT>::value_type>::Type LengthT;                           // ... else the output iterator's value type
+    using LengthT =
+      cub::detail::non_void_value_t<LengthsOutputIteratorT, OffsetT>;
 
     enum
     {
@@ -141,7 +136,7 @@ struct DeviceRleDispatch
     };
 
     // Tile status descriptor interface type
-    typedef ReduceByKeyScanTileState<LengthT, OffsetT> ScanTileStateT;
+    using ScanTileStateT = ReduceByKeyScanTileState<LengthT, OffsetT>;
 
 
     /******************************************************************************
@@ -256,7 +251,7 @@ struct DeviceRleDispatch
         typename                    DeviceRleSweepKernelPtr>        ///< Function type of cub::DeviceRleSweepKernelPtr
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                 ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT              d_in,                           ///< [in] Pointer to the input sequence of data items
         OffsetsOutputIteratorT      d_offsets_out,                  ///< [out] Pointer to the output sequence of run-offsets
@@ -286,10 +281,6 @@ struct DeviceRleDispatch
             int device_ordinal;
             if (CubDebug(error = cudaGetDevice(&device_ordinal))) break;
 
-            // Get SM count
-            int sm_count;
-            if (CubDebug(error = cudaDeviceGetAttribute (&sm_count, cudaDevAttrMultiProcessorCount, device_ordinal))) break;
-
             // Number of input tiles
             int tile_size = device_rle_config.block_threads * device_rle_config.items_per_thread;
             int num_tiles = static_cast<int>(cub::DivideAndRoundUp(num_items, tile_size));
@@ -316,7 +307,7 @@ struct DeviceRleDispatch
             if (debug_synchronous) _CubLog("Invoking device_scan_init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
 
             // Invoke device_scan_init_kernel to initialize tile descriptors and queue descriptors
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 init_grid_size, INIT_KERNEL_THREADS, 0, stream
             ).doit(device_scan_init_kernel,
                 tile_status,
@@ -355,7 +346,7 @@ struct DeviceRleDispatch
                 scan_grid_size.x, scan_grid_size.y, scan_grid_size.z, device_rle_config.block_threads, (long long) stream, device_rle_config.items_per_thread, device_rle_kernel_sm_occupancy);
 
             // Invoke device_rle_sweep_kernel
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 scan_grid_size, device_rle_config.block_threads, 0, stream
             ).doit(device_rle_sweep_kernel,
                 d_in,
@@ -387,7 +378,7 @@ struct DeviceRleDispatch
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                 ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT              d_in,                           ///< [in] Pointer to input sequence of data items
         OffsetsOutputIteratorT      d_offsets_out,                  ///< [out] Pointer to output sequence of run-offsets
@@ -433,7 +424,6 @@ struct DeviceRleDispatch
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

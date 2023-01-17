@@ -27,8 +27,7 @@
 #include <thrust/random/detail/random_core_access.h>
 #include <thrust/random/detail/linear_congruential_engine_discard.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -289,7 +288,7 @@ using random::linear_congruential_engine;
 using random::minstd_rand;
 using random::minstd_rand0;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/random/detail/linear_congruential_engine.inl>
 

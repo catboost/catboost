@@ -28,8 +28,7 @@
 #  include <type_traits>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward declaration of device_reference
 template<typename T> class device_reference;
@@ -651,7 +650,7 @@ template<typename T1, typename T2>
 
   template<typename T> static typename add_reference<T>::type declval();
   
-  template<unsigned int> struct helper { typedef void * type; };
+  template<size_t> struct helper { typedef void * type; };
 
   template<typename U1, typename U2> static yes_type test(typename helper<sizeof(declval<U1>() = declval<U2>())>::type);
 
@@ -730,7 +729,7 @@ using detail::integral_constant;
 using detail::true_type;
 using detail::false_type;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/type_traits/has_trivial_assign.h>
 

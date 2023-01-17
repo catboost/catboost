@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -72,5 +71,5 @@ THRUST_INLINE_CONSTANT tag seq;
 } // end sequential
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

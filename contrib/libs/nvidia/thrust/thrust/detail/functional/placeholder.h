@@ -20,8 +20,7 @@
 #include <thrust/detail/functional/actor.h>
 #include <thrust/detail/functional/argument.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -35,5 +34,5 @@ template<unsigned int i>
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

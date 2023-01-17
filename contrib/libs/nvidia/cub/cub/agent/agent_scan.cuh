@@ -43,11 +43,7 @@
 #include "../grid/grid_queue.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -100,27 +96,32 @@ struct AgentScan
     //---------------------------------------------------------------------
 
     // The input value type
-    using InputT = typename std::iterator_traits<InputIteratorT>::value_type;
+    using InputT = cub::detail::value_t<InputIteratorT>;
 
     // The output value type -- used as the intermediate accumulator
     // Per https://wg21.link/P0571, use InitValueT if provided, otherwise the
     // input iterator's value type.
     using OutputT =
-      typename If<Equals<InitValueT, NullType>::VALUE, InputT, InitValueT>::Type;
+      cub::detail::conditional_t<std::is_same<InitValueT, NullType>::value,
+                                 InputT,
+                                 InitValueT>;
 
     // Tile status descriptor interface type
-    typedef ScanTileState<OutputT> ScanTileStateT;
+    using ScanTileStateT = ScanTileState<OutputT>;
 
     // Input iterator wrapper type (for applying cache modifier)
-    typedef typename If<IsPointer<InputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentScanPolicyT::LOAD_MODIFIER, InputT, OffsetT>,   // Wrap the native input pointer with CacheModifiedInputIterator
-            InputIteratorT>::Type                                                           // Directly use the supplied input iterator type
-        WrappedInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<InputIteratorT>::value,
+      CacheModifiedInputIterator<AgentScanPolicyT::LOAD_MODIFIER, InputT, OffsetT>,
+      InputIteratorT>;
 
     // Constants
     enum
     {
-        IS_INCLUSIVE        = Equals<InitValueT, NullType>::VALUE,            // Inclusive scan if no init_value type is provided
+        // Inclusive scan if no init_value type is provided
+        IS_INCLUSIVE        = std::is_same<InitValueT, NullType>::value,
         BLOCK_THREADS       = AgentScanPolicyT::BLOCK_THREADS,
         ITEMS_PER_THREAD    = AgentScanPolicyT::ITEMS_PER_THREAD,
         TILE_ITEMS          = BLOCK_THREADS * ITEMS_PER_THREAD,
@@ -485,6 +486,5 @@ struct AgentScan
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

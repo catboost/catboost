@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/iterator_adaptor.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward declaration of constant_iterator
 template<typename,typename,typename> class constant_iterator;
@@ -66,5 +67,5 @@ template<typename Value,
 
 } // end detail
   
-} // end thrust
+THRUST_NAMESPACE_END
 

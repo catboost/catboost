@@ -28,8 +28,7 @@
 #include <thrust/unique.h>
 #include <thrust/detail/range/head_flags.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -136,5 +135,5 @@ unique_by_key_copy(thrust::execution_policy<ExecutionPolicy> &exec,
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

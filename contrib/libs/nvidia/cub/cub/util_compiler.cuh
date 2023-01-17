@@ -63,7 +63,7 @@
 #endif // CUB_HOST_COMPILER
 
 // figure out which device compiler we're using
-#if defined(__CUDACC__) || defined(__NVCOMPILER_CUDA__)
+#if defined(__CUDACC__) || defined(_NVHPC_CUDA)
 #  define CUB_DEVICE_COMPILER CUB_DEVICE_COMPILER_NVCC
 #elif CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
 #  define CUB_DEVICE_COMPILER CUB_DEVICE_COMPILER_MSVC

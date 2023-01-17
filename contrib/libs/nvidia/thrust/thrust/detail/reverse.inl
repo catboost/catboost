@@ -26,8 +26,7 @@
 #include <thrust/system/detail/generic/reverse.h>
 #include <thrust/system/detail/adl/reverse.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -87,5 +86,5 @@ template<typename BidirectionalIterator,
 } // end reverse_copy()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

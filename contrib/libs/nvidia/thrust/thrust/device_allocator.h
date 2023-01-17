@@ -30,8 +30,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /** \addtogroup memory_resources Memory Resources
  *  \ingroup memory_management_classes
@@ -120,7 +119,7 @@ public:
     device_allocator() {}
 
     /*! Copy constructor has no effect. */
-    __host__
+    __host__ __device__
     device_allocator(const device_allocator& other) : base(other) {}
 
     /*! Constructor from other \p device_allocator has no effect. */
@@ -140,5 +139,4 @@ public:
 /*! \}
  */
 
-} // end thrust
-
+THRUST_NAMESPACE_END

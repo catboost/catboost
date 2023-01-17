@@ -21,8 +21,7 @@
 #include <cstdlib> // for malloc & free
 #include <thrust/detail/raw_pointer_cast.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -50,5 +49,5 @@ void free(sequential::execution_policy<DerivedPolicy> &, Pointer ptr)
 } // end sequential
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

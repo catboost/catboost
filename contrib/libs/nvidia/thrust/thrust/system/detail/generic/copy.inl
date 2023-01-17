@@ -26,8 +26,7 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/iterator/detail/minimum_system.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -77,5 +76,5 @@ __host__ __device__
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

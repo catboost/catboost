@@ -20,8 +20,9 @@
 
 #pragma once
 
-namespace thrust
-{
+#include <thrust/detail/config.h>
+
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -31,7 +32,7 @@ template<typename T, typename System>
   class temporary_array;
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -41,8 +42,7 @@ template<typename T, typename System>
 #include <thrust/detail/allocator/no_throw_allocator.h>
 #include <thrust/detail/memory_wrapper.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -175,7 +175,7 @@ template<typename Iterator, typename FromSystem, typename ToSystem>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/temporary_array.inl>
 

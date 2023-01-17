@@ -52,8 +52,7 @@
 //    fixed in CUB first).
 //  - Need to check if CUB actually optimizes for sums before putting in effort
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace cuda
@@ -186,7 +185,7 @@ THRUST_RETURNS(
 
 } // namespace cuda_cub
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 

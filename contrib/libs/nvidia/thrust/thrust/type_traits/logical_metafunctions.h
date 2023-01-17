@@ -19,8 +19,7 @@
 
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 #if THRUST_CPP_DIALECT >= 2017
 
@@ -132,9 +131,9 @@ struct conjunction_value<> : std::true_type {};
 template <bool B>
 struct conjunction_value<B> : std::integral_constant<bool, B> {};
 
-template <bool B0, bool... BN>
-struct conjunction_value<B0, BN...>
-  : std::integral_constant<bool, B0 && conjunction_value<BN...>::value> {};
+template <bool B, bool... Bs>
+struct conjunction_value<B, Bs...>
+  : std::integral_constant<bool, B && conjunction_value<Bs...>::value> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -154,9 +153,9 @@ struct disjunction_value<> : std::false_type {};
 template <bool B>
 struct disjunction_value<B> : std::integral_constant<bool, B> {};
 
-template <bool B0, bool... BN>
-struct disjunction_value<B0, BN...>
-  : std::integral_constant<bool, B0 || disjunction_value<BN...>::value> {};
+template <bool B, bool... Bs>
+struct disjunction_value<B, Bs...>
+  : std::integral_constant<bool, B || disjunction_value<Bs...>::value> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -173,7 +172,7 @@ constexpr bool negation_value_v = negation_value<B>::value;
 template <bool B>
 struct negation_value : std::integral_constant<bool, !B> {};
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011
 

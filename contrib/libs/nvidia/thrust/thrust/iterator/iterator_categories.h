@@ -39,8 +39,7 @@
 // #include this for stl's iterator tags
 #include <iterator>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \addtogroup iterator_tags Iterator Tags
@@ -218,7 +217,7 @@ typedef std::random_access_iterator_tag random_access_host_iterator_tag;
 /*! \} // end iterator_tag_classes
  */
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/iterator/detail/universal_categories.h>
 

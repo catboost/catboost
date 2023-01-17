@@ -29,8 +29,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward declarations to WAR circular #includes
 template<typename> class device_ptr;
@@ -180,6 +179,4 @@ template<typename T>
 /*! \}
  */
 
-} // end thrust
-
-
+THRUST_NAMESPACE_END

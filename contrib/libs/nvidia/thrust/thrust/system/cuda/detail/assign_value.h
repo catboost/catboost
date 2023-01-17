@@ -16,16 +16,16 @@
 
 #pragma once
 
-#if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/detail/config.h>
+
+#if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
 #include <thrust/system/cuda/detail/execution_policy.h>
 #include <thrust/detail/raw_pointer_cast.h>
 #include <thrust/system/cuda/detail/copy.h>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 
@@ -98,5 +98,5 @@ inline __host__ __device__
 
 
 } // end cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

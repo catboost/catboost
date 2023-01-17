@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/omp/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -45,7 +44,7 @@ template<typename DerivedPolicy,
 } // end detail
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/omp/detail/copy_if.inl>
 

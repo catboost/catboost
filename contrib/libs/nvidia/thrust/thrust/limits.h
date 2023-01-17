@@ -7,13 +7,12 @@
 
 #include <limits>
 
+#include <thrust/detail/config.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename T>
 struct numeric_limits : std::numeric_limits<T> {};
 
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

@@ -26,13 +26,14 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/detail/util.h>
 #include <thrust/system/cuda/detail/parallel_for.h>
 #include <thrust/distance.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 namespace __fill {
@@ -71,7 +72,7 @@ fill_n(execution_policy<Derived>& policy,
                          count);
 
   cuda_cub::throw_on_error(
-    cuda_cub::synchronize(policy)
+    cuda_cub::synchronize_optional(policy)
   , "fill_n: failed to synchronize"
   );
 
@@ -90,5 +91,5 @@ fill(execution_policy<Derived>& policy,
 
 
 } // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

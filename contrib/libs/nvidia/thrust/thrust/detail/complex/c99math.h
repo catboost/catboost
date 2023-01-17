@@ -16,12 +16,13 @@
  */
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <math.h>
 #include <cmath>
 #include <thrust/detail/complex/math_private.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace complex
@@ -101,7 +102,7 @@ __host__ __device__ inline int isfinite(double x){
 
 #else
 
-#  if defined(__CUDACC__) && !(defined(__CUDA__) && defined(__clang__)) && !defined(__NVCOMPILER_CUDA__)
+#  if defined(__CUDACC__) && !(defined(__CUDA__) && defined(__clang__)) && !defined(_NVHPC_CUDA)
 // NVCC implements at least some signature of these as functions not macros.
 using ::isinf;
 using ::isnan;
@@ -140,7 +141,7 @@ __host__ __device__ inline float copysignf(float x, float y){
 
 
 
-#if !defined(__CUDACC__) && !defined(__NVCOMPILER_CUDA__)
+#if !defined(__CUDACC__) && !defined(_NVHPC_CUDA)
 
 // Simple approximation to log1p as Visual Studio is lacking one
 inline double log1p(double x){
@@ -192,5 +193,5 @@ inline double hypot(double x, double y){
 
 } // namespace detail
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

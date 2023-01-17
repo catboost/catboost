@@ -22,8 +22,7 @@
 #include <thrust/iterator/detail/any_system_tag.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 // put the canonical tag in the same ns as the backend's entry points
@@ -103,5 +102,5 @@ using thrust::system::omp::execution_policy;
 using thrust::system::omp::tag;
 
 } // end omp
-} // end thrust
+THRUST_NAMESPACE_END
 

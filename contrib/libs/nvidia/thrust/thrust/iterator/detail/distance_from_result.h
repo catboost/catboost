@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -38,5 +37,5 @@ template<typename IteratorFacade1, typename IteratorFacade2>
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

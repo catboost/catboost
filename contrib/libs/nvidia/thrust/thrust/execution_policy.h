@@ -37,9 +37,7 @@
 
 //! \endcond
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \cond
  */
@@ -390,5 +388,4 @@ static const detail::seq_t seq;
  */
 
 
-} // end thrust
-
+THRUST_NAMESPACE_END

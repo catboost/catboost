@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/iterator/detail/transform_input_output_iterator.inl>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -159,5 +158,5 @@ make_transform_input_output_iterator(Iterator io, InputFunction input_function, 
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

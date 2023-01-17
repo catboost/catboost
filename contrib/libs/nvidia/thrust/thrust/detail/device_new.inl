@@ -19,12 +19,12 @@
  *  \brief Inline file for device_new.h.
  */
 
+#include <thrust/detail/config.h>
 #include <thrust/device_new.h>
 #include <thrust/device_malloc.h>
 #include <thrust/uninitialized_fill.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template<typename T>
   device_ptr<T> device_new(device_ptr<void> p,
@@ -56,5 +56,4 @@ template<typename T>
   return device_new<T>(thrust::device_malloc<T>(n));
 } // end device_new()
 
-} // thrust
-
+THRUST_NAMESPACE_END

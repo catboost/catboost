@@ -19,14 +19,15 @@
  *  \brief Inline file for uninitialized_fill.h.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/uninitialized_fill.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/system/detail/generic/select_system.h>
 #include <thrust/system/detail/generic/uninitialized_fill.h>
 #include <thrust/system/detail/adl/uninitialized_fill.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -88,5 +89,5 @@ template<typename ForwardIterator,
 } // end uninitialized_fill_n()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

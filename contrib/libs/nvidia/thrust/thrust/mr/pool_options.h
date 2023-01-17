@@ -24,10 +24,10 @@
 
 #include <thrust/detail/integer_math.h>
 
+#include <thrust/detail/config.h>
 #include <thrust/detail/config/memory_resource.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
@@ -123,5 +123,5 @@ struct pool_options
  */
 
 } // end mr
-} // end thrust
+THRUST_NAMESPACE_END
 

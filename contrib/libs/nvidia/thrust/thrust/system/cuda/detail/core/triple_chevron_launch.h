@@ -32,8 +32,7 @@
 #include <cassert>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub {
 namespace launcher {
@@ -835,7 +834,7 @@ namespace launcher {
     }
 
 
-#if defined(__NVCOMPILER_CUDA__)
+#if defined(_NVHPC_CUDA)
 #  define THRUST_TRIPLE_LAUNCHER_HOSTDEVICE(...) \
       (__builtin_is_device_code() ?              \
           doit_device(__VA_ARGS__) : doit_host(__VA_ARGS__))
@@ -973,4 +972,4 @@ namespace launcher {
 }    // namespace launcher
 }    // namespace cuda_
 
-} // end namespace thrust
+THRUST_NAMESPACE_END

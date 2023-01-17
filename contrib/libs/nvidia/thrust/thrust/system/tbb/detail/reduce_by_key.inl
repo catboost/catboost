@@ -32,8 +32,7 @@
 #include <thread>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -199,7 +198,7 @@ template<typename Iterator1, typename Iterator2, typename Iterator3, typename It
     const size_type interval_idx = r.begin();
 
     const size_type offset_to_first = interval_size * interval_idx;
-    const size_type offset_to_last = thrust::min(n, offset_to_first + interval_size);
+    const size_type offset_to_last = (thrust::min)(n, offset_to_first + interval_size);
 
     Iterator1 my_keys_first     = keys_first    + offset_to_first;
     Iterator1 my_keys_last      = keys_first    + offset_to_last;
@@ -338,5 +337,5 @@ template<typename DerivedPolicy, typename Iterator1, typename Iterator2, typenam
 } // end detail
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

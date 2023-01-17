@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -39,8 +40,7 @@
 
 #include <cub/util_math.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 namespace __extrema {
@@ -130,8 +130,11 @@ namespace __extrema {
       pair_type const &lhs_min = get<0>(lhs);
       pair_type const &rhs_max = get<1>(rhs);
       pair_type const &lhs_max = get<1>(lhs);
-      return thrust::make_tuple(arg_min_t(predicate)(lhs_min, rhs_min),
-                                arg_max_t(predicate)(lhs_max, rhs_max));
+
+      auto result = thrust::make_tuple(arg_min_t(predicate)(lhs_min, rhs_min),
+                                       arg_max_t(predicate)(lhs_max, rhs_max));
+
+      return result;
     }
 
     struct duplicate_tuple
@@ -265,7 +268,7 @@ namespace __extrema {
 
         // if not enough to fill the device with threadblocks
         // then fill the device with threadblocks
-        reduce_grid_size = static_cast<int>(min(num_tiles, static_cast<size_t>(reduce_device_occupancy)));
+        reduce_grid_size = static_cast<int>((min)(num_tiles, static_cast<size_t>(reduce_device_occupancy)));
 
         typedef AgentLauncher<__reduce::DrainAgent<Size> > drain_agent;
         AgentPlan drain_plan = drain_agent::get_plan();
@@ -565,5 +568,5 @@ minmax_element(execution_policy<Derived> &policy,
 
 
 } // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

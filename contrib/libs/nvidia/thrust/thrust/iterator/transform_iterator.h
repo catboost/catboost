@@ -40,8 +40,7 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -352,5 +351,5 @@ make_transform_iterator(Iterator it, AdaptableUnaryFunction fun)
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

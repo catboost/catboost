@@ -25,9 +25,7 @@
 #include <thrust/detail/execution_policy.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup algorithms
  */
@@ -254,7 +252,6 @@ thrust::pair<InputIterator1, InputIterator2> mismatch(InputIterator1 first1,
 /*! \} // end searching
  */
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/mismatch.inl>
-

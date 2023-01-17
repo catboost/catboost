@@ -37,8 +37,7 @@
 
 #include <thrust/future.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace async
 {
@@ -340,6 +339,6 @@ THRUST_INLINE_CONSTANT exclusive_scan_detail::exclusive_scan_fn exclusive_scan{}
 
 } // namespace async
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif

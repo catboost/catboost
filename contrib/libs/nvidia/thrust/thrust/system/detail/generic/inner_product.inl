@@ -20,8 +20,7 @@
 #include <thrust/detail/internal_functional.h>
 #include <thrust/transform_reduce.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -68,5 +67,5 @@ OutputType inner_product(thrust::execution_policy<DerivedPolicy> &exec,
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

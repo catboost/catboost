@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <iterator>
@@ -36,8 +37,7 @@
 #include <thrust/detail/function.h>
 #include <thrust/distance.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub {
 
@@ -82,7 +82,7 @@ namespace cuda_cub {
                            count);
 
     cuda_cub::throw_on_error(
-      cuda_cub::synchronize(policy)
+      cuda_cub::synchronize_optional(policy)
     , "for_each: failed to synchronize"
     );
 
@@ -105,5 +105,5 @@ namespace cuda_cub {
   }
 }    // namespace cuda_cub
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

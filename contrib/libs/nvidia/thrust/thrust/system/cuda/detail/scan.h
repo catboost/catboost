@@ -26,6 +26,8 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 
 #include <thrust/detail/config/exec_check_disable.h>
@@ -38,8 +40,7 @@
 
 #include <cub/device/device_scan.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub
 {
 namespace detail
@@ -114,7 +115,7 @@ OutputIt inclusive_scan_n_impl(thrust::cuda_cub::execution_policy<Derived> &poli
                                  THRUST_DEBUG_SYNC_FLAG));
     thrust::cuda_cub::throw_on_error(status,
                                      "after dispatching inclusive_scan kernel");
-    thrust::cuda_cub::throw_on_error(thrust::cuda_cub::synchronize(policy),
+    thrust::cuda_cub::throw_on_error(thrust::cuda_cub::synchronize_optional(policy),
                                      "inclusive_scan failed to synchronize");
   }
 
@@ -136,15 +137,16 @@ OutputIt exclusive_scan_n_impl(thrust::cuda_cub::execution_policy<Derived> &poli
                                InitValueT init,
                                ScanOp scan_op)
 {
+  using InputValueT = cub::detail::InputValue<InitValueT>;
   using Dispatch32 = cub::DispatchScan<InputIt,
                                        OutputIt,
                                        ScanOp,
-                                       InitValueT,
+                                       InputValueT,
                                        thrust::detail::int32_t>;
   using Dispatch64 = cub::DispatchScan<InputIt,
                                        OutputIt,
                                        ScanOp,
-                                       InitValueT,
+                                       InputValueT,
                                        thrust::detail::int64_t>;
 
   cudaStream_t stream = thrust::cuda_cub::stream(policy);
@@ -162,7 +164,7 @@ OutputIt exclusive_scan_n_impl(thrust::cuda_cub::execution_policy<Derived> &poli
                                  first,
                                  result,
                                  scan_op,
-                                 init,
+                                 InputValueT(init),
                                  num_items_fixed,
                                  stream,
                                  THRUST_DEBUG_SYNC_FLAG));
@@ -186,13 +188,13 @@ OutputIt exclusive_scan_n_impl(thrust::cuda_cub::execution_policy<Derived> &poli
                                  first,
                                  result,
                                  scan_op,
-                                 init,
+                                 InputValueT(init),
                                  num_items_fixed,
                                  stream,
                                  THRUST_DEBUG_SYNC_FLAG));
     thrust::cuda_cub::throw_on_error(status,
                                      "after dispatching exclusive_scan kernel");
-    thrust::cuda_cub::throw_on_error(thrust::cuda_cub::synchronize(policy),
+    thrust::cuda_cub::throw_on_error(thrust::cuda_cub::synchronize_optional(policy),
                                      "exclusive_scan failed to synchronize");
   }
 
@@ -361,7 +363,7 @@ OutputIt exclusive_scan(thrust::cuda_cub::execution_policy<Derived> &policy,
 };
 
 } // namespace cuda_cub
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/scan.h>
 

@@ -14,6 +14,7 @@
   - cuda_bf16.h
   - cuda_fp16.h
   - cuda_gl_interop.h
+  - cuda_occupancy.h
   - cuda_runtime.h
   - cuda_runtime_api.h
   - cufft.h

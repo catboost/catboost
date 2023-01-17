@@ -24,8 +24,7 @@
 #include <thrust/functional.h>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -226,5 +225,5 @@ head_flags<RandomAccessIterator>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

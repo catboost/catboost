@@ -27,8 +27,7 @@
 #include <cstddef>
 #include <thrust/device_ptr.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*!
  *  \addtogroup allocation_functions Allocation Functions
@@ -82,7 +81,6 @@ template <typename T>
 /*! \}
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_new.inl>
-

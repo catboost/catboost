@@ -38,11 +38,7 @@
 #include "../config.cuh"
 #include "../util_ptx.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -103,6 +99,10 @@ enum BlockHistogramAlgorithm
  * \par Overview
  * - A <a href="http://en.wikipedia.org/wiki/Histogram"><em>histogram</em></a>
  *   counts the number of observations that fall into each of the disjoint categories (known as <em>bins</em>).
+ * - The `T` type must be implicitly castable to an integer type.
+ * - BlockHistogram expects each integral `input[i]` value to satisfy
+ *   `0 <= input[i] < BINS`. Values outside of this range result in undefined
+ *   behavior.
  * - BlockHistogram can be optionally specialized to use different algorithms:
  *   -# <b>cub::BLOCK_HISTO_SORT</b>.  Sorting followed by differentiation. [More...](\ref cub::BlockHistogramAlgorithm)
  *   -# <b>cub::BLOCK_HISTO_ATOMIC</b>.  Use atomic addition to update byte counts directly. [More...](\ref cub::BlockHistogramAlgorithm)
@@ -140,9 +140,17 @@ enum BlockHistogramAlgorithm
  * \endcode
  *
  * \par Performance and Usage Considerations
+ * - All input values must fall between [0, BINS), or behavior is undefined.
  * - The histogram output can be constructed in shared or device-accessible memory
  * - See cub::BlockHistogramAlgorithm for performance details regarding algorithmic alternatives
  *
+ * \par Re-using dynamically allocating shared memory
+ * The following example under the examples/block folder illustrates usage of
+ * dynamically shared memory with BlockReduce and how to re-purpose
+ * the same memory region:
+ * <a href="../../examples/block/example_block_reduce_dyn_smem.cu">example_block_reduce_dyn_smem.cu</a>
+ *
+ * This example can be easily adapted to the storage required by BlockHistogram.
  */
 template <
     typename                T,
@@ -180,9 +188,16 @@ private:
             ALGORITHM;
 
     /// Internal specialization.
-    typedef typename If<(SAFE_ALGORITHM == BLOCK_HISTO_SORT),
-        BlockHistogramSort<T, BLOCK_DIM_X, ITEMS_PER_THREAD, BINS, BLOCK_DIM_Y, BLOCK_DIM_Z, PTX_ARCH>,
-        BlockHistogramAtomic<BINS> >::Type InternalBlockHistogram;
+    using InternalBlockHistogram =
+      cub::detail::conditional_t<SAFE_ALGORITHM == BLOCK_HISTO_SORT,
+                                 BlockHistogramSort<T,
+                                                    BLOCK_DIM_X,
+                                                    ITEMS_PER_THREAD,
+                                                    BINS,
+                                                    BLOCK_DIM_Y,
+                                                    BLOCK_DIM_Z,
+                                                    PTX_ARCH>,
+                                 BlockHistogramAtomic<BINS>>;
 
     /// Shared memory storage layout type for BlockHistogram
     typedef typename InternalBlockHistogram::TempStorage _TempStorage;
@@ -409,6 +424,5 @@ public:
 
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

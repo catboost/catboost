@@ -28,8 +28,7 @@
 
 #include <thrust/system/error_code.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -173,7 +172,7 @@ class system_error
 // import names into thrust::
 using system::system_error;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/system_error.inl>
 

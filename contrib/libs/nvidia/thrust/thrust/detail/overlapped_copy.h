@@ -23,8 +23,8 @@
 #include <thrust/detail/temporary_array.h>
 #include <thrust/system/cpp/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -127,5 +127,5 @@ template<typename RandomAccessIterator1,
 } // end overlapped_copy()
 
 } // end detail
-} // end thrust
 
+THRUST_NAMESPACE_END

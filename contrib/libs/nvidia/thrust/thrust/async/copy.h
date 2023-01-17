@@ -32,8 +32,7 @@
 
 #include <thrust/event.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace async
 {
@@ -143,7 +142,7 @@ THRUST_INLINE_CONSTANT copy_detail::copy_fn copy{};
 
 } // namespace async
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif
 

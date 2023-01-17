@@ -26,8 +26,7 @@
 #include <thrust/iterator/detail/constant_iterator_base.h>
 #include <thrust/iterator/iterator_facade.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -247,5 +246,5 @@ constant_iterator<V> make_constant_iterator(V x)
 /*! \} // end iterators
  */
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

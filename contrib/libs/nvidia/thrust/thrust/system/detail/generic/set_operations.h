@@ -20,8 +20,7 @@
 #include <thrust/system/detail/generic/tag.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -313,7 +312,7 @@ thrust::pair<OutputIterator1,OutputIterator2>
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/set_operations.inl>
 

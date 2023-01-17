@@ -26,7 +26,8 @@
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/reference.h>
 
-namespace thrust { namespace system { namespace omp
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace omp
 {
 
 /*! \p omp::pointer stores a pointer to an object allocated in memory accessible
@@ -112,5 +113,5 @@ using thrust::system::omp::universal_pointer;
 using thrust::system::omp::reference;
 } // namespace omp
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

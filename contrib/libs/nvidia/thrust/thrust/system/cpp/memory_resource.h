@@ -26,7 +26,8 @@
 
 #include <thrust/system/cpp/pointer.h>
 
-namespace thrust { namespace system { namespace cpp
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace cpp
 {
 
 //! \cond
@@ -63,5 +64,8 @@ typedef detail::native_resource universal_host_pinned_memory_resource;
 /*! \}
  */
 
-}}} // namespace thrust::system::cpp
+
+}} // namespace system::cpp
+
+THRUST_NAMESPACE_END
 

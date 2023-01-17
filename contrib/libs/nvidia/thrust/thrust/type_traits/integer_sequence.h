@@ -23,8 +23,7 @@
 #include <cstdint>
 #include <utility>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 #if THRUST_CPP_DIALECT >= 2014
 
@@ -256,7 +255,7 @@ struct integer_sequence_push_back_impl<T, I0, integer_sequence<T, Is...> >
 
 } // namespace detail
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011
 

@@ -22,8 +22,7 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/iterator/detail/any_assign.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -62,5 +61,5 @@ template<typename T>
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

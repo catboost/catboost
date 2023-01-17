@@ -20,8 +20,9 @@
 #include <new>
 #include <string>
 
-namespace thrust
-{
+#include <thrust/detail/config.h>
+
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -53,5 +54,5 @@ class bad_alloc
   
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

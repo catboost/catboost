@@ -23,8 +23,7 @@
 #include <thrust/system/detail/generic/memory.h>
 #include <thrust/system/detail/adl/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy>
@@ -81,5 +80,4 @@ void free(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, Poin
 // XXX consider another form of free which does not take a system argument and
 // instead infers the system from the pointer
 
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

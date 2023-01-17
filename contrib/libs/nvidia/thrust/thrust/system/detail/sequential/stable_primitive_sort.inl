@@ -24,8 +24,7 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -157,5 +156,5 @@ void stable_primitive_sort_by_key(sequential::execution_policy<DerivedPolicy> &e
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

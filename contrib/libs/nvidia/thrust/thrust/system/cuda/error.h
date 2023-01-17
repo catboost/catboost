@@ -26,8 +26,7 @@
 #include <thrust/system/error_code.h>
 #include <thrust/system/cuda/detail/guarded_driver_types.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -177,7 +176,7 @@ namespace errc = system::cuda::errc;
 
 using system::cuda_category;
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/cuda/detail/error.inl>
 

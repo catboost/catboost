@@ -25,8 +25,7 @@
 #include <thrust/system/detail/generic/temporary_buffer.h>
 #include <thrust/system/detail/adl/temporary_buffer.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -72,5 +71,5 @@ __host__ __device__
 } // end return_temporary_buffer()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

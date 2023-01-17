@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/sequential/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 // put the canonical tag in the same ns as the backend's entry points
@@ -77,5 +76,5 @@ using thrust::system::cpp::execution_policy;
 using thrust::system::cpp::tag;
 
 } // end cpp
-} // end thrust
+THRUST_NAMESPACE_END
 

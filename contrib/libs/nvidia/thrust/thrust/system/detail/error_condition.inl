@@ -17,11 +17,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/system/detail/error_condition.inl>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -129,5 +130,5 @@ bool operator<(const error_condition &lhs,
 
 } // end system
 
-} // end thrust
+THRUST_NAMESPACE_END
 

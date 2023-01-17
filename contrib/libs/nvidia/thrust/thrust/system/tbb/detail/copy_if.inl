@@ -24,8 +24,7 @@
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_scan.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -127,5 +126,5 @@ template<typename InputIterator1,
 } // end detail
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -18,8 +18,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -30,7 +29,7 @@ inline void fill_construct_range(Allocator &a, Pointer p, Size n, const T &value
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/allocator/fill_construct_range.inl>
 

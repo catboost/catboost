@@ -29,8 +29,7 @@
 #include <thrust/detail/pointer.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -65,7 +64,7 @@ void iter_swap(thrust::execution_policy<DerivedPolicy>&, Pointer1, Pointer2);
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/memory.inl>
 

@@ -18,8 +18,7 @@
 #include <new>
 #include <thrust/detail/memory_wrapper.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -206,5 +205,4 @@ void uninitialized_construct_n_with_allocator(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

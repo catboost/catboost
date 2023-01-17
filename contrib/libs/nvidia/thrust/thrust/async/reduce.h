@@ -34,8 +34,7 @@
 
 #include <thrust/future.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace async
 {
@@ -435,7 +434,7 @@ THRUST_INLINE_CONSTANT reduce_into_detail::reduce_into_fn reduce_into{};
 
 } // namespace async
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif
 
