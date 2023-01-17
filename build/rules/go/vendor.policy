@@ -1125,6 +1125,7 @@ DENY .* -> vendor/gonum.org/v1/netlib;test
 
 # CONTRIB-2548
 ALLOW .* -> vendor/github.com/yandex-cloud/go-sdk
+ALLOW .* -> vendor/github.com/yandex-cloud/go-genproto
 
 # CONTRIB-2537
 ALLOW infra/awacs/.* -> vendor/github.com/anttsov/curator
