@@ -7481,10 +7481,13 @@
         },
         "yt": {
             "formula": {
-                "sandbox_id": [
-                    1277508845
-                ],
-                "match": "YT"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "YT_CLI",
+                        "owner": "YT"
+                    }
+                },
+                "update_interval": 604800
             },
             "executable": {
                 "yt": [
@@ -8342,7 +8345,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1507800535,
+                "sandbox_id": 1509483534,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9007,7 +9010,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1507801215,
+                "sandbox_id": 1509484768,
                 "match": "bb_requester"
             },
             "executable": {
@@ -9219,7 +9222,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1507802350,
+                "sandbox_id": 1509483846,
                 "match": "profile_size_analyzer"
             },
             "executable": {
