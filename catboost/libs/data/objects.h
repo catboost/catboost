@@ -454,11 +454,19 @@ namespace NCB {
             return MakeMaybeData<const TFloatValuesHolder>(Data.FloatFeatures[floatFeatureIdx]);
         }
 
+        void SetFloatFeature(ui32 floatFeatureIdx, THolder<TFloatValuesHolder>&& newFeatureValues) {
+            Data.FloatFeatures[floatFeatureIdx] = std::move(newFeatureValues);
+        }
+
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
          */
         TMaybeData<const THashedCatValuesHolder*> GetCatFeature(ui32 catFeatureIdx) const {
             return MakeMaybeData<const THashedCatValuesHolder>(Data.CatFeatures[catFeatureIdx]);
+        }
+
+        void SetCatFeature(ui32 catFeatureIdx, THolder<THashedCatValuesHolder>&& newFeatureValues) {
+            Data.CatFeatures[catFeatureIdx] = std::move(newFeatureValues);
         }
 
         /* can return nullptr if this feature is unavailable
@@ -468,11 +476,19 @@ namespace NCB {
             return MakeMaybeData<const TStringTextValuesHolder>(Data.TextFeatures[textFeatureIdx]);
         }
 
+        void SetTextFeature(ui32 textFeatureIdx, THolder<TStringTextValuesHolder>&& newFeatureValues) {
+            Data.TextFeatures[textFeatureIdx] = std::move(newFeatureValues);
+        }
+
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
          */
         TMaybeData<const TEmbeddingValuesHolder*> GetEmbeddingFeature(ui32 embeddingFeatureIdx) const {
             return MakeMaybeData<const TEmbeddingValuesHolder>(Data.EmbeddingFeatures[embeddingFeatureIdx]);
+        }
+
+        void SetEmbeddingFeature(ui32 embeddingFeatureIdx, THolder<TEmbeddingValuesHolder>&& newFeatureValues) {
+            Data.EmbeddingFeatures[embeddingFeatureIdx] = std::move(newFeatureValues);
         }
 
         /* set functions are needed for current python mutable Pool interface

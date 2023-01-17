@@ -7596,6 +7596,76 @@ def test_shap_exact():
     return [local_canonical_file(output_values_path)]
 
 
+def test_sage_basic():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_values_path = yatest.common.test_output_path('sageval')
+    cmd_fit = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '250',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_fit)
+    cmd_sage = [
+        CATBOOST_PATH,
+        'fstr',
+        '-o', output_values_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--verbose', '0',
+        '--fstr-type', 'SageValues',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_sage)
+
+    return [local_canonical_file(output_values_path)]
+
+
+def test_sage_verbose():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_values_path = yatest.common.test_output_path('sageval')
+    output_log = yatest.common.test_output_path('log')
+    cmd_fit = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '250',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_fit)
+    cmd_sage = [
+        CATBOOST_PATH,
+        'fstr',
+        '-o', output_values_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--verbose', '1',
+        '--fstr-type', 'SageValues',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    with open(output_log, 'w') as log:
+        yatest.common.execute(cmd_sage, stdout=log)
+    with open(output_log, 'r') as log:
+        line_count = 0
+        last_line = None
+        for line in log:
+            line_count += 1
+            last_line = line
+        assert line_count >= 10
+        assert last_line == 'Sage Values Have Converged\n'
+
+
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
 @pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize(

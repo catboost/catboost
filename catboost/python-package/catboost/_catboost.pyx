@@ -875,7 +875,10 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         EPreCalcShapValues mode,
         int logPeriod,
         ECalcTypeShapValues calcType,
-        EExplainableModelOutput modelOutputType
+        EExplainableModelOutput modelOutputType,
+        size_t sageNSamples,
+        size_t sageBatchSize,
+        bool_t sageDetectConvergence
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
@@ -4820,7 +4823,9 @@ cdef class _CatBoost:
         )
         return _vector_of_double_to_np_array(fstr)
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, _PoolBase reference_data, int thread_count, int verbose, model_output_name, shap_mode_name, interaction_indices, shap_calc_type):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, _PoolBase reference_data, int thread_count, int verbose,
+                     model_output_name, shap_mode_name, interaction_indices, shap_calc_type, int sage_n_samples,
+                     int sage_batch_size, bool_t sage_detect_convergence):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -4892,7 +4897,10 @@ cdef class _CatBoost:
                     shap_mode,
                     verbose,
                     calc_type,
-                    model_output
+                    model_output,
+                    sage_n_samples,
+                    sage_batch_size,
+                    sage_detect_convergence
                 )
             return _2d_vector_of_double_to_np_array(fstr), native_feature_ids
 
