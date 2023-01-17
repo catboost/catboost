@@ -1,7 +1,7 @@
 # Regression: objectives and metrics
 
 - [Objectives and metrics](#objectives-and-metrics)
-- [{{ title__loss-functions__text__optimization }}](#used-for-optimization)
+- [{{ title__loss-functions__text__optimization }}](#usage-inforimation)
 
 ## Objectives and metrics
 
@@ -9,7 +9,7 @@
 
 $\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -19,7 +19,7 @@ $\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}|}{Max(1, |t_{i}|)}}{\sum\limits_{i=1}^{N}w_{i}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -29,7 +29,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \left(e^{a_{i}} - a_{i}t_{i}\right)}{\sum\limits_{i=1}^{N}w_{i}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -40,7 +40,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \left(e^{a_{i}} - a_{i}t_{i}\rig
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} (\alpha - 1(t_{i} \leq a_{i}))(t_{i} - a_{i}) w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -58,7 +58,7 @@ _Default:_ {{ fit--alpha }}
 
 $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{i=1}^N (a_{i}-t_{i})^2 w_{i}}{\sum\limits_{i=1}^{N}w_{i}}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -71,7 +71,7 @@ where $t$ is target, a 2-dimensional approx $a_0$ is target predict, $a_1$ is $\
 
 See the [Uncertainty section](../references/uncertainty.md) for more details.
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -82,7 +82,7 @@ See the [Uncertainty section](../references/uncertainty.md) for more details.
 Depends on the condition for the ratio of the label value and the resulting value:
 $\begin{cases} \displaystyle\frac{\sum\limits_{i=1}^{N} \alpha |t_{i} - e^{a_{i}} | w_{i}}{\sum\limits_{i=1}^{N} w_{i}} & t_{i} > e^{a_{i}} \\ \displaystyle\frac{\sum\limits_{i=1}^{N} (1 - \alpha) |t_{i} - e^{a_{i}} | w_{i}}{\sum\limits_{i=1}^{N} w_{i}} & t_{i} \leq e^{a_{i}} \end{cases}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -100,7 +100,7 @@ _Default:_  {{ fit--alpha }}
 
 $\displaystyle\frac{\sum\limits_{i=1}^N |a_{i} - t_{i}|^q w_i}{\sum\limits_{i=1}^N w_{i}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -131,7 +131,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 {% endcut %}
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -142,7 +142,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} |\alpha - 1(t_{i} \leq a_{i})|(t_{i} - a_{i})^2 w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -162,7 +162,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\la
 
 $\lambda$ is the value of the {{ loss-functions__params__variance_power }} parameter.
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -182,7 +182,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 $\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -195,7 +195,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} c^2(\frac{|t_{i} - a_{i} |}{c} - \ln(\
 
 $c$ is the value of the {{ loss-functions__params__smoothness }} parameter.
 
-**{{ no-optimization }}** See [more](#optimization).
+**{{ no-optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -222,7 +222,7 @@ $I\{x\} = \begin{cases} 1 { , } & |a_{i} - t_{i}| > greater\_than \\ 0 { , } & |
 
 Increase the numerator of the formula if the following inequality is met:<br/><br/>$|prediction - label|>value$
 
-**{{ no-optimization }}** See [more](#optimization).
+**{{ no-optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -232,7 +232,7 @@ Increase the numerator of the formula if the following inequality is met:<br/><b
 
 $\displaystyle\frac{100 \sum\limits_{i=1}^{N}\displaystyle\frac{w_{i} |a_{i} - t_{i} |}{(| t_{i} | + | a_{i} |) / 2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ no-optimization }}** See [more](#optimization).
+**{{ no-optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -244,7 +244,7 @@ $1 - \displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (a_{i} - t_{i})^{2}}{\sum\li
 $\bar{t}$ is the average label value:
 $\bar{t} = \frac{1}{N}\sum\limits_{i=1}^{N}t_{i}$
 
-**{{ no-optimization }}** See [more](#optimization).
+**{{ no-optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -255,7 +255,7 @@ $\bar{t} = \frac{1}{N}\sum\limits_{i=1}^{N}t_{i}$
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e} (1 + a_{i}))^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ no-optimization }}** See [more](#optimization).
+**{{ no-optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -266,31 +266,31 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e}
 
 $median(|t_{1} - a_{1}|, ..., |t_{i} - a_{i}|)$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
 No.
 
-## {{ title__loss-functions__text__optimization }}
+## {{ title__loss-functions__text__optimization }} {#usage-information}
 
-| Name                                                            | Optimization            |
-------------------------------------------------------------------|-------------------------|
-[{{ error-function--MAE }}](#MAE)                                 |     +                   |
-[{{ error-function--MAPE }}](#MAPE)                               |     +                   |
-[{{ error-function--Poisson }}](#Poisson)                         |     +                   |
-[{{ error-function--Quantile }}](#Quantile)                       |     +                   |
-[{{ error-function--RMSE }}](#RMSE)                               |     +                   |
-[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |
-[{{ error-function--LogLinQuantile }}](#LogLinQuantile)           |     +                   |
-[{{ error-function__lq }}](#lq)                                   |     +                   |
-[{{ error-function__Huber }}](#Huber)                             |     +                   |
-[{{ error-function__Expectile }}](#Expectile)                     |     +                   |
-[{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |
-[{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |
-[{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |
-[{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |
-[{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |
-[{{ error-function--R2 }}](#R2)                                   |     -                   |
-[{{ error-function__MSLE }}](#MSLE)                               |     -                   |
-[{{ error-function__MedianAbsoluteError }}](#MedianAbsoluteError) |     -                   |
+| Name                                                            | Optimization            | GPU Support             |
+------------------------------------------------------------------|-------------------------|-------------------------|
+[{{ error-function--MAE }}](#MAE)                                 |     +                   |     -                   |
+[{{ error-function--MAPE }}](#MAPE)                               |     +                   |     +                   |
+[{{ error-function--Poisson }}](#Poisson)                         |     +                   |     +                   |
+[{{ error-function--Quantile }}](#Quantile)                       |     +                   |     +                   |
+[{{ error-function--RMSE }}](#RMSE)                               |     +                   |     +                   |
+[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |     -                   |
+[{{ error-function--LogLinQuantile }}](#LogLinQuantile)           |     +                   |     +                   |
+[{{ error-function__lq }}](#lq)                                   |     +                   |     +                   |
+[{{ error-function__Huber }}](#Huber)                             |     +                   |     +                   |
+[{{ error-function__Expectile }}](#Expectile)                     |     +                   |     +                   |
+[{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |     +                   |
+[{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |     -                   |
+[{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |     -                   |
+[{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |     +                   |
+[{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |     -                   |
+[{{ error-function--R2 }}](#R2)                                   |     -                   |     -                   |
+[{{ error-function__MSLE }}](#MSLE)                               |     -                   |     -                   |
+[{{ error-function__MedianAbsoluteError }}](#MedianAbsoluteError) |     -                   |     -                   |
