@@ -146,6 +146,12 @@ class FunctionBuilder {
     return Add(node_txt, MakeAttribute(attr_name, attr_value));
   }
 
+  FunctionBuilder& Const(const TString& name, const TensorProto& tensor) {
+    TString constant_op(name);
+    constant_op += " = Constant()";
+    return Add(constant_op.c_str(), MakeAttribute("value", tensor));
+  }
+
   // Creates a scalar constant (a tensor of rank zero).
   template <typename T>
   FunctionBuilder& Const(const TString& name, T const_value) {
