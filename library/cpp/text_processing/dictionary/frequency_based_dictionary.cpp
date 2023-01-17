@@ -3,15 +3,10 @@
 #include "util.h"
 
 #include <library/cpp/json/json_reader.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
 
-#include <util/charset/wide.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
-#include <util/string/split.h>
-#include <util/string/join.h>
-#include <util/string/vector.h>
 
 using namespace NTextProcessing::NDictionary;
 
