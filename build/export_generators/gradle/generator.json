@@ -1,8 +1,10 @@
 {
-  "moduleTemplatePath":"module_template.txt",
+  "moduleTemplatePath":"build.gradle.kts.jinja",
   "renameModuleFile":"build.gradle.kts",
+
+  "rootTemplatePath":"settings.gradle.kts.jinja",
   "renameRootFile":"settings.gradle.kts",
-  "rootTemplatePath":"root_template.txt",
+
   "filesToCopy":
   [
     "build.gradle.kts",
@@ -14,18 +16,17 @@
   {
     "KnownTargets":
     [
-      "add_jar"
+      "jar"
     ],
     "KnownAttrs":
     [
     ],
     "KnownInducedAttrs":
     [
-      "consumer_link_library"
+      "consumer_classpath"
     ],
     "KnownRootAttrs":
     [
-      "add_library"
     ],
     "testSubdirs":
     [
