@@ -150,3 +150,4 @@ market/erp_axapta/libs/AXInteropServices
 market/erp_axapta/libs/tvmdaemonproxy
 market/erp_axapta/libs/MBOSSKUDataImporter
 market/erp_axapta/libs/SecretVault
+market/erp_axapta/libs/DynamicObjectSerializer
