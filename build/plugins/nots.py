@@ -111,7 +111,10 @@ def _resolve_test_files(unit, mod_dir, file_paths):
     return resolved_files
 
 
-def _add_test_type(unit, test_type, test_cwd, test_files, test_record_args={}):
+def _add_test_type(unit, test_type, test_cwd, test_files, test_record_args=None):
+    if test_record_args is None:
+        test_record_args = {}
+
     test_dir = ytest.get_norm_unit_path(unit)
 
     test_record = {
