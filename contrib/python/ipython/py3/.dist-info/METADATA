@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.6.0
+Version: 8.7.0
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -31,7 +31,7 @@ Requires-Dist: decorator
 Requires-Dist: jedi (>=0.13)
 Requires-Dist: matplotlib-inline
 Requires-Dist: pickleshare
-Requires-Dist: prompt-toolkit (<3.1.0,>3.0.1)
+Requires-Dist: prompt-toolkit (<3.1.0,>=3.0.11)
 Requires-Dist: pygments (>=2.4.0)
 Requires-Dist: stack-data
 Requires-Dist: traitlets (>=5)
