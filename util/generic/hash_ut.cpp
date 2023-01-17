@@ -1,4 +1,5 @@
 #include "hash.h"
+#include "hash_multi_map.h"
 #include "vector.h"
 #include "hash_set.h"
 
@@ -193,7 +194,7 @@ void THashTest::TestHMap1() {
     p = m.insert(std::pair<const char, TString>('c', TString("100")));
     UNIT_ASSERT(!p.second);
 
-    //Some iterators compare check, really compile time checks
+    // Some iterators compare check, really compile time checks
     maptype::iterator ite(m.begin());
     maptype::const_iterator cite(m.begin());
     cite = m.begin();
@@ -324,7 +325,7 @@ void THashTest::TestHMMap1() {
     size_t count = m.erase('X');
     UNIT_ASSERT(count == 2);
 
-    //Some iterators compare check, really compile time checks
+    // Some iterators compare check, really compile time checks
     mmap::iterator ite(m.begin());
     mmap::const_iterator cite(m.begin());
 
@@ -336,7 +337,7 @@ void THashTest::TestHMMap1() {
     using HMapType = THashMultiMap<size_t, size_t>;
     HMapType hmap;
 
-    //We fill the map to implicitely start a rehash.
+    // We fill the map to implicitely start a rehash.
     for (size_t counter = 0; counter < 3077; ++counter) {
         hmap.insert(HMapType::value_type(1, counter));
     }
@@ -346,7 +347,7 @@ void THashTest::TestHMMap1() {
 
     UNIT_ASSERT(hmap.count(12325) == 2);
 
-    //At this point 23 goes to the same bucket as 12325, it used to reveal a bug.
+    // At this point 23 goes to the same bucket as 12325, it used to reveal a bug.
     hmap.insert(HMapType::value_type(23, 0));
 
     UNIT_ASSERT(hmap.count(12325) == 2);
@@ -1306,18 +1307,18 @@ void THashTest::TestHSetInsertInitializerList() {
 }
 
 /*
-* Sequence for MultiHash is reversed as it calculates hash as
-* f(head:tail) = f(tail)xHash(head)
-*/
+ * Sequence for MultiHash is reversed as it calculates hash as
+ * f(head:tail) = f(tail)xHash(head)
+ */
 void THashTest::TestTupleHash() {
     std::tuple<int, int> tuple{1, 3};
     UNIT_ASSERT_VALUES_EQUAL(THash<decltype(tuple)>()(tuple), MultiHash(3, 1));
 
     /*
-    * This thing checks that we didn't break STL code
-    * See https://a.yandex-team.ru/arc/commit/2864838#comment-401
-    * for example
-    */
+     * This thing checks that we didn't break STL code
+     * See https://a.yandex-team.ru/arc/commit/2864838#comment-401
+     * for example
+     */
     struct A {
         A Foo(const std::tuple<A, float>& v) {
             return std::get<A>(v);
