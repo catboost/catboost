@@ -25,7 +25,6 @@
   - AvailabilityMacros.h
   - Block.h
   - CommonCrypto/CommonCrypto.h
-  - CommonCrypto/CommonCryptoError.h
   - CommonCrypto/CommonCryptor.h
   - CommonCrypto/CommonDigest.h
   - CommonCrypto/CommonHMAC.h

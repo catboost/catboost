@@ -253,6 +253,7 @@ def _add_test(unit, test_type, test_files, deps=None, test_record=None, test_cwd
     data = ytest.dump_test(unit, full_test_record)
     if data:
         unit.set_property(["DART_DATA", data])
+        ytest.save_in_file(unit.get("TEST_DART_OUT_FILE"), data)
 
 
 def _set_nodejs_root(unit):

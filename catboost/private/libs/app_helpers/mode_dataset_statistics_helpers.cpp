@@ -7,7 +7,6 @@
 #include <util/generic/cast.h>
 #include <util/generic/ptr.h>
 #include <util/generic/ymath.h>
-#include <util/system/info.h>
 
 using namespace NCB;
 
@@ -23,29 +22,6 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .Handler1T<TString>([&](const TString& param) {
             OnlyGroupStatistics = FromString<bool>(param);
         });
-    parser.AddLongOption("custom-feature-limits", "comma separated list of feature limits description in format <feature_id>:<min>:<max>,"
-                                                  "for example: 0:0:1,10:-2.1:-1")
-        .RequiredArgument("string")
-        .Handler1T<TString>([&](const TString& limitsDescription) {
-            for (const TStringBuf& ignoredFeature : StringSplitter(limitsDescription).Split(',')) {
-                TVector<TString> tokens = StringSplitter(ignoredFeature).Split(':');
-                if (tokens.empty()) {
-                    continue;
-                }
-                CB_ENSURE(tokens.size() == 3, "Inappropriate feature limits description: " << TString(ignoredFeature));
-                ui32 featureId = FromString<ui32>(tokens[0]);
-                double minValue = FromString<double>(tokens[1]);
-                double maxValue = FromString<double>(tokens[2]);
-                CB_ENSURE(minValue <= maxValue, "Inappropriate feature limits description: " << TString(ignoredFeature));
-                CB_ENSURE(FeatureLimits.find(featureId) == FeatureLimits.end(),
-                          "Duplicate feature " << featureId << "in custom-feature-limits");
-                FeatureLimits[featureId] = {minValue, maxValue};
-            }
-        });
-    parser.AddLongOption("border-counts")
-        .RequiredArgument("INT")
-        .StoreResult(&BorderCount)
-        .DefaultValue("256");
     parser.AddLongOption("spot-size", "size of the single spot part (default: process the whole dataset)")
         .StoreResult(&SpotSize);
     parser.AddLongOption("spot-count", "number of spot parts (default: process the whole dataset)")
@@ -115,12 +91,7 @@ static THolder<ILineDataReader> GetSpotsLineDataReader(
 
 void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
     NPar::TLocalExecutor localExecutor;
-
-    int threadCount = (calculateStatisticsParams.ThreadCount == -1) ?
-        SafeIntegerCast<int>(NSystemInfo::CachedNumberOfCpus())
-        : calculateStatisticsParams.ThreadCount;
-
-    localExecutor.RunAdditionalThreads(threadCount - 1);
+    localExecutor.RunAdditionalThreads(calculateStatisticsParams.ThreadCount - 1);
 
     const int blockSize = Max<int>(
         10000, 10000 // ToDo: meaningful estimation
@@ -186,8 +157,6 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
             NCB::TDataProviderBuilderOptions{},
             /*isLocal*/ true,
             &localExecutor);
-
-        visitor->SetCustomBorders(calculateStatisticsParams.FeatureLimits, /*targetCustomBorders*/ TFeatureCustomBorders());
 
         datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(visitor.Get()));
 

@@ -142,7 +142,7 @@ int BN_hex2bn(BIGNUM **bn, const char *a)
         continue;
 
     if (i == 0 || i > INT_MAX / 4)
-        return 0;
+        goto err;
 
     num = i + neg;
     if (bn == NULL)

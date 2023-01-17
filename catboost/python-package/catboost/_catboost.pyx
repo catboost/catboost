@@ -980,7 +980,6 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         ui64 cpuUsedRamLimit
     ) except +ProcessException
     cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount)
-    cdef size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -6052,9 +6051,6 @@ cpdef is_user_defined_metric(metric_name):
 
 cpdef has_gpu_implementation_metric(metric_name):
     return HasGpuImplementation(to_arcadia_string(metric_name))
-
-cpdef get_multi_quantile_approx_size(loss_function_description):
-    return GetMultiQuantileApproxSize(to_arcadia_string(loss_function_description))
 
 
 cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):

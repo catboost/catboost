@@ -38,8 +38,8 @@ public:
     }
 
     void SetCustomBorders(
-        const TFeatureCustomBorders& customBorders,
-        const TFeatureCustomBorders& targetCustomBorders
+        const TVector<TMaybe<std::pair<float, float>>>& customBorders,
+        const TVector<TMaybe<std::pair<float, float>>>& targetCustomBorders
     ) {
         CustomBorders = customBorders;
         TargetCustomBorders = targetCustomBorders;
@@ -305,8 +305,8 @@ private:
     ui64 DocsCount;
     ui32 CatFeatureCount;
 
-    TFeatureCustomBorders CustomBorders;
-    TFeatureCustomBorders TargetCustomBorders;
+    TVector<TMaybe<std::pair<float, float>>> CustomBorders;
+    TVector<TMaybe<std::pair<float, float>>> TargetCustomBorders;
 
 public:
     void OutputResult(const TString& outputPath) const;

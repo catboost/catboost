@@ -173,10 +173,6 @@
 
 
 ====================COPYRIGHT====================
- * Copyright 1998-2022 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
  * Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -198,10 +194,6 @@
 
 ====================COPYRIGHT====================
  * Copyright 1999-2021 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
- * Copyright 1999-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -229,10 +221,6 @@
 
 
 ====================COPYRIGHT====================
- * Copyright 2000-2022 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
  * Copyright 2001-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -257,10 +245,6 @@
 
 
 ====================COPYRIGHT====================
- * Copyright 2001-2022 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
  * Copyright 2002-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -278,10 +262,6 @@
 
 ====================COPYRIGHT====================
  * Copyright 2002-2021 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
- * Copyright 2002-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -370,10 +350,6 @@
 
 
 ====================COPYRIGHT====================
- * Copyright 2006-2022 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
  * Copyright 2007-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -418,15 +394,15 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2010-2019 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2010-2020 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
  * Copyright 2010-2021 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
- * Copyright 2010-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -450,10 +426,6 @@
 
 
 ====================COPYRIGHT====================
- * Copyright 2011-2022 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
  * Copyright 2012-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -471,10 +443,6 @@
 
 ====================COPYRIGHT====================
  * Copyright 2013-2019 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
- * Copyright 2013-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -499,10 +467,6 @@
 
 ====================COPYRIGHT====================
  * Copyright 2014-2019 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
- * Copyright 2014-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -554,10 +518,6 @@
 
 
 ====================COPYRIGHT====================
- * Copyright 2016-2022 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
  * Copyright 2017 BaishanCloud. All rights reserved.
 
 
@@ -583,10 +543,6 @@
 
 ====================COPYRIGHT====================
  * Copyright 2017-2021 The OpenSSL Project Authors. All Rights Reserved.
-
-
-====================COPYRIGHT====================
- * Copyright 2017-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================

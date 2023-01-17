@@ -76,12 +76,13 @@ static int ssl_free(BIO *a)
     if (a == NULL)
         return 0;
     bs = BIO_get_data(a);
+    if (bs->ssl != NULL)
+        SSL_shutdown(bs->ssl);
     if (BIO_get_shutdown(a)) {
-        if (bs->ssl != NULL)
-            SSL_shutdown(bs->ssl);
         if (BIO_get_init(a))
             SSL_free(bs->ssl);
-        BIO_clear_flags(a, ~0); /* Clear all flags */
+        /* Clear all flags */
+        BIO_clear_flags(a, ~0);
         BIO_set_init(a, 0);
     }
     OPENSSL_free(bs);

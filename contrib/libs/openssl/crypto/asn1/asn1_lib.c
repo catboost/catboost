@@ -294,7 +294,7 @@ int ASN1_STRING_set(ASN1_STRING *str, const void *_data, int len_in)
         c = str->data;
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
         /* No NUL terminator in fuzzing builds */
-        str->data = OPENSSL_realloc(c, len != 0 ? len : 1);
+        str->data = OPENSSL_realloc(c, len);
 #else
         str->data = OPENSSL_realloc(c, len + 1);
 #endif
@@ -307,11 +307,7 @@ int ASN1_STRING_set(ASN1_STRING *str, const void *_data, int len_in)
     str->length = len;
     if (data != NULL) {
         memcpy(str->data, data, len);
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-        /* Set the unused byte to something non NUL and printable. */
-        if (len == 0)
-            str->data[len] = '~';
-#else
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
         /*
          * Add a NUL terminator. This should not be necessary - but we add it as
          * a safety precaution
@@ -379,8 +375,7 @@ int ASN1_STRING_cmp(const ASN1_STRING *a, const ASN1_STRING *b)
 
     i = (a->length - b->length);
     if (i == 0) {
-        if (a->length != 0)
-            i = memcmp(a->data, b->data, a->length);
+        i = memcmp(a->data, b->data, a->length);
         if (i == 0)
             return a->type - b->type;
         else

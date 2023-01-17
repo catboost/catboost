@@ -303,27 +303,21 @@ void TrainEvalSplit(
 TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount) {
     static TMutex lock;
     static TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> cachedExecutor;
-
-    CB_ENSURE(threadsCount == -1 || 0 < threadsCount, "threadsCount should be positive or -1");
+    
+    CB_ENSURE(threadsCount == -1 || 0 < threadsCount, "threadsCount should be positive or -1");    
 
     if (threadsCount == -1) {
         threadsCount = NSystemInfo::CachedNumberOfCpus();
     }
 
-    with_lock (lock) {
-        if (cachedExecutor && cachedExecutor->GetThreadCount() + 1 == threadsCount) {
+    with_lock (lock) {        
+        if (cachedExecutor && cachedExecutor->GetThreadCount() + 1 == threadsCount) {               
             return cachedExecutor;
-        }
+        }                
 
         cachedExecutor.Reset();
-        cachedExecutor = MakeAtomicShared<NPar::TTbbLocalExecutor<false>>(threadsCount);
+        cachedExecutor = MakeAtomicShared<NPar::TTbbLocalExecutor<false>>(threadsCount);                
 
         return cachedExecutor;
-    }
+    }    
 }
-
-size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) {
-    const auto& paramsMap = ParseLossParams(lossFunctionDescription).GetParamsMap();
-    return NCatboostOptions::GetAlphaMultiQuantile(paramsMap).size();
-}
-

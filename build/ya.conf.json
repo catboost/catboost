@@ -274,9 +274,6 @@
         "run_python_udf": {
             "description": "run_python_udf tool"
         },
-        "logos": {
-            "description": "run logos helpers tools"
-        },
         "arc": {
             "description": "Arcadia command-line client"
         },
@@ -5215,34 +5212,6 @@
                 }
             ]
         },
-        "logos": {
-            "tools": {
-                "logos": {
-                    "bottle": "logos",
-                    "executable": "gen_tools"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "graphs_difference": {
             "tools": {
                 "graphs_difference": {
@@ -7211,7 +7180,7 @@
         "idea_style_config": {
             "formula": {
                 "sandbox_id": [
-                    1562037399
+                    874273162
                 ],
                 "match": "Intellij IDEA codestyle config"
             }
@@ -7371,7 +7340,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1561957039,
+                "sandbox_id": 1553816860,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -7826,7 +7795,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 21600
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8079,17 +8048,6 @@
                 ]
             }
         },
-        "logos": {
-            "formula": {
-                "sandbox_id": 1566057525,
-                "match": "gen_tools"
-            },
-            "executable": {
-                "gen_tools": [
-                    "gen_tools"
-                ]
-            }
-        },
         "graphs_difference": {
             "formula": {
                 "sandbox_id": 374662639,
@@ -8185,7 +8143,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1568297239,
+                "sandbox_id": 1560506661,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8305,16 +8263,10 @@
         },
         "qyp": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "VMCTL_TGZ",
-                        "owner": "QYP",
-                        "attributes": {
-                            "released": "stable"
-                        }
-                    },
-                    "update_interval": 86400
-                }
+                "sandbox_id": [
+                    1553081558
+                ],
+                "match": "infra/qyp/vmctl/bin/vmctl"
             },
             "executable": {
                 "vmctl": [
@@ -8586,7 +8538,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1565093884,
+                "sandbox_id": 1513290950,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -8649,8 +8601,7 @@
                 "sandbox_id": [
                     1459597978,
                     1459598823,
-                    1459599001,
-                    1523085698
+                    1459599001
                 ],
                 "match": "ktlint"
             },
@@ -8967,7 +8918,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1564760536,
+                "sandbox_id": 1557515337,
                 "match": "lama"
             },
             "executable": {
