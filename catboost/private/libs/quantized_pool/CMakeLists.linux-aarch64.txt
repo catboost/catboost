@@ -10,6 +10,7 @@ add_subdirectory(ut)
 
 add_library(private-libs-quantized_pool)
 target_link_libraries(private-libs-quantized_pool PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   idl-pool-flat
@@ -42,6 +43,7 @@ generate_enum_serilization(private-libs-quantized_pool
 
 add_global_library_for(private-libs-quantized_pool.global private-libs-quantized_pool)
 target_link_libraries(private-libs-quantized_pool.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   idl-pool-flat

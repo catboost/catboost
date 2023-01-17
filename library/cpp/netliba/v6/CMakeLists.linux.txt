@@ -12,6 +12,7 @@ target_compile_options(cpp-netliba-v6 PRIVATE
   -DCATBOOST_OPENSOURCE=yes
 )
 target_link_libraries(cpp-netliba-v6 PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-binsaver

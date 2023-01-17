@@ -12,6 +12,7 @@ target_include_directories(catboost-libs-helpers-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/helpers
 )
 target_link_libraries(catboost-libs-helpers-ut PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

@@ -10,6 +10,7 @@ add_subdirectory(ut)
 
 add_library(catboost-libs-data)
 target_link_libraries(catboost-libs-data PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-pop_count
@@ -104,6 +105,7 @@ generate_enum_serilization(catboost-libs-data
 
 add_global_library_for(catboost-libs-data.global catboost-libs-data)
 target_link_libraries(catboost-libs-data.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-pop_count

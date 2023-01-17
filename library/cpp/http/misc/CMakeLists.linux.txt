@@ -9,6 +9,7 @@
 
 add_library(cpp-http-misc)
 target_link_libraries(cpp-http-misc PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   tools-enum_parser-enum_serialization_runtime

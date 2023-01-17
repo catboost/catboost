@@ -16,6 +16,7 @@ target_cython_sources(_hnsw PRIVATE
   ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/_hnsw.pyx
 )
 target_link_libraries(_hnsw PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   Python3::Module

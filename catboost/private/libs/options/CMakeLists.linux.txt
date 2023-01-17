@@ -10,6 +10,7 @@ add_subdirectory(ut)
 
 add_library(private-libs-options)
 target_link_libraries(private-libs-options PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-json

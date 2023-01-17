@@ -19,6 +19,7 @@ target_include_directories(contrib-libs-zstd PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/zstd/lib/legacy
 )
 target_link_libraries(contrib-libs-zstd PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-xxhash
 )
 target_sources(contrib-libs-zstd PRIVATE
