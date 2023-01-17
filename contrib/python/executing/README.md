@@ -1,6 +1,6 @@
 # executing
 
-[![Build Status](https://github.com/alexmojaki/executing/workflows/Tests/badge.svg?branch=master)](https://github.com/alexmojaki/executing/actions) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/executing/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/executing?branch=master) [![Supports Python versions 2.7 and 3.4+, including PyPy](https://img.shields.io/pypi/pyversions/executing.svg)](https://pypi.python.org/pypi/executing)
+[![Build Status](https://github.com/alexmojaki/executing/workflows/Tests/badge.svg?branch=master)](https://github.com/alexmojaki/executing/actions) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/executing/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/executing?branch=master) [![Supports Python versions 2.7 and 3.5+, including PyPy](https://img.shields.io/pypi/pyversions/executing.svg)](https://pypi.python.org/pypi/executing)
 
 This mini-package lets you get information about what a frame is currently doing, particularly the AST node being executed.
 
