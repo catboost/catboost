@@ -131,15 +131,21 @@
     },
     "logging_level" : "Verbose",
     "data_processing_options" : {
-        "per_float_feature_quantization" : { },
+        "ignored_features" : [ ],
+        "float_features_binarization" : {
+            "border_count" : 254,
+            "dev_max_subset_size_for_build_borders" : 200000,
+            "nan_mode" : "Min",
+            "border_type" : "GreedyLogSum"
+        },
         "has_time" : false,
-        "dev_default_value_fraction_for_sparse" : 0.8299999833,
+        "dev_sparse_array_indexing" : "Indices",
         "allow_const_label" : false,
+        "dev_default_value_fraction_for_sparse" : 0.8299999833,
         "class_names" : [
             "0",
             "1"
         ],
-        "class_weights" : [ ],
         "embedding_processing_options" : {
             "embedding_processing" : {
                 "default" : [
@@ -148,20 +154,13 @@
                 ]
             }
         },
-        "target_border" : null,
-        "dev_leafwise_scoring" : false,
-        "force_unit_auto_pair_weights" : false,
-        "dev_sparse_array_indexing" : "Indices",
-        "auto_class_weights" : "None",
-        "float_features_binarization" : {
-            "border_count" : 254,
-            "dev_max_subset_size_for_build_borders" : 200000,
-            "nan_mode" : "Min",
-            "border_type" : "GreedyLogSum"
-        },
         "dev_group_features" : false,
+        "eval_fraction" : 0,
         "classes_count" : 0,
-        "ignored_features" : [ ],
+        "dev_leafwise_scoring" : false,
+        "auto_class_weights" : "None",
+        "target_border" : null,
+        "force_unit_auto_pair_weights" : false,
         "text_processing_options" : {
             "feature_processing" : {
                 "default" : [
@@ -234,7 +233,9 @@
                     "separator_type" : "ByDelimiter"
                 }
             ]
-        }
+        },
+        "class_weights" : [ ],
+        "per_float_feature_quantization" : { }
     },
     "loss_function" : {
         "type" : "Logloss",

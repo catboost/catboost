@@ -25,6 +25,9 @@
 #include <type_traits>
 
 
+struct TTrainTestSplitParams;
+
+
 class TGilGuard : public TNonCopyable {
 public:
     TGilGuard()
@@ -261,3 +264,16 @@ void SetDataFromScipyCsrSparse(
 
 size_t GetNumPairs(const NCB::TDataProvider& dataProvider);
 TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider);
+
+
+void TrainEvalSplit(
+    const NCB::TDataProvider& srcDataProvider,
+    NCB::TDataProviderPtr* trainDataProvider,
+    NCB::TDataProviderPtr* evalDataProvider,
+    const TTrainTestSplitParams& splitParams,
+    bool saveEvalDataset,
+    int threadCount,
+    ui64 cpuUsedRamLimit
+);
+
+

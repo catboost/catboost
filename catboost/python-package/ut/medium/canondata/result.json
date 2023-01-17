@@ -340,6 +340,30 @@
     "test.test_eval_features_with_file_header": {
         "uri": "file://test.test_eval_features_with_file_header/eval_results.csv"
     },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=False-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=False-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=False-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=False-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=True-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=True-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=True-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=True-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=False-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=False-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=False-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=False-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=True-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=True-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=True-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=True-estimator_type=regressor_/predictions.txt"
+    },
     "test.test_eval_period_size": [
         {
             "uri": "file://test.test_eval_period_size/eval_metrics_all_trees.txt"

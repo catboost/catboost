@@ -131,6 +131,7 @@
                 ]
             }
         },
+        "eval_fraction": 0,
         "float_features_binarization": {
             "border_count": 254,
             "border_type": "GreedyLogSum",
