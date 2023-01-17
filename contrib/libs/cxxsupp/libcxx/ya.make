@@ -16,6 +16,7 @@ VERSION(2021-04-02-7959d59028dd126416cdf10dbbd22162922e1336)
 
 ADDINCL(
     GLOBAL contrib/libs/cxxsupp/libcxx/include
+    contrib/libs/cxxsupp/libcxx/src
 )
 
 CXXFLAGS(-D_LIBCPP_BUILDING_LIBRARY)
@@ -218,6 +219,9 @@ SRCS(
     src/random.cpp
     src/random_shuffle.cpp
     src/regex.cpp
+    src/ryu/d2fixed.cpp
+    src/ryu/d2s.cpp
+    src/ryu/f2s.cpp
     src/shared_mutex.cpp
     src/stdexcept.cpp
     src/string.cpp
