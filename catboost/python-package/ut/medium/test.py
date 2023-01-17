@@ -1189,7 +1189,6 @@ def test_predict_and_predict_proba_on_single_object(problem):
             assert np.array_equal(pred_probabilities[test_object_idx], model.predict_proba(test_data.values[test_object_idx]))
 
 
-@fails_on_gpu(how='Model contains categorical features, gpu evaluation impossible')
 def test_predict_on_gpu(task_type):
     if task_type == 'CPU':
         return
@@ -1289,7 +1288,7 @@ def test_fit_from_empty_features_data(task_type):
         )
 
 
-def fit_from_df(params, learn_file, test_file, cd_file, dummy_multi_target=False):
+def fit_from_df(params, learn_file, test_file, cd_file):
     learn_df = read_csv(learn_file, header=None, sep='\t', na_filter=False)
     test_df = read_csv(test_file, header=None, sep='\t', na_filter=False)
     columns_metadata = read_cd(cd_file, data_file=learn_file)
@@ -1305,8 +1304,6 @@ def fit_from_df(params, learn_file, test_file, cd_file, dummy_multi_target=False
 
     X_train, y_train = get_split_on_features_and_label(learn_df, target_column_idx)
     X_test, _ = get_split_on_features_and_label(test_df, target_column_idx)
-    if dummy_multi_target:
-        y_train = np.repeat(y_train.to_numpy().reshape(y_train.shape[0], 1), 2, axis=1)
 
     model = CatBoost(params)
     model.fit(X_train, y_train, cat_features=cat_feature_indices, text_features=text_feature_indices)
@@ -1324,7 +1321,7 @@ def fit_from_file(params, learn_file, test_file, cd_file):
     return model, model.predict(test_pool)
 
 
-@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression', 'multiregression'])
+@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
 def test_fit_with_texts(task_type, problem_type):
     params = {
         'dictionaries': [
@@ -1332,13 +1329,12 @@ def test_fit_with_texts(task_type, problem_type):
             {'dictionary_id': 'BiGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1', 'gram_order': '2'},
             {'dictionary_id': 'Word', 'occurrence_lower_bound': '1'},
         ],
-        'feature_calcers': ['BoW:top_tokens_count=10'] if 'regression' in problem_type else ['NaiveBayes', 'BoW:top_tokens_count=10'],
+        'feature_calcers': ['BoW:top_tokens_count=10'] if problem_type == 'regression' else ['NaiveBayes', 'BoW:top_tokens_count=10'],
         'iterations': 100,
         'loss_function': {
             'binclass': 'Logloss',
             'multiclass': 'MultiClass',
-            'regression': 'RMSE',
-            'multiregression': 'MultiRMSE'
+            'regression': 'RMSE'
         }[problem_type],
         'task_type': task_type,
         'devices': '0'
@@ -1348,10 +1344,10 @@ def test_fit_with_texts(task_type, problem_type):
     test = ROTTEN_TOMATOES_TEST_FILE
     cd = ROTTEN_TOMATOES_CD_FILE if problem_type == 'multiclass' else ROTTEN_TOMATOES_CD_BINCLASS_FILE
 
-    preds1 = fit_from_df(params, learn, test, cd, problem_type == 'multiregression')
-    if problem_type != 'multiregression':
-        _, preds2 = fit_from_file(params, learn, test, cd)
-        assert np.all(preds1 == preds2)
+    preds1 = fit_from_df(params, learn, test, cd)
+    _, preds2 = fit_from_file(params, learn, test, cd)
+
+    assert np.all(preds1 == preds2)
 
 
 def test_coreml_import_export(task_type):
@@ -2408,17 +2404,6 @@ def test_duplicate_params_regressor():
         model.fit(data, label)
 
 
-def test_clearing_parameters_in_loading_model():
-    prng = np.random.RandomState(seed=20181219)
-    data = prng.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100, prng=prng)
-    model_path = test_output_path(OUTPUT_MODEL_PATH)
-    fit = CatBoostRegressor(max_depth=3, verbose=False).fit(data, label)
-    fit.save_model(model_path)
-    fit.load_model(model_path).predict(label)
-    CatBoostRegressor(depth=3).load_model(model_path).predict(label)
-
-
 def test_generated_metrics_default_params():
     metrics_without_default_params = (
         metrics.TotalF1, metrics.AUC, metrics.NDCG, metrics.CtrFactor, metrics.RecallAt, metrics.QueryCrossEntropy,
@@ -2863,7 +2848,7 @@ class LoglossObjectiveNumpy32(object):
 
 
 @pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
-@fails_on_gpu(how='User defined loss functions, metrics and callbacks are not supported for GPU')
+@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
 def test_custom_objective(task_type, loss_objective):
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
@@ -2885,7 +2870,7 @@ def test_custom_objective(task_type, loss_objective):
         assert abs(p1 - p2) < EPS
 
 
-@fails_on_gpu(how='User defined loss functions, metrics and callbacks are not supported for GPU')
+@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
 def test_multilabel_custom_objective(task_type, n=10):
     class MultiRMSEObjective(MultiTargetCustomObjective):
         def calc_ders_multi(self, approxes, targets, weight):

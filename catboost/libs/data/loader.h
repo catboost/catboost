@@ -152,11 +152,12 @@ namespace NCB {
         NObjectFactory::TParametrizedObjectFactory<IDatasetLoader,
                                                    TString,
                                                    TDatasetLoaderPullArgs>;
-
-    using TDatasetLineDataLoaderFactory =
+    using TLineDataReaderDatasetLoaderFactory =
         NObjectFactory::TParametrizedObjectFactory<IDatasetLoader,
                                                    TString,
                                                    TLineDataLoaderPushArgs>;
+
+
 
     ///////////////////////////////////////////////////////////////////////////
     // Common functionality used in IDatasetLoader implementations

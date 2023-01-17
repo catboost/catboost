@@ -27,10 +27,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 import locale
-from typing import (
-    Callable,
-    Iterator,
-)
+from typing import Callable
 import warnings
 
 import numpy as np
@@ -38,7 +35,6 @@ import pytest
 
 from pandas._config import get_option
 
-from pandas._typing import F
 from pandas.compat import (
     IS64,
     is_platform_windows,
@@ -84,12 +80,6 @@ def safe_import(mod_name: str, min_version: str | None = None):
             message=".*Int64Index.*",
         )
 
-        warnings.filterwarnings(
-            "ignore",
-            category=DeprecationWarning,
-            message="distutils Version classes are deprecated.*",
-        )
-
         try:
             mod = __import__(mod_name)
         except ImportError:
@@ -116,6 +106,12 @@ def _skip_if_no_mpl():
     if mod:
         mod.use("Agg")
     else:
+        return True
+
+
+def _skip_if_has_locale():
+    lang, _ = locale.getlocale()
+    if lang is not None:
         return True
 
 
@@ -196,6 +192,9 @@ skip_if_no_mpl = pytest.mark.skipif(
 skip_if_mpl = pytest.mark.skipif(not _skip_if_no_mpl(), reason="matplotlib is present")
 skip_if_32bit = pytest.mark.skipif(not IS64, reason="skipping for 32 bit")
 skip_if_windows = pytest.mark.skipif(is_platform_windows(), reason="Running on Windows")
+skip_if_has_locale = pytest.mark.skipif(
+    _skip_if_has_locale(), reason=f"Specific locale is set {locale.getlocale()[0]}"
+)
 skip_if_not_us_locale = pytest.mark.skipif(
     _skip_if_not_us_locale(), reason=f"Specific locale is set {locale.getlocale()[0]}"
 )
@@ -220,7 +219,7 @@ def skip_if_np_lt(ver_str: str, *args, reason: str | None = None):
     )
 
 
-def parametrize_fixture_doc(*args) -> Callable[[F], F]:
+def parametrize_fixture_doc(*args):
     """
     Intended for use as a decorator for parametrized fixture,
     this function will wrap the decorated function with a pytest
@@ -256,7 +255,7 @@ def check_file_leaks(func) -> Callable:
 
 
 @contextmanager
-def file_leak_context() -> Iterator[None]:
+def file_leak_context():
     """
     ContextManager analogue to check_file_leaks.
     """
@@ -293,7 +292,7 @@ def async_mark():
     return async_mark
 
 
-def mark_array_manager_not_yet_implemented(request) -> None:
+def mark_array_manager_not_yet_implemented(request):
     mark = pytest.mark.xfail(reason="Not yet implemented for ArrayManager")
     request.node.add_marker(mark)
 

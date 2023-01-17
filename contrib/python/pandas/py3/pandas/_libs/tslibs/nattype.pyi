@@ -3,6 +3,7 @@ from datetime import (
     timedelta,
     tzinfo as _tzinfo,
 )
+from typing import Any
 
 import numpy as np
 
@@ -12,14 +13,10 @@ NaT: NaTType
 iNaT: int
 nat_strings: set[str]
 
-_NaTComparisonTypes = datetime | timedelta | Period | np.datetime64 | np.timedelta64
+def is_null_datetimelike(val: object, inat_is_null: bool = ...) -> bool: ...
 
-class _NatComparison:
-    def __call__(self, other: _NaTComparisonTypes) -> bool: ...
-
-class NaTType:
+class NaTType(datetime):
     value: np.int64
-    @property
     def asm8(self) -> np.datetime64: ...
     def to_datetime64(self) -> np.datetime64: ...
     def to_numpy(
@@ -57,28 +54,26 @@ class NaTType:
     def weekofyear(self) -> float: ...
     def day_name(self) -> float: ...
     def month_name(self) -> float: ...
-    def weekday(self) -> float: ...
-    def isoweekday(self) -> float: ...
+    # error: Return type "float" of "weekday" incompatible with return
+    # type "int" in supertype "date"
+    def weekday(self) -> float: ...  # type: ignore[override]
+    # error: Return type "float" of "isoweekday" incompatible with return
+    # type "int" in supertype "date"
+    def isoweekday(self) -> float: ...  # type: ignore[override]
     def total_seconds(self) -> float: ...
-    def today(self, *args, **kwargs) -> NaTType: ...
-    def now(self, *args, **kwargs) -> NaTType: ...
+    # error: Signature of "today" incompatible with supertype "datetime"
+    def today(self, *args, **kwargs) -> NaTType: ...  # type: ignore[override]
+    # error: Signature of "today" incompatible with supertype "datetime"
+    def now(self, *args, **kwargs) -> NaTType: ...  # type: ignore[override]
     def to_pydatetime(self) -> NaTType: ...
     def date(self) -> NaTType: ...
     def round(self) -> NaTType: ...
     def floor(self) -> NaTType: ...
     def ceil(self) -> NaTType: ...
-    @property
-    def tzinfo(self) -> None: ...
-    @property
-    def tz(self) -> None: ...
-    def tz_convert(self, tz: _tzinfo | str | None) -> NaTType: ...
-    def tz_localize(
-        self,
-        tz: _tzinfo | str | None,
-        ambiguous: str = ...,
-        nonexistent: str = ...,
-    ) -> NaTType: ...
-    def replace(
+    def tz_convert(self) -> NaTType: ...
+    def tz_localize(self) -> NaTType: ...
+    # error: Signature of "replace" incompatible with supertype "datetime"
+    def replace(  # type: ignore[override]
         self,
         year: int | None = ...,
         month: int | None = ...,
@@ -91,24 +86,38 @@ class NaTType:
         tzinfo: _tzinfo | None = ...,
         fold: int | None = ...,
     ) -> NaTType: ...
+    # error: Return type "float" of "year" incompatible with return
+    # type "int" in supertype "date"
     @property
-    def year(self) -> float: ...
+    def year(self) -> float: ...  # type: ignore[override]
     @property
     def quarter(self) -> float: ...
+    # error: Return type "float" of "month" incompatible with return
+    # type "int" in supertype "date"
     @property
-    def month(self) -> float: ...
+    def month(self) -> float: ...  # type: ignore[override]
+    # error: Return type "float" of "day" incompatible with return
+    # type "int" in supertype "date"
     @property
-    def day(self) -> float: ...
+    def day(self) -> float: ...  # type: ignore[override]
+    # error: Return type "float" of "hour" incompatible with return
+    # type "int" in supertype "date"
     @property
-    def hour(self) -> float: ...
+    def hour(self) -> float: ...  # type: ignore[override]
+    # error: Return type "float" of "minute" incompatible with return
+    # type "int" in supertype "date"
     @property
-    def minute(self) -> float: ...
+    def minute(self) -> float: ...  # type: ignore[override]
+    # error: Return type "float" of "second" incompatible with return
+    # type "int" in supertype "date"
     @property
-    def second(self) -> float: ...
+    def second(self) -> float: ...  # type: ignore[override]
     @property
     def millisecond(self) -> float: ...
+    # error: Return type "float" of "microsecond" incompatible with return
+    # type "int" in supertype "date"
     @property
-    def microsecond(self) -> float: ...
+    def microsecond(self) -> float: ...  # type: ignore[override]
     @property
     def nanosecond(self) -> float: ...
     # inject Timedelta properties
@@ -121,9 +130,26 @@ class NaTType:
     # inject Period properties
     @property
     def qyear(self) -> float: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __ne__(self, other: object) -> bool: ...
-    __lt__: _NatComparison
-    __le__: _NatComparison
-    __gt__: _NatComparison
-    __ge__: _NatComparison
+    def __eq__(self, other: Any) -> bool: ...
+    def __ne__(self, other: Any) -> bool: ...
+    # https://github.com/python/mypy/issues/9015
+    # error: Argument 1 of "__lt__" is incompatible with supertype "date";
+    # supertype defines the argument type as "date"
+    def __lt__(  # type: ignore[override]
+        self, other: datetime | timedelta | Period | np.datetime64 | np.timedelta64
+    ) -> bool: ...
+    # error: Argument 1 of "__le__" is incompatible with supertype "date";
+    # supertype defines the argument type as "date"
+    def __le__(  # type: ignore[override]
+        self, other: datetime | timedelta | Period | np.datetime64 | np.timedelta64
+    ) -> bool: ...
+    # error: Argument 1 of "__gt__" is incompatible with supertype "date";
+    # supertype defines the argument type as "date"
+    def __gt__(  # type: ignore[override]
+        self, other: datetime | timedelta | Period | np.datetime64 | np.timedelta64
+    ) -> bool: ...
+    # error: Argument 1 of "__ge__" is incompatible with supertype "date";
+    # supertype defines the argument type as "date"
+    def __ge__(  # type: ignore[override]
+        self, other: datetime | timedelta | Period | np.datetime64 | np.timedelta64
+    ) -> bool: ...

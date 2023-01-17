@@ -9,6 +9,5 @@
 
 add_library(abseil-cpp-absl-memory INTERFACE)
 target_link_libraries(abseil-cpp-absl-memory INTERFACE
-  contrib-libs-linux-headers
   abseil-cpp-absl-meta
 )

@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1999-2021 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -538,11 +538,8 @@ static int append_ia5(STACK_OF(OPENSSL_STRING) **sk, const ASN1_IA5STRING *email
         return 0;
 
     emtmp = OPENSSL_strndup((char *)email->data, email->length);
-    if (emtmp == NULL) {
-        X509_email_free(*sk);
-        *sk = NULL;
+    if (emtmp == NULL)
         return 0;
-    }
 
     /* Don't add duplicates */
     if (sk_OPENSSL_STRING_find(*sk, emtmp) != -1) {
@@ -831,11 +828,8 @@ static int do_check_string(const ASN1_STRING *a, int cmp_type, equal_fn equal,
             rv = equal(a->data, a->length, (unsigned char *)b, blen, flags);
         else if (a->length == (int)blen && !memcmp(a->data, b, blen))
             rv = 1;
-        if (rv > 0 && peername != NULL) {
+        if (rv > 0 && peername)
             *peername = OPENSSL_strndup((char *)a->data, a->length);
-            if (*peername == NULL)
-                return -1;
-        }
     } else {
         int astrlen;
         unsigned char *astr;
@@ -848,13 +842,8 @@ static int do_check_string(const ASN1_STRING *a, int cmp_type, equal_fn equal,
             return -1;
         }
         rv = equal(astr, astrlen, (unsigned char *)b, blen, flags);
-        if (rv > 0 && peername != NULL) {
+        if (rv > 0 && peername)
             *peername = OPENSSL_strndup((char *)astr, astrlen);
-            if (*peername == NULL) {
-                OPENSSL_free(astr);
-                return -1;
-            }
-        }
         OPENSSL_free(astr);
     }
     return rv;
@@ -1087,16 +1076,11 @@ int a2i_ipadd(unsigned char *ipout, const char *ipasc)
 
 static int ipv4_from_asc(unsigned char *v4, const char *in)
 {
-    const char *p;
-    int a0, a1, a2, a3, n;
-
-    if (sscanf(in, "%d.%d.%d.%d%n", &a0, &a1, &a2, &a3, &n) != 4)
+    int a0, a1, a2, a3;
+    if (sscanf(in, "%d.%d.%d.%d", &a0, &a1, &a2, &a3) != 4)
         return 0;
     if ((a0 < 0) || (a0 > 255) || (a1 < 0) || (a1 > 255)
         || (a2 < 0) || (a2 > 255) || (a3 < 0) || (a3 > 255))
-        return 0;
-    p = in + n;
-    if (!(*p == '\0' || ossl_isspace(*p)))
         return 0;
     v4[0] = a0;
     v4[1] = a1;

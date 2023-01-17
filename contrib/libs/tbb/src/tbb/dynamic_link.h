@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@
     and CLOSE_INTERNAL_NAMESPACE to override the following default definitions. **/
 
 #include <cstddef>
-#ifdef _WIN32
-#include <windows.h>
+#if _WIN32
+#include <Windows.h>
 #endif /* _WIN32 */
 
 namespace tbb {
@@ -45,7 +45,7 @@ typedef void (*pointer_to_handler)();
 // prevent warnings from some compilers (g++ 4.1)
 #if __TBB_WEAK_SYMBOLS_PRESENT
 #define DLD(s,h) {#s, (pointer_to_handler*)(void*)(&h), (pointer_to_handler)&s}
-#define DLD_NOWEAK(s,h) {#s, (pointer_to_handler*)(void*)(&h), nullptr}
+#define DLD_NOWEAK(s,h) {#s, (pointer_to_handler*)(void*)(&h), NULL}
 #else
 #define DLD(s,h) {#s, (pointer_to_handler*)(void*)(&h)}
 #define DLD_NOWEAK(s,h) DLD(s,h)
@@ -68,13 +68,10 @@ using dynamic_link_handle = HMODULE;
 using dynamic_link_handle = void*;
 #endif /* _WIN32 */
 
-const int DYNAMIC_LINK_GLOBAL        = 0x01;
-const int DYNAMIC_LINK_LOAD          = 0x02;
-const int DYNAMIC_LINK_WEAK          = 0x04;
-const int DYNAMIC_LINK_LOCAL         = 0x08;
-
-const int DYNAMIC_LINK_LOCAL_BINDING = DYNAMIC_LINK_LOCAL | DYNAMIC_LINK_LOAD;
-const int DYNAMIC_LINK_DEFAULT       = DYNAMIC_LINK_GLOBAL | DYNAMIC_LINK_LOAD | DYNAMIC_LINK_WEAK;
+const int DYNAMIC_LINK_GLOBAL = 0x01;
+const int DYNAMIC_LINK_LOAD   = 0x02;
+const int DYNAMIC_LINK_WEAK   = 0x04;
+const int DYNAMIC_LINK_ALL    = DYNAMIC_LINK_GLOBAL | DYNAMIC_LINK_LOAD | DYNAMIC_LINK_WEAK;
 
 //! Fill in dynamically linked handlers.
 /** 'library' is the name of the requested library. It should not contain a full
@@ -95,8 +92,8 @@ const int DYNAMIC_LINK_DEFAULT       = DYNAMIC_LINK_GLOBAL | DYNAMIC_LINK_LOAD |
 bool dynamic_link( const char* library,
                    const dynamic_link_descriptor descriptors[],
                    std::size_t required,
-                   dynamic_link_handle* handle = nullptr,
-                   int flags = DYNAMIC_LINK_DEFAULT );
+                   dynamic_link_handle* handle = 0,
+                   int flags = DYNAMIC_LINK_ALL );
 
 void dynamic_unlink( dynamic_link_handle handle );
 

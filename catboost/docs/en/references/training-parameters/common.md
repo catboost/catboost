@@ -1028,7 +1028,7 @@ Command-line:`--approx-on-full-history`
 The principles for calculating the approximated values.
 
 Possible values:
-- <q>False</q> — Use only а fraction of the fold for calculating the approximated values. The size of the fraction is calculated as follows: $\frac{1}{{X}}$, where `X` is the specified coefficient for changing the length of folds. This mode is faster and in rare cases slightly less accurate
+- <q>False</q> — Use only а fraction of the fold for calculating the approximated values. The size of the fraction is calculated as follows: $\frac{1}{\mbox{X}}$, where `X` is the specified coefficient for changing the length of folds. This mode is faster and in rare cases slightly less accurate
 - <q>True</q> — Use all the preceding rows in the fold for calculating the approximated values. This mode is slower and in rare cases slightly more accurate.
 
 **Type**

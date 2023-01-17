@@ -274,9 +274,6 @@
         "run_python_udf": {
             "description": "run_python_udf tool"
         },
-        "logos": {
-            "description": "run logos helpers tools"
-        },
         "arc": {
             "description": "Arcadia command-line client"
         },
@@ -317,9 +314,6 @@
         },
         "taxi-format": {
             "description": "Run taxi formatters utility"
-        },
-        "taxi-linter": {
-            "description": "Run taxi linters utility"
         },
         "saas2": {
             "description": "Run saas2 cli"
@@ -1945,7 +1939,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1955,7 +1949,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1965,7 +1959,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1975,7 +1969,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1985,7 +1979,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1995,7 +1989,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2005,7 +1999,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2015,7 +2009,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2025,7 +2019,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2035,7 +2029,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2045,7 +2039,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2056,7 +2050,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2067,7 +2061,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2078,7 +2072,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2089,7 +2083,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2100,7 +2094,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2111,7 +2105,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2122,7 +2116,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2133,7 +2127,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2144,7 +2138,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2155,7 +2149,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2166,7 +2160,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2258,7 +2252,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 }
             ],
             "params": {
@@ -2273,17 +2267,6 @@
                 "profiles": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles",
                 "strip": "$(CLANG)/bin/llvm-strip",
                 "gcc_version": "12.0"
-            },
-            "env": {
-                "SDKROOT": [
-                    ""
-                ],
-                "CPATH": [
-                    ""
-                ],
-                "LIBRARY_PATH": [
-                    ""
-                ]
             }
         },
         "clang14-windows": {
@@ -2455,27 +2438,6 @@
                 },
                 {
                     "host": {
-                        "os": "LINUX",
-                        "arch": "aarch64"
-                    },
-                    "target": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "LINUX",
-                        "arch": "aarch64"
-                    },
-                    "target": {
-                        "os": "LINUX",
-                        "arch": "aarch64"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "LINUX"
                     },
                     "target": {
@@ -2582,7 +2544,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2592,7 +2554,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2602,7 +2564,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2612,7 +2574,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2622,7 +2584,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2632,7 +2594,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2642,7 +2604,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2652,7 +2614,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2662,7 +2624,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2672,7 +2634,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2682,7 +2644,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2693,7 +2655,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2704,7 +2666,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2715,7 +2677,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2726,7 +2688,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2737,7 +2699,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2748,7 +2710,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2759,7 +2721,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2770,7 +2732,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2781,7 +2743,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2792,7 +2754,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2803,7 +2765,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2884,7 +2846,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2895,7 +2857,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 }
             ],
             "params": {
@@ -2910,17 +2872,6 @@
                 "profiles": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles",
                 "strip": "$(CLANG)/bin/llvm-strip",
                 "gcc_version": "14.0"
-            },
-            "env": {
-                "SDKROOT": [
-                    ""
-                ],
-                "CPATH": [
-                    ""
-                ],
-                "LIBRARY_PATH": [
-                    ""
-                ]
             }
         },
         "local": {
@@ -3092,6 +3043,151 @@
                 "dwarf_tool": {
                     "DARWIN": "$(CLANG)/usr/bin/dsymutil -flat"
                 }
+            }
+        },
+        "android-ndk-r23": {
+            "name": "clang12",
+            "tools": {
+                "cc": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-cov"
+                },
+                "strip": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "strip"
+                },
+                "objcopy": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "objcopy"
+                },
+                "nm": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "nm"
+                },
+                "llvm-cov": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-symbolizer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "i686"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "x86_64"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a_neon"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "i686"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "x86_64"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a_neon"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "NDK",
+                "ar": "$(NDK)/llvm-toolchain/bin/llvm-ar",
+                "c_compiler": "$(NDK)/llvm-toolchain/bin/clang",
+                "cxx_compiler": "$(NDK)/llvm-toolchain/bin/clang++",
+                "objcopy": "$(NDK)/llvm-toolchain/bin/llvm-objcopy",
+                "strip": "$(NDK)/llvm-toolchain/bin/llvm-strip",
+                "werror_mode": "all",
+                "gcc_version": "12.0",
+                "android_ndk_version": 23
             }
         },
         "android-ndk-r25": {
@@ -4354,11 +4450,6 @@
                     "executable": "kubectl"
                 }
             },
-            "env": {
-                "TOOLDIR": [
-                    "$(ROOT)"
-                ]
-            },
             "platforms": [
                 {
                     "host": {
@@ -5215,34 +5306,6 @@
                 }
             ]
         },
-        "logos": {
-            "tools": {
-                "logos": {
-                    "bottle": "logos",
-                    "executable": "gen_tools"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "graphs_difference": {
             "tools": {
                 "graphs_difference": {
@@ -5404,28 +5467,6 @@
                 "taxi-format": {
                     "bottle": "taxi-format",
                     "executable": "taxi-format"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
-        "taxi-linter": {
-            "tools": {
-                "taxi-linter": {
-                    "bottle": "taxi-linter",
-                    "executable": "taxi-linter"
                 }
             },
             "platforms": [
@@ -6631,11 +6672,8 @@
     "bottles": {
         "msvc2019": {
             "formula": {
-                "by_platform": {
-                    "any": {
-                        "uri": "sbr:1971464848"
-                    }
-                }
+                "sandbox_id": 887495315,
+                "match": "Microsoft Visual C++"
             },
             "executable": {
                 "msvc": [
@@ -6765,7 +6803,7 @@
         "swagger": {
             "formula": {
                 "sandbox_id": [
-                    1547247865
+                    1488214649
                 ],
                 "match": "swagger"
             },
@@ -6829,7 +6867,7 @@
         },
         "tvmknife": {
             "formula": {
-                "sandbox_id": 1558752720,
+                "sandbox_id": 1435123761,
                 "match": "tvmknife"
             },
             "executable": {
@@ -6852,7 +6890,10 @@
             }
         },
         "python": {
-            "formula": "build/platform/python/ymake_python2/resources.json",
+            "formula": {
+                "sandbox_id": 1277485811,
+                "match": "Python"
+            },
             "executable": {
                 "python": [
                     "python"
@@ -6996,7 +7037,16 @@
             }
         },
         "clang12": {
-            "formula": "build/platform/clang/clang12.json",
+            "formula": {
+                "sandbox_id": [
+                    1223443270,
+                    1223441613,
+                    1225508579,
+                    1223439797,
+                    1223436300
+                ],
+                "match": "CLANG"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -7045,7 +7095,16 @@
             }
         },
         "clang14": {
-            "formula": "build/platform/clang/clang14.json",
+            "formula": {
+                "sandbox_id": [
+                    1441176665,
+                    1432506119,
+                    1445478860,
+                    1445454611,
+                    1445513330
+                ],
+                "match": "CLANG"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -7133,16 +7192,69 @@
                 ]
             }
         },
+        "android-ndk-r23": {
+            "formula": {
+                "sandbox_id": [
+                    1125103574,
+                    1125105409
+                ],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang++"
+                ],
+                "cc": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang"
+                ],
+                "strip": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-strip"
+                ],
+                "c++filt": [
+                    "llvm-toolchain",
+                    "bin",
+                    "i686-linux-android-c++filt"
+                ],
+                "llvm-cov": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-symbolizer": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-symbolizer"
+                ],
+                "nm": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-nm"
+                ],
+                "objcopy": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-objcopy"
+                ]
+            }
+        },
         "android-ndk-r25": {
             "formula": {
-                "by_platform": {
-                    "darwin-x86_64": {
-                        "uri": "sbr:3610382528"
-                    },
-                    "linux-x86_64": {
-                        "uri": "sbr:3610381029"
-                    }
-                }
+                "sandbox_id": [
+                    1467403166,
+                    1467403563
+                ],
+                "match": "NDK"
             },
             "executable": {
                 "c++": [
@@ -7211,7 +7323,7 @@
         "idea_style_config": {
             "formula": {
                 "sandbox_id": [
-                    1562037399
+                    874273162
                 ],
                 "match": "Intellij IDEA codestyle config"
             }
@@ -7344,13 +7456,10 @@
         },
         "yt": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "YT_CLI",
-                        "owner": "YT"
-                    }
-                },
-                "update_interval": 604800
+                "sandbox_id": [
+                    1277508845
+                ],
+                "match": "YT"
             },
             "executable": {
                 "yt": [
@@ -7371,7 +7480,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1561957039,
+                "sandbox_id": 1051903185,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -7448,7 +7557,7 @@
         },
         "sre": {
             "formula": {
-                "sandbox_id": "1361378773",
+                "sandbox_id": "1281939415",
                 "match": "infra/rtc/sretools/sretools.tar.gz"
             },
             "executable": {
@@ -7472,8 +7581,49 @@
                 ]
             }
         },
+        "gcc61": {
+            "formula": {
+                "sandbox_id": 63189766,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "gcc",
+                    "bin",
+                    "g++-6.1"
+                ],
+                "cc": [
+                    "gcc",
+                    "bin",
+                    "gcc-6.1"
+                ],
+                "gcov": [
+                    "gcc",
+                    "bin",
+                    "gcov-6.1"
+                ],
+                "c++filt": [
+                    "gcc",
+                    "bin",
+                    "c++filt"
+                ],
+                "nm": [
+                    "gcc",
+                    "bin",
+                    "nm"
+                ],
+                "strip": [
+                    "gcc",
+                    "bin",
+                    "strip"
+                ]
+            }
+        },
         "gcc82": {
-            "formula": "build/platform/gcc/gcc82.json",
+            "formula": {
+                "sandbox_id": 288125345,
+                "match": "GCC"
+            },
             "executable": {
                 "c++": [
                     "gcc",
@@ -7533,8 +7683,8 @@
         "gdbnew": {
             "formula": {
                 "sandbox_id": [
-                    1539936704,
-                    1539939628
+                    1494385453,
+                    1494387618
                 ],
                 "platform_replacements": {},
                 "match": "GDB"
@@ -7624,8 +7774,8 @@
         "rtmr-deploy": {
             "formula": {
                 "sandbox_id": [
-                    1499116508,
-                    1499106904
+                    1210829227,
+                    1210811623
                 ],
                 "match": "rtmr-deploy"
             },
@@ -7679,7 +7829,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    1550322472
+                    1431168071
                 ],
                 "match": "dctl"
             },
@@ -7710,20 +7860,10 @@
         },
         "kubectl": {
             "formula": {
-                "by_platform": {
-                    "linux": {
-                        "uri": "sbr:3752131478"
-                    },
-                    "linux-arm64": {
-                        "uri": "sbr:3752131406"
-                    },
-                    "darwin": {
-                        "uri": "sbr:3752131455"
-                    },
-                    "darwin-arm64": {
-                        "uri": "sbr:3752131456"
-                    }
-                }
+                "sandbox_id": [
+                    1254092637
+                ],
+                "match": "kubectl"
             },
             "executable": {
                 "kubectl": [
@@ -7826,7 +7966,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 21600
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8079,17 +8219,6 @@
                 ]
             }
         },
-        "logos": {
-            "formula": {
-                "sandbox_id": 1566057525,
-                "match": "gen_tools"
-            },
-            "executable": {
-                "gen_tools": [
-                    "gen_tools"
-                ]
-            }
-        },
         "graphs_difference": {
             "formula": {
                 "sandbox_id": 374662639,
@@ -8135,7 +8264,10 @@
             }
         },
         "ya-tc": {
-            "formula": "build/external_resources/ya-tc/resources.json",
+            "formula": {
+                "sandbox_id": 1437768899,
+                "match": "ya-tc"
+            },
             "executable": {
                 "ya-tc": [
                     "ya-tc"
@@ -8168,24 +8300,9 @@
                 ]
             }
         },
-        "taxi-linter": {
-            "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "TAXI_LINTER_BINARY",
-                        "owner": "TAXI-AUTOMATIZATION"
-                    }
-                }
-            },
-            "executable": {
-                "taxi-linter": [
-                    "bin_taxi_linter/taxi-linter"
-                ]
-            }
-        },
         "apphost": {
             "formula": {
-                "sandbox_id": 1567016887,
+                "sandbox_id": 1495442280,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8261,7 +8378,15 @@
             }
         },
         "golang": {
-            "formula": "build/external_resources/go_tools/resources.json",
+            "formula": {
+                "sandbox_id": [
+                    1455627161,
+                    1455627163,
+                    1455627162,
+                    1455627165
+                ],
+                "match": "GOLANG"
+            },
             "executable": {
                 "go": [
                     "bin",
@@ -8305,16 +8430,10 @@
         },
         "qyp": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "VMCTL_TGZ",
-                        "owner": "QYP",
-                        "attributes": {
-                            "released": "stable"
-                        }
-                    },
-                    "update_interval": 86400
-                }
+                "sandbox_id": [
+                    1454282981
+                ],
+                "match": "infra/qyp/vmctl/bin/vmctl"
             },
             "executable": {
                 "vmctl": [
@@ -8485,7 +8604,7 @@
         "coronerctl": {
             "formula": {
                 "sandbox_id": [
-                    1520884213
+                    1480926804
                 ],
                 "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
@@ -8586,7 +8705,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1565093884,
+                "sandbox_id": 1438634718,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -8649,8 +8768,7 @@
                 "sandbox_id": [
                     1459597978,
                     1459598823,
-                    1459599001,
-                    1523085698
+                    1459599001
                 ],
                 "match": "ktlint"
             },
@@ -8715,7 +8833,7 @@
         },
         "yadi": {
             "formula": {
-                "sandbox_id": 1530501902,
+                "sandbox_id": 1423151849,
                 "match": "yadi-arc"
             },
             "executable": {
@@ -8778,7 +8896,7 @@
         },
         "wall-e": {
             "formula": {
-                "sandbox_id": 1550113523,
+                "sandbox_id": 1422846339,
                 "match": "wall-e"
             },
             "executable": {
@@ -8789,7 +8907,7 @@
         },
         "skotty": {
             "formula": {
-                "sandbox_id": 1540880007,
+                "sandbox_id": 1433668519,
                 "match": "launcher"
             },
             "executable": {
@@ -8799,7 +8917,10 @@
             }
         },
         "gcc102-arm-none-eabi": {
-            "formula": "build/platform/gcc/gcc102-arm-none-eabi.json",
+            "formula": {
+                "sandbox_id": 1020757602,
+                "match": "GNU ARM"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -8846,7 +8967,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1522655739,
+                "sandbox_id": 1495443274,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8857,7 +8978,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1505213895,
+                "sandbox_id": 1495443436,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8886,7 +9007,7 @@
                     }
                 },
                 "match": "bb_cluster_analyzer",
-                "sandbox_id": 1502578849
+                "sandbox_id": 1495443443
             },
             "executable": {
                 "bb_cluster_analyzer": [
@@ -8934,7 +9055,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1505213655,
+                "sandbox_id": 1495443648,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8945,7 +9066,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1502579275,
+                "sandbox_id": 1495442629,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8956,7 +9077,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1505215029,
+                "sandbox_id": 1495443575,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8967,7 +9088,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1564760536,
+                "sandbox_id": 1494422690,
                 "match": "lama"
             },
             "executable": {
@@ -9058,7 +9179,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1511642247,
+                "sandbox_id": 1495444995,
                 "match": "profile_size_analyzer"
             },
             "executable": {
@@ -9068,7 +9189,10 @@
             }
         },
         "nds32le-elf-mculib-v5f": {
-            "formula": "build/platform/gcc/nds32le-elf-mculib-v5f.json",
+            "formula": {
+                "sandbox_id": 1326305174,
+                "match": "nds32le-elf-mculib-v5f"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -9113,17 +9237,8 @@
         },
         "tasklet": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "TASKLET_TOOL_TGZ",
-                        "attributes": {
-                            "released": "stable"
-                        },
-                        "owner": "TASKLETS"
-                    },
-                    "update_interval": 86400,
-                    "ignore_platform": false
-                }
+                "sandbox_id": 1417351261,
+                "match": "tasklet-tool"
             },
             "executable": {
                 "tasklet": [

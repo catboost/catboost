@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 from typing import Callable
 from typing import Generic
-from typing import NoReturn
 from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
@@ -18,20 +17,10 @@ from typing import TypeVar
 from typing import Union
 
 import attr
-
-import _pytest._py.path as py_path
-
-# fmt: off
-# Workaround for https://github.com/sphinx-doc/sphinx/issues/10351.
-# If `overload` is imported from `compat` instead of from `typing`,
-# Sphinx doesn't recognize it as `overload` and the API docs for
-# overloaded functions look good again. But type checkers handle
-# it fine.
-# fmt: on
-if True:
-    from typing import overload as overload
+import py
 
 if TYPE_CHECKING:
+    from typing import NoReturn
     from typing_extensions import Final
 
 
@@ -43,7 +32,7 @@ _S = TypeVar("_S")
 
 # fmt: off
 # intentional space to create a fake difference for the verification
-LEGACY_PATH = py_path. local
+LEGACY_PATH = py.path. local
 # fmt: on
 
 
@@ -61,11 +50,9 @@ NOTSET: "Final" = NotSetType.token  # noqa: E305
 # fmt: on
 
 if sys.version_info >= (3, 8):
-    import importlib.metadata
-
-    importlib_metadata = importlib.metadata
+    from importlib import metadata as importlib_metadata
 else:
-    import importlib_metadata as importlib_metadata  # noqa: F401
+    import importlib_metadata  # noqa: F401
 
 
 def _format_args(func: Callable[..., Any]) -> str:
@@ -356,6 +343,7 @@ else:
 if sys.version_info >= (3, 8):
     from functools import cached_property as cached_property
 else:
+    from typing import overload
     from typing import Type
 
     class cached_property(Generic[_S, _T]):
@@ -413,5 +401,5 @@ else:
 # previously.
 #
 # This also work for Enums (if you use `is` to compare) and Literals.
-def assert_never(value: NoReturn) -> NoReturn:
+def assert_never(value: "NoReturn") -> "NoReturn":
     assert False, f"Unhandled value: {value} ({type(value).__name__})"

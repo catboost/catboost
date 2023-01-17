@@ -171,11 +171,12 @@ class _NetlocResultMixinBase(object):
     def port(self):
         port = self._hostinfo[1]
         if port is not None:
-            if port.isdigit() and port.isascii():
-                port = int(port)
-            else:
-                raise ValueError(f"Port could not be cast to integer value as {port!r}")
-            if not (0 <= port <= 65535):
+            try:
+                port = int(port, 10)
+            except ValueError:
+                message = f'Port could not be cast to integer value as {port!r}'
+                raise ValueError(message) from None
+            if not ( 0 <= port <= 65535):
                 raise ValueError("Port out of range 0-65535")
         return port
 
@@ -1124,15 +1125,15 @@ def splitnport(host, defport=-1):
 def _splitnport(host, defport=-1):
     """Split host and port, returning numeric port.
     Return given default port if no ':' found; defaults to -1.
-    Return numerical port if a valid number is found after ':'.
+    Return numerical port if a valid number are found after ':'.
     Return None if ':' but not a valid number."""
     host, delim, port = host.rpartition(':')
     if not delim:
         host = port
     elif port:
-        if port.isdigit() and port.isascii():
+        try:
             nport = int(port)
-        else:
+        except ValueError:
             nport = None
         return host, nport
     return host, defport

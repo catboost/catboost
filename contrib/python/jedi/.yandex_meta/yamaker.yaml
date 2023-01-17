@@ -1,2 +1,3 @@
 additional_requirements:
-  - setuptools
+- setuptools
+

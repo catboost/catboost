@@ -100,11 +100,7 @@ class TempPathFactory:
         return p
 
     def getbasetemp(self) -> Path:
-        """Return the base temporary directory, creating it if needed.
-
-        :returns:
-            The base temporary directory.
-        """
+        """Return the base temporary directory, creating it if needed."""
         if self._basetemp is not None:
             return self._basetemp
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ namespace graph_policy_namespace {
     // functor that, given an object accepted by the port, will return the
     /// field of type K being used for matching.
     template<typename K, typename KHash=tbb_hash_compare<typename std::decay<K>::type > >
-        __TBB_requires(tbb::detail::hash_compare<KHash, K>)
     struct key_matching {
         typedef K key_type;
         typedef typename std::decay<K>::type base_key_type;
@@ -260,18 +259,13 @@ public:
             next_task = nullptr;
         else if (next_task)
             next_task = prioritize_task(my_node.graph_reference(), *next_task);
-        finalize<forward_task_bypass>(ed);
+        finalize(ed);
         return next_task;
-    }
-
-    task* cancel(execution_data& ed) override {
-        finalize<forward_task_bypass>(ed);
-        return nullptr;
     }
 };
 
 //! A task that calls a node's apply_body_bypass function, passing in an input of type Input
-//  return the task* unless it is SUCCESSFULLY_ENQUEUED, in which case return nullptr
+//  return the task* unless it is SUCCESSFULLY_ENQUEUED, in which case return NULL
 template< typename NodeType, typename Input >
 class apply_body_task_bypass : public graph_task {
     NodeType &my_node;
@@ -289,13 +283,9 @@ public:
             next_task = nullptr;
         else if (next_task)
             next_task = prioritize_task(my_node.graph_reference(), *next_task);
-        finalize<apply_body_task_bypass>(ed);
+        finalize(ed);
         return next_task;
-    }
 
-    task* cancel(execution_data& ed) override {
-        finalize<apply_body_task_bypass>(ed);
-        return nullptr;
     }
 };
 
@@ -313,14 +303,10 @@ public:
             next_task = nullptr;
         else if (next_task)
             next_task = prioritize_task(my_node.graph_reference(), *next_task);
-        finalize<input_node_task_bypass>(ed);
+        finalize(ed);
         return next_task;
     }
 
-    task* cancel(execution_data& ed) override {
-        finalize<input_node_task_bypass>(ed);
-        return nullptr;
-    }
 };
 
 // ------------------------ end of node task bodies -----------------------------------

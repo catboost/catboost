@@ -9,7 +9,6 @@
 
 add_library(cpp-malloc-mimalloc)
 target_link_libraries(cpp-malloc-mimalloc PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   cpp-malloc-api
   contrib-libs-mimalloc

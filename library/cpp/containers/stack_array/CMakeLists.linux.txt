@@ -9,7 +9,6 @@
 
 add_library(cpp-containers-stack_array)
 target_link_libraries(cpp-containers-stack_array PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

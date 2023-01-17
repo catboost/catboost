@@ -18,13 +18,11 @@
 #define __TBB_spin_mutex_H
 
 #include "detail/_namespace_injection.h"
-#include "detail/_mutex_common.h"
 
 #include "profiling.h"
 
 #include "detail/_assert.h"
 #include "detail/_utils.h"
-#include "detail/_scoped_lock.h"
 
 #include <atomic>
 
@@ -56,7 +54,54 @@ public:
     spin_mutex(const spin_mutex&) = delete;
     spin_mutex& operator=(const spin_mutex&) = delete;
 
-    using scoped_lock = unique_scoped_lock<spin_mutex>;
+    //! Represents acquisition of a mutex.
+    class scoped_lock {
+        //! Points to currently held mutex, or NULL if no lock is held.
+        spin_mutex* m_mutex;
+
+    public:
+        //! Construct without acquiring a mutex.
+        constexpr scoped_lock() noexcept : m_mutex(nullptr) {}
+
+        //! Construct and acquire lock on a mutex.
+        scoped_lock(spin_mutex& m) {
+            acquire(m);
+        }
+
+        //! No Copy
+        scoped_lock(const scoped_lock&) = delete;
+        scoped_lock& operator=(const scoped_lock&) = delete;
+
+        //! Acquire lock.
+        void acquire(spin_mutex& m) {
+            m_mutex = &m;
+            m.lock();
+        }
+
+        //! Try acquiring lock (non-blocking)
+        /** Return true if lock acquired; false otherwise. */
+        bool try_acquire(spin_mutex& m) {
+            bool result = m.try_lock();
+            if (result) {
+                m_mutex = &m;
+            }
+            return result;
+        }
+
+        //! Release lock
+        void release() {
+            __TBB_ASSERT(m_mutex, "release on spin_mutex::scoped_lock that is not holding a lock");
+            m_mutex->unlock();
+            m_mutex = nullptr;
+        }
+
+        //! Destroy lock. If holding a lock, releases the lock first.
+        ~scoped_lock() {
+            if (m_mutex) {
+                release();
+            }
+        }
+    };
 
     //! Mutex traits
     static constexpr bool is_rw_mutex = false;
@@ -96,14 +141,14 @@ protected:
 inline void set_name(spin_mutex& obj, const char* name) {
     itt_set_sync_name(&obj, name);
 }
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
 inline void set_name(spin_mutex& obj, const wchar_t* name) {
     itt_set_sync_name(&obj, name);
 }
 #endif //WIN
 #else
 inline void set_name(spin_mutex&, const char*) {}
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
 inline void set_name(spin_mutex&, const wchar_t*) {}
 #endif // WIN
 #endif

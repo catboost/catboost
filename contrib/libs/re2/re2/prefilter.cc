@@ -7,7 +7,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "util/util.h"
@@ -21,6 +20,9 @@
 namespace re2 {
 
 static const bool ExtraDebug = false;
+
+typedef std::set<std::string>::iterator SSIter;
+typedef std::set<std::string>::const_iterator ConstSSIter;
 
 // Initializes a Prefilter, allocating subs_ as necessary.
 Prefilter::Prefilter(Op op) {
@@ -138,7 +140,7 @@ Prefilter* Prefilter::Or(Prefilter* a, Prefilter* b) {
   return AndOr(OR, a, b);
 }
 
-void Prefilter::SimplifyStringSet(SSet* ss) {
+static void SimplifyStringSet(std::set<std::string>* ss) {
   // Now make sure that the strings aren't redundant.  For example, if
   // we know "ab" is a required string, then it doesn't help at all to
   // know that "abc" is also a required string, so delete "abc". This
@@ -147,19 +149,13 @@ void Prefilter::SimplifyStringSet(SSet* ss) {
   // candidate for match, so further matching "abc" is redundant.
   // Note that we must ignore "" because find() would find it at the
   // start of everything and thus we would end up erasing everything.
-  //
-  // The SSet sorts strings by length, then lexicographically. Note that
-  // smaller strings appear first and all strings must be unique. These
-  // observations let us skip string comparisons when possible.
-  SSIter i = ss->begin();
-  if (i != ss->end() && i->empty()) {
-    ++i;
-  }
-  for (; i != ss->end(); ++i) {
+  for (SSIter i = ss->begin(); i != ss->end(); ++i) {
+    if (i->empty())
+      continue;
     SSIter j = i;
     ++j;
     while (j != ss->end()) {
-      if (j->size() > i->size() && j->find(*i) != std::string::npos) {
+      if (j->find(*i) != std::string::npos) {
         j = ss->erase(j);
         continue;
       }
@@ -168,7 +164,7 @@ void Prefilter::SimplifyStringSet(SSet* ss) {
   }
 }
 
-Prefilter* Prefilter::OrStrings(SSet* ss) {
+Prefilter* Prefilter::OrStrings(std::set<std::string>* ss) {
   Prefilter* or_prefilter = new Prefilter(NONE);
   SimplifyStringSet(ss);
   for (SSIter i = ss->begin(); i != ss->end(); ++i)
@@ -230,14 +226,14 @@ class Prefilter::Info {
   // Caller takes ownership of the Prefilter.
   Prefilter* TakeMatch();
 
-  SSet& exact() { return exact_; }
+  std::set<std::string>& exact() { return exact_; }
 
   bool is_exact() const { return is_exact_; }
 
   class Walker;
 
  private:
-  SSet exact_;
+  std::set<std::string> exact_;
 
   // When is_exact_ is true, the strings that match
   // are placed in exact_. When it is no longer an exact
@@ -290,7 +286,18 @@ std::string Prefilter::Info::ToString() {
   return "";
 }
 
-void Prefilter::CrossProduct(const SSet& a, const SSet& b, SSet* dst) {
+// Add the strings from src to dst.
+static void CopyIn(const std::set<std::string>& src,
+                   std::set<std::string>* dst) {
+  for (ConstSSIter i = src.begin(); i != src.end(); ++i)
+    dst->insert(*i);
+}
+
+// Add the cross-product of a and b to dst.
+// (For each string i in a and j in b, add i+j.)
+static void CrossProduct(const std::set<std::string>& a,
+                         const std::set<std::string>& b,
+                         std::set<std::string>* dst) {
   for (ConstSSIter i = a.begin(); i != a.end(); ++i)
     for (ConstSSIter j = b.begin(); j != b.end(); ++j)
       dst->insert(*i + *j);
@@ -336,14 +343,8 @@ Prefilter::Info* Prefilter::Info::Alt(Info* a, Info* b) {
   Info *ab = new Info();
 
   if (a->is_exact_ && b->is_exact_) {
-    // Avoid string copies by moving the larger exact_ set into
-    // ab directly, then merge in the smaller set.
-    if (a->exact_.size() < b->exact_.size()) {
-      using std::swap;
-      swap(a, b);
-    }
-    ab->exact_ = std::move(a->exact_);
-    ab->exact_.insert(b->exact_.begin(), b->exact_.end());
+    CopyIn(a->exact_, &ab->exact_);
+    CopyIn(b->exact_, &ab->exact_);
     ab->is_exact_ = true;
   } else {
     // Either a or b has is_exact_ = false. If the other
@@ -531,8 +532,8 @@ Prefilter::Info* Prefilter::Info::Walker::PostVisit(
   switch (re->op()) {
     default:
     case kRegexpRepeat:
-      info = EmptyString();
       LOG(DFATAL) << "Bad regexp op " << re->op();
+      info = EmptyString();
       break;
 
     case kRegexpNoMatch:

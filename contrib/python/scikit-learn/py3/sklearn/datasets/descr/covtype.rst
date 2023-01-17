@@ -22,9 +22,7 @@ while others are discrete or continuous measurements.
     =================   ============
 
 :func:`sklearn.datasets.fetch_covtype` will load the covertype dataset;
-it returns a dictionary-like 'Bunch' object
+it returns a dictionary-like object
 with the feature matrix in the ``data`` member
-and the target values in ``target``. If optional argument 'as_frame' is
-set to 'True', it will return ``data`` and ``target`` as pandas
-data frame, and there will be an additional member ``frame`` as well.
+and the target values in ``target``.
 The dataset will be downloaded from the web if necessary.

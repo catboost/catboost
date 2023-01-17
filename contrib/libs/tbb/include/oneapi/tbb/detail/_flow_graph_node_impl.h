@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -63,10 +63,10 @@ public:
     static_assert(!has_policy<queueing, Policy>::value || !has_policy<rejecting, Policy>::value, "");
 
     //! Constructor for function_input_base
-    function_input_base( graph &g, size_t max_concurrency, node_priority_t a_priority, bool is_no_throw )
+    function_input_base( graph &g, size_t max_concurrency, node_priority_t a_priority )
         : my_graph_ref(g), my_max_concurrency(max_concurrency)
-        , my_concurrency(0), my_priority(a_priority), my_is_no_throw(is_no_throw)
-        , my_queue(!has_policy<rejecting, Policy>::value ? new input_queue_type() : nullptr)
+        , my_concurrency(0), my_priority(a_priority)
+        , my_queue(!has_policy<rejecting, Policy>::value ? new input_queue_type() : NULL)
         , my_predecessors(this)
         , forwarder_busy(false)
     {
@@ -75,22 +75,18 @@ public:
 
     //! Copy constructor
     function_input_base( const function_input_base& src )
-        : function_input_base(src.my_graph_ref, src.my_max_concurrency, src.my_priority, src.my_is_no_throw) {}
+        : function_input_base(src.my_graph_ref, src.my_max_concurrency, src.my_priority) {}
 
     //! Destructor
     // The queue is allocated by the constructor for {multi}function_node.
     // TODO: pass the graph_buffer_policy to the base so it can allocate the queue instead.
     // This would be an interface-breaking change.
     virtual ~function_input_base() {
-        delete my_queue;
-        my_queue = nullptr;
+        if ( my_queue ) delete my_queue;
     }
 
     graph_task* try_put_task( const input_type& t) override {
-        if ( my_is_no_throw )
-            return try_put_task_impl(t, has_policy<lightweight, Policy>());
-        else
-            return try_put_task_impl(t, std::false_type());
+        return try_put_task_impl(t, has_policy<lightweight, Policy>());
     }
 
     //! Adds src to the list of cached predecessors.
@@ -124,7 +120,6 @@ protected:
     const size_t my_max_concurrency;
     size_t my_concurrency;
     node_priority_t my_priority;
-    const bool my_is_no_throw;
     input_queue_type *my_queue;
     predecessor_cache<input_type, null_mutex > my_predecessors;
 
@@ -160,7 +155,7 @@ private:
         graph_task* bypass_t;
         operation_type(const input_type& e, op_type t) :
             type(char(t)), elem(const_cast<input_type*>(&e)) {}
-        operation_type(op_type t) : type(char(t)), r(nullptr) {}
+        operation_type(op_type t) : type(char(t)), r(NULL) {}
     };
 
     bool forwarder_busy;
@@ -169,7 +164,7 @@ private:
     aggregator< handler_type, operation_type > my_aggregator;
 
     graph_task* perform_queued_requests() {
-        graph_task* new_task = nullptr;
+        graph_task* new_task = NULL;
         if(my_queue) {
             if(!my_queue->empty()) {
                 ++my_concurrency;
@@ -206,8 +201,8 @@ private:
                 tmp->status.store(SUCCEEDED, std::memory_order_release);
                 break;
             case app_body_bypass: {
-                tmp->bypass_t = nullptr;
-                __TBB_ASSERT(my_max_concurrency != 0, nullptr);
+                tmp->bypass_t = NULL;
+                __TBB_ASSERT(my_max_concurrency != 0, NULL);
                 --my_concurrency;
                 if(my_concurrency<my_max_concurrency)
                     tmp->bypass_t = perform_queued_requests();
@@ -230,7 +225,7 @@ private:
 
     //! Put to the node, but return the task instead of enqueueing it
     void internal_try_put_task(operation_type *op) {
-        __TBB_ASSERT(my_max_concurrency != 0, nullptr);
+        __TBB_ASSERT(my_max_concurrency != 0, NULL);
         if (my_concurrency < my_max_concurrency) {
             ++my_concurrency;
             graph_task * new_task = create_body_task(*(op->elem));
@@ -240,14 +235,14 @@ private:
             op->bypass_t = SUCCESSFULLY_ENQUEUED;
             op->status.store(SUCCEEDED, std::memory_order_release);
         } else {
-            op->bypass_t = nullptr;
+            op->bypass_t = NULL;
             op->status.store(FAILED, std::memory_order_release);
         }
     }
 
     //! Creates tasks for postponed messages if available and if concurrency allows
     void internal_forward(operation_type *op) {
-        op->bypass_t = nullptr;
+        op->bypass_t = NULL;
         if (my_concurrency < my_max_concurrency)
             op->bypass_t = perform_queued_requests();
         if(op->bypass_t)
@@ -264,7 +259,7 @@ private:
         if( op_data.status == SUCCEEDED ) {
             return op_data.bypass_t;
         }
-        return nullptr;
+        return NULL;
     }
 
     graph_task* try_put_task_impl( const input_type& t, /*lightweight=*/std::true_type ) {
@@ -310,13 +305,13 @@ private:
     //! This is executed by an enqueued task, the "forwarder"
     graph_task* forward_task() {
         operation_type op_data(try_fwd);
-        graph_task* rval = nullptr;
+        graph_task* rval = NULL;
         do {
             op_data.status = WAIT;
             my_aggregator.execute(&op_data);
             if(op_data.status == SUCCEEDED) {
                 graph_task* ttask = op_data.bypass_t;
-                __TBB_ASSERT( ttask && ttask != SUCCESSFULLY_ENQUEUED, nullptr);
+                __TBB_ASSERT( ttask && ttask != SUCCESSFULLY_ENQUEUED, NULL );
                 rval = combine_tasks(my_graph_ref, rval, ttask);
             }
         } while (op_data.status == SUCCEEDED);
@@ -361,7 +356,7 @@ public:
     template<typename Body>
     function_input(
         graph &g, size_t max_concurrency, Body& body, node_priority_t a_priority )
-      : base_type(g, max_concurrency, a_priority, noexcept(body(input_type())))
+      : base_type(g, max_concurrency, a_priority)
       , my_body( new function_body_leaf< input_type, output_type, Body>(body) )
       , my_init_body( new function_body_leaf< input_type, output_type, Body>(body) ) {
     }
@@ -400,10 +395,10 @@ public:
     //TODO: consider moving into the base class
     graph_task* apply_body_impl_bypass( const input_type &i) {
         output_type v = apply_body_impl(i);
-        graph_task* postponed_task = nullptr;
+        graph_task* postponed_task = NULL;
         if( base_type::my_max_concurrency != 0 ) {
             postponed_task = base_type::try_get_postponed_task(i);
-            __TBB_ASSERT( !postponed_task || postponed_task != SUCCESSFULLY_ENQUEUED, nullptr);
+            __TBB_ASSERT( !postponed_task || postponed_task != SUCCESSFULLY_ENQUEUED, NULL );
         }
         if( postponed_task ) {
             // make the task available for other workers since we do not know successors'
@@ -496,7 +491,7 @@ public:
     // constructor
     template<typename Body>
     multifunction_input(graph &g, size_t max_concurrency,Body& body, node_priority_t a_priority )
-      : base_type(g, max_concurrency, a_priority, noexcept(body(input_type(), my_output_ports)))
+      : base_type(g, max_concurrency, a_priority)
       , my_body( new multifunction_body_leaf<input_type, output_ports_type, Body>(body) )
       , my_init_body( new multifunction_body_leaf<input_type, output_ports_type, Body>(body) )
       , my_output_ports(init_output_ports<output_ports_type>::call(g, my_output_ports)){
@@ -528,7 +523,7 @@ public:
         fgt_begin_body( my_body );
         (*my_body)(i, my_output_ports);
         fgt_end_body( my_body );
-        graph_task* ttask = nullptr;
+        graph_task* ttask = NULL;
         if(base_type::my_max_concurrency != 0) {
             ttask = base_type::try_get_postponed_task(i);
         }
@@ -667,7 +662,7 @@ protected:
 
     graph_task* execute() override {
         if(!is_graph_active(my_graph_ref)) {
-            return nullptr;
+            return NULL;
         }
 #if _MSC_VER && !__INTEL_COMPILER
 #pragma warning (push)

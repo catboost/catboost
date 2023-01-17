@@ -9,7 +9,6 @@
 
 add_library(library-cpp-statistics INTERFACE)
 target_link_libraries(library-cpp-statistics INTERFACE
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

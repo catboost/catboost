@@ -16,7 +16,6 @@ target_include_directories(python-numpy-include INTERFACE
   ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/distutils/include
 )
 target_link_libraries(python-numpy-include INTERFACE
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

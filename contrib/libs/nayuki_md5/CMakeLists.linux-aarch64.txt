@@ -9,7 +9,6 @@
 
 add_library(contrib-libs-nayuki_md5)
 target_link_libraries(contrib-libs-nayuki_md5 PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

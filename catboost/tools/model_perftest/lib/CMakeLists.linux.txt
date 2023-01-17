@@ -9,7 +9,6 @@
 
 add_library(tools-model_perftest-lib INTERFACE)
 target_link_libraries(tools-model_perftest-lib INTERFACE
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-algo
@@ -21,7 +20,6 @@ target_link_libraries(tools-model_perftest-lib INTERFACE
 
 add_global_library_for(tools-model_perftest-lib.global tools-model_perftest-lib)
 target_link_libraries(tools-model_perftest-lib.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-algo

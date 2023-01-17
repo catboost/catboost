@@ -160,7 +160,7 @@ class Parser:
         self._last_identifier += 1
         rv = object.__new__(nodes.InternalName)
         nodes.Node.__init__(rv, f"fi{self._last_identifier}", lineno=lineno)
-        return rv
+        return rv  # type: ignore
 
     def parse_statement(self) -> t.Union[nodes.Node, t.List[nodes.Node]]:
         """Parse a single statement."""
@@ -364,10 +364,14 @@ class Parser:
         node.names = []
 
         def parse_context() -> bool:
-            if self.stream.current.value in {
-                "with",
-                "without",
-            } and self.stream.look().test("name:context"):
+            if (
+                self.stream.current.value
+                in {
+                    "with",
+                    "without",
+                }
+                and self.stream.look().test("name:context")
+            ):
                 node.with_context = next(self.stream).value == "with"
                 self.stream.skip()
                 return True
@@ -953,15 +957,19 @@ class Parser:
         kwargs = []
         if self.stream.current.type == "lparen":
             args, kwargs, dyn_args, dyn_kwargs = self.parse_call_args()
-        elif self.stream.current.type in {
-            "name",
-            "string",
-            "integer",
-            "float",
-            "lparen",
-            "lbracket",
-            "lbrace",
-        } and not self.stream.current.test_any("name:else", "name:or", "name:and"):
+        elif (
+            self.stream.current.type
+            in {
+                "name",
+                "string",
+                "integer",
+                "float",
+                "lparen",
+                "lbracket",
+                "lbrace",
+            }
+            and not self.stream.current.test_any("name:else", "name:or", "name:and")
+        ):
             if self.stream.current.test("name:is"):
                 self.fail("You cannot chain multiple tests with is")
             arg_node = self.parse_primary()

@@ -18,8 +18,8 @@ from typing import Iterable
 from typing import Iterator
 from typing import List
 from typing import MutableMapping
-from typing import NoReturn
 from typing import Optional
+from typing import overload
 from typing import Sequence
 from typing import Set
 from typing import Tuple
@@ -47,7 +47,6 @@ from _pytest.compat import getimfunc
 from _pytest.compat import getlocation
 from _pytest.compat import is_generator
 from _pytest.compat import NOTSET
-from _pytest.compat import overload
 from _pytest.compat import safe_getattr
 from _pytest.config import _PluggyPlugin
 from _pytest.config import Config
@@ -68,6 +67,7 @@ from _pytest.stash import StashKey
 
 if TYPE_CHECKING:
     from typing import Deque
+    from typing import NoReturn
 
     from _pytest.scope import _ScopeName
     from _pytest.main import Session
@@ -223,10 +223,15 @@ def add_funcarg_pseudo_fixture_def(
 def getfixturemarker(obj: object) -> Optional["FixtureFunctionMarker"]:
     """Return fixturemarker or None if it doesn't exist or raised
     exceptions."""
-    return cast(
-        Optional[FixtureFunctionMarker],
-        safe_getattr(obj, "_pytestfixturefunction", None),
-    )
+    try:
+        fixturemarker: Optional[FixtureFunctionMarker] = getattr(
+            obj, "_pytestfixturefunction", None
+        )
+    except TEST_OUTCOME:
+        # some objects raise errors like request (from flask import request)
+        # we don't expect them to be fixture functions
+        return None
+    return fixturemarker
 
 
 # Parametrized fixture key, helper alias for code below.
@@ -513,8 +518,8 @@ class FixtureRequest:
         return self._pyfuncitem.session  # type: ignore[no-any-return]
 
     def addfinalizer(self, finalizer: Callable[[], object]) -> None:
-        """Add finalizer/teardown function to be called without arguments after
-        the last test within the requesting test context finished execution."""
+        """Add finalizer/teardown function to be called after the last test
+        within the requesting test context finished execution."""
         # XXX usually this method is shadowed by fixturedef specific ones.
         self._addfinalizer(finalizer, scope=self.scope)
 
@@ -529,16 +534,13 @@ class FixtureRequest:
         on all function invocations.
 
         :param marker:
-            An object created by a call to ``pytest.mark.NAME(...)``.
+            A :class:`pytest.MarkDecorator` object created by a call
+            to ``pytest.mark.NAME(...)``.
         """
         self.node.add_marker(marker)
 
-    def raiseerror(self, msg: Optional[str]) -> NoReturn:
-        """Raise a FixtureLookupError exception.
-
-        :param msg:
-            An optional custom error message.
-        """
+    def raiseerror(self, msg: Optional[str]) -> "NoReturn":
+        """Raise a FixtureLookupError with the given message."""
         raise self._fixturemanager.FixtureLookupError(None, self, msg)
 
     def _fillfixtures(self) -> None:
@@ -556,20 +558,11 @@ class FixtureRequest:
         setup time, you may use this function to retrieve it inside a fixture
         or test function body.
 
-        This method can be used during the test setup phase or the test run
-        phase, but during the test teardown phase a fixture's value may not
-        be available.
-
-        :param argname:
-            The fixture name.
         :raises pytest.FixtureLookupError:
             If the given fixture could not be found.
         """
         fixturedef = self._get_active_fixturedef(argname)
-        assert fixturedef.cached_result is not None, (
-            f'The fixture value for "{argname}" is not available.  '
-            "This can happen when the fixture has already been torn down."
-        )
+        assert fixturedef.cached_result is not None
         return fixturedef.cached_result[0]
 
     def _get_active_fixturedef(
@@ -773,8 +766,8 @@ class SubRequest(FixtureRequest):
         return f"<SubRequest {self.fixturename!r} for {self._pyfuncitem!r}>"
 
     def addfinalizer(self, finalizer: Callable[[], object]) -> None:
-        """Add finalizer/teardown function to be called without arguments after
-        the last test within the requesting test context finished execution."""
+        """Add finalizer/teardown function to be called after the last test
+        within the requesting test context finished execution."""
         self._fixturedef.addfinalizer(finalizer)
 
     def _schedule_finalizers(
@@ -881,7 +874,7 @@ class FixtureLookupErrorRepr(TerminalRepr):
         tw.line("%s:%d" % (os.fspath(self.filename), self.firstlineno + 1))
 
 
-def fail_fixturefunc(fixturefunc, msg: str) -> NoReturn:
+def fail_fixturefunc(fixturefunc, msg: str) -> "NoReturn":
     fs, lineno = getfslineno(fixturefunc)
     location = f"{fs}:{lineno + 1}"
     source = _pytest._code.Source(fixturefunc)
@@ -1231,7 +1224,7 @@ def fixture(
 
 
 @overload
-def fixture(  # noqa: F811
+def fixture(
     fixture_function: None = ...,
     *,
     scope: "Union[_ScopeName, Callable[[str, Config], _ScopeName]]" = ...,
@@ -1245,7 +1238,7 @@ def fixture(  # noqa: F811
     ...
 
 
-def fixture(  # noqa: F811
+def fixture(
     fixture_function: Optional[FixtureFunction] = None,
     *,
     scope: "Union[_ScopeName, Callable[[str, Config], _ScopeName]]" = "function",
@@ -1367,7 +1360,7 @@ def pytest_addoption(parser: Parser) -> None:
         "usefixtures",
         type="args",
         default=[],
-        help="List of default fixtures to be used with this project",
+        help="list of default fixtures to be used with this project",
     )
 
 

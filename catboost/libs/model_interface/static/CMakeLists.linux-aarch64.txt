@@ -10,7 +10,6 @@ add_subdirectory(lib)
 
 add_fat_object(libcatboostmodel)
 target_link_libraries(libcatboostmodel PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   model_interface-static-lib

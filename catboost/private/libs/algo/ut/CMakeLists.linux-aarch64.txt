@@ -9,7 +9,6 @@
 
 add_executable(catboost_ut)
 target_link_libraries(catboost_ut PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

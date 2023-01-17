@@ -4,22 +4,23 @@ PY3_LIBRARY()
 
 
 
-VERSION(7.2.0)
+VERSION(7.1.3)
 
 LICENSE(MIT)
 
 PEERDIR(
     contrib/python/attrs
-    contrib/python/exceptiongroup
     contrib/python/iniconfig
     contrib/python/packaging
     contrib/python/pluggy
+    contrib/python/py
     contrib/python/tomli
 )
 
 NO_LINT()
 
 NO_CHECK_IMPORTS(
+    __tests__.*
     _pytest.*
 )
 
@@ -34,9 +35,6 @@ PY_SRCS(
     _pytest/_io/saferepr.py
     _pytest/_io/terminalwriter.py
     _pytest/_io/wcwidth.py
-    _pytest/_py/__init__.py
-    _pytest/_py/error.py
-    _pytest/_py/path.py
     _pytest/_version.py
     _pytest/assertion/__init__.py
     _pytest/assertion/rewrite.py

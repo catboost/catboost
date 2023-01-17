@@ -18,7 +18,6 @@ from _pytest.config import UsageError
 from _pytest.config.argparsing import OptionGroup
 from _pytest.config.argparsing import Parser
 from _pytest.debugging import pytestPDB as __pytestPDB
-from _pytest.doctest import DoctestItem
 from _pytest.fixtures import fixture
 from _pytest.fixtures import FixtureLookupError
 from _pytest.fixtures import FixtureRequest
@@ -70,7 +69,6 @@ from _pytest.warning_types import PytestConfigWarning
 from _pytest.warning_types import PytestDeprecationWarning
 from _pytest.warning_types import PytestExperimentalApiWarning
 from _pytest.warning_types import PytestRemovedIn8Warning
-from _pytest.warning_types import PytestReturnNotNoneWarning
 from _pytest.warning_types import PytestUnhandledCoroutineWarning
 from _pytest.warning_types import PytestUnhandledThreadExceptionWarning
 from _pytest.warning_types import PytestUnknownMarkWarning
@@ -93,7 +91,6 @@ __all__ = [
     "Config",
     "console_main",
     "deprecated_call",
-    "DoctestItem",
     "exit",
     "ExceptionInfo",
     "ExitCode",
@@ -130,7 +127,6 @@ __all__ = [
     "PytestDeprecationWarning",
     "PytestExperimentalApiWarning",
     "PytestRemovedIn8Warning",
-    "PytestReturnNotNoneWarning",
     "Pytester",
     "PytestPluginManager",
     "PytestUnhandledCoroutineWarning",

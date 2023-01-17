@@ -9,7 +9,6 @@
 
 add_library(library-cpp-yson)
 target_link_libraries(library-cpp-yson PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-yt-misc

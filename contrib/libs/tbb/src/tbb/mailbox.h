@@ -20,6 +20,7 @@
 #include "oneapi/tbb/cache_aligned_allocator.h"
 #include "oneapi/tbb/detail/_small_object_pool.h"
 
+#include "arena_slot.h"
 #include "scheduler_common.h"
 
 #include <atomic>
@@ -82,11 +83,11 @@ struct task_proxy : public d1::task {
         return nullptr;
     }
 
-    task* execute(d1::execution_data&) override {
+    virtual task* execute(d1::execution_data&) {
         __TBB_ASSERT_RELEASE(false, nullptr);
         return nullptr;
     }
-    task* cancel(d1::execution_data&) override {
+    virtual task* cancel(d1::execution_data&) {
         __TBB_ASSERT_RELEASE(false, nullptr);
         return nullptr;
     }
@@ -186,12 +187,14 @@ public:
     }
 
     //! Drain the mailbox
-    void drain() {
+    intptr_t drain() {
+        intptr_t k = 0;
         // No fences here because other threads have already quit.
-        for( ; task_proxy* t = my_first; ) {
+        for( ; task_proxy* t = my_first; ++k ) {
             my_first.store(t->next_in_mailbox, std::memory_order_relaxed);
-            t->allocator.delete_object(t);
+            // cache_aligned_deallocate((char*)t - task_prefix_reservation_size);
         }
+        return k;
     }
 
     //! True if thread that owns this mailbox is looking for work.

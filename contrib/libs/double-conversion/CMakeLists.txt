@@ -6,18 +6,24 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(contrib-libs-double-conversion)
+target_compile_options(contrib-libs-double-conversion PRIVATE
+  -Wno-everything
+)
+target_include_directories(contrib-libs-double-conversion PUBLIC
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion
+)
+target_link_libraries(contrib-libs-double-conversion PUBLIC
+  contrib-libs-cxxsupp
+)
+target_sources(contrib-libs-double-conversion PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/bignum-dtoa.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/bignum.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/cached-powers.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/double-to-string.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/fast-dtoa.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/fixed-dtoa.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/string-to-double.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion/double-conversion/strtod.cc
+)

@@ -4,7 +4,6 @@ import functools
 import os
 import sys
 import types
-import unittest
 from typing import Any
 from typing import Callable
 from typing import Generator
@@ -84,21 +83,21 @@ def pytest_addoption(parser: Parser) -> None:
         "--pdb",
         dest="usepdb",
         action="store_true",
-        help="Start the interactive Python debugger on errors or KeyboardInterrupt",
+        help="start the interactive Python debugger on errors or KeyboardInterrupt.",
     )
     group._addoption(
         "--pdbcls",
         dest="usepdb_cls",
         metavar="modulename:classname",
         type=_validate_usepdb_cls,
-        help="Specify a custom interactive Python debugger for use with --pdb."
+        help="specify a custom interactive Python debugger for use with --pdb."
         "For example: --pdbcls=IPython.terminal.debugger:TerminalPdb",
     )
     group._addoption(
         "--trace",
         dest="trace",
         action="store_true",
-        help="Immediately break when running each test",
+        help="Immediately break when running each test.",
     )
 
 
@@ -333,9 +332,7 @@ class PdbInvoke:
             sys.stdout.write(err)
         tty()
         assert call.excinfo is not None
-
-        if not isinstance(call.excinfo.value, unittest.SkipTest):
-            _enter_pdb(node, call.excinfo, report)
+        _enter_pdb(node, call.excinfo, report)
 
     def pytest_internalerror(self, excinfo: ExceptionInfo[BaseException]) -> None:
         tb = _postmortem_traceback(excinfo)

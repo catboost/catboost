@@ -19,9 +19,7 @@ from pandas._typing import (
 from pandas.util._decorators import (
     Appender,
     Substitution,
-    deprecate_nonkeyword_arguments,
 )
-from pandas.util._exceptions import rewrite_warning
 
 from pandas.core.dtypes.cast import maybe_downcast_to_dtype
 from pandas.core.dtypes.common import (
@@ -164,18 +162,7 @@ def __internal_pivot_table(
         values = list(values)
 
     grouped = data.groupby(keys, observed=observed, sort=sort)
-    msg = (
-        "pivot_table dropped a column because it failed to aggregate. This behavior "
-        "is deprecated and will raise in a future version of pandas. Select only the "
-        "columns that can be aggregated."
-    )
-    with rewrite_warning(
-        target_message="The default value of numeric_only",
-        target_category=FutureWarning,
-        new_message=msg,
-    ):
-        agged = grouped.agg(aggfunc)
-
+    agged = grouped.agg(aggfunc)
     if dropna and isinstance(agged, ABCDataFrame) and len(agged.columns):
         agged = agged.dropna(how="all")
 
@@ -191,9 +178,7 @@ def __internal_pivot_table(
                 and v in agged
                 and not is_integer_dtype(agged[v])
             ):
-                if not isinstance(agged[v], ABCDataFrame) and isinstance(
-                    data[v].dtype, np.dtype
-                ):
+                if not isinstance(agged[v], ABCDataFrame):
                     # exclude DataFrame case bc maybe_downcast_to_dtype expects
                     #  ArrayLike
                     # e.g. test_pivot_table_multiindex_columns_doctest_case
@@ -231,7 +216,7 @@ def __internal_pivot_table(
             )
             table = table.reindex(m, axis=1)
 
-    if sort is True and isinstance(table, ABCDataFrame):
+    if isinstance(table, ABCDataFrame):
         table = table.sort_index(axis=1)
 
     if fill_value is not None:
@@ -330,7 +315,7 @@ def _add_margins(
 
     from pandas import DataFrame
 
-    margin_dummy = DataFrame(row_margin, columns=Index([key])).T
+    margin_dummy = DataFrame(row_margin, columns=[key]).T
 
     row_names = result.index.names
     # check the result column and leave floats
@@ -485,7 +470,6 @@ def _convert_by(by):
 
 @Substitution("\ndata : DataFrame")
 @Appender(_shared_docs["pivot"], indents=1)
-@deprecate_nonkeyword_arguments(version=None, allowed_args=["data"])
 def pivot(
     data: DataFrame,
     index: IndexLabel | None = None,
@@ -497,7 +481,6 @@ def pivot(
 
     columns_listlike = com.convert_to_list_like(columns)
 
-    indexed: DataFrame | Series
     if values is None:
         if index is not None:
             cols = com.convert_to_list_like(index)
@@ -534,10 +517,7 @@ def pivot(
             )
         else:
             indexed = data._constructor_sliced(data[values]._values, index=multiindex)
-    # error: Argument 1 to "unstack" of "DataFrame" has incompatible type "Union
-    # [List[Any], ExtensionArray, ndarray[Any, Any], Index, Series]"; expected
-    # "Hashable"
-    return indexed.unstack(columns_listlike)  # type: ignore[arg-type]
+    return indexed.unstack(columns_listlike)
 
 
 def crosstab(
@@ -553,10 +533,9 @@ def crosstab(
     normalize=False,
 ) -> DataFrame:
     """
-    Compute a simple cross tabulation of two (or more) factors.
-
-    By default, computes a frequency table of the factors unless an
-    array of values and an aggregation function are passed.
+    Compute a simple cross tabulation of two (or more) factors. By default
+    computes a frequency table of the factors unless an array of values and an
+    aggregation function are passed.
 
     Parameters
     ----------

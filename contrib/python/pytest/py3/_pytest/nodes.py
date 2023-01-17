@@ -193,7 +193,7 @@ class Node(metaclass=NodeMeta):
         nodeid: Optional[str] = None,
     ) -> None:
         #: A unique name within the scope of the parent node.
-        self.name: str = name
+        self.name = name
 
         #: The parent collector node.
         self.parent = parent
@@ -208,7 +208,7 @@ class Node(metaclass=NodeMeta):
 
         if session:
             #: The pytest session this node is part of.
-            self.session: Session = session
+            self.session = session
         else:
             if not parent:
                 raise TypeError("session or parent must be provided")
@@ -239,7 +239,9 @@ class Node(metaclass=NodeMeta):
 
         #: A place where plugins can store information on the node for their
         #: own use.
-        self.stash: Stash = Stash()
+        #:
+        #: :type: Stash
+        self.stash = Stash()
         # Deprecated alias. Was never public. Can be removed in a few releases.
         self._store = self.stash
 
@@ -324,10 +326,7 @@ class Node(metaclass=NodeMeta):
 
     def listchain(self) -> List["Node"]:
         """Return list of all parent collectors up to self, starting from
-        the root of collection tree.
-
-        :returns: The nodes.
-        """
+        the root of collection tree."""
         chain = []
         item: Optional[Node] = self
         while item is not None:
@@ -341,8 +340,6 @@ class Node(metaclass=NodeMeta):
     ) -> None:
         """Dynamically add a marker object to the node.
 
-        :param marker:
-            The marker.
         :param append:
             Whether to append the marker, or prepend it.
         """
@@ -364,7 +361,6 @@ class Node(metaclass=NodeMeta):
         """Iterate over all markers of the node.
 
         :param name: If given, filter the results by the name attribute.
-        :returns: An iterator of the markers of the node.
         """
         return (x[1] for x in self.iter_markers_with_node(name=name))
 
@@ -411,8 +407,7 @@ class Node(metaclass=NodeMeta):
         return [x.name for x in self.listchain()]
 
     def addfinalizer(self, fin: Callable[[], object]) -> None:
-        """Register a function to be called without arguments when this node is
-        finalized.
+        """Register a function to be called when this node is finalized.
 
         This method can only be called when this node is active
         in a setup chain, for example during self.setup().
@@ -421,11 +416,7 @@ class Node(metaclass=NodeMeta):
 
     def getparent(self, cls: Type[_NodeType]) -> Optional[_NodeType]:
         """Get the next parent node (including self) which is an instance of
-        the given class.
-
-        :param cls: The node class to search for.
-        :returns: The node, if found.
-        """
+        the given class."""
         current: Optional[Node] = self
         while current and not isinstance(current, cls):
             current = current.parent

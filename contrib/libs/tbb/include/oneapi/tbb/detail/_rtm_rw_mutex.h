@@ -100,7 +100,6 @@ public:
         //! Downgrade writer to become a reader.
         inline bool downgrade_to_reader();
 
-        inline bool is_writer() const;
     private:
         rtm_rw_mutex* m_mutex;
         rtm_type m_transaction_state;
@@ -124,20 +123,20 @@ private:
 namespace r1 {
     //! Internal acquire write lock.
     // only_speculate == true if we're doing a try_lock, else false.
-    TBB_EXPORT void __TBB_EXPORTED_FUNC acquire_writer(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&, bool only_speculate = false);
+    void __TBB_EXPORTED_FUNC acquire_writer(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&, bool only_speculate = false);
     //! Internal acquire read lock.
     // only_speculate == true if we're doing a try_lock, else false.
-    TBB_EXPORT void __TBB_EXPORTED_FUNC acquire_reader(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&, bool only_speculate = false);
+    void __TBB_EXPORTED_FUNC acquire_reader(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&, bool only_speculate = false);
     //! Internal upgrade reader to become a writer.
-    TBB_EXPORT bool __TBB_EXPORTED_FUNC upgrade(d1::rtm_rw_mutex::scoped_lock&);
+    bool __TBB_EXPORTED_FUNC upgrade(d1::rtm_rw_mutex::scoped_lock&);
     //! Internal downgrade writer to become a reader.
-    TBB_EXPORT bool __TBB_EXPORTED_FUNC downgrade(d1::rtm_rw_mutex::scoped_lock&);
+    bool __TBB_EXPORTED_FUNC downgrade(d1::rtm_rw_mutex::scoped_lock&);
     //! Internal try_acquire write lock.
-    TBB_EXPORT bool __TBB_EXPORTED_FUNC try_acquire_writer(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&);
+    bool __TBB_EXPORTED_FUNC try_acquire_writer(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&);
     //! Internal try_acquire read lock.
-    TBB_EXPORT bool __TBB_EXPORTED_FUNC try_acquire_reader(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&);
+    bool __TBB_EXPORTED_FUNC try_acquire_reader(d1::rtm_rw_mutex&, d1::rtm_rw_mutex::scoped_lock&);
     //! Internal release lock.
-    TBB_EXPORT void __TBB_EXPORTED_FUNC release(d1::rtm_rw_mutex::scoped_lock&);
+    void __TBB_EXPORTED_FUNC release(d1::rtm_rw_mutex::scoped_lock&);
 }
 
 namespace d1 {
@@ -187,23 +186,18 @@ bool rtm_rw_mutex::scoped_lock::downgrade_to_reader() {
     return r1::downgrade(*this);
 }
 
-bool rtm_rw_mutex::scoped_lock::is_writer() const {
-    __TBB_ASSERT(m_mutex, "lock is not acquired");
-    return m_transaction_state == rtm_type::rtm_transacting_writer || m_transaction_state == rtm_type::rtm_real_writer;
-}
-
 #if TBB_USE_PROFILING_TOOLS
 inline void set_name(rtm_rw_mutex& obj, const char* name) {
     itt_set_sync_name(&obj, name);
 }
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
 inline void set_name(rtm_rw_mutex& obj, const wchar_t* name) {
     itt_set_sync_name(&obj, name);
 }
 #endif // WIN
 #else
 inline void set_name(rtm_rw_mutex&, const char*) {}
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
 inline void set_name(rtm_rw_mutex&, const wchar_t*) {}
 #endif // WIN
 #endif

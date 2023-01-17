@@ -1,8 +1,0 @@
-{
-    "name": "nyc",
-    "version": "15.1.0",
-    "description": "nyc module",
-    "dependencies": {
-        "nyc": "15.1.0"
-    }
-}

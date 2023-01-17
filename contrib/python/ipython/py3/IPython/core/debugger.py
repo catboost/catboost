@@ -104,6 +104,7 @@ All the changes since then are under the same license as IPython.
 import inspect
 import linecache
 import sys
+import warnings
 import re
 import os
 

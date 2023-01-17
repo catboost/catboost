@@ -21,8 +21,6 @@ from numpy in the following ways:
 
     3) divmod behavior consistent with 1) and 2).
 """
-from __future__ import annotations
-
 import operator
 
 import numpy as np

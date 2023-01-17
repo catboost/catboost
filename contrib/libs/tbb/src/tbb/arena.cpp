@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public:
         restore_affinity_mask(my_binding_handler, this_task_arena::current_thread_index());
     }
 
-    ~numa_binding_observer() override{
+    ~numa_binding_observer(){
         destroy_binding_handler(my_binding_handler);
     }
 };
@@ -65,7 +65,7 @@ numa_binding_observer* construct_binding_observer( d1::task_arena* ta, int num_s
 }
 
 void destroy_binding_observer( numa_binding_observer* binding_observer ) {
-    __TBB_ASSERT(binding_observer, "Trying to deallocate nullptr pointer");
+    __TBB_ASSERT(binding_observer, "Trying to deallocate NULL pointer");
     binding_observer->observe(false);
     binding_observer->~numa_binding_observer();
     deallocate_memory(binding_observer);
@@ -77,7 +77,7 @@ std::size_t arena::occupy_free_slot_in_range( thread_data& tls, std::size_t lowe
     // Start search for an empty slot from the one we occupied the last time
     std::size_t index = tls.my_arena_index;
     if ( index < lower || index >= upper ) index = tls.my_random.get() % (upper - lower) + lower;
-    __TBB_ASSERT( index >= lower && index < upper, nullptr);
+    __TBB_ASSERT( index >= lower && index < upper, NULL );
     // Find a free slot
     for ( std::size_t i = index; i < upper; ++i )
         if (my_slots[i].try_occupy()) return i;
@@ -119,15 +119,11 @@ void arena::process(thread_data& tls) {
     }
     __TBB_ASSERT( index >= my_num_reserved_slots, "Workers cannot occupy reserved slots" );
     tls.attach_arena(*this, index);
-    // worker thread enters the dispatch loop to look for a work
-    tls.my_inbox.set_is_idle(true);
-    if (tls.my_arena_slot->is_task_pool_published()) {
-        tls.my_inbox.set_is_idle(false);
-    }
 
     task_dispatcher& task_disp = tls.my_arena_slot->default_task_dispatcher();
-    tls.enter_task_dispatcher(task_disp, calculate_stealing_threshold());
+    task_disp.set_stealing_threshold(calculate_stealing_threshold());
     __TBB_ASSERT(task_disp.can_steal(), nullptr);
+    tls.attach_task_dispatcher(task_disp);
 
     __TBB_ASSERT( !tls.my_last_observer, "There cannot be notified local observers when entering arena" );
     my_observers.notify_entry_observers(tls.my_last_observer, tls.my_is_worker);
@@ -135,10 +131,6 @@ void arena::process(thread_data& tls) {
     // Waiting on special object tied to this arena
     outermost_worker_waiter waiter(*this);
     d1::task* t = tls.my_task_dispatcher->local_wait_for_all(nullptr, waiter);
-    // For purposes of affinity support, the slot's mailbox is considered idle while no thread is
-    // attached to it.
-    tls.my_inbox.set_is_idle(true);
-
     __TBB_ASSERT_EX(t == nullptr, "Outermost worker must not leave dispatch loop with a task");
     __TBB_ASSERT(governor::is_thread_data_set(&tls), nullptr);
     __TBB_ASSERT(tls.my_task_dispatcher == &task_disp, nullptr);
@@ -146,7 +138,8 @@ void arena::process(thread_data& tls) {
     my_observers.notify_exit_observers(tls.my_last_observer, tls.my_is_worker);
     tls.my_last_observer = nullptr;
 
-    tls.leave_task_dispatcher();
+    task_disp.set_stealing_threshold(0);
+    tls.detach_task_dispatcher();
 
     // Arena slot detach (arena may be used in market::process)
     // TODO: Consider moving several calls below into a new method(e.g.detach_arena).
@@ -179,16 +172,16 @@ arena::arena ( market& m, unsigned num_slots, unsigned num_reserved_slots, unsig
     my_aba_epoch = m.my_arenas_aba_epoch.load(std::memory_order_relaxed);
     my_observers.my_arena = this;
     my_co_cache.init(4 * num_slots);
-    __TBB_ASSERT ( my_max_num_workers <= my_num_slots, nullptr);
+    __TBB_ASSERT ( my_max_num_workers <= my_num_slots, NULL );
     // Initialize the default context. It should be allocated before task_dispatch construction.
     my_default_ctx = new (cache_aligned_allocate(sizeof(d1::task_group_context)))
         d1::task_group_context{ d1::task_group_context::isolated, d1::task_group_context::fp_settings };
     // Construct slots. Mark internal synchronization elements for the tools.
     task_dispatcher* base_td_pointer = reinterpret_cast<task_dispatcher*>(my_slots + my_num_slots);
     for( unsigned i = 0; i < my_num_slots; ++i ) {
-        // __TBB_ASSERT( !my_slots[i].my_scheduler && !my_slots[i].task_pool, nullptr);
-        __TBB_ASSERT( !my_slots[i].task_pool_ptr, nullptr);
-        __TBB_ASSERT( !my_slots[i].my_task_pool_size, nullptr);
+        // __TBB_ASSERT( !my_slots[i].my_scheduler && !my_slots[i].task_pool, NULL );
+        __TBB_ASSERT( !my_slots[i].task_pool_ptr, NULL );
+        __TBB_ASSERT( !my_slots[i].my_task_pool_size, NULL );
         mailbox(i).construct();
         my_slots[i].init_task_streams(i);
         my_slots[i].my_default_task_dispatcher = new(base_td_pointer + i) task_dispatcher(this);
@@ -221,28 +214,23 @@ arena& arena::allocate_arena( market& m, unsigned num_slots, unsigned num_reserv
 }
 
 void arena::free_arena () {
-    __TBB_ASSERT( is_alive(my_guard), nullptr);
+    __TBB_ASSERT( is_alive(my_guard), NULL );
     __TBB_ASSERT( !my_references.load(std::memory_order_relaxed), "There are threads in the dying arena" );
     __TBB_ASSERT( !my_num_workers_requested && !my_num_workers_allotted, "Dying arena requests workers" );
     __TBB_ASSERT( my_pool_state.load(std::memory_order_relaxed) == SNAPSHOT_EMPTY || !my_max_num_workers,
                   "Inconsistent state of a dying arena" );
 #if __TBB_ENQUEUE_ENFORCED_CONCURRENCY
-    __TBB_ASSERT( !my_global_concurrency_mode, nullptr);
+    __TBB_ASSERT( !my_global_concurrency_mode, NULL );
 #endif
-#if __TBB_ARENA_BINDING
-    if (my_numa_binding_observer != nullptr) {
-        destroy_binding_observer(my_numa_binding_observer);
-        my_numa_binding_observer = nullptr;
-    }
-#endif /*__TBB_ARENA_BINDING*/
     poison_value( my_guard );
+    std::intptr_t drained = 0;
     for ( unsigned i = 0; i < my_num_slots; ++i ) {
         // __TBB_ASSERT( !my_slots[i].my_scheduler, "arena slot is not empty" );
         // TODO: understand the assertion and modify
-        // __TBB_ASSERT( my_slots[i].task_pool == EmptyTaskPool, nullptr);
-        __TBB_ASSERT( my_slots[i].head == my_slots[i].tail, nullptr); // TODO: replace by is_quiescent_local_task_pool_empty
+        // __TBB_ASSERT( my_slots[i].task_pool == EmptyTaskPool, NULL );
+        __TBB_ASSERT( my_slots[i].head == my_slots[i].tail, NULL ); // TODO: replace by is_quiescent_local_task_pool_empty
         my_slots[i].free_task_pool();
-        mailbox(i).drain();
+        drained += mailbox(i).drain();
         my_slots[i].my_default_task_dispatcher->~task_dispatcher();
     }
     __TBB_ASSERT(my_fifo_task_stream.empty(), "Not all enqueued tasks were executed");
@@ -256,13 +244,12 @@ void arena::free_arena () {
 #endif
     // remove an internal reference
     my_market->release( /*is_public=*/false, /*blocking_terminate=*/false );
-
-    // Clear enfources synchronization with observe(false)
-    my_observers.clear();
-
+    if ( !my_observers.empty() ) {
+        my_observers.clear();
+    }
     void* storage  = &mailbox(my_num_slots-1);
-    __TBB_ASSERT( my_references.load(std::memory_order_relaxed) == 0, nullptr);
-    __TBB_ASSERT( my_pool_state.load(std::memory_order_relaxed) == SNAPSHOT_EMPTY || !my_max_num_workers, nullptr);
+    __TBB_ASSERT( my_references.load(std::memory_order_relaxed) == 0, NULL );
+    __TBB_ASSERT( my_pool_state.load(std::memory_order_relaxed) == SNAPSHOT_EMPTY || !my_max_num_workers, NULL );
     this->~arena();
 #if TBB_USE_ASSERT > 1
     std::memset( storage, 0, allocation_size(my_num_slots) );
@@ -400,7 +387,7 @@ struct task_arena_impl {
     static void execute(d1::task_arena_base&, d1::delegate_base&);
     static void wait(d1::task_arena_base&);
     static int max_concurrency(const d1::task_arena_base*);
-    static void enqueue(d1::task&, d1::task_group_context*, d1::task_arena_base*);
+    static void enqueue(d1::task&, d1::task_arena_base*);
 };
 
 void __TBB_EXPORTED_FUNC initialize(d1::task_arena_base& ta) {
@@ -424,16 +411,11 @@ int __TBB_EXPORTED_FUNC max_concurrency(const d1::task_arena_base* ta) {
 }
 
 void __TBB_EXPORTED_FUNC enqueue(d1::task& t, d1::task_arena_base* ta) {
-    task_arena_impl::enqueue(t, nullptr, ta);
-}
-
-void __TBB_EXPORTED_FUNC enqueue(d1::task& t, d1::task_group_context& ctx, d1::task_arena_base* ta) {
-    task_arena_impl::enqueue(t, &ctx, ta);
+    task_arena_impl::enqueue(t, ta);
 }
 
 void task_arena_impl::initialize(d1::task_arena_base& ta) {
-    // Enforce global market initialization to properly initialize soft limit
-    (void)governor::get_thread_data();
+    governor::one_time_init();
     if (ta.my_max_concurrency < 1) {
 #if __TBB_ARENA_BINDING
 
@@ -467,6 +449,12 @@ void task_arena_impl::initialize(d1::task_arena_base& ta) {
 void task_arena_impl::terminate(d1::task_arena_base& ta) {
     arena* a = ta.my_arena.load(std::memory_order_relaxed);
     assert_pointer_valid(a);
+#if __TBB_ARENA_BINDING
+    if(a->my_numa_binding_observer != nullptr ) {
+        destroy_binding_observer(a->my_numa_binding_observer);
+        a->my_numa_binding_observer = nullptr;
+    }
+#endif /*__TBB_ARENA_BINDING*/
     a->my_market->release( /*is_public=*/true, /*blocking_terminate=*/false );
     a->on_thread_leaving<arena::ref_external>();
     ta.my_arena.store(nullptr, std::memory_order_relaxed);
@@ -479,12 +467,12 @@ bool task_arena_impl::attach(d1::task_arena_base& ta) {
         arena* a = td->my_arena;
         // There is an active arena to attach to.
         // It's still used by s, so won't be destroyed right away.
-        __TBB_ASSERT(a->my_references > 0, nullptr);
+        __TBB_ASSERT(a->my_references > 0, NULL );
         a->my_references += arena::ref_external;
         ta.my_num_reserved_slots = a->my_num_reserved_slots;
         ta.my_priority = arena_priority(a->my_priority_level);
         ta.my_max_concurrency = ta.my_num_reserved_slots + a->my_max_num_workers;
-        __TBB_ASSERT(arena::num_arena_slots(ta.my_max_concurrency) == a->my_num_slots, nullptr);
+        __TBB_ASSERT(arena::num_arena_slots(ta.my_max_concurrency) == a->my_num_slots, NULL);
         ta.my_arena.store(a, std::memory_order_release);
         // increases market's ref count for task_arena
         market::global_market( /*is_public=*/true );
@@ -493,20 +481,14 @@ bool task_arena_impl::attach(d1::task_arena_base& ta) {
     return false;
 }
 
-void task_arena_impl::enqueue(d1::task& t, d1::task_group_context* c, d1::task_arena_base* ta) {
+void task_arena_impl::enqueue(d1::task& t, d1::task_arena_base* ta) {
     thread_data* td = governor::get_thread_data();  // thread data is only needed for FastRandom instance
-    assert_pointer_valid(td, "thread_data pointer should not be null");
-    arena* a = ta ?
-              ta->my_arena.load(std::memory_order_relaxed)
-            : td->my_arena
-    ;
-    assert_pointer_valid(a, "arena pointer should not be null");
-    auto* ctx = c ? c : a->my_default_ctx;
-    assert_pointer_valid(ctx, "context pointer should not be null");
-    // Is there a better place for checking the state of ctx?
+    arena* a = ta->my_arena.load(std::memory_order_relaxed);
+    assert_pointers_valid(ta, a, a->my_default_ctx, td);
+    // Is there a better place for checking the state of my_default_ctx?
      __TBB_ASSERT(!a->my_default_ctx->is_group_execution_cancelled(),
-                  "The task will not be executed because its task_group_context is cancelled.");
-     a->enqueue_task(t, *ctx, *td);
+                  "The task will not be executed because default task_group_context of task_arena is cancelled. Has previously enqueued task thrown an exception?");
+     a->enqueue_task(t, *a->my_default_ctx, *td);
 }
 
 class nested_arena_context : no_copy {
@@ -521,10 +503,9 @@ public:
 
             td.detach_task_dispatcher();
             td.attach_arena(nested_arena, slot_index);
-            if (td.my_inbox.is_idle_state(true))
-                td.my_inbox.set_is_idle(false);
             task_dispatcher& task_disp = td.my_arena_slot->default_task_dispatcher();
-            td.enter_task_dispatcher(task_disp, m_orig_execute_data_ext.task_disp->m_stealing_threshold);
+            task_disp.set_stealing_threshold(m_orig_execute_data_ext.task_disp->m_stealing_threshold);
+            td.attach_task_dispatcher(task_disp);
 
             // If the calling thread occupies the slots out of external thread reserve we need to notify the
             // market that this arena requires one worker less.
@@ -568,13 +549,13 @@ public:
                 td.my_arena->my_market->adjust_demand(*td.my_arena, /* delta = */ 1, /* mandatory = */ false);
             }
 
-            td.leave_task_dispatcher();
+            td.my_task_dispatcher->set_stealing_threshold(0);
+            td.detach_task_dispatcher();
             td.my_arena_slot->release();
             td.my_arena->my_exit_monitors.notify_one(); // do not relax!
 
             td.attach_arena(*m_orig_arena, m_orig_slot_index);
             td.attach_task_dispatcher(*m_orig_execute_data_ext.task_disp);
-            __TBB_ASSERT(td.my_inbox.is_idle_state(false), nullptr);
         }
         td.my_task_dispatcher->m_execute_data_ext = m_orig_execute_data_ext;
     }
@@ -627,7 +608,7 @@ class delegated_task : public d1::task {
 public:
     delegated_task(d1::delegate_base& d, concurrent_monitor& s, d1::wait_context& wo)
         : m_delegate(d), m_monitor(s), m_wait_ctx(wo), m_completed{ false }{}
-    ~delegated_task() override {
+    ~delegated_task() {
         // The destructor can be called earlier than the m_monitor is notified
         // because the waiting thread can be released after m_wait_ctx.release_wait.
         // To close that race we wait for the m_completed signal.
@@ -664,7 +645,7 @@ void task_arena_impl::execute(d1::task_arena_base& ta, d1::delegate_base& d) {
                     a->my_exit_monitors.cancel_wait(waiter);
                     nested_arena_context scope(*td, *a, index2 );
                     r1::wait(wo, exec_context);
-                    __TBB_ASSERT(!exec_context.my_exception.load(std::memory_order_relaxed), nullptr); // exception can be thrown above, not deferred
+                    __TBB_ASSERT(!exec_context.my_exception, NULL); // exception can be thrown above, not deferred
                     break;
                 }
                 a->my_exit_monitors.commit_wait(waiter);
@@ -675,10 +656,9 @@ void task_arena_impl::execute(d1::task_arena_base& ta, d1::delegate_base& d) {
                 a->my_exit_monitors.notify_one(); // do not relax!
             }
             // process possible exception
-            auto exception = exec_context.my_exception.load(std::memory_order_acquire);
-            if (exception) {
+            if (exec_context.my_exception) {
                 __TBB_ASSERT(exec_context.is_group_execution_cancelled(), "The task group context with an exception should be canceled.");
-                exception->throw_self();
+                exec_context.my_exception->throw_self();
             }
             __TBB_ASSERT(governor::is_thread_data_set(td), nullptr);
             return;
@@ -722,7 +702,7 @@ int task_arena_impl::max_concurrency(const d1::task_arena_base *ta) {
         a = td->my_arena; // the current arena if any
 
     if( a ) { // Get parameters from the arena
-        __TBB_ASSERT( !ta || ta->my_max_concurrency==1, nullptr);
+        __TBB_ASSERT( !ta || ta->my_max_concurrency==1, NULL );
         return a->my_num_reserved_slots + a->my_max_num_workers
 #if __TBB_ENQUEUE_ENFORCED_CONCURRENCY
             + (a->my_local_concurrency_flag.test() ? 1 : 0)
@@ -748,7 +728,7 @@ int task_arena_impl::max_concurrency(const d1::task_arena_base *ta) {
     }
 #endif /*!__TBB_ARENA_BINDING*/
 
-    __TBB_ASSERT(!ta || ta->my_max_concurrency==d1::task_arena_base::automatic, nullptr);
+    __TBB_ASSERT(!ta || ta->my_max_concurrency==d1::task_arena_base::automatic, NULL );
     return int(governor::default_num_threads());
 }
 
@@ -766,7 +746,7 @@ void isolate_within_arena(d1::delegate_base& d, std::intptr_t isolation) {
         // Isolation within this callable
         d();
     }).on_completion([&] {
-        __TBB_ASSERT(governor::get_thread_data()->my_task_dispatcher == dispatcher, nullptr);
+        __TBB_ASSERT(governor::get_thread_data()->my_task_dispatcher == dispatcher, NULL);
         dispatcher->set_isolation(previous_isolation);
     });
 }
@@ -774,3 +754,4 @@ void isolate_within_arena(d1::delegate_base& d, std::intptr_t isolation) {
 } // namespace r1
 } // namespace detail
 } // namespace tbb
+

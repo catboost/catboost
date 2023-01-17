@@ -8,7 +8,7 @@ PEERDIR(
     contrib/python/numpy
     contrib/python/pandas
     contrib/python/scipy
-    contrib/deprecated/python/enum34
+    contrib/python/enum34
     library/python/pymain
 )
 

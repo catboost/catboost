@@ -14,9 +14,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(15.0.6)
+VERSION(15.0.3)
 
-ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-15.0.6.tar.gz)
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-15.0.3.tar.gz)
 
 ADDINCL(
     GLOBAL contrib/libs/cxxsupp/openmp

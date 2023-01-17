@@ -10,7 +10,6 @@ add_subdirectory(lib)
 
 add_executable(catboost-private-libs-text_processing-ut)
 target_link_libraries(catboost-private-libs-text_processing-ut PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

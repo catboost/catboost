@@ -99,7 +99,7 @@ RECURSE(
 
 IF (OS_LINUX)
     RECURSE(
-    
+    ytalloc
 )
 ENDIF()
 

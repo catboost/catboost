@@ -9,7 +9,6 @@
 
 add_library(cpp-deprecated-split)
 target_link_libraries(cpp-deprecated-split PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-deprecated-kmp

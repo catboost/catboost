@@ -1,6 +1,10 @@
 
 #------------------------------------------------------------------------------
 
+# cython: cdivision=True
+# cython: boundscheck=False
+# cython: wraparound=False
+#
 # Authors: Danny Sullivan <dbsullivan23@gmail.com>
 #          Tom Dupre la Tour <tom.dupre-la-tour@m4x.org>
 #          Arthur Mensch <arthur.mensch@m4x.org
@@ -24,7 +28,6 @@ from ..utils._seq_dataset cimport SequentialDataset32, SequentialDataset64
 
 from libc.stdio cimport printf
 
-np.import_array()
 
 
 cdef extern from "_sgd_fast_helpers.h":
@@ -132,7 +135,7 @@ cdef class MultinomialLogLoss64:
         loss = (logsumexp_prediction - prediction[int(y)]) * sample_weight
         return loss
 
-    cdef void dloss(self, double* prediction, double y, int n_classes,
+    cdef void _dloss(self, double* prediction, double y, int n_classes,
                      double sample_weight, double* gradient_ptr) nogil:
         r"""Multinomial Logistic regression gradient of the loss.
 
@@ -232,7 +235,7 @@ cdef class MultinomialLogLoss32:
         loss = (logsumexp_prediction - prediction[int(y)]) * sample_weight
         return loss
 
-    cdef void dloss(self, float* prediction, float y, int n_classes,
+    cdef void _dloss(self, float* prediction, float y, int n_classes,
                      float sample_weight, float* gradient_ptr) nogil:
         r"""Multinomial Logistic regression gradient of the loss.
 
@@ -338,7 +341,7 @@ def sag64(SequentialDataset64 dataset,
     # the number of non-zero features for current sample
     cdef int xnnz = -1
     # the label value for current sample
-    # the label value for current sample
+    # the label value for curent sample
     cdef double y
     # the sample weight
     cdef double sample_weight
@@ -431,7 +434,7 @@ def sag64(SequentialDataset64 dataset,
 
     # Loss function to optimize
     cdef LossFunction loss
-    # Whether the loss function is multinomial
+    # Wether the loss function is multinomial
     cdef bint multinomial = False
     # Multinomial loss function
     cdef MultinomialLogLoss64 multiloss
@@ -493,10 +496,10 @@ def sag64(SequentialDataset64 dataset,
 
                 # compute the gradient for this sample, given the prediction
                 if multinomial:
-                    multiloss.dloss(prediction, y, n_classes, sample_weight,
+                    multiloss._dloss(prediction, y, n_classes, sample_weight,
                                      gradient)
                 else:
-                    gradient[0] = loss.dloss(prediction[0], y) * sample_weight
+                    gradient[0] = loss._dloss(prediction[0], y) * sample_weight
 
                 # L2 regularization by simply rescaling the weights
                 wscale *= wscale_update
@@ -669,7 +672,7 @@ def sag32(SequentialDataset32 dataset,
     # the number of non-zero features for current sample
     cdef int xnnz = -1
     # the label value for current sample
-    # the label value for current sample
+    # the label value for curent sample
     cdef float y
     # the sample weight
     cdef float sample_weight
@@ -762,7 +765,7 @@ def sag32(SequentialDataset32 dataset,
 
     # Loss function to optimize
     cdef LossFunction loss
-    # Whether the loss function is multinomial
+    # Wether the loss function is multinomial
     cdef bint multinomial = False
     # Multinomial loss function
     cdef MultinomialLogLoss32 multiloss
@@ -824,10 +827,10 @@ def sag32(SequentialDataset32 dataset,
 
                 # compute the gradient for this sample, given the prediction
                 if multinomial:
-                    multiloss.dloss(prediction, y, n_classes, sample_weight,
+                    multiloss._dloss(prediction, y, n_classes, sample_weight,
                                      gradient)
                 else:
-                    gradient[0] = loss.dloss(prediction[0], y) * sample_weight
+                    gradient[0] = loss._dloss(prediction[0], y) * sample_weight
 
                 # L2 regularization by simply rescaling the weights
                 wscale *= wscale_update
@@ -1338,7 +1341,7 @@ def _multinomial_grad_loss_all_samples(
                            intercept, prediction, n_classes)
 
             # compute the gradient for this sample, given the prediction
-            multiloss.dloss(prediction, y, n_classes, sample_weight, gradient)
+            multiloss._dloss(prediction, y, n_classes, sample_weight, gradient)
 
             # compute the loss for this sample, given the prediction
             sum_loss += multiloss._loss(prediction, y, n_classes, sample_weight)

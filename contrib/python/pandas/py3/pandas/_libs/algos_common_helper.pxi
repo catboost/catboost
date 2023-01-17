@@ -38,8 +38,7 @@ def ensure_float64(object arr, copy=True):
         if (<ndarray>arr).descr.type_num == NPY_FLOAT64:
             return arr
         else:
-            # equiv: arr.astype(np.float64, copy=copy)
-            return cnp.PyArray_Cast(<ndarray>arr, cnp.NPY_FLOAT64)
+            return arr.astype(np.float64, copy=copy)
     else:
         return np.array(arr, dtype=np.float64)
 
@@ -49,8 +48,7 @@ def ensure_int8(object arr, copy=True):
         if (<ndarray>arr).descr.type_num == NPY_INT8:
             return arr
         else:
-            # equiv: arr.astype(np.int8, copy=copy)
-            return cnp.PyArray_Cast(<ndarray>arr, cnp.NPY_INT8)
+            return arr.astype(np.int8, copy=copy)
     else:
         return np.array(arr, dtype=np.int8)
 
@@ -60,8 +58,7 @@ def ensure_int16(object arr, copy=True):
         if (<ndarray>arr).descr.type_num == NPY_INT16:
             return arr
         else:
-            # equiv: arr.astype(np.int16, copy=copy)
-            return cnp.PyArray_Cast(<ndarray>arr, cnp.NPY_INT16)
+            return arr.astype(np.int16, copy=copy)
     else:
         return np.array(arr, dtype=np.int16)
 
@@ -71,8 +68,7 @@ def ensure_int32(object arr, copy=True):
         if (<ndarray>arr).descr.type_num == NPY_INT32:
             return arr
         else:
-            # equiv: arr.astype(np.int32, copy=copy)
-            return cnp.PyArray_Cast(<ndarray>arr, cnp.NPY_INT32)
+            return arr.astype(np.int32, copy=copy)
     else:
         return np.array(arr, dtype=np.int32)
 
@@ -82,18 +78,6 @@ def ensure_int64(object arr, copy=True):
         if (<ndarray>arr).descr.type_num == NPY_INT64:
             return arr
         else:
-            # equiv: arr.astype(np.int64, copy=copy)
-            return cnp.PyArray_Cast(<ndarray>arr, cnp.NPY_INT64)
+            return arr.astype(np.int64, copy=copy)
     else:
         return np.array(arr, dtype=np.int64)
-
-
-def ensure_uint64(object arr, copy=True):
-    if util.is_array(arr):
-        if (<ndarray>arr).descr.type_num == NPY_UINT64:
-            return arr
-        else:
-            # equiv: arr.astype(np.uint64, copy=copy)
-            return cnp.PyArray_Cast(<ndarray>arr, cnp.NPY_UINT64)
-    else:
-        return np.array(arr, dtype=np.uint64)

@@ -185,7 +185,7 @@ struct parameter *set_parameter(int solver_type, double eps, double C,
     if (param == NULL)
         return NULL;
 
-    set_seed(seed);
+    srand(seed);
     param->solver_type = solver_type;
     param->eps = eps;
     param->C = C;

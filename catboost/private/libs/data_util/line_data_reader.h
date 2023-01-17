@@ -2,15 +2,12 @@
 
 #include "path_with_scheme.h"
 
-#include <catboost/private/libs/index_range/index_range.h>
-
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
-#include <util/generic/ptr.h>
 
 #include <util/stream/file.h>
 #include <util/string/escape.h>
@@ -74,6 +71,8 @@ namespace NCB {
         */
         virtual bool ReadLine(TString* line, ui64* lineIdx = nullptr) = 0;
 
+        virtual bool ReadLine(TString*, TString*, ui64* lineIdx = nullptr) = 0;
+
         virtual ~ILineDataReader() = default;
     };
 
@@ -89,7 +88,7 @@ namespace NCB {
 
     class TFileLineDataReader : public ILineDataReader {
     public:
-        explicit TFileLineDataReader(const TLineDataReaderArgs& args)
+        TFileLineDataReader(const TLineDataReaderArgs& args)
             : Args(args)
             , IFStream(args.PathWithScheme.Path)
             , HeaderProcessed(!Args.Format.HasHeader)
@@ -131,6 +130,10 @@ namespace NCB {
             return IFStream.ReadLine(*line) != 0;
         }
 
+        bool ReadLine(TString*, TString*, ui64*) override {
+            CB_ENSURE(false, "TFileLineDataReader: ReadLine(TString*, TString*, ui64*) is not implemented");
+        }
+
     private:
         TLineDataReaderArgs Args;
         TIFStream IFStream;
@@ -138,22 +141,4 @@ namespace NCB {
         ui64 LineIndex = 0;
     };
 
-    class TBlocksSubsetLineDataReader final : public ILineDataReader {
-    public:
-        TBlocksSubsetLineDataReader(THolder<ILineDataReader>&& lineDataReader, TVector<TIndexRange<ui64>>&& subsetBlocks);
-
-        ui64 GetDataLineCount(bool estimate = false) override;
-
-        TMaybe<TString> GetHeader() override;
-
-        bool ReadLine(TString* line, ui64* lineIdx = nullptr) override;
-
-    private:
-        THolder<ILineDataReader> LineDataReader;
-        TVector<TIndexRange<ui64>> SubsetBlocks;
-        ui64 CurrentSubsetBlock;
-        ui64 EnclosingLineIdx;
-        ui64 LineIdx;
-        TString LineBuffer;
-    };
 }

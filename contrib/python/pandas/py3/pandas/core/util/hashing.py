@@ -16,10 +16,7 @@ import numpy as np
 
 from pandas._libs import lib
 from pandas._libs.hashing import hash_object_array
-from pandas._typing import (
-    ArrayLike,
-    npt,
-)
+from pandas._typing import ArrayLike
 
 from pandas.core.dtypes.common import (
     is_categorical_dtype,
@@ -27,7 +24,6 @@ from pandas.core.dtypes.common import (
 )
 from pandas.core.dtypes.generic import (
     ABCDataFrame,
-    ABCExtensionArray,
     ABCIndex,
     ABCMultiIndex,
     ABCSeries,
@@ -47,9 +43,7 @@ if TYPE_CHECKING:
 _default_hash_key = "0123456789123456"
 
 
-def combine_hash_arrays(
-    arrays: Iterator[np.ndarray], num_items: int
-) -> npt.NDArray[np.uint64]:
+def combine_hash_arrays(arrays: Iterator[np.ndarray], num_items: int) -> np.ndarray:
     """
     Parameters
     ----------
@@ -177,7 +171,7 @@ def hash_tuples(
     vals: MultiIndex | Iterable[tuple[Hashable, ...]],
     encoding: str = "utf8",
     hash_key: str = _default_hash_key,
-) -> npt.NDArray[np.uint64]:
+) -> np.ndarray:
     """
     Hash an MultiIndex / listlike-of-tuples efficiently.
 
@@ -219,9 +213,7 @@ def hash_tuples(
     return h
 
 
-def _hash_categorical(
-    cat: Categorical, encoding: str, hash_key: str
-) -> npt.NDArray[np.uint64]:
+def _hash_categorical(cat: Categorical, encoding: str, hash_key: str) -> np.ndarray:
     """
     Hash a Categorical by hashing its categories, and then mapping the codes
     to the hashes
@@ -264,7 +256,7 @@ def hash_array(
     encoding: str = "utf8",
     hash_key: str = _default_hash_key,
     categorize: bool = True,
-) -> npt.NDArray[np.uint64]:
+) -> np.ndarray:
     """
     Given a 1d array, return an array of deterministic integers.
 
@@ -294,16 +286,9 @@ def hash_array(
     if is_categorical_dtype(dtype):
         vals = cast("Categorical", vals)
         return _hash_categorical(vals, encoding, hash_key)
-
-    elif isinstance(vals, ABCExtensionArray):
-        vals, _ = vals._values_for_factorize()
-
     elif not isinstance(vals, np.ndarray):
-        # GH#42003
-        raise TypeError(
-            "hash_array requires np.ndarray or ExtensionArray, not "
-            f"{type(vals).__name__}. Use hash_pandas_object instead."
-        )
+        # i.e. ExtensionArray
+        vals, _ = vals._values_for_factorize()
 
     return _hash_ndarray(vals, encoding, hash_key, categorize)
 
@@ -313,7 +298,7 @@ def _hash_ndarray(
     encoding: str = "utf8",
     hash_key: str = _default_hash_key,
     categorize: bool = True,
-) -> npt.NDArray[np.uint64]:
+) -> np.ndarray:
     """
     See hash_array.__doc__.
     """
@@ -326,7 +311,7 @@ def _hash_ndarray(
 
     # First, turn whatever array this is into unsigned 64-bit ints, if we can
     # manage it.
-    elif dtype == bool:
+    elif isinstance(dtype, bool):
         vals = vals.astype("u8")
     elif issubclass(dtype.type, (np.datetime64, np.timedelta64)):
         vals = vals.view("i8").astype("u8", copy=False)

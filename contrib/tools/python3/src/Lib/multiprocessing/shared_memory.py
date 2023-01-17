@@ -173,10 +173,7 @@ class SharedMemory:
                     )
                 finally:
                     _winapi.CloseHandle(h_map)
-                try:
-                    size = _winapi.VirtualQuerySize(p_buf)
-                finally:
-                    _winapi.UnmapViewOfFile(p_buf)
+                size = _winapi.VirtualQuerySize(p_buf)
                 self._mmap = mmap.mmap(-1, size, tagname=name)
 
         self._size = size

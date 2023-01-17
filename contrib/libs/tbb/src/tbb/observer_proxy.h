@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class observer_list {
     arena* my_arena;
 
     //! Decrement refcount of the proxy p if there are other outstanding references.
-    /** In case of success sets p to nullptr. Must be invoked from under the list lock. **/
+    /** In case of success sets p to NULL. Must be invoked from under the list lock. **/
     inline static void remove_ref_fast( observer_proxy*& p );
 
     //! Implements notify_entry_observers functionality.
@@ -79,6 +79,8 @@ public:
     //! Accessor to the reader-writer mutex associated with the list.
     spin_rw_mutex& mutex () { return my_mutex.begin()[0]; }
 
+    bool empty () const { return my_head.load(std::memory_order_relaxed) == nullptr; }
+
     //! Call entry notifications on observers added after last was notified.
     /** Updates last to become the last notified observer proxy (in the global list)
         or leaves it to be nullptr. The proxy has its refcount incremented. **/
@@ -93,7 +95,7 @@ public:
     object into a proxy so that a list item remained valid even after the corresponding
     proxy object is destroyed by the user code. **/
 class observer_proxy {
-    friend class d1::task_scheduler_observer;
+    friend class task_scheduler_observer;
     friend class observer_list;
     friend void observe(d1::task_scheduler_observer&, bool);
     //! Reference count used for garbage collection.
@@ -104,7 +106,7 @@ class observer_proxy {
     //! Reference to the list this observer belongs to.
     observer_list* my_list;
     //! Pointer to next observer in the list specified by my_head.
-    /** nullptr for the last item in the list. **/
+    /** NULL for the last item in the list. **/
     observer_proxy* my_next;
     //! Pointer to the previous observer in the list specified by my_head.
     /** For the head of the list points to the last item. **/
@@ -122,8 +124,8 @@ void observer_list::remove_ref_fast( observer_proxy*& p ) {
     if( p->my_observer ) {
         // Can decrement refcount quickly, as it cannot drop to zero while under the lock.
         std::uintptr_t r = --p->my_ref_count;
-        __TBB_ASSERT_EX( r, nullptr);
-        p = nullptr;
+        __TBB_ASSERT_EX( r, NULL );
+        p = NULL;
     } else {
         // Use slow form of refcount decrementing, after the lock is released.
     }
@@ -139,9 +141,9 @@ void observer_list::notify_exit_observers( observer_proxy*& last, bool worker ) 
     if (last == nullptr) {
         return;
     }
-    __TBB_ASSERT(!is_poisoned(last), nullptr);
+    __TBB_ASSERT(!is_poisoned(last), NULL);
     do_notify_exit_observers( last, worker );
-    __TBB_ASSERT(last != nullptr, nullptr);
+    __TBB_ASSERT(last != nullptr, NULL);
     poison_pointer(last);
 }
 

@@ -9,7 +9,6 @@
 
 add_library(cpp-containers-intrusive_rb_tree)
 target_link_libraries(cpp-containers-intrusive_rb_tree PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

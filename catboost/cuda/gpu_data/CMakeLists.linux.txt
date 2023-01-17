@@ -15,7 +15,6 @@ target_cuda_sources(catboost-cuda-gpu_data PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/binarize.cu
 )
 target_link_libraries(catboost-cuda-gpu_data PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-grid_creator
@@ -83,7 +82,6 @@ target_cuda_flags(catboost-cuda-gpu_data
 
 add_global_library_for(catboost-cuda-gpu_data.global catboost-cuda-gpu_data)
 target_link_libraries(catboost-cuda-gpu_data.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-grid_creator

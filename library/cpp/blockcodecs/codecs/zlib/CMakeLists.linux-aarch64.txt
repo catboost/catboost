@@ -10,7 +10,6 @@ find_package(ZLIB REQUIRED)
 
 add_library(blockcodecs-codecs-zlib INTERFACE)
 target_link_libraries(blockcodecs-codecs-zlib INTERFACE
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   ZLIB::ZLIB
@@ -19,7 +18,6 @@ target_link_libraries(blockcodecs-codecs-zlib INTERFACE
 
 add_global_library_for(blockcodecs-codecs-zlib.global blockcodecs-codecs-zlib)
 target_link_libraries(blockcodecs-codecs-zlib.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   ZLIB::ZLIB

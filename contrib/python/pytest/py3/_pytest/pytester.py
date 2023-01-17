@@ -89,7 +89,7 @@ def pytest_addoption(parser: Parser) -> None:
         action="store_true",
         dest="lsof",
         default=False,
-        help="Run FD checks if lsof is available",
+        help="run FD checks if lsof is available",
     )
 
     parser.addoption(
@@ -98,13 +98,13 @@ def pytest_addoption(parser: Parser) -> None:
         dest="runpytest",
         choices=("inprocess", "subprocess"),
         help=(
-            "Run pytest sub runs in tests using an 'inprocess' "
+            "run pytest sub runs in tests using an 'inprocess' "
             "or 'subprocess' (python -m main) method"
         ),
     )
 
     parser.addini(
-        "pytester_example_dir", help="Directory to take the pytester example files from"
+        "pytester_example_dir", help="directory to take the pytester example files from"
     )
 
 
@@ -661,7 +661,17 @@ class Pytester:
     against expected output, perfect for black-box testing of pytest plugins.
 
     It attempts to isolate the test run from external factors as much as possible, modifying
-    the current working directory to :attr:`path` and environment variables during initialization.
+    the current working directory to ``path`` and environment variables during initialization.
+
+    Attributes:
+
+    :ivar Path path: temporary directory path used to create files/run tests from, etc.
+
+    :ivar plugins:
+       A list of plugins to use with :py:meth:`parseconfig` and
+       :py:meth:`runpytest`.  Initially this is an empty list but plugins can
+       be added to the list.  The type of items to add to the list depends on
+       the method using them so refer to them for details.
     """
 
     __test__ = False
@@ -690,10 +700,6 @@ class Pytester:
             name = request.node.name
         self._name = name
         self._path: Path = tmp_path_factory.mktemp(name, numbered=True)
-        #: A list of plugins to use with :py:meth:`parseconfig` and
-        #: :py:meth:`runpytest`.  Initially this is an empty list but plugins can
-        #: be added to the list.  The type of items to add to the list depends on
-        #: the method using them so refer to them for details.
         self.plugins: List[Union[str, _PluggyPlugin]] = []
         self._cwd_snapshot = CwdSnapshot()
         self._sys_path_snapshot = SysPathsSnapshot()
@@ -718,7 +724,7 @@ class Pytester:
 
     @property
     def path(self) -> Path:
-        """Temporary directory path used to create files/run tests from, etc."""
+        """Temporary directory where files are created and pytest is executed."""
         return self._path
 
     def __repr__(self) -> str:
@@ -749,7 +755,7 @@ class Pytester:
         return SysModulesSnapshot(preserve=preserve_module)
 
     def make_hook_recorder(self, pluginmanager: PytestPluginManager) -> HookRecorder:
-        """Create a new :class:`HookRecorder` for a :class:`PytestPluginManager`."""
+        """Create a new :py:class:`HookRecorder` for a PluginManager."""
         pluginmanager.reprec = reprec = HookRecorder(pluginmanager, _ispytest=True)
         self._request.addfinalizer(reprec.finish_recording)
         return reprec
@@ -798,7 +804,7 @@ class Pytester:
     def makefile(self, ext: str, *args: str, **kwargs: str) -> Path:
         r"""Create new text file(s) in the test directory.
 
-        :param ext:
+        :param str ext:
             The extension the file(s) should use, including the dot, e.g. `.py`.
         :param args:
             All args are treated as strings and joined using newlines.
@@ -807,8 +813,6 @@ class Pytester:
         :param kwargs:
             Each keyword is the name of a file, while the value of it will
             be written as contents of the file.
-        :returns:
-            The first created file.
 
         Examples:
 
@@ -828,19 +832,11 @@ class Pytester:
         return self._makefile(ext, args, kwargs)
 
     def makeconftest(self, source: str) -> Path:
-        """Write a contest.py file.
-
-        :param source: The contents.
-        :returns: The conftest.py file.
-        """
+        """Write a contest.py file with 'source' as contents."""
         return self.makepyfile(conftest=source)
 
     def makeini(self, source: str) -> Path:
-        """Write a tox.ini file.
-
-        :param source: The contents.
-        :returns: The tox.ini file.
-        """
+        """Write a tox.ini file with 'source' as contents."""
         return self.makefile(".ini", tox=source)
 
     def getinicfg(self, source: str) -> SectionWrapper:
@@ -849,10 +845,7 @@ class Pytester:
         return IniConfig(str(p))["pytest"]
 
     def makepyprojecttoml(self, source: str) -> Path:
-        """Write a pyproject.toml file.
-
-        :param source: The contents.
-        :returns: The pyproject.ini file.
+        """Write a pyproject.toml file with 'source' as contents.
 
         .. versionadded:: 6.0
         """
@@ -905,28 +898,19 @@ class Pytester:
 
         This is undone automatically when this object dies at the end of each
         test.
-
-        :param path:
-            The path.
         """
         if path is None:
             path = self.path
 
         self._monkeypatch.syspath_prepend(str(path))
 
-    def mkdir(self, name: Union[str, "os.PathLike[str]"]) -> Path:
-        """Create a new (sub)directory.
-
-        :param name:
-            The name of the directory, relative to the pytester path.
-        :returns:
-            The created directory.
-        """
+    def mkdir(self, name: str) -> Path:
+        """Create a new (sub)directory."""
         p = self.path / name
         p.mkdir()
         return p
 
-    def mkpydir(self, name: Union[str, "os.PathLike[str]"]) -> Path:
+    def mkpydir(self, name: str) -> Path:
         """Create a new python package.
 
         This creates a (sub)directory with an empty ``__init__.py`` file so it
@@ -940,15 +924,14 @@ class Pytester:
     def copy_example(self, name: Optional[str] = None) -> Path:
         """Copy file from project's directory into the testdir.
 
-        :param name:
-            The name of the file to copy.
-        :return:
-            Path to the copied directory (inside ``self.path``).
+        :param str name: The name of the file to copy.
+        :return: path to the copied directory (inside ``self.path``).
+
         """
-        example_dir_ = self._request.config.getini("pytester_example_dir")
-        if example_dir_ is None:
+        example_dir = self._request.config.getini("pytester_example_dir")
+        if example_dir is None:
             raise ValueError("pytester_example_dir is unset, can't copy examples")
-        example_dir: Path = self._request.config.rootpath / example_dir_
+        example_dir = self._request.config.rootpath / example_dir
 
         for extra_element in self._request.node.iter_markers("pytester_example_path"):
             assert extra_element.args
@@ -984,16 +967,14 @@ class Pytester:
 
     def getnode(
         self, config: Config, arg: Union[str, "os.PathLike[str]"]
-    ) -> Union[Collector, Item]:
-        """Get the collection node of a file.
+    ) -> Optional[Union[Collector, Item]]:
+        """Return the collection node of a file.
 
-        :param config:
+        :param pytest.Config config:
            A pytest config.
            See :py:meth:`parseconfig` and :py:meth:`parseconfigure` for creating it.
-        :param arg:
+        :param os.PathLike[str] arg:
             Path to the file.
-        :returns:
-            The node.
         """
         session = Session.from_config(config)
         assert "::" not in str(arg)
@@ -1003,18 +984,13 @@ class Pytester:
         config.hook.pytest_sessionfinish(session=session, exitstatus=ExitCode.OK)
         return res
 
-    def getpathnode(
-        self, path: Union[str, "os.PathLike[str]"]
-    ) -> Union[Collector, Item]:
+    def getpathnode(self, path: Union[str, "os.PathLike[str]"]):
         """Return the collection node of a file.
 
         This is like :py:meth:`getnode` but uses :py:meth:`parseconfigure` to
         create the (configured) pytest Config instance.
 
-        :param path:
-            Path to the file.
-        :returns:
-            The node.
+        :param os.PathLike[str] path: Path to the file.
         """
         path = Path(path)
         config = self.parseconfigure(path)
@@ -1030,11 +1006,6 @@ class Pytester:
 
         This recurses into the collection node and returns a list of all the
         test items contained within.
-
-        :param colitems:
-            The collection nodes.
-        :returns:
-            The collected items.
         """
         session = colitems[0].session
         result: List[Item] = []
@@ -1221,16 +1192,15 @@ class Pytester:
         return new_args
 
     def parseconfig(self, *args: Union[str, "os.PathLike[str]"]) -> Config:
-        """Return a new pytest :class:`pytest.Config` instance from given
-        commandline args.
+        """Return a new pytest Config instance from given commandline args.
 
-        This invokes the pytest bootstrapping code in _pytest.config to create a
-        new :py:class:`pytest.PytestPluginManager` and call the
-        :hook:`pytest_cmdline_parse` hook to create a new :class:`pytest.Config`
-        instance.
+        This invokes the pytest bootstrapping code in _pytest.config to create
+        a new :py:class:`_pytest.core.PluginManager` and call the
+        pytest_cmdline_parse hook to create a new
+        :py:class:`pytest.Config` instance.
 
-        If :attr:`plugins` has been populated they should be plugin modules
-        to be registered with the plugin manager.
+        If :py:attr:`plugins` has been populated they should be plugin modules
+        to be registered with the PluginManager.
         """
         import _pytest.config
 
@@ -1248,8 +1218,7 @@ class Pytester:
         """Return a new pytest configured Config instance.
 
         Returns a new :py:class:`pytest.Config` instance like
-        :py:meth:`parseconfig`, but also calls the :hook:`pytest_configure`
-        hook.
+        :py:meth:`parseconfig`, but also calls the pytest_configure hook.
         """
         config = self.parseconfig(*args)
         config._do_configure()
@@ -1268,8 +1237,6 @@ class Pytester:
             The module source.
         :param funcname:
             The name of the test function for which to return a test item.
-        :returns:
-            The test item.
         """
         items = self.getitems(source)
         for item in items:
@@ -1410,8 +1377,6 @@ class Pytester:
             - Otherwise, it is passed through to :py:class:`subprocess.Popen`.
               For further information in this case, consult the document of the
               ``stdin`` parameter in :py:class:`subprocess.Popen`.
-        :returns:
-            The result.
         """
         __tracebackhide__ = True
 
@@ -1498,8 +1463,6 @@ class Pytester:
         :param timeout:
             The period in seconds after which to timeout and raise
             :py:class:`Pytester.TimeoutExpired`.
-        :returns:
-            The result.
         """
         __tracebackhide__ = True
         p = make_numbered_dir(root=self.path, prefix="runpytest-", mode=0o700)

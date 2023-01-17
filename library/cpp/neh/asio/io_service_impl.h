@@ -21,19 +21,6 @@
 #endif
 
 namespace NAsio {
-#if defined(_arm_)
-    template <typename T>
-    struct TLockFreeSequence {
-        Y_NO_INLINE T& Get(size_t n) {
-            with_lock (M) {
-                return H[n];
-            }
-        }
-
-        TMutex M;
-        THashMap<size_t, T> H;
-    };
-#else
     //TODO: copypaste from neh, - need fix
     template <class T>
     class TLockFreeSequence {
@@ -72,7 +59,6 @@ namespace NAsio {
     private:
         T* volatile T_[sizeof(size_t) * 8];
     };
-#endif
 
     struct TOperationCompare {
         template <class T>

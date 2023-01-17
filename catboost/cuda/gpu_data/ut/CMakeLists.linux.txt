@@ -9,7 +9,6 @@
 
 add_executable(catboost-cuda-gpu_data-ut)
 target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

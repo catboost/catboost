@@ -15,7 +15,7 @@ namespace {
     inline ui64 EstimateMaxTempVecsForGather(const TDocParallelDataSet& dataSet,
                                              double sampleRate) {
         const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
-        ui64 docsPerDevices = ::NHelpers::CeilDivide(dataSet.GetTarget().GetWeights().GetObjectsSlice().Size(), devCount);
+        ui64 docsPerDevices = dataSet.GetTarget().GetWeights().GetObjectsSlice().Size() / devCount;
         docsPerDevices *= sampleRate;
         ui64 freeMemoryBytes = static_cast<ui64>(NCudaLib::GetCudaManager().FreeMemoryMb(0) * 1024 * 1024);
         ui64 singleColumnSize = docsPerDevices * sizeof(ui32);
