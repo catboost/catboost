@@ -1328,3 +1328,6 @@ haas/trash/bot/map
 classifieds/parsing
 classifieds/hipe
 education/schoolbook/services/kelvin-ci-tool
+education/schoolbook/services/enigma-certs-debug
+classifieds/autoru-frontend-sitemap
+classifieds/beggar-banker
