@@ -18,6 +18,7 @@ CFLAGS(
 SRCS(
     main.c
     get_py_main.cpp
+    venv.cpp
 )
 
 END()
