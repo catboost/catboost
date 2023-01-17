@@ -315,6 +315,8 @@ inline bool IsWeak(const FieldDescriptor* field, const Options& options) {
   return false;
 }
 
+bool IsStringInlined(const FieldDescriptor* descriptor, const Options& options);
+
 // For a string field, returns the effective ctype.  If the actual ctype is
 // not supported, returns the default of STRING.
 FieldOptions::CType EffectiveStringCType(const FieldDescriptor* field,
@@ -323,6 +325,11 @@ FieldOptions::CType EffectiveStringCType(const FieldDescriptor* field,
 inline bool IsCord(const FieldDescriptor* field, const Options& options) {
   return field->cpp_type() == FieldDescriptor::CPPTYPE_STRING &&
          EffectiveStringCType(field, options) == FieldOptions::CORD;
+}
+
+inline bool IsString(const FieldDescriptor* field, const Options& options) {
+  return field->cpp_type() == FieldDescriptor::CPPTYPE_STRING &&
+         EffectiveStringCType(field, options) == FieldOptions::STRING;
 }
 
 inline bool IsStringPiece(const FieldDescriptor* field,
@@ -533,6 +540,19 @@ inline std::vector<const Descriptor*> FlattenMessagesInFile(
   return result;
 }
 
+template <typename F>
+void ForEachMessage(const Descriptor* descriptor, F&& func) {
+  for (int i = 0; i < descriptor->nested_type_count(); i++)
+    ForEachMessage(descriptor->nested_type(i), std::forward<F&&>(func));
+  func(descriptor);
+}
+
+template <typename F>
+void ForEachMessage(const FileDescriptor* descriptor, F&& func) {
+  for (int i = 0; i < descriptor->message_type_count(); i++)
+    ForEachMessage(descriptor->message_type(i), std::forward<F&&>(func));
+}
+
 bool HasWeakFields(const Descriptor* desc, const Options& options);
 bool HasWeakFields(const FileDescriptor* desc, const Options& options);
 
@@ -545,11 +565,11 @@ inline static bool ShouldIgnoreRequiredFieldCheck(const FieldDescriptor* field,
 }
 
 struct MessageAnalysis {
-  bool is_recursive;
-  bool contains_cord;
-  bool contains_extension;
-  bool contains_required;
-  bool contains_weak;  // Implicit weak as well.
+  bool is_recursive = false;
+  bool contains_cord = false;
+  bool contains_extension = false;
+  bool contains_required = false;
+  bool contains_weak = false;  // Implicit weak as well.
 };
 
 // This class is used in FileGenerator, to ensure linear instead of
@@ -629,6 +649,36 @@ bool UsingImplicitWeakFields(const FileDescriptor* file,
 // Indicates whether to treat this field as implicitly weak.
 bool IsImplicitWeakField(const FieldDescriptor* field, const Options& options,
                          MessageSCCAnalyzer* scc_analyzer);
+
+inline bool HasSimpleBaseClass(const Descriptor* desc, const Options& options) {
+  if (!HasDescriptorMethods(desc->file(), options)) return false;
+  if (desc->extension_range_count() != 0) return false;
+  if (desc->field_count() == 0) return true;
+  // TODO(jorg): Support additional common message types with only one
+  // or two fields
+  return false;
+}
+
+inline bool HasSimpleBaseClasses(const FileDescriptor* file,
+                                 const Options& options) {
+  bool v = false;
+  ForEachMessage(file, [&v, &options](const Descriptor* desc) {
+    v |= HasSimpleBaseClass(desc, options);
+  });
+  return v;
+}
+
+inline TProtoStringType SimpleBaseClass(const Descriptor* desc,
+                                   const Options& options) {
+  if (!HasDescriptorMethods(desc->file(), options)) return "";
+  if (desc->extension_range_count() != 0) return "";
+  if (desc->field_count() == 0) {
+    return "ZeroFieldsBase";
+  }
+  // TODO(jorg): Support additional common message types with only one
+  // or two fields
+  return "";
+}
 
 // Formatter is a functor class which acts as a closure around printer and
 // the variable map. It's much like printer->Print except it supports both named
@@ -884,8 +934,12 @@ inline OneOfRangeImpl OneOfRange(const Descriptor* desc) { return {desc}; }
 
 PROTOC_EXPORT TProtoStringType StripProto(const TProtoStringType& filename);
 
-inline bool EnableMessageOwnedArena(const Descriptor* /* desc */ ) { return false; }
+bool EnableMessageOwnedArena(const Descriptor* desc);
 
+bool ShouldVerify(const Descriptor* descriptor, const Options& options,
+                  MessageSCCAnalyzer* scc_analyzer);
+bool ShouldVerify(const FileDescriptor* file, const Options& options,
+                  MessageSCCAnalyzer* scc_analyzer);
 }  // namespace cpp
 }  // namespace compiler
 }  // namespace protobuf

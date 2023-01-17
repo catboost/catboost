@@ -216,7 +216,7 @@ class PROTOBUF_EXPORT StringPiece {
   	  : ptr_(str.data()), length_(str.size())
   {
   }
- 
+
 #if defined(__cpp_lib_string_view)
   StringPiece(  // NOLINT(runtime/explicit)
       std::string_view str)
@@ -224,7 +224,6 @@ class PROTOBUF_EXPORT StringPiece {
     length_ = CheckSize(str.size());
   }
 #endif
-   
 
   StringPiece(const char* offset, size_type len)
       : ptr_(offset), length_(CheckSize(len)) {}

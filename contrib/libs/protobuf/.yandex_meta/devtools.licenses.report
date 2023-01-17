@@ -31,7 +31,7 @@
 
 SKIP     CC-BY-4.0            0e41e61e59ce22134d560f0888c92f3a
 BELONGS ya.make
-FILE_IGNORE src/google/protobuf/util/internal/json_stream_parser.cc found in files: CHANGES.txt at line 517
+FILE_IGNORE src/google/protobuf/util/internal/json_stream_parser.cc found in files: CHANGES.txt at line 591
     License text:
           * Improves performance of json_stream_parser.cc by factor 1000 (#7230)
     Scancode info:
@@ -40,7 +40,7 @@ FILE_IGNORE src/google/protobuf/util/internal/json_stream_parser.cc found in fil
         Match type      : REFERENCE
         Links           : http://creativecommons.org/licenses/by/4.0/, http://creativecommons.org/licenses/by/4.0/legalcode, https://spdx.org/licenses/CC-BY-4.0
     Files with this license:
-        CHANGES.txt [517:517]
+        CHANGES.txt [591:591]
 
 SKIP     BSD-3-Clause         37699d6edc78bcd9e06fd0dbc68720e1
 BELONGS ya.make
@@ -53,7 +53,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
-        CHANGES.txt [2776:2776]
+        CHANGES.txt [2850:2850]
 
 SKIP     Apache-2.0           3f6cb5f9815c6f54e808b56a203ac513
 BELONGS ya.make
@@ -66,7 +66,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        CHANGES.txt [2776:2776]
+        CHANGES.txt [2850:2850]
 
 KEEP     BSD-3-Clause         6aa235708ac9f5dd8e5c6ac415fc5837
 BELONGS ya.make
@@ -100,12 +100,12 @@ BELONGS ya.make
         src/google/protobuf/extension_set.h [5:29]
         src/google/protobuf/extension_set_heavy.cc [5:29]
         src/google/protobuf/extension_set_inl.h [5:29]
-        src/google/protobuf/field_access_listener.cc [5:29]
-        src/google/protobuf/field_access_listener.h [5:29]
         src/google/protobuf/field_mask.proto [5:29]
         src/google/protobuf/generated_enum_reflection.h [5:29]
         src/google/protobuf/generated_enum_util.cc [5:29]
         src/google/protobuf/generated_enum_util.h [5:29]
+        src/google/protobuf/generated_message_bases.cc [5:29]
+        src/google/protobuf/generated_message_bases.h [5:29]
         src/google/protobuf/generated_message_reflection.cc [5:29]
         src/google/protobuf/generated_message_reflection.h [5:29]
         src/google/protobuf/generated_message_table_driven.cc [5:29]
@@ -120,6 +120,8 @@ BELONGS ya.make
         src/google/protobuf/has_bits.h [5:29]
         src/google/protobuf/implicit_weak_message.cc [5:29]
         src/google/protobuf/implicit_weak_message.h [5:29]
+        src/google/protobuf/inlined_string_field.cc [5:29]
+        src/google/protobuf/inlined_string_field.h [5:29]
         src/google/protobuf/io/coded_stream.cc [5:29]
         src/google/protobuf/io/coded_stream.h [5:29]
         src/google/protobuf/io/gzip_stream.cc [5:29]

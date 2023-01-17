@@ -37,13 +37,14 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.pb.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set_heavy.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_access_listener.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.pb.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_enum_util.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_bases.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_reflection.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven_lite.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/implicit_weak_message.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/inlined_string_field.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/coded_stream.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/gzip_stream.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/io_win32.cc

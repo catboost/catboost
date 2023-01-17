@@ -49,11 +49,11 @@ namespace internal {
 template <typename T>
 T UnwrapMapKey(const MapKey& map_key);
 template <>
-inline int32 UnwrapMapKey<int32>(const MapKey& map_key) {
+inline int32_t UnwrapMapKey<int32_t>(const MapKey& map_key) {
   return map_key.GetInt32Value();
 }
 template <>
-inline uint32 UnwrapMapKey<uint32>(const MapKey& map_key) {
+inline uint32_t UnwrapMapKey<uint32_t>(const MapKey& map_key) {
   return map_key.GetUInt32Value();
 }
 template <>
@@ -64,6 +64,16 @@ template <>
 inline uint64 UnwrapMapKey<uint64>(const MapKey& map_key) {
   return map_key.GetUInt64Value();
 }
+#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
+template <>
+inline int64_t UnwrapMapKey<int64_t>(const MapKey& map_key) {
+  return map_key.GetInt64Value();
+}
+template <>
+inline uint64_t UnwrapMapKey<uint64_t>(const MapKey& map_key) {
+  return map_key.GetUInt64Value();
+}
+#endif
 template <>
 inline bool UnwrapMapKey<bool>(const MapKey& map_key) {
   return map_key.GetBoolValue();
@@ -77,21 +87,33 @@ inline TProtoStringType UnwrapMapKey<TProtoStringType>(const MapKey& map_key) {
 template <typename T>
 inline void SetMapKey(MapKey* map_key, const T& value);
 template <>
-inline void SetMapKey<int32>(MapKey* map_key, const int32& value) {
+inline void SetMapKey<int32_t>(MapKey* map_key, const int32_t& value) {
   map_key->SetInt32Value(value);
 }
 template <>
-inline void SetMapKey<uint32>(MapKey* map_key, const uint32& value) {
+inline void SetMapKey<uint32_t>(MapKey* map_key, const uint32_t& value) {
   map_key->SetUInt32Value(value);
 }
 template <>
 inline void SetMapKey<int64>(MapKey* map_key, const int64& value) {
   map_key->SetInt64Value(value);
 }
+#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
+template <>
+inline void SetMapKey<int64_t>(MapKey* map_key, const int64_t& value) {
+  map_key->SetInt64Value(value);
+}
+#endif
 template <>
 inline void SetMapKey<uint64>(MapKey* map_key, const uint64& value) {
   map_key->SetUInt64Value(value);
 }
+#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
+template <>
+inline void SetMapKey<uint64_t>(MapKey* map_key, const uint64_t& value) {
+  map_key->SetUInt64Value(value);
+}
+#endif
 template <>
 inline void SetMapKey<bool>(MapKey* map_key, const bool& value) {
   map_key->SetBoolValue(value);

@@ -13,9 +13,9 @@ PROVIDES(protobuf)
 
 
 
-VERSION(3.17.3)
+VERSION(3.18.1)
 
-ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.17.3.tar.gz)
+ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.18.1.tar.gz)
 
 PEERDIR(
     contrib/libs/zlib
@@ -56,13 +56,14 @@ SRCS(
     src/google/protobuf/empty.pb.cc
     src/google/protobuf/extension_set.cc
     src/google/protobuf/extension_set_heavy.cc
-    src/google/protobuf/field_access_listener.cc
     src/google/protobuf/field_mask.pb.cc
     src/google/protobuf/generated_enum_util.cc
+    src/google/protobuf/generated_message_bases.cc
     src/google/protobuf/generated_message_reflection.cc
     src/google/protobuf/generated_message_table_driven.cc
     src/google/protobuf/generated_message_table_driven_lite.cc
     src/google/protobuf/implicit_weak_message.cc
+    src/google/protobuf/inlined_string_field.cc
     src/google/protobuf/io/coded_stream.cc
     src/google/protobuf/io/gzip_stream.cc
     src/google/protobuf/io/io_win32.cc
