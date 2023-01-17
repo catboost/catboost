@@ -92,14 +92,15 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\empty.pb.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set_heavy.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_access_listener.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_bases.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_util.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\implicit_weak_message.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\inlined_string_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\coded_stream.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\gzip_stream.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\io_win32.cc"/>
@@ -283,10 +284,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\empty.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set_inl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_access_listener.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_bases.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven_lite.h"/>
@@ -295,6 +296,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\has_bits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\implicit_weak_message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\inlined_string_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\coded_stream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\gzip_stream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\io_win32.h"/>
