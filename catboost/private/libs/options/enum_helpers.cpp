@@ -234,10 +234,12 @@ MakeRegister(LossInfos,
     RankingRegistree(YetiRank, ERankingType::Order,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
+        | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(YetiRankPairwise, ERankingType::Order,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
+        | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(QueryRMSE, ERankingType::AbsoluteValue,
         EMetricAttribute::IsGroupwise
