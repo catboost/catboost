@@ -1,2 +1,2 @@
 mark_as_py3_sources:
-- pexpect/_async.py
+  - pexpect/_async.py

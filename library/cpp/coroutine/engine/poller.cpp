@@ -310,43 +310,6 @@ namespace {
         TPollVec T_;
     };
 
-
-    class TCombinedPoller {
-        typedef TPoller<TPollerImpl<TWithoutLocking>> TDefaultPoller;
-
-    public:
-        TCombinedPoller() {
-            P_.Reset(new TPollPoller());
-        }
-
-        void Set(const TChange& c) {
-            if (!P_) {
-                D_->Set(c);
-            } else {
-                P_->Set(c);
-            }
-        }
-
-        void Wait(TEvents& events, TInstant deadLine) {
-            if (!P_) {
-                D_->Wait(events, deadLine);
-            } else {
-                if (P_->Size() > 200) {
-                    D_.Reset(new TDefaultPoller());
-                    P_->Build(*D_);
-                    P_.Destroy();
-                    D_->Wait(events, deadLine);
-                } else {
-                    P_->Wait(events, deadLine);
-                }
-            }
-        }
-
-    private:
-        THolder<TPollPoller> P_;
-        THolder<TDefaultPoller> D_;
-    };
-
     struct TUserPoller: public TString {
         TUserPoller()
             : TString(GetEnv("USER_POLLER"))
@@ -364,10 +327,17 @@ THolder<IPollerFace> IPollerFace::Construct(TStringBuf name) {
 }
 
 THolder<IPollerFace> IPollerFace::Construct(EContPoller poller) {
+    if (poller == EContPoller::Default) {
+#if defined (HAVE_EPOLL_POLLER)
+        poller = EContPoller::Epoll;
+#elif defined(HAVE_KQUEUE_POLLER)
+        poller = EContPoller::Kqueue;
+#else
+        poller = EContPoller::Select;
+#endif
+    }
+
     switch (poller) {
-    case EContPoller::Default:
-    case EContPoller::Combined:
-        return MakeHolder<TVirtualize<TCombinedPoller>>(EContPoller::Combined);
     case EContPoller::Select:
         return MakeHolder<TVirtualize<TPoller<TGenericPoller<TSelectPoller<TWithoutLocking>>>>>(poller);
     case EContPoller::Poll:
