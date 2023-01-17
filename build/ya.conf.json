@@ -6086,6 +6086,40 @@
                     "default": true
                 }
             ]
+        },
+        "nds32le-elf-mculib-v5f": {
+            "tools": {
+                "cc": {
+                    "bottle": "nds32le-elf-mculib-v5f",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "nds32le-elf-mculib-v5f",
+                    "executable": "c++"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "NONE",
+                        "arch": "nds32le_elf_mculib_v5f"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "RISCV",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(RISCV)/bin/riscv32-elf-gcc",
+                "cxx_compiler": "$(RISCV)/bin/riscv32-elf-g++",
+                "ar": "$(RISCV)/bin/riscv32-elf-ar",
+                "objcopy": "$(RISCV)/bin/riscv32-elf-objcopy",
+                "gcc_version": "7.4.0"
+            }
         }
     },
     "bottles": {
@@ -8576,6 +8610,22 @@
             "executable": {
                 "profile_size_analyzer": [
                     "profile_size_analyzer"
+                ]
+            }
+        },
+        "nds32le-elf-mculib-v5f": {
+            "formula": {
+                "sandbox_id": 1261704938,
+                "match": "nds32le-elf-mculib-v5f"
+            },
+            "executable": {
+                "c++": [
+                    "bin",
+                    "riscv32-elf-g++"
+                ],
+                "cc": [
+                    "bin",
+                    "riscv32-elf-gcc"
                 ]
             }
         }
