@@ -28,7 +28,7 @@
   - host_defines.h
   - library_types.h
   - math_constants.h
-  - nvrtc.h  
+  - nvrtc.h
   - npp.h
   - nppi.h
   - nvToolsExt.h
@@ -47,3 +47,9 @@
   includes:
   - NvInfer.h
   - NvInferPlugin.h
+# Add support nvrtc
+- source_filter: "^contrib/libs/nvidia/cutlass/.*"
+  includes:
+  - cuda/std/cassert
+  - cuda/std/cmath
+  - cuda/std/cstdint
