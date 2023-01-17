@@ -7,7 +7,6 @@
 #include <util/system/rwlock.h>
 #include <util/system/fs.h>
 #include <library/cpp/deprecated/atomic/atomic.h>
-#include <util/generic/string.h>
 
 /*
  * rotating file log

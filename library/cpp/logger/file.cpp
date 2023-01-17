@@ -3,7 +3,6 @@
 
 #include <util/system/file.h>
 #include <util/system/rwlock.h>
-#include <util/generic/string.h>
 
 /*
  * file log
