@@ -397,7 +397,6 @@ mds/avatars/resizer-conf
 mds/admin/misc/gen-monitoring-panel
 mds/admin/packages/yandex-storage-yc-conf
 taxi/efficiencytest/crm_tests
-afisha/infra/projects/yandex-alet-docker-entrypoint
 classifieds/autoru-frontend-gdpr
 taxi/github/cargo-outsource
 mds/admin/scripts
@@ -896,3 +895,5 @@ market/market-tpl/sc-app
 weather/frontend/front
 taxi/mobile/infra/dart-codegen
 taxi/github/rida/php
+alice/alice4business
+intranet/digiarch
