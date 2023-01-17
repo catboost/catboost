@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import time
+import signal
 import traceback
 
 import __res
@@ -99,6 +100,18 @@ test_imports = check_imports
 
 def main():
     skip_names = sys.argv[1:]
+
+    try:
+        import faulthandler
+    except ImportError:
+        faulthandler = None
+
+    if faulthandler:
+        # Dump python backtrace in case of any errors
+        faulthandler.enable()
+        if hasattr(signal, "SIGUSR2"):
+            # SIGUSR2 is used by test_tool to teardown tests
+            faulthandler.register(signal.SIGUSR2, chain=True)
 
     os.environ['Y_PYTHON_IMPORT_TEST'] = ''
 
