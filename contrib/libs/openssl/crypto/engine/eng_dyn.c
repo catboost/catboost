@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2016 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2022 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -393,6 +393,26 @@ static int int_load(dynamic_data_ctx *ctx)
     return 0;
 }
 
+/*
+ * Unfortunately the version checker does not distinguish between
+ * engines built for openssl 1.1.x and openssl 3.x, but loading
+ * an engine that is built for openssl 3.x will cause a fatal
+ * error.  Detect such engines, since EVP_PKEY_get_base_id is exported
+ * as a function in openssl 3.x, while it is named EVP_PKEY_base_id
+ * in openssl 1.1.x.  Therefore we take the presence of that symbol
+ * as an indication that the engine will be incompatible.
+ */
+static int using_libcrypto_3(dynamic_data_ctx *ctx)
+{
+    int ret;
+
+    ERR_set_mark();
+    ret = DSO_bind_func(ctx->dynamic_dso, "EVP_PKEY_get_base_id") != NULL;
+    ERR_pop_to_mark();
+
+    return ret;
+}
+
 static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
 {
     ENGINE cpy;
@@ -442,9 +462,9 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
         /*
          * We fail if the version checker veto'd the load *or* if it is
          * deferring to us (by returning its version) and we think it is too
-         * old.
+         * old. Also fail if this is engine for openssl 3.x.
          */
-        if (vcheck_res < OSSL_DYNAMIC_OLDEST) {
+        if (vcheck_res < OSSL_DYNAMIC_OLDEST || using_libcrypto_3(ctx)) {
             /* Fail */
             ctx->bind_engine = NULL;
             ctx->v_check = NULL;
@@ -477,7 +497,9 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
     engine_set_all_null(e);
 
     /* Try to bind the ENGINE onto our own ENGINE structure */
-    if (!ctx->bind_engine(e, ctx->engine_id, &fns)) {
+    if (!engine_add_dynamic_id(e, (ENGINE_DYNAMIC_ID)ctx->bind_engine, 1)
+            || !ctx->bind_engine(e, ctx->engine_id, &fns)) {
+        engine_remove_dynamic_id(e, 1);
         ctx->bind_engine = NULL;
         ctx->v_check = NULL;
         DSO_free(ctx->dynamic_dso);

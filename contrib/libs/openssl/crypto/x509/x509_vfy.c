@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -973,14 +973,14 @@ static int check_crl_time(X509_STORE_CTX *ctx, X509_CRL *crl, int notify)
     time_t *ptime;
     int i;
 
-    if (notify)
-        ctx->current_crl = crl;
     if (ctx->param->flags & X509_V_FLAG_USE_CHECK_TIME)
         ptime = &ctx->param->check_time;
     else if (ctx->param->flags & X509_V_FLAG_NO_CHECK_TIME)
         return 1;
     else
         ptime = NULL;
+    if (notify)
+        ctx->current_crl = crl;
 
     i = X509_cmp_time(X509_CRL_get0_lastUpdate(crl), ptime);
     if (i == 0) {
@@ -2201,6 +2201,12 @@ int X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
     /* If purpose not set use default */
     if (!purpose)
         purpose = def_purpose;
+    /*
+     * If purpose is set but we don't have a default then set the default to
+     * the current purpose
+     */
+    else if (def_purpose == 0)
+        def_purpose = purpose;
     /* If we have a purpose then check it is valid */
     if (purpose) {
         X509_PURPOSE *ptmp;
@@ -2213,11 +2219,6 @@ int X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
         ptmp = X509_PURPOSE_get0(idx);
         if (ptmp->trust == X509_TRUST_DEFAULT) {
             idx = X509_PURPOSE_get_by_id(def_purpose);
-            /*
-             * XXX: In the two callers above def_purpose is always 0, which is
-             * not a known value, so idx will always be -1.  How is the
-             * X509_TRUST_DEFAULT case actually supposed to be handled?
-             */
             if (idx == -1) {
                 X509err(X509_F_X509_STORE_CTX_PURPOSE_INHERIT,
                         X509_R_UNKNOWN_PURPOSE_ID);
@@ -2924,6 +2925,26 @@ static int get_issuer(X509 **issuer, X509_STORE_CTX *ctx, X509 *cert)
     return ok;
 }
 
+static int augment_stack(STACK_OF(X509) *src, STACK_OF(X509) **dstPtr)
+{
+    if (src) {
+        STACK_OF(X509) *dst;
+        int i;
+
+        if (*dstPtr == NULL)
+            return ((*dstPtr = sk_X509_dup(src)) != NULL);
+
+        for (dst = *dstPtr, i = 0; i < sk_X509_num(src); ++i) {
+            if (!sk_X509_push(dst, sk_X509_value(src, i))) {
+                sk_X509_free(dst);
+                *dstPtr = NULL;
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
 static int build_chain(X509_STORE_CTX *ctx)
 {
     SSL_DANE *dane = ctx->dane;
@@ -2967,18 +2988,7 @@ static int build_chain(X509_STORE_CTX *ctx)
     }
 
     /*
-     * Shallow-copy the stack of untrusted certificates (with TLS, this is
-     * typically the content of the peer's certificate message) so can make
-     * multiple passes over it, while free to remove elements as we go.
-     */
-    if (ctx->untrusted && (sktmp = sk_X509_dup(ctx->untrusted)) == NULL) {
-        X509err(X509_F_BUILD_CHAIN, ERR_R_MALLOC_FAILURE);
-        ctx->error = X509_V_ERR_OUT_OF_MEM;
-        return 0;
-    }
-
-    /*
-     * If we got any "DANE-TA(2) Cert(0) Full(0)" trust-anchors from DNS, add
+     * If we got any "Cert(0) Full(0)" issuer certificates from DNS, *prepend*
      * them to our working copy of the untrusted certificate stack.  Since the
      * caller of X509_STORE_CTX_init() may have provided only a leaf cert with
      * no corresponding stack of untrusted certificates, we may need to create
@@ -2987,20 +2997,21 @@ static int build_chain(X509_STORE_CTX *ctx)
      * containing at least the leaf certificate, but we must be prepared for
      * this to change. ]
      */
-    if (DANETLS_ENABLED(dane) && dane->certs != NULL) {
-        if (sktmp == NULL && (sktmp = sk_X509_new_null()) == NULL) {
-            X509err(X509_F_BUILD_CHAIN, ERR_R_MALLOC_FAILURE);
-            ctx->error = X509_V_ERR_OUT_OF_MEM;
-            return 0;
-        }
-        for (i = 0; i < sk_X509_num(dane->certs); ++i) {
-            if (!sk_X509_push(sktmp, sk_X509_value(dane->certs, i))) {
-                sk_X509_free(sktmp);
-                X509err(X509_F_BUILD_CHAIN, ERR_R_MALLOC_FAILURE);
-                ctx->error = X509_V_ERR_OUT_OF_MEM;
-                return 0;
-            }
-        }
+    if (DANETLS_ENABLED(dane) && !augment_stack(dane->certs, &sktmp)) {
+        X509err(X509_F_BUILD_CHAIN, ERR_R_MALLOC_FAILURE);
+        ctx->error = X509_V_ERR_OUT_OF_MEM;
+        return 0;
+    }
+
+    /*
+     * Shallow-copy the stack of untrusted certificates (with TLS, this is
+     * typically the content of the peer's certificate message) so can make
+     * multiple passes over it, while free to remove elements as we go.
+     */
+    if (!augment_stack(ctx->untrusted, &sktmp)) {
+        X509err(X509_F_BUILD_CHAIN, ERR_R_MALLOC_FAILURE);
+        ctx->error = X509_V_ERR_OUT_OF_MEM;
+        return 0;
     }
 
     /*
