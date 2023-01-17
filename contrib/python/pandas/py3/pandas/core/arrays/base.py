@@ -8,13 +8,11 @@ An interface for extending pandas with custom arrays.
 """
 from __future__ import annotations
 
-import inspect
 import operator
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    ClassVar,
     Iterator,
     Literal,
     Sequence,
@@ -22,7 +20,6 @@ from typing import (
     cast,
     overload,
 )
-import warnings
 
 import numpy as np
 
@@ -46,9 +43,7 @@ from pandas.util._decorators import (
     Appender,
     Substitution,
     cache_readonly,
-    deprecate_nonkeyword_arguments,
 )
-from pandas.util._exceptions import find_stack_level
 from pandas.util._validators import (
     validate_bool_kwarg,
     validate_fillna_kwargs,
@@ -80,7 +75,6 @@ from pandas.core.algorithms import (
     isin,
     mode,
     rank,
-    resolve_na_sentinel,
     unique,
 )
 from pandas.core.array_algos.quantile import quantile_with_mask
@@ -186,7 +180,7 @@ class ExtensionArray:
     * dropna
     * unique
     * factorize / _values_for_factorize
-    * argsort, argmax, argmin / _values_for_argsort
+    * argsort / _values_for_argsort
     * searchsorted
 
     The remaining methods implemented on this class should be performant,
@@ -461,29 +455,11 @@ class ExtensionArray:
         """
         return ~(self == other)
 
-    def __init_subclass__(cls, **kwargs) -> None:
-        factorize = getattr(cls, "factorize")
-        if (
-            "use_na_sentinel" not in inspect.signature(factorize).parameters
-            # TimelikeOps uses old factorize args to ensure we don't break things
-            and cls.__name__ not in ("TimelikeOps", "DatetimeArray", "TimedeltaArray")
-        ):
-            # See GH#46910 for details on the deprecation
-            name = cls.__name__
-            warnings.warn(
-                f"The `na_sentinel` argument of `{name}.factorize` is deprecated. "
-                f"In the future, pandas will use the `use_na_sentinel` argument "
-                f"instead.  Add this argument to `{name}.factorize` to be compatible "
-                f"with future versions of pandas and silence this warning.",
-                DeprecationWarning,
-                stacklevel=find_stack_level(),
-            )
-
     def to_numpy(
         self,
         dtype: npt.DTypeLike | None = None,
         copy: bool = False,
-        na_value: object = lib.no_default,
+        na_value=lib.no_default,
     ) -> np.ndarray:
         """
         Convert to a NumPy ndarray.
@@ -540,9 +516,7 @@ class ExtensionArray:
         """
         The number of elements in the array.
         """
-        # error: Incompatible return value type (got "signedinteger[_64Bit]",
-        # expected "int")  [return-value]
-        return np.prod(self.shape)  # type: ignore[return-value]
+        return np.prod(self.shape)
 
     @property
     def ndim(self) -> int:
@@ -654,21 +628,10 @@ class ExtensionArray:
         See Also
         --------
         ExtensionArray.argsort : Return the indices that would sort this array.
-
-        Notes
-        -----
-        The caller is responsible for *not* modifying these values in-place, so
-        it is safe for implementors to give views on `self`.
-
-        Functions that use this (e.g. ExtensionArray.argsort) should ignore
-        entries with missing values in the original array (according to `self.isna()`).
-        This means that the corresponding entries in the returned array don't need to
-        be modified to sort correctly.
         """
-        # Note: this is used in `ExtensionArray.argsort/argmin/argmax`.
+        # Note: this is used in `ExtensionArray.argsort`.
         return np.array(self)
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self"])
     def argsort(
         self,
         ascending: bool = True,
@@ -703,8 +666,7 @@ class ExtensionArray:
         # Implementor note: You have two places to override the behavior of
         # argsort.
         # 1. _values_for_argsort : construct the values passed to np.argsort
-        # 2. argsort : total control over sorting. In case of overriding this,
-        #    it is recommended to also override argmax/argmin
+        # 2. argsort : total control over sorting.
         ascending = nv.validate_argsort_with_ascending(ascending, args, kwargs)
 
         values = self._values_for_argsort()
@@ -735,10 +697,6 @@ class ExtensionArray:
         --------
         ExtensionArray.argmax
         """
-        # Implementor note: You have two places to override the behavior of
-        # argmin.
-        # 1. _values_for_argsort : construct the values used in nargminmax
-        # 2. argmin itself : total control over sorting.
         validate_bool_kwarg(skipna, "skipna")
         if not skipna and self._hasna:
             raise NotImplementedError
@@ -763,21 +721,17 @@ class ExtensionArray:
         --------
         ExtensionArray.argmin
         """
-        # Implementor note: You have two places to override the behavior of
-        # argmax.
-        # 1. _values_for_argsort : construct the values used in nargminmax
-        # 2. argmax itself : total control over sorting.
         validate_bool_kwarg(skipna, "skipna")
         if not skipna and self._hasna:
             raise NotImplementedError
         return nargminmax(self, "argmax")
 
     def fillna(
-        self: ExtensionArrayT,
+        self,
         value: object | ArrayLike | None = None,
         method: FillnaOptions | None = None,
         limit: int | None = None,
-    ) -> ExtensionArrayT:
+    ):
         """
         Fill NA/NaN values using the specified method.
 
@@ -816,9 +770,8 @@ class ExtensionArray:
         if mask.any():
             if method is not None:
                 func = missing.get_fill_func(method)
-                npvalues = self.astype(object)
-                func(npvalues, limit=limit, mask=mask)
-                new_values = self._from_sequence(npvalues, dtype=self.dtype)
+                new_values, _ = func(self.astype(object), limit=limit, mask=mask)
+                new_values = self._from_sequence(new_values, dtype=self.dtype)
             else:
                 # fill with value
                 new_values = self.copy()
@@ -987,7 +940,7 @@ class ExtensionArray:
             equal_na = self.isna() & other.isna()  # type: ignore[operator]
             return bool((equal_values | equal_na).all())
 
-    def isin(self, values) -> npt.NDArray[np.bool_]:
+    def isin(self, values) -> np.ndarray:
         """
         Pointwise comparison for set containment in the given values.
 
@@ -1027,11 +980,7 @@ class ExtensionArray:
         """
         return self.astype(object), np.nan
 
-    def factorize(
-        self,
-        na_sentinel: int | lib.NoDefault = lib.no_default,
-        use_na_sentinel: bool | lib.NoDefault = lib.no_default,
-    ) -> tuple[np.ndarray, ExtensionArray]:
+    def factorize(self, na_sentinel: int = -1) -> tuple[np.ndarray, ExtensionArray]:
         """
         Encode the extension array as an enumerated type.
 
@@ -1039,18 +988,6 @@ class ExtensionArray:
         ----------
         na_sentinel : int, default -1
             Value to use in the `codes` array to indicate missing values.
-
-            .. deprecated:: 1.5.0
-                The na_sentinel argument is deprecated and
-                will be removed in a future version of pandas. Specify use_na_sentinel
-                as either True or False.
-
-        use_na_sentinel : bool, default True
-            If True, the sentinel -1 will be used for NaN values. If False,
-            NaN values will be encoded as non-negative integers and will not drop the
-            NaN from the uniques of the values.
-
-            .. versionadded:: 1.5.0
 
         Returns
         -------
@@ -1082,11 +1019,10 @@ class ExtensionArray:
         #    original ExtensionArray.
         # 2. ExtensionArray.factorize.
         #    Complete control over factorization.
-        resolved_na_sentinel = resolve_na_sentinel(na_sentinel, use_na_sentinel)
         arr, na_value = self._values_for_factorize()
 
         codes, uniques = factorize_array(
-            arr, na_sentinel=resolved_na_sentinel, na_value=na_value
+            arr, na_sentinel=na_sentinel, na_value=na_value
         )
 
         uniques_ea = self._from_factorized(uniques, self)
@@ -1138,9 +1074,7 @@ class ExtensionArray:
 
     @Substitution(klass="ExtensionArray")
     @Appender(_extension_array_shared_docs["repeat"])
-    def repeat(
-        self: ExtensionArrayT, repeats: int | Sequence[int], axis: int | None = None
-    ) -> ExtensionArrayT:
+    def repeat(self, repeats: int | Sequence[int], axis: int | None = None):
         nv.validate_repeat((), {"axis": axis})
         ind = np.arange(len(self)).repeat(repeats)
         return self.take(ind)
@@ -1441,11 +1375,10 @@ class ExtensionArray:
     # https://github.com/python/typeshed/issues/2148#issuecomment-520783318
     # Incompatible types in assignment (expression has type "None", base class
     # "object" defined the type as "Callable[[object], int]")
-    __hash__: ClassVar[None]  # type: ignore[assignment]
+    __hash__: None  # type: ignore[assignment]
 
     # ------------------------------------------------------------------------
-    # Non-Optimized Default Methods; in the case of the private methods here,
-    #  these are not guaranteed to be stable across pandas versions.
+    # Non-Optimized Default Methods
 
     def tolist(self) -> list:
         """
@@ -1558,11 +1491,10 @@ class ExtensionArray:
         ExtensionArray.fillna
         """
         func = missing.get_fill_func(method)
-        npvalues = self.astype(object)
         # NB: if we don't copy mask here, it may be altered inplace, which
         #  would mess up the `self[mask] = ...` below.
-        func(npvalues, limit=limit, mask=mask.copy())
-        new_values = self._from_sequence(npvalues, dtype=self.dtype)
+        new_values, _ = func(self.astype(object), limit=limit, mask=mask.copy())
+        new_values = self._from_sequence(new_values, dtype=self.dtype)
         self[mask] = new_values[mask]
         return
 
@@ -1630,12 +1562,25 @@ class ExtensionArray:
         -------
         same type as self
         """
+        # asarray needed for Sparse, see GH#24600
         mask = np.asarray(self.isna())
-        arr = np.asarray(self)
+        mask = np.atleast_2d(mask)
+
+        arr = np.atleast_2d(np.asarray(self))
         fill_value = np.nan
 
         res_values = quantile_with_mask(arr, mask, fill_value, qs, interpolation)
-        return type(self)._from_sequence(res_values)
+
+        if self.ndim == 2:
+            # i.e. DatetimeArray
+            result = type(self)._from_sequence(res_values)
+
+        else:
+            # shape[0] should be 1 as long as EAs are 1D
+            assert res_values.shape == (1, len(qs)), res_values.shape
+            result = type(self)._from_sequence(res_values[0])
+
+        return result
 
     def _mode(self: ExtensionArrayT, dropna: bool = True) -> ExtensionArrayT:
         """

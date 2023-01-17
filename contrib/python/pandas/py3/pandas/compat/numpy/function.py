@@ -17,11 +17,7 @@ easier to adjust to future upstream changes in the analogous numpy signatures.
 """
 from __future__ import annotations
 
-from typing import (
-    Any,
-    TypeVar,
-    overload,
-)
+from typing import Any
 
 from numpy import ndarray
 
@@ -29,15 +25,12 @@ from pandas._libs.lib import (
     is_bool,
     is_integer,
 )
-from pandas._typing import Axis
 from pandas.errors import UnsupportedFunctionCall
 from pandas.util._validators import (
     validate_args,
     validate_args_and_kwargs,
     validate_kwargs,
 )
-
-AxisNoneT = TypeVar("AxisNoneT", Axis, None)
 
 
 class CompatValidator:
@@ -47,7 +40,7 @@ class CompatValidator:
         fname=None,
         method: str | None = None,
         max_fname_arg_count=None,
-    ) -> None:
+    ):
         self.fname = fname
         self.method = method
         self.defaults = defaults
@@ -91,7 +84,7 @@ validate_argmax = CompatValidator(
 )
 
 
-def process_skipna(skipna: bool | ndarray | None, args) -> tuple[bool, Any]:
+def process_skipna(skipna, args):
     if isinstance(skipna, ndarray) or skipna is None:
         args = (skipna,) + args
         skipna = True
@@ -99,7 +92,7 @@ def process_skipna(skipna: bool | ndarray | None, args) -> tuple[bool, Any]:
     return skipna, args
 
 
-def validate_argmin_with_skipna(skipna: bool | ndarray | None, args, kwargs) -> bool:
+def validate_argmin_with_skipna(skipna, args, kwargs):
     """
     If 'Series.argmin' is called via the 'numpy' library, the third parameter
     in its signature is 'out', which takes either an ndarray or 'None', so
@@ -111,7 +104,7 @@ def validate_argmin_with_skipna(skipna: bool | ndarray | None, args, kwargs) -> 
     return skipna
 
 
-def validate_argmax_with_skipna(skipna: bool | ndarray | None, args, kwargs) -> bool:
+def validate_argmax_with_skipna(skipna, args, kwargs):
     """
     If 'Series.argmax' is called via the 'numpy' library, the third parameter
     in its signature is 'out', which takes either an ndarray or 'None', so
@@ -144,7 +137,7 @@ validate_argsort_kind = CompatValidator(
 )
 
 
-def validate_argsort_with_ascending(ascending: bool | int | None, args, kwargs) -> bool:
+def validate_argsort_with_ascending(ascending, args, kwargs):
     """
     If 'Categorical.argsort' is called via the 'numpy' library, the first
     parameter in its signature is 'axis', which takes either an integer or
@@ -156,8 +149,7 @@ def validate_argsort_with_ascending(ascending: bool | int | None, args, kwargs) 
         ascending = True
 
     validate_argsort_kind(args, kwargs, max_fname_arg_count=3)
-    # error: Incompatible return value type (got "int", expected "bool")
-    return ascending  # type: ignore[return-value]
+    return ascending
 
 
 CLIP_DEFAULTS: dict[str, Any] = {"out": None}
@@ -166,19 +158,7 @@ validate_clip = CompatValidator(
 )
 
 
-@overload
-def validate_clip_with_axis(axis: ndarray, args, kwargs) -> None:
-    ...
-
-
-@overload
-def validate_clip_with_axis(axis: AxisNoneT, args, kwargs) -> AxisNoneT:
-    ...
-
-
-def validate_clip_with_axis(
-    axis: ndarray | AxisNoneT, args, kwargs
-) -> AxisNoneT | None:
+def validate_clip_with_axis(axis, args, kwargs):
     """
     If 'NDFrame.clip' is called via the numpy library, the third parameter in
     its signature is 'out', which can takes an ndarray, so check if the 'axis'
@@ -187,14 +167,10 @@ def validate_clip_with_axis(
     """
     if isinstance(axis, ndarray):
         args = (axis,) + args
-        # error: Incompatible types in assignment (expression has type "None",
-        # variable has type "Union[ndarray[Any, Any], str, int]")
-        axis = None  # type: ignore[assignment]
+        axis = None
 
     validate_clip(args, kwargs)
-    # error: Incompatible return value type (got "Union[ndarray[Any, Any],
-    # str, int]", expected "Union[str, int, None]")
-    return axis  # type: ignore[return-value]
+    return axis
 
 
 CUM_FUNC_DEFAULTS: dict[str, Any] = {}
@@ -208,7 +184,7 @@ validate_cumsum = CompatValidator(
 )
 
 
-def validate_cum_func_with_skipna(skipna, args, kwargs, name) -> bool:
+def validate_cum_func_with_skipna(skipna, args, kwargs, name):
     """
     If this function is called via the 'numpy' library, the third parameter in
     its signature is 'dtype', which takes either a 'numpy' dtype or 'None', so
@@ -312,7 +288,7 @@ TAKE_DEFAULTS["mode"] = "raise"
 validate_take = CompatValidator(TAKE_DEFAULTS, fname="take", method="kwargs")
 
 
-def validate_take_with_convert(convert: ndarray | bool | None, args, kwargs) -> bool:
+def validate_take_with_convert(convert, args, kwargs):
     """
     If this function is called via the 'numpy' library, the third parameter in
     its signature is 'axis', which takes either an ndarray or 'None', so check

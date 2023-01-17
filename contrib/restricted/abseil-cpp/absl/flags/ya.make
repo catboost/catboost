@@ -29,6 +29,10 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
+CFLAGS(
+    -DNOMINMAX
+)
+
 SRCS(
     commandlineflag.cc
     flag.cc

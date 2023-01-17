@@ -8,10 +8,7 @@ These are used for:
 """
 from __future__ import annotations
 
-from typing import (
-    Any,
-    NoReturn,
-)
+from typing import Any
 
 from pandas.core.base import PandasObject
 
@@ -21,7 +18,7 @@ from pandas.io.formats.printing import pprint_thing
 class FrozenList(PandasObject, list):
     """
     Container that doesn't allow setting item *but*
-    because it's technically hashable, will be used
+    because it's technically non-hashable, will be used
     for lookups, appropriately, etc.
     """
 
@@ -92,11 +89,10 @@ class FrozenList(PandasObject, list):
     def __reduce__(self):
         return type(self), (list(self),)
 
-    # error: Signature of "__hash__" incompatible with supertype "list"
-    def __hash__(self) -> int:  # type: ignore[override]
+    def __hash__(self):
         return hash(tuple(self))
 
-    def _disabled(self, *args, **kwargs) -> NoReturn:
+    def _disabled(self, *args, **kwargs):
         """
         This method will not function because object is immutable.
         """

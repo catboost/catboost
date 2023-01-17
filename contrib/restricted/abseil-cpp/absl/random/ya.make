@@ -23,6 +23,10 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
+CFLAGS(
+    -DNOMINMAX
+)
+
 SRCS(
     discrete_distribution.cc
     gaussian_distribution.cc

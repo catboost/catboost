@@ -72,15 +72,12 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     }
 
     auto learnMapping = targets.GetMapping();
-    TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing> learnGatherIndices = nullptr;
-    if (!learnLoadBalancingPermutation.IsIdentity()) {
-        TVector<ui32> learnGatherIndicesVec;
-        learnLoadBalancingPermutation.FillOrder(learnGatherIndicesVec);
-        learnGatherIndices = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
-            DataProvider.ObjectsData->GetFeaturesArraySubsetIndexing(),
-            std::move(learnGatherIndicesVec)
-        );
-    }
+    TVector<ui32> learnGatherIndicesVec;
+    learnLoadBalancingPermutation.FillOrder(learnGatherIndicesVec);
+    auto learnGatherIndices = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
+        DataProvider.ObjectsData->GetFeaturesArraySubsetIndexing(),
+        std::move(learnGatherIndicesVec)
+    );
 
 
     TBinarizationInfoProvider learnBinarizationInfo(FeaturesManager,
@@ -112,18 +109,16 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     if (LinkedTest) {
         TDataSetDescription description;
         description.Name = "Test dataset";
+        TVector<ui32> testIndicesVec;
+        dataSetsHolder.TestDocPerDevicesSplit->Permutation.FillOrder(testIndicesVec);
+
 
         TBinarizationInfoProvider testBinarizationInfo(FeaturesManager,
                                                        LinkedTest);
-        TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing> testObjectsSubsetIndexing = nullptr;
-        if (!learnLoadBalancingPermutation.IsIdentity()) {
-            TVector<ui32> testIndicesVec;
-            dataSetsHolder.TestDocPerDevicesSplit->Permutation.FillOrder(testIndicesVec);
-            testObjectsSubsetIndexing = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
-                LinkedTest->ObjectsData->GetFeaturesArraySubsetIndexing(),
-                std::move(testIndicesVec)
-            );
-        }
+        auto testObjectsSubsetIndexing = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
+            LinkedTest->ObjectsData->GetFeaturesArraySubsetIndexing(),
+            std::move(testIndicesVec)
+        );
         auto testMapping = dataSetsHolder.TestDataSet->GetSamplesMapping();
         testDataSetId = compressedIndexBuilder.AddDataSet(
             testBinarizationInfo,
@@ -143,7 +138,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                                               compressedIndexBuilder,
                                                                               DataProvider,
                                                                               permutationIndependentCompressedDataSetId,
-                                                                              /*skipExclusiveBundles=*/ false);
+                                                                              /*skipExclusiveBundles=*/ false,
+                                                                              localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 
@@ -152,7 +148,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                                               compressedIndexBuilder,
                                                                               *LinkedTest,
                                                                               testDataSetId,
-                                                                              /*skipExclusiveBundles=*/ true);
+                                                                              /*skipExclusiveBundles=*/ true,
+                                                                              localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 

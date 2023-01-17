@@ -121,11 +121,6 @@ IF (OS_LINUX AND NOT MUSL)
         strlcat.c
         strlcpy.c
     )
-    IF (SANITIZER_TYPE == "memory")
-        # llvm sanitized runtime is missing an interceptor for a buggy (getservbyname{_r}).
-        # See: https://github.com/google/sanitizers/issues/1138
-        ENABLE(PROVIDE_GETSERVBYNAME)
-    ENDIF()
 ENDIF()
 
 IF (PROVIDE_REALLOCARRAY)
@@ -144,14 +139,6 @@ IF (PROVIDE_GETRANDOM_GETENTROPY)
     )
     ADDINCL(
         ONE_LEVEL contrib/libs/libc_compat/random
-    )
-ENDIF()
-
-IF (PROVIDE_GETSERVBYNAME)
-    SRCS(
-        getservbyname/getservbyname.c
-        getservbyname/getservbyname_r.c
-        getservbyname/lookup_serv.c
     )
 ENDIF()
 

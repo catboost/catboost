@@ -4,10 +4,7 @@ import ymake
 def on_process_usrv_files(unit, *args):
     if args[0] == 'NO_DEPS':
         for f in args[1:]:
-            if f.endswith('.cpp'):
-                unit.on_move([f + '.usrv', 'OUT', f])
-            else:
-                unit.on_move([f + '.usrv', 'OUT_NOAUTO', f])
+            unit.on_move([f + '.usrv', 'OUT_NOAUTO', f])
         return
         
     deps_file = unit.resolve(unit.resolve_arc_path(args[0]))

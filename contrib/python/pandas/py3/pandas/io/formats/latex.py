@@ -8,7 +8,6 @@ from abc import (
     abstractmethod,
 )
 from typing import (
-    TYPE_CHECKING,
     Iterator,
     Sequence,
 )
@@ -17,8 +16,7 @@ import numpy as np
 
 from pandas.core.dtypes.generic import ABCMultiIndex
 
-if TYPE_CHECKING:
-    from pandas.io.formats.format import DataFrameFormatter
+from pandas.io.formats.format import DataFrameFormatter
 
 
 def _split_into_full_short_caption(
@@ -76,7 +74,7 @@ class RowStringConverter(ABC):
         multicolumn: bool = False,
         multicolumn_format: str | None = None,
         multirow: bool = False,
-    ) -> None:
+    ):
         self.fmt = formatter
         self.frame = self.fmt.frame
         self.multicolumn = multicolumn
@@ -338,7 +336,7 @@ class TableBuilderAbstract(ABC):
         short_caption: str | None = None,
         label: str | None = None,
         position: str | None = None,
-    ) -> None:
+    ):
         self.fmt = formatter
         self.column_format = column_format
         self.multicolumn = multicolumn
@@ -699,7 +697,7 @@ class LatexFormatter:
         caption: str | tuple[str, str] | None = None,
         label: str | None = None,
         position: str | None = None,
-    ) -> None:
+    ):
         self.fmt = formatter
         self.frame = self.fmt.frame
         self.longtable = longtable

@@ -20,7 +20,6 @@ PEERDIR(
 END()
 
 RECURSE(
-    converter
     fuzzy_test
     ut
     writer

@@ -6,10 +6,7 @@ SeriesGroupBy and the DataFrameGroupBy objects.
 from __future__ import annotations
 
 import dataclasses
-from typing import (
-    Hashable,
-    Literal,
-)
+from typing import Hashable
 
 
 @dataclasses.dataclass(order=True, frozen=True)
@@ -73,6 +70,7 @@ reduction_kernels = frozenset(
         "mean",
         "median",
         "min",
+        "ngroup",
         "nth",
         "nunique",
         "prod",
@@ -95,7 +93,7 @@ reduction_kernels = frozenset(
 
 
 # TODO(2.0) Remove after pad/backfill deprecation enforced
-def maybe_normalize_deprecated_kernels(kernel) -> Literal["bfill", "ffill"]:
+def maybe_normalize_deprecated_kernels(kernel):
     if kernel == "backfill":
         kernel = "bfill"
     elif kernel == "pad":
@@ -115,7 +113,6 @@ transformation_kernels = frozenset(
         "diff",
         "ffill",
         "fillna",
-        "ngroup",
         "pad",
         "pct_change",
         "rank",

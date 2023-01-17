@@ -12,8 +12,10 @@ import errno
 import shutil
 import random
 import glob
+from warnings import warn
 
 from IPython.utils.process import system
+from IPython.utils.decorators import undoc
 
 #-----------------------------------------------------------------------------
 # Code

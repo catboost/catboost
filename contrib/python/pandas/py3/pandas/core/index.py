@@ -1,6 +1,3 @@
-# pyright: reportUnusedImport = false
-from __future__ import annotations
-
 import warnings
 
 from pandas.util._exceptions import find_stack_level
@@ -33,5 +30,3 @@ warnings.warn(
     FutureWarning,
     stacklevel=find_stack_level(),
 )
-
-__all__: list[str] = []

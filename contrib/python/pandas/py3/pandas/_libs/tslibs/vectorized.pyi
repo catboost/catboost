@@ -11,36 +11,26 @@ from pandas._libs.tslibs.offsets import BaseOffset
 from pandas._typing import npt
 
 def dt64arr_to_periodarr(
-    stamps: npt.NDArray[np.int64],
+    stamps: npt.NDArray[np.int64],  # const int64_t[:]
     freq: int,
     tz: tzinfo | None,
-    reso: int = ...,  # NPY_DATETIMEUNIT
-) -> npt.NDArray[np.int64]: ...
+) -> npt.NDArray[np.int64]: ...  # np.ndarray[np.int64, ndim=1]
 def is_date_array_normalized(
-    stamps: npt.NDArray[np.int64],
-    tz: tzinfo | None,
-    reso: int,  # NPY_DATETIMEUNIT
+    stamps: npt.NDArray[np.int64],  # const int64_t[:]
+    tz: tzinfo | None = ...,
 ) -> bool: ...
 def normalize_i8_timestamps(
-    stamps: npt.NDArray[np.int64],
+    stamps: npt.NDArray[np.int64],  # const int64_t[:]
     tz: tzinfo | None,
-    reso: int,  # NPY_DATETIMEUNIT
 ) -> npt.NDArray[np.int64]: ...
 def get_resolution(
-    stamps: npt.NDArray[np.int64],
+    stamps: npt.NDArray[np.int64],  # const int64_t[:]
     tz: tzinfo | None = ...,
-    reso: int = ...,  # NPY_DATETIMEUNIT
 ) -> Resolution: ...
 def ints_to_pydatetime(
-    arr: npt.NDArray[np.int64],
+    arr: npt.NDArray[np.int64],  # const int64_t[:}]
     tz: tzinfo | None = ...,
-    freq: BaseOffset | None = ...,
+    freq: str | BaseOffset | None = ...,
     fold: bool = ...,
     box: str = ...,
-    reso: int = ...,  # NPY_DATETIMEUNIT
 ) -> npt.NDArray[np.object_]: ...
-def tz_convert_from_utc(
-    stamps: npt.NDArray[np.int64],
-    tz: tzinfo | None,
-    reso: int = ...,  # NPY_DATETIMEUNIT
-) -> npt.NDArray[np.int64]: ...

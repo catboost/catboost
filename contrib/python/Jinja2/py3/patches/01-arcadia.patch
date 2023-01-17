@@ -1,6 +1,6 @@
 --- contrib/python/Jinja2/py3/jinja2/__init__.py	(index)
 +++ contrib/python/Jinja2/py3/jinja2/__init__.py	(working tree)
-@@ -22,6 +22,7 @@ from .loaders import FunctionLoader
+@@ -25,6 +25,7 @@ from .loaders import FunctionLoader
  from .loaders import ModuleLoader as ModuleLoader
  from .loaders import PackageLoader as PackageLoader
  from .loaders import PrefixLoader as PrefixLoader
@@ -10,7 +10,7 @@
  from .runtime import make_logging_undefined as make_logging_undefined
 --- contrib/python/Jinja2/py3/jinja2/loaders.py	(index)
 +++ contrib/python/Jinja2/py3/jinja2/loaders.py	(working tree)
-@@ -659,3 +659,17 @@ class ModuleLoader(BaseLoader):
+@@ -650,3 +650,17 @@ class ModuleLoader(BaseLoader):
          return environment.template_class.from_module_dict(
              environment, mod.__dict__, globals
          )

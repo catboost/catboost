@@ -27,6 +27,10 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
+CFLAGS(
+    -DNOMINMAX
+)
+
 SRCS(
     status.cc
     status_payload_printer.cc

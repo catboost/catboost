@@ -14,9 +14,9 @@ from datetime import (
 from functools import partial
 import re
 from typing import (
-    TYPE_CHECKING,
     Any,
     Iterator,
+    Sequence,
     cast,
     overload,
 )
@@ -25,16 +25,9 @@ import warnings
 import numpy as np
 
 import pandas._libs.lib as lib
-from pandas._typing import (
-    DateTimeErrorChoices,
-    DtypeArg,
-    IndexLabel,
-)
+from pandas._typing import DtypeArg
 from pandas.compat._optional import import_optional_dependency
-from pandas.errors import (
-    AbstractMethodError,
-    DatabaseError,
-)
+from pandas.errors import AbstractMethodError
 from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
@@ -54,13 +47,25 @@ from pandas.core.api import (
 from pandas.core.base import PandasObject
 import pandas.core.common as com
 from pandas.core.tools.datetimes import to_datetime
+from pandas.util.version import Version
 
-if TYPE_CHECKING:
-    from sqlalchemy import Table
+
+class DatabaseError(OSError):
+    pass
 
 
 # -----------------------------------------------------------------------------
 # -- Helper functions
+
+
+def _gt14() -> bool:
+    """
+    Check if sqlalchemy.__version__ is at least 1.4.0, when several
+    deprecations were made.
+    """
+    import sqlalchemy
+
+    return Version(sqlalchemy.__version__) >= Version("1.4.0")
 
 
 def _convert_params(sql, params):
@@ -93,7 +98,7 @@ def _handle_date_column(
         # read_sql like functions.
         # Format can take on custom to_datetime argument values such as
         # {"errors": "coerce"} or {"dayfirst": True}
-        error: DateTimeErrorChoices = format.pop("errors", None) or "ignore"
+        error = format.pop("errors", None) or "ignore"
         return to_datetime(col, errors=error, **format)
     else:
         # Allow passing of formatting string for integers
@@ -189,10 +194,10 @@ def read_sql_table(
     table_name,
     con,
     schema=...,
-    index_col: str | list[str] | None = ...,
+    index_col=...,
     coerce_float=...,
-    parse_dates: list[str] | dict[str, str] | None = ...,
-    columns: list[str] | None = ...,
+    parse_dates=...,
+    columns=...,
     chunksize: None = ...,
 ) -> DataFrame:
     ...
@@ -203,10 +208,10 @@ def read_sql_table(
     table_name,
     con,
     schema=...,
-    index_col: str | list[str] | None = ...,
+    index_col=...,
     coerce_float=...,
-    parse_dates: list[str] | dict[str, str] | None = ...,
-    columns: list[str] | None = ...,
+    parse_dates=...,
+    columns=...,
     chunksize: int = ...,
 ) -> Iterator[DataFrame]:
     ...
@@ -216,10 +221,10 @@ def read_sql_table(
     table_name: str,
     con,
     schema: str | None = None,
-    index_col: str | list[str] | None = None,
+    index_col: str | Sequence[str] | None = None,
     coerce_float: bool = True,
-    parse_dates: list[str] | dict[str, str] | None = None,
-    columns: list[str] | None = None,
+    parse_dates=None,
+    columns=None,
     chunksize: int | None = None,
 ) -> DataFrame | Iterator[DataFrame]:
     """
@@ -281,9 +286,7 @@ def read_sql_table(
     if not pandas_sql.has_table(table_name):
         raise ValueError(f"Table {table_name} not found")
 
-    # error: Item "SQLiteDatabase" of "Union[SQLDatabase, SQLiteDatabase]"
-    # has no attribute "read_table"
-    table = pandas_sql.read_table(  # type: ignore[union-attr]
+    table = pandas_sql.read_table(
         table_name,
         index_col=index_col,
         coerce_float=coerce_float,
@@ -302,10 +305,10 @@ def read_sql_table(
 def read_sql_query(
     sql,
     con,
-    index_col: str | list[str] | None = ...,
+    index_col=...,
     coerce_float=...,
-    params: list[str] | dict[str, str] | None = ...,
-    parse_dates: list[str] | dict[str, str] | None = ...,
+    params=...,
+    parse_dates=...,
     chunksize: None = ...,
     dtype: DtypeArg | None = ...,
 ) -> DataFrame:
@@ -316,10 +319,10 @@ def read_sql_query(
 def read_sql_query(
     sql,
     con,
-    index_col: str | list[str] | None = ...,
+    index_col=...,
     coerce_float=...,
-    params: list[str] | dict[str, str] | None = ...,
-    parse_dates: list[str] | dict[str, str] | None = ...,
+    params=...,
+    parse_dates=...,
     chunksize: int = ...,
     dtype: DtypeArg | None = ...,
 ) -> Iterator[DataFrame]:
@@ -329,10 +332,10 @@ def read_sql_query(
 def read_sql_query(
     sql,
     con,
-    index_col: str | list[str] | None = None,
+    index_col=None,
     coerce_float: bool = True,
-    params: list[str] | dict[str, str] | None = None,
-    parse_dates: list[str] | dict[str, str] | None = None,
+    params=None,
+    parse_dates=None,
     chunksize: int | None = None,
     dtype: DtypeArg | None = None,
 ) -> DataFrame | Iterator[DataFrame]:
@@ -409,11 +412,11 @@ def read_sql_query(
 def read_sql(
     sql,
     con,
-    index_col: str | list[str] | None = ...,
+    index_col=...,
     coerce_float=...,
     params=...,
     parse_dates=...,
-    columns: list[str] = ...,
+    columns=...,
     chunksize: None = ...,
 ) -> DataFrame:
     ...
@@ -423,11 +426,11 @@ def read_sql(
 def read_sql(
     sql,
     con,
-    index_col: str | list[str] | None = ...,
+    index_col=...,
     coerce_float=...,
     params=...,
     parse_dates=...,
-    columns: list[str] = ...,
+    columns=...,
     chunksize: int = ...,
 ) -> Iterator[DataFrame]:
     ...
@@ -436,11 +439,11 @@ def read_sql(
 def read_sql(
     sql,
     con,
-    index_col: str | list[str] | None = None,
+    index_col: str | Sequence[str] | None = None,
     coerce_float: bool = True,
     params=None,
     parse_dates=None,
-    columns: list[str] | None = None,
+    columns=None,
     chunksize: int | None = None,
 ) -> DataFrame | Iterator[DataFrame]:
     """
@@ -604,7 +607,7 @@ def to_sql(
     schema: str | None = None,
     if_exists: str = "fail",
     index: bool = True,
-    index_label: IndexLabel = None,
+    index_label=None,
     chunksize: int | None = None,
     dtype: DtypeArg | None = None,
     method: str | None = None,
@@ -707,7 +710,7 @@ def to_sql(
     )
 
 
-def has_table(table_name: str, con, schema: str | None = None) -> bool:
+def has_table(table_name: str, con, schema: str | None = None):
     """
     Check if DataBase has named table.
 
@@ -734,7 +737,7 @@ def has_table(table_name: str, con, schema: str | None = None) -> bool:
 table_exists = has_table
 
 
-def pandasSQL_builder(con, schema: str | None = None) -> SQLDatabase | SQLiteDatabase:
+def pandasSQL_builder(con, schema: str | None = None):
     """
     Convenience function to return the correct PandasSQL subclass based on the
     provided parameters.
@@ -757,11 +760,10 @@ def pandasSQL_builder(con, schema: str | None = None) -> SQLDatabase | SQLiteDat
         return SQLDatabase(con, schema=schema)
 
     warnings.warn(
-        "pandas only supports SQLAlchemy connectable (engine/connection) or "
-        "database string URI or sqlite3 DBAPI2 connection. "
-        "Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.",
+        "pandas only support SQLAlchemy connectable(engine/connection) or"
+        "database string URI or sqlite3 DBAPI2 connection"
+        "other DBAPI2 objects are not tested, please consider using SQLAlchemy",
         UserWarning,
-        stacklevel=find_stack_level(),
     )
     return SQLiteDatabase(con)
 
@@ -782,14 +784,14 @@ class SQLTable(PandasObject):
         name: str,
         pandas_sql_engine,
         frame=None,
-        index: bool | str | list[str] | None = True,
-        if_exists: str = "fail",
-        prefix: str = "pandas",
+        index=True,
+        if_exists="fail",
+        prefix="pandas",
         index_label=None,
         schema=None,
         keys=None,
         dtype: DtypeArg | None = None,
-    ) -> None:
+    ):
         self.name = name
         self.pd_sql = pandas_sql_engine
         self.prefix = prefix
@@ -813,17 +815,20 @@ class SQLTable(PandasObject):
     def exists(self):
         return self.pd_sql.has_table(self.name, self.schema)
 
-    def sql_schema(self) -> str:
+    def sql_schema(self):
         from sqlalchemy.schema import CreateTable
 
         return str(CreateTable(self.table).compile(self.pd_sql.connectable))
 
     def _execute_create(self):
         # Inserting table into database, add to MetaData object
-        self.table = self.table.to_metadata(self.pd_sql.meta)
+        if _gt14():
+            self.table = self.table.to_metadata(self.pd_sql.meta)
+        else:
+            self.table = self.table.tometadata(self.pd_sql.meta)
         self.table.create(bind=self.pd_sql.connectable)
 
-    def create(self) -> None:
+    def create(self):
         if self.exists():
             if self.if_exists == "fail":
                 raise ValueError(f"Table '{self.name}' already exists.")
@@ -869,7 +874,7 @@ class SQLTable(PandasObject):
         result = conn.execute(stmt)
         return result.rowcount
 
-    def insert_data(self) -> tuple[list[str], list[np.ndarray]]:
+    def insert_data(self):
         if self.index is not None:
             temp = self.frame.copy()
             temp.index.names = self.index
@@ -882,9 +887,7 @@ class SQLTable(PandasObject):
 
         column_names = list(map(str, temp.columns))
         ncols = len(column_names)
-        # this just pre-allocates the list: None's will be replaced with ndarrays
-        # error: List item 0 has incompatible type "None"; expected "ndarray"
-        data_list: list[np.ndarray] = [None] * ncols  # type: ignore[list-item]
+        data_list = [None] * ncols
 
         for i, (_, ser) in enumerate(temp.items()):
             vals = ser._values
@@ -903,7 +906,9 @@ class SQLTable(PandasObject):
                 mask = isna(d)
                 d[mask] = None
 
-            data_list[i] = d
+            # error: No overload variant of "__setitem__" of "list" matches
+            # argument types "int", "ndarray"
+            data_list[i] = d  # type: ignore[call-overload]
 
         return column_names, data_list
 
@@ -983,13 +988,7 @@ class SQLTable(PandasObject):
 
                 yield self.frame
 
-    def read(
-        self,
-        coerce_float: bool = True,
-        parse_dates=None,
-        columns=None,
-        chunksize=None,
-    ) -> DataFrame | Iterator[DataFrame]:
+    def read(self, coerce_float=True, parse_dates=None, columns=None, chunksize=None):
         from sqlalchemy import select
 
         if columns is not None and len(columns) > 0:
@@ -997,9 +996,10 @@ class SQLTable(PandasObject):
             if self.index is not None:
                 for idx in self.index[::-1]:
                     cols.insert(0, self.table.c[idx])
-            sql_select = select(*cols)
+            sql_select = select(*cols) if _gt14() else select(cols)
         else:
-            sql_select = select(self.table)
+            sql_select = select(self.table) if _gt14() else self.table.select()
+
         result = self.pd_sql.execute(sql_select)
         column_names = result.keys()
 
@@ -1268,8 +1268,8 @@ class PandasSQL(PandasObject):
         self,
         frame,
         name,
-        if_exists: str = "fail",
-        index: bool = True,
+        if_exists="fail",
+        index=True,
         index_label=None,
         schema=None,
         chunksize=None,
@@ -1302,7 +1302,7 @@ class BaseEngine:
 
 
 class SQLAlchemyEngine(BaseEngine):
-    def __init__(self) -> None:
+    def __init__(self):
         import_optional_dependency(
             "sqlalchemy", extra="sqlalchemy is required for SQL support."
         )
@@ -1383,7 +1383,7 @@ class SQLDatabase(PandasSQL):
 
     """
 
-    def __init__(self, engine, schema: str | None = None) -> None:
+    def __init__(self, engine, schema: str | None = None):
         from sqlalchemy.schema import MetaData
 
         self.connectable = engine
@@ -1407,13 +1407,13 @@ class SQLDatabase(PandasSQL):
     def read_table(
         self,
         table_name: str,
-        index_col: str | list[str] | None = None,
+        index_col: str | Sequence[str] | None = None,
         coerce_float: bool = True,
         parse_dates=None,
         columns=None,
         schema: str | None = None,
         chunksize: int | None = None,
-    ) -> DataFrame | Iterator[DataFrame]:
+    ):
         """
         Read SQL database table into a DataFrame.
 
@@ -1502,13 +1502,13 @@ class SQLDatabase(PandasSQL):
     def read_query(
         self,
         sql: str,
-        index_col: str | list[str] | None = None,
+        index_col: str | None = None,
         coerce_float: bool = True,
         parse_dates=None,
         params=None,
         chunksize: int | None = None,
         dtype: DtypeArg | None = None,
-    ) -> DataFrame | Iterator[DataFrame]:
+    ):
         """
         Read SQL query into a DataFrame.
 
@@ -1633,9 +1633,9 @@ class SQLDatabase(PandasSQL):
 
     def check_case_sensitive(
         self,
-        name: str,
-        schema: str | None,
-    ) -> None:
+        name,
+        schema,
+    ):
         """
         Checks table name for issues with case-sensitivity.
         Method is called after data is inserted.
@@ -1643,11 +1643,19 @@ class SQLDatabase(PandasSQL):
         if not name.isdigit() and not name.islower():
             # check for potentially case sensitivity issues (GH7815)
             # Only check when name is not a number and name is not lower case
-            from sqlalchemy import inspect as sqlalchemy_inspect
-
+            engine = self.connectable.engine
             with self.connectable.connect() as conn:
-                insp = sqlalchemy_inspect(conn)
-                table_names = insp.get_table_names(schema=schema or self.meta.schema)
+                if _gt14():
+                    from sqlalchemy import inspect
+
+                    insp = inspect(conn)
+                    table_names = insp.get_table_names(
+                        schema=schema or self.meta.schema
+                    )
+                else:
+                    table_names = engine.table_names(
+                        schema=schema or self.meta.schema, connection=conn
+                    )
             if name not in table_names:
                 msg = (
                     f"The provided table name '{name}' is not found exactly as "
@@ -1655,20 +1663,16 @@ class SQLDatabase(PandasSQL):
                     "due to case sensitivity issues. Consider using lower "
                     "case table names."
                 )
-                warnings.warn(
-                    msg,
-                    UserWarning,
-                    stacklevel=find_stack_level(),
-                )
+                warnings.warn(msg, UserWarning)
 
     def to_sql(
         self,
         frame,
-        name: str,
-        if_exists: str = "fail",
-        index: bool = True,
+        name,
+        if_exists="fail",
+        index=True,
         index_label=None,
-        schema: str | None = None,
+        schema=None,
         chunksize=None,
         dtype: DtypeArg | None = None,
         method=None,
@@ -1755,12 +1759,17 @@ class SQLDatabase(PandasSQL):
         return self.meta.tables
 
     def has_table(self, name: str, schema: str | None = None):
-        from sqlalchemy import inspect as sqlalchemy_inspect
+        if _gt14():
+            from sqlalchemy import inspect
 
-        insp = sqlalchemy_inspect(self.connectable)
-        return insp.has_table(name, schema or self.meta.schema)
+            insp = inspect(self.connectable)
+            return insp.has_table(name, schema or self.meta.schema)
+        else:
+            return self.connectable.run_callable(
+                self.connectable.dialect.has_table, name, schema or self.meta.schema
+            )
 
-    def get_table(self, table_name: str, schema: str | None = None) -> Table:
+    def get_table(self, table_name: str, schema: str | None = None):
         from sqlalchemy import (
             Numeric,
             Table,
@@ -1775,7 +1784,7 @@ class SQLDatabase(PandasSQL):
                 column.type.asdecimal = False
         return tbl
 
-    def drop_table(self, table_name: str, schema: str | None = None) -> None:
+    def drop_table(self, table_name: str, schema: str | None = None):
         schema = schema or self.meta.schema
         if self.has_table(table_name, schema):
             self.meta.reflect(bind=self.connectable, only=[table_name], schema=schema)
@@ -1848,21 +1857,17 @@ class SQLiteTable(SQLTable):
     Instead of a table variable just use the Create Table statement.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs):
         # GH 8341
         # register an adapter callable for datetime.time object
         import sqlite3
 
         # this will transform time(12,34,56,789) into '12:34:56.000789'
         # (this is what sqlalchemy does)
-        def _adapt_time(t):
-            # This is faster than strftime
-            return f"{t.hour:02d}:{t.minute:02d}:{t.second:02d}.{t.microsecond:06d}"
-
-        sqlite3.register_adapter(time, _adapt_time)
+        sqlite3.register_adapter(time, lambda _: _.strftime("%H:%M:%S.%f"))
         super().__init__(*args, **kwargs)
 
-    def sql_schema(self) -> str:
+    def sql_schema(self):
         return str(";\n".join(self.table))
 
     def _execute_create(self):
@@ -1870,7 +1875,7 @@ class SQLiteTable(SQLTable):
             for stmt in self.table:
                 conn.execute(stmt)
 
-    def insert_statement(self, *, num_rows: int) -> str:
+    def insert_statement(self, *, num_rows: int):
         names = list(map(str, self.frame.columns))
         wld = "?"  # wildcard char
         escape = _get_valid_sqlite_name
@@ -1997,7 +2002,7 @@ class SQLiteDatabase(PandasSQL):
 
     """
 
-    def __init__(self, con) -> None:
+    def __init__(self, con):
         self.con = con
 
     @contextmanager
@@ -2072,7 +2077,7 @@ class SQLiteDatabase(PandasSQL):
         parse_dates=None,
         chunksize: int | None = None,
         dtype: DtypeArg | None = None,
-    ) -> DataFrame | Iterator[DataFrame]:
+    ):
 
         args = _convert_params(sql, params)
         cursor = self.execute(*args)
@@ -2112,8 +2117,8 @@ class SQLiteDatabase(PandasSQL):
         self,
         frame,
         name,
-        if_exists: str = "fail",
-        index: bool = True,
+        if_exists="fail",
+        index=True,
         index_label=None,
         schema=None,
         chunksize=None,
@@ -2187,17 +2192,17 @@ class SQLiteDatabase(PandasSQL):
         table.create()
         return table.insert(chunksize, method)
 
-    def has_table(self, name: str, schema: str | None = None) -> bool:
+    def has_table(self, name: str, schema: str | None = None):
 
         wld = "?"
         query = f"SELECT name FROM sqlite_master WHERE type='table' AND name={wld};"
 
         return len(self.execute(query, [name]).fetchall()) > 0
 
-    def get_table(self, table_name: str, schema: str | None = None) -> None:
+    def get_table(self, table_name: str, schema: str | None = None):
         return None  # not supported in fallback mode
 
-    def drop_table(self, name: str, schema: str | None = None) -> None:
+    def drop_table(self, name: str, schema: str | None = None):
         drop_sql = f"DROP TABLE {_get_valid_sqlite_name(name)}"
         self.execute(drop_sql)
 
@@ -2228,7 +2233,7 @@ def get_schema(
     con=None,
     dtype: DtypeArg | None = None,
     schema: str | None = None,
-) -> str:
+):
     """
     Get the SQL db table schema for the given frame.
 

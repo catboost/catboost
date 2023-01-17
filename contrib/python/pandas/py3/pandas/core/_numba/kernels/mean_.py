@@ -16,14 +16,8 @@ from pandas.core._numba.kernels.shared import is_monotonic_increasing
 
 @numba.jit(nopython=True, nogil=True, parallel=False)
 def add_mean(
-    val: float,
-    nobs: int,
-    sum_x: float,
-    neg_ct: int,
-    compensation: float,
-    num_consecutive_same_value: int,
-    prev_value: float,
-) -> tuple[int, float, int, float, int, float]:
+    val: float, nobs: int, sum_x: float, neg_ct: int, compensation: float
+) -> tuple[int, float, int, float]:
     if not np.isnan(val):
         nobs += 1
         y = val - compensation
@@ -32,14 +26,7 @@ def add_mean(
         sum_x = t
         if val < 0:
             neg_ct += 1
-
-        if val == prev_value:
-            num_consecutive_same_value += 1
-        else:
-            num_consecutive_same_value = 1
-        prev_value = val
-
-    return nobs, sum_x, neg_ct, compensation, num_consecutive_same_value, prev_value
+    return nobs, sum_x, neg_ct, compensation
 
 
 @numba.jit(nopython=True, nogil=True, parallel=False)
@@ -81,26 +68,10 @@ def sliding_mean(
         s = start[i]
         e = end[i]
         if i == 0 or not is_monotonic_increasing_bounds:
-            prev_value = values[s]
-            num_consecutive_same_value = 0
-
             for j in range(s, e):
                 val = values[j]
-                (
-                    nobs,
-                    sum_x,
-                    neg_ct,
-                    compensation_add,
-                    num_consecutive_same_value,
-                    prev_value,
-                ) = add_mean(
-                    val,
-                    nobs,
-                    sum_x,
-                    neg_ct,
-                    compensation_add,
-                    num_consecutive_same_value,
-                    prev_value,
+                nobs, sum_x, neg_ct, compensation_add = add_mean(
+                    val, nobs, sum_x, neg_ct, compensation_add
                 )
         else:
             for j in range(start[i - 1], s):
@@ -111,28 +82,13 @@ def sliding_mean(
 
             for j in range(end[i - 1], e):
                 val = values[j]
-                (
-                    nobs,
-                    sum_x,
-                    neg_ct,
-                    compensation_add,
-                    num_consecutive_same_value,
-                    prev_value,
-                ) = add_mean(
-                    val,
-                    nobs,
-                    sum_x,
-                    neg_ct,
-                    compensation_add,
-                    num_consecutive_same_value,
-                    prev_value,
+                nobs, sum_x, neg_ct, compensation_add = add_mean(
+                    val, nobs, sum_x, neg_ct, compensation_add
                 )
 
         if nobs >= min_periods and nobs > 0:
             result = sum_x / nobs
-            if num_consecutive_same_value >= nobs:
-                result = prev_value
-            elif neg_ct == 0 and result < 0:
+            if neg_ct == 0 and result < 0:
                 result = 0
             elif neg_ct == nobs and result > 0:
                 result = 0

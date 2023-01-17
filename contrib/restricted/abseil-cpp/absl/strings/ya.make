@@ -21,6 +21,10 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
+CFLAGS(
+    -DNOMINMAX
+)
+
 SRCDIR(contrib/restricted/abseil-cpp/absl)
 
 SRCS(

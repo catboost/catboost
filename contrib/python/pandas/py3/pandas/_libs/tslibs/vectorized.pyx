@@ -1,4 +1,5 @@
-cimport cython
+import cython
+
 from cpython.datetime cimport (
     date,
     datetime,
@@ -8,109 +9,97 @@ from cpython.datetime cimport (
 
 import numpy as np
 
-cimport numpy as cnp
 from numpy cimport (
     int64_t,
     intp_t,
     ndarray,
 )
 
-cnp.import_array()
+from .conversion cimport normalize_i8_stamp
 
 from .dtypes import Resolution
 
-from .dtypes cimport (
-    c_Resolution,
-    periods_per_day,
-)
 from .nattype cimport (
     NPY_NAT,
     c_NaT as NaT,
 )
 from .np_datetime cimport (
-    NPY_DATETIMEUNIT,
-    NPY_FR_ns,
+    dt64_to_dtstruct,
     npy_datetimestruct,
-    pandas_datetime_to_datetimestruct,
 )
-from .offsets cimport BaseOffset
+from .offsets cimport to_offset
 from .period cimport get_period_ordinal
 from .timestamps cimport create_timestamp_from_ts
-from .timezones cimport is_utc
-from .tzconversion cimport Localizer
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def tz_convert_from_utc(ndarray stamps, tzinfo tz, NPY_DATETIMEUNIT reso=NPY_FR_ns):
-    # stamps is int64_t, arbitrary ndim
-    """
-    Convert the values (in i8) from UTC to tz
-
-    Parameters
-    ----------
-    stamps : ndarray[int64]
-    tz : tzinfo
-
-    Returns
-    -------
-    ndarray[int64]
-    """
-    cdef:
-        Localizer info = Localizer(tz, reso=reso)
-        int64_t utc_val, local_val
-        Py_ssize_t pos, i, n = stamps.size
-
-        ndarray result
-        cnp.broadcast mi
-
-    if tz is None or is_utc(tz) or stamps.size == 0:
-        # Much faster than going through the "standard" pattern below
-        return stamps.copy()
-
-    result = cnp.PyArray_EMPTY(stamps.ndim, stamps.shape, cnp.NPY_INT64, 0)
-    mi = cnp.PyArray_MultiIterNew2(result, stamps)
-
-    for i in range(n):
-        # Analogous to: utc_val = stamps[i]
-        utc_val = (<int64_t*>cnp.PyArray_MultiIter_DATA(mi, 1))[0]
-
-        if utc_val == NPY_NAT:
-            local_val = NPY_NAT
-        else:
-            local_val = info.utc_val_to_local_val(utc_val, &pos)
-
-        # Analogous to: result[i] = local_val
-        (<int64_t*>cnp.PyArray_MultiIter_DATA(mi, 0))[0] = local_val
-
-        cnp.PyArray_MultiIter_NEXT(mi)
-
-    return result
-
+from .timezones cimport (
+    get_dst_info,
+    is_tzlocal,
+    is_utc,
+)
+from .tzconversion cimport tz_convert_utc_to_tzlocal
 
 # -------------------------------------------------------------------------
+
+cdef inline object create_datetime_from_ts(
+    int64_t value,
+    npy_datetimestruct dts,
+    tzinfo tz,
+    object freq,
+    bint fold,
+):
+    """
+    Convenience routine to construct a datetime.datetime from its parts.
+    """
+    return datetime(
+        dts.year, dts.month, dts.day, dts.hour, dts.min, dts.sec, dts.us,
+        tz, fold=fold,
+    )
+
+
+cdef inline object create_date_from_ts(
+    int64_t value,
+    npy_datetimestruct dts,
+    tzinfo tz,
+    object freq,
+    bint fold
+):
+    """
+    Convenience routine to construct a datetime.date from its parts.
+    """
+    # GH#25057 add fold argument to match other func_create signatures
+    return date(dts.year, dts.month, dts.day)
+
+
+cdef inline object create_time_from_ts(
+    int64_t value,
+    npy_datetimestruct dts,
+    tzinfo tz,
+    object freq,
+    bint fold
+):
+    """
+    Convenience routine to construct a datetime.time from its parts.
+    """
+    return time(dts.hour, dts.min, dts.sec, dts.us, tz, fold=fold)
 
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def ints_to_pydatetime(
-    ndarray stamps,
+    const int64_t[:] arr,
     tzinfo tz=None,
-    BaseOffset freq=None,
+    object freq=None,
     bint fold=False,
-    str box="datetime",
-    NPY_DATETIMEUNIT reso=NPY_FR_ns,
+    str box="datetime"
 ) -> np.ndarray:
-    # stamps is int64, arbitrary ndim
     """
     Convert an i8 repr to an ndarray of datetimes, date, time or Timestamp.
 
     Parameters
     ----------
-    stamps : array of i8
+    arr : array of i8
     tz : str, optional
          convert to this timezone
-    freq : BaseOffset, optional
+    freq : str/Offset, optional
          freq to convert
     fold : bint, default is 0
         Due to daylight saving time, one wall clock time can occur twice
@@ -125,152 +114,165 @@ def ints_to_pydatetime(
         * If time, convert to datetime.time
         * If Timestamp, convert to pandas.Timestamp
 
-    reso : NPY_DATETIMEUNIT, default NPY_FR_ns
-
     Returns
     -------
     ndarray[object] of type specified by box
     """
     cdef:
-        Localizer info = Localizer(tz, reso=reso)
-        int64_t utc_val, local_val
-        Py_ssize_t i, n = stamps.size
-        Py_ssize_t pos = -1  # unused, avoid not-initialized warning
-
+        Py_ssize_t i, n = len(arr)
+        ndarray[int64_t] trans
+        int64_t[:] deltas
+        intp_t[:] pos
         npy_datetimestruct dts
-        tzinfo new_tz
-        bint use_date = False, use_time = False, use_ts = False, use_pydt = False
-        object res_val
-
-        # Note that `result` (and thus `result_flat`) is C-order and
-        #  `it` iterates C-order as well, so the iteration matches
-        #  See discussion at
-        #  github.com/pandas-dev/pandas/pull/46886#discussion_r860261305
-        ndarray result = cnp.PyArray_EMPTY(stamps.ndim, stamps.shape, cnp.NPY_OBJECT, 0)
-        object[::1] res_flat = result.ravel()     # should NOT be a copy
-        cnp.flatiter it = cnp.PyArray_IterNew(stamps)
+        object dt, new_tz
+        str typ
+        int64_t value, local_value, delta = NPY_NAT  # dummy for delta
+        ndarray[object] result = np.empty(n, dtype=object)
+        object (*func_create)(int64_t, npy_datetimestruct, tzinfo, object, bint)
+        bint use_utc = False, use_tzlocal = False, use_fixed = False
+        bint use_pytz = False
 
     if box == "date":
         assert (tz is None), "tz should be None when converting to date"
-        use_date = True
+
+        func_create = create_date_from_ts
     elif box == "timestamp":
-        use_ts = True
+        func_create = create_timestamp_from_ts
+
+        if isinstance(freq, str):
+            freq = to_offset(freq)
     elif box == "time":
-        use_time = True
+        func_create = create_time_from_ts
     elif box == "datetime":
-        use_pydt = True
+        func_create = create_datetime_from_ts
     else:
         raise ValueError(
             "box must be one of 'datetime', 'date', 'time' or 'timestamp'"
         )
 
-    for i in range(n):
-        # Analogous to: utc_val = stamps[i]
-        utc_val = (<int64_t*>cnp.PyArray_ITER_DATA(it))[0]
-
-        new_tz = tz
-
-        if utc_val == NPY_NAT:
-            res_val = <object>NaT
-
+    if is_utc(tz) or tz is None:
+        use_utc = True
+    elif is_tzlocal(tz):
+        use_tzlocal = True
+    else:
+        trans, deltas, typ = get_dst_info(tz)
+        if typ not in ["pytz", "dateutil"]:
+            # static/fixed; in this case we know that len(delta) == 1
+            use_fixed = True
+            delta = deltas[0]
         else:
+            pos = trans.searchsorted(arr, side="right") - 1
+            use_pytz = typ == "pytz"
 
-            local_val = info.utc_val_to_local_val(utc_val, &pos)
-            if info.use_pytz:
-                # find right representation of dst etc in pytz timezone
-                new_tz = tz._tzinfos[tz._transition_info[pos]]
+    for i in range(n):
+        new_tz = tz
+        value = arr[i]
 
-            pandas_datetime_to_datetimestruct(local_val, reso, &dts)
-
-            if use_ts:
-                res_val = create_timestamp_from_ts(
-                    utc_val, dts, new_tz, freq, fold, reso=reso
-                )
-            elif use_pydt:
-                res_val = datetime(
-                    dts.year, dts.month, dts.day, dts.hour, dts.min, dts.sec, dts.us,
-                    new_tz, fold=fold,
-                )
-            elif use_date:
-                res_val = date(dts.year, dts.month, dts.day)
+        if value == NPY_NAT:
+            result[i] = <object>NaT
+        else:
+            if use_utc:
+                local_value = value
+            elif use_tzlocal:
+                local_value = tz_convert_utc_to_tzlocal(value, tz)
+            elif use_fixed:
+                local_value = value + delta
+            elif not use_pytz:
+                # i.e. dateutil
+                # no zone-name change for dateutil tzs - dst etc
+                # represented in single object.
+                local_value = value + deltas[pos[i]]
             else:
-                res_val = time(dts.hour, dts.min, dts.sec, dts.us, new_tz, fold=fold)
+                # pytz
+                # find right representation of dst etc in pytz timezone
+                new_tz = tz._tzinfos[tz._transition_info[pos[i]]]
+                local_value = value + deltas[pos[i]]
 
-        # Note: we can index result directly instead of using PyArray_MultiIter_DATA
-        #  like we do for the other functions because result is known C-contiguous
-        #  and is the first argument to PyArray_MultiIterNew2.  The usual pattern
-        #  does not seem to work with object dtype.
-        #  See discussion at
-        #  github.com/pandas-dev/pandas/pull/46886#discussion_r860261305
-        res_flat[i] = res_val
-
-        cnp.PyArray_ITER_NEXT(it)
+            dt64_to_dtstruct(local_value, &dts)
+            result[i] = func_create(value, dts, new_tz, freq, fold)
 
     return result
 
 
 # -------------------------------------------------------------------------
 
+cdef:
+    int RESO_NS = 0
+    int RESO_US = 1
+    int RESO_MS = 2
+    int RESO_SEC = 3
+    int RESO_MIN = 4
+    int RESO_HR = 5
+    int RESO_DAY = 6
+    int RESO_MTH = 7
+    int RESO_QTR = 8
+    int RESO_YR = 9
 
-cdef inline c_Resolution _reso_stamp(npy_datetimestruct *dts):
-    if dts.ps != 0:
-        return c_Resolution.RESO_NS
-    elif dts.us != 0:
+
+cdef inline int _reso_stamp(npy_datetimestruct *dts):
+    if dts.us != 0:
         if dts.us % 1000 == 0:
-            return c_Resolution.RESO_MS
-        return c_Resolution.RESO_US
+            return RESO_MS
+        return RESO_US
     elif dts.sec != 0:
-        return c_Resolution.RESO_SEC
+        return RESO_SEC
     elif dts.min != 0:
-        return c_Resolution.RESO_MIN
+        return RESO_MIN
     elif dts.hour != 0:
-        return c_Resolution.RESO_HR
-    return c_Resolution.RESO_DAY
+        return RESO_HR
+    return RESO_DAY
 
 
-@cython.wraparound(False)
-@cython.boundscheck(False)
-def get_resolution(
-    ndarray stamps, tzinfo tz=None, NPY_DATETIMEUNIT reso=NPY_FR_ns
-) -> Resolution:
-    # stamps is int64_t, any ndim
+def get_resolution(const int64_t[:] stamps, tzinfo tz=None) -> Resolution:
     cdef:
-        Localizer info = Localizer(tz, reso=reso)
-        int64_t utc_val, local_val
-        Py_ssize_t i, n = stamps.size
-        Py_ssize_t pos = -1  # unused, avoid not-initialized warning
-        cnp.flatiter it = cnp.PyArray_IterNew(stamps)
-
+        Py_ssize_t i, n = len(stamps)
         npy_datetimestruct dts
-        c_Resolution pd_reso = c_Resolution.RESO_DAY, curr_reso
+        int reso = RESO_DAY, curr_reso
+        ndarray[int64_t] trans
+        int64_t[:] deltas
+        intp_t[:] pos
+        int64_t local_val, delta = NPY_NAT
+        bint use_utc = False, use_tzlocal = False, use_fixed = False
+
+    if is_utc(tz) or tz is None:
+        use_utc = True
+    elif is_tzlocal(tz):
+        use_tzlocal = True
+    else:
+        trans, deltas, typ = get_dst_info(tz)
+        if typ not in ["pytz", "dateutil"]:
+            # static/fixed; in this case we know that len(delta) == 1
+            use_fixed = True
+            delta = deltas[0]
+        else:
+            pos = trans.searchsorted(stamps, side="right") - 1
 
     for i in range(n):
-        # Analogous to: utc_val = stamps[i]
-        utc_val = cnp.PyArray_GETITEM(stamps, cnp.PyArray_ITER_DATA(it))
+        if stamps[i] == NPY_NAT:
+            continue
 
-        if utc_val == NPY_NAT:
-            pass
+        if use_utc:
+            local_val = stamps[i]
+        elif use_tzlocal:
+            local_val = tz_convert_utc_to_tzlocal(stamps[i], tz)
+        elif use_fixed:
+            local_val = stamps[i] + delta
         else:
-            local_val = info.utc_val_to_local_val(utc_val, &pos)
+            local_val = stamps[i] + deltas[pos[i]]
 
-            pandas_datetime_to_datetimestruct(local_val, reso, &dts)
-            curr_reso = _reso_stamp(&dts)
-            if curr_reso < pd_reso:
-                pd_reso = curr_reso
+        dt64_to_dtstruct(local_val, &dts)
+        curr_reso = _reso_stamp(&dts)
+        if curr_reso < reso:
+            reso = curr_reso
 
-        cnp.PyArray_ITER_NEXT(it)
-
-    return Resolution(pd_reso)
+    return Resolution(reso)
 
 
 # -------------------------------------------------------------------------
 
-
-@cython.cdivision(False)
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef ndarray normalize_i8_timestamps(ndarray stamps, tzinfo tz, NPY_DATETIMEUNIT reso):
-    # stamps is int64_t, arbitrary ndim
+cpdef ndarray[int64_t] normalize_i8_timestamps(const int64_t[:] stamps, tzinfo tz):
     """
     Normalize each of the (nanosecond) timezone aware timestamps in the given
     array by rounding down to the beginning of the day (i.e. midnight).
@@ -280,44 +282,57 @@ cpdef ndarray normalize_i8_timestamps(ndarray stamps, tzinfo tz, NPY_DATETIMEUNI
     ----------
     stamps : int64 ndarray
     tz : tzinfo or None
-    reso : NPY_DATETIMEUNIT
 
     Returns
     -------
     result : int64 ndarray of converted of normalized nanosecond timestamps
     """
     cdef:
-        Localizer info = Localizer(tz, reso=reso)
-        int64_t utc_val, local_val, res_val
-        Py_ssize_t i, n = stamps.size
-        Py_ssize_t pos = -1  # unused, avoid not-initialized warning
+        Py_ssize_t i, n = len(stamps)
+        int64_t[:] result = np.empty(n, dtype=np.int64)
+        ndarray[int64_t] trans
+        int64_t[:] deltas
+        str typ
+        Py_ssize_t[:] pos
+        int64_t local_val, delta = NPY_NAT
+        bint use_utc = False, use_tzlocal = False, use_fixed = False
 
-        ndarray result = cnp.PyArray_EMPTY(stamps.ndim, stamps.shape, cnp.NPY_INT64, 0)
-        cnp.broadcast mi = cnp.PyArray_MultiIterNew2(result, stamps)
-        int64_t ppd = periods_per_day(reso)
+    if is_utc(tz) or tz is None:
+        use_utc = True
+    elif is_tzlocal(tz):
+        use_tzlocal = True
+    else:
+        trans, deltas, typ = get_dst_info(tz)
+        if typ not in ["pytz", "dateutil"]:
+            # static/fixed; in this case we know that len(delta) == 1
+            use_fixed = True
+            delta = deltas[0]
+        else:
+            pos = trans.searchsorted(stamps, side="right") - 1
 
     for i in range(n):
-        # Analogous to: utc_val = stamps[i]
-        utc_val = (<int64_t*>cnp.PyArray_MultiIter_DATA(mi, 1))[0]
+        # TODO: reinstate nogil for use_utc case?
+        if stamps[i] == NPY_NAT:
+            result[i] = NPY_NAT
+            continue
 
-        if utc_val == NPY_NAT:
-            res_val = NPY_NAT
+        if use_utc:
+            local_val = stamps[i]
+        elif use_tzlocal:
+            local_val = tz_convert_utc_to_tzlocal(stamps[i], tz)
+        elif use_fixed:
+            local_val = stamps[i] + delta
         else:
-            local_val = info.utc_val_to_local_val(utc_val, &pos)
-            res_val = local_val - (local_val % ppd)
+            local_val = stamps[i] + deltas[pos[i]]
 
-        # Analogous to: result[i] = res_val
-        (<int64_t*>cnp.PyArray_MultiIter_DATA(mi, 0))[0] = res_val
+        result[i] = normalize_i8_stamp(local_val)
 
-        cnp.PyArray_MultiIter_NEXT(mi)
-
-    return result
+    return result.base  # `.base` to access underlying ndarray
 
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def is_date_array_normalized(ndarray stamps, tzinfo tz, NPY_DATETIMEUNIT reso) -> bool:
-    # stamps is int64_t, arbitrary ndim
+def is_date_array_normalized(const int64_t[:] stamps, tzinfo tz=None) -> bool:
     """
     Check if all of the given (nanosecond) timestamps are normalized to
     midnight, i.e. hour == minute == second == 0.  If the optional timezone
@@ -327,30 +342,46 @@ def is_date_array_normalized(ndarray stamps, tzinfo tz, NPY_DATETIMEUNIT reso) -
     ----------
     stamps : int64 ndarray
     tz : tzinfo or None
-    reso : NPY_DATETIMEUNIT
 
     Returns
     -------
     is_normalized : bool True if all stamps are normalized
     """
     cdef:
-        Localizer info = Localizer(tz, reso=reso)
-        int64_t utc_val, local_val
-        Py_ssize_t i, n = stamps.size
-        Py_ssize_t pos = -1  # unused, avoid not-initialized warning
-        cnp.flatiter it = cnp.PyArray_IterNew(stamps)
-        int64_t ppd = periods_per_day(reso)
+        Py_ssize_t i, n = len(stamps)
+        ndarray[int64_t] trans
+        int64_t[:] deltas
+        intp_t[:] pos
+        int64_t local_val, delta = NPY_NAT
+        str typ
+        int64_t day_nanos = 24 * 3600 * 1_000_000_000
+        bint use_utc = False, use_tzlocal = False, use_fixed = False
+
+    if is_utc(tz) or tz is None:
+        use_utc = True
+    elif is_tzlocal(tz):
+        use_tzlocal = True
+    else:
+        trans, deltas, typ = get_dst_info(tz)
+        if typ not in ["pytz", "dateutil"]:
+            # static/fixed; in this case we know that len(delta) == 1
+            use_fixed = True
+            delta = deltas[0]
+        else:
+            pos = trans.searchsorted(stamps, side="right") - 1
 
     for i in range(n):
-        # Analogous to: utc_val = stamps[i]
-        utc_val = cnp.PyArray_GETITEM(stamps, cnp.PyArray_ITER_DATA(it))
+        if use_utc:
+            local_val = stamps[i]
+        elif use_tzlocal:
+            local_val = tz_convert_utc_to_tzlocal(stamps[i], tz)
+        elif use_fixed:
+            local_val = stamps[i] + delta
+        else:
+            local_val = stamps[i] + deltas[pos[i]]
 
-        local_val = info.utc_val_to_local_val(utc_val, &pos)
-
-        if local_val % ppd != 0:
+        if local_val % day_nanos != 0:
             return False
-
-        cnp.PyArray_ITER_NEXT(it)
 
     return True
 
@@ -360,34 +391,46 @@ def is_date_array_normalized(ndarray stamps, tzinfo tz, NPY_DATETIMEUNIT reso) -
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def dt64arr_to_periodarr(
-    ndarray stamps, int freq, tzinfo tz, NPY_DATETIMEUNIT reso=NPY_FR_ns
-):
-    # stamps is int64_t, arbitrary ndim
+def dt64arr_to_periodarr(const int64_t[:] stamps, int freq, tzinfo tz):
     cdef:
-        Localizer info = Localizer(tz, reso=reso)
-        Py_ssize_t i, n = stamps.size
-        Py_ssize_t pos = -1  # unused, avoid not-initialized warning
-        int64_t utc_val, local_val, res_val
-
+        Py_ssize_t n = len(stamps)
+        int64_t[:] result = np.empty(n, dtype=np.int64)
+        ndarray[int64_t] trans
+        int64_t[:] deltas
+        Py_ssize_t[:] pos
         npy_datetimestruct dts
-        ndarray result = cnp.PyArray_EMPTY(stamps.ndim, stamps.shape, cnp.NPY_INT64, 0)
-        cnp.broadcast mi = cnp.PyArray_MultiIterNew2(result, stamps)
+        int64_t local_val, delta = NPY_NAT
+        bint use_utc = False, use_tzlocal = False, use_fixed = False
+
+    if is_utc(tz) or tz is None:
+        use_utc = True
+    elif is_tzlocal(tz):
+        use_tzlocal = True
+    else:
+        trans, deltas, typ = get_dst_info(tz)
+        if typ not in ["pytz", "dateutil"]:
+            # static/fixed; in this case we know that len(delta) == 1
+            use_fixed = True
+            delta = deltas[0]
+        else:
+            pos = trans.searchsorted(stamps, side="right") - 1
 
     for i in range(n):
-        # Analogous to: utc_val = stamps[i]
-        utc_val = (<int64_t*>cnp.PyArray_MultiIter_DATA(mi, 1))[0]
+        # TODO: reinstate nogil for use_utc case?
+        if stamps[i] == NPY_NAT:
+            result[i] = NPY_NAT
+            continue
 
-        if utc_val == NPY_NAT:
-            res_val = NPY_NAT
+        if use_utc:
+            local_val = stamps[i]
+        elif use_tzlocal:
+            local_val = tz_convert_utc_to_tzlocal(stamps[i], tz)
+        elif use_fixed:
+            local_val = stamps[i] + delta
         else:
-            local_val = info.utc_val_to_local_val(utc_val, &pos)
-            pandas_datetime_to_datetimestruct(local_val, reso, &dts)
-            res_val = get_period_ordinal(&dts, freq)
+            local_val = stamps[i] + deltas[pos[i]]
 
-        # Analogous to: result[i] = res_val
-        (<int64_t*>cnp.PyArray_MultiIter_DATA(mi, 0))[0] = res_val
+        dt64_to_dtstruct(local_val, &dts)
+        result[i] = get_period_ordinal(&dts, freq)
 
-        cnp.PyArray_MultiIter_NEXT(mi)
-
-    return result
+    return result.base  # .base to get underlying ndarray

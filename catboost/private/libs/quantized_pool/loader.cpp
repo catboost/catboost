@@ -460,32 +460,25 @@ namespace {
 }
 
 TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::GetLoader(
-    const TPathWithScheme& pathWithScheme,
-    TDatasetSubset loadSubset
-) {
+    const TPathWithScheme& pathWithScheme)
+{
     auto& loadersCache = GetRef();
     TAtomicSharedPtr<IQuantizedPoolLoader> loader = nullptr;
     with_lock(loadersCache.Lock) {
-        const auto loaderKey = std::make_pair(pathWithScheme, loadSubset);
-        if (!loadersCache.Cache.contains(loaderKey)) {
-            loader = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(
+        if (!loadersCache.Cache.contains(pathWithScheme)) {
+            loadersCache.Cache[pathWithScheme] = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(
                 pathWithScheme,
                 pathWithScheme).Release();
-            loadersCache.Cache[loaderKey] = loader;
-            if (loadSubset.HasFeatures) {
-                TLoadQuantizedPoolParameters params{/*LockMemory=*/false, /*Precharge=*/false, loadSubset};
-                loader->LoadQuantizedPool(params);
-            }
         }
-        loader = loadersCache.Cache.at(loaderKey);
+        loader = loadersCache.Cache.at(pathWithScheme);
     }
     return loader;
 }
 
-bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme, TDatasetSubset loadSubset) {
+bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme) {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {
-        return loadersCache.Cache.contains(std::make_pair(pathWithScheme, loadSubset));
+        return loadersCache.Cache.contains(pathWithScheme);
     }
 }
 
@@ -502,7 +495,7 @@ void NCB::TQuantizedPoolLoadersCache::DropAllLoaders() {
         for (auto& keyValue : loadersCache.Cache) {
             CB_ENSURE(
                 keyValue.second.RefCount() <= 1,
-                "Loader for " << keyValue.first.first.Scheme << "://" << keyValue.first.first.Path
+                "Loader for " << keyValue.first.Scheme << "://" << keyValue.first.Path
                 << " is still referenced");
         }
         loadersCache.Cache.clear();

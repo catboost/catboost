@@ -4,6 +4,8 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
+#include <library/cpp/ytalloc/api/ytalloc.h>
+
 #include <atomic>
 
 namespace NYT {

@@ -5,8 +5,8 @@
 
 
 #define CATBOOST_APPLIER_MAJOR 1
-#define CATBOOST_APPLIER_MINOR 1
-#define CATBOOST_APPLIER_FIX 1
+#define CATBOOST_APPLIER_MINOR 0
+#define CATBOOST_APPLIER_FIX 4
 
 #if defined(__cplusplus)
 extern "C" {
@@ -40,8 +40,6 @@ CATBOOST_API void AddFloatFeatures(DataWrapperHandle* dataWrapperHandle, const f
 CATBOOST_API void AddCatFeatures(DataWrapperHandle* dataWrapperHandle, const char*** catFeatures, size_t catFeaturesSize);
 
 CATBOOST_API void AddTextFeatures(DataWrapperHandle* dataWrapperHandle, const char*** textFeatures, size_t textFeaturesSize);
-
-CATBOOST_API void AddEmbeddingFeatures(DataWrapperHandle* dataWrapperHandle, const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize);
 
 CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrapperHandle);
 
@@ -177,37 +175,6 @@ CATBOOST_API bool CalcModelPredictionText(
     const char*** textFeatures, size_t textFeaturesSize,
     double* result, size_t resultSize);
 
-
-/**
- * Calculate raw model predictions on float features and string categorical feature values
- * @param calcer model handle
- * @param docCount object count
- * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
- * @param floatFeaturesSize float feature count
- * @param catFeatures array of array of char* categorical value pointers.
- * String pointer should point to zero terminated string.
- * @param catFeaturesSize categorical feature count
- * @param textFeatures array of array of char* text value pointers.
- * String pointer should point to zero terminated string.
- * @param textFeaturesSize text feature count
- * @param embeddingFeatures array of array of array of float (first dimension is object index, second is feature index, third is index in embedding array).
- * String pointer should point to zero terminated string.
- * @param embeddingFeaturesSize embedding feature count
- * @param result pointer to user allocated results vector
- * @param resultSize result size should be equal to modelApproxDimension * docCount
- * (e.g. for non multiclass models should be equal to docCount)
- * @return false if error occured
- */
-CATBOOST_API bool CalcModelPredictionTextAndEmbeddings(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const char*** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
-    double* result, size_t resultSize);
-
-
 /**
  * Calculate raw model prediction on float features and string categorical feature values for single object
  * @param calcer model handle
@@ -256,15 +223,6 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(
     const char*** textFeatures, size_t textFeaturesSize,
     double* result, size_t resultSize);
 
-CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const int** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
-    double* result, size_t resultSize);
-
 /**
  * Methods equivalent to the methods above
  * only returning a prediction for the specific class
@@ -295,16 +253,6 @@ CATBOOST_API bool PredictSpecificClassText(
     int classId,
     double* result, size_t resultSize);
 
-CATBOOST_API bool PredictSpecificClassTextAndEmbeddings(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const char*** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
 CATBOOST_API bool PredictSpecificClassSingle(
     ModelCalcerHandle* modelHandle,
     const float* floatFeatures, size_t floatFeaturesSize,
@@ -326,16 +274,6 @@ CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextFeatures(
     const float** floatFeatures, size_t floatFeaturesSize,
     const int** catFeatures, size_t catFeaturesSize,
     const char*** textFeatures, size_t textFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const int** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
     int classId,
     double* result, size_t resultSize);
 
@@ -367,18 +305,6 @@ CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
  * @param calcer model handle
  */
 CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
-
-/**
- * Get expected text feature count for model
- * @param calcer model handle
- */
-CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle);
-
-/**
- * Get expected embedding feature count for model
- * @param calcer model handle
- */
-CATBOOST_API size_t GetEmbeddingFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get number of trees in model
@@ -418,16 +344,6 @@ CATBOOST_API size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const 
  * @param calcer model handle
  */
 CATBOOST_API const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
-
-
-/**
- * Get names of features used in the model.
- * individual strings in featureNames array and featureNames array itself must be deallocated using free() after use.
- *
- * @return true on success, false on error
- */
-CATBOOST_API bool GetModelUsedFeaturesNames(ModelCalcerHandle* modelHandle, char*** featureNames, size_t* featureCount);
-
 
 #if defined(__cplusplus)
 }

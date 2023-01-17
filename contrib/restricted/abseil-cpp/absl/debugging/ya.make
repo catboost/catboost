@@ -20,6 +20,10 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
+CFLAGS(
+    -DNOMINMAX
+)
+
 SRCS(
     failure_signal_handler.cc
     internal/address_is_readable.cc

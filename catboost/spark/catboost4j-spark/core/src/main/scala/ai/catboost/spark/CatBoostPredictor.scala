@@ -207,14 +207,12 @@ trait CatBoostPredictorTrait[
     val connectTimeoutValue = getOrDefault(connectTimeout)
     val workerInitializationTimeoutValue = getOrDefault(workerInitializationTimeout)
     val workerMaxFailuresValue = getOrDefault(workerMaxFailures)
-    val workerListeningPortValue = getOrDefault(workerListeningPort)
 
     val workers = impl.CatBoostWorkers(
       spark,
       partitionCount,
       connectTimeoutValue,
       workerInitializationTimeoutValue,
-      workerListeningPortValue,
       preparedTrainDataset,
       preparedEvalDatasets,
       catBoostTrainingContext.catBoostJsonParams,
@@ -227,7 +225,7 @@ trait CatBoostPredictorTrait[
       // retry training if network connection issues were the reason of failure
       while (true) {
         val trainingDriver : TrainingDriver = new TrainingDriver(
-          listeningPort = getOrDefault(trainingDriverListeningPort),
+          listeningPort = 0,
           workerCount = partitionCount,
           startMasterCallback = master.trainCallback,
           connectTimeout = connectTimeoutValue,
