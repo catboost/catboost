@@ -138,3 +138,4 @@ contest/backend/flow
 market/front/schedulers
 market/erp_axapta/libs/CheckouterService
 taxi/frontend/packages/tariff-editor-vscode-templates
+market/erp_axapta/libs/YaSignClient
