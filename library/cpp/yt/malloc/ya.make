@@ -1,9 +1,7 @@
 LIBRARY()
 
-IF(NOT OS_WINDOWS)
-    SRCS(
-        malloc.cpp
-    )
-ENDIF()
+SRCS(
+    malloc.cpp
+)
 
 END()

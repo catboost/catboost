@@ -59,7 +59,7 @@ T ParseEnum(TStringBuf value)
     if (auto optionalResult = TryParseEnum<T>(value)) {
         return *optionalResult;
     }
-    NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), value);
+    NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), value);
 }
 
 template <class T>
@@ -71,7 +71,7 @@ void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
         auto* literal = TEnumTraits<T>::FindLiteralByValue(value);
         if (!literal) {
             YT_VERIFY(!TEnumTraits<T>::IsBitEnum);
-            NDetail::FormatUnknownEnumValue(
+            NYT::NDetail::FormatUnknownEnumValue(
                 builder,
                 TEnumTraits<T>::GetTypeName(),
                 static_cast<typename TEnumTraits<T>::TUnderlying>(value));

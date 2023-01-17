@@ -67,7 +67,7 @@ inline TString FormatInvalidCastValue(char8_t value)
 template <class T, class S>
 bool TryIntegralCast(S value, T* result)
 {
-    if (!NDetail::IsInIntegralRange<T>(value)) {
+    if (!NYT::NDetail::IsInIntegralRange<T>(value)) {
         return false;
     }
     *result = static_cast<T>(value);
@@ -80,7 +80,7 @@ T CheckedIntegralCast(S value)
     T result;
     if (!TryIntegralCast<T>(value, &result)) {
         throw TSimpleException(Sprintf("Argument value %s is out of expected range",
-            NDetail::FormatInvalidCastValue(value).c_str()));
+            NYT::NDetail::FormatInvalidCastValue(value).c_str()));
     }
     return result;
 }

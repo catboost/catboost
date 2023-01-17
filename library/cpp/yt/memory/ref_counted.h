@@ -38,7 +38,11 @@ struct TFreeMemory
 {
     static void Do(void* ptr)
     {
+#ifdef _win_
+        ::_aligned_free(ptr);
+#else
         ::free(ptr);
+#endif
     }
 };
 
