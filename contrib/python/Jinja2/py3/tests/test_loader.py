@@ -174,6 +174,15 @@ class TestFileSystemLoader:
         t = e.get_template("mojibake.txt")
         assert t.render() == expect
 
+    def test_filename_normpath(self):
+        """Nested template names should only contain ``os.sep`` in the
+        loaded filename.
+        """
+        loader = loaders.FileSystemLoader(self.searchpath)
+        e = Environment(loader=loader)
+        t = e.get_template("foo/test.html")
+        assert t.filename == str(self.searchpath / "foo" / "test.html")
+
 
 class TestModuleLoader:
     archive = None
