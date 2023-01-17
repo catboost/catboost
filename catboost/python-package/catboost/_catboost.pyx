@@ -2002,6 +2002,7 @@ cdef void list_to_vector(values_list, TVector[ui32]* values_vector) except *:
 
 cdef TFeaturesLayout* _init_features_layout(
     data,
+    embedding_features_data, 
     cat_features,
     text_features,
     embedding_features,
@@ -2021,6 +2022,8 @@ cdef TFeaturesLayout* _init_features_layout(
         feature_names = data.get_feature_names()
     else:
         feature_count = np.shape(data)[1]
+        if embedding_features_data is not None:
+            feature_count += len(embedding_features_data)
 
     list_to_vector(cat_features, &cat_features_vector)
     list_to_vector(text_features, &text_features_vector)
@@ -2038,7 +2041,10 @@ cdef TFeaturesLayout* _init_features_layout(
 
     all_features_are_sparse = False
     if isinstance(data, SPARSE_MATRIX_TYPES):
-        all_features_are_sparse = True
+        if embedding_features_data is not None:    
+            all_features_are_sparse = all([isinstance(embedding_data, SPARSE_MATRIX_TYPES) for embedding_data in embedding_features_data])
+        else:
+            all_features_are_sparse = True
 
     return new TFeaturesLayout(
         <ui32>feature_count,
@@ -3766,7 +3772,7 @@ cdef class _PoolBase:
         self.__data_holders = new_data_holders
 
 
-    cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, pairs, weight,
+    cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
                      group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags,
                      thread_count):
         if group_weight is not None and weight is not None:
@@ -3790,6 +3796,7 @@ cdef class _PoolBase:
 
         data_meta_info.FeaturesLayout = _init_features_layout(
             data,
+            embedding_features_data, 
             cat_features,
             text_features,
             embedding_features,
