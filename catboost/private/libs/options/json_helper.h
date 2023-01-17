@@ -7,6 +7,8 @@
 #include "loss_description.h"
 
 #include <catboost/libs/column_description/feature_tag.h>
+#include <catboost/libs/helpers/json_helpers.h>
+
 
 #include <library/cpp/json/json_value.h>
 #include <library/cpp/json/json_reader.h>
@@ -415,40 +417,3 @@ namespace NCatboostOptions {
         saver.SaveMany(fields...);
     };
 }
-
-template <typename T>
-void FromJson(const NJson::TJsonValue& value, T* result) {
-    switch (value.GetType()) {
-        case NJson::EJsonValueType::JSON_INTEGER:
-            *result = T(value.GetInteger());
-            break;
-        case NJson::EJsonValueType::JSON_DOUBLE:
-            *result = T(value.GetDouble());
-            break;
-        case NJson::EJsonValueType::JSON_UINTEGER:
-            *result = T(value.GetUInteger());
-            break;
-        case NJson::EJsonValueType::JSON_STRING:
-            *result = FromString<T>(value.GetString());
-            break;
-        default:
-            CB_ENSURE("Incorrect format");
-    }
-}
-
-template <>
-void FromJson(const NJson::TJsonValue& value, TString* result);
-
-template <typename T>
-T FromJson(const NJson::TJsonValue& value) {
-    T result;
-    FromJson(value, &result);
-    return result;
-}
-
-NJson::TJsonValue ReadTJsonValue(TStringBuf paramsJson);
-
-/*
- * Use this function instead of simple ToString(jsonValue) because it saves floating point values with proper precision
- */
-TString WriteTJsonValue(const NJson::TJsonValue& jsonValue);
