@@ -64,6 +64,10 @@
             "description": "Run ymake",
             "visible": false
         },
+        "yexport": {
+            "description": "Run yexport",
+            "visible": false
+        },
         "maven_import_sandbox_uploader": {
             "description": "Sandbox uploader for maven-import cmd",
             "visible": false
@@ -1172,6 +1176,22 @@
                     "host": {
                         "os": "LINUX",
                         "arch": "ppc64le"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "yexport": {
+            "tools": {
+                "yexport": {
+                    "bottle": "yexport",
+                    "executable": "yexport"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
                     },
                     "default": true
                 }
@@ -6528,6 +6548,19 @@
             "executable": {
                 "ymake": [
                     "ymake"
+                ]
+            }
+        },
+        "yexport": {
+            "formula": {
+                "sandbox_id": [
+                    1321050033
+                ],
+                "match": "yexport"
+            },
+            "executable": {
+                "yexport": [
+                    "yexport"
                 ]
             }
         },
