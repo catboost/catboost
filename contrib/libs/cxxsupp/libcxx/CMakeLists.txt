@@ -32,6 +32,7 @@ target_link_libraries(libs-cxxsupp-libcxx PUBLIC
 target_sources(libs-cxxsupp-libcxx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/algorithm.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/any.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/assert.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/atomic.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/barrier.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/bind.cpp

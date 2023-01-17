@@ -6,9 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <new>
 #include <stdlib.h>
-
-#include "new"
 
 #if defined(_LIBCPP_ABI_MICROSOFT)
 #   if !defined(_LIBCPP_ABI_VCRUNTIME)

@@ -9,13 +9,13 @@
 #ifndef _LIBCPP___RANGES_SUBRANGE_H
 #define _LIBCPP___RANGES_SUBRANGE_H
 
+#include <__assert>
 #include <__concepts/constructible.h>
 #include <__concepts/convertible_to.h>
 #include <__concepts/copyable.h>
 #include <__concepts/derived_from.h>
 #include <__concepts/different_from.h>
 #include <__config>
-#include <__debug>
 #include <__iterator/advance.h>
 #include <__iterator/concepts.h>
 #include <__iterator/incrementable_traits.h>
@@ -36,7 +36,7 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#if !defined(_LIBCPP_HAS_NO_CONCEPTS) && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
 
 namespace ranges {
   template<class _From, class _To>
@@ -282,7 +282,7 @@ struct tuple_element<1, const ranges::subrange<_Ip, _Sp, _Kp>> {
   using type = _Sp;
 };
 
-#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS) && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
 
 _LIBCPP_END_NAMESPACE_STD
 
