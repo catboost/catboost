@@ -1563,7 +1563,10 @@ namespace {
                     size_t buffPos = 0;
                     //DBGOUT("receive and parse: " << TStringBuf(Buff_.Get(), amount));
                     while (P_->Parse(Buff_.Get() + buffPos, amount - buffPos)) {
-                        SeenMessageWithoutKeepalive_ |= !P_->IsKeepAlive() || LeftRequestsToDisconnect_ == 1;
+                        if (!P_->IsKeepAlive() || LeftRequestsToDisconnect_ == 1) {
+                            SeenMessageWithoutKeepalive_ = true;
+                        }
+
                         char rt = *P_->FirstLine().data();
                         const size_t extraDataSize = P_->GetExtraDataSize();
                         if (rt == 'P' || rt == 'p') {
@@ -1858,7 +1861,7 @@ namespace {
             THashMap<TAtomicBase, TResponseDataRef> ResponsesData_;
 
             TAtomicBool Canceled_;
-            bool SeenMessageWithoutKeepalive_ = false;
+            TAtomicBool SeenMessageWithoutKeepalive_ = false;
 
             i32 LeftRequestsToDisconnect_ = -1;
         };
