@@ -15,6 +15,7 @@ target_compile_options(libs-model-model_export PRIVATE
 target_link_libraries(libs-model-model_export PUBLIC
   contrib-libs-cxxsupp
   yutil
+  catboost-libs-helpers
   catboost-libs-model
   private-libs-ctr_description
   private-libs-labels
@@ -41,6 +42,7 @@ target_compile_options(libs-model-model_export.global PRIVATE
 target_link_libraries(libs-model-model_export.global PUBLIC
   contrib-libs-cxxsupp
   yutil
+  catboost-libs-helpers
   catboost-libs-model
   private-libs-ctr_description
   private-libs-labels

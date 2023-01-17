@@ -14,6 +14,7 @@ target_link_libraries(catboost PUBLIC
   cpp-malloc-mimalloc
   library-cpp-cpuid_check
   catboost-libs-data
+  catboost-libs-dataset_statistics
   catboost-libs-features_selection
   catboost-libs-helpers
   catboost-libs-logging
@@ -49,6 +50,7 @@ target_link_options(catboost PRIVATE
 target_sources(catboost PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/app/main.cpp
   ${CMAKE_SOURCE_DIR}/catboost/app/mode_calc.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/app/mode_dataset_statistics.cpp
   ${CMAKE_SOURCE_DIR}/catboost/app/mode_eval_metrics.cpp
   ${CMAKE_SOURCE_DIR}/catboost/app/mode_eval_feature.cpp
   ${CMAKE_SOURCE_DIR}/catboost/app/mode_fit.cpp

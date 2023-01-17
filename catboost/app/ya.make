@@ -7,6 +7,7 @@ DISABLE(USE_ASMLIB)
 SRCS(
     main.cpp
     mode_calc.cpp
+    mode_dataset_statistics.cpp
     mode_eval_metrics.cpp
     mode_eval_feature.cpp
     mode_fit.cpp
@@ -25,6 +26,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/data
+    catboost/libs/dataset_statistics
     catboost/libs/features_selection
     catboost/libs/helpers
     catboost/libs/logging
