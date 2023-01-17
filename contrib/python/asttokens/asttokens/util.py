@@ -24,8 +24,9 @@ from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Un
 
 from six import iteritems
 
+
 if TYPE_CHECKING:  # pragma: no cover
-  from astroid.node_classes import NodeNG
+  from .astroid_compat import NodeNG
 
   # Type class used to expand out the definition of AST to include fields added by this library
   # It's not actually used for anything other than type checking though!
@@ -215,6 +216,15 @@ def is_slice(node):
           node.__class__.__name__ == 'Tuple'
           and any(map(is_slice, cast(ast.Tuple, node).elts))
       )
+  )
+
+
+def is_empty_astroid_slice(node):
+  # type: (AstNode) -> bool
+  return (
+      node.__class__.__name__ == "Slice"
+      and not isinstance(node, ast.AST)
+      and node.lower is node.upper is node.step is None
   )
 
 
