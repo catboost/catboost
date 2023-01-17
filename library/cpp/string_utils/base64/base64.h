@@ -24,7 +24,7 @@ constexpr size_t Base64DecodeBufSize(const size_t len) noexcept {
 size_t Base64Decode(void* dst, const char* b, const char* e);
 
 inline TStringBuf Base64Decode(const TStringBuf src, void* dst) {
-    return TStringBuf((const char*)dst, Base64Decode(dst, src.begin(), src.end()));
+    return TStringBuf(static_cast<const char*>(dst), Base64Decode(dst, src.begin(), src.end()));
 }
 
 inline void Base64Decode(const TStringBuf src, TString& dst) {
@@ -64,7 +64,7 @@ size_t Base64StrictDecode(void* dst, const char* b, const char* e);
 /// @return Returns dst wrapped into TStringBuf.
 ///
 inline TStringBuf Base64StrictDecode(const TStringBuf src, void* dst) {
-    return TStringBuf((const char*)dst, Base64StrictDecode(dst, src.begin(), src.end()));
+    return TStringBuf(static_cast<const char*>(dst), Base64StrictDecode(dst, src.begin(), src.end()));
 }
 
 ///
@@ -90,6 +90,7 @@ inline TString Base64StrictDecode(const TStringBuf src) {
 
 /// Works with strings which length is not divisible by 4.
 TString Base64DecodeUneven(const TStringBuf s);
+size_t Base64DecodeUneven(void* dst, const TStringBuf s);
 
 //encode
 constexpr size_t Base64EncodeBufSize(const size_t len) noexcept {
@@ -99,12 +100,26 @@ constexpr size_t Base64EncodeBufSize(const size_t len) noexcept {
 char* Base64Encode(char* outstr, const unsigned char* instr, size_t len);
 char* Base64EncodeUrl(char* outstr, const unsigned char* instr, size_t len);
 
-inline TStringBuf Base64Encode(const TStringBuf src, void* tmp) {
-    return TStringBuf((const char*)tmp, Base64Encode((char*)tmp, (const unsigned char*)src.data(), src.size()));
+/// Make base64 string which stay unchaged after applying 'urlencode' function
+/// as it doesn't contain character, which cannot be used in urls
+/// @param outstr a pointer to allocated memory for writing result.
+/// @param instr a to buffer to encode
+/// @param len size of instr buffer
+///
+/// @return Returns pointer to last symbol in outstr buffer.
+///
+char* Base64EncodeUrlNoPadding(char* outstr, const unsigned char* instr, size_t len);
+
+inline TStringBuf Base64Encode(const TStringBuf src, void* output) {
+    return TStringBuf(static_cast<const char*>(output), Base64Encode(static_cast<char*>(output), reinterpret_cast<const unsigned char*>(src.data()), src.size()));
 }
 
-inline TStringBuf Base64EncodeUrl(const TStringBuf src, void* tmp) {
-    return TStringBuf((const char*)tmp, Base64EncodeUrl((char*)tmp, (const unsigned char*)src.data(), src.size()));
+inline TStringBuf Base64EncodeUrl(const TStringBuf src, void* output) {
+    return TStringBuf(static_cast<const char*>(output), Base64EncodeUrl(static_cast<char*>(output), reinterpret_cast<const unsigned char*>(src.data()), src.size()));
+}
+
+inline TStringBuf Base64EncodeUrlNoPadding(const TStringBuf src, void* output) {
+    return TStringBuf(static_cast<const char*>(output), Base64EncodeUrlNoPadding(static_cast<char*>(output), reinterpret_cast<const unsigned char*>(src.data()), src.size()));
 }
 
 inline void Base64Encode(const TStringBuf src, TString& dst) {
@@ -117,6 +132,11 @@ inline void Base64EncodeUrl(const TStringBuf src, TString& dst) {
     dst.resize(Base64EncodeUrl(src, dst.begin()).size());
 }
 
+inline void Base64EncodeUrlNoPadding(const TStringBuf src, TString& dst) {
+    dst.ReserveAndResize(Base64EncodeBufSize(src.size()));
+    dst.resize(Base64EncodeUrlNoPadding(src, dst.begin()).size());
+}
+
 inline TString Base64Encode(const TStringBuf s) {
     TString ret;
     Base64Encode(s, ret);
@@ -126,5 +146,11 @@ inline TString Base64Encode(const TStringBuf s) {
 inline TString Base64EncodeUrl(const TStringBuf s) {
     TString ret;
     Base64EncodeUrl(s, ret);
+    return ret;
+}
+
+inline TString Base64EncodeUrlNoPadding(const TStringBuf s) {
+    TString ret;
+    Base64EncodeUrlNoPadding(s, ret);
     return ret;
 }
