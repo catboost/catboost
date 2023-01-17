@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{4E507DA8-7440-F9EE-B41C-1180E1585413}</ProjectGUID>
+    <ProjectGUID>{1513F9B1-F45F-6E25-2628-5D3B5FC981FE}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-typing.global</ProjectName>
+    <ProjectName>pydeprecated-python-typing.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-typing.global</TargetName>
+    <TargetName>pydeprecated-python-typing.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\typing\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4E507DA8-7440-F9EE-B41C-1180E1585413\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\typing\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\1513F9B1-F45F-6E25-2628-5D3B5FC981FE\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\typing\4793fbadcb0d5a197d142b79e1.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\typing\6bc71412c28bc4e4dcfe8610fa.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\typing\370e253d94b9e430070216cf4c.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\typing\e894e3793024b1c1b6fc11110a.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\typing
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\typing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/typing/4793fbadcb0d5a197d142b79e1.cpp" "_0489048ba5c771fd3e48b16024=/py_modules/typing" "_55a668a03af26ec47a6f6e39dc=resfs/src//py_modules/typing" "_24fe093c8bc5c84bc67e720cc4=/py_code/typing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/typing/370e253d94b9e430070216cf4c.cpp" "_aac1c32a0aff26543bff38eb90=/py_modules/typing" "_c4d773412759ed6960aacbd735=resfs/src//py_modules/typing" "_291ab5d049eefb29f2b507441b=/py_code/typing"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\typing
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\typing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/typing/6bc71412c28bc4e4dcfe8610fa.cpp" "_00142438a7b05a6944ccf8e30d=resfs/src/resfs/file/contrib/python/typing/.dist-info/METADATA" "_a6edd0a7e49ce347832797fdf3=resfs/file/contrib/python/typing/.dist-info/METADATA" "_44b45969df53fecbd9d413677d=resfs/src/resfs/file/contrib/python/typing/.dist-info/top_level.txt" "_91fb7465d1593ed5223d90b343=resfs/file/contrib/python/typing/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/typing/e894e3793024b1c1b6fc11110a.cpp" "_da2a72fe0572ad7c5ccba4a00c=resfs/src/resfs/file/contrib/deprecated/python/typing/.dist-info/METADATA" "_27b525b9218866ce23b95e87e2=resfs/file/contrib/deprecated/python/typing/.dist-info/METADATA" "_38194c94ca2e5963625ac3226f=resfs/src/resfs/file/contrib/deprecated/python/typing/.dist-info/top_level.txt" "_fa6f53cc1934a59fbbce46f7ae=resfs/file/contrib/deprecated/python/typing/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\typing
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\typing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/typing/4793fbadcb0d5a197d142b79e1.cpp" "_0489048ba5c771fd3e48b16024=/py_modules/typing" "_55a668a03af26ec47a6f6e39dc=resfs/src//py_modules/typing" "_24fe093c8bc5c84bc67e720cc4=/py_code/typing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/typing/370e253d94b9e430070216cf4c.cpp" "_aac1c32a0aff26543bff38eb90=/py_modules/typing" "_c4d773412759ed6960aacbd735=resfs/src//py_modules/typing" "_291ab5d049eefb29f2b507441b=/py_code/typing"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\typing
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\typing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/typing/6bc71412c28bc4e4dcfe8610fa.cpp" "_00142438a7b05a6944ccf8e30d=resfs/src/resfs/file/contrib/python/typing/.dist-info/METADATA" "_a6edd0a7e49ce347832797fdf3=resfs/file/contrib/python/typing/.dist-info/METADATA" "_44b45969df53fecbd9d413677d=resfs/src/resfs/file/contrib/python/typing/.dist-info/top_level.txt" "_91fb7465d1593ed5223d90b343=resfs/file/contrib/python/typing/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/typing/e894e3793024b1c1b6fc11110a.cpp" "_da2a72fe0572ad7c5ccba4a00c=resfs/src/resfs/file/contrib/deprecated/python/typing/.dist-info/METADATA" "_27b525b9218866ce23b95e87e2=resfs/file/contrib/deprecated/python/typing/.dist-info/METADATA" "_38194c94ca2e5963625ac3226f=resfs/src/resfs/file/contrib/deprecated/python/typing/.dist-info/top_level.txt" "_fa6f53cc1934a59fbbce46f7ae=resfs/file/contrib/deprecated/python/typing/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/typing/4793fbadcb0d5a197d142b79e1.cpp	$B/contrib/python/typing/6bc71412c28bc4e4dcfe8610fa.cpp	</Message>
+      <Message>$B/contrib/deprecated/python/typing/370e253d94b9e430070216cf4c.cpp	$B/contrib/deprecated/python/typing/e894e3793024b1c1b6fc11110a.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\typing\4793fbadcb0d5a197d142b79e1.cpp;$(SolutionDir)$(Configuration)\contrib\python\typing\6bc71412c28bc4e4dcfe8610fa.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\typing\370e253d94b9e430070216cf4c.cpp;$(SolutionDir)$(Configuration)\contrib\deprecated\python\typing\e894e3793024b1c1b6fc11110a.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
