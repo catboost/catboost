@@ -15,6 +15,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import getpass
 
 import six
 
@@ -1075,6 +1076,11 @@ class GnuToolchainOptions(ToolchainOptions):
                 return 'ubuntu-14'
 
             # Default OS SDK for Linux builds
+            # Use fresh SDK for any execution except of automated run on Distbuild and Sandbox.
+            # This is temporary code for first stage of DEVTOOLS-9797
+            user = getpass.getuser()
+            if not user.startswith('db-runner-') and user != 'sandbox':
+                return 'ubuntu-18'
             return 'ubuntu-14'
 
 
