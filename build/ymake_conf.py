@@ -795,15 +795,6 @@ class System(object):
         emit('SONAME')
 
     @staticmethod
-    def print_nix_host_const():
-        emit('WRITE_COMMAND', '/bin/echo', '-e')
-
-        print('''
-when ($USE_PYTHON) {
-    C_DEFINES+= -DUSE_PYTHON
-}''')
-
-    @staticmethod
     def print_linux_const():
         print('''
 when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
@@ -839,8 +830,6 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
     def print_host_settings(self):
         emit('HOST_PLATFORM', self.platform.os_compat)
         emit('CANONIZED_HOST_PLATFORM', self.platform.canonized_platform)
-        if not self.platform.is_windows:
-            self.print_nix_host_const()
 
         for variable in itertools.chain(self.platform.os_variables, self.platform.arch_variables):
             emit('HOST_{var}'.format(var=variable), 'yes')
