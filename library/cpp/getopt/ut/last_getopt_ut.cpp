@@ -415,6 +415,40 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
     }
 #endif
 
+    Y_UNIT_TEST(TestEqParseOnly) {
+        TOptsParserTester tester;
+
+        tester.Argv_.push_back("cmd");
+        tester.Argv_.push_back("--data=jjhh");
+        tester.Argv_.push_back("-n");
+        tester.Argv_.push_back("11");
+        tester.Argv_.push_back("--optional-number-1=8");
+        tester.Argv_.push_back("--optional-string-1=os1");
+        tester.Argv_.push_back("--optional-number-2");
+        tester.Argv_.push_back("10");
+        tester.Argv_.push_back("--optional-string-2");
+        tester.Argv_.push_back("freearg");
+
+        tester.Opts_.AddLongOption('d', "data");
+        tester.Opts_.AddLongOption('n', "number");
+        tester.Opts_.AddLongOption("optional-string-0");
+        tester.Opts_.AddLongOption("optional-number-0");
+        tester.Opts_.AddLongOption("optional-string-1");
+        tester.Opts_.AddLongOption("optional-number-1");
+        tester.Opts_.AddLongOption("optional-string-2").OptionalArgument().DisableSpaceParse();
+        tester.Opts_.AddLongOption("optional-number-2").OptionalArgument();
+
+        tester.AcceptOptionWithValue("data", "jjhh");
+        tester.AcceptOptionWithValue('n', "11");
+        tester.AcceptOptionWithValue("optional-number-1", "8");
+        tester.AcceptOptionWithValue("optional-string-1", "os1");
+        tester.AcceptOptionWithValue("optional-number-2", "10");
+        tester.AcceptOptionWithoutValue("optional-string-2");
+        tester.AcceptEndOfOptions();
+        tester.AcceptFreeArg("freearg");
+        tester.AcceptEndOfFreeArgs();
+    }
+
     Y_UNIT_TEST(TestStoreResult) {
         TOptsNoDefault opts;
         TString data;

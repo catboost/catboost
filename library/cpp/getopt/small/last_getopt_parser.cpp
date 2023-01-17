@@ -170,7 +170,7 @@ namespace NLastGetopt {
 
     bool TOptsParser::ParseOptParam(const TOpt* opt, size_t pos) {
         Y_ASSERT(opt);
-        if (opt->GetHasArg() == NO_ARGUMENT) {
+        if (opt->GetHasArg() == NO_ARGUMENT || opt->IsEqParseOnly()) {
             return Commit(opt, nullptr, pos, 0);
         }
         if (pos == Argc_) {
