@@ -1,0 +1,1 @@
+{% include [python-reference_catboost_get_object_importance](python-reference_catboost_get_object_importance.md) %}
