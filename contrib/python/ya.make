@@ -49,6 +49,7 @@ RECURSE(
     six
     stack-data
     testpath
+    threadpoolctl
     tomli
     tornado
     traitlets
