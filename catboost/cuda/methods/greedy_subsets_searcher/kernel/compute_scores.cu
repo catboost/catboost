@@ -289,6 +289,8 @@ namespace NKernel {
             class TScoreCalcer>
     __global__ void ComputeOptimalSplitsRegion(const TCBinFeature* bf,
                                                ui32 binFeatureCount,
+                                               const float* binFeaturesWeights,
+                                               ui32 binFeaturesWeightsCount,
                                                const float* histograms,
                                                const double* partStats, int statCount,
                                                const ui32* partIds,
@@ -356,7 +358,10 @@ namespace NKernel {
 
             //-10 - 0 = -10
             //in gpu catboost all scores are inverse, lower is better
-            const float gain = !skip ? abs(scoreAfter - scoreBefore) * (scoreAfter < scoreBefore ? -1 : 1) : 0;
+            float gain = !skip ? (scoreAfter - scoreBefore) : 0;
+
+            const ui32 featureId = bf[binFeatureId].FeatureId;
+            gain *= __ldg(binFeaturesWeights + featureId);
 
             if (gain < bestScore) {
                 bestScore = gain;
@@ -372,6 +377,8 @@ namespace NKernel {
         class TScoreCalcer>
     __global__ void ComputeOptimalSplit(const TCBinFeature* bf,
                                         ui32 binFeatureCount,
+                                        const float* binFeaturesWeights,
+                                        ui32 binFeaturesWeightsCount,
                                         const float* histograms,
                                         const double* partStats, int statCount,
                                         const int partId,
@@ -438,7 +445,10 @@ namespace NKernel {
 
             //-10 - 0 = -10
             //in gpu catboost all scores are inverse, lower is better
-            const float gain = !skip ? abs(scoreAfter - scoreBefore) * (scoreAfter < scoreBefore ? -1 : 1) : 0;
+            float gain = !skip ? (scoreAfter - scoreBefore) : 0;
+
+            const ui32 featureId = bf[binFeatureId].FeatureId;
+            gain *= __ldg(binFeaturesWeights + featureId);
 
             if (gain < bestScore) {
                 bestScore = gain;
@@ -451,6 +461,7 @@ namespace NKernel {
 
 
     void ComputeOptimalSplitsRegion(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                                    const float* binFeaturesWeights, ui32 binFeaturesWeightsCount,
                                     const float* histograms,
                                     const double* partStats, int statCount,
                                     const ui32* partIds, int partCount,
@@ -470,7 +481,7 @@ namespace NKernel {
         numBlocks.z = 1;
 
         #define RUN() \
-        ComputeOptimalSplitsRegion<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, histograms, partStats,  statCount, partIds, multiclassOptimization, scoreCalcer, result);
+        ComputeOptimalSplitsRegion<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partIds, multiclassOptimization, scoreCalcer, result);
 
 
         switch (scoreFunction)
@@ -519,6 +530,7 @@ namespace NKernel {
 
 
     void ComputeOptimalSplit(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                            const float* binFeaturesWeights, ui32 binFeaturesWeightsCount,
                             const float* histograms,
                             const double* partStats, int statCount,
                             ui32 partId, ui32 maybeSecondPartId,
@@ -538,7 +550,7 @@ namespace NKernel {
         numBlocks.z = 1;
 
         #define RUN() \
-        ComputeOptimalSplit<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, histograms, partStats,  statCount, partId, maybeSecondPartId, multiclassOptimization, scoreCalcer, result);
+        ComputeOptimalSplit<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partId, maybeSecondPartId, multiclassOptimization, scoreCalcer, result);
 
 
         switch (scoreFunction)

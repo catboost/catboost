@@ -1029,7 +1029,11 @@ namespace NCatboostCuda {
         FastUpdateLeavesSizes(ids, subsets);
     }
 
-    TPointsSubsets TSplitPropertiesHelper::CreateInitialSubsets(TOptimizationTarget&& target, ui32 maxLeaves) {
+    TPointsSubsets TSplitPropertiesHelper::CreateInitialSubsets(
+        TOptimizationTarget&& target,
+        ui32 maxLeaves,
+        TConstArrayRef<float> featureWeights
+    ) {
         TPointsSubsets subsets;
         subsets.Leaves.reserve(maxLeaves + 1);
 
@@ -1065,6 +1069,9 @@ namespace NCatboostCuda {
                               &subsets.PartitionStats);
 
         subsets.Leaves.push_back(TLeaf());
+
+        subsets.FeatureWeights = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(featureWeights.size()));
+        subsets.FeatureWeights.Write(featureWeights);
 
         RebuildLeavesSizes(&subsets);
         return subsets;

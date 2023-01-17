@@ -57,7 +57,7 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
         TCpuOnlyOption <bool> DevLeafwiseApproxes;
-        TCpuOnlyOption<TFeaturePenaltiesOptions> FeaturePenalties;
+        TOption<TFeaturePenaltiesOptions> FeaturePenalties;
 
     private:
         TOption<ETaskType> TaskType;
