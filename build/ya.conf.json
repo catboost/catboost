@@ -536,8 +536,8 @@
         "metrika-core": {
             "description": "Run metrika-core toolkit"
         },
-        "quota_mover": {
-            "description": "Run quota mover cli"
+        "abcd": {
+            "description": "Run abcd cli"
         }
     },
     "toolchain": {
@@ -6497,11 +6497,11 @@
                 }
             ]
         },
-        "quota_mover": {
+        "abcd": {
             "tools": {
-                "quota_mover": {
-                    "bottle": "quota_mover",
-                    "executable": "quota_mover"
+                "abcd": {
+                    "bottle": "abcd",
+                    "executable": "abcd"
                 }
             },
             "platforms": [
@@ -9031,13 +9031,13 @@
                 ]
             }
         },
-        "quota_mover": {
+        "abcd": {
             "formula": {
-                "sandbox_id": 1351287754,
+                "sandbox_id": 1357392225,
                 "match": "quota_mover"
             },
             "executable": {
-                "quota_mover": [
+                "abcd": [
                     "bin",
                     "quota_mover"
                 ]
