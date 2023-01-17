@@ -2460,44 +2460,38 @@ class MSVCCompiler(MSVC, Compiler):
             flags += [
                 # Allow <windows.h> to be included via <Windows.h> in case-sensitive file-systems.
                 '-fcase-insensitive-paths',
+
+                # At the time clang-cl identifies itself as MSVC 19.11:
+                # (actual value can be found in clang/lib/Driver/ToolChains/MSVC.cpp, the syntax would be like
+                # ```
+                # MSVT = VersionTuple(19, 11);
+                # ```
+                #
+                # We override this value to match current value of the actual MSVC being used.
+                '-fms-compatibility-version=19.21',
             ]
             if target.is_x86:
                 flags.append('-m32')
-            if target.is_x86_64:
+            elif target.is_x86_64:
                 flags.append('-m64')
 
             c_warnings.extend((
-                '-Wno-bitwise-op-parentheses',
                 '-Wno-format',
-                '-Wno-logical-op-parentheses',
                 '-Wno-parentheses',
                 '-Wno-unknown-warning-option',
             ))
 
             cxx_warnings += [
-                '-Woverloaded-virtual',
                 '-Wimport-preprocessor-directive-pedantic',
+                '-Woverloaded-virtual',
+                '-Wno-ambiguous-reversed-operator',
+                '-Wno-defaulted-function-deleted',
+                '-Wno-deprecated-anon-enum-enum-conversion',
+                '-Wno-deprecated-enum-enum-conversion',
+                '-Wno-deprecated-enum-float-conversion',
+                '-Wno-deprecated-volatile',
                 '-Wno-undefined-var-template',
             ]
-            if self.tc.version_at_least(2019):
-                cxx_warnings += [
-                    '-Wno-deprecated-volatile',
-                    '-Wno-deprecated-anon-enum-enum-conversion',
-                    '-Wno-defaulted-function-deleted',
-                    '-Wno-deprecated-enum-enum-conversion',
-                    '-Wno-ambiguous-reversed-operator',
-                    '-Wno-deprecated-enum-float-conversion',
-                ]
-
-                # heretic: на момент коммита в нашей конфигурации указано, что тулчейн clang11-windows - аналог msvc 2019
-                # https://a.yandex-team.ru/arc/trunk/arcadia/build/ya.conf.json?rev=r7910792#L2185
-                # сам clang11 по дефолту представляется msvc2017 (#define _MSC_VER 1911)
-                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/clang11/lib/Driver/ToolChains/MSVC.cpp?rev=r7913127#L1352
-                # вручную заставляем его представляться msvc2019 (#define _MSC_VER 1921)
-                # значение версии взято вот отсюда:
-                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/llvm11/include/llvm/Support/Compiler.h?blame=true&rev=r7913127#L89
-                if self.tc.version_exactly(2019):
-                    flags.append('-fms-compatibility-version=19.21')
 
             if self.tc.ide_msvs:
                 cxx_warnings += [
