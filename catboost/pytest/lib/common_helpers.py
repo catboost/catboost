@@ -156,7 +156,7 @@ def generate_random_labeled_dataset(
                 value = features_range[0] + (features_range[1] - features_range[0]) * (v1 / features_density)
             features[sample_idx, feature_idx] = features_dtype(value)
 
-    labels = [random.choice(labels) for _ in range(n_samples)]
+    labels = [random.choice(tuple(labels)) for _ in range(n_samples)]
 
     return (features, labels)
 
