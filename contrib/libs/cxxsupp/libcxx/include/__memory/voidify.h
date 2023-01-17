@@ -7,29 +7,24 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___UTILITY_DECAY_COPY_H
-#define _LIBCPP___UTILITY_DECAY_COPY_H
+#ifndef _LIBCPP___MEMORY_VOIDIFY_H
+#define _LIBCPP___MEMORY_VOIDIFY_H
 
 #include <__config>
-#include <__utility/forward.h>
-#include <type_traits>
+#include <__memory/addressof.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-template <class _Tp>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR
-typename decay<_Tp>::type __decay_copy(_Tp&& __t)
-#if _LIBCPP_STD_VER > 17
-    noexcept(is_nothrow_convertible_v<_Tp, decay_t<_Tp>>)
-#endif
-{
-  return _VSTD::forward<_Tp>(__t);
+template <typename _Tp>
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_AFTER_CXX17 void* __voidify(_Tp& __from) {
+  // Cast away cv-qualifiers to allow modifying elements of a range through const iterators.
+  return const_cast<void*>(static_cast<const volatile void*>(_VSTD::addressof(__from)));
 }
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP___UTILITY_DECAY_COPY_H
+#endif // _LIBCPP___MEMORY_VOIDIFY_H
