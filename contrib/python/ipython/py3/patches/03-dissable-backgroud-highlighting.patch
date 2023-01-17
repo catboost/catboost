@@ -1,5 +1,5 @@
 --- contrib/python/ipython/py3/IPython/core/ultratb.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/ultratb.py	(working tree)
-@@ -839,1 +839,1 @@ class VerboseTB(TBTools):
--            style = stack_data.style_with_executing_node(style, "bg:ansiyellow")
-+            style = stack_data.style_with_executing_node(style, "")
+@@ -613,1 +613,1 @@ class VerboseTB(TBTools):
+-    _tb_highlight = "bg:ansiyellow"
++    _tb_highlight = ""
