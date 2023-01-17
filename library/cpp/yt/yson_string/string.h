@@ -100,6 +100,10 @@ public:
     //! Copies the data in case the payload is not TString.
     TString ToString() const;
 
+    //! Returns the data represented by TSharedRef. The instance must be non-null.
+    //! The data is never copied.
+    TSharedRef ToSharedRef() const;
+
     //! Computes the hash code.
     size_t ComputeHash() const;
 

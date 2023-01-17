@@ -47,6 +47,11 @@ Y_FORCE_INLINE TRef TRef::FromPod(const T& data)
     return TRef(&data, sizeof (data));
 }
 
+Y_FORCE_INLINE TStringBuf TRef::ToStringBuf() const
+{
+    return TStringBuf(Begin(), Size());
+}
+
 Y_FORCE_INLINE TRef TRef::Slice(size_t startOffset, size_t endOffset) const
 {
     YT_ASSERT(endOffset >= startOffset && endOffset <= Size());
@@ -125,6 +130,11 @@ Y_FORCE_INLINE TSharedRef TSharedRef::FromString(TString str)
 Y_FORCE_INLINE TSharedRef TSharedRef::FromString(TString str)
 {
     return FromString<TDefaultSharedBlobTag>(std::move(str));
+}
+
+Y_FORCE_INLINE TStringBuf TSharedRef::ToStringBuf() const
+{
+    return TStringBuf(Begin(), Size());
 }
 
 template <class TTag>

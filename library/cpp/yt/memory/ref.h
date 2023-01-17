@@ -43,6 +43,9 @@ public:
     template <class T>
     static TRef FromPod(const T& data);
 
+    //! Converts to TStringBuf.
+    TStringBuf ToStringBuf() const;
+
     //! Creates a TRef for a part of existing range.
     TRef Slice(size_t startOffset, size_t endOffset) const;
 
@@ -141,6 +144,9 @@ public:
 
     //! Creates a TSharedRef for a given blob taking ownership of its content.
     static TSharedRef FromBlob(TBlob&& blob);
+
+    //! Converts to TStringBuf.
+    TStringBuf ToStringBuf() const;
 
     //! Creates a copy of a given TRef.
     //! The memory is marked with a given tag.
