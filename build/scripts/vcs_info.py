@@ -13,7 +13,7 @@ class _Formatting(object):
     @staticmethod
     def is_str(strval):
         if sys.version_info >= (3, 0, 0):
-            return isinstance(strval, (bytes,str))
+            return isinstance(strval, (bytes, str))
         else:
             return isinstance(strval, basestring)
 

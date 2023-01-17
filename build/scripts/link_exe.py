@@ -106,7 +106,7 @@ if __name__ == '__main__':
     cmd = remove_excessive_flags(args)
     if opts.musl:
         cmd = fix_cmd_for_musl(cmd)
-    
+
     if opts.dynamic_cuda:
         cmd = fix_cmd_for_dynamic_cuda(cmd)
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
