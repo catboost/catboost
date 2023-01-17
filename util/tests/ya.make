@@ -2,7 +2,6 @@ RECURSE(
     benchmark
     cython
     fuzzing
-    ut
     style
 )
 

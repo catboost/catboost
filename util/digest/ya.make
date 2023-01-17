@@ -1,8 +1,6 @@
 
 SUBSCRIBER(g:util-subscribers)
 
-PROVIDES(cityhash)
-
 RECURSE(
     benchmark
 )
