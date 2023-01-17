@@ -370,6 +370,8 @@ items:
             name: get_param
           - href: concepts/python-reference_catboostclassifier_get_params.md
             name: get_params
+          - href: concepts/python-reference_catboostclassifier_get_probability_threshold.md
+            name: get_probability_threshold
           - href: >-
               concepts/python-reference_catboostclassifier_get_scale_and_bias.md
             name: get_scale_and_bias
@@ -402,6 +404,8 @@ items:
             name: set_feature_names
           - href: concepts/python-reference_catboostclassifier_set_params.md
             name: set_params
+          - href: concepts/python-reference_catboostclassifier_set_probability_threshold.md
+            name: set_probability_threshold
           - href: >-
               concepts/python-reference_catboostclassifier_set_scale_and_bias.md
             name: set_scale_and_bias

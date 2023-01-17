@@ -299,6 +299,12 @@ Return a proxy object with metadata from the model's internal key-value string s
 {% include [sections-with-methods-desc-get_params--purpose](../_includes/work_src/reusage/get_params--purpose.md) %}
 
 
+### [get_probability_threshold](python-reference_catboostclassifier_get_probability_threshold.md)
+
+
+Get a threshold for class separation in binary classification task for a trained model.
+
+
 ### [get_scale_and_bias](python-reference_catboostclassifier_get_scale_and_bias.md)
 
 
@@ -393,6 +399,12 @@ Select the best features from the dataset using the [Recursive Feature Eliminati
 
 
 {% include [sections-with-methods-desc-set_params--purpose](../_includes/work_src/reusage/set_params--purpose.md) %}
+
+
+### [set_probability_threshold](python-reference_catboostclassifier_set_probability_threshold.md)
+
+
+Set a threshold for class separation in binary classification task for a trained model.
 
 
 ### [set_scale_and_bias](python-reference_catboostregressor_set_scale_and_bias.md)

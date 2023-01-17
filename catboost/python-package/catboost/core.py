@@ -5409,7 +5409,7 @@ class CatBoostClassifier(CatBoost):
 
     def set_probability_threshold(self, binclass_probability_threshold=None):
         """
-        Set a threshold for classes separation in binary classification task for a trained model.
+        Set a threshold for class separation in binary classification task for a trained model.
         :param binclass_probability_threshold: float number in [0, 1] or None to discard it
         """
         if not self.is_fitted():
@@ -5427,7 +5427,7 @@ class CatBoostClassifier(CatBoost):
 
     def get_probability_threshold(self):
         """
-        Get a threshold for classes separation in binary classification task
+        Get a threshold for class separation in binary classification task
         """
         if not self.is_fitted():
             raise CatBoostError("Not fitted models don't have a probability threshold.")
