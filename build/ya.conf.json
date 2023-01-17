@@ -274,6 +274,9 @@
         "run_python_udf": {
             "description": "run_python_udf tool"
         },
+        "logos": {
+            "description": "run logos helpers tools"
+        },
         "arc": {
             "description": "Arcadia command-line client"
         },
@@ -5212,6 +5215,34 @@
                 }
             ]
         },
+        "logos": {
+            "tools": {
+                "logos": {
+                    "bottle": "logos",
+                    "executable": "gen_tools"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "graphs_difference": {
             "tools": {
                 "graphs_difference": {
@@ -8045,6 +8076,17 @@
             "executable": {
                 "run_python_udf": [
                     "run_python_udf"
+                ]
+            }
+        },
+        "logos": {
+            "formula": {
+                "sandbox_id": 1566057525,
+                "match": "gen_tools"
+            },
+            "executable": {
+                "gen_tools": [
+                    "gen_tools"
                 ]
             }
         },
