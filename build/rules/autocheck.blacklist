@@ -135,3 +135,4 @@ contest/experiments/kafka/consumer
 market/ir/b2b
 supdev/H2S
 contest/backend/flow
+market/front/schedulers
