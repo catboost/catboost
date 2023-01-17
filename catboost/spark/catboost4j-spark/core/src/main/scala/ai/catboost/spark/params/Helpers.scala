@@ -342,8 +342,10 @@ private[spark] object Helpers {
     "per_object_feature_penalties_list" -> "per_object_feature_penalties",
 
     "spark_partition_count" -> null,
+    "training_driver_listening_port" -> null,
     "worker_initialization_timeout" -> null,
     "worker_max_failures" -> null,
+    "worker_listening_port" -> null,
     "connect_timeout" -> null,
 
     // processed in separate functions
