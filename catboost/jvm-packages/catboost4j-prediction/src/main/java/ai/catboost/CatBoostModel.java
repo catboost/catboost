@@ -337,14 +337,14 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     /**
-     * @return Number of text features used by the model.
+     * @return Number of embedding features used by the model.
      */
     public int getUsedEmbeddingFeatureCount() {
         return usedEmbeddingFeatureCount;
     }
 
     /**
-     * @return Name of features used by the model.
+     * @return Names of features used by the model.
      */
     public String[] getFeatureNames() { return featureNames; }
 
