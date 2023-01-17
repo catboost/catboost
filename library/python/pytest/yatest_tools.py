@@ -9,6 +9,8 @@ import sys
 
 import yatest_lib.tools
 
+SEP = "/"
+
 
 class Subtest(object):
     def __init__(self, name, test_name, status, comment, elapsed, result=None, test_type=None, logs=None, cwd=None, metrics=None):
@@ -286,13 +288,15 @@ def get_test_log_file_path(output_dir, class_name, test_name, extension="log"):
 def split_node_id(nodeid, test_suffix=None):
     path, possible_open_bracket, params = nodeid.partition('[')
     separator = "::"
+    test_name = None
     if separator in path:
         path, test_name = path.split(separator, 1)
-    else:
-        test_name = os.path.basename(path)
+    path = _unify_path(path)
+    class_name = os.path.basename(path)
+    if test_name is None:
+        test_name = class_name
     if test_suffix:
         test_name += "::" + test_suffix
-    class_name = os.path.basename(path.strip())
     if separator in test_name:
         klass_name, test_name = test_name.split(separator, 1)
         if not test_suffix:
@@ -302,3 +306,27 @@ def split_node_id(nodeid, test_suffix=None):
         test_name = test_name.split(separator)[-1]
     test_name += possible_open_bracket + params
     return yatest_lib.tools.to_utf8(class_name), yatest_lib.tools.to_utf8(test_name)
+
+
+# If CONFTEST_LOAD_POLICY==LOCAL the path parameters is a true test file path. Something like
+#   /-B/taxi/uservices/services/alt/gen/tests/build/services/alt/validation/test_generated_files.py
+# If CONFTEST_LOAD_POLICY is not LOCAL the path parameter is a module name with '.py' extension added. Example:
+#  validation.test_generated_files.py
+# To make test names independent of the CONFTEST_LOAD_POLICY value replace path by module name if possible.
+def _unify_path(path):
+    test_mod_pfx = "__tests__."
+    py_ext = ".py"
+
+    path = path.strip()
+    if SEP in path and getattr(sys, "is_standalone_binary", False):
+        # Try to find path as a module in test modules and use it as a class name
+        # This is the only way to unify different CONFTEST_LOAD_POLICY modes
+        parts = path[:-len(py_ext)].split(SEP)
+        pattern = "." + ".".join(parts)
+        for module in sys.extra_modules:
+            if module.startswith(test_mod_pfx):
+                m = module[len(test_mod_pfx) - 1:]
+                if pattern.endswith(m):
+                    # Remove leading '.' and add file extension
+                    return m[1:] + py_ext
+    return path
