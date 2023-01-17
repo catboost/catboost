@@ -48,7 +48,7 @@ classifieds/verticals-backend
 classifieds/schema-registry
 devtools/experimental/repo/REPO-33/torture
 devtools/trendbox
-portal/frontend/sandbox-cleaner
+portal/frontend
 contest/services/orc
 academy/admission/backend
 cloud/mdb/tools/errata-generator
@@ -57,14 +57,11 @@ classifieds/mobile-antirobot-ios
 disk/workspace/workspace-properties
 academy/lyceum/backend
 hypercube/hardware/YhubModbusBootloader
-portal/frontend/webpack-stub
-portal/frontend/teamcity-build-statistics
 cmnt/frontend/cmnt-monitoring
 partner/frontend/creator
 data-ui/transfer-manager
 marketing/promo-image-generator-2019
 cmnt/frontend/cmnt-node-image-uploader
-portal/frontend/yp-watch
 supdev/transfer
 yawe
 contest/core/monolith
@@ -97,13 +94,11 @@ hypercube/hardware/YHub10_STM32firmware
 data-ui/unipika
 market/ir/lib/ir-pattern-extractor
 data-ui/infra-components
-portal/frontend/tune-suggest-proxy
 data-ui/yqlkit
 data-ui/generic-socket
 data-ui/infra-buzzer
 data-ui/tvm-utils
 data-ui/reconnecting-websocket
-portal/frontend/morda-stubs
 contest/compilers
 supdev/tier35
 cloud/mdb/vm-image-build
@@ -126,7 +121,6 @@ marketing/redirector
 marketing/patterns/dbcleaner
 marketing/autopoet
 marketing/iseg
-portal/frontend/wy
 marketing/time-data-generator
 supdev/Care
 marketing/typograf
@@ -314,11 +308,9 @@ mole
 taxi/github/lavka-analytics
 intranet/staff-api
 market/erp_axapta/libs/SimpleS3Wrapper
-portal/frontend/safari-ntp
 market/ir/lib/title-maker
 market/ir/lib/robot-kdepot
 search-interfaces/turbo-services/turboext/ci
-portal/frontend/direct-ad-adapter
 portal/geohelper
 portal/xiva
 portal/documents
@@ -327,7 +319,6 @@ passport/infra/legacy/kannel
 passport/backend/passport_stress_fake_services
 data-ui/ydb-nodejs-sdk-benchmarks
 library/python/cia_stuff
-portal/frontend/gitworker
 intranet/legacy/emission
 passport/backend/grants_configurator
 data-ui/YaDB
@@ -337,7 +328,6 @@ taxi/lavka/platform/matcher/matching-server
 tracker/legacy/gradle-tanker-plugin
 library/python/django_ids
 intranet/easymeeting_api
-portal/frontend/divcard2
 market/erp_axapta/libs/YAVClient
 distribution_interface/protocol
 taxi/github/external/mongo-cxx-driver-legacy
@@ -435,8 +425,6 @@ noc/traffic/junk/dnsmanager/backend
 noc/traffic/junk/dnsmanager/frontend
 diehard/legacy/backend
 noc/traffic/junk/heat-map
-portal/frontend/logo-admin-back
-portal/frontend/logo-admin-front
 yandex360/frontend
 taxi/github/infra-cfg-logfeller
 data-ui/cloud-console-terraform
@@ -446,7 +434,6 @@ marketing/patterns/api
 data-ui/cloud-docfarm-api
 data-ui/tracker-ios
 taxi/frontend/packages/amber-blocks
-portal/frontend/fakestat
 taxi/dmp/ssas-http
 data-ui/cloud-deploy
 market/front/libs/jest-allure-report
@@ -590,7 +577,6 @@ market/front/libs/export-static/export-static
 portal/archive/covers-static
 hypercube/museum
 for-media/terminal-compare
-portal/frontend/mumu
 education/frontend-schools
 for-media/download-regions-linguistics
 market/front/libs/partner-release-checker
@@ -683,6 +669,11 @@ market/front/libs/hermione-file-writer
 market/front/misc/microformats
 trust/trust
 classifieds/mobile-autoru-client-ios
+classifieds/mobile-realty-client-ios
+classifieds/mobile-realty-client-ios-buildscript
+classifieds/mobile-cocoapods-tools
+classifieds/mobile-fastlane-tools
+classifieds/mobile-libraries-ios
 market/front/libs/webdriver-io-commands
 market/front/libs/codestyle
 market/front/libs/hermione-suite-manager
@@ -749,7 +740,6 @@ market/mbo/scripts/nanny-ssh
 portal/archive/static-nginx
 taxi/infranaim/infranaim
 data-ui/infrastructure
-portal/frontend/bundle-analyzer
 investors/ir/templates
 investors/ir/nginx
 pr/company/emailer
@@ -778,7 +768,6 @@ portal/archive/home-hooks
 marketing/research-front
 classifieds/yandex-vertis-autoru-static
 marketing/research-admin
-portal/frontend/multibuilder
 market/front/tools/marketanalyticsbot
 market/front/tools/order-feedback-loader
 market/front/tools/order-edit-items
@@ -787,7 +776,6 @@ market/front/libs/market-money-helpers
 marketing/research-api
 marketing/research-cron
 mds/avatars/resizer
-portal/frontend/icecube
 market/front/tools/codestats-builders
 taxi/github/infra-ansible-external
 mds/rbtorrent
@@ -795,7 +783,6 @@ mds/cocaine/isolate-daemon
 portal/static-uploader
 portal/archive/stories-utils
 market/front/libs/testament
-portal/frontend/islands-blocks-import
 strm/salt-configs/github
 portal/morda-xs
 intranet/ad_system
@@ -858,7 +845,6 @@ portal/archive/vh-validation
 player/run-videoplayer-regress
 portal/archive/rapido-lang
 portal/archive/javascript-v8
-portal/frontend/statpost
 player/is-yandex-player-supported
 trust/frontend/legacy/yb-express-graphite
 passport/frontend/autofill
@@ -866,7 +852,6 @@ taxi/lavka/platform/wms-front
 portal/archive/achievement-api
 portal/archive/morda-exports
 partner/perl/partner2
-portal/frontend/dev-proxy
 partner/frontend/yharnam
 taxi/dmp/logging-conf
 addappter/frontend/promo-addappter
@@ -1082,9 +1067,6 @@ billing/frontend/fop
 player/web-player
 commerce/adv-front
 taxi/dmp/business_models
-portal/frontend/views-plugin-idea
-portal/frontend/views-plugin-vscode
-portal/frontend/div2html
 antiadblock/aab_detect
 kinopoisk/sre/kinopoisk-cm-s3-admin-front
 kinopoisk/sre/yandex-media-monrun-pt-kill-check
@@ -1251,3 +1233,5 @@ data-ui/connect-organization-context
 alice/paskills/webhook-test
 data-ui/yfm-intranet-plugins
 classifieds/frontend-metro
+data-ui/wiki-yfm-converter
+haas/libs/js/angui
