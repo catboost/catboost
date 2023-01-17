@@ -63,3 +63,7 @@ IF (OS_DARWIN OR OS_IOS)
 ENDIF()
 
 END()
+
+RECURSE_FOR_TESTS(
+    ut
+)

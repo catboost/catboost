@@ -23,6 +23,7 @@ from pandas.core.internals.managers import (
 
 __all__ = [
     "Block",
+    "CategoricalBlock",
     "NumericBlock",
     "DatetimeTZBlock",
     "ExtensionBlock",

@@ -5,7 +5,6 @@ import itertools
 import operator
 from typing import (
     Any,
-    Callable,
     cast,
 )
 import warnings
@@ -17,6 +16,7 @@ from pandas._config import get_option
 from pandas._libs import (
     NaT,
     NaTType,
+    Timedelta,
     iNaT,
     lib,
 )
@@ -72,7 +72,7 @@ set_use_bottleneck(get_option("compute.use_bottleneck"))
 
 
 class disallow:
-    def __init__(self, *dtypes: Dtype) -> None:
+    def __init__(self, *dtypes: Dtype):
         super().__init__()
         self.dtypes = tuple(pandas_dtype(dtype).type for dtype in dtypes)
 
@@ -104,7 +104,7 @@ class disallow:
 
 
 class bottleneck_switch:
-    def __init__(self, name=None, **kwargs) -> None:
+    def __init__(self, name=None, **kwargs):
         self.name = name
         self.kwargs = kwargs
 
@@ -162,10 +162,6 @@ class bottleneck_switch:
 def _bn_ok_dtype(dtype: DtypeObj, name: str) -> bool:
     # Bottleneck chokes on datetime64, PeriodDtype (or and EA)
     if not is_object_dtype(dtype) and not needs_i8_conversion(dtype):
-        # GH 42878
-        # Bottleneck uses naive summation leading to O(n) loss of precision
-        # unlike numpy which implements pairwise summation, which has O(log(n)) loss
-        # crossref: https://github.com/pydata/bottleneck/issues/379
 
         # GH 15507
         # bottleneck does not properly upcast during the sum
@@ -175,7 +171,7 @@ def _bn_ok_dtype(dtype: DtypeObj, name: str) -> bool:
         # further we also want to preserve NaN when all elements
         # are NaN, unlike bottleneck/numpy which consider this
         # to be 0
-        return name not in ["nansum", "nanprod", "nanmean"]
+        return name not in ["nansum", "nanprod"]
     return False
 
 
@@ -371,23 +367,19 @@ def _wrap_results(result, dtype: np.dtype, fill_value=None):
                 result = np.datetime64("NaT", "ns")
             else:
                 result = np.int64(result).view("datetime64[ns]")
-            # retain original unit
-            result = result.astype(dtype, copy=False)
         else:
             # If we have float dtype, taking a view will give the wrong result
             result = result.astype(dtype)
     elif is_timedelta64_dtype(dtype):
         if not isinstance(result, np.ndarray):
-            if result == fill_value or np.isnan(result):
-                result = np.timedelta64("NaT").astype(dtype)
+            if result == fill_value:
+                result = np.nan
 
-            elif np.fabs(result) > lib.i8max:
-                # raise if we have a timedelta64[ns] which is too large
+            # raise if we have a timedelta64[ns] which is too large
+            if np.fabs(result) > lib.i8max:
                 raise ValueError("overflow in timedelta operation")
-            else:
-                # return a timedelta64 with the original unit
-                result = np.int64(result).astype(dtype, copy=False)
 
+            result = Timedelta(result, unit="ns")
         else:
             result = result.astype("m8[ns]").view(dtype)
 
@@ -649,7 +641,7 @@ def _mask_datetimelike_result(
         result[axis_mask] = iNaT  # type: ignore[index]
     else:
         if mask.any():
-            return np.int64(iNaT).view(orig_values.dtype)
+            return NaT
     return result
 
 
@@ -827,7 +819,7 @@ def _get_counts_nanvar(
     axis: int | None,
     ddof: int,
     dtype: np.dtype = np.dtype(np.float64),
-) -> tuple[float | np.ndarray, float | np.ndarray]:
+) -> tuple[int | float | np.ndarray, int | float | np.ndarray]:
     """
     Get the count of non-null values along an axis, accounting
     for degrees of freedom.
@@ -1414,7 +1406,7 @@ def _get_counts(
     mask: npt.NDArray[np.bool_] | None,
     axis: int | None,
     dtype: np.dtype = np.dtype(np.float64),
-) -> float | np.ndarray:
+) -> int | float | np.ndarray:
     """
     Get the count of non-null values along an axis
 
@@ -1476,8 +1468,8 @@ def _maybe_null_out(
             if is_numeric_dtype(result):
                 if np.iscomplexobj(result):
                     result = result.astype("c16")
-                elif not is_float_dtype(result):
-                    result = result.astype("f8", copy=False)
+                else:
+                    result = result.astype("f8")
                 result[null_mask] = np.nan
             else:
                 # GH12941, use None to auto cast null
@@ -1532,7 +1524,7 @@ def _zero_out_fperr(arg):
 @disallow("M8", "m8")
 def nancorr(
     a: np.ndarray, b: np.ndarray, *, method="pearson", min_periods: int | None = None
-) -> float:
+):
     """
     a, b: ndarrays
     """
@@ -1554,7 +1546,7 @@ def nancorr(
     return f(a, b)
 
 
-def get_corr_func(method) -> Callable[[np.ndarray, np.ndarray], float]:
+def get_corr_func(method):
     if method == "kendall":
         from scipy.stats import kendalltau
 
@@ -1591,7 +1583,7 @@ def nancov(
     *,
     min_periods: int | None = None,
     ddof: int | None = 1,
-) -> float:
+):
     if len(a) != len(b):
         raise AssertionError("Operands to nancov must have same size")
 

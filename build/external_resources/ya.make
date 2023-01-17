@@ -2,6 +2,7 @@
 
 RECURSE(
     antlr3
+    antlr4
     eslint
     gradle
     maven
@@ -37,7 +38,6 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     goyndexer
     hermione
     jest
-    nyc
     pnpm
     typescript
     webpack

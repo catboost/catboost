@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from pandas.core.algorithms import unique1d
@@ -10,9 +8,7 @@ from pandas.core.arrays.categorical import (
     CategoricalDtype,
     recode_for_categories,
 )
-
-if TYPE_CHECKING:
-    from pandas.core.indexes.api import CategoricalIndex
+from pandas.core.indexes.api import CategoricalIndex
 
 
 def recode_for_groupby(

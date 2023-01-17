@@ -92,11 +92,19 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex):
     freqstr: str | None
     _resolution_obj: Resolution
 
-    # ------------------------------------------------------------------------
+    # error: "Callable[[Any], Any]" has no attribute "fget"
+    hasnans = cast(
+        bool,
+        cache_readonly(
+            DatetimeLikeArrayMixin._hasna.fget  # type: ignore[attr-defined]
+        ),
+    )
 
-    @cache_readonly
-    def hasnans(self) -> bool:
-        return self._data._hasna
+    @property
+    def _is_all_dates(self) -> bool:
+        return True
+
+    # ------------------------------------------------------------------------
 
     def equals(self, other: Any) -> bool:
         """
@@ -142,6 +150,8 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex):
         except (KeyError, TypeError, ValueError):
             return False
         return True
+
+    _can_hold_na = True
 
     def _convert_tolerance(self, tolerance, target):
         tolerance = np.asarray(to_timedelta(tolerance).to_numpy())
@@ -210,12 +220,8 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex):
     # --------------------------------------------------------------------
     # Indexing Methods
 
-    @final
     def _can_partial_date_slice(self, reso: Resolution) -> bool:
-        # e.g. test_getitem_setitem_periodindex
-        # History of conversation GH#3452, GH#3931, GH#2369, GH#14826
-        return reso > self._resolution_obj
-        # NB: for DTI/PI, not TDI
+        raise NotImplementedError
 
     def _parsed_string_to_bounds(self, reso: Resolution, parsed):
         raise NotImplementedError
@@ -232,7 +238,6 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex):
         return parsed, reso
 
     def _get_string_slice(self, key: str):
-        # overridden by TimedeltaIndex
         parsed, reso = self._parse_with_reso(key)
         try:
             return self._partial_date_slice(reso, parsed)
@@ -677,7 +682,7 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin):
         return freq
 
     @doc(NDArrayBackedExtensionIndex.delete)
-    def delete(self, loc) -> DatetimeTimedeltaMixin:
+    def delete(self, loc):
         result = super().delete(loc)
         result._data._freq = self._get_delete_freq(loc)
         return result

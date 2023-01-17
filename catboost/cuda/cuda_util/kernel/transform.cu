@@ -332,10 +332,8 @@ namespace NKernel {
     GATHER_SCATTER_TEMPL(int, ui32)
     GATHER_SCATTER_TEMPL(ui8, ui32)
     GATHER_SCATTER_TEMPL(uint2, ui32)
-    GATHER_SCATTER_TEMPL(uint2, ui64)
     GATHER_SCATTER_TEMPL(ui32, ui32)
     GATHER_SCATTER_TEMPL(float, ui32)
-    GATHER_SCATTER_TEMPL(float, ui64)
     GATHER_SCATTER_TEMPL(bool, ui32)
 
     #define REVERSE_VECTOR_TEMPL(Type) \

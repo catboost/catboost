@@ -9,11 +9,8 @@ from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     Any,
-    Optional,
     Sequence,
-    Union,
     cast,
-    overload,
 )
 import warnings
 
@@ -21,13 +18,11 @@ import numpy as np
 import numpy.ma as ma
 
 from pandas._libs import lib
-from pandas._libs.tslibs.period import Period
 from pandas._typing import (
     AnyArrayLike,
     ArrayLike,
     Dtype,
     DtypeObj,
-    T,
 )
 from pandas.errors import IntCastingNaNError
 from pandas.util._exceptions import find_stack_level
@@ -334,8 +329,7 @@ def array(
     if dtype is None:
         inferred_dtype = lib.infer_dtype(data, skipna=True)
         if inferred_dtype == "period":
-            period_data = cast(Union[Sequence[Optional[Period]], AnyArrayLike], data)
-            return PeriodArray._from_sequence(period_data, copy=copy)
+            return PeriodArray._from_sequence(data, copy=copy)
 
         elif inferred_dtype == "interval":
             return IntervalArray(data, copy=copy)
@@ -382,23 +376,9 @@ def array(
     return PandasArray._from_sequence(data, dtype=dtype, copy=copy)
 
 
-@overload
 def extract_array(
-    obj: Series | Index, extract_numpy: bool = ..., extract_range: bool = ...
-) -> ArrayLike:
-    ...
-
-
-@overload
-def extract_array(
-    obj: T, extract_numpy: bool = ..., extract_range: bool = ...
-) -> T | ArrayLike:
-    ...
-
-
-def extract_array(
-    obj: T, extract_numpy: bool = False, extract_range: bool = False
-) -> T | ArrayLike:
+    obj: object, extract_numpy: bool = False, extract_range: bool = False
+) -> Any | ArrayLike:
     """
     Extract the ndarray or ExtensionArray from a Series or Index.
 
@@ -445,15 +425,12 @@ def extract_array(
         if isinstance(obj, ABCRangeIndex):
             if extract_range:
                 return obj._values
-            # https://github.com/python/mypy/issues/1081
-            # error: Incompatible return value type (got "RangeIndex", expected
-            # "Union[T, Union[ExtensionArray, ndarray[Any, Any]]]")
-            return obj  # type: ignore[return-value]
+            return obj
 
-        return obj._values
+        obj = obj._values
 
     elif extract_numpy and isinstance(obj, ABCPandasArray):
-        return obj.to_numpy()
+        obj = obj.to_numpy()
 
     return obj
 
@@ -587,10 +564,6 @@ def sanitize_array(
                     #  it is lossy.
                     dtype = cast(np.dtype, dtype)
                     return np.array(data, dtype=dtype, copy=copy)
-
-                # We ignore the dtype arg and return floating values,
-                #  e.g. test_constructor_floating_data_int_dtype
-                # TODO: where is the discussion that documents the reason for this?
                 subarr = np.array(data, copy=copy)
         else:
             # we will try to copy by-definition here
@@ -618,26 +591,7 @@ def sanitize_array(
             data = list(data)
 
         if dtype is not None or len(data) == 0:
-            try:
-                subarr = _try_cast(data, dtype, copy, raise_cast_failure)
-            except ValueError:
-                if is_integer_dtype(dtype):
-                    casted = np.array(data, copy=False)
-                    if casted.dtype.kind == "f":
-                        # GH#40110 match the behavior we have if we passed
-                        #  a ndarray[float] to begin with
-                        return sanitize_array(
-                            casted,
-                            index,
-                            dtype,
-                            copy=False,
-                            raise_cast_failure=raise_cast_failure,
-                            allow_2d=allow_2d,
-                        )
-                    else:
-                        raise
-                else:
-                    raise
+            subarr = _try_cast(data, dtype, copy, raise_cast_failure)
         else:
             subarr = maybe_convert_platform(data)
             if subarr.dtype == object:
@@ -795,8 +749,7 @@ def _try_cast(
             #  data differently; _from_sequence treats naive as wall times,
             #  while maybe_cast_to_datetime treats it as UTC
             #  see test_maybe_promote_any_numpy_dtype_with_datetimetz
-            # TODO(2.0): with deprecations enforced, should be able to remove
-            #  special case.
+
             return maybe_cast_to_datetime(arr, dtype)
             # TODO: copy?
 
@@ -812,16 +765,7 @@ def _try_cast(
 
     elif dtype.kind == "U":
         # TODO: test cases with arr.dtype.kind in ["m", "M"]
-        if is_ndarray:
-            arr = cast(np.ndarray, arr)
-            shape = arr.shape
-            if arr.ndim > 1:
-                arr = arr.ravel()
-        else:
-            shape = (len(arr),)
-        return lib.ensure_string_array(arr, convert_na_value=False, copy=copy).reshape(
-            shape
-        )
+        return lib.ensure_string_array(arr, convert_na_value=False, copy=copy)
 
     elif dtype.kind in ["m", "M"]:
         return maybe_cast_to_datetime(arr, dtype)

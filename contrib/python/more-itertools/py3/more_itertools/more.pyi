@@ -72,6 +72,7 @@ class peekable(Generic[_T], Iterator[_T]):
     @overload
     def __getitem__(self, index: slice) -> List[_T]: ...
 
+def collate(*iterables: Iterable[_T], **kwargs: Any) -> Iterable[_T]: ...
 def consumer(func: _GenFn) -> _GenFn: ...
 def ilen(iterable: Iterable[object]) -> int: ...
 def iterate(func: Callable[[_T], _T], start: _T) -> Iterator[_T]: ...
@@ -178,7 +179,7 @@ def padded(
     iterable: Iterable[_T],
     *,
     n: Optional[int] = ...,
-    next_multiple: bool = ...,
+    next_multiple: bool = ...
 ) -> Iterator[Optional[_T]]: ...
 @overload
 def padded(
@@ -224,7 +225,7 @@ def zip_equal(
     __iter1: Iterable[_T],
     __iter2: Iterable[_T],
     __iter3: Iterable[_T],
-    *iterables: Iterable[_T],
+    *iterables: Iterable[_T]
 ) -> Iterator[Tuple[_T, ...]]: ...
 @overload
 def zip_offset(
@@ -232,7 +233,7 @@ def zip_offset(
     *,
     offsets: _SizedIterable[int],
     longest: bool = ...,
-    fillvalue: None = None,
+    fillvalue: None = None
 ) -> Iterator[Tuple[Optional[_T1]]]: ...
 @overload
 def zip_offset(
@@ -241,7 +242,7 @@ def zip_offset(
     *,
     offsets: _SizedIterable[int],
     longest: bool = ...,
-    fillvalue: None = None,
+    fillvalue: None = None
 ) -> Iterator[Tuple[Optional[_T1], Optional[_T2]]]: ...
 @overload
 def zip_offset(
@@ -251,7 +252,7 @@ def zip_offset(
     *iterables: Iterable[_T],
     offsets: _SizedIterable[int],
     longest: bool = ...,
-    fillvalue: None = None,
+    fillvalue: None = None
 ) -> Iterator[Tuple[Optional[_T], ...]]: ...
 @overload
 def zip_offset(
@@ -419,7 +420,7 @@ def difference(
     iterable: Iterable[_T],
     func: Callable[[_T, _T], _U] = ...,
     *,
-    initial: None = ...,
+    initial: None = ...
 ) -> Iterator[Union[_T, _U]]: ...
 @overload
 def difference(
@@ -528,12 +529,12 @@ def distinct_combinations(
 def filter_except(
     validator: Callable[[Any], object],
     iterable: Iterable[_T],
-    *exceptions: Type[BaseException],
+    *exceptions: Type[BaseException]
 ) -> Iterator[_T]: ...
 def map_except(
     function: Callable[[Any], _U],
     iterable: Iterable[_T],
-    *exceptions: Type[BaseException],
+    *exceptions: Type[BaseException]
 ) -> Iterator[_U]: ...
 def map_if(
     iterable: Iterable[Any],
@@ -609,7 +610,7 @@ def zip_broadcast(
     scalar_types: Union[
         type, Tuple[Union[type, Tuple[Any, ...]], ...], None
     ] = ...,
-    strict: bool = ...,
+    strict: bool = ...
 ) -> Iterable[Tuple[_T, ...]]: ...
 def unique_in_window(
     iterable: Iterable[_T], n: int, key: Optional[Callable[[_T], _U]] = ...
@@ -639,7 +640,7 @@ def minmax(
     iterable_or_value: Iterable[_SupportsLessThanT],
     *,
     key: None = None,
-    default: _U,
+    default: _U
 ) -> Union[_U, Tuple[_SupportsLessThanT, _SupportsLessThanT]]: ...
 @overload
 def minmax(
@@ -652,23 +653,16 @@ def minmax(
 def minmax(
     iterable_or_value: _SupportsLessThanT,
     __other: _SupportsLessThanT,
-    *others: _SupportsLessThanT,
+    *others: _SupportsLessThanT
 ) -> Tuple[_SupportsLessThanT, _SupportsLessThanT]: ...
 @overload
 def minmax(
     iterable_or_value: _T,
     __other: _T,
     *others: _T,
-    key: Callable[[_T], _SupportsLessThan],
+    key: Callable[[_T], _SupportsLessThan]
 ) -> Tuple[_T, _T]: ...
 def longest_common_prefix(
     iterables: Iterable[Iterable[_T]],
 ) -> Iterator[_T]: ...
 def iequals(*iterables: Iterable[object]) -> bool: ...
-def constrained_batches(
-    iterable: Iterable[object],
-    max_size: int,
-    max_count: Optional[int] = ...,
-    get_len: Callable[[_T], object] = ...,
-    strict: bool = ...,
-) -> Iterator[Tuple[_T]]: ...

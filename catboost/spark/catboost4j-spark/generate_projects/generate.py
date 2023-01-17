@@ -21,7 +21,7 @@ def generate_project(src_dir, substitution_dict, dst_dir):
 
 
 global_substitition_dict = {
-    'catboost_version_placeholder': '1.1.1',
+    'catboost_version_placeholder': '1.1',
     'relative_global_project_root_placeholder': '../..'
 }
 
@@ -152,20 +152,6 @@ configs = [
             'json4s_version_placeholder': '3.7.0-M11',
             'netty_all_version_placeholer': '4.1.74.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
-        }
-    },
-    {
-        'dst_dir' : '../projects/spark_3.3_2.13',
-        'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
-            'scala_compat_version_placeholder': '2.13',
-            'scala_version_placeholder': '2.13.5',
-            'spark_compat_version_placeholder': '3.3',
-            'spark_version_placeholder': '3.3.0',
-            'hadoop_version_placeholder': '3.3.2',
-            'json4s_version_placeholder': '3.7.0-M11',
-            'netty_all_version_placeholer': '4.1.74.Final',
-            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
     }
 ]

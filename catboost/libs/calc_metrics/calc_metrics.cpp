@@ -324,8 +324,6 @@ namespace NCB {
         Y_ASSERT(inputPath.Scheme == "dsv" || inputPath.Scheme == "");
         ui32 columnCount = GetDsvColumnCount(inputPath, dsvFormat);
 
-        CheckColumnIndices(columnCount, nonAuxiliaryColumnsDescription);
-
         TVector<TColumn> columnsDescription;
         columnsDescription.resize(columnCount, {EColumn::Auxiliary, TString()});
         for (auto [ind, column] : nonAuxiliaryColumnsDescription) {
@@ -345,14 +343,6 @@ namespace NCB {
             metricResults.insert({metrics[ind]->GetDescription(), calculatedMetrics[ind]});
         }
         return metricResults;
-    }
-
-    void CheckColumnIndices(int columnCount, const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription) {
-        for (auto [ind, column] : nonAuxiliaryColumnsDescription) {
-            CB_ENSURE(
-                ind < columnCount,
-                "Index of " << ToString(column) << " column (" << ind << ") is invalid, and should belong to [0, column count)");
-        }
     }
 
     namespace {

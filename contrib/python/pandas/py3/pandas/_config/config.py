@@ -58,19 +58,13 @@ import re
 from typing import (
     Any,
     Callable,
-    Generic,
     Iterable,
-    Iterator,
     NamedTuple,
     cast,
 )
 import warnings
 
-from pandas._typing import (
-    F,
-    T,
-)
-from pandas.util._exceptions import find_stack_level
+from pandas._typing import F
 
 
 class DeprecatedOption(NamedTuple):
@@ -103,9 +97,8 @@ _reserved_keys: list[str] = ["all"]
 
 class OptionError(AttributeError, KeyError):
     """
-    Exception raised for pandas.options.
-
-    Backwards compatible with KeyError checks.
+    Exception for pandas.options, backwards compatible with KeyError
+    checks.
     """
 
 
@@ -131,7 +124,7 @@ def _get_single_key(pat: str, silent: bool) -> str:
     return key
 
 
-def _get_option(pat: str, silent: bool = False) -> Any:
+def _get_option(pat: str, silent: bool = False):
     key = _get_single_key(pat, silent)
 
     # walk the nested dict
@@ -171,7 +164,7 @@ def _set_option(*args, **kwargs) -> None:
                 o.cb(key)
 
 
-def _describe_option(pat: str = "", _print_desc: bool = True) -> str | None:
+def _describe_option(pat: str = "", _print_desc: bool = True):
 
     keys = _select_options(pat)
     if len(keys) == 0:
@@ -181,8 +174,8 @@ def _describe_option(pat: str = "", _print_desc: bool = True) -> str | None:
 
     if _print_desc:
         print(s)
-        return None
-    return s
+    else:
+        return s
 
 
 def _reset_option(pat: str, silent: bool = False) -> None:
@@ -211,7 +204,7 @@ def get_default_val(pat: str):
 class DictWrapper:
     """provide attribute-style access to a nested dict"""
 
-    def __init__(self, d: dict[str, Any], prefix: str = "") -> None:
+    def __init__(self, d: dict[str, Any], prefix: str = ""):
         object.__setattr__(self, "d", d)
         object.__setattr__(self, "prefix", prefix)
 
@@ -254,17 +247,16 @@ class DictWrapper:
 # of options, and option descriptions.
 
 
-class CallableDynamicDoc(Generic[T]):
-    def __init__(self, func: Callable[..., T], doc_tmpl: str) -> None:
+class CallableDynamicDoc:
+    def __init__(self, func, doc_tmpl):
         self.__doc_tmpl__ = doc_tmpl
         self.__func__ = func
 
-    def __call__(self, *args, **kwds) -> T:
+    def __call__(self, *args, **kwds):
         return self.__func__(*args, **kwds)
 
-    # error: Signature of "__doc__" incompatible with supertype "object"
     @property
-    def __doc__(self) -> str:  # type: ignore[override]
+    def __doc__(self):
         opts_desc = _describe_option("all", _print_desc=False)
         opts_list = pp_options_list(list(_registered_options.keys()))
         return self.__doc_tmpl__.format(opts_desc=opts_desc, opts_list=opts_list)
@@ -430,7 +422,7 @@ class option_context(ContextDecorator):
     ...     pass
     """
 
-    def __init__(self, *args) -> None:
+    def __init__(self, *args):
         if len(args) % 2 != 0 or len(args) < 2:
             raise ValueError(
                 "Need to invoke as option_context(pat, val, [(pat, val), ...])."
@@ -438,13 +430,13 @@ class option_context(ContextDecorator):
 
         self.ops = list(zip(args[::2], args[1::2]))
 
-    def __enter__(self) -> None:
+    def __enter__(self):
         self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
 
         for pat, val in self.ops:
             _set_option(pat, val, silent=True)
 
-    def __exit__(self, *args) -> None:
+    def __exit__(self, *args):
         if self.undo:
             for pat, val in self.undo:
                 _set_option(pat, val, silent=True)
@@ -658,11 +650,7 @@ def _warn_if_deprecated(key: str) -> bool:
     d = _get_deprecated_option(key)
     if d:
         if d.msg:
-            warnings.warn(
-                d.msg,
-                FutureWarning,
-                stacklevel=find_stack_level(),
-            )
+            warnings.warn(d.msg, FutureWarning)
         else:
             msg = f"'{key}' is deprecated"
             if d.removal_ver:
@@ -672,7 +660,7 @@ def _warn_if_deprecated(key: str) -> bool:
             else:
                 msg += ", please refrain from using it."
 
-            warnings.warn(msg, FutureWarning, stacklevel=find_stack_level())
+            warnings.warn(msg, FutureWarning)
         return True
     return False
 
@@ -740,7 +728,7 @@ def pp_options_list(keys: Iterable[str], width=80, _print: bool = False):
 
 
 @contextmanager
-def config_prefix(prefix) -> Iterator[None]:
+def config_prefix(prefix):
     """
     contextmanager for multiple invocations of API with a common prefix
 

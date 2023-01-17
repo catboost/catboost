@@ -343,7 +343,6 @@ namespace NKernel {
     REDUCE(float)
     REDUCE(ui32)
     REDUCE(int)
-    REDUCE(ui64)
 
 
     template  cudaError_t SegmentedReduce<float>(const float* input, ui32 size, const ui32* offsets, ui32 numSegments, float* output,
