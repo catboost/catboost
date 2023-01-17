@@ -79,8 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\0ed01d50c6a7ead2ffed98525a.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\14e94082d1f5e42390f67bf930.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\666234c752ccb0d25e5c847c25.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\d459abc8392ea573401737f921.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\join_db1464714fd1bc6f00d9c7e42f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\join_5bf4bb0f71f58f82911b001832.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -117,10 +117,6 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/14e94082d1f5e42390f67bf930.cpp" "_22810675cb8488efbc01718328=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_6bc9acc39d1e1c54d976a38e0a=resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_664911a179e5351577f6e8c500=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_6039b3783c67a18a18897174a5=resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_99db9258a46548dffd9604c9a3=resfs/src/resfs/file/contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "_048b4334e10658bdafa893dbd1=resfs/file/contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "_65055fc5b0971ba2f3aacb0ce6=resfs/src/resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed" "_00ddef2cb7271c8ffe3392987f=resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/666234c752ccb0d25e5c847c25.cpp" "_9230509d3836f078d450282f3d=py/namespace/44c57d9393521f7d2be7882ff502cd8d/contrib/python/pyparsing/py3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
@@ -130,6 +126,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/a827d157510a70957e6c117514.cpp" "_90f3ef03caaff4a85aa2d2ecba=resfs/src/resfs/file/py/pyparsing/results.py" "_8211fa69f9724d8a9490120872=resfs/file/py/pyparsing/results.py" "_54ebd7353c113c4f5c8023d2a7=resfs/src/resfs/file/py/pyparsing/results.py.yapyc3" "_695a556a96c8549edb57f4a287=resfs/file/py/pyparsing/results.py.yapyc3" "_3fdbe8f4c5c3dc66f317a38009=resfs/src/resfs/file/py/pyparsing/testing.py" "_f51f1b725c8b042b504376ef44=resfs/file/py/pyparsing/testing.py" "_e27a1e756631b02773f410401a=resfs/src/resfs/file/py/pyparsing/testing.py.yapyc3" "_c4d224695988543edab55b114f=resfs/file/py/pyparsing/testing.py.yapyc3" "_1d875d338cc99d856957ff0c42=resfs/src/resfs/file/py/pyparsing/unicode.py" "_cc9c6a92b85d8fda4afc582a82=resfs/file/py/pyparsing/unicode.py" "_6750c0aba4ae595085a36cdb7c=resfs/src/resfs/file/py/pyparsing/unicode.py.yapyc3" "_d7a93938bd2d27d6517db36cba=resfs/file/py/pyparsing/unicode.py.yapyc3" "_cf0b42fb3fbf396b08f31d41c5=resfs/src/resfs/file/py/pyparsing/util.py" "_92931a5a368f3eb3fcd7f21a5d=resfs/file/py/pyparsing/util.py" "_9e5e91bea325d8466bb33dc281=resfs/src/resfs/file/py/pyparsing/util.py.yapyc3" "_9e63a2a54fb51e9fdc7ec17797=resfs/file/py/pyparsing/util.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/d459abc8392ea573401737f921.cpp" "_22810675cb8488efbc01718328=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_6bc9acc39d1e1c54d976a38e0a=resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_664911a179e5351577f6e8c500=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_6039b3783c67a18a18897174a5=resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_65055fc5b0971ba2f3aacb0ce6=resfs/src/resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed" "_00ddef2cb7271c8ffe3392987f=resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -144,10 +144,6 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/14e94082d1f5e42390f67bf930.cpp" "_22810675cb8488efbc01718328=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_6bc9acc39d1e1c54d976a38e0a=resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_664911a179e5351577f6e8c500=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_6039b3783c67a18a18897174a5=resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_99db9258a46548dffd9604c9a3=resfs/src/resfs/file/contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "_048b4334e10658bdafa893dbd1=resfs/file/contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "_65055fc5b0971ba2f3aacb0ce6=resfs/src/resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed" "_00ddef2cb7271c8ffe3392987f=resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/666234c752ccb0d25e5c847c25.cpp" "_9230509d3836f078d450282f3d=py/namespace/44c57d9393521f7d2be7882ff502cd8d/contrib/python/pyparsing/py3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
@@ -158,15 +154,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/a827d157510a70957e6c117514.cpp" "_90f3ef03caaff4a85aa2d2ecba=resfs/src/resfs/file/py/pyparsing/results.py" "_8211fa69f9724d8a9490120872=resfs/file/py/pyparsing/results.py" "_54ebd7353c113c4f5c8023d2a7=resfs/src/resfs/file/py/pyparsing/results.py.yapyc3" "_695a556a96c8549edb57f4a287=resfs/file/py/pyparsing/results.py.yapyc3" "_3fdbe8f4c5c3dc66f317a38009=resfs/src/resfs/file/py/pyparsing/testing.py" "_f51f1b725c8b042b504376ef44=resfs/file/py/pyparsing/testing.py" "_e27a1e756631b02773f410401a=resfs/src/resfs/file/py/pyparsing/testing.py.yapyc3" "_c4d224695988543edab55b114f=resfs/file/py/pyparsing/testing.py.yapyc3" "_1d875d338cc99d856957ff0c42=resfs/src/resfs/file/py/pyparsing/unicode.py" "_cc9c6a92b85d8fda4afc582a82=resfs/file/py/pyparsing/unicode.py" "_6750c0aba4ae595085a36cdb7c=resfs/src/resfs/file/py/pyparsing/unicode.py.yapyc3" "_d7a93938bd2d27d6517db36cba=resfs/file/py/pyparsing/unicode.py.yapyc3" "_cf0b42fb3fbf396b08f31d41c5=resfs/src/resfs/file/py/pyparsing/util.py" "_92931a5a368f3eb3fcd7f21a5d=resfs/file/py/pyparsing/util.py" "_9e5e91bea325d8466bb33dc281=resfs/src/resfs/file/py/pyparsing/util.py.yapyc3" "_9e63a2a54fb51e9fdc7ec17797=resfs/file/py/pyparsing/util.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/d459abc8392ea573401737f921.cpp" "_22810675cb8488efbc01718328=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_6bc9acc39d1e1c54d976a38e0a=resfs/file/contrib/python/pyparsing/py3/.dist-info/METADATA" "_664911a179e5351577f6e8c500=resfs/src/resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_6039b3783c67a18a18897174a5=resfs/file/contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_65055fc5b0971ba2f3aacb0ce6=resfs/src/resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed" "_00ddef2cb7271c8ffe3392987f=resfs/file/contrib/python/pyparsing/py3/pyparsing/py.typed"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/py3/0ed01d50c6a7ead2ffed98525a.cpp	$B/contrib/python/pyparsing/py3/14e94082d1f5e42390f67bf930.cpp	$B/contrib/python/pyparsing/py3/666234c752ccb0d25e5c847c25.cpp	$B/contrib/python/pyparsing/py3/7d6de29ecd6296ac04bae5552c.cpp	$B/contrib/python/pyparsing/py3/a827d157510a70957e6c117514.cpp	</Message>
+      <Message>$B/contrib/python/pyparsing/py3/0ed01d50c6a7ead2ffed98525a.cpp	$B/contrib/python/pyparsing/py3/666234c752ccb0d25e5c847c25.cpp	$B/contrib/python/pyparsing/py3/7d6de29ecd6296ac04bae5552c.cpp	$B/contrib/python/pyparsing/py3/a827d157510a70957e6c117514.cpp	$B/contrib/python/pyparsing/py3/d459abc8392ea573401737f921.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\0ed01d50c6a7ead2ffed98525a.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\14e94082d1f5e42390f67bf930.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\666234c752ccb0d25e5c847c25.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\7d6de29ecd6296ac04bae5552c.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\a827d157510a70957e6c117514.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\0ed01d50c6a7ead2ffed98525a.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\666234c752ccb0d25e5c847c25.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\7d6de29ecd6296ac04bae5552c.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\a827d157510a70957e6c117514.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\d459abc8392ea573401737f921.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
