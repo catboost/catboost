@@ -6,10 +6,7 @@ PY3_LIBRARY()
 
 VERSION(21.3)
 
-LICENSE(
-    BSD-2-Clause OR
-    Apache-2.0
-)
+LICENSE(BSD-2-Clause AND Apache-2.0)
 
 PEERDIR(
     contrib/python/pyparsing
