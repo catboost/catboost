@@ -98,7 +98,7 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         LICENSE.TXT [1:1]
-        README.md [192:192]
+        README.md [193:193]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 9d1993d8039cb2f20ad55cbac3545f4e
 BELONGS ya.make
@@ -134,7 +134,7 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         LICENSE.TXT [2:2]
-        README.md [193:193]
+        README.md [194:194]
         cub/agent/agent_histogram.cuh [3:3]
         cub/agent/agent_radix_sort_downsweep.cuh [3:3]
         cub/agent/agent_radix_sort_upsweep.cuh [3:3]

@@ -603,12 +603,14 @@ DeviceSegmentedSortContinuation(
     }
 
     // Sync the stream if specified to flush runtime errors
-    if (debug_synchronous)
+    if (CUB_IS_HOST_CODE && debug_synchronous)
     {
+      #if CUB_INCLUDE_HOST_CODE
       if (CubDebug(error = SyncStream(stream)))
       {
         return error;
       }
+      #endif
     }
   }
 
@@ -664,12 +666,14 @@ DeviceSegmentedSortContinuation(
     }
 
     // Sync the stream if specified to flush runtime errors
-    if (debug_synchronous)
+    if (CUB_IS_HOST_CODE && debug_synchronous)
     {
+      #if CUB_INCLUDE_HOST_CODE
       if (CubDebug(error = SyncStream(stream)))
       {
         return error;
       }
+      #endif
     }
   }
 
@@ -1664,14 +1668,6 @@ private:
       {
         return error;
       }
-
-      if (debug_synchronous)
-      {
-        if (CubDebug(error = SyncStream(stream)))
-        {
-          return error;
-        }
-      }
       #else
       error = CubDebug(cudaErrorNotSupported);
       #endif
@@ -1728,12 +1724,14 @@ private:
     }
 
     // Sync the stream if specified to flush runtime errors
-    if (debug_synchronous)
+    if (CUB_IS_HOST_CODE && debug_synchronous)
     {
+      #if CUB_INCLUDE_HOST_CODE
       if (CubDebug(error = SyncStream(stream)))
       {
         return error;
       }
+      #endif
     }
 
     return error;
