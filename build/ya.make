@@ -25,6 +25,7 @@ RECURSE(
     platform/perl
     platform/python
     platform/python/ldflags
+    platform/
     plugins
     prebuilt
     scripts
