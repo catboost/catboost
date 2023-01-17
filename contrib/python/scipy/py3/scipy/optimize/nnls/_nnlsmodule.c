@@ -466,7 +466,7 @@ PyMODINIT_FUNC init_nnls(void) {
 #else
   m = _nnls_module = Py_InitModule("_nnls", f2py_module_methods);
 #endif
-  Py_TYPE(&PyFortran_Type) = &PyType_Type;
+  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
   import_array();
   if (PyErr_Occurred())
     {PyErr_SetString(PyExc_ImportError, "can't initialize module _nnls (failed to import numpy)"); return RETVAL;}
