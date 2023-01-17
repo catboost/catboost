@@ -1,7 +1,7 @@
 import os.path
 
 import ytest
-from _common import to_yesno, resolve_common_const
+from _common import to_yesno, resolve_common_const, rootrel_arc_src
 from lib.nots.package_manager import manager
 from lib.nots.typescript import TsConfig
 
@@ -57,7 +57,7 @@ def _setup_eslint(unit):
     lint_files = ytest.get_values_list(unit, '_TS_LINT_SRCS_VALUE')
     resolved_files = []
     for path in lint_files:
-        resolved = unit.resolve(unit.resolve_arc_path(resolve_common_const(path)))
+        resolved = rootrel_arc_src(resolve_common_const(path), unit)
         resolved_files.append(resolved)
 
     if resolved_files:
