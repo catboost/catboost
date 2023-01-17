@@ -1,4 +1,5 @@
 import argparse
+import codecs
 import errno
 import os
 import process_command_files as pcf
@@ -33,9 +34,34 @@ def copy_file(src, dst, overwrite=False, orig_path=None, generated=False):
 
     makedirs(os.path.dirname(dst))
 
-    with open(src, 'r') as fsrc, open(dst, 'w') as fdst:
+    with open(src, 'rb') as fsrc, open(dst, 'wb') as fdst:
         if (orig_path or generated) and src.endswith('.md'):
-            fdst.write('---\n{}\n\n---\n'.format('generated: true' if generated else 'vcsPath: {}'.format(orig_path)))
+            out = b''
+            buf = fsrc.readline()
+            bom_length = len(codecs.BOM_UTF8)
+            if buf[:bom_length] == codecs.BOM_UTF8:
+                out += codecs.BOM_UTF8
+                buf = buf[bom_length:]
+            info = 'generated: true\n' if generated else 'vcsPath: {}\n'.format(orig_path)
+            if buf.startswith(b'---') and b'\n' in buf[3:] and buf[3:].rstrip(b'\r\n') == b'':
+                content = b''
+                found = False
+                while True:
+                    line = fsrc.readline()
+                    if len(line) == 0:
+                        break
+                    content += line
+                    if line.startswith(b'---') and line[3:].rstrip(b'\r\n') == b'':
+                        found = True
+                        break
+                out += buf
+                if found:
+                    out += info.encode('utf-8')
+                out += content
+            else:
+                out += '---\n{}---\n'.format(info).encode('utf-8')
+                out += buf
+            fdst.write(out)
         shutil.copyfileobj(fsrc, fdst)
 
 

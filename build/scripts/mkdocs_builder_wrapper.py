@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import os
 import subprocess
 import sys
@@ -15,7 +16,7 @@ def main():
                 continue
             basename = os.path.basename(arg)
             assert arg.startswith(build_root) and len(arg) > length + len(basename) and arg[length] in ('/', '\\')
-            cmd.extend(['--dep', '{}:{}:{}'.format(build_root, os.path.dirname(arg[length+1:]), basename)])
+            cmd.extend([str('--dep'), str('{}:{}:{}'.format(build_root, os.path.dirname(arg[length+1:]), basename))])
         elif arg == '--dep':
             is_dep = True
         else:
@@ -25,9 +26,9 @@ def main():
     out, err = p.communicate()
     if p.returncode:
         if out:
-            sys.stderr.write('stdout:\n{}\n'.format(out))
+            sys.stderr.write('stdout:\n{}\n'.format(out.decode('utf-8')))
         if err:
-            sys.stderr.write('stderr:\n{}\n'.format(err))
+            sys.stderr.write('stderr:\n{}\n'.format(err.decode('utf-8')))
     sys.exit(p.returncode)
 
 
