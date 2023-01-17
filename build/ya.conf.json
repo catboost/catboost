@@ -563,6 +563,9 @@
         },
         "grut": {
             "description": "Run GrUT CLI"
+        },
+        "nots": {
+            "description": "Run nots CLI"
         }
     },
     "toolchain": {
@@ -6642,6 +6645,28 @@
                     "default": true
                 }
             ]
+        },
+        "nots": {
+            "tools": {
+                "nots": {
+                    "bottle": "nots",
+                    "executable": "nots"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -9248,6 +9273,24 @@
             "executable": {
                 "grut": [
                     "grut"
+                ]
+            }
+        },
+        "nots": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "NOTS_TOOL_BINARY",
+                        "owner": "FRONTEND_BUILD_PLATFORM",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    }
+                }
+            },
+            "executable": {
+                "nots": [
+                    "bootstrap"
                 ]
             }
         }
