@@ -19,6 +19,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <syscall.h>
+#if defined(__linux__)
+#include <asm-generic/unistd.h>
+#endif
 #include <unistd.h>
 
 #include <atomic>

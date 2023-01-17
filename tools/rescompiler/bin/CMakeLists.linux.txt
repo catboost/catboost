@@ -11,7 +11,8 @@ add_executable(rescompiler)
 target_link_libraries(rescompiler PUBLIC
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   library-cpp-resource
 )
