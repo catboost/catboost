@@ -53,8 +53,7 @@ protected:
     virtual void DoReset() = 0;
     virtual void DoPreallocate(size_t newLength) = 0;
 
-    // -64 must account for any reasonable overhead in dynamic string allocation.
-    static constexpr size_t MinBufferLength = 1024 - 64;
+    static constexpr size_t MinBufferLength = 128;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
