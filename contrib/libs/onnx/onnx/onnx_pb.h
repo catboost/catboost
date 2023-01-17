@@ -49,7 +49,7 @@
 #endif
 
 #ifdef ONNX_ML
-#include "onnx/onnx-ml.pb.h"
+#include "onnx/onnx_ml.pb.h"
 #else
 #error #include "onnx/onnx.pb.h"
 #endif

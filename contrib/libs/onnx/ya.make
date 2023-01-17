@@ -2,6 +2,12 @@
 
 LIBRARY()
 
+
+
+VERSION(2022-02-08)
+
+ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/5cf5feef5ec3fd5527b2fdb6c29780e3b705059f.tar.gz)
+
 LICENSE(
     Apache-2.0 AND
     MIT AND
@@ -10,18 +16,8 @@ LICENSE(
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-
-
-VERSION(2022-02-08)
-
-ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/5cf5feef5ec3fd5527b2fdb6c29780e3b705059f.tar.gz)
-
-PROTO_NAMESPACE(
-    GLOBAL
-    contrib/libs/onnx
-)
-
 PEERDIR(
+    contrib/libs/onnx/proto
     contrib/libs/protobuf
 )
 
@@ -79,9 +75,6 @@ SRCS(
     onnx/defs/traditionalml/defs.cc
     onnx/defs/traditionalml/old.cc
     onnx/defs/training/defs.cc
-    onnx/onnx-data.proto
-    onnx/onnx-ml.proto
-    onnx/onnx-operators-ml.proto
     onnx/onnxifi_utils.cc
     onnx/shape_inference/implementation.cc
     onnx/version_converter/convert.cc

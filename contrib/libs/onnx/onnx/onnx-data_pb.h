@@ -6,4 +6,4 @@
 #pragma once
 
 #include "onnx/onnx_pb.h"
-#include "onnx/onnx-data.pb.h"
+#include "onnx/onnx_data.pb.h"
