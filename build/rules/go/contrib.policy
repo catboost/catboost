@@ -37,6 +37,6 @@ ALLOW noc/nocauth -> contrib/go/patched/tacplus
 ALLOW contrib/go/_std/src/cmd -> contrib/go/_std/src/cmd
 ALLOW contrib/go/_std_1.18/src/cmd -> contrib/go/_std_1.18/src/cmd
 DENY .* -> contrib/go/_std/src/cmd
-DENY .* -> contrib/go/_std_1.18rc1/src/cmd
+DENY .* -> contrib/go/_std_1.18/src/cmd
 
 DENY .* -> contrib/go/patched/
