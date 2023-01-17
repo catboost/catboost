@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(21.2.0)
+VERSION(21.3.0)
 
 LICENSE(MIT)
 
@@ -33,6 +33,13 @@ PY_SRCS(
     attr/setters.pyi
     attr/validators.py
     attr/validators.pyi
+    attrs/__init__.py
+    attrs/__init__.pyi
+    attrs/converters.py
+    attrs/exceptions.py
+    attrs/filters.py
+    attrs/setters.py
+    attrs/validators.py
 )
 
 RESOURCE_FILES(
@@ -40,6 +47,7 @@ RESOURCE_FILES(
     .dist-info/METADATA
     .dist-info/top_level.txt
     attr/py.typed
+    attrs/py.typed
 )
 
 END()

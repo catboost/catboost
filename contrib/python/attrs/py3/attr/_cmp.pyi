@@ -2,7 +2,6 @@ from typing import Type
 
 from . import _CompareWithType
 
-
 def cmp_using(
     eq: Optional[_CompareWithType],
     lt: Optional[_CompareWithType],

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 """
 Commonly used hooks for on_setattr.
 """

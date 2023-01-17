@@ -1,16 +1,22 @@
+# SPDX-License-Identifier: MIT
+
 from __future__ import absolute_import, division, print_function
 
 import platform
 import sys
+import threading
 import types
 import warnings
 
 
 PY2 = sys.version_info[0] == 2
 PYPY = platform.python_implementation() == "PyPy"
+PY36 = sys.version_info[:2] >= (3, 6)
+HAS_F_STRINGS = PY36
+PY310 = sys.version_info[:2] >= (3, 10)
 
 
-if PYPY or sys.version_info[:2] >= (3, 6):
+if PYPY or PY36:
     ordered_dict = dict
 else:
     from collections import OrderedDict
@@ -105,7 +111,6 @@ if PY2:
         We only warn on Python 3 because we are not aware of any concrete
         consequences of not setting the cell on Python 2.
         """
-
 
 else:  # Python 3 and later.
     from collections.abc import Mapping, Sequence  # noqa
@@ -240,3 +245,17 @@ def make_set_closure_cell():
 
 
 set_closure_cell = make_set_closure_cell()
+
+# Thread-local global to track attrs instances which are already being repr'd.
+# This is needed because there is no other (thread-safe) way to pass info
+# about the instances that are already being repr'd through the call stack
+# in order to ensure we don't perform infinite recursion.
+#
+# For instance, if an instance contains a dict which contains that instance,
+# we need to know that we're already repr'ing the outside instance from within
+# the dict's repr() call.
+#
+# This lives here rather than in _make.py so that the functions in _make.py
+# don't have a direct reference to the thread-local in their globals dict.
+# If they have such a reference, it breaks cloudpickle.
+repr_context = threading.local()
