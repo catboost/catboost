@@ -11,8 +11,12 @@ from typing import (
 )
 import warnings
 
-from pandas._libs.properties import cache_readonly  # noqa:F401
-from pandas._typing import F
+from pandas._libs.properties import cache_readonly
+from pandas._typing import (
+    F,
+    T,
+)
+from pandas.util._exceptions import find_stack_level
 
 
 def deprecate(
@@ -260,7 +264,7 @@ def future_version_msg(version: str | None) -> str:
 def deprecate_nonkeyword_arguments(
     version: str | None,
     allowed_args: list[str] | None = None,
-    stacklevel: int = 2,
+    name: str | None = None,
 ) -> Callable[[F], F]:
     """
     Decorator to deprecate a use of non-keyword arguments of a function.
@@ -279,37 +283,56 @@ def deprecate_nonkeyword_arguments(
         defaults to list of all arguments not having the
         default value.
 
-    stacklevel : int, default=2
-        The stack level for warnings.warn
+    name : str, optional
+        The specific name of the function to show in the warning
+        message. If None, then the Qualified name of the function
+        is used.
     """
 
     def decorate(func):
+        old_sig = inspect.signature(func)
+
         if allowed_args is not None:
             allow_args = allowed_args
         else:
-            spec = inspect.getfullargspec(func)
+            allow_args = [
+                p.name
+                for p in old_sig.parameters.values()
+                if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
+                and p.default is p.empty
+            ]
 
-            # We must have some defaults if we are deprecating default-less
-            assert spec.defaults is not None  # for mypy
-            allow_args = spec.args[: -len(spec.defaults)]
+        new_params = [
+            p.replace(kind=p.KEYWORD_ONLY)
+            if (
+                p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
+                and p.name not in allow_args
+            )
+            else p
+            for p in old_sig.parameters.values()
+        ]
+        new_params.sort(key=lambda p: p.kind)
+        new_sig = old_sig.replace(parameters=new_params)
 
         num_allow_args = len(allow_args)
         msg = (
             f"{future_version_msg(version)} all arguments of "
-            f"{func.__qualname__}{{arguments}} will be keyword-only."
+            f"{name or func.__qualname__}{{arguments}} will be keyword-only."
         )
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            arguments = _format_argument_list(allow_args)
             if len(args) > num_allow_args:
                 warnings.warn(
-                    msg.format(arguments=arguments),
+                    msg.format(arguments=_format_argument_list(allow_args)),
                     FutureWarning,
-                    stacklevel=stacklevel,
+                    stacklevel=find_stack_level(),
                 )
             return func(*args, **kwargs)
 
+        # error: "Callable[[VarArg(Any), KwArg(Any)], Any]" has no
+        # attribute "__signature__"
+        wrapper.__signature__ = new_sig  # type: ignore[attr-defined]
         return wrapper
 
     return decorate
@@ -317,7 +340,7 @@ def deprecate_nonkeyword_arguments(
 
 def rewrite_axis_style_signature(
     name: str, extra_params: list[tuple[str, Any]]
-) -> Callable[..., Any]:
+) -> Callable[[F], F]:
     def decorate(func: F) -> F:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Callable[..., Any]:
@@ -435,7 +458,7 @@ class Substitution:
         "%s %s wrote the Raven"
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         if args and kwargs:
             raise AssertionError("Only positional or keyword args are allowed")
 
@@ -475,14 +498,14 @@ class Appender:
 
     addendum: str | None
 
-    def __init__(self, addendum: str | None, join: str = "", indents: int = 0):
+    def __init__(self, addendum: str | None, join: str = "", indents: int = 0) -> None:
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:
             self.addendum = addendum
         self.join = join
 
-    def __call__(self, func: F) -> F:
+    def __call__(self, func: T) -> T:
         func.__doc__ = func.__doc__ if func.__doc__ else ""
         self.addendum = self.addendum if self.addendum else ""
         docitems = [func.__doc__, self.addendum]
@@ -495,3 +518,16 @@ def indent(text: str | None, indents: int = 1) -> str:
         return ""
     jointext = "".join(["\n"] + ["    "] * indents)
     return jointext.join(text.split("\n"))
+
+
+__all__ = [
+    "Appender",
+    "cache_readonly",
+    "deprecate",
+    "deprecate_kwarg",
+    "deprecate_nonkeyword_arguments",
+    "doc",
+    "future_version_msg",
+    "rewrite_axis_style_signature",
+    "Substitution",
+]
