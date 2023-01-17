@@ -4,7 +4,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(0.1.2)
+VERSION(0.1.3)
 
 LICENSE(BSD-2-Clause)
 

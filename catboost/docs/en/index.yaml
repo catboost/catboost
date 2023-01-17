@@ -23,6 +23,8 @@ links:
         href: features/categorical-features
       - title: Text features
         href: features/text-features
+      - title: Embeddings features
+        href: features/embeddings-features
   - title: Applying models
     imgSrc: https://catboost-opensource.s3.yandex.net/icon__prediction.png
     links:

@@ -47,7 +47,7 @@ def on_run_jbuild_program(unit, *args):
         unit.on_run_java(['TOOL'] + depends + ["OUT", fake_out])
 
     if not kv.get('CP_USE_COMMAND_FILE'):
-       args += ['CP_USE_COMMAND_FILE', unit.get(['JAVA_PROGRAM_CP_USE_COMMAND_FILE']) or 'yes']
+        args += ['CP_USE_COMMAND_FILE', unit.get(['JAVA_PROGRAM_CP_USE_COMMAND_FILE']) or 'yes']
 
     if fake_out is not None:
         args += ['FAKE_OUT', fake_out]

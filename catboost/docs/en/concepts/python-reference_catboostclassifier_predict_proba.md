@@ -87,6 +87,7 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 #### Description
 
 The number of threads to use.
+
 {% include [reusage-thread_count__cpu_cores__optimizes-the-speed-of-execution](../_includes/work_src/reusage/thread_count__cpu_cores__optimizes-the-speed-of-execution.md) %}
 
 **Possible types** 

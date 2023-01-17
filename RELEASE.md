@@ -3,12 +3,16 @@
 
 * Support Apple Darwin arm64 architecture. #1526.
 * Support feature tags in feature selection.
-* Support for Apache Spark 3.2
+* Support for Apache Spark 3.2.
+* Model sum in Apache Spark.
 
 ## Python package
 
 * Accommodate multiple target-platform arguments used to build universal binaries.
 * Add grid creation function to utils.py
+* Custom multilabel eval metrics by @ELitvinova
+* Metrics plotter by @evgenabramov
+* Fbeta score by @ELitvinova
 
 ## Bugfixes
 
@@ -24,6 +28,9 @@
 * Fix ui32 overflows in pairwise losses on GPU.
 * Fix for multiclass in nodejs evaluator. #1903.
 * Fix CatBoost R package installation on Monterey. #1912.
+* Fix CUDA error 700 caused by data race in mimalloc and CUDA driver.
+* Fix slow compilation with CUDA 11.2+.
+* Fix 2nd derivative in RMSEWithUncertainty.
 
 
 # Release 1.0.4

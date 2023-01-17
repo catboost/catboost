@@ -7,7 +7,7 @@ CURDIR = '${CURDIR}/'
 BINDIR = '${BINDIR}/'
 
 
-def oncopy_files_to_build_prefix(unit, *args):
+def on_copy_files_to_build_prefix(unit, *args):
     keywords = {'PREFIX': 1, 'GLOBAL': 0}
     # NB! keyword 'GLOBAL' is a way to skip this word from the list of files
 
