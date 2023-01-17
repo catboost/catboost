@@ -2,6 +2,7 @@
 #include "dir_helper.h"
 #include "train_model.h"
 #include "options_helper.h"
+#include "trainer_env.h"
 
 #include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/calc_score_cache.h>
@@ -554,6 +555,8 @@ void CrossValidate(
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
+
+    auto trainerEnv = NCB::CreateTrainerEnv(NCatboostOptions::LoadOptions(jsonParams));
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 

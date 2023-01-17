@@ -11,6 +11,7 @@
 #include <catboost/libs/data/order.h>
 #include <catboost/libs/features_selection/select_features.h>
 #include <catboost/libs/features_selection/selection_results.h>
+#include <catboost/libs/train_lib/trainer_env.h>
 
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/helpers.h>
@@ -151,6 +152,8 @@ int mode_select_features(int argc, const char* argv[]) {
     );
 
     TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
+    auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);

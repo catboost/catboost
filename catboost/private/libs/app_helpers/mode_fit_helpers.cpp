@@ -11,11 +11,7 @@
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/pool_metainfo_options.h>
 #include <catboost/libs/train_lib/train_model.h>
-
-#if defined(HAVE_CUDA)
-#include <catboost/cuda/cuda_lib/devices_provider.h>
-#include <catboost/cuda/cuda_lib/cuda_manager.h>
-#endif
+#include <catboost/libs/train_lib/trainer_env.h>
 
 #if defined(USE_MPI)
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
@@ -53,16 +49,10 @@ int NCB::ModeFitImpl(int argc, const char* argv[]) {
         NCatboostOptions::LoadPoolMetaInfoOptions(poolLoadParams.PoolMetaInfoPath, &catBoostJsonOptions);
         ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
         NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
-        #if defined(HAVE_CUDA)
-        THolder<TStopCudaManagerCallback> stopCudaManagerGuard;
-        if (NCatboostOptions::GetTaskType(catBoostFlatJsonOptions) == ETaskType::GPU) {
-            auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
-            stopCudaManagerGuard = StartCudaManager(
-                NCudaLib::CreateDeviceRequestConfig(options),
-                options.LoggingLevel);
-        }
-        #endif
         ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
+
+        auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
+        auto trainerEnv = NCB::CreateTrainerEnv(options);
         CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
         NCatboostOptions::TOutputFilesOptions outputOptions;
         outputOptions.Load(outputOptionsJson);

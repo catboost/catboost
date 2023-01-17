@@ -4,6 +4,7 @@ LIBRARY()
 
 
 SRCS(
+    GLOBAL cuda_trainer_env.cpp
     GLOBAL train.cpp
     GLOBAL query_cross_entropy.cpp
     GLOBAL pointwise.cpp
