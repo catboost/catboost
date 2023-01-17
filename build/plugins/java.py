@@ -6,6 +6,7 @@ import base64
 
 
 DELIM = '================================'
+CONTRIB_JAVA_PREFIX = 'contrib/java/'
 
 
 def split_args(s):  # TODO quotes, escapes
@@ -390,19 +391,15 @@ def on_jdk_version_macro_check(unit, *args):
         unit.message(["error", "Invalid jdk version: {}. {} are available".format(jdk_version, available_versions)])
 
 
-def on_setup_maven_export_coords_if_need(unit, *args):
-    if unit.get('MAVEN_EXPORT') != 'yes':
-        return
-
-    moddir = args[0]
-    parts = moddir.split('/')
+def _maven_coords_for_project(unit, project_dir):
+    parts = project_dir.split('/')
 
     g = '.'.join(parts[2:-2])
     a = parts[-2]
     v = parts[-1]
     c = ''
 
-    pom_path = unit.resolve(os.path.join('$S', moddir, 'pom.xml'))
+    pom_path = unit.resolve(os.path.join('$S', project_dir, 'pom.xml'))
     if os.path.exists(pom_path):
         import xml.etree.ElementTree as et
         with open(pom_path) as f:
@@ -416,4 +413,23 @@ def on_setup_maven_export_coords_if_need(unit, *args):
                     a = artifact
                 break
 
-    unit.set(['MAVEN_EXPORT_COORDS_GLOBAL', '{}:{}:{}:{}'.format(g, a, v,c)])
+    return '{}:{}:{}:{}'.format(g, a, v, c)
+
+
+def on_setup_maven_export_coords_if_need(unit, *args):
+    if not unit.enabled('MAVEN_EXPORT'):
+        return
+
+    unit.set(['MAVEN_EXPORT_COORDS_GLOBAL', _maven_coords_for_project(unit, args[0])])
+
+
+def on_setup_project_coords_if_needed(unit, *args):
+    if not unit.enabled('EXPORT_GRADLE'):
+        return
+
+    project_dir = args[0]
+    if project_dir.startswith(CONTRIB_JAVA_PREFIX):
+        value = '\\"{}\\"'.format(_maven_coords_for_project(unit, project_dir).rstrip(':'))
+    else:
+        value = 'project(\\":{}\\")'.format(project_dir.replace('/', ':'))
+    unit.set(['_EXPORT_GRADLE_PROJECT_COORDS', value])
