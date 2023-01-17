@@ -2,6 +2,25 @@ NOTE: We are looking for help with a few things:
       https://github.com/libexpat/libexpat/labels/help%20wanted
       If you can help, please get in touch.  Thanks!
 
+Release 2.4.8 Mon March 28 2022
+        Other changes:
+            #587  pkg-config: Move "-lm" to section "Libs.private"
+            #587  CMake|MSVC: Fix pkg-config section "Libs"
+        #55 #582  CMake|macOS: Start using linker arguments
+                    "-compatibility_version <version>" and
+                    "-current_version <version>" in a way compatible with
+                    GNU Libtool
+       #590 #591  Version info bumped from 9:7:8 to 9:8:8;
+                    see https://verbump.de/ for what these numbers do
+
+        Infrastructure:
+            #589  CI: Upgrade Clang from 13 to 14
+
+        Special thanks to:
+            evpobr
+            Kai Pastor
+            Sam James
+
 Release 2.4.7 Fri March 4 2022
         Bug fixes:
        #572 #577  Relax fix to CVE-2022-25236 (introduced with release 2.4.5)

@@ -1055,7 +1055,7 @@ XML_SetBillionLaughsAttackProtectionActivationThreshold(
 */
 #define XML_MAJOR_VERSION 2
 #define XML_MINOR_VERSION 4
-#define XML_MICRO_VERSION 7
+#define XML_MICRO_VERSION 8
 
 #ifdef __cplusplus
 }
