@@ -47,6 +47,16 @@ class CatBoostJNIImpl {
     final static native String catBoostModelGetUsedCategoricalFeatureCount(
             long handle,
             @NotNull int[] catFeatureCount);
+    
+    @Nullable
+    final static native String catBoostModelGetUsedTextFeatureCount(
+            long handle,
+            @NotNull int[] textFeatureCount);
+
+    @Nullable
+    final static native String catBoostModelGetUsedEmbeddingFeatureCount(
+            long handle,
+            @NotNull int[] embeddingFeatureCount);
 
     @Nullable
     final static native String catBoostModelGetFlatFeatureVectorExpectedSize(
@@ -83,6 +93,13 @@ class CatBoostJNIImpl {
             @NotNull int[][] feature_index);
 
     @Nullable
+    final static native String catBoostModelGetEmbeddingFeatures(
+            long handle,
+            @NotNull String[][] names,
+            @NotNull int[][] flat_feature_index,
+            @NotNull int[][] feature_index);
+
+    @Nullable
     final static native String catBoostModelGetUsedFeatureIndices(
             long handle,
             @NotNull int[][] featureIndices);
@@ -97,6 +114,8 @@ class CatBoostJNIImpl {
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable String[] catFeatures,
+            @Nullable String[] textFeatures,
+            @Nullable float[][] embeddingFeatures,
             @NotNull double[] predictions);
 
     @Nullable
@@ -104,6 +123,8 @@ class CatBoostJNIImpl {
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable int[] catFeatureHashes,
+            @Nullable String[] textFeatures,
+            @Nullable float[][] embeddingFeatures,
             @NotNull double[] predictions);
 
     @Nullable
@@ -111,6 +132,8 @@ class CatBoostJNIImpl {
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable String[][] catFeatures,
+            @Nullable String[][] textFeatures,
+            @Nullable float[][][] embeddingFeatures,
             @NotNull double[] predictions);
 
     @Nullable
@@ -118,5 +141,7 @@ class CatBoostJNIImpl {
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable int[][] catFeatureHashes,
+            @Nullable String[][] textFeatures,
+            @Nullable float[][][] embeddingFeatures,
             @NotNull double[] predictions);
 }

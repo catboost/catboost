@@ -40,7 +40,8 @@ public class CatBoostModelTest {
                 TestCase.assertEquals(
                         "at objectIndex=" + String.valueOf(objectIndex) + " predictionIndex=" + String.valueOf(predictionIndex),
                         expected.get(objectIndex, predictionIndex),
-                        actual.get(objectIndex, predictionIndex));
+                        actual.get(objectIndex, predictionIndex),
+                        1.e-13);
             }
         }
     }
@@ -82,6 +83,16 @@ public class CatBoostModelTest {
         }
 
         fail("failed to load categoric only model from resource, can't run tests without it");
+        return null;
+    }
+
+    static CatBoostModel loadTestModelWithNumCatAndTextFeatures() throws CatBoostError {
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/model_with_num_cat_and_text_features.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load model with numerical, categorical and text features from resource, can't run tests without it");
         return null;
     }
 
@@ -479,6 +490,19 @@ public class CatBoostModelTest {
     }
 
     @Test
+    public void testSuccessfulPredictSingleWithNumCatAndTextFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            final float[] numericFeatuers = new float[]{0.1f, 0.13f};
+            final String[] catFeatures = new String[]{"Male"};
+            final String[] textFeatures = new String[]{"question 1", "simple answer"};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 3, new double[]{0.37830508558041, -0.11873512511004, -0.25956996047037});
+            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures, textFeatures, null);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatuers, catFeatures, textFeatures, null));
+        }
+    }
+
+    @Test
     public void testSuccessfulPredictMultiple() throws CatBoostError {
         try(final CatBoostModel model = loadTestModel()) {
             final float[][] numericFeatures = new float[][]{
@@ -496,6 +520,35 @@ public class CatBoostModelTest {
             final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
             assertEqual(expected, prediction);
             assertEqual(expected, model.predict(numericFeatures, catFeatures));
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictMultipleWithNumCatAndTextFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            final float[][] numericFeatures = new float[][]{
+                {0.1f, 0.13f},
+                {0.0f, 0.2f},
+                {0.33f, 0.65f},
+                {0.2f, 0.1f}};
+            final String[][] catFeatures = new String[][]{
+                {"Male"},
+                {"Female"},
+                {"Female"},
+                {"Male"}};
+            final String[][] textFeatures = new String[][]{
+                {"question 1", "simple answer"},
+                {"question 2", "strong answer"},
+                {"question 3", "weak answer"},
+                {"question 1", "complicated answer"}};
+            final CatBoostPredictions expected = new CatBoostPredictions(4, 3, new double[]{
+                0.37830508558041, -0.11873512511004, -0.25956996047037,
+                -0.12726299984411, 0.13483590199441, -0.00757290215030,
+                -0.12726299984411, -0.00757290215030, 0.13483590199441,
+                0.41077099521589, -0.20538549760794, -0.20538549760794});
+            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
         }
     }
 
@@ -634,6 +687,19 @@ public class CatBoostModelTest {
                 fail();
             } catch (CatBoostError e) {
             }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictSingleWithNumCatHashesAndTextFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            final float[] numericFeatuers = new float[]{0.1f, 0.13f};
+            final int[] catFeatures = new int[]{-1291328762};
+            final String[] textFeatures = new String[]{"question 1", "simple answer"};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 3, new double[]{0.37830508558041, -0.11873512511004, -0.25956996047037});
+            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures, textFeatures, null);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatuers, catFeatures, textFeatures, null));
         }
     }
 
@@ -777,6 +843,35 @@ public class CatBoostModelTest {
     }
 
     @Test
+    public void testSuccessfulPredictMultipleWithNumCatHashedAndTextFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            final float[][] numericFeatures = new float[][]{
+                {0.1f, 0.13f},
+                {0.0f, 0.2f},
+                {0.33f, 0.65f},
+                {0.2f, 0.1f}};
+            final int[][] catFeatures = new int[][]{
+                {-1291328762},
+                {-2114564283},
+                {-2114564283},
+                {-1291328762}};
+            final String[][] textFeatures = new String[][]{
+                {"question 1", "simple answer"},
+                {"question 2", "strong answer"},
+                {"question 3", "weak answer"},
+                {"question 1", "complicated answer"}};
+            final CatBoostPredictions expected = new CatBoostPredictions(4, 3, new double[]{
+                0.37830508558041, -0.11873512511004, -0.25956996047037,
+                -0.12726299984411, 0.13483590199441, -0.00757290215030,
+                -0.12726299984411, -0.00757290215030, 0.13483590199441,
+                0.41077099521589, -0.20538549760794, -0.20538549760794});
+            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
+        }
+    }
+
+    @Test
     public void testFailPredictMultipleNullInNumericHashes() throws CatBoostError {
         try(final CatBoostModel model = loadTestModel()) {
             try {
@@ -889,6 +984,19 @@ public class CatBoostModelTest {
             final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
             assertEqual(expected, prediction);
             assertEqual(expected, model.predict(numericFeatures, catFeatures));
+        }
+    }
+
+    @Test
+    public void testEmptyFeaturesArrayWithNumCatAndTextFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            final float[][] numericFeatures = new float[0][];
+            final int[][] catFeatures = new int[0][];
+            final String[][] textFeatures = new String[0][];
+            final CatBoostPredictions expected = new CatBoostPredictions(0, 3, new double[0]);
+            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
         }
     }
 }
