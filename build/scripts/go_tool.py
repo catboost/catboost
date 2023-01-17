@@ -354,6 +354,8 @@ def _do_compile_go(args):
         '-goversion',
         'go{}'.format(args.goversion)
     ]
+    if args.lang:
+        cmd.append('-lang=go{}'.format(args.lang))
     cmd.extend(get_trimpath_args(args))
     compiling_runtime = False
     if is_std_module:
@@ -817,6 +819,7 @@ if __name__ == '__main__':
     parser.add_argument('++extld', nargs='?', default=None)
     parser.add_argument('++extldflags', nargs='+', default=None)
     parser.add_argument('++goversion', required=True)
+    parser.add_argument('++lang', nargs='?', default=None)
     parser.add_argument('++asm-flags', nargs='*')
     parser.add_argument('++compile-flags', nargs='*')
     parser.add_argument('++link-flags', nargs='*')
