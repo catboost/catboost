@@ -236,16 +236,13 @@ public:
         InProcess = false;
 
         if (CatFeatureCount) {
-            if (!DatasetStatistics.CatFeaturesHashToString) {
-                DatasetStatistics.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>();
-            }
-            DatasetStatistics.CatFeaturesHashToString->resize(CatFeatureCount);
+            DatasetStatistics.CatFeaturesHashToString.resize(CatFeatureCount);
             for (const auto& part : HashMapParts) {
                 if (part.CatFeatureHashes.empty()) {
                     continue;
                 }
                 for (auto catFeatureIdx : xrange(CatFeatureCount)) {
-                    (*DatasetStatistics.CatFeaturesHashToString)[catFeatureIdx].insert(
+                    DatasetStatistics.CatFeaturesHashToString[catFeatureIdx].insert(
                         part.CatFeatureHashes[catFeatureIdx].begin(),
                         part.CatFeatureHashes[catFeatureIdx].end());
                 }
@@ -309,5 +306,5 @@ private:
 public:
     void OutputResult(const TString& outputPath) const;
 
-    NJson::TJsonValue GetResult() const;
+    const TDatasetStatistics& GetDatasetStatistics() const;
 };

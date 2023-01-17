@@ -1,5 +1,10 @@
 #include "statistics_data_structures.h"
 
+#include <catboost/libs/helpers/json_helpers.h>
+
+using namespace NCB;
+
+
 TFloatFeatureStatistics::TFloatFeatureStatistics()
     : MinValue(std::numeric_limits<double>::max())
     , MaxValue(std::numeric_limits<double>::min())
@@ -9,12 +14,12 @@ TFloatFeatureStatistics::TFloatFeatureStatistics()
 }
 
 void TFloatFeatureStatistics::Update(float feature) {
-    TGuard g(Mutex);
-
-    MinValue = Min<float>(MinValue, feature);
-    MaxValue = Max<float>(MaxValue, feature);
-    Sum += feature;
-    ObjectCount += 1;
+    with_lock(Mutex) {
+        MinValue = Min<float>(MinValue, feature);
+        MaxValue = Max<float>(MaxValue, feature);
+        Sum += feature;
+        ObjectCount += 1;
+    }
 }
 
 NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
@@ -22,6 +27,7 @@ NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
     result.InsertValue("MinValue", MinValue);
     result.InsertValue("MaxValue", MaxValue);
     result.InsertValue("Sum", Sum);
+    result.InsertValue("ObjectCount", ObjectCount);
     if (ObjectCount > 0) {
         result.InsertValue("Mean", Sum / double(ObjectCount));
     } else {
@@ -31,17 +37,27 @@ NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
     return result;
 }
 
-void TTargetsStatistics::Init(const TDataMetaInfo& MetaInfo) {
-    TargetType = MetaInfo.TargetType;
-    TargetCount = MetaInfo.TargetCount;
+void TFloatFeatureStatistics::Update(const TFloatFeatureStatistics& update) {
+    with_lock(Mutex) {
+        MinValue = Min<float>(MinValue, update.MinValue);
+        MaxValue = Max<float>(MaxValue, update.MaxValue);
+        Sum += update.Sum;
+        ObjectCount += update.ObjectCount;
+    }
+}
+
+void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo) {
+    TargetType = metaInfo.TargetType;
+    TargetCount = metaInfo.TargetCount;
     switch (TargetType) {
         case ERawTargetType::Float:
             FloatTargetStatistics.resize(TargetCount);
             break;
         case ERawTargetType::Integer:
         case ERawTargetType::String:
+            StringTargetStatistics.resize(TargetCount);
             for (ui32 i = 0; i < TargetCount; ++i) {
-                StringTargetStatistics.emplace_back(TStringTargetStatistic(TargetType));
+                StringTargetStatistics[i].TargetType = TargetType;
             }
             break;
         default:
@@ -61,14 +77,7 @@ NJson::TJsonValue TTargetsStatistics::ToJson() const {
     NJson::TJsonValue result;
     InsertEnumType("TargetType", TargetType, &result);
     result.InsertValue("TargetCount", TargetCount);
-    TVector<NJson::TJsonValue> targetStatistics;
-    // only one is not empty
-    for (const auto& statistics : FloatTargetStatistics) {
-        targetStatistics.emplace_back(statistics.ToJson());
-    }
-    for (const auto& statistics : StringTargetStatistics) {
-        targetStatistics.emplace_back(statistics.ToJson());
-    }
+
     switch (TargetType) {
         case ERawTargetType::Float:
             result.InsertValue("TargetStatistics", AggregateStatistics(FloatTargetStatistics));
@@ -83,26 +92,35 @@ NJson::TJsonValue TTargetsStatistics::ToJson() const {
     return result;
 }
 
-TStringTargetStatistic::TStringTargetStatistic(ERawTargetType targetType)
-    : TargetType(targetType)
-{
-}
-
 void TStringTargetStatistic::Update(TStringBuf feature) {
     CB_ENSURE(TargetType == ERawTargetType::String, "bad target type");
-    TGuard g(Mutex);
-    StringTargets[feature]++;
+    with_lock(Mutex) {
+        StringTargets[feature]++;
+    }
 }
 
 void TStringTargetStatistic::Update(ui32 feature) {
-    CB_ENSURE(TargetType == ERawTargetType::Integer, "bad target type");
-    TGuard g(Mutex);
-    IntegerTargets[feature]++;
+    with_lock(Mutex) {
+        IntegerTargets[feature]++;
+    }
+}
+
+void TStringTargetStatistic::Update(const TStringTargetStatistic& update) {
+    with_lock(Mutex) {
+        CB_ENSURE(TargetType == update.TargetType, "bad target type");
+        for (auto const& x : update.IntegerTargets) {
+            IntegerTargets[x.first] += x.second;
+        }
+        for (auto const& x : update.StringTargets) {
+            StringTargets[x.first] += x.second;
+        }
+    }
 }
 
 NJson::TJsonValue TStringTargetStatistic::ToJson() const {
     NJson::TJsonValue result;
     NJson::TJsonValue targetsDistribution;
+    InsertEnumType("TargetType", TargetType, &result);
     switch (TargetType) {
         case ERawTargetType::String:
             for (auto const& x : StringTargets) {
@@ -115,7 +133,8 @@ NJson::TJsonValue TStringTargetStatistic::ToJson() const {
         case ERawTargetType::Integer:
             for (auto const& x : IntegerTargets) {
                 NJson::TJsonValue stats;
-                stats.InsertValue("Value", x.first).InsertValue("Count", x.second);
+                stats.InsertValue("Value", x.first);
+                stats.InsertValue("Count", x.second);
                 targetsDistribution.AppendValue(stats);
             }
             break;

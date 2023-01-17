@@ -6,16 +6,9 @@ using namespace NJson;
 
 void TDatasetStatisticsProviderBuilder::OutputResult(const TString& outputPath) const {
     TFileOutput output(outputPath);
-    WriteJsonWithCatBoostPrecision(this->GetResult(), true, &output);
+    WriteJsonWithCatBoostPrecision(this->GetDatasetStatistics().ToJson(), true, &output);
 }
 
-NJson::TJsonValue TDatasetStatisticsProviderBuilder::GetResult() const {
-    TJsonValue result;
-
-    result.InsertValue("TargetsStatistics", DatasetStatistics.TargetsStatistics.ToJson());
-    result.InsertValue("FeatureStatistics", DatasetStatistics.FeatureStatistics.ToJson());
-
-    result.InsertValue("ObjectCount", ObjectCount);
-
-    return result;
+const TDatasetStatistics& TDatasetStatisticsProviderBuilder::GetDatasetStatistics() const {
+    return DatasetStatistics;
 }
