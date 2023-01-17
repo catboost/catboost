@@ -3083,8 +3083,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3093,8 +3092,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3103,8 +3101,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3113,8 +3110,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3123,8 +3119,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3133,8 +3128,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3143,8 +3137,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3153,8 +3146,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3163,8 +3155,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3173,8 +3164,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    },
-                    "default": true
+                    }
                 }
             ],
             "params": {
@@ -3238,7 +3228,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3247,7 +3238,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3256,7 +3248,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3265,7 +3258,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3274,7 +3268,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3283,7 +3278,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3292,7 +3288,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3301,7 +3298,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3310,7 +3308,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3319,7 +3318,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    }
+                    },
+                    "default": true
                 }
             ],
             "params": {
