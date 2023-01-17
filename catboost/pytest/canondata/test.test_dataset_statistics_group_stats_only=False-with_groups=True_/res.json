@@ -435,24 +435,12 @@
             "TargetsDistributionInSample":
               [
                 {
-                  "Count":1,
-                  "Value":"0.206667"
-                },
-                {
-                  "Count":3,
-                  "Value":"0.028"
-                },
-                {
-                  "Count":4,
-                  "Value":"0.112"
+                  "Count":758,
+                  "Value":"0"
                 },
                 {
                   "Count":1,
-                  "Value":"0.576429"
-                },
-                {
-                  "Count":11,
-                  "Value":"0.0233333"
+                  "Value":"0.01"
                 },
                 {
                   "Count":2,
@@ -460,15 +448,39 @@
                 },
                 {
                   "Count":1,
-                  "Value":"0.2075"
+                  "Value":"0.014"
                 },
                 {
                   "Count":4,
                   "Value":"0.0175"
                 },
                 {
+                  "Count":2,
+                  "Value":"0.02"
+                },
+                {
+                  "Count":11,
+                  "Value":"0.0233333"
+                },
+                {
+                  "Count":2,
+                  "Value":"0.02625"
+                },
+                {
                   "Count":3,
-                  "Value":"0.084"
+                  "Value":"0.028"
+                },
+                {
+                  "Count":2,
+                  "Value":"0.03"
+                },
+                {
+                  "Count":1,
+                  "Value":"0.0311111"
+                },
+                {
+                  "Count":21,
+                  "Value":"0.035"
                 },
                 {
                   "Count":6,
@@ -476,91 +488,7 @@
                 },
                 {
                   "Count":1,
-                  "Value":"0.0311111"
-                },
-                {
-                  "Count":2,
-                  "Value":"0.03"
-                },
-                {
-                  "Count":2,
-                  "Value":"0.12"
-                },
-                {
-                  "Count":5,
-                  "Value":"0.61"
-                },
-                {
-                  "Count":186,
-                  "Value":"0.07"
-                },
-                {
-                  "Count":2,
-                  "Value":"0.02"
-                },
-                {
-                  "Count":1,
-                  "Value":"0.08"
-                },
-                {
-                  "Count":2,
-                  "Value":"0.32"
-                },
-                {
-                  "Count":2,
-                  "Value":"0.0525"
-                },
-                {
-                  "Count":1,
-                  "Value":"0.23"
-                },
-                {
-                  "Count":2,
-                  "Value":"0.1225"
-                },
-                {
-                  "Count":3,
-                  "Value":"0.275"
-                },
-                {
-                  "Count":4,
-                  "Value":"0.0875"
-                },
-                {
-                  "Count":8,
-                  "Value":"0.116667"
-                },
-                {
-                  "Count":1,
-                  "Value":"0.01"
-                },
-                {
-                  "Count":20,
-                  "Value":"0.105"
-                },
-                {
-                  "Count":15,
-                  "Value":"0.0933333"
-                },
-                {
-                  "Count":1,
-                  "Value":"0.248"
-                },
-                {
-                  "Count":4,
-                  "Value":"0.056"
-                },
-                {
-                  "Count":1,
-                  "Value":"0.173333"
-                },
-                {
-                  "Count":758,
-                  "Value":"0"
-                },
-                {
-                  "Count":2,
-                  "Value":"0.0777778"
+                  "Value":"0.04375"
                 },
                 {
                   "Count":20,
@@ -568,23 +496,67 @@
                 },
                 {
                   "Count":2,
-                  "Value":"0.02625"
+                  "Value":"0.0525"
+                },
+                {
+                  "Count":4,
+                  "Value":"0.056"
+                },
+                {
+                  "Count":186,
+                  "Value":"0.07"
+                },
+                {
+                  "Count":2,
+                  "Value":"0.0777778"
                 },
                 {
                   "Count":1,
-                  "Value":"0.1375"
+                  "Value":"0.08"
                 },
                 {
-                  "Count":1,
-                  "Value":"0.24"
+                  "Count":3,
+                  "Value":"0.084"
+                },
+                {
+                  "Count":4,
+                  "Value":"0.0875"
+                },
+                {
+                  "Count":15,
+                  "Value":"0.0933333"
                 },
                 {
                   "Count":2,
                   "Value":"0.1"
                 },
                 {
+                  "Count":20,
+                  "Value":"0.105"
+                },
+                {
+                  "Count":4,
+                  "Value":"0.112"
+                },
+                {
+                  "Count":8,
+                  "Value":"0.116667"
+                },
+                {
+                  "Count":2,
+                  "Value":"0.12"
+                },
+                {
+                  "Count":2,
+                  "Value":"0.1225"
+                },
+                {
                   "Count":2,
                   "Value":"0.126"
+                },
+                {
+                  "Count":1,
+                  "Value":"0.1375"
                 },
                 {
                   "Count":364,
@@ -592,19 +564,47 @@
                 },
                 {
                   "Count":1,
-                  "Value":"0.014"
-                },
-                {
-                  "Count":21,
-                  "Value":"0.035"
+                  "Value":"0.173333"
                 },
                 {
                   "Count":1,
-                  "Value":"0.04375"
+                  "Value":"0.206667"
+                },
+                {
+                  "Count":1,
+                  "Value":"0.2075"
+                },
+                {
+                  "Count":1,
+                  "Value":"0.23"
+                },
+                {
+                  "Count":1,
+                  "Value":"0.24"
+                },
+                {
+                  "Count":1,
+                  "Value":"0.248"
+                },
+                {
+                  "Count":3,
+                  "Value":"0.275"
+                },
+                {
+                  "Count":2,
+                  "Value":"0.32"
                 },
                 {
                   "Count":26,
                   "Value":"0.41"
+                },
+                {
+                  "Count":1,
+                  "Value":"0.576429"
+                },
+                {
+                  "Count":5,
+                  "Value":"0.61"
                 }
               ]
           }

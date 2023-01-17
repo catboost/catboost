@@ -3,6 +3,8 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/json_helpers.h>
 
+#include <algorithm>
+
 using namespace NCB;
 
 
@@ -172,6 +174,24 @@ void TStringTargetStatistic::Update(const TStringTargetStatistic& update) {
     }
 }
 
+
+template <class T>
+void OutputSorted(const THashMap<T, ui64>& targets, NJson::TJsonValue* targetsDistribution) {
+    TVector<std::pair<T, ui64>> sorted;
+    sorted.reserve(targets.size());
+    for (auto const& element : targets) {
+        sorted.push_back(element);
+    }
+    std::sort(sorted.begin(), sorted.end(), [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
+
+    for (auto const& [value, count] : sorted) {
+        NJson::TJsonValue stats;
+        stats.InsertValue("Value", value);
+        stats.InsertValue("Count", count);
+        targetsDistribution->AppendValue(stats);
+    }
+}
+
 NJson::TJsonValue TStringTargetStatistic::ToJson() const {
     NJson::TJsonValue result;
     NJson::TJsonValue targetsDistribution;
@@ -179,20 +199,10 @@ NJson::TJsonValue TStringTargetStatistic::ToJson() const {
     InsertEnumType("TargetType", TargetType, &result);
     switch (TargetType) {
         case ERawTargetType::String:
-            for (auto const& x : StringTargets) {
-                NJson::TJsonValue stats;
-                stats.InsertValue("Value", x.first);
-                stats.InsertValue("Count", x.second);
-                targetsDistribution.AppendValue(stats);
-            }
+            OutputSorted(StringTargets, &targetsDistribution);
             break;
         case ERawTargetType::Integer:
-            for (auto const& x : IntegerTargets) {
-                NJson::TJsonValue stats;
-                stats.InsertValue("Value", x.first);
-                stats.InsertValue("Count", x.second);
-                targetsDistribution.AppendValue(stats);
-            }
+            OutputSorted(IntegerTargets, &targetsDistribution);
             break;
         default:
             CB_ENSURE(false);
