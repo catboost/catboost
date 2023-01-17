@@ -176,7 +176,6 @@ class RegexFlag(enum.IntFlag):
                 res = f'~{res}'
         return res
     __str__ = object.__str__
-
 globals().update(RegexFlag.__members__)
 
 # sre exception

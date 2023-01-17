@@ -101,7 +101,9 @@ typedef intptr_t        Py_intptr_t;
  * sizeof(size_t).  C99 doesn't define such a thing directly (size_t is an
  * unsigned integral type).  See PEP 353 for details.
  */
-#ifdef HAVE_SSIZE_T
+#ifdef HAVE_PY_SSIZE_T
+
+#elif HAVE_SSIZE_T
 typedef ssize_t         Py_ssize_t;
 #elif SIZEOF_VOID_P == SIZEOF_SIZE_T
 typedef Py_intptr_t     Py_ssize_t;
@@ -131,7 +133,9 @@ typedef int Py_ssize_clean_t;
 /* Smallest negative value of type Py_ssize_t. */
 #define PY_SSIZE_T_MIN (-PY_SSIZE_T_MAX-1)
 
-/* PY_FORMAT_SIZE_T is a platform-specific modifier for use in a printf
+/* Macro kept for backward compatibility: use "z" in new code.
+ *
+ * PY_FORMAT_SIZE_T is a platform-specific modifier for use in a printf
  * format to convert an argument with the width of a size_t or Py_ssize_t.
  * C99 introduced "z" for this purpose, but old MSVCs had not supported it.
  * Since MSVC supports "z" since (at least) 2015, we can just use "z"
@@ -179,8 +183,9 @@ typedef int Py_ssize_clean_t;
 
 #if defined(_MSC_VER)
 #  if defined(PY_LOCAL_AGGRESSIVE)
-   /* enable more aggressive optimization for visual studio */
-#  pragma optimize("agtw", on)
+   /* enable more aggressive optimization for MSVC */
+   /* active in both release and debug builds - see bpo-43271 */
+#  pragma optimize("gt", on)
 #endif
    /* ignore warnings if the compiler decides not to inline a function */
 #  pragma warning(disable: 4710)
@@ -843,12 +848,16 @@ extern _invalid_parameter_handler _Py_silent_invalid_parameter_handler;
 #endif
 
 #if defined(__ANDROID__) || defined(__VXWORKS__)
-   /* Ignore the locale encoding: force UTF-8 */
+   // Use UTF-8 as the locale encoding, ignore the LC_CTYPE locale.
+   // See _Py_GetLocaleEncoding(), PyUnicode_DecodeLocale()
+   // and PyUnicode_EncodeLocale().
 #  define _Py_FORCE_UTF8_LOCALE
 #endif
 
 #if defined(_Py_FORCE_UTF8_LOCALE) || defined(__APPLE__)
-   /* Use UTF-8 as filesystem encoding */
+   // Use UTF-8 as the filesystem encoding.
+   // See PyUnicode_DecodeFSDefaultAndSize(), PyUnicode_EncodeFSDefault(),
+   // Py_DecodeLocale() and Py_EncodeLocale().
 #  define _Py_FORCE_UTF8_FS_ENCODING
 #endif
 
@@ -856,6 +865,7 @@ extern _invalid_parameter_handler _Py_silent_invalid_parameter_handler;
    PyAPI_FUNC(void) _Py_NO_RETURN PyThread_exit_thread(void);
 
    XLC support is intentionally omitted due to bpo-40244 */
+#ifndef _Py_NO_RETURN
 #if defined(__clang__) || \
     (defined(__GNUC__) && \
      ((__GNUC__ >= 3) || \
@@ -865,6 +875,7 @@ extern _invalid_parameter_handler _Py_silent_invalid_parameter_handler;
 #  define _Py_NO_RETURN __declspec(noreturn)
 #else
 #  define _Py_NO_RETURN
+#endif
 #endif
 
 

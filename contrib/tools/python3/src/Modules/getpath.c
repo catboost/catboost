@@ -1325,11 +1325,6 @@ calculate_zip_path(PyCalculatePath *calculate)
         goto done;
     }
 
-    /* Replace "00" with version */
-    size_t len = wcslen(calculate->zip_path);
-    calculate->zip_path[len - 6] = VERSION[0];
-    calculate->zip_path[len - 5] = VERSION[2];
-
     res = _PyStatus_OK();
 
 done:

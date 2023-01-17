@@ -2,6 +2,7 @@ from enum import IntEnum
 
 __all__ = ['HTTPStatus']
 
+
 class HTTPStatus(IntEnum):
     """HTTP status codes and reason phrases
 

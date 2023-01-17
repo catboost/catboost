@@ -6,9 +6,9 @@ PY3_LIBRARY()
 
 
 
-VERSION(3.9.12)
+VERSION(3.10.4)
 
-ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.9.12.tar.gz)
+ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.4.tar.gz)
 
 LICENSE(Python-2.0)
 
@@ -25,7 +25,6 @@ PY_SRCS(
     TOP_LEVEL
     __future__.py
     _aix_support.py
-    _bootlocale.py
     _bootsubprocess.py
     _collections_abc.py
     _compat_pickle.py
@@ -59,6 +58,7 @@ PY_SRCS(
     asyncio/futures.py
     asyncio/locks.py
     asyncio/log.py
+    asyncio/mixins.py
     asyncio/proactor_events.py
     asyncio/protocols.py
     asyncio/queues.py
@@ -140,7 +140,6 @@ PY_SRCS(
     distutils/command/bdist_dumb.py
     distutils/command/bdist_msi.py
     distutils/command/bdist_rpm.py
-    distutils/command/bdist_wininst.py
     distutils/command/build.py
     distutils/command/build_clib.py
     distutils/command/build_ext.py
@@ -340,7 +339,6 @@ PY_SRCS(
     filecmp.py
     fileinput.py
     fnmatch.py
-    formatter.py
     fractions.py
     ftplib.py
     functools.py
@@ -366,12 +364,21 @@ PY_SRCS(
     imghdr.py
     imp.py
     importlib/__init__.py
+    importlib/_abc.py
+    importlib/_adapters.py
     importlib/_bootstrap.py
     importlib/_bootstrap_external.py
     importlib/_common.py
     importlib/abc.py
     importlib/machinery.py
-    importlib/metadata.py
+    importlib/metadata/__init__.py
+    importlib/metadata/_adapters.py
+    importlib/metadata/_collections.py
+    importlib/metadata/_functools.py
+    importlib/metadata/_itertools.py
+    importlib/metadata/_meta.py
+    importlib/metadata/_text.py
+    importlib/readers.py
     importlib/resources.py
     importlib/util.py
     inspect.py
@@ -482,7 +489,6 @@ PY_SRCS(
     struct.py
     subprocess.py
     sunau.py
-    symbol.py
     symtable.py
     sysconfig.py
     tabnanny.py

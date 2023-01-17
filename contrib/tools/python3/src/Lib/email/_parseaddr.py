@@ -65,7 +65,7 @@ def _parsedate_tz(data):
 
     """
     if not data:
-        return
+        return None
     data = data.split()
     if not data:  # This happens for whitespace-only input.
         return None
