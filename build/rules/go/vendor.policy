@@ -1068,6 +1068,9 @@ ALLOW trust/psp/core/handler -> vendor/github.com/gorilla/mux
 ALLOW cloud/compute/go-common/pkg/validation -> vendor/github.com/go-playground/validator/v10
 
 # CONTRIB-2412
+ALLOW library/go/protoc_gen_crd -> vendor/github.com/google/gnostic/openapiv3
+ALLOW library/go/protoc_gen_crd -> vendor/github.com/google/gnostic/compiler
+ALLOW library/go/protoc_gen_crd -> vendor/gopkg.in/yaml.v3
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/openapiv3
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/compiler
 ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
