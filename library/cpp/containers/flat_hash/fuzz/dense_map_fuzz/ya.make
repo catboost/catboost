@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/cpp/containers/flat_hash/lib/fuzz/fuzz_common
+    library/cpp/containers/flat_hash/fuzz/fuzz_common
 )
 
 SIZE(LARGE)
