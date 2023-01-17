@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{970232C3-99BD-7516-98EE-3DF5D093D86C}</ProjectGUID>
+    <ProjectGUID>{E8BA9A87-70AA-A7BC-FD5C-6D05BE4645F5}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3contrib-python-ipdb.global</ProjectName>
+    <ProjectName>pycontrib-python-stack-data.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3contrib-python-ipdb.global</TargetName>
+    <TargetName>pycontrib-python-stack-data.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\ipdb\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\970232C3-99BD-7516-98EE-3DF5D093D86C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\stack-data\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E8BA9A87-70AA-A7BC-FD5C-6D05BE4645F5\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,27 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\1a00d370492dbc4e1dfc3c41f0.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\9ca8ffabc7df4a969881963434.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\bb4e52efac8d384e0456d667a1.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\17974769cf43c40e1014dc84c5.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\ab085bf7a6c8613ae373d29d8b.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\d53eb223cf2d5742c376c2fd4e.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp" "_a0cdeacbc22da3049240cd77be=py/no_check_imports/dmmkwu6axsepmrs7s2ne5ddhzi"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/17974769cf43c40e1014dc84c5.cpp" "_c9e0920af5821d9783a6ad6e15=resfs/src/resfs/file/py/stack_data/__init__.py" "_b3d7f73cc72e645e40ca3b02b7=resfs/file/py/stack_data/__init__.py" "_2fa5b9c318fc445245cacb8fc6=resfs/src/resfs/file/py/stack_data/__init__.py.yapyc3" "_b7cac584b83af5dd41e5cf756c=resfs/file/py/stack_data/__init__.py.yapyc3" "_aed35bff08e72c96c5294bcf02=resfs/src/resfs/file/py/stack_data/core.py" "_57d62f073022e33192fe4d992e=resfs/file/py/stack_data/core.py" "_aeda34fb1e6f48c73463eb6de0=resfs/src/resfs/file/py/stack_data/core.py.yapyc3" "_0f6edf8bd592d151d0f6072a26=resfs/file/py/stack_data/core.py.yapyc3" "_8b72fafcd0e80f611b85b98d38=resfs/src/resfs/file/py/stack_data/formatting.py" "_7d11d2b40f587b58f784a0ca9b=resfs/file/py/stack_data/formatting.py" "_0a035a084124655f8d54581934=resfs/src/resfs/file/py/stack_data/formatting.py.yapyc3" "_b0a6aa95f1440d92633f3c6166=resfs/file/py/stack_data/formatting.py.yapyc3" "_efce3cc0590be519e1b49483a7=resfs/src/resfs/file/py/stack_data/utils.py" "_248430676eb421b6ffdcd08bfa=resfs/file/py/stack_data/utils.py" "_38fb04e728d1d16cd9100e2de9=resfs/src/resfs/file/py/stack_data/utils.py.yapyc3" "_d7155827c141aa67dc761a1d76=resfs/file/py/stack_data/utils.py.yapyc3" "_e3d3fcd23f2c714cf1c31bcc7e=resfs/src/resfs/file/py/stack_data/version.py" "_3b470c7715bb1bc5701bb3e0a9=resfs/file/py/stack_data/version.py" "_f6a1a5ff6dfe1dc095d7730c6c=resfs/src/resfs/file/py/stack_data/version.py.yapyc3" "_25fab2c2682d18b249e73d94c5=resfs/file/py/stack_data/version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/1a00d370492dbc4e1dfc3c41f0.cpp" "_426b879b9f07190c4f840a9654=resfs/src/resfs/file/py/ipdb/__init__.py" "_5dbcc237e69ca05f0c5ac54336=resfs/file/py/ipdb/__init__.py" "_f5144113fea366b191a4fad2e9=resfs/src/resfs/file/py/ipdb/__init__.py.yapyc3" "_4fb5a433465165552493dc620f=resfs/file/py/ipdb/__init__.py.yapyc3" "_71bff59837c5fcf34a49eafc72=resfs/src/resfs/file/py/ipdb/__main__.py" "_12fc2d33aae75f0ebbc7acebee=resfs/file/py/ipdb/__main__.py" "_96818774e821bcc8eb50198bf5=resfs/src/resfs/file/py/ipdb/__main__.py.yapyc3" "_77ca536a298fd6822e11317432=resfs/file/py/ipdb/__main__.py.yapyc3" "_82a7d961cf7b7b3167b48dc361=resfs/src/resfs/file/py/ipdb/stdout.py" "_004e7f7065be3dbae248b25923=resfs/file/py/ipdb/stdout.py" "_de90307607b04eb540f54c0360=resfs/src/resfs/file/py/ipdb/stdout.py.yapyc3" "_fc616d3958c5a124d184bf9ad2=resfs/file/py/ipdb/stdout.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/ab085bf7a6c8613ae373d29d8b.cpp" "_40736123e4c8c76e8e59f7284e=py/namespace/1d02daea1fd46c24b74e4d132314a5ae/contrib/python/stack-data"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_864bcd094894c2a3f28de0cf72=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_12371b35c4ff6341d283324ef4=resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/bb4e52efac8d384e0456d667a1.cpp" "_8cb25098eabfb9a9d05eb046b8=py/namespace/0b4f39d0f24ed77c43f14c02c607203f/contrib/python/ipdb"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/d53eb223cf2d5742c376c2fd4e.cpp" "_eabfda93473f8d3c1e44ea0b2d=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_2b181cec627b3230e9f3887f78=resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_d2dafdd49c1ceb877436226bfc=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_f3c032a7ba08351b65a6c98267=resfs/file/contrib/python/stack-data/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,21 +102,17 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp" "_a0cdeacbc22da3049240cd77be=py/no_check_imports/dmmkwu6axsepmrs7s2ne5ddhzi"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/17974769cf43c40e1014dc84c5.cpp" "_c9e0920af5821d9783a6ad6e15=resfs/src/resfs/file/py/stack_data/__init__.py" "_b3d7f73cc72e645e40ca3b02b7=resfs/file/py/stack_data/__init__.py" "_2fa5b9c318fc445245cacb8fc6=resfs/src/resfs/file/py/stack_data/__init__.py.yapyc3" "_b7cac584b83af5dd41e5cf756c=resfs/file/py/stack_data/__init__.py.yapyc3" "_aed35bff08e72c96c5294bcf02=resfs/src/resfs/file/py/stack_data/core.py" "_57d62f073022e33192fe4d992e=resfs/file/py/stack_data/core.py" "_aeda34fb1e6f48c73463eb6de0=resfs/src/resfs/file/py/stack_data/core.py.yapyc3" "_0f6edf8bd592d151d0f6072a26=resfs/file/py/stack_data/core.py.yapyc3" "_8b72fafcd0e80f611b85b98d38=resfs/src/resfs/file/py/stack_data/formatting.py" "_7d11d2b40f587b58f784a0ca9b=resfs/file/py/stack_data/formatting.py" "_0a035a084124655f8d54581934=resfs/src/resfs/file/py/stack_data/formatting.py.yapyc3" "_b0a6aa95f1440d92633f3c6166=resfs/file/py/stack_data/formatting.py.yapyc3" "_efce3cc0590be519e1b49483a7=resfs/src/resfs/file/py/stack_data/utils.py" "_248430676eb421b6ffdcd08bfa=resfs/file/py/stack_data/utils.py" "_38fb04e728d1d16cd9100e2de9=resfs/src/resfs/file/py/stack_data/utils.py.yapyc3" "_d7155827c141aa67dc761a1d76=resfs/file/py/stack_data/utils.py.yapyc3" "_e3d3fcd23f2c714cf1c31bcc7e=resfs/src/resfs/file/py/stack_data/version.py" "_3b470c7715bb1bc5701bb3e0a9=resfs/file/py/stack_data/version.py" "_f6a1a5ff6dfe1dc095d7730c6c=resfs/src/resfs/file/py/stack_data/version.py.yapyc3" "_25fab2c2682d18b249e73d94c5=resfs/file/py/stack_data/version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/1a00d370492dbc4e1dfc3c41f0.cpp" "_426b879b9f07190c4f840a9654=resfs/src/resfs/file/py/ipdb/__init__.py" "_5dbcc237e69ca05f0c5ac54336=resfs/file/py/ipdb/__init__.py" "_f5144113fea366b191a4fad2e9=resfs/src/resfs/file/py/ipdb/__init__.py.yapyc3" "_4fb5a433465165552493dc620f=resfs/file/py/ipdb/__init__.py.yapyc3" "_71bff59837c5fcf34a49eafc72=resfs/src/resfs/file/py/ipdb/__main__.py" "_12fc2d33aae75f0ebbc7acebee=resfs/file/py/ipdb/__main__.py" "_96818774e821bcc8eb50198bf5=resfs/src/resfs/file/py/ipdb/__main__.py.yapyc3" "_77ca536a298fd6822e11317432=resfs/file/py/ipdb/__main__.py.yapyc3" "_82a7d961cf7b7b3167b48dc361=resfs/src/resfs/file/py/ipdb/stdout.py" "_004e7f7065be3dbae248b25923=resfs/file/py/ipdb/stdout.py" "_de90307607b04eb540f54c0360=resfs/src/resfs/file/py/ipdb/stdout.py.yapyc3" "_fc616d3958c5a124d184bf9ad2=resfs/file/py/ipdb/stdout.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/ab085bf7a6c8613ae373d29d8b.cpp" "_40736123e4c8c76e8e59f7284e=py/namespace/1d02daea1fd46c24b74e4d132314a5ae/contrib/python/stack-data"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_864bcd094894c2a3f28de0cf72=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_12371b35c4ff6341d283324ef4=resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/bb4e52efac8d384e0456d667a1.cpp" "_8cb25098eabfb9a9d05eb046b8=py/namespace/0b4f39d0f24ed77c43f14c02c607203f/contrib/python/ipdb"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/d53eb223cf2d5742c376c2fd4e.cpp" "_eabfda93473f8d3c1e44ea0b2d=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_2b181cec627b3230e9f3887f78=resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_d2dafdd49c1ceb877436226bfc=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_f3c032a7ba08351b65a6c98267=resfs/file/contrib/python/stack-data/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp	$B/contrib/python/ipdb/1a00d370492dbc4e1dfc3c41f0.cpp	$B/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp	$B/contrib/python/ipdb/bb4e52efac8d384e0456d667a1.cpp	</Message>
+      <Message>$B/contrib/python/stack-data/17974769cf43c40e1014dc84c5.cpp	$B/contrib/python/stack-data/ab085bf7a6c8613ae373d29d8b.cpp	$B/contrib/python/stack-data/d53eb223cf2d5742c376c2fd4e.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\1a00d370492dbc4e1dfc3c41f0.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\9ca8ffabc7df4a969881963434.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\bb4e52efac8d384e0456d667a1.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\17974769cf43c40e1014dc84c5.cpp;$(SolutionDir)$(Configuration)\contrib\python\stack-data\ab085bf7a6c8613ae373d29d8b.cpp;$(SolutionDir)$(Configuration)\contrib\python\stack-data\d53eb223cf2d5742c376c2fd4e.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -185,77 +176,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py3\pypython-Pygments-py3.vcxproj">
-      <Project>{B487788F-3AFD-24DA-F36D-152E54F32905}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py3contrib-python-Pygments.vcxproj">
-      <Project>{6671EC26-D0DF-A1C6-1D5D-D8E659F62E7A}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\asttokens\pycontrib-python-asttokens.vcxproj">
       <Project>{3DF0F14D-DE4C-A095-9D95-2FAEC4DA43A5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.vcxproj">
-      <Project>{92F5AA60-9CDF-33B0-F665-B6E0CDDFE5D5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.vcxproj">
-      <Project>{C993C962-3FFE-726E-1312-B37C3A414F52}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\py3contrib-python-decorator.vcxproj">
-      <Project>{45DD0FCB-695D-6F82-16DE-881C23E1603F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.vcxproj">
       <Project>{7A0B528B-88E3-623E-3118-1B9D82415CF5}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py3\pypython-ipython-py3.vcxproj">
-      <Project>{4A9EFC96-5FD9-7449-08F3-E1AE063D87B9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py3contrib-python-ipython.vcxproj">
-      <Project>{8DB7528B-B674-3B01-4DC6-B2FA0C3DD939}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3contrib-python-jedi.vcxproj">
-      <Project>{F6465833-B229-2EDB-F19D-A5A2812C4DC5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.vcxproj">
-      <Project>{C0B1676E-76CB-BDA2-96F5-D8D4080FBEA3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\parso\py3\pypython-parso-py3.vcxproj">
-      <Project>{89EF0644-8CC5-31DF-724F-2B571C552168}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\parso\py3contrib-python-parso.vcxproj">
-      <Project>{35EB94C8-A09B-BA46-BD4E-21DE91B8B269}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\py3contrib-python-pickleshare.vcxproj">
-      <Project>{5135ADBD-B3FA-8F19-B851-2EE2D4BDDCFB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py3\pypython-prompt-toolkit-py3.vcxproj">
-      <Project>{E2AE525F-69DD-A867-83B2-4627D09231AF}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py3contrib-python-prompt-toolkit.vcxproj">
-      <Project>{2F50239D-7C35-97CC-B69A-03CF432A9A0B}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pure-eval\pycontrib-python-pure-eval.vcxproj">
       <Project>{86590505-8E3E-E55F-4B6B-512C943AC6CE}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3\pypython-setuptools-py3.vcxproj">
-      <Project>{7B88BE8A-26E1-5596-FE7C-CF79CBCB2D3D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3contrib-python-setuptools.vcxproj">
-      <Project>{62979E22-6FCA-5446-4C8A-EE18209B5DE2}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
       <Project>{3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\stack-data\pycontrib-python-stack-data.vcxproj">
-      <Project>{4B818AEF-935C-1061-9F3C-26D873AF57E9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py3\pypython-traitlets-py3.vcxproj">
-      <Project>{AAEB5EF2-D4CB-869A-7795-5C71A91644E8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py3contrib-python-traitlets.vcxproj">
-      <Project>{664376E5-49E1-D576-B02A-F0619CD58DAC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\py3contrib-python-wcwidth.vcxproj">
-      <Project>{C85D3084-A61D-31E7-B74D-4DD08AAE1E84}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
@@ -289,9 +220,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\py3library-python-resource.vcxproj">
-      <Project>{56BE61DD-902F-46E5-A0C0-F54A78D0B209}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
