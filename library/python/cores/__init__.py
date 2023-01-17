@@ -109,8 +109,14 @@ def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
             if len(cores) == 1:
                 return cores[0]
             elif len(cores) > 1:
-                stat = [(filename, os.stat(filename).st_mtime) for filename in cores]
-                entry = sorted(stat, key=lambda x: x[1])[-1]
+                core_stats = []
+                for filename in cores:
+                    try:
+                        mtime = os.stat(filename).st_mtime
+                    except OSError:
+                        continue
+                    core_stats.append((filename, mtime))
+                entry = sorted(core_stats, key=lambda x: x[1])[-1]
                 logger.debug("Latest core dump file: '%s' with %d mtime", entry[0], entry[1])
                 return entry[0]
     else:
