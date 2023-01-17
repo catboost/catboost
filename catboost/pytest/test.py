@@ -10142,6 +10142,72 @@ def test_apply_without_loss():
     yatest.common.execute(calc_cmd)
 
 
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+def test_unit_feature_weights(grow_policy):
+    def run_cmd(eval_path, additional_params):
+        cmd = (
+            '--use-best-model', 'false',
+            '--loss-function', 'Logloss',
+            '--learn-set', data_file('higgs', 'train_small'),
+            '--column-description', data_file('higgs', 'train.cd'),
+            '--boosting-type', 'Plain',
+            '--grow-policy', grow_policy,
+            '-i', '10',
+            '-w', '0.03',
+            '-T', '4',
+            '--eval-file', eval_path,
+        ) + additional_params
+        execute_catboost_fit('CPU', cmd)
+
+    regular_path = yatest.common.test_output_path('regular')
+    run_cmd(
+        regular_path,
+        ()
+    )
+
+    with_weights_path = yatest.common.test_output_path('with_weights')
+    run_cmd(
+        with_weights_path,
+        ('--feature-weights', ','.join([str(f) + ':1.0' for f in range(10)]))
+    )
+
+    assert filecmp.cmp(regular_path, with_weights_path)
+
+
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+def test_zero_feature_weights(grow_policy):
+    def run_cmd(eval_path, additional_params):
+        cmd = (
+            '--use-best-model', 'false',
+            '--loss-function', 'Logloss',
+            '--learn-set', data_file('adult', 'train_small'),
+            '--column-description', data_file('adult', 'train.cd'),
+            '--boosting-type', 'Plain',
+            '--grow-policy', grow_policy,
+            '-i', '10',
+            '-w', '0.03',
+            '-T', '4',
+            '--eval-file', eval_path,
+            '--random-strength', '0',
+            '--bootstrap-type', 'No'
+        ) + additional_params
+        execute_catboost_fit('CPU', cmd)
+
+    ignore_path = yatest.common.test_output_path('regular')
+    run_cmd(
+        ignore_path,
+        ('-I', '0-2:4-20')
+    )
+
+    with_zero_weights_path = yatest.common.test_output_path('with_weights')
+    run_cmd(
+        with_zero_weights_path,
+        ('--feature-weights', '0:0,1:0,2:0,3:1,' + ','.join([str(f) + ':0' for f in range(4, 20)]))
+    )
+
+    assert filecmp.cmp(ignore_path, with_zero_weights_path)
+
+
 def test_hashed_categ():
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
