@@ -497,7 +497,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFloat
     jenv->SetObjectArrayElement(jhas_nans, 0, hasNans);
 
     auto nanValueTreatment = jenv->NewObjectArray(features.size(), jenv->FindClass("java/lang/String"), NULL);
-    CB_ENSURE(hasNans, "OutOfMemoryError");
+    CB_ENSURE(nanValueTreatment, "OutOfMemoryError");
     jenv->SetObjectArrayElement(jnan_value_treatment, 0, nanValueTreatment);
 
     int i = 0;
