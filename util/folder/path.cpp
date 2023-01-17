@@ -18,7 +18,11 @@ struct TFsPath::TSplit: public TAtomicRefCount<TSplit>, public TPathSplit {
         for (const auto& part : that) {
             emplace_back(path.begin() + (part.data() - other.begin()), part.size());
         }
-        Drive = TStringBuf(path.begin() + (that.Drive.data() - other.begin()), that.Drive.size());
+
+        if (!that.Drive.empty()) {
+            Drive = TStringBuf(path.begin() + (that.Drive.data() - other.begin()), that.Drive.size());
+        }
+
         IsAbsolute = that.IsAbsolute;
     }
 };
