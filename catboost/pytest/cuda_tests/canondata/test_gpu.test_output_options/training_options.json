@@ -164,6 +164,7 @@
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         },
+        "eval_fraction" : 0,
         "classes_count" : 0,
         "ignored_features" : [ ],
         "text_processing_options" : {
