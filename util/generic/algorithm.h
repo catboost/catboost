@@ -729,6 +729,13 @@ constexpr bool IsSortedBy(TIterator begin, TIterator end, const TGetKey& getKey)
     return IsSorted(begin, end, [&](auto&& left, auto&& right) { return getKey(left) < getKey(right); });
 }
 
+template <class TContainer, typename TGetKey>
+constexpr bool IsSortedBy(const TContainer& c, const TGetKey& getKey) {
+    using std::begin;
+    using std::end;
+    return IsSortedBy(begin(c), end(c), getKey);
+}
+
 template <class It, class Val>
 constexpr void Iota(It begin, It end, Val val) {
     std::iota(begin, end, val);
