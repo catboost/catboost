@@ -36,7 +36,6 @@
 #define ABSL_CONTAINER_INLINED_VECTOR_H_
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -152,7 +151,7 @@ class InlinedVector {
                 const allocator_type& allocator = allocator_type())
       : storage_(allocator) {
     storage_.Initialize(IteratorValueAdapter<A, ForwardIterator>(first),
-                        std::distance(first, last));
+                        static_cast<size_t>(std::distance(first, last)));
   }
 
   // Creates an inlined vector with elements constructed from the provided input
@@ -233,8 +232,8 @@ class InlinedVector {
   // specified allocator is also `noexcept`.
   InlinedVector(
       InlinedVector&& other,
-      const allocator_type& allocator)
-      noexcept(absl::allocator_is_nothrow<allocator_type>::value)
+      const allocator_type&
+          allocator) noexcept(absl::allocator_is_nothrow<allocator_type>::value)
       : storage_(allocator) {
     if (IsMemcpyOk<A>::value) {
       storage_.MemcpyFrom(other.storage_);
@@ -486,8 +485,8 @@ class InlinedVector {
   InlinedVector& operator=(InlinedVector&& other) {
     if (ABSL_PREDICT_TRUE(this != std::addressof(other))) {
       if (IsMemcpyOk<A>::value || other.storage_.GetIsAllocated()) {
-        inlined_vector_internal::DestroyElements<A>(storage_.GetAllocator(),
-                                                    data(), size());
+        inlined_vector_internal::DestroyAdapter<A>::DestroyElements(
+            storage_.GetAllocator(), data(), size());
         storage_.DeallocateIfAllocated();
         storage_.MemcpyFrom(other.storage_);
 
@@ -523,7 +522,7 @@ class InlinedVector {
             EnableIfAtLeastForwardIterator<ForwardIterator> = 0>
   void assign(ForwardIterator first, ForwardIterator last) {
     storage_.Assign(IteratorValueAdapter<A, ForwardIterator>(first),
-                    std::distance(first, last));
+                    static_cast<size_t>(std::distance(first, last)));
   }
 
   // Overload of `InlinedVector::assign(...)` to replace the contents of the
@@ -586,8 +585,20 @@ class InlinedVector {
 
     if (ABSL_PREDICT_TRUE(n != 0)) {
       value_type dealias = v;
+      // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=102329#c2
+      // It appears that GCC thinks that since `pos` is a const pointer and may
+      // point to uninitialized memory at this point, a warning should be
+      // issued. But `pos` is actually only used to compute an array index to
+      // write to.
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
       return storage_.Insert(pos, CopyValueAdapter<A>(std::addressof(dealias)),
                              n);
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     } else {
       return const_cast<iterator>(pos);
     }
@@ -721,8 +732,8 @@ class InlinedVector {
   // Destroys all elements in the inlined vector, setting the size to `0` and
   // deallocating any held memory.
   void clear() noexcept {
-    inlined_vector_internal::DestroyElements<A>(storage_.GetAllocator(), data(),
-                                                size());
+    inlined_vector_internal::DestroyAdapter<A>::DestroyElements(
+        storage_.GetAllocator(), data(), size());
     storage_.DeallocateIfAllocated();
 
     storage_.SetInlinedSize(0);

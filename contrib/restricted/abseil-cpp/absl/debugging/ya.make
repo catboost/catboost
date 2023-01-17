@@ -31,7 +31,6 @@ SRCS(
     internal/examine_stack.cc
     internal/vdso_support.cc
     leak_check.cc
-    leak_check_disable.cc
     stacktrace.cc
     symbolize.cc
 )

@@ -47,7 +47,12 @@ BELONGS absl/debugging/ya.make absl/hash/ya.make absl/numeric/ya.make absl/profi
         absl/profiling/internal/exponential_biased.cc [3:13]
         absl/profiling/internal/exponential_biased.h [3:13]
         absl/random/internal/nanobenchmark.h [3:13]
+        absl/strings/cord_analysis.cc [3:13]
+        absl/strings/cord_analysis.h [3:13]
+        absl/strings/cord_buffer.cc [3:13]
+        absl/strings/cord_buffer.h [3:13]
         absl/strings/cordz_test_helpers.h [3:13]
+        absl/strings/internal/cord_data_edge.h [3:13]
         absl/strings/internal/cord_rep_btree.cc [3:13]
         absl/strings/internal/cord_rep_btree.h [3:13]
         absl/strings/internal/cord_rep_btree_navigator.cc [3:13]
@@ -56,6 +61,8 @@ BELONGS absl/debugging/ya.make absl/hash/ya.make absl/numeric/ya.make absl/profi
         absl/strings/internal/cord_rep_btree_reader.h [3:13]
         absl/strings/internal/cord_rep_consume.cc [3:13]
         absl/strings/internal/cord_rep_consume.h [3:13]
+        absl/strings/internal/cord_rep_crc.cc [3:13]
+        absl/strings/internal/cord_rep_crc.h [3:13]
         absl/strings/internal/cord_rep_flat.h [3:13]
         absl/strings/internal/cord_rep_ring.cc [3:13]
         absl/strings/internal/cord_rep_ring.h [3:13]
@@ -157,6 +164,7 @@ BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/deb
         absl/base/internal/low_level_alloc.h [3:13]
         absl/base/internal/low_level_scheduling.h [3:13]
         absl/base/internal/per_thread_tls.h [3:13]
+        absl/base/internal/prefetch.h [3:13]
         absl/base/internal/pretty_function.h [3:13]
         absl/base/internal/raw_logging.cc [3:13]
         absl/base/internal/raw_logging.h [3:13]
@@ -216,10 +224,9 @@ BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/deb
         absl/container/internal/hashtablez_sampler.cc [3:13]
         absl/container/internal/hashtablez_sampler.h [3:13]
         absl/container/internal/hashtablez_sampler_force_weak_definition.cc [3:13]
-        absl/container/internal/have_sse.h [3:13]
         absl/container/internal/inlined_vector.h [3:13]
         absl/container/internal/layout.h [3:13]
-        absl/container/internal/node_hash_policy.h [3:13]
+        absl/container/internal/node_slot_policy.h [3:13]
         absl/container/internal/raw_hash_map.h [3:13]
         absl/container/internal/raw_hash_set.cc [3:13]
         absl/container/internal/raw_hash_set.h [3:13]
@@ -256,7 +263,6 @@ BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/deb
         absl/debugging/internal/vdso_support.h [4:14]
         absl/debugging/leak_check.cc [3:13]
         absl/debugging/leak_check.h [3:13]
-        absl/debugging/leak_check_disable.cc [3:13]
         absl/debugging/stacktrace.cc [3:13]
         absl/debugging/stacktrace.h [3:13]
         absl/debugging/symbolize.cc [3:13]
@@ -297,8 +303,10 @@ BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/deb
         absl/flags/usage.h [4:14]
         absl/flags/usage_config.cc [4:14]
         absl/flags/usage_config.h [4:14]
+        absl/functional/any_invocable.h [3:13]
         absl/functional/bind_front.h [3:13]
         absl/functional/function_ref.h [3:13]
+        absl/functional/internal/any_invocable.h [3:13]
         absl/functional/internal/front_binder.h [3:13]
         absl/functional/internal/function_ref.h [3:13]
         absl/hash/hash.h [3:13]
@@ -549,7 +557,7 @@ BELONGS absl/synchronization/ya.make
         Match type      : INTRO
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/generic-exception.LICENSE
     Files with this license:
-        absl/synchronization/mutex.h [289:289]
+        absl/synchronization/mutex.h [296:296]
 
 KEEP     Apache-2.0           cac6cbe8ed5a3da569f7c01e4e486688
 BELONGS ya.make
@@ -599,11 +607,11 @@ BELONGS absl/strings/ya.make
         Match type      : NOTICE
         Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
     Files with this license:
-        absl/strings/internal/cord_rep_btree.h [49:49]
+        absl/strings/internal/cord_rep_btree.h [50:50]
     Scancode info:
         Original SPDX id: GPL-2.0-only
         Score           : 8.16
         Match type      : NOTICE
         Links           : http://www.gnu.org/licenses/gpl-2.0.html, http://www.gnu.org/licenses/gpl-2.0.txt, https://spdx.org/licenses/GPL-2.0-only
     Files with this license:
-        absl/strings/internal/cord_rep_btree.h [49:49]
+        absl/strings/internal/cord_rep_btree.h [50:50]

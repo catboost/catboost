@@ -32,6 +32,8 @@ SRCS(
     strings/ascii.cc
     strings/charconv.cc
     strings/cord.cc
+    strings/cord_analysis.cc
+    strings/cord_buffer.cc
     strings/escaping.cc
     strings/internal/charconv_bigint.cc
     strings/internal/charconv_parse.cc
@@ -40,6 +42,7 @@ SRCS(
     strings/internal/cord_rep_btree_navigator.cc
     strings/internal/cord_rep_btree_reader.cc
     strings/internal/cord_rep_consume.cc
+    strings/internal/cord_rep_crc.cc
     strings/internal/cord_rep_ring.cc
     strings/internal/cordz_functions.cc
     strings/internal/cordz_handle.cc

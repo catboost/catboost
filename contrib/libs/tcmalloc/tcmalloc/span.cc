@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "absl/base/optimization.h"  // ABSL_INTERNAL_ASSUME
+#include "absl/base/optimization.h"  // ABSL_ASSUME
 #include "absl/numeric/bits.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/internal/atomic_stats_counter.h"
@@ -230,7 +230,7 @@ uint16_t Span::CalcReciprocal(size_t size) {
   // TODO(djgove) These divides can be computed once at start up.
   size_t reciprocal = 0;
   // The spans hold objects up to kMaxSize, so it's safe to assume.
-  ABSL_INTERNAL_ASSUME(size <= kMaxSize);
+  ABSL_ASSUME(size <= kMaxSize);
   if (size <= SizeMap::kMultiPageSize) {
     reciprocal = kBitmapScalingDenominator / (size >> kAlignmentShift);
   } else {
