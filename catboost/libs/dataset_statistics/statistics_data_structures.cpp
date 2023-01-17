@@ -65,7 +65,7 @@ NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
     result.InsertValue("Sum", ToString(Sum));
     result.InsertValue("SumSqr", ToString(SumSqr));
     result.InsertValue("ObjectCount", ObjectCount);
-    if (CustomMin != std::numeric_limits<double>::min()) {
+    if (CustomMin != std::numeric_limits<double>::lowest()) {
         result.InsertValue("CustomMin", CustomMin);
     }
     if (CustomMax != std::numeric_limits<double>::max()) {
