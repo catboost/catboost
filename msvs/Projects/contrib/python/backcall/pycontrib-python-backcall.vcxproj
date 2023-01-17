@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{92F5AA60-9CDF-33B0-F665-B6E0CDDFE5D5}</ProjectGUID>
+    <ProjectGUID>{08E0D479-9BF5-BB2D-C13E-B4FE2A73AA24}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3contrib-python-backcall</ProjectName>
+    <ProjectName>pycontrib-python-backcall</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3contrib-python-backcall</TargetName>
+    <TargetName>pycontrib-python-backcall</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\backcall\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\92F5AA60-9CDF-33B0-F665-B6E0CDDFE5D5\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\08E0D479-9BF5-BB2D-C13E-B4FE2A73AA24\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -82,7 +82,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_23219f30abd63b829a4d13a61f.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backcall/_23219f30abd63b829a4d13a61f.py3.obj	</Message>
+      <Message>$B/contrib/python/backcall/_23219f30abd63b829a4d13a61f.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_23219f30abd63b829a4d13a61f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_23219f30abd63b829a4d13a61f.py3.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_23219f30abd63b829a4d13a61f.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\_4031a1027b2c7a9f415e84d5b2.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,15 +128,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.py3.obj	</Message>
+      <Message>$B/contrib/python/backcall/_4031a1027b2c7a9f415e84d5b2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_4031a1027b2c7a9f415e84d5b2.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_4031a1027b2c7a9f415e84d5b2.py3.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_4031a1027b2c7a9f415e84d5b2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\backcall\_b57275d124cd9c0f85245973df.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -147,7 +147,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\backcall
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.obj" "$(SolutionDir)$(Configuration)/contrib/python/backcall/_b57275d124cd9c0f85245973df.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,9 +155,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backcall/_b57275d124cd9c0f85245973df.py3.obj	</Message>
+      <Message>$B/contrib/python/backcall/_b57275d124cd9c0f85245973df.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_b57275d124cd9c0f85245973df.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_b57275d124cd9c0f85245973df.py3.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backcall\_b57275d124cd9c0f85245973df.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
