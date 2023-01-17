@@ -1,0 +1,12 @@
+{
+    "moduleTemplate":"This is module file. MacroName is '{{macro}}'. Name is '{{name}}'",
+    "rootTemplate":"{% for subdir in subdirs -%}\nadd_subdirectory({{subdir}})\n{% endfor -%}",
+    "commands":
+    {
+        "KnownTargets":
+        [
+            "add_jar",
+        ]
+    }
+}
+
