@@ -4,7 +4,6 @@ import ytest
 from os.path import exists as file_exists
 
 from _common import to_yesno, strip_roots, rootrel_arc_src
-from lib.nots.package_manager import utils
 
 
 def _create_pm(unit):
@@ -251,14 +250,20 @@ def _add_test_type(unit, test_type, test_files, test_record_args=None, test_cwd=
         ytest.save_in_file(unit.get("TEST_DART_OUT_FILE"), data)
 
 def _set_nodejs_root(unit):
-    node_version = _get_node_version_from_package_json(unit) # example: 12.18.4
-    yamake_node_version_var = _convert_node_version_to_yamake_var(node_version) # example: NODEJS_12_18_4
+    # example: >= 12.18.4
+    version_range = _get_node_version_range_from_pj(unit)
+
+    # example: Version(12, 18, 4)
+    node_version = _select_matching_node_version(version_range)
+
+    # example: NODEJS_12_18_4
+    yamake_node_version_var = _convert_node_version_to_yamake_var(node_version)
 
     unit.set(["NODEJS_ROOT", "${}_RESOURCE_GLOBAL".format(yamake_node_version_var)])
     unit.set(["NODEJS_BIN", "${}_RESOURCE_GLOBAL/node".format(yamake_node_version_var)])
     unit.set(["NODEJS_ROOT_VAR_NAME", "{}_RESOURCE_GLOBAL".format(yamake_node_version_var)])
 
-def _get_node_version_from_package_json(unit):
+def _get_node_version_range_from_pj(unit):
     pm = _create_pm(unit)
 
     # for test modules we use node.js version from the parent module (the one being tested)
@@ -270,20 +275,39 @@ def _get_node_version_from_package_json(unit):
     return package_json.get_nodejs_version()
 
 
-def _convert_node_version_to_yamake_var(input):
+def _select_matching_node_version(range_str):
     """
-    :param input: nodejs version string from package.json
-    :type input: str
+    :param str range_str:
+    :rtype: Version
+    """
+    from lib.nots.constants import SUPPORTED_NODE_VERSIONS, DEFAULT_NODE_VERSION
+    from lib.nots.semver import VersionRange
+
+    if range_str is None:
+        return DEFAULT_NODE_VERSION
+
+    try:
+        range = VersionRange.from_str(range_str)
+
+        # assuming SUPPORTED_NODE_VERSIONS is sorted from the lowest to highest version
+        # we stop the loop as early as possible and hence return the lowest compatible version
+        for version in SUPPORTED_NODE_VERSIONS:
+            if range.is_satisfied_by(version):
+                return version
+
+        raise ValueError("There is no allowed version to satisfy this range: '{}'".format(range_str))
+    except Exception as error:
+        raise Exception(
+            "Requested nodejs version range '{}'' could not be satisfied. Please use a range that would include one of the following: {}.\nFor further details please visit the link: {}\nOriginal error: {}"
+            .format(range_str, map(str, SUPPORTED_NODE_VERSIONS), "https://nda.ya.ru/t/ulU4f5Ru5egzHV", str(error))
+        )
+
+
+def _convert_node_version_to_yamake_var(version):
+    """
+    :param Version version: a Version object representing the best match to the range in package.json
     :rtype: str
     """
+    snake_case_version_str = str(version).replace(".", "_")
 
-    from lib.nots.constants import SUPPORTED_NODE_VERSIONS, DEFAULT_NODE_VERSION
-
-    if input is None:
-        input = DEFAULT_NODE_VERSION
-
-    if input in SUPPORTED_NODE_VERSIONS:
-        snake_case_version = input.replace(".", "_")
-        return "NODEJS_{}".format(snake_case_version)
-
-    raise Exception("Unsupported nodejs version {}, please specify one of the following: {}".format(input, SUPPORTED_NODE_VERSIONS))
+    return "NODEJS_{}".format(snake_case_version_str)
