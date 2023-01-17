@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pytest
-Version: 7.1.2
+Version: 7.1.3
 Summary: pytest: simple powerful testing with Python
 Home-page: https://docs.pytest.org/en/latest/
 Author: Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Florian Bruhin and others
@@ -40,7 +40,6 @@ Requires-Dist: pluggy (<2.0,>=0.12)
 Requires-Dist: py (>=1.8.2)
 Requires-Dist: tomli (>=1.0.0)
 Requires-Dist: importlib-metadata (>=0.12) ; python_version < "3.8"
-Requires-Dist: atomicwrites (>=1.0) ; sys_platform == "win32"
 Requires-Dist: colorama ; sys_platform == "win32"
 Provides-Extra: testing
 Requires-Dist: argcomplete ; extra == 'testing'
@@ -218,5 +217,3 @@ Copyright Holger Krekel and others, 2004.
 Distributed under the terms of the `MIT`_ license, pytest is free and open source software.
 
 .. _`MIT`: https://github.com/pytest-dev/pytest/blob/main/LICENSE
-
-
