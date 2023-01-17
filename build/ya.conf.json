@@ -7535,7 +7535,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1051903185,
+                "sandbox_id": 1522153657,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -8382,7 +8382,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1519897268,
+                "sandbox_id": 1522655718,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8676,7 +8676,7 @@
         "coronerctl": {
             "formula": {
                 "sandbox_id": [
-                    1480926804
+                    1520884213
                 ],
                 "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
@@ -9039,7 +9039,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1519897865,
+                "sandbox_id": 1522655739,
                 "match": "bb_requester"
             },
             "executable": {
