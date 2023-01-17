@@ -28,4 +28,5 @@ RECURSE(
     plugins
     prebuilt
     scripts
+    sysincl/check
 )
