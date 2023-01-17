@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(1.0.0)
+VERSION(1.1.0)
 
 LICENSE(MIT)
 
@@ -13,6 +13,8 @@ NO_LINT()
 PY_SRCS(
     TOP_LEVEL
     executing/__init__.py
+    executing/_exceptions.py
+    executing/_position_node_finder.py
     executing/executing.py
     executing/version.py
 )

@@ -15,6 +15,7 @@ from stack_data import (
     Variable,
     RepeatedFrames,
 )
+from stack_data.utils import some_str
 
 log = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class Serializer:
             frames=self.format_stack(e.__traceback__ or sys.exc_info()[2]),
             exception=dict(
                 type=type(e).__name__,
-                message=traceback._some_str(e),
+                message=some_str(e),
             ),
             tail="",
         )

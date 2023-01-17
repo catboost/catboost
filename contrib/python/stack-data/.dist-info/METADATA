@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: stack-data
-Version: 0.5.0
+Version: 0.5.1
 Summary: Extract data from python stack frames and tracebacks for informative displays
 Home-page: http://github.com/alexmojaki/stack_data
 Author: Alex Hall
@@ -13,6 +13,7 @@ Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Topic :: Software Development :: Debuggers

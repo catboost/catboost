@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: executing
-Version: 1.0.0
+Version: 1.1.0
 Summary: Get the currently executing AST node of a frame, and other information
 Home-page: https://github.com/alexmojaki/executing
 Author: Alex Hall
@@ -18,8 +18,14 @@ Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
+Provides-Extra: tests
+Requires-Dist: asttokens ; extra == 'tests'
+Requires-Dist: pytest ; extra == 'tests'
+Requires-Dist: littleutils ; extra == 'tests'
+Requires-Dist: rich ; (python_version >= "3.11") and extra == 'tests'
 
 # executing
 

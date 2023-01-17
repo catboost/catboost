@@ -154,7 +154,7 @@ class Source(executing.Source):
         for name, body in ast.iter_fields(stmt):
             if (
                     isinstance(body, list) and body and
-                    isinstance(body[0], (ast.stmt, ast.ExceptHandler))
+                    isinstance(body[0], (ast.stmt, ast.ExceptHandler, getattr(ast, 'match_case', ())))
             ):
                 for rang, group in sorted(group_by_key_func(body, line_range).items()):
                     sub_stmt = group[0]

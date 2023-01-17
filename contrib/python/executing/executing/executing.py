@@ -78,10 +78,11 @@ else:
     # noinspection PyUnresolvedReferences
     text_type = unicode
 
-try:
+if hasattr(dis, "get_instructions"):
     # noinspection PyUnresolvedReferences
     _get_instructions = dis.get_instructions
-except AttributeError:
+
+else:
     class Instruction(namedtuple('Instruction', 'offset argval opname starts_line')):
         lineno = None
 
@@ -149,7 +150,9 @@ TESTING = 0
 
 
 class NotOneValueFound(Exception):
-    pass
+    def __init__(self,msg,values=[]):
+        self.values=values
+        super(NotOneValueFound,self).__init__(msg)
 
 
 def only(it):
@@ -163,7 +166,7 @@ def only(it):
     if len(lst) == 0:
         raise NotOneValueFound('Expected one value, found 0')
     if len(lst) > 1:
-        raise NotOneValueFound('Expected one value, found several')
+        raise NotOneValueFound('Expected one value, found several',lst)
     return lst[0]
 
 
@@ -226,7 +229,7 @@ class Source(object):
 
         try:
             self.tree = ast.parse(ast_text, filename=filename)
-        except SyntaxError:
+        except (SyntaxError, ValueError):
             pass
         else:
             for node in ast.walk(self.tree):
@@ -313,6 +316,8 @@ class Source(object):
             lineno = frame.f_lineno
             lasti = frame.f_lasti
 
+
+
         code = frame.f_code
         key = (code, id(code), lasti)
         executing_cache = cls._class_local('__executing_cache', {})
@@ -329,7 +334,7 @@ class Source(object):
                         if is_ipython_cell_code(code):
                             decorator, node = find_node_ipython(frame, lasti, stmts)
                         else:
-                            node_finder = NodeFinder(frame, stmts, tree, lasti)
+                            node_finder = NodeFinder(frame, stmts, tree, lasti, source)
                             node = node_finder.result
                             decorator = node_finder.decorator
                 except Exception:
@@ -509,9 +514,11 @@ class QualnameVisitor(ast.NodeVisitor):
         self.stack.pop()
 
 
+
+
+
 future_flags = sum(
-    getattr(__future__, fname).compiler_flag
-    for fname in __future__.all_feature_names
+    getattr(__future__, fname).compiler_flag for fname in __future__.all_feature_names
 )
 
 
@@ -527,9 +534,8 @@ def compile_similar_to(source, matching_code):
 
 sentinel = 'io8urthglkjdghvljusketgIYRFYUVGHFRTBGVHKGF78678957647698'
 
-
-class NodeFinder(object):
-    def __init__(self, frame, stmts, tree, lasti):
+class SentinelNodeFinder(object):
+    def __init__(self, frame, stmts, tree, lasti, source):
         assert_(stmts)
         self.frame = frame
         self.tree = tree
@@ -831,6 +837,7 @@ class NodeFinder(object):
             index += 1
 
 
+
 def non_sentinel_instructions(instructions, start):
     """
     Yields (index, instruction) pairs excluding the basic
@@ -1079,12 +1086,12 @@ def is_ipython_cell_code(code_obj):
     )
 
 
-def find_node_ipython(frame, lasti, stmts):
+def find_node_ipython(frame, lasti, stmts, source):
     node = decorator = None
     for stmt in stmts:
         tree = _extract_ipython_statement(stmt)
         try:
-            node_finder = NodeFinder(frame, stmts, tree, lasti)
+            node_finder = NodeFinder(frame, stmts, tree, lasti, source)
             if (node or decorator) and (node_finder.result or node_finder.decorator):
                 # Found potential nodes in separate statements,
                 # cannot resolve ambiguity, give up here
@@ -1118,3 +1125,10 @@ def node_linenos(node):
             linenos = [node.lineno]
         for lineno in linenos:
             yield lineno
+
+
+if sys.version_info >= (3, 11):
+    from ._position_node_finder import PositionNodeFinder as NodeFinder
+else:
+    NodeFinder = SentinelNodeFinder
+
