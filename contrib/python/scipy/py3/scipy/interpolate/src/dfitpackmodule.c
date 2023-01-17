@@ -6819,7 +6819,7 @@ PyMODINIT_FUNC initdfitpack(void) {
 #else
   m = dfitpack_module = Py_InitModule("dfitpack", f2py_module_methods);
 #endif
-  Py_TYPE(&PyFortran_Type) = &PyType_Type;
+  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
   import_array();
   if (PyErr_Occurred())
     {PyErr_SetString(PyExc_ImportError, "can't initialize module dfitpack (failed to import numpy)"); return RETVAL;}
