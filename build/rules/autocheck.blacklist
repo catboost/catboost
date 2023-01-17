@@ -145,3 +145,4 @@ market/erp_axapta/libs/AuthenticatedEncryption
 market/erp_axapta/libs/VetisServiceAx
 contest/experiments/kafka/producer
 market/erp_axapta/libs/solomon_helper
+market/erp_axapta/libs/AXInteropServices
