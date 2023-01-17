@@ -219,12 +219,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm" "-" "contrib/python/filelock/py3/filelock/__init__.py" "_50f6cc62af0c4ec20658b1cb91.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_063eb5e5233564715bcdf142c8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/__init__.py.dxvy.yapyc3" "_56e79711dddb96f06e6a917aee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/__init__.py.dxvy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_860e064fbec18aa30698f90a21.rodata" "-" "contrib/python/filelock/py3/filelock/_api.py" "_b9333c62cce661f2658b451165.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_api.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_efe15d953b13be893aebcac651.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_api.py.gyzr.yapyc3" "_946f981ac9e99f1b292a98a5a8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_api.py.gyzr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_208acc1f5c0261da916c98602e.rodata" "-" "contrib/python/filelock/py3/filelock/_error.py" "_7ca56dc163a40922575efd5575.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_1d8c909ee0ff9ea98cacd03e35.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_error.py.jfmr.yapyc3" "_e9ffdbc22013741f8b5fb22505.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_error.py.jfmr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_953e1018cb2f8161db397629bb.rodata" "-" "contrib/python/filelock/py3/filelock/_soft.py" "_4f115b6b408695717709d903bf.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_soft.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_0e439effeaed1777150abaa2a4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_soft.py.i5ln.yapyc3" "_c08a9835e22801902677dfbb19.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_soft.py.i5ln.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_8e31e862985084786aa16b1bba.rodata" "-" "contrib/python/filelock/py3/filelock/_unix.py" "_39bcdb33cfe76d2473d1454ea9.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_unix.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_b42bea97e169f2538692c5312d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_unix.py.dsus.yapyc3" "_41b765d21086912c0385a840d3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_unix.py.dsus.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_909f9eeaf0f911e4cdb6162e21.rodata" "-" "contrib/python/filelock/py3/filelock/_util.py" "_ce04d341eb1b9f06dde3a0c065.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_util.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_75dba339fc2557061f44d6ebfd.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_util.py.arzx.yapyc3" "_bb1a3eaf530aae704f7e322982.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_util.py.arzx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_c703dfc290fd5b6a2294cf8c93.rodata" "-" "contrib/python/filelock/py3/filelock/_windows.py" "_13f5d65d46ff30806e43b98502.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_windows.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_1c080e3e2d3e99e59e6d6e9f4c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_windows.py.7l6a.yapyc3" "_caa46c7a8cb94e35a1d22d8fec.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_windows.py.7l6a.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_0726905b7fc574a871302bd2e6.rodata" "-" "contrib/python/filelock/py3/filelock/version.py" "_0c60039138e423c11e4911931d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/__init__.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/__init__.py.dxvy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -236,207 +230,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm" "-" "contrib/python/filelock/py3/filelock/__init__.py" "_50f6cc62af0c4ec20658b1cb91.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_063eb5e5233564715bcdf142c8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/__init__.py.dxvy.yapyc3" "_56e79711dddb96f06e6a917aee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/__init__.py.dxvy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_860e064fbec18aa30698f90a21.rodata" "-" "contrib/python/filelock/py3/filelock/_api.py" "_b9333c62cce661f2658b451165.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_api.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_efe15d953b13be893aebcac651.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_api.py.gyzr.yapyc3" "_946f981ac9e99f1b292a98a5a8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_api.py.gyzr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_208acc1f5c0261da916c98602e.rodata" "-" "contrib/python/filelock/py3/filelock/_error.py" "_7ca56dc163a40922575efd5575.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_1d8c909ee0ff9ea98cacd03e35.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_error.py.jfmr.yapyc3" "_e9ffdbc22013741f8b5fb22505.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_error.py.jfmr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_953e1018cb2f8161db397629bb.rodata" "-" "contrib/python/filelock/py3/filelock/_soft.py" "_4f115b6b408695717709d903bf.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_soft.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_0e439effeaed1777150abaa2a4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_soft.py.i5ln.yapyc3" "_c08a9835e22801902677dfbb19.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_soft.py.i5ln.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_8e31e862985084786aa16b1bba.rodata" "-" "contrib/python/filelock/py3/filelock/_unix.py" "_39bcdb33cfe76d2473d1454ea9.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_unix.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_b42bea97e169f2538692c5312d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_unix.py.dsus.yapyc3" "_41b765d21086912c0385a840d3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_unix.py.dsus.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_909f9eeaf0f911e4cdb6162e21.rodata" "-" "contrib/python/filelock/py3/filelock/_util.py" "_ce04d341eb1b9f06dde3a0c065.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_util.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_75dba339fc2557061f44d6ebfd.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_util.py.arzx.yapyc3" "_bb1a3eaf530aae704f7e322982.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_util.py.arzx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_c703dfc290fd5b6a2294cf8c93.rodata" "-" "contrib/python/filelock/py3/filelock/_windows.py" "_13f5d65d46ff30806e43b98502.rodata" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_windows.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_1c080e3e2d3e99e59e6d6e9f4c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_windows.py.7l6a.yapyc3" "_caa46c7a8cb94e35a1d22d8fec.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_windows.py.7l6a.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_0726905b7fc574a871302bd2e6.rodata" "-" "contrib/python/filelock/py3/filelock/version.py" "_0c60039138e423c11e4911931d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/__init__.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/__init__.py.dxvy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm	$B/contrib/python/filelock/py3/filelock/__init__.py.dxvy.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\__init__.py.dxvy.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_api.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_api.py.gyzr.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_error.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_error.py.jfmr.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_soft.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_soft.py.i5ln.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_unix.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_unix.py.dsus.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_util.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_util.py.arzx.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_windows.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_windows.py.7l6a.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_ea8eca21322c7e55bcd7065f9e.yasm;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_063eb5e5233564715bcdf142c8.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_860e064fbec18aa30698f90a21.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_efe15d953b13be893aebcac651.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_208acc1f5c0261da916c98602e.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_1d8c909ee0ff9ea98cacd03e35.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_953e1018cb2f8161db397629bb.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_0e439effeaed1777150abaa2a4.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_8e31e862985084786aa16b1bba.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_b42bea97e169f2538692c5312d.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_909f9eeaf0f911e4cdb6162e21.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_75dba339fc2557061f44d6ebfd.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_c703dfc290fd5b6a2294cf8c93.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_1c080e3e2d3e99e59e6d6e9f4c.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_0726905b7fc574a871302bd2e6.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\__init__.py.dxvy.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\filelock\py3\filelock\_api.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_api.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_api.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_api.py.gyzr.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_api.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_api.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_api.py.gyzr.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/filelock/_api.py.gyzr.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\_api.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_api.py.gyzr.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\filelock\py3\filelock\_error.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_error.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_error.py.jfmr.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_error.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_error.py.jfmr.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/filelock/_error.py.jfmr.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\_error.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_error.py.jfmr.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\filelock\py3\filelock\_soft.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_soft.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_soft.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_soft.py.i5ln.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_soft.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_soft.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_soft.py.i5ln.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/filelock/_soft.py.i5ln.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\_soft.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_soft.py.i5ln.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\filelock\py3\filelock\_unix.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_unix.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_unix.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_unix.py.dsus.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_unix.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_unix.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_unix.py.dsus.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/filelock/_unix.py.dsus.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\_unix.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_unix.py.dsus.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\filelock\py3\filelock\_util.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_util.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_util.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_util.py.arzx.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_util.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_util.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_util.py.arzx.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/filelock/_util.py.arzx.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\_util.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_util.py.arzx.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\filelock\py3\filelock\_windows.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_windows.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_windows.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_windows.py.7l6a.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/_windows.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/_windows.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/_windows.py.7l6a.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/filelock/_windows.py.7l6a.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\_windows.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_windows.py.7l6a.yapyc3;</Outputs>
+      <Message>$B/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\__init__.py.dxvy.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_api.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_api.py.gyzr.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_error.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_error.py.jfmr.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_soft.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_soft.py.i5ln.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_unix.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_unix.py.dsus.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_util.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_util.py.arzx.yapyc3;$(SolutionDir)..\contrib\python\filelock\py3\filelock\_windows.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\_windows.py.7l6a.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_ea8eca21322c7e55bcd7065f9e.yasm;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_063eb5e5233564715bcdf142c8.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_860e064fbec18aa30698f90a21.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_efe15d953b13be893aebcac651.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_208acc1f5c0261da916c98602e.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_1d8c909ee0ff9ea98cacd03e35.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_953e1018cb2f8161db397629bb.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_0e439effeaed1777150abaa2a4.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_8e31e862985084786aa16b1bba.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_b42bea97e169f2538692c5312d.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_909f9eeaf0f911e4cdb6162e21.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_75dba339fc2557061f44d6ebfd.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_c703dfc290fd5b6a2294cf8c93.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_1c080e3e2d3e99e59e6d6e9f4c.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_0726905b7fc574a871302bd2e6.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\filelock\py3\filelock\version.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -444,12 +246,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm" "$(SolutionDir)../contrib/python/filelock/py3/filelock/version.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_b954df8640fa6fa673a9ff44e2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/version.py.arau.yapyc3" "_5b8cd2958da3ec333bb99e68b7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/version.py.arau.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_5ce11f6499741afb969386ff3d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/version.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/version.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/version.py.arau.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -461,21 +257,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm" "$(SolutionDir)../contrib/python/filelock/py3/filelock/version.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_b954df8640fa6fa673a9ff44e2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/version.py.arau.yapyc3" "_5b8cd2958da3ec333bb99e68b7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/version.py.arau.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_5ce11f6499741afb969386ff3d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/filelock/py3/filelock/version.py-" "$(SolutionDir)../contrib/python/filelock/py3/filelock/version.py" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/filelock/version.py.arau.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm	$B/contrib/python/filelock/py3/filelock/version.py.arau.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\version.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\version.py.arau.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_9f09f4f1ae6ca11f880d86fa44.yasm;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_b954df8640fa6fa673a9ff44e2.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_5ce11f6499741afb969386ff3d.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\version.py.arau.yapyc3;</Outputs>
+      <Message>$B/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\filelock\py3\filelock\version.py;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\filelock\version.py.arau.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_9f09f4f1ae6ca11f880d86fa44.yasm;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_b954df8640fa6fa673a9ff44e2.rodata;$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\_5ce11f6499741afb969386ff3d.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

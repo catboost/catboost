@@ -219,12 +219,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_02017ebbc8b47cafaabc653f3d.yasm" "-" "contrib/python/packaging/py3/packaging/__about__.py" "_9fa6744aba2ee81cca13dcb0ce.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_50ddc9118fd2f4a3d96bfe0a13.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__about__.py.llsl.yapyc3" "_40155cbaa0d2b3c9f8aa4725ea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__about__.py.llsl.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_073f063d31b32ff1dd37865a49.rodata" "-" "contrib/python/packaging/py3/packaging/__init__.py" "_163ae49c29cbb9caa6e65da020.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_691434bcc0c324403cbabfe072.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__init__.py.ope4.yapyc3" "_4f7b2cba84bf5ba42a5581e314.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__init__.py.ope4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_4f3eb32c4824c40cfc60fb0bfa.rodata" "-" "contrib/python/packaging/py3/packaging/_manylinux.py" "_a8b6e699e997540b05acc5f6ab.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_manylinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_cf2c92448349ad2b0b80370179.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_manylinux.py.5upw.yapyc3" "_715bab8234e8401953cfadf5cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_manylinux.py.5upw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_128b58d756988ee1757da9dc78.rodata" "-" "contrib/python/packaging/py3/packaging/_musllinux.py" "_9a73be3eb1e1c62b99433612b2.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_musllinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_11e3fa3cb749c10956562786e7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_musllinux.py.y5gv.yapyc3" "_cac8db6427b2d22dd6b262a2db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_musllinux.py.y5gv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_b3dc755566ae90db3fa66976cf.rodata" "-" "contrib/python/packaging/py3/packaging/_structures.py" "_d0cd591b29ca45a55bbec0b6e4.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_deb71d75dcef6cad8259d92c0f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_structures.py.aiu4.yapyc3" "_e052e434b1be6795e5faa23795.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_structures.py.aiu4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_667fbebd1a72b20c608fdb3898.rodata" "-" "contrib/python/packaging/py3/packaging/markers.py" "_93036d213e65f4c62db5a57282.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_823faa597ddf6f865080a1d3c1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/markers.py.tgy4.yapyc3" "_03eca828c5cb7a059da5e51243.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/markers.py.tgy4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_3ad58c8c13bc2ee0cf2948a20e.rodata" "-" "contrib/python/packaging/py3/packaging/requirements.py" "_123f1ddbfb3f2918a3070bfba8.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_d412123cb11604dfb7d9b202bc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/requirements.py.6emt.yapyc3" "_b37a50ea221a41645aca61479f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/requirements.py.6emt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_350d1e45ac92fc4730cdf66d95.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/__about__.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__about__.py.llsl.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -236,207 +230,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_02017ebbc8b47cafaabc653f3d.yasm" "-" "contrib/python/packaging/py3/packaging/__about__.py" "_9fa6744aba2ee81cca13dcb0ce.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_50ddc9118fd2f4a3d96bfe0a13.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__about__.py.llsl.yapyc3" "_40155cbaa0d2b3c9f8aa4725ea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__about__.py.llsl.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_073f063d31b32ff1dd37865a49.rodata" "-" "contrib/python/packaging/py3/packaging/__init__.py" "_163ae49c29cbb9caa6e65da020.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_691434bcc0c324403cbabfe072.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__init__.py.ope4.yapyc3" "_4f7b2cba84bf5ba42a5581e314.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__init__.py.ope4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_4f3eb32c4824c40cfc60fb0bfa.rodata" "-" "contrib/python/packaging/py3/packaging/_manylinux.py" "_a8b6e699e997540b05acc5f6ab.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_manylinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_cf2c92448349ad2b0b80370179.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_manylinux.py.5upw.yapyc3" "_715bab8234e8401953cfadf5cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_manylinux.py.5upw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_128b58d756988ee1757da9dc78.rodata" "-" "contrib/python/packaging/py3/packaging/_musllinux.py" "_9a73be3eb1e1c62b99433612b2.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_musllinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_11e3fa3cb749c10956562786e7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_musllinux.py.y5gv.yapyc3" "_cac8db6427b2d22dd6b262a2db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_musllinux.py.y5gv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_b3dc755566ae90db3fa66976cf.rodata" "-" "contrib/python/packaging/py3/packaging/_structures.py" "_d0cd591b29ca45a55bbec0b6e4.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_deb71d75dcef6cad8259d92c0f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_structures.py.aiu4.yapyc3" "_e052e434b1be6795e5faa23795.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_structures.py.aiu4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_667fbebd1a72b20c608fdb3898.rodata" "-" "contrib/python/packaging/py3/packaging/markers.py" "_93036d213e65f4c62db5a57282.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_823faa597ddf6f865080a1d3c1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/markers.py.tgy4.yapyc3" "_03eca828c5cb7a059da5e51243.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/markers.py.tgy4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_3ad58c8c13bc2ee0cf2948a20e.rodata" "-" "contrib/python/packaging/py3/packaging/requirements.py" "_123f1ddbfb3f2918a3070bfba8.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_d412123cb11604dfb7d9b202bc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/requirements.py.6emt.yapyc3" "_b37a50ea221a41645aca61479f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/requirements.py.6emt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_350d1e45ac92fc4730cdf66d95.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/__about__.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__about__.py.llsl.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/_02017ebbc8b47cafaabc653f3d.yasm	$B/contrib/python/packaging/py3/packaging/__about__.py.llsl.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\__about__.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\__about__.py.llsl.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\__init__.py.ope4.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\_manylinux.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_manylinux.py.5upw.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\_musllinux.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_musllinux.py.y5gv.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\_structures.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_structures.py.aiu4.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\markers.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\markers.py.tgy4.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\requirements.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\requirements.py.6emt.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_02017ebbc8b47cafaabc653f3d.yasm;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_50ddc9118fd2f4a3d96bfe0a13.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_073f063d31b32ff1dd37865a49.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_691434bcc0c324403cbabfe072.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_4f3eb32c4824c40cfc60fb0bfa.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_cf2c92448349ad2b0b80370179.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_128b58d756988ee1757da9dc78.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_11e3fa3cb749c10956562786e7.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_b3dc755566ae90db3fa66976cf.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_deb71d75dcef6cad8259d92c0f.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_667fbebd1a72b20c608fdb3898.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_823faa597ddf6f865080a1d3c1.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_3ad58c8c13bc2ee0cf2948a20e.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_d412123cb11604dfb7d9b202bc.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_350d1e45ac92fc4730cdf66d95.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\__about__.py.llsl.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\__init__.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/__init__.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__init__.py.ope4.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/__init__.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/__init__.py.ope4.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/__init__.py.ope4.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\__init__.py.ope4.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\_manylinux.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/_manylinux.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_manylinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_manylinux.py.5upw.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/_manylinux.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_manylinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_manylinux.py.5upw.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/_manylinux.py.5upw.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\_manylinux.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_manylinux.py.5upw.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\_musllinux.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/_musllinux.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_musllinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_musllinux.py.y5gv.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/_musllinux.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_musllinux.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_musllinux.py.y5gv.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/_musllinux.py.y5gv.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\_musllinux.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_musllinux.py.y5gv.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\_structures.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/_structures.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_structures.py.aiu4.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/_structures.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/_structures.py.aiu4.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/_structures.py.aiu4.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\_structures.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_structures.py.aiu4.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\markers.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/markers.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/markers.py.tgy4.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/markers.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/markers.py.tgy4.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/markers.py.tgy4.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\markers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\markers.py.tgy4.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\requirements.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/requirements.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/requirements.py.6emt.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/requirements.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/requirements.py.6emt.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/requirements.py.6emt.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\requirements.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\requirements.py.6emt.yapyc3;</Outputs>
+      <Message>$B/contrib/python/packaging/py3/_02017ebbc8b47cafaabc653f3d.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\__about__.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\__about__.py.llsl.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\__init__.py.ope4.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\_manylinux.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_manylinux.py.5upw.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\_musllinux.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_musllinux.py.y5gv.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\_structures.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\_structures.py.aiu4.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\markers.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\markers.py.tgy4.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\requirements.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\requirements.py.6emt.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_02017ebbc8b47cafaabc653f3d.yasm;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_50ddc9118fd2f4a3d96bfe0a13.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_073f063d31b32ff1dd37865a49.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_691434bcc0c324403cbabfe072.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_4f3eb32c4824c40cfc60fb0bfa.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_cf2c92448349ad2b0b80370179.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_128b58d756988ee1757da9dc78.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_11e3fa3cb749c10956562786e7.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_b3dc755566ae90db3fa66976cf.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_deb71d75dcef6cad8259d92c0f.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_667fbebd1a72b20c608fdb3898.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_823faa597ddf6f865080a1d3c1.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_3ad58c8c13bc2ee0cf2948a20e.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_d412123cb11604dfb7d9b202bc.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_350d1e45ac92fc4730cdf66d95.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\specifiers.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -444,12 +246,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_afb0d08fc65c93f9d1ba3e189b.yasm" "-" "contrib/python/packaging/py3/packaging/specifiers.py" "_92f5ebe70d593001e391dcfecb.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_9d3528548555dd69ebdbad304e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/specifiers.py.csmx.yapyc3" "_b780d4d26017439cff7c8e45ff.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/specifiers.py.csmx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_5037ae530c4710393a97e739c9.rodata" "-" "contrib/python/packaging/py3/packaging/tags.py" "_e9effb16e11f387353594fcadd.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_f6cba0dfa5297496085355d8d3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/tags.py.xaxr.yapyc3" "_d0b3a276c11b207ec621165cf8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/tags.py.xaxr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_e2586d0c7629b25d397dcf1281.rodata" "-" "contrib/python/packaging/py3/packaging/utils.py" "_26db791350007f5431e1b36ac5.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_ba060b77915220da10be46045b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/utils.py.icgh.yapyc3" "_805a61ebb1f06ebbfff299a1e3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/utils.py.icgh.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_2069088d3773a1a90de78b16cc.rodata" "-" "contrib/python/packaging/py3/packaging/version.py" "_1c0148e23819ce9652a755669a.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_640bb4aa8e476ca1c211bb785f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/version.py.qmvt.yapyc3" "_879b0d4acfe80a8452871db6f8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/version.py.qmvt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_17a1a94b6c6842a314da0d870c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/specifiers.py.csmx.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -461,114 +257,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_afb0d08fc65c93f9d1ba3e189b.yasm" "-" "contrib/python/packaging/py3/packaging/specifiers.py" "_92f5ebe70d593001e391dcfecb.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_9d3528548555dd69ebdbad304e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/specifiers.py.csmx.yapyc3" "_b780d4d26017439cff7c8e45ff.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/specifiers.py.csmx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_5037ae530c4710393a97e739c9.rodata" "-" "contrib/python/packaging/py3/packaging/tags.py" "_e9effb16e11f387353594fcadd.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_f6cba0dfa5297496085355d8d3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/tags.py.xaxr.yapyc3" "_d0b3a276c11b207ec621165cf8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/tags.py.xaxr.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_e2586d0c7629b25d397dcf1281.rodata" "-" "contrib/python/packaging/py3/packaging/utils.py" "_26db791350007f5431e1b36ac5.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_ba060b77915220da10be46045b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/utils.py.icgh.yapyc3" "_805a61ebb1f06ebbfff299a1e3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/utils.py.icgh.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_2069088d3773a1a90de78b16cc.rodata" "-" "contrib/python/packaging/py3/packaging/version.py" "_1c0148e23819ce9652a755669a.rodata" "$(SolutionDir)../contrib/python/packaging/py3/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_640bb4aa8e476ca1c211bb785f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/version.py.qmvt.yapyc3" "_879b0d4acfe80a8452871db6f8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/version.py.qmvt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/_17a1a94b6c6842a314da0d870c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/specifiers.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/specifiers.py.csmx.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/_afb0d08fc65c93f9d1ba3e189b.yasm	$B/contrib/python/packaging/py3/packaging/specifiers.py.csmx.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\specifiers.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\specifiers.py.csmx.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\tags.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\tags.py.xaxr.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\utils.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\utils.py.icgh.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\version.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\version.py.qmvt.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_afb0d08fc65c93f9d1ba3e189b.yasm;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_9d3528548555dd69ebdbad304e.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_5037ae530c4710393a97e739c9.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_f6cba0dfa5297496085355d8d3.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_e2586d0c7629b25d397dcf1281.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_ba060b77915220da10be46045b.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_2069088d3773a1a90de78b16cc.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_640bb4aa8e476ca1c211bb785f.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_17a1a94b6c6842a314da0d870c.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\specifiers.py.csmx.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\tags.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/tags.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/tags.py.xaxr.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/tags.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/tags.py.xaxr.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/tags.py.xaxr.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\tags.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\tags.py.xaxr.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\utils.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/utils.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/utils.py.icgh.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/utils.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/utils.py.icgh.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/utils.py.icgh.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\utils.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\utils.py.icgh.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\packaging\py3\packaging\version.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/version.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/version.py.qmvt.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/packaging/py3/packaging/version.py-" "$(SolutionDir)../contrib/python/packaging/py3/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/packaging/version.py.qmvt.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/packaging/py3/packaging/version.py.qmvt.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\version.py.qmvt.yapyc3;</Outputs>
+      <Message>$B/contrib/python/packaging/py3/_afb0d08fc65c93f9d1ba3e189b.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\packaging\py3\packaging\specifiers.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\specifiers.py.csmx.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\tags.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\tags.py.xaxr.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\utils.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\utils.py.icgh.yapyc3;$(SolutionDir)..\contrib\python\packaging\py3\packaging\version.py;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\packaging\version.py.qmvt.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_afb0d08fc65c93f9d1ba3e189b.yasm;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_9d3528548555dd69ebdbad304e.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_5037ae530c4710393a97e739c9.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_f6cba0dfa5297496085355d8d3.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_e2586d0c7629b25d397dcf1281.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_ba060b77915220da10be46045b.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_2069088d3773a1a90de78b16cc.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_640bb4aa8e476ca1c211bb785f.rodata;$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\_17a1a94b6c6842a314da0d870c.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
