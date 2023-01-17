@@ -200,11 +200,13 @@ DECLARE_TVECTOR(TVector_const_TFullModel_ptr, const TFullModel*)
 %catches(yexception) SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
+    const TVector<TString>& modelParamsPrefixes,
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
 
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
+    const TVector<TString>& modelParamsPrefixes,
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
 
 

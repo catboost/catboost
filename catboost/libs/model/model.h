@@ -1344,6 +1344,7 @@ void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullMod
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
+    const TVector<TString>& modelParamsPrefixes = TVector<TString>(), // can be empty - in this case default prefixes will be used
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
 
 void SaveModelBorders(

@@ -1813,13 +1813,13 @@ static void SumModels(
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
+    const TVector<TString>& modelParamsPrefixes,
     ECtrTableMergePolicy ctrMergePolicy)
 {
     CB_ENSURE(!modelVector.empty(), "empty model vector unexpected");
     CB_ENSURE(modelVector.size() == weights.size());
-    CB_ENSURE(
-        IsAllOblivious(modelVector) || IsAllNonSymmetric(modelVector),
-        "Summation of symmetric and non-symmetric models is not supported [for now]");
+    CB_ENSURE(modelParamsPrefixes.empty() || (modelVector.size() == modelParamsPrefixes.size()));
+
     const auto approxDimension = modelVector.back()->GetDimensionsCount();
     size_t maxFlatFeatureVectorSize = 0;
     TVector<TIntrusivePtr<ICtrProvider>> ctrProviders;
@@ -1900,7 +1900,11 @@ TFullModel SumModels(
 
     for (const auto modelIdx : xrange(modelVector.size())) {
         TStringBuilder keyPrefix;
-        keyPrefix << "model" << modelIdx << ":";
+        if (modelParamsPrefixes.empty()) {
+            keyPrefix << "model" << modelIdx << ":";
+        } else {
+            keyPrefix << modelParamsPrefixes[modelIdx];
+        }
         for (const auto& [key, value]: modelVector[modelIdx]->ModelInfo) {
             result.ModelInfo[keyPrefix + key] = value;
         }
