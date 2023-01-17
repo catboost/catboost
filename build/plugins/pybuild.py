@@ -245,6 +245,7 @@ def onpy_srcs(unit, *args):
     pyxs_c_h = []
     pyxs_c_api_h = []
     pyxs_cpp = []
+    pyxs_cpp_h = []
     pyxs = pyxs_cpp
     swigs_c = []
     swigs_cpp = []
@@ -280,6 +281,8 @@ def onpy_srcs(unit, *args):
             pyxs = pyxs_c_api_h
         elif arg == 'CYTHON_CPP':
             pyxs = pyxs_cpp
+        elif arg == 'CYTHON_CPP_H':
+            pyxs = pyxs_cpp_h
         elif arg == 'CYTHON_DIRECTIVE':
             cython_directives += ['-X', next(args)]
         elif arg == 'CYTHONIZE_PY':
@@ -403,6 +406,7 @@ def onpy_srcs(unit, *args):
             (pyxs_c_h, unit.on_buildwith_cython_c_h, ".c", True),
             (pyxs_c_api_h, unit.on_buildwith_cython_c_api_h, ".c", True),
             (pyxs_cpp, unit.on_buildwith_cython_cpp_dep, ".cpp", False),
+            (pyxs_cpp_h, unit.on_buildwith_cython_cpp_h, ".cpp", True),
         ]:
             for path, mod in pyxs:
                 filename = rootrel_arc_src(path, unit)
