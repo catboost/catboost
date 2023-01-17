@@ -12,6 +12,9 @@ ci:
   autocheck:
     fast-targets:
       - util
+    native-builds:
+      default-win-x86_64-debug:
+        - util
   actions:
     util-style-test:
       flow: util-style-test
