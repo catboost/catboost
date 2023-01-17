@@ -2,7 +2,7 @@
                     Qhull, Copyright (c) 1993-2015
 
 
-====================File: qhull/COPYING.txt====================
+====================File: COPYING.txt====================
                     Qhull, Copyright (c) 1993-2015
                     
                             C.B. Barber
@@ -43,7 +43,7 @@ and redistributed under the following conditions:
    they desire.
 
 
-====================File: qhull/README.txt====================
+====================File: README.txt====================
 Name
 
       qhull, rbox         2015.2       2016/01/18

@@ -38,12 +38,12 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : https://fedoraproject.org/wiki/Licensing:Qhull?rd=Licensing/Qhull, https://spdx.org/licenses/Qhull
     Files with this license:
-        qhull/COPYING.txt [8:38]
+        COPYING.txt [8:38]
 
 KEEP     LicenseRef-scancode-other-permissive cff18f253c13cdca209e6b986044b579
 BELONGS ya.make
-FILE_INCLUDE qhull/COPYING.txt found in files: qhull/src/user_r.c at line 9, qhull/src/userprintf_r.c at line 7, qhull/src/userprintf_rbox_r.c at line 7
-FILE_INCLUDE qhull/README.txt found in files: qhull/src/user_r.c at line 9, qhull/src/userprintf_r.c at line 7, qhull/src/userprintf_rbox_r.c at line 7
+FILE_INCLUDE COPYING.txt found in files: libqhull_r/user_r.c at line 9, libqhull_r/userprintf_r.c at line 7, libqhull_r/userprintf_rbox_r.c at line 7
+FILE_INCLUDE README.txt found in files: libqhull_r/user_r.c at line 9, libqhull_r/userprintf_r.c at line 7, libqhull_r/userprintf_rbox_r.c at line 7
     License text:
            see README.txt  see COPYING.txt for copyright information.
     Scancode info:
@@ -52,6 +52,19 @@ FILE_INCLUDE qhull/README.txt found in files: qhull/src/user_r.c at line 9, qhul
         Match type      : REFERENCE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
     Files with this license:
-        qhull/src/user_r.c [9:9]
-        qhull/src/userprintf_r.c [7:7]
-        qhull/src/userprintf_rbox_r.c [7:7]
+        libqhull_r/user_r.c [9:9]
+        libqhull_r/userprintf_r.c [7:7]
+        libqhull_r/userprintf_rbox_r.c [7:7]
+
+SKIP     LicenseRef-scancode-proprietary-license fe08868e5c210eb7d2568208ea8cc417
+BELONGS ya.make
+    # Not a license
+    License text:
+        Qhull as a new kind of shareware: you share your science and successes 
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-proprietary-license
+        Score           : 5.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/proprietary-license.LICENSE
+    Files with this license:
+        REGISTER.txt [4:4]
