@@ -12,6 +12,7 @@ target_link_libraries(catboost-libs-dataset_statistics PUBLIC
   contrib-libs-cxxsupp
   yutil
   tools-enum_parser-enum_serialization_runtime
+  catboost-libs-cat_feature
   catboost-libs-data
   private-libs-options
   private-libs-target

@@ -14,6 +14,9 @@ constexpr auto floatInf = std::numeric_limits<float>::infinity();
 void TFloatFeatureHistogram::Update(const TFloatFeatureHistogram& histograms) {
     CB_ENSURE_INTERNAL(Borders == histograms.Borders, "Different borders");
     if (!histograms.Histogram.empty()) {
+        if (Histogram.empty()) {
+           Histogram.resize(histograms.Histogram.size(), 0);
+        }
         for (size_t idx = 0; idx < Histogram.size(); ++idx) {
             Histogram[idx] += histograms.Histogram[idx];
         }
@@ -28,7 +31,7 @@ void TFloatFeatureHistogram::CalcUniformHistogram(const TVector<float>& features
     Histogram.resize(Borders.MaxBorderCount + 1);
 
     double length = Borders.MaxValue - Borders.MinValue;
-    double step = length / double(Borders.MaxBorderCount);
+    double step = length / double(Borders.MaxBorderCount + 1);
 
     for (float value: features) {
         if (ProcessNotNummeric(value)) {
@@ -39,9 +42,6 @@ void TFloatFeatureHistogram::CalcUniformHistogram(const TVector<float>& features
             continue;
         }
         auto index = ui32(double(value - Borders.MinValue) / step);
-        if (value > Borders.MinValue + step * index) {
-            ++index;
-        }
         if (index >= Histogram.size()) {
             index = Histogram.size() - 1;
         }
@@ -119,7 +119,11 @@ NJson::TJsonValue TFloatFeatureHistogram::ToJson() const {
     result.InsertValue("Nans", Nans);
     result.InsertValue("MinusInf", MinusInf);
     result.InsertValue("PlusInf", PlusInf);
-    result.InsertValue("Histogram", VectorToJson(Histogram));
+    TVector<NJson::TJsonValue> histogram;
+    for (const auto& item : Histogram) {
+        histogram.emplace_back(item);
+    }
+    result.InsertValue("Histogram", VectorToJson(histogram));
     result.InsertValue("Borders", Borders.ToJson());
     return result;
 }
@@ -188,15 +192,15 @@ static TVector<float> GetUniformBorders(
     float minValue,
     float maxValue
 ) {
-    if (fabs(minValue - maxValue) < 1e-9) {
-        return {minValue};
+    if (maxBorderCount == 0) {
+        return {};
     }
     CB_ENSURE(minValue < maxValue, "Min value > Max value: " << minValue << ">" << maxValue);
-    TVector<float> borders(maxBorderCount + 1);
+    TVector<float> borders(maxBorderCount + 2);
     borders[0] = minValue;
-    borders[maxBorderCount] = maxValue;
-    double step = (maxValue - minValue) / double(maxBorderCount);
-    for (ui32 idx = 1; idx < maxBorderCount; ++idx) {
+    borders[maxBorderCount + 1] = maxValue;
+    double step = (maxValue - minValue) / double(maxBorderCount + 1);
+    for (ui32 idx = 1; idx <= maxBorderCount; ++idx) {
         borders[idx] = minValue + float(step * double(idx));
     }
     return borders;

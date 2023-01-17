@@ -10,9 +10,12 @@
 #include <util/ysaveload.h>
 #include <util/generic/hash.h>
 #include <util/system/mutex.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/stream/output.h>
+#include <util/generic/set.h>
 #include <util/stream/fwd.h>
+
 
 #include <limits>
 
@@ -51,10 +54,7 @@ struct TFloatFeatureStatistics : public IStatistics {
 
     void Update(const TFloatFeatureStatistics& update);
 
-    bool operator==(const TFloatFeatureStatistics& rhs) const {
-        return (MinValue == rhs.MinValue) && (MaxValue == rhs.MaxValue) &&
-               (Sum == rhs.Sum) && (ObjectCount == rhs.ObjectCount);
-    }
+    bool operator==(const TFloatFeatureStatistics& rhs) const;
 
     ui64 GetObjectCount() const {
         return ObjectCount;
@@ -68,6 +68,104 @@ struct TFloatFeatureStatistics : public IStatistics {
     double MaxValue;
     long double Sum;
     ui64 ObjectCount;
+private:
+    TMutex Mutex;
+};
+
+struct TSampleIdStatistics : public IStatistics {
+    TSampleIdStatistics() : ObjectCount(0), SumLen(0) {}
+
+    TSampleIdStatistics(TSampleIdStatistics&&) noexcept = default;
+
+    TSampleIdStatistics(const TSampleIdStatistics& a)
+        : ObjectCount(a.ObjectCount)
+        , SumLen(a.SumLen)
+    {}
+
+    void Update(const TString& value);
+
+    NJson::TJsonValue ToJson() const;
+
+    void Update(const TSampleIdStatistics& update);
+
+    bool operator==(const TSampleIdStatistics& rhs) const {
+        return (
+            std::tie(SumLen, ObjectCount) == std::tie(rhs.SumLen, rhs.ObjectCount)
+        );
+    }
+
+    Y_SAVELOAD_DEFINE(SumLen, ObjectCount);
+
+    SAVELOAD(SumLen, ObjectCount);
+
+    ui64 ObjectCount;
+    ui64 SumLen;
+private:
+    TMutex Mutex;
+};
+
+
+struct TCatFeatureStatistics: public IStatistics {
+    TCatFeatureStatistics(TCatFeatureStatistics&&) noexcept = default;
+
+    TCatFeatureStatistics() = default;
+
+    TCatFeatureStatistics(const TCatFeatureStatistics& a)
+        : ImperfectHashSet(a.ImperfectHashSet)
+    {}
+
+    void Update(TStringBuf value);
+    void Update(ui32 value);
+
+    NJson::TJsonValue ToJson() const;
+
+    void Update(const TCatFeatureStatistics& update);
+
+    bool operator==(const TCatFeatureStatistics& rhs) const {
+        return ImperfectHashSet == rhs.ImperfectHashSet;
+    }
+
+    Y_SAVELOAD_DEFINE(ImperfectHashSet);
+
+    SAVELOAD(ImperfectHashSet);
+
+    TSet<ui32> ImperfectHashSet;
+
+private:
+    TMutex Mutex;
+};
+
+struct TTextFeatureStatistics: public IStatistics {
+    TTextFeatureStatistics(TTextFeatureStatistics&&) noexcept = default;
+
+    TTextFeatureStatistics()
+        : IsConst(true)
+        , Example(Nothing())
+    {}
+
+    TTextFeatureStatistics(const TTextFeatureStatistics& a)
+        : IsConst(a.IsConst)
+        , Example(a.Example)
+    {}
+
+    void Update(TStringBuf value);
+
+    NJson::TJsonValue ToJson() const;
+
+    void Update(const TTextFeatureStatistics& update);
+
+    bool operator==(const TTextFeatureStatistics& rhs) const {
+        return (
+            std::tie(IsConst, Example) == std::tie(rhs.IsConst, rhs.Example)
+        );
+    }
+
+    Y_SAVELOAD_DEFINE(IsConst, Example);
+
+    SAVELOAD(IsConst, Example);
+
+    bool IsConst;
+    TMaybe<TString> Example;
 private:
     TMutex Mutex;
 };
@@ -105,9 +203,10 @@ struct TStringTargetStatistic : public IStatistics {
     }
 
     bool operator==(const TStringTargetStatistic& a) const {
-        return (TargetType == a.TargetType &&
-                StringTargets == a.StringTargets &&
-                IntegerTargets == a.IntegerTargets);
+        return (
+            std::tie(TargetType, StringTargets, IntegerTargets) ==
+            std::tie(a.TargetType, a.StringTargets, a.IntegerTargets)
+        );
     }
 
     THashMap<TString, ui64> StringTargets;
@@ -127,6 +226,8 @@ public:
     void Update(ui32 flatTargetIdx, TStringBuf value);
 
     void Update(ui32 flatTargetIdx, float value);
+
+    bool operator==(const TTargetsStatistics& a) const;
 
     void Update(const TTargetsStatistics& update) {
         CB_ENSURE(FloatTargetStatistics.size() == update.FloatTargetStatistics.size());
@@ -170,19 +271,6 @@ public:
         TargetCount
     );
 
-    bool operator==(const TTargetsStatistics& a) const {
-        if (TargetType != a.TargetType || TargetCount != a.TargetCount ||
-            FloatTargetStatistics.size() != a.FloatTargetStatistics.size() ||
-            StringTargetStatistics.size() != a.StringTargetStatistics.size()
-            ) {
-            return false;
-        }
-        return std::equal(FloatTargetStatistics.begin(), FloatTargetStatistics.end(),
-                          a.FloatTargetStatistics.begin()) &&
-               std::equal(StringTargetStatistics.begin(), StringTargetStatistics.end(),
-                          a.StringTargetStatistics.begin());
-    }
-
 private:
     TVector<TFloatTargetStatistic> FloatTargetStatistics;
     TVector<TStringTargetStatistic> StringTargetStatistics;
@@ -190,103 +278,90 @@ private:
     ui32 TargetCount;
 };
 
-struct TGroupStatistics : public IStatistics {
-};
-
 struct TFeatureStatistics : public IStatistics {
 public:
     Y_SAVELOAD_DEFINE(
-        FloatFeatureStatistics
+        FloatFeatureStatistics,
+        CatFeatureStatistics,
+        TextFeatureStatistics
     );
 
     SAVELOAD(
-        FloatFeatureStatistics
+        FloatFeatureStatistics,
+        CatFeatureStatistics,
+        TextFeatureStatistics
     );
 
-    TVector<TFloatFeatureStatistics> FloatFeatureStatistics;         // [floatFeatureIdx]
+    TVector<TFloatFeatureStatistics> FloatFeatureStatistics;
+    TVector<TCatFeatureStatistics> CatFeatureStatistics;
+    TVector<TTextFeatureStatistics> TextFeatureStatistics;
 
-    void Init(const TDataMetaInfo& metaInfo) {
-        FloatFeatureStatistics.resize(metaInfo.FeaturesLayout->GetFloatFeatureCount());
+    void Init(const TDataMetaInfo& metaInfo);
+
+    NJson::TJsonValue ToJson() const override;
+
+    void Update(const TFeatureStatistics& update);
+
+    bool operator==(const TFeatureStatistics& a) const;
+};
+
+struct TGroupwiseStats {
+    double GetAverageGroupSize() const {
+        return static_cast<long double>(GroupsTotalSize) / static_cast<long double>(GroupsCount);
     }
 
-    NJson::TJsonValue ToJson() const override {
-        NJson::TJsonValue result;
-        result.InsertValue("FloatFeatureStatistics", AggregateStatistics(FloatFeatureStatistics));
-        //  ToDo: add statistics for Cat, Text and Embedding features
-        return result;
-    }
+    NJson::TJsonValue ToJson() const;
 
-    void Update(const TFeatureStatistics& update) {
-        CB_ENSURE(FloatFeatureStatistics.size() == update.FloatFeatureStatistics.size());
-        for (ui32 i = 0; i < FloatFeatureStatistics.size(); ++i) {
-            FloatFeatureStatistics[i].Update(update.FloatFeatureStatistics[i]);
-        }
-    }
+    void InfoLog() const;
 
-    bool operator==(const TFeatureStatistics& rhs) const {
-        if (FloatFeatureStatistics.size() != rhs.FloatFeatureStatistics.size()) {
-            return false;
-        }
-        for (ui32 i = 0; i < FloatFeatureStatistics.size(); ++i) {
-            if (!(FloatFeatureStatistics[i] == rhs.FloatFeatureStatistics[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
+    Y_SAVELOAD_DEFINE(
+        GroupsTotalSize,
+        GroupsCount
+    );
+
+    SAVELOAD(
+        GroupsTotalSize,
+        GroupsCount
+    );
+
+    ui64 GroupsTotalSize = 0;
+    ui64 GroupsCount = 0;
 };
 
 struct TDatasetStatistics {
 public:
     Y_SAVELOAD_DEFINE(
-        CatFeaturesHashToString,
         FeatureStatistics,
-        TargetsStatistics
+        TargetsStatistics,
+        SampleIdStatistics,
+        GroupwiseStats
     );
 
     SAVELOAD(
-        CatFeaturesHashToString,
         FeatureStatistics,
-        TargetsStatistics
+        TargetsStatistics,
+        SampleIdStatistics,
+        GroupwiseStats
     );
 
     bool operator==(const TDatasetStatistics& a) const {
-        if (CatFeaturesHashToString.size() != a.CatFeaturesHashToString.size() ||
-            FeatureStatistics != a.FeatureStatistics ||
-            TargetsStatistics != a.TargetsStatistics) {
-            return false;
-        }
-        return CatFeaturesHashToString == a.CatFeaturesHashToString;
+        return std::tie(FeatureStatistics, TargetsStatistics, SampleIdStatistics) ==
+               std::tie(a.FeatureStatistics, a.TargetsStatistics, a.SampleIdStatistics);
     }
-
-    TVector<THashMap<ui32, TString>> CatFeaturesHashToString; // [catFeatureIdx]
 
     TFeatureStatistics FeatureStatistics;
     TTargetsStatistics TargetsStatistics;
-    // ToDo: maybe add GroupStatistics
+    TSampleIdStatistics SampleIdStatistics;
+    TMaybe<TGroupwiseStats> GroupwiseStats;
 
     void Init(const TDataMetaInfo& metaInfo) {
-
         FeatureStatistics.Init(metaInfo);
         TargetsStatistics.Init(metaInfo);
     }
 
-    NJson::TJsonValue ToJson() const {
-        NJson::TJsonValue result;
+    NJson::TJsonValue ToJson() const;
 
-        result.InsertValue("TargetsStatistics", TargetsStatistics.ToJson());
-        result.InsertValue("FeatureStatistics", FeatureStatistics.ToJson());
-
-        result.InsertValue("ObjectCount", TargetsStatistics.GetObjectCount());
-
-        return result;
-    }
-
-    void Update(const TDatasetStatistics& update) {
-        FeatureStatistics.Update(update.FeatureStatistics);
-        TargetsStatistics.Update(update.TargetsStatistics);
-    }
-
+    void Update(const TDatasetStatistics& update);
     ui64 GetObjectCount() const {
         return TargetsStatistics.GetObjectCount();
     }

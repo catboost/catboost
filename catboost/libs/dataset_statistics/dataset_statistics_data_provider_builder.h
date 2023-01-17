@@ -19,17 +19,15 @@ public:
     TDatasetStatisticsProviderBuilder(
         const TDataProviderBuilderOptions& options,
         bool isLocal,
-        NPar::ILocalExecutor* localExecutor)
+        NPar::ILocalExecutor* /*localExecutor*/)
         : InBlock(false)
         , ObjectCount(0)
         , NextCursor(0)
         , Options(options)
-        , LocalExecutor(localExecutor)
         , InProcess(false)
         , ResultTaken(false)
         , IsLocal(isLocal)
-    {
-    }
+    {}
 
     void Start(
         bool inBlock, // subset processing - Start/Finish is called for each block
@@ -82,7 +80,8 @@ public:
         Y_UNUSED(localObjectIdx, value);
     }
     void AddSampleId(ui32 localObjectIdx, const TString& value) override {
-        Y_UNUSED(localObjectIdx, value);
+        DatasetStatistics.SampleIdStatistics.Update(value);
+        Y_UNUSED(localObjectIdx);
     }
 
     // TRawObjectsData
@@ -110,20 +109,8 @@ public:
     // for sparse float features default value is always assumed to be 0.0f
 
     ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) override {
-        ui32 catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
-
-        int hashPartIdx = LocalExecutor->GetWorkerThreadId();
-        CB_ENSURE(hashPartIdx < CB_THREAD_LIMIT, "Internal error: thread ID exceeds CB_THREAD_LIMIT");
-        auto& catFeatureHashes = HashMapParts[hashPartIdx].CatFeatureHashes;
-        catFeatureHashes.resize(CatFeatureCount);
-
-        auto& catFeatureHash = catFeatureHashes[catFeatureIdx];
-
         ui32 hashedValue = CalcCatFeatureHash(feature);
-        THashMap<ui32, TString>::insert_ctx insertCtx;
-        if (!catFeatureHash.contains(hashedValue, insertCtx)) {
-            catFeatureHash.emplace_direct(insertCtx, hashedValue, TString(feature));
-        }
+        Y_UNUSED(flatFeatureIdx);
         return hashedValue;
     }
 
@@ -134,19 +121,19 @@ public:
 
     void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) override {
         // ToDo Implement CatFeatureStatistics MLTOOLS-6678
-        // FeatureStatistics
-        //     .CatFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)]
-        //     .Update(feature);
-        Y_UNUSED(localObjectIdx, flatFeatureIdx, feature);
+         DatasetStatistics.FeatureStatistics
+             .CatFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)]
+             .Update(feature);
+        Y_UNUSED(localObjectIdx);
     }
     void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef<ui32> features) override {
         // ToDo Implement CatFeatureStatistics MLTOOLS-6678
-        // for (auto perTypeFeatureIdx : xrange(features.size())) {
-        //     FeatureStatistics
-        //         .CatFeatureStatistics[TCatFeatureIdx(perTypeFeatureIdx).Idx]
-        //         .Update(features[perTypeFeatureIdx]);
-        // }
-        Y_UNUSED(localObjectIdx, features);
+        for (auto perTypeFeatureIdx : xrange(features.size())) {
+            DatasetStatistics.FeatureStatistics
+                .CatFeatureStatistics[TCatFeatureIdx(perTypeFeatureIdx).Idx]
+                .Update(features[perTypeFeatureIdx]);
+        }
+        Y_UNUSED(localObjectIdx);
     }
 
     void AddAllCatFeatures(
@@ -163,12 +150,12 @@ public:
     }
 
     void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) override {
-        CB_ENSURE(false, "Not implemented");
-        Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
+        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)].Update(feature);
+        Y_UNUSED(localObjectIdx);
     }
     void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
-        CB_ENSURE(false, "Not implemented");
-        Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
+        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)].Update(feature);
+        Y_UNUSED(localObjectIdx);
     }
     void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) override {
         CB_ENSURE(false, "Not implemented");
@@ -235,20 +222,6 @@ public:
         }
 
         InProcess = false;
-
-        if (CatFeatureCount) {
-            DatasetStatistics.CatFeaturesHashToString.resize(CatFeatureCount);
-            for (const auto& part : HashMapParts) {
-                if (part.CatFeatureHashes.empty()) {
-                    continue;
-                }
-                for (auto catFeatureIdx : xrange(CatFeatureCount)) {
-                    DatasetStatistics.CatFeaturesHashToString[catFeatureIdx].insert(
-                        part.CatFeatureHashes[catFeatureIdx].begin(),
-                        part.CatFeatureHashes[catFeatureIdx].end());
-                }
-            }
-        }
     }
 
     // IDatasetVisitor
@@ -290,17 +263,12 @@ private:
     ui32 NextCursor;
 
     TDataProviderBuilderOptions Options;
-    NPar::ILocalExecutor* LocalExecutor;
 
     bool InProcess;
     bool ResultTaken;
 
     bool IsLocal;
 
-    struct THashPart {
-        TVector<THashMap<ui32, TString>> CatFeatureHashes;
-    };
-    std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
     TDatasetStatistics DatasetStatistics;
     TDataMetaInfo MetaInfo;
     ui32 CatFeatureCount;

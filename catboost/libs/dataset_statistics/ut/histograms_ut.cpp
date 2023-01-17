@@ -8,16 +8,17 @@ using namespace NCB;
 
 Y_UNIT_TEST_SUITE(THistograms) {
     Y_UNIT_TEST(TestUniformFloatFeatureHistograms) {
-        ui32 borderCount = 6;
-        TVector<float> features = {-0.2, 0., 0.1, 0.2, 0.1, 0.5, 1., 0.6};
+        ui32 borderCount = 5;
+        TVector<float> features = {-0.2, -0.01, 0.1, 0.2, 0.1, 0.5, 1., 0.6, -5, 5};
         TVector<float> trueBorders = {-0.2, 0, 0.2, 0.4, 0.6, 0.8, 1};
-        TVector<ui32> trueHist =     {1, 1, 3, 0, 2, 0, 1};
-        TFloatFeatureHistogram floatFeatureHistogram = TFloatFeatureHistogram(TBorders(6, -0.2, 1.));
+         // -5, -0.2,  0. |  0.1, 0.1, 0.2 | | 0.5, 0.6 | |, 1., 5}
+        TVector<ui32> trueHist = {3, 3, 0, 2, 0, 2};
+        TFloatFeatureHistogram floatFeatureHistogram = TFloatFeatureHistogram(TBorders(5, -0.2, 1.));
         floatFeatureHistogram.CalcUniformHistogram(features);
         auto floatFeatureHistogramBorders = floatFeatureHistogram.Borders.GetBorders();
 
         UNIT_ASSERT_EQUAL(floatFeatureHistogramBorders.size(), trueBorders.size());
-        UNIT_ASSERT_EQUAL(floatFeatureHistogramBorders.size(), borderCount + 1);
+        UNIT_ASSERT_EQUAL(floatFeatureHistogramBorders.size(), borderCount + 2);
         for (ui32 i = 0; i < borderCount; ++i) {
             UNIT_ASSERT(Abs(floatFeatureHistogramBorders[i] - trueBorders[i]) < 1e-6);
         }
