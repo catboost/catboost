@@ -1126,3 +1126,8 @@ admins/yandex-media-mongo-dump-restore
 admins/yandex-media-common-cassandra-backup
 admins/ansible-juggler-configs
 data-ui/common-codemod
+geoadv/duty-recipes
+kinopoisk/sre/kinopoisk-logcollector-monitoring
+admins/yandex-media-common-configinterfacesmock
+kinopoisk/sre/kinopoisk-jobs-info
+data-ui/fontawesome
