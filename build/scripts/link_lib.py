@@ -18,7 +18,7 @@ class Opts(object):
             self.create_flags = ['rcs']
             self.modify_flags = ['-M']
         elif self.arch_type == 'LLVM_AR':
-            self.create_flags = ['rcs', '-format=%s' % self.llvm_ar_format]
+            self.create_flags = ['rcs', '--format=%s' % self.llvm_ar_format]
             self.modify_flags = ['-M']
         elif self.arch_type == 'LIBTOOL':
             self.create_flags = ['-static', '-o']
