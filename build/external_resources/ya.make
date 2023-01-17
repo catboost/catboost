@@ -25,6 +25,7 @@ ENDIF()
 IF (OS_LINUX)
     RECURSE(
     codenavigation
+    squashfs_tools
 )
 ENDIF()
 
