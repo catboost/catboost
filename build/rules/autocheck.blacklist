@@ -694,7 +694,6 @@ market/front/libs/luster-tmp-log-file
 market/front/libs/luster-ext-env
 trust/trust-ci
 market/front/libs/hermione-chai
-strm/rdr-metrics
 market/front/libs/hermione-allure-reporter
 market/front/libs/luster-var-log
 strm/admins/yandex-strm-h264bitstream
