@@ -23,6 +23,7 @@
 - {{ error-function__SMAPE }}
 - {{ error-function--Recall }}
 - {{ error-function--Precision }}
+- {{ error-function--F }}
 - {{ error-function--F1 }}
 - {{ error-function--totalF1 }}
 - {{ error-function--Accuracy }}
