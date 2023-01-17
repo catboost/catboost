@@ -1340,7 +1340,10 @@ classifieds/sphinx-configs
 classifieds/php-cron
 classifieds/php-catalog-cron
 adv/pcode/mobileadssdk/tests/mock-data
-weather/frontend
+weather/frontend/front
+weather/frontend/render
+weather/frontend/tools
+weather/frontend/nginx
 distribution_interface/chrome-nano
 distribution_interface/slices-new
 afisha/yaga/py
