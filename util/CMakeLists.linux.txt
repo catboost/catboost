@@ -112,6 +112,7 @@ target_joined_source(yutil
   ${CMAKE_SOURCE_DIR}/util/generic/typetraits.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/utility.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/va_args.cpp
+  ${CMAKE_SOURCE_DIR}/util/generic/variant.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/vector.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/xrange.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/yexception.cpp
