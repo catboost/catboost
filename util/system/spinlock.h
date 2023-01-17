@@ -1,21 +1,34 @@
 #pragma once
 
-#include "atomic.h"
 #include "spin_wait.h"
+
+#include <atomic>
 
 class TSpinLockBase {
 protected:
-    inline TSpinLockBase() noexcept {
-        AtomicSet(Val_, 0);
+    TSpinLockBase() = default;
+
+    // These were unearthed in IGNIETFERRO-1105
+    // Need to get rid of them separately
+    TSpinLockBase(const TSpinLockBase& other)
+        : Val_(other.Val_.load())
+    {
+    }
+
+    TSpinLockBase& operator=(const TSpinLockBase& other)
+    {
+        Val_.store(other.Val_);
+        return *this;
     }
 
 public:
     inline bool IsLocked() const noexcept {
-        return AtomicGet(Val_);
+        return Val_.load();
     }
 
     inline bool TryAcquire() noexcept {
-        return AtomicTryLock(&Val_);
+        intptr_t zero = 0;
+        return Val_.compare_exchange_strong(zero, 1);
     }
 
     inline bool try_lock() noexcept {
@@ -23,7 +36,7 @@ public:
     }
 
 protected:
-    TAtomic Val_;
+    std::atomic<intptr_t> Val_{0};
 };
 
 static inline void SpinLockPause() {
@@ -37,18 +50,6 @@ static inline void SpinLockPause() {
 #endif
 }
 
-static inline void AcquireSpinLock(TAtomic* l) {
-    if (!AtomicTryLock(l)) {
-        do {
-            SpinLockPause();
-        } while (!AtomicTryAndTryLock(l));
-    }
-}
-
-static inline void ReleaseSpinLock(TAtomic* l) {
-    AtomicUnlock(l);
-}
-
 /*
  * You should almost always use TAdaptiveLock instead of TSpinLock
  */
@@ -57,11 +58,19 @@ public:
     using TSpinLockBase::TSpinLockBase;
 
     inline void Release() noexcept {
-        ReleaseSpinLock(&Val_);
+        Val_.store(0, std::memory_order_release);
     }
 
     inline void Acquire() noexcept {
-        AcquireSpinLock(&Val_);
+        intptr_t zero = 0;
+        if (Val_.compare_exchange_strong(zero, 1)) {
+            return;
+        }
+        do {
+            SpinLockPause();
+            zero = 0;
+        } while (Val_.load(std::memory_order_acquire) != 0 ||
+                 !Val_.compare_exchange_strong(zero, 1));
     }
 
     inline void unlock() noexcept {
@@ -72,31 +81,31 @@ public:
         Acquire();
     }
 };
-
-static inline void AcquireAdaptiveLock(TAtomic* l) {
-    if (!AtomicTryLock(l)) {
-        TSpinWait sw;
-
-        while (!AtomicTryAndTryLock(l)) {
-            sw.Sleep();
-        }
-    }
-}
-
-static inline void ReleaseAdaptiveLock(TAtomic* l) {
-    AtomicUnlock(l);
-}
 
 class TAdaptiveLock: public TSpinLockBase {
 public:
     using TSpinLockBase::TSpinLockBase;
 
-    inline void Release() noexcept {
-        ReleaseAdaptiveLock(&Val_);
+    void Release() noexcept {
+        Val_.store(0, std::memory_order_release);
     }
 
-    inline void Acquire() noexcept {
-        AcquireAdaptiveLock(&Val_);
+    void Acquire() noexcept {
+        intptr_t zero = 0;
+        if (Val_.compare_exchange_strong(zero, 1)) {
+            return;
+        }
+
+        TSpinWait sw;
+
+        for (;;) {
+            zero = 0;
+            if (Val_.load(std::memory_order_acquire) == 0 &&
+                Val_.compare_exchange_strong(zero, 1)) {
+                break;
+            }
+            sw.Sleep();
+        }
     }
 
     inline void unlock() noexcept {
@@ -105,22 +114,5 @@ public:
 
     inline void lock() noexcept {
         Acquire();
-    }
-};
-
-#include "guard.h"
-
-template <>
-struct TCommonLockOps<TAtomic> {
-    static inline void Acquire(TAtomic* v) noexcept {
-        AcquireAdaptiveLock(v);
-    }
-
-    static inline bool TryAcquire(TAtomic* v) noexcept {
-        return AtomicTryLock(v);
-    }
-
-    static inline void Release(TAtomic* v) noexcept {
-        ReleaseAdaptiveLock(v);
     }
 };

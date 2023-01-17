@@ -76,7 +76,7 @@ namespace {
         TPriorityQueue<TFunc*, TVector<TFunc*>, TCmp> Items_;
     };
 
-    static TAtomic atExitLock = 0;
+    static TAdaptiveLock atExitLock;
     static TAtExit* volatile atExitPtr = nullptr;
     alignas(TAtExit) static char atExitMem[sizeof(TAtExit)];
 
