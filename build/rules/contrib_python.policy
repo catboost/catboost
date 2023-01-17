@@ -699,4 +699,5 @@ DENY .* -> contrib/python/hurry.filesize
 
 # https://st.yandex-team.ru/CONTRIB-2338
 ALLOW noc/.* -> contrib/python/asyncssh
+ALLOW jupytercloud/backend/.* -> contrib/python/asyncssh
 DENY .* -> contrib/python/asyncssh
