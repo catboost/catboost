@@ -43,20 +43,13 @@ namespace {
         };
 
     public:
-        ~TMultiRequester() {
-            for (auto& req : Reqs_) {
-                req->Register(nullptr);
-            }
-        }
-
         void Add(const THandleRef& req) override {
             Reqs_.insert(req);
-            req->Register(&WaitQueue_);
+            req->Register(WaitQueue_);
         }
 
         void Del(const THandleRef& req) override {
             Reqs_.erase(req);
-            req->Register(nullptr);
         }
 
         bool Wait(THandleRef& req, TInstant deadLine) override {
@@ -65,7 +58,7 @@ namespace {
                     return false;
                 }
                 TOnComplete cb(this);
-                WaitForMultipleObj(WaitQueue_, deadLine, cb);
+                WaitForMultipleObj(*WaitQueue_, deadLine, cb);
                 if (!cb.Signalled) {
                     return false;
                 }
@@ -89,7 +82,7 @@ namespace {
     private:
         typedef THashSet<THandleRef, TOps, TOps> TReqs;
         typedef TList<THandleRef> TComplete;
-        TWaitQueue WaitQueue_;
+        TIntrusivePtr<TWaitQueue> WaitQueue_ = MakeIntrusive<TWaitQueue>();
         TReqs Reqs_;
         TComplete Complete_;
     };
