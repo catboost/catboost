@@ -163,7 +163,7 @@ void Out<NB64Etalon::TImpls::EImpl>(IOutputStream& o, typename TTypeTraits<NB64E
     }
 }
 
-static void TestEncodeDecodeIntoString(const TString& plain, const TString& encoded, const TString& encodedUrl) {
+static void TestEncodeDecodeIntoString(const TString& plain, const TString& encoded, const TString& encodedUrl, const TString& encodedUrlNoPadding) {
     TString a, b;
 
     Base64Encode(plain, a);
@@ -177,6 +177,12 @@ static void TestEncodeDecodeIntoString(const TString& plain, const TString& enco
 
     Base64Decode(a, b);
     UNIT_ASSERT_VALUES_EQUAL(b, plain);
+
+    Base64EncodeUrlNoPadding(plain, a);
+    UNIT_ASSERT_VALUES_EQUAL(a, encodedUrlNoPadding);
+
+    TString c = Base64DecodeUneven(a);
+    UNIT_ASSERT_VALUES_EQUAL(c, plain);
 }
 
 static void TestEncodeStrictDecodeIntoString(const TString& plain, const TString& encoded, const TString& encodedUrl) {
@@ -225,8 +231,16 @@ Y_UNIT_TEST_SUITE(TBase64) {
                 "oqOkpaanqKmqq6ytrq-wsbKztLW2t7i5uru8vb6_wMHCw8TFxsfIyc"
                 "rLzM3Oz9DR0tPU1dbX2Nna29zd3t_g4eLj5OXm5-jp6uvs7e7v8PHy"
                 "8_T19vf4-fr7_P3-_w,,";
+            const TString base64UrlWithoutPadding =
+                "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJy"
+                "gpKissLS4vMDEyMzQ1Njc4OTo7PD0-P0BBQkNERUZHSElKS0xNTk9Q"
+                "UVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eH"
+                "l6e3x9fn-AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6Ch"
+                "oqOkpaanqKmqq6ytrq-wsbKztLW2t7i5uru8vb6_wMHCw8TFxsfIyc"
+                "rLzM3Oz9DR0tPU1dbX2Nna29zd3t_g4eLj5OXm5-jp6uvs7e7v8PHy"
+                "8_T19vf4-fr7_P3-_w";
 
-            TestEncodeDecodeIntoString(str, base64, base64Url);
+            TestEncodeDecodeIntoString(str, base64, base64Url, base64UrlWithoutPadding);
             TestEncodeStrictDecodeIntoString(str, base64, base64Url);
         }
 
@@ -235,8 +249,9 @@ Y_UNIT_TEST_SUITE(TBase64) {
 
             const TString base64 = "aHR0cDovL3lhbmRleC5ydToxMjM0L3JlcXVlc3Q/cGFyYW09dmFsdWUmbGxsPWZmZiNmcmFnbWVudA==";
             const TString base64Url = "aHR0cDovL3lhbmRleC5ydToxMjM0L3JlcXVlc3Q_cGFyYW09dmFsdWUmbGxsPWZmZiNmcmFnbWVudA,,";
+            const TString base64UrlWithoutPadding = "aHR0cDovL3lhbmRleC5ydToxMjM0L3JlcXVlc3Q_cGFyYW09dmFsdWUmbGxsPWZmZiNmcmFnbWVudA";
 
-            TestEncodeDecodeIntoString(str, base64, base64Url);
+            TestEncodeDecodeIntoString(str, base64, base64Url, base64UrlWithoutPadding);
             TestEncodeStrictDecodeIntoString(str, base64, base64Url);
         }
     }
@@ -293,8 +308,11 @@ Y_UNIT_TEST_SUITE(TBase64) {
         }
         TString output;
         TString encoded = Base64Encode(input);
+        TString encodedUrl = TString::Uninitialized(Base64EncodeBufSize(input.length()));
+        Base64EncodeUrlNoPadding(input, encodedUrl);
         UNIT_ASSERT_VALUES_EQUAL(Base64Decode(encoded), input);
         UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecode(encoded), input);
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven(encodedUrl), input);
     }
 
     Y_UNIT_TEST(TestAllPossibleOctets) {
@@ -459,6 +477,12 @@ Y_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
+    Y_UNIT_TEST(TestDecodeURLEncodedWithoutPadding) {
+        const auto x = "1";
+        const auto xDec = Base64DecodeUneven("MQ");
+        UNIT_ASSERT_VALUES_EQUAL(x, xDec);
+    }
+
     Y_UNIT_TEST(TestDecodeNoPaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?a";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9h");
@@ -493,5 +517,23 @@ Y_UNIT_TEST_SUITE(TBase64) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?aa";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9hYQ,,");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
+    }
+
+    Y_UNIT_TEST(TestDecodeUnevenDst) {
+        const auto x = "How do I convert between big-endian and little-endian values in C++?aa";
+        TString b64 = "SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9hYQ";
+        TVector<char> buf(Base64DecodeBufSize(b64.Size()), '\0');
+        Base64DecodeUneven(buf.begin(), b64);
+        TString res(buf.data());
+        UNIT_ASSERT_VALUES_EQUAL(x, res);
+    }
+
+    Y_UNIT_TEST(TestDecodeUnevenDst2) {
+        const auto x = "How do I convert between big-endian and little-endian values in C++?";
+        TString b64 = "SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz8";
+        TVector<char> buf(Base64DecodeBufSize(b64.Size()), '\0');
+        Base64DecodeUneven(buf.begin(), b64);
+        TString res(buf.data());
+        UNIT_ASSERT_VALUES_EQUAL(x, res);
     }
 }
