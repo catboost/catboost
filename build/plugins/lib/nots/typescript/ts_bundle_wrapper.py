@@ -8,21 +8,24 @@ from .ts_config import TsConfig
 from .ts_errors import TsCompilationError
 
 
-class TscWrapper(object):
-    _TSCONFIG_FILENAME = "tsconfig.json"
-
-    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, script_path, config_path):
+class TsBundleWrapper(object):
+    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, script_path, ts_config_path, webpack_config_path, webpack_resource):
         self.build_root = build_root
         self.build_path = build_path
         self.sources_path = sources_path
         self.nodejs_bin_path = nodejs_bin_path
         self.script_path = script_path
-        self.config_path = config_path
+        self.ts_config_curpath = ts_config_path
+        self.ts_config_binpath = os.path.join(build_path, os.path.basename(ts_config_path))
+        self.webpack_config_curpath = webpack_config_path
+        self.webpack_config_binpath = os.path.join(build_path, os.path.basename(webpack_config_path))
+        self.webpack_resource = webpack_resource
 
     def compile(self):
         self._prepare_dependencies()
-        config = self._build_config()
-        self._exec_tsc(["--build", config.path])
+        self._build_configs()
+        self._exec_webpack()
+        self._pack_bundle()
 
     def _prepare_dependencies(self):
         self._copy_package_json()
@@ -41,28 +44,44 @@ class TscWrapper(object):
             with tarfile.open(nm_bundle_path) as tf:
                 tf.extractall(os.path.join(self.build_path, "node_modules"))
 
-    def _build_config(self):
-        config = TsConfig.load(self.config_path)
+    def _build_configs(self):
+        shutil.copyfile(
+            self.webpack_config_curpath,
+            self.webpack_config_binpath
+        )
+
+        config = TsConfig.load(self.ts_config_curpath)
         config.validate()
         config.transform_paths(
             build_path=self.build_path,
             sources_path=self.sources_path,
         )
 
-        config.path = os.path.join(self.build_path, self._TSCONFIG_FILENAME)
+        config.path = self.ts_config_binpath
         config.write()
 
-        return config
+    def _exec_webpack(self):
+        custom_envs = {
+            "WEBPACK_CONFIG": self.webpack_config_binpath,
+            "CURDIR": self.sources_path,
+            "BINDIR": self.build_path,
+            "NODE_MODULES_DIRS": self.webpack_resource
+        }
 
-    def _exec_tsc(self, args):
         p = subprocess.Popen(
-            [self.nodejs_bin_path, self.script_path] + args,
+            [self.nodejs_bin_path, self.script_path, "--config", self.webpack_config_binpath],
             cwd=self.build_path,
             stdin=None,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=custom_envs,
         )
         stdout, stderr = p.communicate()
 
         if p.returncode != 0:
             raise TsCompilationError(p.returncode, stdout.decode("utf-8"), stderr.decode("utf-8"))
+
+    def _pack_bundle(self):
+        with tarfile.open(self.build_path + "/bundle.tar", "w") as tf:
+            tf.add(self.build_path + "/bundle")
+            tf.close()
