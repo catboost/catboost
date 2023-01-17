@@ -133,3 +133,4 @@ portal/infra-scripts
 market/ir/lib/robot-storage
 contest/experiments/kafka/consumer
 market/ir/b2b
+supdev/H2S
