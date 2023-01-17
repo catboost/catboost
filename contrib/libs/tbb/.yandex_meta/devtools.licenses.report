@@ -104,17 +104,6 @@ BELONGS ya.make
     Files with this license:
         README.md [2:2]
 
-KEEP     Apache-2.0           920b2f581700b4aa528093ed0d2f5a5b
-BELONGS ya.make
-    Note: matched license text is too long. Read it in the source files.
-    Scancode info:
-        Original SPDX id: Apache-2.0
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
-    Files with this license:
-        WORKSPACE.bazel [3:13]
-
 SKIP     LicenseRef-scancode-free-unknown 9accd516d3540c66a5ed71248361870b
 BELONGS ya.make
     # not a license

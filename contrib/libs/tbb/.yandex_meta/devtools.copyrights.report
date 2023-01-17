@@ -50,13 +50,12 @@ BELONGS ya.make
 KEEP     COPYRIGHT_SERVICE_LABEL 3abceee12813f5f5c1ed7a506777af26
 BELONGS ya.make
     License text:
-        \# Copyright (c) 2021 Intel Corporation
+            Copyright (c) 2021 Intel Corporation
     Scancode info:
         Original SPDX id: COPYRIGHT_SERVICE_LABEL
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        WORKSPACE.bazel [1:1]
         include/oneapi/tbb/collaborative_call_once.h [2:2]
         include/oneapi/tbb/detail/_attach.h [2:2]
         include/oneapi/tbb/detail/_mutex_common.h [2:2]
