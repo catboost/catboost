@@ -147,3 +147,4 @@ contest/experiments/kafka/producer
 market/erp_axapta/libs/solomon_helper
 market/erp_axapta/libs/AXInteropServices
 market/erp_axapta/libs/tvmdaemonproxy
+market/erp_axapta/libs/MBOSSKUDataImporter
