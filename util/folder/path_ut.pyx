@@ -356,14 +356,15 @@ class TestPath(unittest.TestCase):
     def test_real_path(self):
         cdef TFsPath path = TFsPath("test_real_path_a")
         path.Touch()
-        self.assertEquals(path.RealPath().GetPath(), os.path.join(yatest.common.work_path(), "test_real_path_a"))
-        self.assertEquals(path.RealLocation().GetPath(), os.path.join(yatest.common.work_path(), "test_real_path_a"))
+        real_work_path = os.path.join(os.path.realpath(yatest.common.work_path()), "test_real_path_a")
+        self.assertEquals(path.RealPath().GetPath(), real_work_path)
+        self.assertEquals(path.RealLocation().GetPath(), real_work_path)
         with self.assertRaises(RuntimeError):
             path.ReadLink()
 
     def test_cwd(self):
         cdef TFsPath path = TFsPath.Cwd()
-        self.assertEquals(path.GetPath(), yatest.common.work_path())
+        self.assertEquals(path.GetPath(), os.path.realpath(yatest.common.work_path()))
 
     def test_swap(self):
         cdef TFsPath first = TFsPath("first")
