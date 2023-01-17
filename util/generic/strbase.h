@@ -51,60 +51,7 @@ public:
     using const_iterator = const TCharType*;
     using const_reference = const TCharType&;
 
-    template <typename TBase>
-    struct TReverseIteratorBase {
-        constexpr TReverseIteratorBase() noexcept = default;
-        explicit constexpr TReverseIteratorBase(TBase p)
-            : P_(p)
-        {
-        }
-
-        TReverseIteratorBase operator++() noexcept {
-            --P_;
-            return *this;
-        }
-
-        TReverseIteratorBase operator++(int) noexcept {
-            TReverseIteratorBase old(*this);
-            --P_;
-            return old;
-        }
-
-        TReverseIteratorBase& operator--() noexcept {
-            ++P_;
-            return *this;
-        }
-
-        TReverseIteratorBase operator--(int) noexcept {
-            TReverseIteratorBase old(*this);
-            ++P_;
-            return old;
-        }
-
-        constexpr auto operator*() const noexcept -> std::remove_pointer_t<TBase>& {
-            return *TBase(*this);
-        }
-
-        explicit constexpr operator TBase() const noexcept {
-            return TBase(P_ - 1);
-        }
-
-        constexpr auto operator-(const TReverseIteratorBase o) const noexcept {
-            return o.P_ - P_;
-        }
-
-        constexpr bool operator==(const TReverseIteratorBase o) const noexcept {
-            return P_ == o.P_;
-        }
-
-        constexpr bool operator!=(const TReverseIteratorBase o) const noexcept {
-            return !(*this == o);
-        }
-
-    private:
-        TBase P_ = nullptr;
-    };
-    using const_reverse_iterator = TReverseIteratorBase<const_iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     static constexpr size_t StrLen(const TCharType* s) noexcept {
         if (Y_LIKELY(s)) {

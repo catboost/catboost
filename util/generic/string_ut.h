@@ -906,7 +906,7 @@ public:
         s2.assign(Data._0123456(), 2, 2);
         UNIT_ASSERT(s2 == Data._23());
 
-        //s2.reserve();
+        // s2.reserve();
 
         TStringType s5(Data.abcde());
         s5.clear();
@@ -1152,5 +1152,11 @@ public:
 
         *ritBegin = (ui8)'e';
         UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'e');
+
+        str = chars;
+        auto it = std::find_if(
+            str.rbegin(), str.rend(),
+            [](char_type c) { return c == 'o'; });
+        UNIT_ASSERT_EQUAL(it, str.rbegin());
     }
 };

@@ -175,7 +175,7 @@ public:
     using traits_type = TTraits;
 
     using iterator = TCharType*;
-    using reverse_iterator = typename TBase::template TReverseIteratorBase<iterator>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using typename TBase::const_iterator;
     using typename TBase::const_reference;
     using typename TBase::const_reverse_iterator;
