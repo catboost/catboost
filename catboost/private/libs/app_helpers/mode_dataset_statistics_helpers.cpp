@@ -10,7 +10,7 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
     DatasetReadingParams.BindParserOpts(&parser);
     parser.AddLongOption('o', "output-path", "output result path")
         .StoreResult(&OutputPath)
-        .DefaultValue("statistics.tsv");
+        .DefaultValue("statistics.json");
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
 }

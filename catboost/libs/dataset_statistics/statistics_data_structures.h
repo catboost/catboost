@@ -289,5 +289,9 @@ public:
         FeatureStatistics.Update(update.FeatureStatistics);
         TargetsStatistics.Update(update.TargetsStatistics);
     }
+
+    ui64 GetObjectCount() const {
+        return TargetsStatistics.GetObjectCount();
+    }
 };
 }
