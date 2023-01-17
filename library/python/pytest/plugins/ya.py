@@ -192,8 +192,6 @@ def pytest_configure(config):
 
     config.option.continue_on_collection_errors = True
 
-    config.addinivalue_line("markers", "ya:external")
-
     config.from_ya_test = from_ya_test()
     config.test_logs = collections.defaultdict(dict)
     config.test_metrics = {}
