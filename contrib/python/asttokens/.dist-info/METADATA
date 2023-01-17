@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: asttokens
-Version: 2.2.0
+Version: 2.2.1
 Summary: Annotate AST trees with source code positions
 Home-page: https://github.com/gristlabs/asttokens
 Author: Dmitry Sagalovskiy, Grist Labs
@@ -25,6 +25,7 @@ Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 License-File: LICENSE
