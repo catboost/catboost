@@ -21,6 +21,18 @@
 #include "Python.h"
 #include "frameobject.h"        /* for PyFrame_ClearFreeList */
 
+#if defined(_asan_enabled_)
+void __lsan_ignore_object(const void* p);
+#endif
+
+inline static void MarkAsIntentionallyLeaked(const void* ptr) {
+#if defined(_asan_enabled_)
+    __lsan_ignore_object(ptr);
+#else
+    (void)ptr;
+#endif
+}
+
 /* Get an object's GC head */
 #define AS_GC(o) ((PyGC_Head *)(o)-1)
 
@@ -1500,6 +1512,7 @@ _PyObject_GC_Malloc(size_t basicsize)
         sizeof(PyGC_Head) + basicsize);
     if (g == NULL)
         return PyErr_NoMemory();
+    MarkAsIntentionallyLeaked(g);
     g->gc.gc_refs = GC_UNTRACKED;
     generations[0].count++; /* number of allocated GC objects */
     if (generations[0].count > generations[0].threshold &&

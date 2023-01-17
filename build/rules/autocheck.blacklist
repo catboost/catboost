@@ -1399,3 +1399,5 @@ noc/traffic/dns/junk/e2
 noc/traffic/dns/junk/lxs
 noc/traffic/dns/junk/dns-api
 adv/pcode/mobileadssdk/ios/sample-public
+noc/traffic/dns/junk/cc-core
+adv/pcode/mobileadssdk/ios/sample-internal
