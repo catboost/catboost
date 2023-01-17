@@ -196,7 +196,7 @@ class _Execution(object):
         if self._std_out is not None:
             return self._std_out
         if self._process.stdout and not self._user_stdout:
-            self._std_out = self._process.stdout.read()
+            self._std_out = six.ensure_str(self._process.stdout.read())
             return self._std_out
 
     @property
@@ -211,7 +211,7 @@ class _Execution(object):
         if self._std_err is not None:
             return self._std_err
         if self._process.stderr and not self._user_stderr:
-            self._std_err = self._process.stderr.read()
+            self._std_err = six.ensure_str(self._process.stderr.read())
             return self._std_err
 
     @property
