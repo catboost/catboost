@@ -11,6 +11,15 @@ import __res
 from __res import importer
 
 
+def setup_test_environment():
+    try:
+        from yatest_lib.ya import Ya
+        import yatest.common as yc
+        yc.runtime._set_ya_config(ya=Ya())
+    except ImportError:
+        pass
+
+
 def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     """
     tests all bundled modules are importable
@@ -18,6 +27,7 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     "PEERDIR(library/python/import_test)" to your CMakeLists.txt and
     "from import_test import test_imports" to your python test source file.
     """
+
     str_ = lambda s: s
     if not isinstance(b'', str):
         str_ = lambda s: s.decode('UTF-8')
@@ -99,6 +109,8 @@ test_imports = check_imports
 
 
 def main():
+    setup_test_environment()
+
     skip_names = sys.argv[1:]
 
     try:

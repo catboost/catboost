@@ -13,6 +13,7 @@ PEERDIR(
     library/python/filelock
     library/python/find_root
     library/python/testing/filter
+    library/python/testing/yatest_common
 )
 
 IF (PYTHON2)
