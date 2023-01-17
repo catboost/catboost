@@ -7948,7 +7948,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1413146275,
+                "sandbox_id": 1413430532,
                 "match": "infractl"
             },
             "executable": {
@@ -8432,7 +8432,7 @@
             },
             "executable": {
                 "saas2": [
-                    "bin/saas2"
+                    "cli/saas2"
                 ]
             }
         },
@@ -9172,7 +9172,7 @@
         },
         "marketsre": {
             "formula": {
-                "sandbox_id": 1409128677,
+                "sandbox_id": 1413362862,
                 "match": "marketsre"
             },
             "executable": {
