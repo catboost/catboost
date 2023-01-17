@@ -99,6 +99,10 @@ PyUFunc_DivmodTypeResolver(PyUFuncObject *ufunc,
                               PyObject *type_tup,
                               PyArray_Descr **out_dtypes);
 
+NPY_NO_EXPORT int
+PyUFunc_ValidateOutCasting(PyUFuncObject *ufunc,
+        NPY_CASTING casting, PyArrayObject **operands, PyArray_Descr **dtypes);
+
 /*
  * Does a linear search for the best inner loop of the ufunc.
  *
@@ -136,14 +140,6 @@ PyUFunc_DefaultLegacyInnerLoopSelector(PyUFuncObject *ufunc,
                                        int *out_needs_api);
 
 NPY_NO_EXPORT int
-PyUFunc_DefaultMaskedInnerLoopSelector(PyUFuncObject *ufunc,
-                                      PyArray_Descr **dtypes,
-                                      PyArray_Descr *mask_dtypes,
-                                      npy_intp *NPY_UNUSED(fixed_strides),
-                                      npy_intp NPY_UNUSED(fixed_mask_stride),
-                                      PyUFunc_MaskedStridedInnerLoopFunc 
-                                      **out_innerloop,
-                                      NpyAuxData **out_innerloopdata,
-                                      int *out_needs_api);
+raise_no_loop_found_error(PyUFuncObject *ufunc, PyObject **dtypes);
 
 #endif

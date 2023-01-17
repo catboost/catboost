@@ -49,7 +49,7 @@ static NPY_GCC_OPT_3 npy_byte byte_sum_of_arr(npy_byte *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_s8;
-    npyv_s8 vaccum = npyv_zero_s8();
+    npyv_s8 v_accum = npyv_zero_s8();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -70,7 +70,7 @@ static NPY_GCC_OPT_3 npy_byte byte_sum_of_arr(npy_byte *data, npy_intp count)
             npyv_s8 a01   = npyv_add_s8(a0, a1);
             npyv_s8 a23   = npyv_add_s8(a2, a3);
             npyv_s8 a0123 = npyv_add_s8(a01, a23);
-                      vaccum = npyv_add_s8(a0123, vaccum);
+                     v_accum = npyv_add_s8(a0123, v_accum);
         }
     }
     
@@ -92,15 +92,15 @@ static NPY_GCC_OPT_3 npy_byte byte_sum_of_arr(npy_byte *data, npy_intp count)
             npyv_s8 a01   = npyv_add_s8(a0, a1);
             npyv_s8 a23   = npyv_add_s8(a2, a3);
             npyv_s8 a0123 = npyv_add_s8(a01, a23);
-                      vaccum = npyv_add_s8(a0123, vaccum);
+                     v_accum = npyv_add_s8(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_s8 a = npyv_load_tillz_s8(data, count);
-        vaccum = npyv_add_s8(a, vaccum);
+        v_accum = npyv_add_s8(a, v_accum);
     }
-    accum = npyv_sum_s8(vaccum);
+    accum = npyv_sum_s8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -839,7 +839,7 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s8;
-    npyv_s8 vaccum = npyv_zero_s8();
+    npyv_s8 v_accum = npyv_zero_s8();
 
     #line 495
     if(is_aligned) {
@@ -861,10 +861,10 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_loada_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_loada_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
@@ -888,19 +888,19 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_load_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_load_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s8 a = npyv_load_tillz_s8(data0, count);
         npyv_s8 b = npyv_load_tillz_s8(data1, count);
-        vaccum = npyv_muladd_s8(a, b, vaccum);
+        v_accum = npyv_muladd_s8(a, b, v_accum);
     }
-    accum = npyv_sum_s8(vaccum);
+    accum = npyv_sum_s8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -2010,7 +2010,7 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s8;
-    npyv_s8 vaccum = npyv_zero_s8();
+    npyv_s8 v_accum = npyv_zero_s8();
 
     #line 495
     if(is_aligned) {
@@ -2032,10 +2032,10 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_loada_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_loada_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
@@ -2059,19 +2059,19 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_load_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_load_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s8 a = npyv_load_tillz_s8(data0, count);
         npyv_s8 b = npyv_load_tillz_s8(data1, count);
-        vaccum = npyv_muladd_s8(a, b, vaccum);
+        v_accum = npyv_muladd_s8(a, b, v_accum);
     }
-    accum = npyv_sum_s8(vaccum);
+    accum = npyv_sum_s8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -3181,7 +3181,7 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s8;
-    npyv_s8 vaccum = npyv_zero_s8();
+    npyv_s8 v_accum = npyv_zero_s8();
 
     #line 495
     if(is_aligned) {
@@ -3203,10 +3203,10 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_loada_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_loada_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
@@ -3230,19 +3230,19 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_load_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_load_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s8 a = npyv_load_tillz_s8(data0, count);
         npyv_s8 b = npyv_load_tillz_s8(data1, count);
-        vaccum = npyv_muladd_s8(a, b, vaccum);
+        v_accum = npyv_muladd_s8(a, b, v_accum);
     }
-    accum = npyv_sum_s8(vaccum);
+    accum = npyv_sum_s8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -4352,7 +4352,7 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s8;
-    npyv_s8 vaccum = npyv_zero_s8();
+    npyv_s8 v_accum = npyv_zero_s8();
 
     #line 495
     if(is_aligned) {
@@ -4374,10 +4374,10 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_loada_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_loada_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
@@ -4401,19 +4401,19 @@ byte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s8 a3 = npyv_load_s8(data0 + vstep * 3);
             npyv_s8 b3 = npyv_load_s8(data1 + vstep * 3);
             
-            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, vaccum);
+            npyv_s8 ab3 = npyv_muladd_s8(a3, b3, v_accum);
             npyv_s8 ab2 = npyv_muladd_s8(a2, b2, ab3);
             npyv_s8 ab1 = npyv_muladd_s8(a1, b1, ab2);
-                    vaccum = npyv_muladd_s8(a0, b0, ab1);
+                   v_accum = npyv_muladd_s8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s8 a = npyv_load_tillz_s8(data0, count);
         npyv_s8 b = npyv_load_tillz_s8(data1, count);
-        vaccum = npyv_muladd_s8(a, b, vaccum);
+        v_accum = npyv_muladd_s8(a, b, v_accum);
     }
-    accum = npyv_sum_s8(vaccum);
+    accum = npyv_sum_s8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -4814,7 +4814,7 @@ static NPY_GCC_OPT_3 npy_short short_sum_of_arr(npy_short *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_s16;
-    npyv_s16 vaccum = npyv_zero_s16();
+    npyv_s16 v_accum = npyv_zero_s16();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -4835,7 +4835,7 @@ static NPY_GCC_OPT_3 npy_short short_sum_of_arr(npy_short *data, npy_intp count)
             npyv_s16 a01   = npyv_add_s16(a0, a1);
             npyv_s16 a23   = npyv_add_s16(a2, a3);
             npyv_s16 a0123 = npyv_add_s16(a01, a23);
-                      vaccum = npyv_add_s16(a0123, vaccum);
+                     v_accum = npyv_add_s16(a0123, v_accum);
         }
     }
     
@@ -4857,15 +4857,15 @@ static NPY_GCC_OPT_3 npy_short short_sum_of_arr(npy_short *data, npy_intp count)
             npyv_s16 a01   = npyv_add_s16(a0, a1);
             npyv_s16 a23   = npyv_add_s16(a2, a3);
             npyv_s16 a0123 = npyv_add_s16(a01, a23);
-                      vaccum = npyv_add_s16(a0123, vaccum);
+                     v_accum = npyv_add_s16(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_s16 a = npyv_load_tillz_s16(data, count);
-        vaccum = npyv_add_s16(a, vaccum);
+        v_accum = npyv_add_s16(a, v_accum);
     }
-    accum = npyv_sum_s16(vaccum);
+    accum = npyv_sum_s16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -5604,7 +5604,7 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s16;
-    npyv_s16 vaccum = npyv_zero_s16();
+    npyv_s16 v_accum = npyv_zero_s16();
 
     #line 495
     if(is_aligned) {
@@ -5626,10 +5626,10 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_loada_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_loada_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
@@ -5653,19 +5653,19 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_load_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_load_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s16 a = npyv_load_tillz_s16(data0, count);
         npyv_s16 b = npyv_load_tillz_s16(data1, count);
-        vaccum = npyv_muladd_s16(a, b, vaccum);
+        v_accum = npyv_muladd_s16(a, b, v_accum);
     }
-    accum = npyv_sum_s16(vaccum);
+    accum = npyv_sum_s16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -6775,7 +6775,7 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s16;
-    npyv_s16 vaccum = npyv_zero_s16();
+    npyv_s16 v_accum = npyv_zero_s16();
 
     #line 495
     if(is_aligned) {
@@ -6797,10 +6797,10 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_loada_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_loada_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
@@ -6824,19 +6824,19 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_load_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_load_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s16 a = npyv_load_tillz_s16(data0, count);
         npyv_s16 b = npyv_load_tillz_s16(data1, count);
-        vaccum = npyv_muladd_s16(a, b, vaccum);
+        v_accum = npyv_muladd_s16(a, b, v_accum);
     }
-    accum = npyv_sum_s16(vaccum);
+    accum = npyv_sum_s16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -7946,7 +7946,7 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s16;
-    npyv_s16 vaccum = npyv_zero_s16();
+    npyv_s16 v_accum = npyv_zero_s16();
 
     #line 495
     if(is_aligned) {
@@ -7968,10 +7968,10 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_loada_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_loada_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
@@ -7995,19 +7995,19 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_load_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_load_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s16 a = npyv_load_tillz_s16(data0, count);
         npyv_s16 b = npyv_load_tillz_s16(data1, count);
-        vaccum = npyv_muladd_s16(a, b, vaccum);
+        v_accum = npyv_muladd_s16(a, b, v_accum);
     }
-    accum = npyv_sum_s16(vaccum);
+    accum = npyv_sum_s16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -9117,7 +9117,7 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s16;
-    npyv_s16 vaccum = npyv_zero_s16();
+    npyv_s16 v_accum = npyv_zero_s16();
 
     #line 495
     if(is_aligned) {
@@ -9139,10 +9139,10 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_loada_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_loada_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
@@ -9166,19 +9166,19 @@ short_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s16 a3 = npyv_load_s16(data0 + vstep * 3);
             npyv_s16 b3 = npyv_load_s16(data1 + vstep * 3);
             
-            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, vaccum);
+            npyv_s16 ab3 = npyv_muladd_s16(a3, b3, v_accum);
             npyv_s16 ab2 = npyv_muladd_s16(a2, b2, ab3);
             npyv_s16 ab1 = npyv_muladd_s16(a1, b1, ab2);
-                    vaccum = npyv_muladd_s16(a0, b0, ab1);
+                   v_accum = npyv_muladd_s16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s16 a = npyv_load_tillz_s16(data0, count);
         npyv_s16 b = npyv_load_tillz_s16(data1, count);
-        vaccum = npyv_muladd_s16(a, b, vaccum);
+        v_accum = npyv_muladd_s16(a, b, v_accum);
     }
-    accum = npyv_sum_s16(vaccum);
+    accum = npyv_sum_s16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -9579,7 +9579,7 @@ static NPY_GCC_OPT_3 npy_int int_sum_of_arr(npy_int *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_s32;
-    npyv_s32 vaccum = npyv_zero_s32();
+    npyv_s32 v_accum = npyv_zero_s32();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -9600,7 +9600,7 @@ static NPY_GCC_OPT_3 npy_int int_sum_of_arr(npy_int *data, npy_intp count)
             npyv_s32 a01   = npyv_add_s32(a0, a1);
             npyv_s32 a23   = npyv_add_s32(a2, a3);
             npyv_s32 a0123 = npyv_add_s32(a01, a23);
-                      vaccum = npyv_add_s32(a0123, vaccum);
+                     v_accum = npyv_add_s32(a0123, v_accum);
         }
     }
     
@@ -9622,15 +9622,15 @@ static NPY_GCC_OPT_3 npy_int int_sum_of_arr(npy_int *data, npy_intp count)
             npyv_s32 a01   = npyv_add_s32(a0, a1);
             npyv_s32 a23   = npyv_add_s32(a2, a3);
             npyv_s32 a0123 = npyv_add_s32(a01, a23);
-                      vaccum = npyv_add_s32(a0123, vaccum);
+                     v_accum = npyv_add_s32(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_s32 a = npyv_load_tillz_s32(data, count);
-        vaccum = npyv_add_s32(a, vaccum);
+        v_accum = npyv_add_s32(a, v_accum);
     }
-    accum = npyv_sum_s32(vaccum);
+    accum = npyv_sum_s32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -10369,7 +10369,7 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s32;
-    npyv_s32 vaccum = npyv_zero_s32();
+    npyv_s32 v_accum = npyv_zero_s32();
 
     #line 495
     if(is_aligned) {
@@ -10391,10 +10391,10 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_loada_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_loada_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
@@ -10418,19 +10418,19 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_load_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_load_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s32 a = npyv_load_tillz_s32(data0, count);
         npyv_s32 b = npyv_load_tillz_s32(data1, count);
-        vaccum = npyv_muladd_s32(a, b, vaccum);
+        v_accum = npyv_muladd_s32(a, b, v_accum);
     }
-    accum = npyv_sum_s32(vaccum);
+    accum = npyv_sum_s32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -11540,7 +11540,7 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s32;
-    npyv_s32 vaccum = npyv_zero_s32();
+    npyv_s32 v_accum = npyv_zero_s32();
 
     #line 495
     if(is_aligned) {
@@ -11562,10 +11562,10 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_loada_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_loada_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
@@ -11589,19 +11589,19 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_load_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_load_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s32 a = npyv_load_tillz_s32(data0, count);
         npyv_s32 b = npyv_load_tillz_s32(data1, count);
-        vaccum = npyv_muladd_s32(a, b, vaccum);
+        v_accum = npyv_muladd_s32(a, b, v_accum);
     }
-    accum = npyv_sum_s32(vaccum);
+    accum = npyv_sum_s32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -12711,7 +12711,7 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s32;
-    npyv_s32 vaccum = npyv_zero_s32();
+    npyv_s32 v_accum = npyv_zero_s32();
 
     #line 495
     if(is_aligned) {
@@ -12733,10 +12733,10 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_loada_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_loada_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
@@ -12760,19 +12760,19 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_load_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_load_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s32 a = npyv_load_tillz_s32(data0, count);
         npyv_s32 b = npyv_load_tillz_s32(data1, count);
-        vaccum = npyv_muladd_s32(a, b, vaccum);
+        v_accum = npyv_muladd_s32(a, b, v_accum);
     }
-    accum = npyv_sum_s32(vaccum);
+    accum = npyv_sum_s32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -13882,7 +13882,7 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s32;
-    npyv_s32 vaccum = npyv_zero_s32();
+    npyv_s32 v_accum = npyv_zero_s32();
 
     #line 495
     if(is_aligned) {
@@ -13904,10 +13904,10 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_loada_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_loada_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
@@ -13931,19 +13931,19 @@ int_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s32 a3 = npyv_load_s32(data0 + vstep * 3);
             npyv_s32 b3 = npyv_load_s32(data1 + vstep * 3);
             
-            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, vaccum);
+            npyv_s32 ab3 = npyv_muladd_s32(a3, b3, v_accum);
             npyv_s32 ab2 = npyv_muladd_s32(a2, b2, ab3);
             npyv_s32 ab1 = npyv_muladd_s32(a1, b1, ab2);
-                    vaccum = npyv_muladd_s32(a0, b0, ab1);
+                   v_accum = npyv_muladd_s32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s32 a = npyv_load_tillz_s32(data0, count);
         npyv_s32 b = npyv_load_tillz_s32(data1, count);
-        vaccum = npyv_muladd_s32(a, b, vaccum);
+        v_accum = npyv_muladd_s32(a, b, v_accum);
     }
-    accum = npyv_sum_s32(vaccum);
+    accum = npyv_sum_s32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -14344,7 +14344,7 @@ static NPY_GCC_OPT_3 npy_long long_sum_of_arr(npy_long *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_long;
-    npyv_long vaccum = npyv_zero_long();
+    npyv_long v_accum = npyv_zero_long();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -14365,7 +14365,7 @@ static NPY_GCC_OPT_3 npy_long long_sum_of_arr(npy_long *data, npy_intp count)
             npyv_long a01   = npyv_add_long(a0, a1);
             npyv_long a23   = npyv_add_long(a2, a3);
             npyv_long a0123 = npyv_add_long(a01, a23);
-                      vaccum = npyv_add_long(a0123, vaccum);
+                     v_accum = npyv_add_long(a0123, v_accum);
         }
     }
     
@@ -14387,15 +14387,15 @@ static NPY_GCC_OPT_3 npy_long long_sum_of_arr(npy_long *data, npy_intp count)
             npyv_long a01   = npyv_add_long(a0, a1);
             npyv_long a23   = npyv_add_long(a2, a3);
             npyv_long a0123 = npyv_add_long(a01, a23);
-                      vaccum = npyv_add_long(a0123, vaccum);
+                     v_accum = npyv_add_long(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_long a = npyv_load_tillz_long(data, count);
-        vaccum = npyv_add_long(a, vaccum);
+        v_accum = npyv_add_long(a, v_accum);
     }
-    accum = npyv_sum_long(vaccum);
+    accum = npyv_sum_long(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -15134,7 +15134,7 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_long;
-    npyv_long vaccum = npyv_zero_long();
+    npyv_long v_accum = npyv_zero_long();
 
     #line 495
     if(is_aligned) {
@@ -15156,10 +15156,10 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_loada_long(data0 + vstep * 3);
             npyv_long b3 = npyv_loada_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
@@ -15183,19 +15183,19 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_load_long(data0 + vstep * 3);
             npyv_long b3 = npyv_load_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_long a = npyv_load_tillz_long(data0, count);
         npyv_long b = npyv_load_tillz_long(data1, count);
-        vaccum = npyv_muladd_long(a, b, vaccum);
+        v_accum = npyv_muladd_long(a, b, v_accum);
     }
-    accum = npyv_sum_long(vaccum);
+    accum = npyv_sum_long(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -16305,7 +16305,7 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_long;
-    npyv_long vaccum = npyv_zero_long();
+    npyv_long v_accum = npyv_zero_long();
 
     #line 495
     if(is_aligned) {
@@ -16327,10 +16327,10 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_loada_long(data0 + vstep * 3);
             npyv_long b3 = npyv_loada_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
@@ -16354,19 +16354,19 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_load_long(data0 + vstep * 3);
             npyv_long b3 = npyv_load_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_long a = npyv_load_tillz_long(data0, count);
         npyv_long b = npyv_load_tillz_long(data1, count);
-        vaccum = npyv_muladd_long(a, b, vaccum);
+        v_accum = npyv_muladd_long(a, b, v_accum);
     }
-    accum = npyv_sum_long(vaccum);
+    accum = npyv_sum_long(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -17476,7 +17476,7 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_long;
-    npyv_long vaccum = npyv_zero_long();
+    npyv_long v_accum = npyv_zero_long();
 
     #line 495
     if(is_aligned) {
@@ -17498,10 +17498,10 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_loada_long(data0 + vstep * 3);
             npyv_long b3 = npyv_loada_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
@@ -17525,19 +17525,19 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_load_long(data0 + vstep * 3);
             npyv_long b3 = npyv_load_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_long a = npyv_load_tillz_long(data0, count);
         npyv_long b = npyv_load_tillz_long(data1, count);
-        vaccum = npyv_muladd_long(a, b, vaccum);
+        v_accum = npyv_muladd_long(a, b, v_accum);
     }
-    accum = npyv_sum_long(vaccum);
+    accum = npyv_sum_long(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -18647,7 +18647,7 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_long;
-    npyv_long vaccum = npyv_zero_long();
+    npyv_long v_accum = npyv_zero_long();
 
     #line 495
     if(is_aligned) {
@@ -18669,10 +18669,10 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_loada_long(data0 + vstep * 3);
             npyv_long b3 = npyv_loada_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
@@ -18696,19 +18696,19 @@ long_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_long a3 = npyv_load_long(data0 + vstep * 3);
             npyv_long b3 = npyv_load_long(data1 + vstep * 3);
             
-            npyv_long ab3 = npyv_muladd_long(a3, b3, vaccum);
+            npyv_long ab3 = npyv_muladd_long(a3, b3, v_accum);
             npyv_long ab2 = npyv_muladd_long(a2, b2, ab3);
             npyv_long ab1 = npyv_muladd_long(a1, b1, ab2);
-                    vaccum = npyv_muladd_long(a0, b0, ab1);
+                   v_accum = npyv_muladd_long(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_long a = npyv_load_tillz_long(data0, count);
         npyv_long b = npyv_load_tillz_long(data1, count);
-        vaccum = npyv_muladd_long(a, b, vaccum);
+        v_accum = npyv_muladd_long(a, b, v_accum);
     }
-    accum = npyv_sum_long(vaccum);
+    accum = npyv_sum_long(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -19109,7 +19109,7 @@ static NPY_GCC_OPT_3 npy_longlong longlong_sum_of_arr(npy_longlong *data, npy_in
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_s64;
-    npyv_s64 vaccum = npyv_zero_s64();
+    npyv_s64 v_accum = npyv_zero_s64();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -19130,7 +19130,7 @@ static NPY_GCC_OPT_3 npy_longlong longlong_sum_of_arr(npy_longlong *data, npy_in
             npyv_s64 a01   = npyv_add_s64(a0, a1);
             npyv_s64 a23   = npyv_add_s64(a2, a3);
             npyv_s64 a0123 = npyv_add_s64(a01, a23);
-                      vaccum = npyv_add_s64(a0123, vaccum);
+                     v_accum = npyv_add_s64(a0123, v_accum);
         }
     }
     
@@ -19152,15 +19152,15 @@ static NPY_GCC_OPT_3 npy_longlong longlong_sum_of_arr(npy_longlong *data, npy_in
             npyv_s64 a01   = npyv_add_s64(a0, a1);
             npyv_s64 a23   = npyv_add_s64(a2, a3);
             npyv_s64 a0123 = npyv_add_s64(a01, a23);
-                      vaccum = npyv_add_s64(a0123, vaccum);
+                     v_accum = npyv_add_s64(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_s64 a = npyv_load_tillz_s64(data, count);
-        vaccum = npyv_add_s64(a, vaccum);
+        v_accum = npyv_add_s64(a, v_accum);
     }
-    accum = npyv_sum_s64(vaccum);
+    accum = npyv_sum_s64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -19899,7 +19899,7 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s64;
-    npyv_s64 vaccum = npyv_zero_s64();
+    npyv_s64 v_accum = npyv_zero_s64();
 
     #line 495
     if(is_aligned) {
@@ -19921,10 +19921,10 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_loada_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_loada_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
@@ -19948,19 +19948,19 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_load_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_load_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s64 a = npyv_load_tillz_s64(data0, count);
         npyv_s64 b = npyv_load_tillz_s64(data1, count);
-        vaccum = npyv_muladd_s64(a, b, vaccum);
+        v_accum = npyv_muladd_s64(a, b, v_accum);
     }
-    accum = npyv_sum_s64(vaccum);
+    accum = npyv_sum_s64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -21070,7 +21070,7 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s64;
-    npyv_s64 vaccum = npyv_zero_s64();
+    npyv_s64 v_accum = npyv_zero_s64();
 
     #line 495
     if(is_aligned) {
@@ -21092,10 +21092,10 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_loada_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_loada_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
@@ -21119,19 +21119,19 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_load_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_load_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s64 a = npyv_load_tillz_s64(data0, count);
         npyv_s64 b = npyv_load_tillz_s64(data1, count);
-        vaccum = npyv_muladd_s64(a, b, vaccum);
+        v_accum = npyv_muladd_s64(a, b, v_accum);
     }
-    accum = npyv_sum_s64(vaccum);
+    accum = npyv_sum_s64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -22241,7 +22241,7 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s64;
-    npyv_s64 vaccum = npyv_zero_s64();
+    npyv_s64 v_accum = npyv_zero_s64();
 
     #line 495
     if(is_aligned) {
@@ -22263,10 +22263,10 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_loada_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_loada_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
@@ -22290,19 +22290,19 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_load_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_load_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s64 a = npyv_load_tillz_s64(data0, count);
         npyv_s64 b = npyv_load_tillz_s64(data1, count);
-        vaccum = npyv_muladd_s64(a, b, vaccum);
+        v_accum = npyv_muladd_s64(a, b, v_accum);
     }
-    accum = npyv_sum_s64(vaccum);
+    accum = npyv_sum_s64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -23412,7 +23412,7 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_s64;
-    npyv_s64 vaccum = npyv_zero_s64();
+    npyv_s64 v_accum = npyv_zero_s64();
 
     #line 495
     if(is_aligned) {
@@ -23434,10 +23434,10 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_loada_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_loada_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
@@ -23461,19 +23461,19 @@ longlong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_s64 a3 = npyv_load_s64(data0 + vstep * 3);
             npyv_s64 b3 = npyv_load_s64(data1 + vstep * 3);
             
-            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, vaccum);
+            npyv_s64 ab3 = npyv_muladd_s64(a3, b3, v_accum);
             npyv_s64 ab2 = npyv_muladd_s64(a2, b2, ab3);
             npyv_s64 ab1 = npyv_muladd_s64(a1, b1, ab2);
-                    vaccum = npyv_muladd_s64(a0, b0, ab1);
+                   v_accum = npyv_muladd_s64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_s64 a = npyv_load_tillz_s64(data0, count);
         npyv_s64 b = npyv_load_tillz_s64(data1, count);
-        vaccum = npyv_muladd_s64(a, b, vaccum);
+        v_accum = npyv_muladd_s64(a, b, v_accum);
     }
-    accum = npyv_sum_s64(vaccum);
+    accum = npyv_sum_s64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -23874,7 +23874,7 @@ static NPY_GCC_OPT_3 npy_ubyte ubyte_sum_of_arr(npy_ubyte *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_u8;
-    npyv_u8 vaccum = npyv_zero_u8();
+    npyv_u8 v_accum = npyv_zero_u8();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -23895,7 +23895,7 @@ static NPY_GCC_OPT_3 npy_ubyte ubyte_sum_of_arr(npy_ubyte *data, npy_intp count)
             npyv_u8 a01   = npyv_add_u8(a0, a1);
             npyv_u8 a23   = npyv_add_u8(a2, a3);
             npyv_u8 a0123 = npyv_add_u8(a01, a23);
-                      vaccum = npyv_add_u8(a0123, vaccum);
+                     v_accum = npyv_add_u8(a0123, v_accum);
         }
     }
     
@@ -23917,15 +23917,15 @@ static NPY_GCC_OPT_3 npy_ubyte ubyte_sum_of_arr(npy_ubyte *data, npy_intp count)
             npyv_u8 a01   = npyv_add_u8(a0, a1);
             npyv_u8 a23   = npyv_add_u8(a2, a3);
             npyv_u8 a0123 = npyv_add_u8(a01, a23);
-                      vaccum = npyv_add_u8(a0123, vaccum);
+                     v_accum = npyv_add_u8(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_u8 a = npyv_load_tillz_u8(data, count);
-        vaccum = npyv_add_u8(a, vaccum);
+        v_accum = npyv_add_u8(a, v_accum);
     }
-    accum = npyv_sum_u8(vaccum);
+    accum = npyv_sum_u8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -24664,7 +24664,7 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u8;
-    npyv_u8 vaccum = npyv_zero_u8();
+    npyv_u8 v_accum = npyv_zero_u8();
 
     #line 495
     if(is_aligned) {
@@ -24686,10 +24686,10 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_loada_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_loada_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
@@ -24713,19 +24713,19 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_load_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_load_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u8 a = npyv_load_tillz_u8(data0, count);
         npyv_u8 b = npyv_load_tillz_u8(data1, count);
-        vaccum = npyv_muladd_u8(a, b, vaccum);
+        v_accum = npyv_muladd_u8(a, b, v_accum);
     }
-    accum = npyv_sum_u8(vaccum);
+    accum = npyv_sum_u8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -25835,7 +25835,7 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u8;
-    npyv_u8 vaccum = npyv_zero_u8();
+    npyv_u8 v_accum = npyv_zero_u8();
 
     #line 495
     if(is_aligned) {
@@ -25857,10 +25857,10 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_loada_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_loada_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
@@ -25884,19 +25884,19 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_load_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_load_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u8 a = npyv_load_tillz_u8(data0, count);
         npyv_u8 b = npyv_load_tillz_u8(data1, count);
-        vaccum = npyv_muladd_u8(a, b, vaccum);
+        v_accum = npyv_muladd_u8(a, b, v_accum);
     }
-    accum = npyv_sum_u8(vaccum);
+    accum = npyv_sum_u8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -27006,7 +27006,7 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u8;
-    npyv_u8 vaccum = npyv_zero_u8();
+    npyv_u8 v_accum = npyv_zero_u8();
 
     #line 495
     if(is_aligned) {
@@ -27028,10 +27028,10 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_loada_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_loada_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
@@ -27055,19 +27055,19 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_load_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_load_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u8 a = npyv_load_tillz_u8(data0, count);
         npyv_u8 b = npyv_load_tillz_u8(data1, count);
-        vaccum = npyv_muladd_u8(a, b, vaccum);
+        v_accum = npyv_muladd_u8(a, b, v_accum);
     }
-    accum = npyv_sum_u8(vaccum);
+    accum = npyv_sum_u8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -28177,7 +28177,7 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u8;
-    npyv_u8 vaccum = npyv_zero_u8();
+    npyv_u8 v_accum = npyv_zero_u8();
 
     #line 495
     if(is_aligned) {
@@ -28199,10 +28199,10 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_loada_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_loada_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
@@ -28226,19 +28226,19 @@ ubyte_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u8 a3 = npyv_load_u8(data0 + vstep * 3);
             npyv_u8 b3 = npyv_load_u8(data1 + vstep * 3);
             
-            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, vaccum);
+            npyv_u8 ab3 = npyv_muladd_u8(a3, b3, v_accum);
             npyv_u8 ab2 = npyv_muladd_u8(a2, b2, ab3);
             npyv_u8 ab1 = npyv_muladd_u8(a1, b1, ab2);
-                    vaccum = npyv_muladd_u8(a0, b0, ab1);
+                   v_accum = npyv_muladd_u8(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u8 a = npyv_load_tillz_u8(data0, count);
         npyv_u8 b = npyv_load_tillz_u8(data1, count);
-        vaccum = npyv_muladd_u8(a, b, vaccum);
+        v_accum = npyv_muladd_u8(a, b, v_accum);
     }
-    accum = npyv_sum_u8(vaccum);
+    accum = npyv_sum_u8(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -28639,7 +28639,7 @@ static NPY_GCC_OPT_3 npy_ushort ushort_sum_of_arr(npy_ushort *data, npy_intp cou
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_u16;
-    npyv_u16 vaccum = npyv_zero_u16();
+    npyv_u16 v_accum = npyv_zero_u16();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -28660,7 +28660,7 @@ static NPY_GCC_OPT_3 npy_ushort ushort_sum_of_arr(npy_ushort *data, npy_intp cou
             npyv_u16 a01   = npyv_add_u16(a0, a1);
             npyv_u16 a23   = npyv_add_u16(a2, a3);
             npyv_u16 a0123 = npyv_add_u16(a01, a23);
-                      vaccum = npyv_add_u16(a0123, vaccum);
+                     v_accum = npyv_add_u16(a0123, v_accum);
         }
     }
     
@@ -28682,15 +28682,15 @@ static NPY_GCC_OPT_3 npy_ushort ushort_sum_of_arr(npy_ushort *data, npy_intp cou
             npyv_u16 a01   = npyv_add_u16(a0, a1);
             npyv_u16 a23   = npyv_add_u16(a2, a3);
             npyv_u16 a0123 = npyv_add_u16(a01, a23);
-                      vaccum = npyv_add_u16(a0123, vaccum);
+                     v_accum = npyv_add_u16(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_u16 a = npyv_load_tillz_u16(data, count);
-        vaccum = npyv_add_u16(a, vaccum);
+        v_accum = npyv_add_u16(a, v_accum);
     }
-    accum = npyv_sum_u16(vaccum);
+    accum = npyv_sum_u16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -29429,7 +29429,7 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u16;
-    npyv_u16 vaccum = npyv_zero_u16();
+    npyv_u16 v_accum = npyv_zero_u16();
 
     #line 495
     if(is_aligned) {
@@ -29451,10 +29451,10 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_loada_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_loada_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
@@ -29478,19 +29478,19 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_load_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_load_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u16 a = npyv_load_tillz_u16(data0, count);
         npyv_u16 b = npyv_load_tillz_u16(data1, count);
-        vaccum = npyv_muladd_u16(a, b, vaccum);
+        v_accum = npyv_muladd_u16(a, b, v_accum);
     }
-    accum = npyv_sum_u16(vaccum);
+    accum = npyv_sum_u16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -30600,7 +30600,7 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u16;
-    npyv_u16 vaccum = npyv_zero_u16();
+    npyv_u16 v_accum = npyv_zero_u16();
 
     #line 495
     if(is_aligned) {
@@ -30622,10 +30622,10 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_loada_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_loada_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
@@ -30649,19 +30649,19 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_load_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_load_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u16 a = npyv_load_tillz_u16(data0, count);
         npyv_u16 b = npyv_load_tillz_u16(data1, count);
-        vaccum = npyv_muladd_u16(a, b, vaccum);
+        v_accum = npyv_muladd_u16(a, b, v_accum);
     }
-    accum = npyv_sum_u16(vaccum);
+    accum = npyv_sum_u16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -31771,7 +31771,7 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u16;
-    npyv_u16 vaccum = npyv_zero_u16();
+    npyv_u16 v_accum = npyv_zero_u16();
 
     #line 495
     if(is_aligned) {
@@ -31793,10 +31793,10 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_loada_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_loada_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
@@ -31820,19 +31820,19 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_load_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_load_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u16 a = npyv_load_tillz_u16(data0, count);
         npyv_u16 b = npyv_load_tillz_u16(data1, count);
-        vaccum = npyv_muladd_u16(a, b, vaccum);
+        v_accum = npyv_muladd_u16(a, b, v_accum);
     }
-    accum = npyv_sum_u16(vaccum);
+    accum = npyv_sum_u16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -32942,7 +32942,7 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u16;
-    npyv_u16 vaccum = npyv_zero_u16();
+    npyv_u16 v_accum = npyv_zero_u16();
 
     #line 495
     if(is_aligned) {
@@ -32964,10 +32964,10 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_loada_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_loada_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
@@ -32991,19 +32991,19 @@ ushort_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u16 a3 = npyv_load_u16(data0 + vstep * 3);
             npyv_u16 b3 = npyv_load_u16(data1 + vstep * 3);
             
-            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, vaccum);
+            npyv_u16 ab3 = npyv_muladd_u16(a3, b3, v_accum);
             npyv_u16 ab2 = npyv_muladd_u16(a2, b2, ab3);
             npyv_u16 ab1 = npyv_muladd_u16(a1, b1, ab2);
-                    vaccum = npyv_muladd_u16(a0, b0, ab1);
+                   v_accum = npyv_muladd_u16(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u16 a = npyv_load_tillz_u16(data0, count);
         npyv_u16 b = npyv_load_tillz_u16(data1, count);
-        vaccum = npyv_muladd_u16(a, b, vaccum);
+        v_accum = npyv_muladd_u16(a, b, v_accum);
     }
-    accum = npyv_sum_u16(vaccum);
+    accum = npyv_sum_u16(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -33404,7 +33404,7 @@ static NPY_GCC_OPT_3 npy_uint uint_sum_of_arr(npy_uint *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_u32;
-    npyv_u32 vaccum = npyv_zero_u32();
+    npyv_u32 v_accum = npyv_zero_u32();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -33425,7 +33425,7 @@ static NPY_GCC_OPT_3 npy_uint uint_sum_of_arr(npy_uint *data, npy_intp count)
             npyv_u32 a01   = npyv_add_u32(a0, a1);
             npyv_u32 a23   = npyv_add_u32(a2, a3);
             npyv_u32 a0123 = npyv_add_u32(a01, a23);
-                      vaccum = npyv_add_u32(a0123, vaccum);
+                     v_accum = npyv_add_u32(a0123, v_accum);
         }
     }
     
@@ -33447,15 +33447,15 @@ static NPY_GCC_OPT_3 npy_uint uint_sum_of_arr(npy_uint *data, npy_intp count)
             npyv_u32 a01   = npyv_add_u32(a0, a1);
             npyv_u32 a23   = npyv_add_u32(a2, a3);
             npyv_u32 a0123 = npyv_add_u32(a01, a23);
-                      vaccum = npyv_add_u32(a0123, vaccum);
+                     v_accum = npyv_add_u32(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_u32 a = npyv_load_tillz_u32(data, count);
-        vaccum = npyv_add_u32(a, vaccum);
+        v_accum = npyv_add_u32(a, v_accum);
     }
-    accum = npyv_sum_u32(vaccum);
+    accum = npyv_sum_u32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -34194,7 +34194,7 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u32;
-    npyv_u32 vaccum = npyv_zero_u32();
+    npyv_u32 v_accum = npyv_zero_u32();
 
     #line 495
     if(is_aligned) {
@@ -34216,10 +34216,10 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_loada_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_loada_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
@@ -34243,19 +34243,19 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_load_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_load_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u32 a = npyv_load_tillz_u32(data0, count);
         npyv_u32 b = npyv_load_tillz_u32(data1, count);
-        vaccum = npyv_muladd_u32(a, b, vaccum);
+        v_accum = npyv_muladd_u32(a, b, v_accum);
     }
-    accum = npyv_sum_u32(vaccum);
+    accum = npyv_sum_u32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -35365,7 +35365,7 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u32;
-    npyv_u32 vaccum = npyv_zero_u32();
+    npyv_u32 v_accum = npyv_zero_u32();
 
     #line 495
     if(is_aligned) {
@@ -35387,10 +35387,10 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_loada_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_loada_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
@@ -35414,19 +35414,19 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_load_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_load_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u32 a = npyv_load_tillz_u32(data0, count);
         npyv_u32 b = npyv_load_tillz_u32(data1, count);
-        vaccum = npyv_muladd_u32(a, b, vaccum);
+        v_accum = npyv_muladd_u32(a, b, v_accum);
     }
-    accum = npyv_sum_u32(vaccum);
+    accum = npyv_sum_u32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -36536,7 +36536,7 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u32;
-    npyv_u32 vaccum = npyv_zero_u32();
+    npyv_u32 v_accum = npyv_zero_u32();
 
     #line 495
     if(is_aligned) {
@@ -36558,10 +36558,10 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_loada_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_loada_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
@@ -36585,19 +36585,19 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_load_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_load_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u32 a = npyv_load_tillz_u32(data0, count);
         npyv_u32 b = npyv_load_tillz_u32(data1, count);
-        vaccum = npyv_muladd_u32(a, b, vaccum);
+        v_accum = npyv_muladd_u32(a, b, v_accum);
     }
-    accum = npyv_sum_u32(vaccum);
+    accum = npyv_sum_u32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -37707,7 +37707,7 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u32;
-    npyv_u32 vaccum = npyv_zero_u32();
+    npyv_u32 v_accum = npyv_zero_u32();
 
     #line 495
     if(is_aligned) {
@@ -37729,10 +37729,10 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_loada_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_loada_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
@@ -37756,19 +37756,19 @@ uint_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u32 a3 = npyv_load_u32(data0 + vstep * 3);
             npyv_u32 b3 = npyv_load_u32(data1 + vstep * 3);
             
-            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, vaccum);
+            npyv_u32 ab3 = npyv_muladd_u32(a3, b3, v_accum);
             npyv_u32 ab2 = npyv_muladd_u32(a2, b2, ab3);
             npyv_u32 ab1 = npyv_muladd_u32(a1, b1, ab2);
-                    vaccum = npyv_muladd_u32(a0, b0, ab1);
+                   v_accum = npyv_muladd_u32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u32 a = npyv_load_tillz_u32(data0, count);
         npyv_u32 b = npyv_load_tillz_u32(data1, count);
-        vaccum = npyv_muladd_u32(a, b, vaccum);
+        v_accum = npyv_muladd_u32(a, b, v_accum);
     }
-    accum = npyv_sum_u32(vaccum);
+    accum = npyv_sum_u32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -38169,7 +38169,7 @@ static NPY_GCC_OPT_3 npy_ulong ulong_sum_of_arr(npy_ulong *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_ulong;
-    npyv_ulong vaccum = npyv_zero_ulong();
+    npyv_ulong v_accum = npyv_zero_ulong();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -38190,7 +38190,7 @@ static NPY_GCC_OPT_3 npy_ulong ulong_sum_of_arr(npy_ulong *data, npy_intp count)
             npyv_ulong a01   = npyv_add_ulong(a0, a1);
             npyv_ulong a23   = npyv_add_ulong(a2, a3);
             npyv_ulong a0123 = npyv_add_ulong(a01, a23);
-                      vaccum = npyv_add_ulong(a0123, vaccum);
+                     v_accum = npyv_add_ulong(a0123, v_accum);
         }
     }
     
@@ -38212,15 +38212,15 @@ static NPY_GCC_OPT_3 npy_ulong ulong_sum_of_arr(npy_ulong *data, npy_intp count)
             npyv_ulong a01   = npyv_add_ulong(a0, a1);
             npyv_ulong a23   = npyv_add_ulong(a2, a3);
             npyv_ulong a0123 = npyv_add_ulong(a01, a23);
-                      vaccum = npyv_add_ulong(a0123, vaccum);
+                     v_accum = npyv_add_ulong(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_ulong a = npyv_load_tillz_ulong(data, count);
-        vaccum = npyv_add_ulong(a, vaccum);
+        v_accum = npyv_add_ulong(a, v_accum);
     }
-    accum = npyv_sum_ulong(vaccum);
+    accum = npyv_sum_ulong(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -38959,7 +38959,7 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_ulong;
-    npyv_ulong vaccum = npyv_zero_ulong();
+    npyv_ulong v_accum = npyv_zero_ulong();
 
     #line 495
     if(is_aligned) {
@@ -38981,10 +38981,10 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_loada_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_loada_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
@@ -39008,19 +39008,19 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_load_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_load_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_ulong a = npyv_load_tillz_ulong(data0, count);
         npyv_ulong b = npyv_load_tillz_ulong(data1, count);
-        vaccum = npyv_muladd_ulong(a, b, vaccum);
+        v_accum = npyv_muladd_ulong(a, b, v_accum);
     }
-    accum = npyv_sum_ulong(vaccum);
+    accum = npyv_sum_ulong(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -40130,7 +40130,7 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_ulong;
-    npyv_ulong vaccum = npyv_zero_ulong();
+    npyv_ulong v_accum = npyv_zero_ulong();
 
     #line 495
     if(is_aligned) {
@@ -40152,10 +40152,10 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_loada_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_loada_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
@@ -40179,19 +40179,19 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_load_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_load_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_ulong a = npyv_load_tillz_ulong(data0, count);
         npyv_ulong b = npyv_load_tillz_ulong(data1, count);
-        vaccum = npyv_muladd_ulong(a, b, vaccum);
+        v_accum = npyv_muladd_ulong(a, b, v_accum);
     }
-    accum = npyv_sum_ulong(vaccum);
+    accum = npyv_sum_ulong(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -41301,7 +41301,7 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_ulong;
-    npyv_ulong vaccum = npyv_zero_ulong();
+    npyv_ulong v_accum = npyv_zero_ulong();
 
     #line 495
     if(is_aligned) {
@@ -41323,10 +41323,10 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_loada_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_loada_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
@@ -41350,19 +41350,19 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_load_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_load_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_ulong a = npyv_load_tillz_ulong(data0, count);
         npyv_ulong b = npyv_load_tillz_ulong(data1, count);
-        vaccum = npyv_muladd_ulong(a, b, vaccum);
+        v_accum = npyv_muladd_ulong(a, b, v_accum);
     }
-    accum = npyv_sum_ulong(vaccum);
+    accum = npyv_sum_ulong(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -42472,7 +42472,7 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_ulong;
-    npyv_ulong vaccum = npyv_zero_ulong();
+    npyv_ulong v_accum = npyv_zero_ulong();
 
     #line 495
     if(is_aligned) {
@@ -42494,10 +42494,10 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_loada_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_loada_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
@@ -42521,19 +42521,19 @@ ulong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_ulong a3 = npyv_load_ulong(data0 + vstep * 3);
             npyv_ulong b3 = npyv_load_ulong(data1 + vstep * 3);
             
-            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, vaccum);
+            npyv_ulong ab3 = npyv_muladd_ulong(a3, b3, v_accum);
             npyv_ulong ab2 = npyv_muladd_ulong(a2, b2, ab3);
             npyv_ulong ab1 = npyv_muladd_ulong(a1, b1, ab2);
-                    vaccum = npyv_muladd_ulong(a0, b0, ab1);
+                   v_accum = npyv_muladd_ulong(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_ulong a = npyv_load_tillz_ulong(data0, count);
         npyv_ulong b = npyv_load_tillz_ulong(data1, count);
-        vaccum = npyv_muladd_ulong(a, b, vaccum);
+        v_accum = npyv_muladd_ulong(a, b, v_accum);
     }
-    accum = npyv_sum_ulong(vaccum);
+    accum = npyv_sum_ulong(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -42934,7 +42934,7 @@ static NPY_GCC_OPT_3 npy_ulonglong ulonglong_sum_of_arr(npy_ulonglong *data, npy
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_u64;
-    npyv_u64 vaccum = npyv_zero_u64();
+    npyv_u64 v_accum = npyv_zero_u64();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -42955,7 +42955,7 @@ static NPY_GCC_OPT_3 npy_ulonglong ulonglong_sum_of_arr(npy_ulonglong *data, npy
             npyv_u64 a01   = npyv_add_u64(a0, a1);
             npyv_u64 a23   = npyv_add_u64(a2, a3);
             npyv_u64 a0123 = npyv_add_u64(a01, a23);
-                      vaccum = npyv_add_u64(a0123, vaccum);
+                     v_accum = npyv_add_u64(a0123, v_accum);
         }
     }
     
@@ -42977,15 +42977,15 @@ static NPY_GCC_OPT_3 npy_ulonglong ulonglong_sum_of_arr(npy_ulonglong *data, npy
             npyv_u64 a01   = npyv_add_u64(a0, a1);
             npyv_u64 a23   = npyv_add_u64(a2, a3);
             npyv_u64 a0123 = npyv_add_u64(a01, a23);
-                      vaccum = npyv_add_u64(a0123, vaccum);
+                     v_accum = npyv_add_u64(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_u64 a = npyv_load_tillz_u64(data, count);
-        vaccum = npyv_add_u64(a, vaccum);
+        v_accum = npyv_add_u64(a, v_accum);
     }
-    accum = npyv_sum_u64(vaccum);
+    accum = npyv_sum_u64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -43724,7 +43724,7 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u64;
-    npyv_u64 vaccum = npyv_zero_u64();
+    npyv_u64 v_accum = npyv_zero_u64();
 
     #line 495
     if(is_aligned) {
@@ -43746,10 +43746,10 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_loada_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_loada_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
@@ -43773,19 +43773,19 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_load_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_load_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u64 a = npyv_load_tillz_u64(data0, count);
         npyv_u64 b = npyv_load_tillz_u64(data1, count);
-        vaccum = npyv_muladd_u64(a, b, vaccum);
+        v_accum = npyv_muladd_u64(a, b, v_accum);
     }
-    accum = npyv_sum_u64(vaccum);
+    accum = npyv_sum_u64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -44895,7 +44895,7 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u64;
-    npyv_u64 vaccum = npyv_zero_u64();
+    npyv_u64 v_accum = npyv_zero_u64();
 
     #line 495
     if(is_aligned) {
@@ -44917,10 +44917,10 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_loada_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_loada_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
@@ -44944,19 +44944,19 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_load_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_load_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u64 a = npyv_load_tillz_u64(data0, count);
         npyv_u64 b = npyv_load_tillz_u64(data1, count);
-        vaccum = npyv_muladd_u64(a, b, vaccum);
+        v_accum = npyv_muladd_u64(a, b, v_accum);
     }
-    accum = npyv_sum_u64(vaccum);
+    accum = npyv_sum_u64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -46066,7 +46066,7 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u64;
-    npyv_u64 vaccum = npyv_zero_u64();
+    npyv_u64 v_accum = npyv_zero_u64();
 
     #line 495
     if(is_aligned) {
@@ -46088,10 +46088,10 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_loada_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_loada_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
@@ -46115,19 +46115,19 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_load_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_load_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u64 a = npyv_load_tillz_u64(data0, count);
         npyv_u64 b = npyv_load_tillz_u64(data1, count);
-        vaccum = npyv_muladd_u64(a, b, vaccum);
+        v_accum = npyv_muladd_u64(a, b, v_accum);
     }
-    accum = npyv_sum_u64(vaccum);
+    accum = npyv_sum_u64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -47237,7 +47237,7 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_u64;
-    npyv_u64 vaccum = npyv_zero_u64();
+    npyv_u64 v_accum = npyv_zero_u64();
 
     #line 495
     if(is_aligned) {
@@ -47259,10 +47259,10 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_loada_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_loada_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
@@ -47286,19 +47286,19 @@ ulonglong_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_u64 a3 = npyv_load_u64(data0 + vstep * 3);
             npyv_u64 b3 = npyv_load_u64(data1 + vstep * 3);
             
-            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, vaccum);
+            npyv_u64 ab3 = npyv_muladd_u64(a3, b3, v_accum);
             npyv_u64 ab2 = npyv_muladd_u64(a2, b2, ab3);
             npyv_u64 ab1 = npyv_muladd_u64(a1, b1, ab2);
-                    vaccum = npyv_muladd_u64(a0, b0, ab1);
+                   v_accum = npyv_muladd_u64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_u64 a = npyv_load_tillz_u64(data0, count);
         npyv_u64 b = npyv_load_tillz_u64(data1, count);
-        vaccum = npyv_muladd_u64(a, b, vaccum);
+        v_accum = npyv_muladd_u64(a, b, v_accum);
     }
-    accum = npyv_sum_u64(vaccum);
+    accum = npyv_sum_u64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -47699,7 +47699,7 @@ static NPY_GCC_OPT_3 npy_float half_sum_of_arr(npy_half *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_half;
-    npyv_half vaccum = npyv_zero_half();
+    npyv_half v_accum = npyv_zero_half();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -47720,7 +47720,7 @@ static NPY_GCC_OPT_3 npy_float half_sum_of_arr(npy_half *data, npy_intp count)
             npyv_half a01   = npyv_add_half(a0, a1);
             npyv_half a23   = npyv_add_half(a2, a3);
             npyv_half a0123 = npyv_add_half(a01, a23);
-                      vaccum = npyv_add_half(a0123, vaccum);
+                     v_accum = npyv_add_half(a0123, v_accum);
         }
     }
     
@@ -47742,15 +47742,15 @@ static NPY_GCC_OPT_3 npy_float half_sum_of_arr(npy_half *data, npy_intp count)
             npyv_half a01   = npyv_add_half(a0, a1);
             npyv_half a23   = npyv_add_half(a2, a3);
             npyv_half a0123 = npyv_add_half(a01, a23);
-                      vaccum = npyv_add_half(a0123, vaccum);
+                     v_accum = npyv_add_half(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_half a = npyv_load_tillz_half(data, count);
-        vaccum = npyv_add_half(a, vaccum);
+        v_accum = npyv_add_half(a, v_accum);
     }
-    accum = npyv_sum_half(vaccum);
+    accum = npyv_sum_half(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -48489,7 +48489,7 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_half;
-    npyv_half vaccum = npyv_zero_half();
+    npyv_half v_accum = npyv_zero_half();
 
     #line 495
     if(is_aligned) {
@@ -48511,10 +48511,10 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_loada_half(data0 + vstep * 3);
             npyv_half b3 = npyv_loada_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
@@ -48538,19 +48538,19 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_load_half(data0 + vstep * 3);
             npyv_half b3 = npyv_load_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_half a = npyv_load_tillz_half(data0, count);
         npyv_half b = npyv_load_tillz_half(data1, count);
-        vaccum = npyv_muladd_half(a, b, vaccum);
+        v_accum = npyv_muladd_half(a, b, v_accum);
     }
-    accum = npyv_sum_half(vaccum);
+    accum = npyv_sum_half(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -49660,7 +49660,7 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_half;
-    npyv_half vaccum = npyv_zero_half();
+    npyv_half v_accum = npyv_zero_half();
 
     #line 495
     if(is_aligned) {
@@ -49682,10 +49682,10 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_loada_half(data0 + vstep * 3);
             npyv_half b3 = npyv_loada_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
@@ -49709,19 +49709,19 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_load_half(data0 + vstep * 3);
             npyv_half b3 = npyv_load_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_half a = npyv_load_tillz_half(data0, count);
         npyv_half b = npyv_load_tillz_half(data1, count);
-        vaccum = npyv_muladd_half(a, b, vaccum);
+        v_accum = npyv_muladd_half(a, b, v_accum);
     }
-    accum = npyv_sum_half(vaccum);
+    accum = npyv_sum_half(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -50831,7 +50831,7 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_half;
-    npyv_half vaccum = npyv_zero_half();
+    npyv_half v_accum = npyv_zero_half();
 
     #line 495
     if(is_aligned) {
@@ -50853,10 +50853,10 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_loada_half(data0 + vstep * 3);
             npyv_half b3 = npyv_loada_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
@@ -50880,19 +50880,19 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_load_half(data0 + vstep * 3);
             npyv_half b3 = npyv_load_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_half a = npyv_load_tillz_half(data0, count);
         npyv_half b = npyv_load_tillz_half(data1, count);
-        vaccum = npyv_muladd_half(a, b, vaccum);
+        v_accum = npyv_muladd_half(a, b, v_accum);
     }
-    accum = npyv_sum_half(vaccum);
+    accum = npyv_sum_half(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -52002,7 +52002,7 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_half;
-    npyv_half vaccum = npyv_zero_half();
+    npyv_half v_accum = npyv_zero_half();
 
     #line 495
     if(is_aligned) {
@@ -52024,10 +52024,10 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_loada_half(data0 + vstep * 3);
             npyv_half b3 = npyv_loada_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
@@ -52051,19 +52051,19 @@ half_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_half a3 = npyv_load_half(data0 + vstep * 3);
             npyv_half b3 = npyv_load_half(data1 + vstep * 3);
             
-            npyv_half ab3 = npyv_muladd_half(a3, b3, vaccum);
+            npyv_half ab3 = npyv_muladd_half(a3, b3, v_accum);
             npyv_half ab2 = npyv_muladd_half(a2, b2, ab3);
             npyv_half ab1 = npyv_muladd_half(a1, b1, ab2);
-                    vaccum = npyv_muladd_half(a0, b0, ab1);
+                   v_accum = npyv_muladd_half(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_half a = npyv_load_tillz_half(data0, count);
         npyv_half b = npyv_load_tillz_half(data1, count);
-        vaccum = npyv_muladd_half(a, b, vaccum);
+        v_accum = npyv_muladd_half(a, b, v_accum);
     }
-    accum = npyv_sum_half(vaccum);
+    accum = npyv_sum_half(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -52464,7 +52464,7 @@ static NPY_GCC_OPT_3 npy_float float_sum_of_arr(npy_float *data, npy_intp count)
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -52485,7 +52485,7 @@ static NPY_GCC_OPT_3 npy_float float_sum_of_arr(npy_float *data, npy_intp count)
             npyv_f32 a01   = npyv_add_f32(a0, a1);
             npyv_f32 a23   = npyv_add_f32(a2, a3);
             npyv_f32 a0123 = npyv_add_f32(a01, a23);
-                      vaccum = npyv_add_f32(a0123, vaccum);
+                     v_accum = npyv_add_f32(a0123, v_accum);
         }
     }
     
@@ -52507,15 +52507,15 @@ static NPY_GCC_OPT_3 npy_float float_sum_of_arr(npy_float *data, npy_intp count)
             npyv_f32 a01   = npyv_add_f32(a0, a1);
             npyv_f32 a23   = npyv_add_f32(a2, a3);
             npyv_f32 a0123 = npyv_add_f32(a01, a23);
-                      vaccum = npyv_add_f32(a0123, vaccum);
+                     v_accum = npyv_add_f32(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data, count);
-        vaccum = npyv_add_f32(a, vaccum);
+        v_accum = npyv_add_f32(a, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -53254,7 +53254,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -53276,10 +53276,10 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -53303,19 +53303,19 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -54425,7 +54425,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -54447,10 +54447,10 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -54474,19 +54474,19 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -55596,7 +55596,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -55618,10 +55618,10 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -55645,19 +55645,19 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -56767,7 +56767,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -56789,10 +56789,10 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -56816,19 +56816,19 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -57229,7 +57229,7 @@ static NPY_GCC_OPT_3 npy_double double_sum_of_arr(npy_double *data, npy_intp cou
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -57250,7 +57250,7 @@ static NPY_GCC_OPT_3 npy_double double_sum_of_arr(npy_double *data, npy_intp cou
             npyv_f64 a01   = npyv_add_f64(a0, a1);
             npyv_f64 a23   = npyv_add_f64(a2, a3);
             npyv_f64 a0123 = npyv_add_f64(a01, a23);
-                      vaccum = npyv_add_f64(a0123, vaccum);
+                     v_accum = npyv_add_f64(a0123, v_accum);
         }
     }
     
@@ -57272,15 +57272,15 @@ static NPY_GCC_OPT_3 npy_double double_sum_of_arr(npy_double *data, npy_intp cou
             npyv_f64 a01   = npyv_add_f64(a0, a1);
             npyv_f64 a23   = npyv_add_f64(a2, a3);
             npyv_f64 a0123 = npyv_add_f64(a01, a23);
-                      vaccum = npyv_add_f64(a0123, vaccum);
+                     v_accum = npyv_add_f64(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data, count);
-        vaccum = npyv_add_f64(a, vaccum);
+        v_accum = npyv_add_f64(a, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -58019,7 +58019,7 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -58041,10 +58041,10 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -58068,19 +58068,19 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -59190,7 +59190,7 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -59212,10 +59212,10 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -59239,19 +59239,19 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -60361,7 +60361,7 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -60383,10 +60383,10 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -60410,19 +60410,19 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -61532,7 +61532,7 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -61554,10 +61554,10 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -61581,19 +61581,19 @@ double_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -61994,7 +61994,7 @@ static NPY_GCC_OPT_3 npy_longdouble longdouble_sum_of_arr(npy_longdouble *data, 
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_longdouble;
-    npyv_longdouble vaccum = npyv_zero_longdouble();
+    npyv_longdouble v_accum = npyv_zero_longdouble();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -62015,7 +62015,7 @@ static NPY_GCC_OPT_3 npy_longdouble longdouble_sum_of_arr(npy_longdouble *data, 
             npyv_longdouble a01   = npyv_add_longdouble(a0, a1);
             npyv_longdouble a23   = npyv_add_longdouble(a2, a3);
             npyv_longdouble a0123 = npyv_add_longdouble(a01, a23);
-                      vaccum = npyv_add_longdouble(a0123, vaccum);
+                     v_accum = npyv_add_longdouble(a0123, v_accum);
         }
     }
     
@@ -62037,15 +62037,15 @@ static NPY_GCC_OPT_3 npy_longdouble longdouble_sum_of_arr(npy_longdouble *data, 
             npyv_longdouble a01   = npyv_add_longdouble(a0, a1);
             npyv_longdouble a23   = npyv_add_longdouble(a2, a3);
             npyv_longdouble a0123 = npyv_add_longdouble(a01, a23);
-                      vaccum = npyv_add_longdouble(a0123, vaccum);
+                     v_accum = npyv_add_longdouble(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_longdouble a = npyv_load_tillz_longdouble(data, count);
-        vaccum = npyv_add_longdouble(a, vaccum);
+        v_accum = npyv_add_longdouble(a, v_accum);
     }
-    accum = npyv_sum_longdouble(vaccum);
+    accum = npyv_sum_longdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -62784,7 +62784,7 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_longdouble;
-    npyv_longdouble vaccum = npyv_zero_longdouble();
+    npyv_longdouble v_accum = npyv_zero_longdouble();
 
     #line 495
     if(is_aligned) {
@@ -62806,10 +62806,10 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_loada_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_loada_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
@@ -62833,19 +62833,19 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_load_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_load_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_longdouble a = npyv_load_tillz_longdouble(data0, count);
         npyv_longdouble b = npyv_load_tillz_longdouble(data1, count);
-        vaccum = npyv_muladd_longdouble(a, b, vaccum);
+        v_accum = npyv_muladd_longdouble(a, b, v_accum);
     }
-    accum = npyv_sum_longdouble(vaccum);
+    accum = npyv_sum_longdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -63955,7 +63955,7 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_longdouble;
-    npyv_longdouble vaccum = npyv_zero_longdouble();
+    npyv_longdouble v_accum = npyv_zero_longdouble();
 
     #line 495
     if(is_aligned) {
@@ -63977,10 +63977,10 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_loada_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_loada_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
@@ -64004,19 +64004,19 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_load_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_load_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_longdouble a = npyv_load_tillz_longdouble(data0, count);
         npyv_longdouble b = npyv_load_tillz_longdouble(data1, count);
-        vaccum = npyv_muladd_longdouble(a, b, vaccum);
+        v_accum = npyv_muladd_longdouble(a, b, v_accum);
     }
-    accum = npyv_sum_longdouble(vaccum);
+    accum = npyv_sum_longdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -65126,7 +65126,7 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_longdouble;
-    npyv_longdouble vaccum = npyv_zero_longdouble();
+    npyv_longdouble v_accum = npyv_zero_longdouble();
 
     #line 495
     if(is_aligned) {
@@ -65148,10 +65148,10 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_loada_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_loada_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
@@ -65175,19 +65175,19 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_load_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_load_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_longdouble a = npyv_load_tillz_longdouble(data0, count);
         npyv_longdouble b = npyv_load_tillz_longdouble(data1, count);
-        vaccum = npyv_muladd_longdouble(a, b, vaccum);
+        v_accum = npyv_muladd_longdouble(a, b, v_accum);
     }
-    accum = npyv_sum_longdouble(vaccum);
+    accum = npyv_sum_longdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -66297,7 +66297,7 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_longdouble;
-    npyv_longdouble vaccum = npyv_zero_longdouble();
+    npyv_longdouble v_accum = npyv_zero_longdouble();
 
     #line 495
     if(is_aligned) {
@@ -66319,10 +66319,10 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_loada_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_loada_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
@@ -66346,19 +66346,19 @@ longdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_longdouble a3 = npyv_load_longdouble(data0 + vstep * 3);
             npyv_longdouble b3 = npyv_load_longdouble(data1 + vstep * 3);
             
-            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, vaccum);
+            npyv_longdouble ab3 = npyv_muladd_longdouble(a3, b3, v_accum);
             npyv_longdouble ab2 = npyv_muladd_longdouble(a2, b2, ab3);
             npyv_longdouble ab1 = npyv_muladd_longdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_longdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_longdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_longdouble a = npyv_load_tillz_longdouble(data0, count);
         npyv_longdouble b = npyv_load_tillz_longdouble(data1, count);
-        vaccum = npyv_muladd_longdouble(a, b, vaccum);
+        v_accum = npyv_muladd_longdouble(a, b, v_accum);
     }
-    accum = npyv_sum_longdouble(vaccum);
+    accum = npyv_sum_longdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -66759,7 +66759,7 @@ static NPY_GCC_OPT_3 npy_float cfloat_sum_of_arr(npy_cfloat *data, npy_intp coun
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -66780,7 +66780,7 @@ static NPY_GCC_OPT_3 npy_float cfloat_sum_of_arr(npy_cfloat *data, npy_intp coun
             npyv_f32 a01   = npyv_add_f32(a0, a1);
             npyv_f32 a23   = npyv_add_f32(a2, a3);
             npyv_f32 a0123 = npyv_add_f32(a01, a23);
-                      vaccum = npyv_add_f32(a0123, vaccum);
+                     v_accum = npyv_add_f32(a0123, v_accum);
         }
     }
     
@@ -66802,15 +66802,15 @@ static NPY_GCC_OPT_3 npy_float cfloat_sum_of_arr(npy_cfloat *data, npy_intp coun
             npyv_f32 a01   = npyv_add_f32(a0, a1);
             npyv_f32 a23   = npyv_add_f32(a2, a3);
             npyv_f32 a0123 = npyv_add_f32(a01, a23);
-                      vaccum = npyv_add_f32(a0123, vaccum);
+                     v_accum = npyv_add_f32(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data, count);
-        vaccum = npyv_add_f32(a, vaccum);
+        v_accum = npyv_add_f32(a, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -67549,7 +67549,7 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -67571,10 +67571,10 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -67598,19 +67598,19 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -68720,7 +68720,7 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -68742,10 +68742,10 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -68769,19 +68769,19 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -69891,7 +69891,7 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -69913,10 +69913,10 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -69940,19 +69940,19 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -71062,7 +71062,7 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
-    npyv_f32 vaccum = npyv_zero_f32();
+    npyv_f32 v_accum = npyv_zero_f32();
 
     #line 495
     if(is_aligned) {
@@ -71084,10 +71084,10 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_loada_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_loada_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
@@ -71111,19 +71111,19 @@ cfloat_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f32 a3 = npyv_load_f32(data0 + vstep * 3);
             npyv_f32 b3 = npyv_load_f32(data1 + vstep * 3);
             
-            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, vaccum);
+            npyv_f32 ab3 = npyv_muladd_f32(a3, b3, v_accum);
             npyv_f32 ab2 = npyv_muladd_f32(a2, b2, ab3);
             npyv_f32 ab1 = npyv_muladd_f32(a1, b1, ab2);
-                    vaccum = npyv_muladd_f32(a0, b0, ab1);
+                   v_accum = npyv_muladd_f32(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f32 a = npyv_load_tillz_f32(data0, count);
         npyv_f32 b = npyv_load_tillz_f32(data1, count);
-        vaccum = npyv_muladd_f32(a, b, vaccum);
+        v_accum = npyv_muladd_f32(a, b, v_accum);
     }
-    accum = npyv_sum_f32(vaccum);
+    accum = npyv_sum_f32(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -71524,7 +71524,7 @@ static NPY_GCC_OPT_3 npy_double cdouble_sum_of_arr(npy_cdouble *data, npy_intp c
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -71545,7 +71545,7 @@ static NPY_GCC_OPT_3 npy_double cdouble_sum_of_arr(npy_cdouble *data, npy_intp c
             npyv_f64 a01   = npyv_add_f64(a0, a1);
             npyv_f64 a23   = npyv_add_f64(a2, a3);
             npyv_f64 a0123 = npyv_add_f64(a01, a23);
-                      vaccum = npyv_add_f64(a0123, vaccum);
+                     v_accum = npyv_add_f64(a0123, v_accum);
         }
     }
     
@@ -71567,15 +71567,15 @@ static NPY_GCC_OPT_3 npy_double cdouble_sum_of_arr(npy_cdouble *data, npy_intp c
             npyv_f64 a01   = npyv_add_f64(a0, a1);
             npyv_f64 a23   = npyv_add_f64(a2, a3);
             npyv_f64 a0123 = npyv_add_f64(a01, a23);
-                      vaccum = npyv_add_f64(a0123, vaccum);
+                     v_accum = npyv_add_f64(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data, count);
-        vaccum = npyv_add_f64(a, vaccum);
+        v_accum = npyv_add_f64(a, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -72314,7 +72314,7 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -72336,10 +72336,10 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -72363,19 +72363,19 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -73485,7 +73485,7 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -73507,10 +73507,10 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -73534,19 +73534,19 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -74656,7 +74656,7 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -74678,10 +74678,10 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -74705,19 +74705,19 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -75827,7 +75827,7 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f64;
-    npyv_f64 vaccum = npyv_zero_f64();
+    npyv_f64 v_accum = npyv_zero_f64();
 
     #line 495
     if(is_aligned) {
@@ -75849,10 +75849,10 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_loada_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_loada_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
@@ -75876,19 +75876,19 @@ cdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
             npyv_f64 a3 = npyv_load_f64(data0 + vstep * 3);
             npyv_f64 b3 = npyv_load_f64(data1 + vstep * 3);
             
-            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, vaccum);
+            npyv_f64 ab3 = npyv_muladd_f64(a3, b3, v_accum);
             npyv_f64 ab2 = npyv_muladd_f64(a2, b2, ab3);
             npyv_f64 ab1 = npyv_muladd_f64(a1, b1, ab2);
-                    vaccum = npyv_muladd_f64(a0, b0, ab1);
+                   v_accum = npyv_muladd_f64(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_f64 a = npyv_load_tillz_f64(data0, count);
         npyv_f64 b = npyv_load_tillz_f64(data1, count);
-        vaccum = npyv_muladd_f64(a, b, vaccum);
+        v_accum = npyv_muladd_f64(a, b, v_accum);
     }
-    accum = npyv_sum_f64(vaccum);
+    accum = npyv_sum_f64(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -76289,7 +76289,7 @@ static NPY_GCC_OPT_3 npy_longdouble clongdouble_sum_of_arr(npy_clongdouble *data
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_clongdouble;
-    npyv_clongdouble vaccum = npyv_zero_clongdouble();
+    npyv_clongdouble v_accum = npyv_zero_clongdouble();
     const npy_intp vstepx4 = vstep * 4;
 
     #line 91
@@ -76310,7 +76310,7 @@ static NPY_GCC_OPT_3 npy_longdouble clongdouble_sum_of_arr(npy_clongdouble *data
             npyv_clongdouble a01   = npyv_add_clongdouble(a0, a1);
             npyv_clongdouble a23   = npyv_add_clongdouble(a2, a3);
             npyv_clongdouble a0123 = npyv_add_clongdouble(a01, a23);
-                      vaccum = npyv_add_clongdouble(a0123, vaccum);
+                     v_accum = npyv_add_clongdouble(a0123, v_accum);
         }
     }
     
@@ -76332,15 +76332,15 @@ static NPY_GCC_OPT_3 npy_longdouble clongdouble_sum_of_arr(npy_clongdouble *data
             npyv_clongdouble a01   = npyv_add_clongdouble(a0, a1);
             npyv_clongdouble a23   = npyv_add_clongdouble(a2, a3);
             npyv_clongdouble a0123 = npyv_add_clongdouble(a01, a23);
-                      vaccum = npyv_add_clongdouble(a0123, vaccum);
+                     v_accum = npyv_add_clongdouble(a0123, v_accum);
         }
     }
     
     for (; count > 0; count -= vstep, data += vstep) {
         npyv_clongdouble a = npyv_load_tillz_clongdouble(data, count);
-        vaccum = npyv_add_clongdouble(a, vaccum);
+        v_accum = npyv_add_clongdouble(a, v_accum);
     }
-    accum = npyv_sum_clongdouble(vaccum);
+    accum = npyv_sum_clongdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -77079,7 +77079,7 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_clongdouble;
-    npyv_clongdouble vaccum = npyv_zero_clongdouble();
+    npyv_clongdouble v_accum = npyv_zero_clongdouble();
 
     #line 495
     if(is_aligned) {
@@ -77101,10 +77101,10 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_loada_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_loada_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
@@ -77128,19 +77128,19 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_load_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_load_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_clongdouble a = npyv_load_tillz_clongdouble(data0, count);
         npyv_clongdouble b = npyv_load_tillz_clongdouble(data1, count);
-        vaccum = npyv_muladd_clongdouble(a, b, vaccum);
+        v_accum = npyv_muladd_clongdouble(a, b, v_accum);
     }
-    accum = npyv_sum_clongdouble(vaccum);
+    accum = npyv_sum_clongdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -78250,7 +78250,7 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_clongdouble;
-    npyv_clongdouble vaccum = npyv_zero_clongdouble();
+    npyv_clongdouble v_accum = npyv_zero_clongdouble();
 
     #line 495
     if(is_aligned) {
@@ -78272,10 +78272,10 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_loada_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_loada_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
@@ -78299,19 +78299,19 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_load_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_load_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_clongdouble a = npyv_load_tillz_clongdouble(data0, count);
         npyv_clongdouble b = npyv_load_tillz_clongdouble(data1, count);
-        vaccum = npyv_muladd_clongdouble(a, b, vaccum);
+        v_accum = npyv_muladd_clongdouble(a, b, v_accum);
     }
-    accum = npyv_sum_clongdouble(vaccum);
+    accum = npyv_sum_clongdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -79421,7 +79421,7 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_clongdouble;
-    npyv_clongdouble vaccum = npyv_zero_clongdouble();
+    npyv_clongdouble v_accum = npyv_zero_clongdouble();
 
     #line 495
     if(is_aligned) {
@@ -79443,10 +79443,10 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_loada_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_loada_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
@@ -79470,19 +79470,19 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_load_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_load_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_clongdouble a = npyv_load_tillz_clongdouble(data0, count);
         npyv_clongdouble b = npyv_load_tillz_clongdouble(data1, count);
-        vaccum = npyv_muladd_clongdouble(a, b, vaccum);
+        v_accum = npyv_muladd_clongdouble(a, b, v_accum);
     }
-    accum = npyv_sum_clongdouble(vaccum);
+    accum = npyv_sum_clongdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION
@@ -80592,7 +80592,7 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_clongdouble;
-    npyv_clongdouble vaccum = npyv_zero_clongdouble();
+    npyv_clongdouble v_accum = npyv_zero_clongdouble();
 
     #line 495
     if(is_aligned) {
@@ -80614,10 +80614,10 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_loada_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_loada_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
@@ -80641,19 +80641,19 @@ clongdouble_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr
             npyv_clongdouble a3 = npyv_load_clongdouble(data0 + vstep * 3);
             npyv_clongdouble b3 = npyv_load_clongdouble(data1 + vstep * 3);
             
-            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, vaccum);
+            npyv_clongdouble ab3 = npyv_muladd_clongdouble(a3, b3, v_accum);
             npyv_clongdouble ab2 = npyv_muladd_clongdouble(a2, b2, ab3);
             npyv_clongdouble ab1 = npyv_muladd_clongdouble(a1, b1, ab2);
-                    vaccum = npyv_muladd_clongdouble(a0, b0, ab1);
+                   v_accum = npyv_muladd_clongdouble(a0, b0, ab1);
         }
     }
     
     for (; count > 0; count -= vstep, data0 += vstep, data1 += vstep) {
         npyv_clongdouble a = npyv_load_tillz_clongdouble(data0, count);
         npyv_clongdouble b = npyv_load_tillz_clongdouble(data1, count);
-        vaccum = npyv_muladd_clongdouble(a, b, vaccum);
+        v_accum = npyv_muladd_clongdouble(a, b, v_accum);
     }
-    accum = npyv_sum_clongdouble(vaccum);
+    accum = npyv_sum_clongdouble(v_accum);
     npyv_cleanup();
 #else
 #ifndef NPY_DISABLE_OPTIMIZATION

@@ -16,7 +16,7 @@ from numpy.testing import (
     )
 from numpy.core._rational_tests import rational
 
-from hypothesis import assume, given, strategies as st
+from hypothesis import given, strategies as st
 from hypothesis.extra import numpy as hynp
 
 
@@ -637,59 +637,65 @@ class TestFloatExceptions:
         self.assert_raises_fpe(fpeerr, flop, sc1, sc2[()])
         self.assert_raises_fpe(fpeerr, flop, sc1[()], sc2[()])
 
-    def test_floating_exceptions(self):
+    # Test for all real and complex float types
+    @pytest.mark.parametrize("typecode", np.typecodes["AllFloat"])
+    def test_floating_exceptions(self, typecode):
         # Test basic arithmetic function errors
         with np.errstate(all='raise'):
-            # Test for all real and complex float types
-            for typecode in np.typecodes['AllFloat']:
-                ftype = np.obj2sctype(typecode)
-                if np.dtype(ftype).kind == 'f':
-                    # Get some extreme values for the type
-                    fi = np.finfo(ftype)
-                    ft_tiny = fi.tiny
-                    ft_max = fi.max
-                    ft_eps = fi.eps
-                    underflow = 'underflow'
-                    divbyzero = 'divide by zero'
-                else:
-                    # 'c', complex, corresponding real dtype
-                    rtype = type(ftype(0).real)
-                    fi = np.finfo(rtype)
-                    ft_tiny = ftype(fi.tiny)
-                    ft_max = ftype(fi.max)
-                    ft_eps = ftype(fi.eps)
-                    # The complex types raise different exceptions
-                    underflow = ''
-                    divbyzero = ''
-                overflow = 'overflow'
-                invalid = 'invalid'
+            ftype = np.obj2sctype(typecode)
+            if np.dtype(ftype).kind == 'f':
+                # Get some extreme values for the type
+                fi = np.finfo(ftype)
+                ft_tiny = fi._machar.tiny
+                ft_max = fi.max
+                ft_eps = fi.eps
+                underflow = 'underflow'
+                divbyzero = 'divide by zero'
+            else:
+                # 'c', complex, corresponding real dtype
+                rtype = type(ftype(0).real)
+                fi = np.finfo(rtype)
+                ft_tiny = ftype(fi._machar.tiny)
+                ft_max = ftype(fi.max)
+                ft_eps = ftype(fi.eps)
+                # The complex types raise different exceptions
+                underflow = ''
+                divbyzero = ''
+            overflow = 'overflow'
+            invalid = 'invalid'
 
+            # The value of tiny for double double is NaN, so we need to
+            # pass the assert
+            if not np.isnan(ft_tiny):
                 self.assert_raises_fpe(underflow,
-                                       lambda a, b: a/b, ft_tiny, ft_max)
+                                    lambda a, b: a/b, ft_tiny, ft_max)
                 self.assert_raises_fpe(underflow,
-                                       lambda a, b: a*b, ft_tiny, ft_tiny)
-                self.assert_raises_fpe(overflow,
-                                       lambda a, b: a*b, ft_max, ftype(2))
-                self.assert_raises_fpe(overflow,
-                                       lambda a, b: a/b, ft_max, ftype(0.5))
-                self.assert_raises_fpe(overflow,
-                                       lambda a, b: a+b, ft_max, ft_max*ft_eps)
-                self.assert_raises_fpe(overflow,
-                                       lambda a, b: a-b, -ft_max, ft_max*ft_eps)
-                self.assert_raises_fpe(overflow,
-                                       np.power, ftype(2), ftype(2**fi.nexp))
-                self.assert_raises_fpe(divbyzero,
-                                       lambda a, b: a/b, ftype(1), ftype(0))
-                self.assert_raises_fpe(invalid,
-                                       lambda a, b: a/b, ftype(np.inf), ftype(np.inf))
-                self.assert_raises_fpe(invalid,
-                                       lambda a, b: a/b, ftype(0), ftype(0))
-                self.assert_raises_fpe(invalid,
-                                       lambda a, b: a-b, ftype(np.inf), ftype(np.inf))
-                self.assert_raises_fpe(invalid,
-                                       lambda a, b: a+b, ftype(np.inf), ftype(-np.inf))
-                self.assert_raises_fpe(invalid,
-                                       lambda a, b: a*b, ftype(0), ftype(np.inf))
+                                    lambda a, b: a*b, ft_tiny, ft_tiny)
+            self.assert_raises_fpe(overflow,
+                                   lambda a, b: a*b, ft_max, ftype(2))
+            self.assert_raises_fpe(overflow,
+                                   lambda a, b: a/b, ft_max, ftype(0.5))
+            self.assert_raises_fpe(overflow,
+                                   lambda a, b: a+b, ft_max, ft_max*ft_eps)
+            self.assert_raises_fpe(overflow,
+                                   lambda a, b: a-b, -ft_max, ft_max*ft_eps)
+            self.assert_raises_fpe(overflow,
+                                   np.power, ftype(2), ftype(2**fi.nexp))
+            self.assert_raises_fpe(divbyzero,
+                                   lambda a, b: a/b, ftype(1), ftype(0))
+            self.assert_raises_fpe(
+                invalid, lambda a, b: a/b, ftype(np.inf), ftype(np.inf)
+            )
+            self.assert_raises_fpe(invalid,
+                                   lambda a, b: a/b, ftype(0), ftype(0))
+            self.assert_raises_fpe(
+                invalid, lambda a, b: a-b, ftype(np.inf), ftype(np.inf)
+            )
+            self.assert_raises_fpe(
+                invalid, lambda a, b: a+b, ftype(np.inf), ftype(-np.inf)
+            )
+            self.assert_raises_fpe(invalid,
+                                   lambda a, b: a*b, ftype(0), ftype(np.inf))
 
     def test_warnings(self):
         # test warning code path
@@ -898,7 +904,7 @@ class TestTypes:
             promote_types = np.promote_types
 
         S = string_dtype
-        
+
         # Promote numeric with unsized string:
         assert_equal(promote_types('bool', S), np.dtype(S+'5'))
         assert_equal(promote_types('b', S), np.dtype(S+'4'))
@@ -925,25 +931,6 @@ class TestTypes:
         assert_equal(promote_types('u8', S+'30'), np.dtype(S+'30'))
         # Promote with object:
         assert_equal(promote_types('O', S+'30'), np.dtype('O'))
-
-    @pytest.mark.parametrize(["dtype1", "dtype2"],
-            [[np.dtype("V6"), np.dtype("V10")],
-             [np.dtype([("name1", "i8")]), np.dtype([("name2", "i8")])],
-             [np.dtype("i8,i8"), np.dtype("i4,i4")],
-            ])
-    def test_invalid_void_promotion(self, dtype1, dtype2):
-        # Mainly test structured void promotion, which currently allows
-        # byte-swapping, but nothing else:
-        with pytest.raises(TypeError):
-            np.promote_types(dtype1, dtype2)
-
-    @pytest.mark.parametrize(["dtype1", "dtype2"],
-            [[np.dtype("V10"), np.dtype("V10")],
-             [np.dtype([("name1", "<i8")]), np.dtype([("name1", ">i8")])],
-             [np.dtype("i8,i8"), np.dtype("i8,>i8")],
-            ])
-    def test_valid_void_promotion(self, dtype1, dtype2):
-        assert np.promote_types(dtype1, dtype2) is dtype1
 
     @pytest.mark.parametrize("dtype",
            list(np.typecodes["All"]) +
@@ -2346,8 +2333,14 @@ class TestClip:
         actual = np.clip(arr, amin, amax)
         assert_equal(actual, expected)
 
-    @given(data=st.data(), shape=hynp.array_shapes())
-    def test_clip_property(self, data, shape):
+    @given(
+        data=st.data(),
+        arr=hynp.arrays(
+            dtype=hynp.integer_dtypes() | hynp.floating_dtypes(),
+            shape=hynp.array_shapes()
+        )
+    )
+    def test_clip_property(self, data, arr):
         """A property-based test using Hypothesis.
 
         This aims for maximum generality: it could in principle generate *any*
@@ -2363,49 +2356,30 @@ class TestClip:
         That accounts for most of the function; the actual test is just three
         lines to calculate and compare actual vs expected results!
         """
-        # Our base array and bounds should not need to be of the same type as
-        # long as they are all compatible - so we allow any int or float type.
-        dtype_strategy = hynp.integer_dtypes() | hynp.floating_dtypes()
-
-        # The following line is a total hack to disable the varied-dtypes
-        # component of this test, because result != expected if dtypes can vary.
-        dtype_strategy = st.just(data.draw(dtype_strategy))
-
-        # Generate an arbitrary array of the chosen shape and dtype
-        # This is the value that we clip.
-        arr = data.draw(hynp.arrays(dtype=dtype_strategy, shape=shape))
-
+        numeric_dtypes = hynp.integer_dtypes() | hynp.floating_dtypes()
         # Generate shapes for the bounds which can be broadcast with each other
         # and with the base shape.  Below, we might decide to use scalar bounds,
         # but it's clearer to generate these shapes unconditionally in advance.
         in_shapes, result_shape = data.draw(
             hynp.mutually_broadcastable_shapes(
-                num_shapes=2,
-                base_shape=shape,
-                # Commenting out the min_dims line allows zero-dimensional arrays,
-                # and zero-dimensional arrays containing NaN make the test fail.
-                min_dims=1
-  
+                num_shapes=2, base_shape=arr.shape
             )
         )
-        amin = data.draw(
-            dtype_strategy.flatmap(hynp.from_dtype)
-            | hynp.arrays(dtype=dtype_strategy, shape=in_shapes[0])
-        )
-        amax = data.draw(
-            dtype_strategy.flatmap(hynp.from_dtype)
-            | hynp.arrays(dtype=dtype_strategy, shape=in_shapes[1])
-        )
-        # If we allow either bound to be a scalar `nan`, the test will fail -
-        # so we just "assume" that away (if it is, this raises a special
-        # exception and Hypothesis will try again with different inputs)
-        assume(not np.isscalar(amin) or not np.isnan(amin))
-        assume(not np.isscalar(amax) or not np.isnan(amax))
+        # Scalar `nan` is deprecated due to the differing behaviour it shows.
+        s = numeric_dtypes.flatmap(
+            lambda x: hynp.from_dtype(x, allow_nan=False))
+        amin = data.draw(s | hynp.arrays(dtype=numeric_dtypes,
+            shape=in_shapes[0], elements={"allow_nan": False}))
+        amax = data.draw(s | hynp.arrays(dtype=numeric_dtypes,
+            shape=in_shapes[1], elements={"allow_nan": False}))
 
         # Then calculate our result and expected result and check that they're
-        # equal!  See gh-12519 for discussion deciding on this property.
+        # equal!  See gh-12519 and gh-19457 for discussion deciding on this
+        # property and the result_type argument.
         result = np.clip(arr, amin, amax)
-        expected = np.minimum(amax, np.maximum(arr, amin))
+        t = np.result_type(arr, amin, amax)
+        expected = np.minimum(amax, np.maximum(arr, amin, dtype=t), dtype=t)
+        assert result.dtype == t
         assert_array_equal(result, expected)
 
 
@@ -2656,15 +2630,15 @@ class TestStdVar:
 
     def test_ddof1(self):
         assert_almost_equal(np.var(self.A, ddof=1),
-                            self.real_var*len(self.A)/float(len(self.A)-1))
+                            self.real_var * len(self.A) / (len(self.A) - 1))
         assert_almost_equal(np.std(self.A, ddof=1)**2,
-                            self.real_var*len(self.A)/float(len(self.A)-1))
+                            self.real_var*len(self.A) / (len(self.A) - 1))
 
     def test_ddof2(self):
         assert_almost_equal(np.var(self.A, ddof=2),
-                            self.real_var*len(self.A)/float(len(self.A)-2))
+                            self.real_var * len(self.A) / (len(self.A) - 2))
         assert_almost_equal(np.std(self.A, ddof=2)**2,
-                            self.real_var*len(self.A)/float(len(self.A)-2))
+                            self.real_var * len(self.A) / (len(self.A) - 2))
 
     def test_out_scalar(self):
         d = np.arange(10)
@@ -2911,6 +2885,21 @@ class TestLikeFuncs:
         self.check_like_function(np.full_like, 1000, True)
         self.check_like_function(np.full_like, 123.456, True)
         self.check_like_function(np.full_like, np.inf, True)
+
+    @pytest.mark.parametrize('likefunc', [np.empty_like, np.full_like,
+                                          np.zeros_like, np.ones_like])
+    @pytest.mark.parametrize('dtype', [str, bytes])
+    def test_dtype_str_bytes(self, likefunc, dtype):
+        # Regression test for gh-19860
+        a = np.arange(16).reshape(2, 8)
+        b = a[:, ::2]  # Ensure b is not contiguous.
+        kwargs = {'fill_value': ''} if likefunc == np.full_like else {}
+        result = likefunc(b, dtype=dtype, **kwargs)
+        if dtype == str:
+            assert result.strides == (16, 4)
+        else:
+            # dtype is bytes
+            assert result.strides == (4, 1)
 
 
 class TestCorrelate:
@@ -3514,6 +3503,12 @@ class TestBroadcast:
         assert_(mit.iters[0].base is mit2.iters[0].base)
 
         assert_raises(ValueError, np.broadcast, 1, **{'x': 1})
+
+    def test_shape_mismatch_error_message(self):
+        with pytest.raises(ValueError, match=r"arg 0 with shape \(1, 3\) and "
+                                             r"arg 2 with shape \(2,\)"):
+            np.broadcast([[1, 2, 3]], [[4], [5]], [6, 7])
+
 
 class TestKeepdims:
 

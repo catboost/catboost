@@ -26,16 +26,16 @@
  *    It is then sufficient for a ufunc (or other owner) to only hold a
  *    weak reference to the input DTypes.
  */
-
-
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
+
 #include <npy_pycompat.h>
 #include "arrayobject.h"
 #include "array_method.h"
 #include "dtypemeta.h"
 #include "common_dtype.h"
 #include "convert_datatype.h"
+#include "common.h"
 
 
 /*
@@ -58,60 +58,24 @@ default_resolve_descriptors(
 {
     int nin = method->nin;
     int nout = method->nout;
-    int all_defined = 1;
 
     for (int i = 0; i < nin + nout; i++) {
         PyArray_DTypeMeta *dtype = dtypes[i];
-        if (dtype == NULL) {
-            output_descrs[i] = NULL;
-            all_defined = 0;
-            continue;
-        }
-        if (NPY_DTYPE(input_descrs[i]) == dtype) {
+        if (input_descrs[i] != NULL) {
             output_descrs[i] = ensure_dtype_nbo(input_descrs[i]);
         }
         else {
-            output_descrs[i] = dtype->default_descr(dtype);
+            output_descrs[i] = NPY_DT_CALL_default_descr(dtype);
         }
         if (NPY_UNLIKELY(output_descrs[i] == NULL)) {
             goto fail;
         }
     }
-    if (all_defined) {
-        return method->casting;
-    }
-
-    if (NPY_UNLIKELY(nin == 0 || dtypes[0] == NULL)) {
-        /* Registration should reject this, so this would be indicates a bug */
-        PyErr_SetString(PyExc_RuntimeError,
-                "Invalid use of default resolver without inputs or with "
-                "input or output DType incorrectly missing.");
-        goto fail;
-    }
-    /* We find the common dtype of all inputs, and use it for the unknowns */
-    PyArray_DTypeMeta *common_dtype = dtypes[0];
-    assert(common_dtype != NULL);
-    for (int i = 1; i < nin; i++) {
-        Py_SETREF(common_dtype, PyArray_CommonDType(common_dtype, dtypes[i]));
-        if (common_dtype == NULL) {
-            goto fail;
-        }
-    }
-    for (int i = nin; i < nin + nout; i++) {
-        if (output_descrs[i] != NULL) {
-            continue;
-        }
-        if (NPY_DTYPE(input_descrs[i]) == common_dtype) {
-            output_descrs[i] = ensure_dtype_nbo(input_descrs[i]);
-        }
-        else {
-            output_descrs[i] = common_dtype->default_descr(common_dtype);
-        }
-        if (NPY_UNLIKELY(output_descrs[i] == NULL)) {
-            goto fail;
-        }
-    }
-
+    /*
+     * If we relax the requirement for specifying all `dtypes` (e.g. allow
+     * abstract ones or unspecified outputs).  We can use the common-dtype
+     * operation to provide a default here.
+     */
     return method->casting;
 
   fail:
@@ -219,9 +183,18 @@ validate_spec(PyArrayMethod_Spec *spec)
     }
 
     for (int i = 0; i < nargs; i++) {
-        if (spec->dtypes[i] == NULL && i < spec->nin) {
+        /*
+         * Note that we could allow for output dtypes to not be specified
+         * (the array-method would have to make sure to support this).
+         * We could even allow for some dtypes to be abstract.
+         * For now, assume that this is better handled in a promotion step.
+         * One problem with providing all DTypes is the definite need to
+         * hold references.  We probably, eventually, have to implement
+         * traversal and trust the GC to deal with it.
+         */
+        if (spec->dtypes[i] == NULL) {
             PyErr_Format(PyExc_TypeError,
-                    "ArrayMethod must have well defined input DTypes. "
+                    "ArrayMethod must provide all input and output DTypes. "
                     "(method: %s)", spec->name);
             return -1;
         }
@@ -231,10 +204,10 @@ validate_spec(PyArrayMethod_Spec *spec)
                     "(method: %s)", spec->dtypes[i], spec->name);
             return -1;
         }
-        if (spec->dtypes[i]->abstract && i < spec->nin) {
+        if (NPY_DT_is_abstract(spec->dtypes[i])) {
             PyErr_Format(PyExc_TypeError,
-                    "abstract DType %S are currently not allowed for inputs."
-                    "(method: %s defined at %s)", spec->dtypes[i], spec->name);
+                    "abstract DType %S are currently not supported."
+                    "(method: %s)", spec->dtypes[i], spec->name);
             return -1;
         }
     }
@@ -323,11 +296,11 @@ fill_arraymethod_from_slots(
                     PyErr_Format(PyExc_TypeError,
                             "Must specify output DTypes or use custom "
                             "`resolve_descriptors` when there are no inputs. "
-                            "(method: %s defined at %s)", spec->name);
+                            "(method: %s)", spec->name);
                     return -1;
                 }
             }
-            if (i >= meth->nin && res->dtypes[i]->parametric) {
+            if (i >= meth->nin && NPY_DT_is_parametric(res->dtypes[i])) {
                 PyErr_Format(PyExc_TypeError,
                         "must provide a `resolve_descriptors` function if any "
                         "output DType is parametric. (method: %s)",
@@ -367,6 +340,26 @@ fill_arraymethod_from_slots(
     }
 
     return 0;
+}
+
+
+/*
+ * Public version of `PyArrayMethod_FromSpec_int` (see below).
+ *
+ * TODO: Error paths will probably need to be improved before a release into
+ *       the non-experimental public API.
+ */
+NPY_NO_EXPORT PyObject *
+PyArrayMethod_FromSpec(PyArrayMethod_Spec *spec)
+{
+    for (int i = 0; i < spec->nin + spec->nout; i++) {
+        if (!PyObject_TypeCheck(spec->dtypes[i], &PyArrayDTypeMeta_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                    "ArrayMethod spec contained a non DType.");
+            return NULL;
+        }
+    }
+    return (PyObject *)PyArrayMethod_FromSpec_int(spec, 0);
 }
 
 
@@ -466,22 +459,20 @@ NPY_NO_EXPORT PyTypeObject PyArrayMethod_Type = {
 };
 
 
-
 static PyObject *
 boundarraymethod_repr(PyBoundArrayMethodObject *self)
 {
     int nargs = self->method->nin + self->method->nout;
-    PyObject *dtypes = PyTuple_New(nargs);
+    PyObject *dtypes = PyArray_TupleFromItems(
+            nargs, (PyObject **)self->dtypes, 0);
     if (dtypes == NULL) {
         return NULL;
     }
-    for (int i = 0; i < nargs; i++) {
-        Py_INCREF(self->dtypes[i]);
-        PyTuple_SET_ITEM(dtypes, i, (PyObject *)self->dtypes[i]);
-    }
-    return PyUnicode_FromFormat(
-            "<np._BoundArrayMethod `%s` for dtypes %S>",
-            self->method->name, dtypes);
+    PyObject *repr = PyUnicode_FromFormat(
+                        "<np._BoundArrayMethod `%s` for dtypes %S>",
+                        self->method->name, dtypes);
+    Py_DECREF(dtypes);
+    return repr;
 }
 
 
@@ -587,7 +578,7 @@ boundarraymethod__resolve_descripors(
      */
     int parametric = 0;
     for (int i = 0; i < nin + nout; i++) {
-        if (self->dtypes[i]->parametric) {
+        if (NPY_DT_is_parametric(self->dtypes[i])) {
             parametric = 1;
             break;
         }
@@ -685,7 +676,7 @@ boundarraymethod__simple_strided_call(
                     "All arrays must have the same length.");
             return NULL;
         }
-        if (i >= nout) {
+        if (i >= nin) {
             if (PyArray_FailUnlessWriteable(
                     arrays[i], "_simple_strided_call() output") < 0) {
                 return NULL;
@@ -755,6 +746,132 @@ boundarraymethod__simple_strided_call(
         return NULL;
     }
     Py_RETURN_NONE;
+}
+
+
+/*
+ * Support for masked inner-strided loops.  Masked inner-strided loops are
+ * only used in the ufunc machinery.  So this special cases them.
+ * In the future it probably makes sense to create an::
+ *
+ *     Arraymethod->get_masked_strided_loop()
+ *
+ * Function which this can wrap instead.
+ */
+typedef struct {
+    NpyAuxData base;
+    PyArrayMethod_StridedLoop *unmasked_stridedloop;
+    NpyAuxData *unmasked_auxdata;
+    int nargs;
+    char *dataptrs[];
+} _masked_stridedloop_data;
+
+
+static void
+_masked_stridedloop_data_free(NpyAuxData *auxdata)
+{
+    _masked_stridedloop_data *data = (_masked_stridedloop_data *)auxdata;
+    NPY_AUXDATA_FREE(data->unmasked_auxdata);
+    PyMem_Free(data);
+}
+
+
+/*
+ * This function wraps a regular unmasked strided-loop as a
+ * masked strided-loop, only calling the function for elements
+ * where the mask is True.
+ *
+ * TODO: Reductions also use this code to implement masked reductions.
+ *       Before consolidating them, reductions had a special case for
+ *       broadcasts: when the mask stride was 0 the code does not check all
+ *       elements as `npy_memchr` currently does.
+ *       It may be worthwhile to add such an optimization again if broadcasted
+ *       masks are common enough.
+ */
+static int
+generic_masked_strided_loop(PyArrayMethod_Context *context,
+        char *const *data, const npy_intp *dimensions,
+        const npy_intp *strides, NpyAuxData *_auxdata)
+{
+    _masked_stridedloop_data *auxdata = (_masked_stridedloop_data *)_auxdata;
+    int nargs = auxdata->nargs;
+    PyArrayMethod_StridedLoop *strided_loop = auxdata->unmasked_stridedloop;
+    NpyAuxData *strided_loop_auxdata = auxdata->unmasked_auxdata;
+
+    char **dataptrs = auxdata->dataptrs;
+    memcpy(dataptrs, data, nargs * sizeof(char *));
+    char *mask = data[nargs];
+    npy_intp mask_stride = strides[nargs];
+
+    npy_intp N = dimensions[0];
+    /* Process the data as runs of unmasked values */
+    do {
+        Py_ssize_t subloopsize;
+
+        /* Skip masked values */
+        mask = npy_memchr(mask, 0, mask_stride, N, &subloopsize, 1);
+        for (int i = 0; i < nargs; i++) {
+            dataptrs[i] += subloopsize * strides[i];
+        }
+        N -= subloopsize;
+
+        /* Process unmasked values */
+        mask = npy_memchr(mask, 0, mask_stride, N, &subloopsize, 0);
+        int res = strided_loop(context,
+                dataptrs, &subloopsize, strides, strided_loop_auxdata);
+        if (res != 0) {
+            return res;
+        }
+        for (int i = 0; i < nargs; i++) {
+            dataptrs[i] += subloopsize * strides[i];
+        }
+        N -= subloopsize;
+    } while (N > 0);
+
+    return 0;
+}
+
+
+/*
+ * Fetches a strided-loop function that supports a boolean mask as additional
+ * (last) operand to the strided-loop.  It is otherwise largely identical to
+ * the `get_loop` method which it wraps.
+ * This is the core implementation for the ufunc `where=...` keyword argument.
+ *
+ * NOTE: This function does not support `move_references` or inner dimensions.
+ */
+NPY_NO_EXPORT int
+PyArrayMethod_GetMaskedStridedLoop(
+        PyArrayMethod_Context *context,
+        int aligned, npy_intp *fixed_strides,
+        PyArrayMethod_StridedLoop **out_loop,
+        NpyAuxData **out_transferdata,
+        NPY_ARRAYMETHOD_FLAGS *flags)
+{
+    _masked_stridedloop_data *data;
+    int nargs = context->method->nin + context->method->nout;
+
+    /* Add working memory for the data pointers, to modify them in-place */
+    data = PyMem_Malloc(sizeof(_masked_stridedloop_data) +
+                        sizeof(char *) * nargs);
+    if (data == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
+    data->base.free = _masked_stridedloop_data_free;
+    data->base.clone = NULL;  /* not currently used */
+    data->unmasked_stridedloop = NULL;
+    data->nargs = nargs;
+
+    if (context->method->get_strided_loop(context,
+            aligned, 0, fixed_strides,
+            &data->unmasked_stridedloop, &data->unmasked_auxdata, flags) < 0) {
+        PyMem_Free(data);
+        return -1;
+    }
+    *out_transferdata = (NpyAuxData *)data;
+    *out_loop = generic_masked_strided_loop;
+    return 0;
 }
 
 

@@ -15,12 +15,13 @@
 
    but still supports error-modes.
 */
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
 #define _UMATHMODULE
 #define _MULTIARRAYMODULE
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 
-#include "Python.h"
 #include "npy_config.h"
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
@@ -50,7 +51,7 @@
  *
  */
 
-#line 47
+#line 48
 static void
 byte_ctype_add(npy_byte a, npy_byte b, npy_byte *out) {
     *out = a + b;
@@ -70,7 +71,7 @@ byte_ctype_subtract(npy_byte a, npy_byte b, npy_byte *out) {
     return;
 }
 
-#line 47
+#line 48
 static void
 short_ctype_add(npy_short a, npy_short b, npy_short *out) {
     *out = a + b;
@@ -90,7 +91,7 @@ short_ctype_subtract(npy_short a, npy_short b, npy_short *out) {
     return;
 }
 
-#line 47
+#line 48
 static void
 int_ctype_add(npy_int a, npy_int b, npy_int *out) {
     *out = a + b;
@@ -110,7 +111,7 @@ int_ctype_subtract(npy_int a, npy_int b, npy_int *out) {
     return;
 }
 
-#line 47
+#line 48
 static void
 long_ctype_add(npy_long a, npy_long b, npy_long *out) {
     *out = a + b;
@@ -130,7 +131,7 @@ long_ctype_subtract(npy_long a, npy_long b, npy_long *out) {
     return;
 }
 
-#line 47
+#line 48
 static void
 longlong_ctype_add(npy_longlong a, npy_longlong b, npy_longlong *out) {
     *out = a + b;
@@ -151,7 +152,7 @@ longlong_ctype_subtract(npy_longlong a, npy_longlong b, npy_longlong *out) {
 }
 
 
-#line 71
+#line 72
 static void
 ubyte_ctype_add(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     *out = a + b;
@@ -171,7 +172,7 @@ ubyte_ctype_subtract(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     return;
 }
 
-#line 71
+#line 72
 static void
 ushort_ctype_add(npy_ushort a, npy_ushort b, npy_ushort *out) {
     *out = a + b;
@@ -191,7 +192,7 @@ ushort_ctype_subtract(npy_ushort a, npy_ushort b, npy_ushort *out) {
     return;
 }
 
-#line 71
+#line 72
 static void
 uint_ctype_add(npy_uint a, npy_uint b, npy_uint *out) {
     *out = a + b;
@@ -211,7 +212,7 @@ uint_ctype_subtract(npy_uint a, npy_uint b, npy_uint *out) {
     return;
 }
 
-#line 71
+#line 72
 static void
 ulong_ctype_add(npy_ulong a, npy_ulong b, npy_ulong *out) {
     *out = a + b;
@@ -231,7 +232,7 @@ ulong_ctype_subtract(npy_ulong a, npy_ulong b, npy_ulong *out) {
     return;
 }
 
-#line 71
+#line 72
 static void
 ulonglong_ctype_add(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
     *out = a + b;
@@ -256,7 +257,7 @@ ulonglong_ctype_subtract(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define NPY_SIZEOF_BYTE 1
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_INT > NPY_SIZEOF_BYTE
 static void
 byte_ctype_multiply(npy_byte a, npy_byte b, npy_byte *out) {
@@ -273,7 +274,7 @@ byte_ctype_multiply(npy_byte a, npy_byte b, npy_byte *out) {
 }
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_INT > NPY_SIZEOF_BYTE
 static void
 ubyte_ctype_multiply(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
@@ -290,7 +291,7 @@ ubyte_ctype_multiply(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
 }
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_INT > NPY_SIZEOF_SHORT
 static void
 short_ctype_multiply(npy_short a, npy_short b, npy_short *out) {
@@ -307,7 +308,7 @@ short_ctype_multiply(npy_short a, npy_short b, npy_short *out) {
 }
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_INT > NPY_SIZEOF_SHORT
 static void
 ushort_ctype_multiply(npy_ushort a, npy_ushort b, npy_ushort *out) {
@@ -324,7 +325,7 @@ ushort_ctype_multiply(npy_ushort a, npy_ushort b, npy_ushort *out) {
 }
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_INT
 static void
 int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
@@ -341,7 +342,7 @@ int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
 }
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_INT
 static void
 uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
@@ -358,7 +359,7 @@ uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
 }
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_LONG
 static void
 long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
@@ -375,7 +376,7 @@ long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
 }
 #endif
 
-#line 109
+#line 110
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_LONG
 static void
 ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
@@ -393,7 +394,7 @@ ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
 #endif
 
 
-#line 134
+#line 135
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_INT
 static void
 int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
@@ -404,7 +405,7 @@ int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
 }
 #endif
 
-#line 134
+#line 135
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_INT
 static void
 uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
@@ -415,7 +416,7 @@ uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
 }
 #endif
 
-#line 134
+#line 135
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG
 static void
 long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
@@ -426,7 +427,7 @@ long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
 }
 #endif
 
-#line 134
+#line 135
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG
 static void
 ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
@@ -437,7 +438,7 @@ ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
 }
 #endif
 
-#line 134
+#line 135
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONGLONG
 static void
 longlong_ctype_multiply(npy_longlong a, npy_longlong b, npy_longlong *out) {
@@ -448,7 +449,7 @@ longlong_ctype_multiply(npy_longlong a, npy_longlong b, npy_longlong *out) {
 }
 #endif
 
-#line 134
+#line 135
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONGLONG
 static void
 ulonglong_ctype_multiply(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
@@ -460,7 +461,7 @@ ulonglong_ctype_multiply(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #endif
 
 
-#line 153
+#line 154
 static void
 byte_ctype_divide(npy_byte a, npy_byte b, npy_byte *out) {
     if (b == 0) {
@@ -510,7 +511,7 @@ byte_ctype_remainder(npy_byte a, npy_byte b, npy_byte *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 ubyte_ctype_divide(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     if (b == 0) {
@@ -560,7 +561,7 @@ ubyte_ctype_remainder(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 short_ctype_divide(npy_short a, npy_short b, npy_short *out) {
     if (b == 0) {
@@ -610,7 +611,7 @@ short_ctype_remainder(npy_short a, npy_short b, npy_short *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 ushort_ctype_divide(npy_ushort a, npy_ushort b, npy_ushort *out) {
     if (b == 0) {
@@ -660,7 +661,7 @@ ushort_ctype_remainder(npy_ushort a, npy_ushort b, npy_ushort *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 int_ctype_divide(npy_int a, npy_int b, npy_int *out) {
     if (b == 0) {
@@ -710,7 +711,7 @@ int_ctype_remainder(npy_int a, npy_int b, npy_int *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 uint_ctype_divide(npy_uint a, npy_uint b, npy_uint *out) {
     if (b == 0) {
@@ -760,7 +761,7 @@ uint_ctype_remainder(npy_uint a, npy_uint b, npy_uint *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 long_ctype_divide(npy_long a, npy_long b, npy_long *out) {
     if (b == 0) {
@@ -810,7 +811,7 @@ long_ctype_remainder(npy_long a, npy_long b, npy_long *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 ulong_ctype_divide(npy_ulong a, npy_ulong b, npy_ulong *out) {
     if (b == 0) {
@@ -860,7 +861,7 @@ ulong_ctype_remainder(npy_ulong a, npy_ulong b, npy_ulong *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 longlong_ctype_divide(npy_longlong a, npy_longlong b, npy_longlong *out) {
     if (b == 0) {
@@ -910,7 +911,7 @@ longlong_ctype_remainder(npy_longlong a, npy_longlong b, npy_longlong *out) {
 #endif
 }
 
-#line 153
+#line 154
 static void
 ulonglong_ctype_divide(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
     if (b == 0) {
@@ -961,49 +962,49 @@ ulonglong_ctype_remainder(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) 
 }
 
 
-#line 209
+#line 210
 #define byte_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 209
+#line 210
 #define ubyte_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 209
+#line 210
 #define short_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 209
+#line 210
 #define ushort_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 209
+#line 210
 #define int_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 209
+#line 210
 #define uint_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 209
+#line 210
 #define long_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 209
+#line 210
 #define ulong_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 209
+#line 210
 #define longlong_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 209
+#line 210
 #define ulonglong_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
 
 /* b will always be positive in this call */
-#line 223
+#line 224
 static void
 byte_ctype_power(npy_byte a, npy_byte b, npy_byte *out) {
     npy_byte tmp;
@@ -1029,7 +1030,7 @@ byte_ctype_power(npy_byte a, npy_byte b, npy_byte *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 ubyte_ctype_power(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     npy_ubyte tmp;
@@ -1055,7 +1056,7 @@ ubyte_ctype_power(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 short_ctype_power(npy_short a, npy_short b, npy_short *out) {
     npy_short tmp;
@@ -1081,7 +1082,7 @@ short_ctype_power(npy_short a, npy_short b, npy_short *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 ushort_ctype_power(npy_ushort a, npy_ushort b, npy_ushort *out) {
     npy_ushort tmp;
@@ -1107,7 +1108,7 @@ ushort_ctype_power(npy_ushort a, npy_ushort b, npy_ushort *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 int_ctype_power(npy_int a, npy_int b, npy_int *out) {
     npy_int tmp;
@@ -1133,7 +1134,7 @@ int_ctype_power(npy_int a, npy_int b, npy_int *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 uint_ctype_power(npy_uint a, npy_uint b, npy_uint *out) {
     npy_uint tmp;
@@ -1159,7 +1160,7 @@ uint_ctype_power(npy_uint a, npy_uint b, npy_uint *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 long_ctype_power(npy_long a, npy_long b, npy_long *out) {
     npy_long tmp;
@@ -1185,7 +1186,7 @@ long_ctype_power(npy_long a, npy_long b, npy_long *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 ulong_ctype_power(npy_ulong a, npy_ulong b, npy_ulong *out) {
     npy_ulong tmp;
@@ -1211,7 +1212,7 @@ ulong_ctype_power(npy_ulong a, npy_ulong b, npy_ulong *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 longlong_ctype_power(npy_longlong a, npy_longlong b, npy_longlong *out) {
     npy_longlong tmp;
@@ -1237,7 +1238,7 @@ longlong_ctype_power(npy_longlong a, npy_longlong b, npy_longlong *out) {
     *out = tmp;
 }
 
-#line 223
+#line 224
 static void
 ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
     npy_ulonglong tmp;
@@ -1265,19 +1266,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define byte_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define byte_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define byte_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1287,19 +1288,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define byte_ctype_rshift(arg1, arg2, out) *(out) = npy_rshifthh(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ubyte_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ubyte_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ubyte_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1309,19 +1310,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define ubyte_ctype_rshift(arg1, arg2, out) *(out) = npy_rshiftuhh(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define short_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define short_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define short_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1331,19 +1332,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define short_ctype_rshift(arg1, arg2, out) *(out) = npy_rshifth(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ushort_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ushort_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ushort_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1353,19 +1354,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define ushort_ctype_rshift(arg1, arg2, out) *(out) = npy_rshiftuh(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define int_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define int_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define int_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1375,19 +1376,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define int_ctype_rshift(arg1, arg2, out) *(out) = npy_rshift(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define uint_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define uint_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define uint_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1397,19 +1398,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define uint_ctype_rshift(arg1, arg2, out) *(out) = npy_rshiftu(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define long_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define long_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define long_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1419,19 +1420,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define long_ctype_rshift(arg1, arg2, out) *(out) = npy_rshiftl(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ulong_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ulong_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ulong_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1441,19 +1442,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define ulong_ctype_rshift(arg1, arg2, out) *(out) = npy_rshiftul(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define longlong_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define longlong_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define longlong_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1463,19 +1464,19 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define longlong_ctype_rshift(arg1, arg2, out) *(out) = npy_rshiftll(arg1, arg2)
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
@@ -1486,7 +1487,7 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 
 
 
-#line 277
+#line 278
 #define float_ctype_add(a, b, outp) *(outp) = (a) + (b)
 #define float_ctype_subtract(a, b, outp) *(outp) = (a) - (b)
 #define float_ctype_multiply(a, b, outp) *(outp) = (a) * (b)
@@ -1496,19 +1497,13 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 
 static void
 float_ctype_floor_divide(npy_float a, npy_float b, npy_float *out) {
-    npy_float mod;
-
-    if (!b) {
-        *out = a / b;
-    } else {
-        *out = npy_divmodf(a, b, &mod);
-    }
+    *out = npy_floor_dividef(a, b);
 }
 
 
 static void
 float_ctype_remainder(npy_float a, npy_float b, npy_float *out) {
-    npy_divmodf(a, b, out);
+    *out = npy_remainderf(a, b);
 }
 
 
@@ -1519,7 +1514,7 @@ float_ctype_divmod(npy_float a, npy_float b, npy_float *out1, npy_float *out2) {
 
 
 
-#line 277
+#line 278
 #define double_ctype_add(a, b, outp) *(outp) = (a) + (b)
 #define double_ctype_subtract(a, b, outp) *(outp) = (a) - (b)
 #define double_ctype_multiply(a, b, outp) *(outp) = (a) * (b)
@@ -1529,19 +1524,13 @@ float_ctype_divmod(npy_float a, npy_float b, npy_float *out1, npy_float *out2) {
 
 static void
 double_ctype_floor_divide(npy_double a, npy_double b, npy_double *out) {
-    npy_double mod;
-
-    if (!b) {
-        *out = a / b;
-    } else {
-        *out = npy_divmod(a, b, &mod);
-    }
+    *out = npy_floor_divide(a, b);
 }
 
 
 static void
 double_ctype_remainder(npy_double a, npy_double b, npy_double *out) {
-    npy_divmod(a, b, out);
+    *out = npy_remainder(a, b);
 }
 
 
@@ -1552,7 +1541,7 @@ double_ctype_divmod(npy_double a, npy_double b, npy_double *out1, npy_double *ou
 
 
 
-#line 277
+#line 278
 #define longdouble_ctype_add(a, b, outp) *(outp) = (a) + (b)
 #define longdouble_ctype_subtract(a, b, outp) *(outp) = (a) - (b)
 #define longdouble_ctype_multiply(a, b, outp) *(outp) = (a) * (b)
@@ -1562,19 +1551,13 @@ double_ctype_divmod(npy_double a, npy_double b, npy_double *out1, npy_double *ou
 
 static void
 longdouble_ctype_floor_divide(npy_longdouble a, npy_longdouble b, npy_longdouble *out) {
-    npy_longdouble mod;
-
-    if (!b) {
-        *out = a / b;
-    } else {
-        *out = npy_divmodl(a, b, &mod);
-    }
+    *out = npy_floor_dividel(a, b);
 }
 
 
 static void
 longdouble_ctype_remainder(npy_longdouble a, npy_longdouble b, npy_longdouble *out) {
-    npy_divmodl(a, b, out);
+    *out = npy_remainderl(a, b);
 }
 
 
@@ -1620,7 +1603,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
     *out1 = npy_half_divmod(a, b, out2);
 }
 
-#line 350
+#line 345
 #define cfloat_ctype_add(a, b, outp) do{        \
     (outp)->real = (a).real + (b).real;         \
     (outp)->imag = (a).imag + (b).imag;         \
@@ -1672,7 +1655,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
     (outp)->imag = 0;                                   \
     } while(0)
 
-#line 350
+#line 345
 #define cdouble_ctype_add(a, b, outp) do{        \
     (outp)->real = (a).real + (b).real;         \
     (outp)->imag = (a).imag + (b).imag;         \
@@ -1724,7 +1707,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
     (outp)->imag = 0;                                   \
     } while(0)
 
-#line 350
+#line 345
 #define clongdouble_ctype_add(a, b, outp) do{        \
     (outp)->real = (a).real + (b).real;         \
     (outp)->imag = (a).imag + (b).imag;         \
@@ -1779,79 +1762,79 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
 
 
 
-#line 408
+#line 403
 #define byte_ctype_divmod(a, b, out, out2) {  \
     byte_ctype_floor_divide(a, b, out);       \
     byte_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define ubyte_ctype_divmod(a, b, out, out2) {  \
     ubyte_ctype_floor_divide(a, b, out);       \
     ubyte_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define short_ctype_divmod(a, b, out, out2) {  \
     short_ctype_floor_divide(a, b, out);       \
     short_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define ushort_ctype_divmod(a, b, out, out2) {  \
     ushort_ctype_floor_divide(a, b, out);       \
     ushort_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define int_ctype_divmod(a, b, out, out2) {  \
     int_ctype_floor_divide(a, b, out);       \
     int_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define uint_ctype_divmod(a, b, out, out2) {  \
     uint_ctype_floor_divide(a, b, out);       \
     uint_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define long_ctype_divmod(a, b, out, out2) {  \
     long_ctype_floor_divide(a, b, out);       \
     long_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define ulong_ctype_divmod(a, b, out, out2) {  \
     ulong_ctype_floor_divide(a, b, out);       \
     ulong_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define longlong_ctype_divmod(a, b, out, out2) {  \
     longlong_ctype_floor_divide(a, b, out);       \
     longlong_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define ulonglong_ctype_divmod(a, b, out, out2) {  \
     ulonglong_ctype_floor_divide(a, b, out);       \
     ulonglong_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define cfloat_ctype_divmod(a, b, out, out2) {  \
     cfloat_ctype_floor_divide(a, b, out);       \
     cfloat_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define cdouble_ctype_divmod(a, b, out, out2) {  \
     cdouble_ctype_floor_divide(a, b, out);       \
     cdouble_ctype_remainder(a, b, out2);         \
     }
 
-#line 408
+#line 403
 #define clongdouble_ctype_divmod(a, b, out, out2) {  \
     clongdouble_ctype_floor_divide(a, b, out);       \
     clongdouble_ctype_remainder(a, b, out2);         \
@@ -1859,7 +1842,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
 
 
 
-#line 420
+#line 415
 
 static void
 float_ctype_power(npy_float a, npy_float b, npy_float *out)
@@ -1868,7 +1851,7 @@ float_ctype_power(npy_float a, npy_float b, npy_float *out)
 }
 
 
-#line 420
+#line 415
 
 static void
 double_ctype_power(npy_double a, npy_double b, npy_double *out)
@@ -1877,7 +1860,7 @@ double_ctype_power(npy_double a, npy_double b, npy_double *out)
 }
 
 
-#line 420
+#line 415
 
 static void
 longdouble_ctype_power(npy_longdouble a, npy_longdouble b, npy_longdouble *out)
@@ -1895,7 +1878,7 @@ half_ctype_power(npy_half a, npy_half b, npy_half *out)
     *out = npy_float_to_half(outf);
 }
 
-#line 446
+#line 441
 static void
 byte_ctype_negative(npy_byte a, npy_byte *out)
 {
@@ -1905,7 +1888,7 @@ byte_ctype_negative(npy_byte a, npy_byte *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 ubyte_ctype_negative(npy_ubyte a, npy_ubyte *out)
 {
@@ -1915,7 +1898,7 @@ ubyte_ctype_negative(npy_ubyte a, npy_ubyte *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 short_ctype_negative(npy_short a, npy_short *out)
 {
@@ -1925,7 +1908,7 @@ short_ctype_negative(npy_short a, npy_short *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 ushort_ctype_negative(npy_ushort a, npy_ushort *out)
 {
@@ -1935,7 +1918,7 @@ ushort_ctype_negative(npy_ushort a, npy_ushort *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 int_ctype_negative(npy_int a, npy_int *out)
 {
@@ -1945,7 +1928,7 @@ int_ctype_negative(npy_int a, npy_int *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 uint_ctype_negative(npy_uint a, npy_uint *out)
 {
@@ -1955,7 +1938,7 @@ uint_ctype_negative(npy_uint a, npy_uint *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 long_ctype_negative(npy_long a, npy_long *out)
 {
@@ -1965,7 +1948,7 @@ long_ctype_negative(npy_long a, npy_long *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 ulong_ctype_negative(npy_ulong a, npy_ulong *out)
 {
@@ -1975,7 +1958,7 @@ ulong_ctype_negative(npy_ulong a, npy_ulong *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 longlong_ctype_negative(npy_longlong a, npy_longlong *out)
 {
@@ -1985,7 +1968,7 @@ longlong_ctype_negative(npy_longlong a, npy_longlong *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 ulonglong_ctype_negative(npy_ulonglong a, npy_ulonglong *out)
 {
@@ -1995,7 +1978,7 @@ ulonglong_ctype_negative(npy_ulonglong a, npy_ulonglong *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 float_ctype_negative(npy_float a, npy_float *out)
 {
@@ -2005,7 +1988,7 @@ float_ctype_negative(npy_float a, npy_float *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 double_ctype_negative(npy_double a, npy_double *out)
 {
@@ -2015,7 +1998,7 @@ double_ctype_negative(npy_double a, npy_double *out)
     *out = -a;
 }
 
-#line 446
+#line 441
 static void
 longdouble_ctype_negative(npy_longdouble a, npy_longdouble *out)
 {
@@ -2033,7 +2016,7 @@ half_ctype_negative(npy_half a, npy_half *out)
 }
 
 
-#line 467
+#line 462
 static void
 cfloat_ctype_negative(npy_cfloat a, npy_cfloat *out)
 {
@@ -2041,7 +2024,7 @@ cfloat_ctype_negative(npy_cfloat a, npy_cfloat *out)
     out->imag = -a.imag;
 }
 
-#line 467
+#line 462
 static void
 cdouble_ctype_negative(npy_cdouble a, npy_cdouble *out)
 {
@@ -2049,7 +2032,7 @@ cdouble_ctype_negative(npy_cdouble a, npy_cdouble *out)
     out->imag = -a.imag;
 }
 
-#line 467
+#line 462
 static void
 clongdouble_ctype_negative(npy_clongdouble a, npy_clongdouble *out)
 {
@@ -2058,98 +2041,98 @@ clongdouble_ctype_negative(npy_clongdouble a, npy_clongdouble *out)
 }
 
 
-#line 483
+#line 478
 static void
 byte_ctype_positive(npy_byte a, npy_byte *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 ubyte_ctype_positive(npy_ubyte a, npy_ubyte *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 short_ctype_positive(npy_short a, npy_short *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 ushort_ctype_positive(npy_ushort a, npy_ushort *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 int_ctype_positive(npy_int a, npy_int *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 uint_ctype_positive(npy_uint a, npy_uint *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 long_ctype_positive(npy_long a, npy_long *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 ulong_ctype_positive(npy_ulong a, npy_ulong *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 longlong_ctype_positive(npy_longlong a, npy_longlong *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 ulonglong_ctype_positive(npy_ulonglong a, npy_ulonglong *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 half_ctype_positive(npy_half a, npy_half *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 float_ctype_positive(npy_float a, npy_float *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 double_ctype_positive(npy_double a, npy_double *out)
 {
     *out = a;
 }
 
-#line 483
+#line 478
 static void
 longdouble_ctype_positive(npy_longdouble a, npy_longdouble *out)
 {
@@ -2157,7 +2140,7 @@ longdouble_ctype_positive(npy_longdouble a, npy_longdouble *out)
 }
 
 
-#line 495
+#line 490
 static void
 cfloat_ctype_positive(npy_cfloat a, npy_cfloat *out)
 {
@@ -2171,7 +2154,7 @@ cfloat_ctype_power(npy_cfloat a, npy_cfloat b, npy_cfloat *out)
     *out = npy_cpowf(a, b);
 }
 
-#line 495
+#line 490
 static void
 cdouble_ctype_positive(npy_cdouble a, npy_cdouble *out)
 {
@@ -2185,7 +2168,7 @@ cdouble_ctype_power(npy_cdouble a, npy_cdouble b, npy_cdouble *out)
     *out = npy_cpow(a, b);
 }
 
-#line 495
+#line 490
 static void
 clongdouble_ctype_positive(npy_clongdouble a, npy_clongdouble *out)
 {
@@ -2201,62 +2184,62 @@ clongdouble_ctype_power(npy_clongdouble a, npy_clongdouble b, npy_clongdouble *o
 
 
 
-#line 513
+#line 508
 
 #define ubyte_ctype_absolute ubyte_ctype_positive
 
 
-#line 513
+#line 508
 
 #define ushort_ctype_absolute ushort_ctype_positive
 
 
-#line 513
+#line 508
 
 #define uint_ctype_absolute uint_ctype_positive
 
 
-#line 513
+#line 508
 
 #define ulong_ctype_absolute ulong_ctype_positive
 
 
-#line 513
+#line 508
 
 #define ulonglong_ctype_absolute ulonglong_ctype_positive
 
 
 
 
-#line 523
+#line 518
 static void
 byte_ctype_absolute(npy_byte a, npy_byte *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 short_ctype_absolute(npy_short a, npy_short *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 int_ctype_absolute(npy_int a, npy_int *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 long_ctype_absolute(npy_long a, npy_long *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 longlong_ctype_absolute(npy_longlong a, npy_longlong *out)
 {
@@ -2264,21 +2247,21 @@ longlong_ctype_absolute(npy_longlong a, npy_longlong *out)
 }
 
 
-#line 535
+#line 530
 static void
 float_ctype_absolute(npy_float a, npy_float *out)
 {
     *out = npy_fabsf(a);
 }
 
-#line 535
+#line 530
 static void
 double_ctype_absolute(npy_double a, npy_double *out)
 {
     *out = npy_fabs(a);
 }
 
-#line 535
+#line 530
 static void
 longdouble_ctype_absolute(npy_longdouble a, npy_longdouble *out)
 {
@@ -2292,21 +2275,21 @@ half_ctype_absolute(npy_half a, npy_half *out)
     *out = a&0x7fffu;
 }
 
-#line 554
+#line 549
 static void
 cfloat_ctype_absolute(npy_cfloat a, npy_float *out)
 {
     *out = npy_cabsf(a);
 }
 
-#line 554
+#line 549
 static void
 cdouble_ctype_absolute(npy_cdouble a, npy_double *out)
 {
     *out = npy_cabs(a);
 }
 
-#line 554
+#line 549
 static void
 clongdouble_ctype_absolute(npy_clongdouble a, npy_longdouble *out)
 {
@@ -2314,52 +2297,52 @@ clongdouble_ctype_absolute(npy_clongdouble a, npy_longdouble *out)
 }
 
 
-#line 565
+#line 560
 
 #define byte_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ubyte_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define short_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ushort_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define int_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define uint_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define long_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ulong_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define longlong_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ulonglong_ctype_invert(a, out) *(out) = ~a;
 
@@ -2382,7 +2365,7 @@ clongdouble_ctype_absolute(npy_clongdouble a, npy_longdouble *out)
  * 6) Construct and return the output scalar.
  */
 
-#line 605
+#line 600
 
 static int
 _byte_convert_to_ctype(PyObject *a, npy_byte *arg1)
@@ -2423,7 +2406,7 @@ _byte_convert_to_ctype(PyObject *a, npy_byte *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ubyte_convert_to_ctype(PyObject *a, npy_ubyte *arg1)
@@ -2464,7 +2447,7 @@ _ubyte_convert_to_ctype(PyObject *a, npy_ubyte *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _short_convert_to_ctype(PyObject *a, npy_short *arg1)
@@ -2505,7 +2488,7 @@ _short_convert_to_ctype(PyObject *a, npy_short *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ushort_convert_to_ctype(PyObject *a, npy_ushort *arg1)
@@ -2546,7 +2529,7 @@ _ushort_convert_to_ctype(PyObject *a, npy_ushort *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _int_convert_to_ctype(PyObject *a, npy_int *arg1)
@@ -2587,7 +2570,7 @@ _int_convert_to_ctype(PyObject *a, npy_int *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _uint_convert_to_ctype(PyObject *a, npy_uint *arg1)
@@ -2628,7 +2611,7 @@ _uint_convert_to_ctype(PyObject *a, npy_uint *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _long_convert_to_ctype(PyObject *a, npy_long *arg1)
@@ -2669,7 +2652,7 @@ _long_convert_to_ctype(PyObject *a, npy_long *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ulong_convert_to_ctype(PyObject *a, npy_ulong *arg1)
@@ -2710,7 +2693,7 @@ _ulong_convert_to_ctype(PyObject *a, npy_ulong *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _longlong_convert_to_ctype(PyObject *a, npy_longlong *arg1)
@@ -2751,7 +2734,7 @@ _longlong_convert_to_ctype(PyObject *a, npy_longlong *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ulonglong_convert_to_ctype(PyObject *a, npy_ulonglong *arg1)
@@ -2792,7 +2775,7 @@ _ulonglong_convert_to_ctype(PyObject *a, npy_ulonglong *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _half_convert_to_ctype(PyObject *a, npy_half *arg1)
@@ -2833,7 +2816,7 @@ _half_convert_to_ctype(PyObject *a, npy_half *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _float_convert_to_ctype(PyObject *a, npy_float *arg1)
@@ -2874,7 +2857,7 @@ _float_convert_to_ctype(PyObject *a, npy_float *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _longdouble_convert_to_ctype(PyObject *a, npy_longdouble *arg1)
@@ -2915,7 +2898,7 @@ _longdouble_convert_to_ctype(PyObject *a, npy_longdouble *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _cfloat_convert_to_ctype(PyObject *a, npy_cfloat *arg1)
@@ -2956,7 +2939,7 @@ _cfloat_convert_to_ctype(PyObject *a, npy_cfloat *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _cdouble_convert_to_ctype(PyObject *a, npy_cdouble *arg1)
@@ -2997,7 +2980,7 @@ _cdouble_convert_to_ctype(PyObject *a, npy_cdouble *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _clongdouble_convert_to_ctype(PyObject *a, npy_clongdouble *arg1)
@@ -3042,7 +3025,7 @@ _clongdouble_convert_to_ctype(PyObject *a, npy_clongdouble *arg1)
 
 /* Same as above but added exact checks against known python types for speed */
 
-#line 657
+#line 652
 
 static int
 _double_convert_to_ctype(PyObject *a, npy_double *arg1)
@@ -3090,7 +3073,7 @@ _double_convert_to_ctype(PyObject *a, npy_double *arg1)
 
 
 
-#line 712
+#line 707
 static int
 _byte_convert2_to_ctypes(PyObject *a, npy_byte *arg1,
                            PyObject *b, npy_byte *arg2)
@@ -3107,7 +3090,7 @@ _byte_convert2_to_ctypes(PyObject *a, npy_byte *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ubyte_convert2_to_ctypes(PyObject *a, npy_ubyte *arg1,
                            PyObject *b, npy_ubyte *arg2)
@@ -3124,7 +3107,7 @@ _ubyte_convert2_to_ctypes(PyObject *a, npy_ubyte *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _short_convert2_to_ctypes(PyObject *a, npy_short *arg1,
                            PyObject *b, npy_short *arg2)
@@ -3141,7 +3124,7 @@ _short_convert2_to_ctypes(PyObject *a, npy_short *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ushort_convert2_to_ctypes(PyObject *a, npy_ushort *arg1,
                            PyObject *b, npy_ushort *arg2)
@@ -3158,7 +3141,7 @@ _ushort_convert2_to_ctypes(PyObject *a, npy_ushort *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _int_convert2_to_ctypes(PyObject *a, npy_int *arg1,
                            PyObject *b, npy_int *arg2)
@@ -3175,7 +3158,7 @@ _int_convert2_to_ctypes(PyObject *a, npy_int *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _uint_convert2_to_ctypes(PyObject *a, npy_uint *arg1,
                            PyObject *b, npy_uint *arg2)
@@ -3192,7 +3175,7 @@ _uint_convert2_to_ctypes(PyObject *a, npy_uint *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _long_convert2_to_ctypes(PyObject *a, npy_long *arg1,
                            PyObject *b, npy_long *arg2)
@@ -3209,7 +3192,7 @@ _long_convert2_to_ctypes(PyObject *a, npy_long *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ulong_convert2_to_ctypes(PyObject *a, npy_ulong *arg1,
                            PyObject *b, npy_ulong *arg2)
@@ -3226,7 +3209,7 @@ _ulong_convert2_to_ctypes(PyObject *a, npy_ulong *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _longlong_convert2_to_ctypes(PyObject *a, npy_longlong *arg1,
                            PyObject *b, npy_longlong *arg2)
@@ -3243,7 +3226,7 @@ _longlong_convert2_to_ctypes(PyObject *a, npy_longlong *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ulonglong_convert2_to_ctypes(PyObject *a, npy_ulonglong *arg1,
                            PyObject *b, npy_ulonglong *arg2)
@@ -3260,7 +3243,7 @@ _ulonglong_convert2_to_ctypes(PyObject *a, npy_ulonglong *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _half_convert2_to_ctypes(PyObject *a, npy_half *arg1,
                            PyObject *b, npy_half *arg2)
@@ -3277,7 +3260,7 @@ _half_convert2_to_ctypes(PyObject *a, npy_half *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _float_convert2_to_ctypes(PyObject *a, npy_float *arg1,
                            PyObject *b, npy_float *arg2)
@@ -3294,7 +3277,7 @@ _float_convert2_to_ctypes(PyObject *a, npy_float *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _double_convert2_to_ctypes(PyObject *a, npy_double *arg1,
                            PyObject *b, npy_double *arg2)
@@ -3311,7 +3294,7 @@ _double_convert2_to_ctypes(PyObject *a, npy_double *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _cfloat_convert2_to_ctypes(PyObject *a, npy_cfloat *arg1,
                            PyObject *b, npy_cfloat *arg2)
@@ -3328,7 +3311,7 @@ _cfloat_convert2_to_ctypes(PyObject *a, npy_cfloat *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _cdouble_convert2_to_ctypes(PyObject *a, npy_cdouble *arg1,
                            PyObject *b, npy_cdouble *arg2)
@@ -3346,7 +3329,7 @@ _cdouble_convert2_to_ctypes(PyObject *a, npy_cdouble *arg1,
 }
 
 
-#line 733
+#line 728
 
 static int
 _longdouble_convert2_to_ctypes(PyObject *a, npy_longdouble *arg1,
@@ -3371,7 +3354,7 @@ _longdouble_convert2_to_ctypes(PyObject *a, npy_longdouble *arg1,
 }
 
 
-#line 733
+#line 728
 
 static int
 _clongdouble_convert2_to_ctypes(PyObject *a, npy_clongdouble *arg1,
@@ -3398,7 +3381,7 @@ _clongdouble_convert2_to_ctypes(PyObject *a, npy_clongdouble *arg1,
 
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_add(PyObject *a, PyObject *b)
@@ -3505,7 +3488,7 @@ byte_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_add(PyObject *a, PyObject *b)
@@ -3612,7 +3595,7 @@ ubyte_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_add(PyObject *a, PyObject *b)
@@ -3719,7 +3702,7 @@ short_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_add(PyObject *a, PyObject *b)
@@ -3826,7 +3809,7 @@ ushort_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_add(PyObject *a, PyObject *b)
@@ -3933,7 +3916,7 @@ int_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_add(PyObject *a, PyObject *b)
@@ -4040,7 +4023,7 @@ uint_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_add(PyObject *a, PyObject *b)
@@ -4147,7 +4130,7 @@ long_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_add(PyObject *a, PyObject *b)
@@ -4254,7 +4237,7 @@ ulong_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_add(PyObject *a, PyObject *b)
@@ -4361,7 +4344,7 @@ longlong_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_add(PyObject *a, PyObject *b)
@@ -4468,7 +4451,7 @@ ulonglong_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_subtract(PyObject *a, PyObject *b)
@@ -4575,7 +4558,7 @@ byte_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_subtract(PyObject *a, PyObject *b)
@@ -4682,7 +4665,7 @@ ubyte_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_subtract(PyObject *a, PyObject *b)
@@ -4789,7 +4772,7 @@ short_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_subtract(PyObject *a, PyObject *b)
@@ -4896,7 +4879,7 @@ ushort_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_subtract(PyObject *a, PyObject *b)
@@ -5003,7 +4986,7 @@ int_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_subtract(PyObject *a, PyObject *b)
@@ -5110,7 +5093,7 @@ uint_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_subtract(PyObject *a, PyObject *b)
@@ -5217,7 +5200,7 @@ long_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_subtract(PyObject *a, PyObject *b)
@@ -5324,7 +5307,7 @@ ulong_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_subtract(PyObject *a, PyObject *b)
@@ -5431,7 +5414,7 @@ longlong_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_subtract(PyObject *a, PyObject *b)
@@ -5538,7 +5521,7 @@ ulonglong_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_multiply(PyObject *a, PyObject *b)
@@ -5645,7 +5628,7 @@ byte_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_multiply(PyObject *a, PyObject *b)
@@ -5752,7 +5735,7 @@ ubyte_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_multiply(PyObject *a, PyObject *b)
@@ -5859,7 +5842,7 @@ short_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_multiply(PyObject *a, PyObject *b)
@@ -5966,7 +5949,7 @@ ushort_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_multiply(PyObject *a, PyObject *b)
@@ -6073,7 +6056,7 @@ int_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_multiply(PyObject *a, PyObject *b)
@@ -6180,7 +6163,7 @@ uint_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_multiply(PyObject *a, PyObject *b)
@@ -6287,7 +6270,7 @@ long_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_multiply(PyObject *a, PyObject *b)
@@ -6394,7 +6377,7 @@ ulong_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_multiply(PyObject *a, PyObject *b)
@@ -6501,7 +6484,7 @@ longlong_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_multiply(PyObject *a, PyObject *b)
@@ -6608,7 +6591,7 @@ ulonglong_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_remainder(PyObject *a, PyObject *b)
@@ -6715,7 +6698,7 @@ byte_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_remainder(PyObject *a, PyObject *b)
@@ -6822,7 +6805,7 @@ ubyte_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_remainder(PyObject *a, PyObject *b)
@@ -6929,7 +6912,7 @@ short_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_remainder(PyObject *a, PyObject *b)
@@ -7036,7 +7019,7 @@ ushort_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_remainder(PyObject *a, PyObject *b)
@@ -7143,7 +7126,7 @@ int_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_remainder(PyObject *a, PyObject *b)
@@ -7250,7 +7233,7 @@ uint_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_remainder(PyObject *a, PyObject *b)
@@ -7357,7 +7340,7 @@ long_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_remainder(PyObject *a, PyObject *b)
@@ -7464,7 +7447,7 @@ ulong_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_remainder(PyObject *a, PyObject *b)
@@ -7571,7 +7554,7 @@ longlong_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_remainder(PyObject *a, PyObject *b)
@@ -7678,7 +7661,7 @@ ulonglong_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_divmod(PyObject *a, PyObject *b)
@@ -7785,7 +7768,7 @@ byte_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_divmod(PyObject *a, PyObject *b)
@@ -7892,7 +7875,7 @@ ubyte_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_divmod(PyObject *a, PyObject *b)
@@ -7999,7 +7982,7 @@ short_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_divmod(PyObject *a, PyObject *b)
@@ -8106,7 +8089,7 @@ ushort_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_divmod(PyObject *a, PyObject *b)
@@ -8213,7 +8196,7 @@ int_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_divmod(PyObject *a, PyObject *b)
@@ -8320,7 +8303,7 @@ uint_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_divmod(PyObject *a, PyObject *b)
@@ -8427,7 +8410,7 @@ long_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_divmod(PyObject *a, PyObject *b)
@@ -8534,7 +8517,7 @@ ulong_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_divmod(PyObject *a, PyObject *b)
@@ -8641,7 +8624,7 @@ longlong_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_divmod(PyObject *a, PyObject *b)
@@ -8748,7 +8731,7 @@ ulonglong_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_floor_divide(PyObject *a, PyObject *b)
@@ -8855,7 +8838,7 @@ byte_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_floor_divide(PyObject *a, PyObject *b)
@@ -8962,7 +8945,7 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_floor_divide(PyObject *a, PyObject *b)
@@ -9069,7 +9052,7 @@ short_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_floor_divide(PyObject *a, PyObject *b)
@@ -9176,7 +9159,7 @@ ushort_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_floor_divide(PyObject *a, PyObject *b)
@@ -9283,7 +9266,7 @@ int_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_floor_divide(PyObject *a, PyObject *b)
@@ -9390,7 +9373,7 @@ uint_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_floor_divide(PyObject *a, PyObject *b)
@@ -9497,7 +9480,7 @@ long_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_floor_divide(PyObject *a, PyObject *b)
@@ -9604,7 +9587,7 @@ ulong_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_floor_divide(PyObject *a, PyObject *b)
@@ -9711,7 +9694,7 @@ longlong_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_floor_divide(PyObject *a, PyObject *b)
@@ -9818,7 +9801,7 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_lshift(PyObject *a, PyObject *b)
@@ -9925,7 +9908,7 @@ byte_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_lshift(PyObject *a, PyObject *b)
@@ -10032,7 +10015,7 @@ ubyte_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_lshift(PyObject *a, PyObject *b)
@@ -10139,7 +10122,7 @@ short_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_lshift(PyObject *a, PyObject *b)
@@ -10246,7 +10229,7 @@ ushort_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_lshift(PyObject *a, PyObject *b)
@@ -10353,7 +10336,7 @@ int_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_lshift(PyObject *a, PyObject *b)
@@ -10460,7 +10443,7 @@ uint_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_lshift(PyObject *a, PyObject *b)
@@ -10567,7 +10550,7 @@ long_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_lshift(PyObject *a, PyObject *b)
@@ -10674,7 +10657,7 @@ ulong_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_lshift(PyObject *a, PyObject *b)
@@ -10781,7 +10764,7 @@ longlong_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_lshift(PyObject *a, PyObject *b)
@@ -10888,7 +10871,7 @@ ulonglong_lshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_rshift(PyObject *a, PyObject *b)
@@ -10995,7 +10978,7 @@ byte_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_rshift(PyObject *a, PyObject *b)
@@ -11102,7 +11085,7 @@ ubyte_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_rshift(PyObject *a, PyObject *b)
@@ -11209,7 +11192,7 @@ short_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_rshift(PyObject *a, PyObject *b)
@@ -11316,7 +11299,7 @@ ushort_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_rshift(PyObject *a, PyObject *b)
@@ -11423,7 +11406,7 @@ int_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_rshift(PyObject *a, PyObject *b)
@@ -11530,7 +11513,7 @@ uint_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_rshift(PyObject *a, PyObject *b)
@@ -11637,7 +11620,7 @@ long_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_rshift(PyObject *a, PyObject *b)
@@ -11744,7 +11727,7 @@ ulong_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_rshift(PyObject *a, PyObject *b)
@@ -11851,7 +11834,7 @@ longlong_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_rshift(PyObject *a, PyObject *b)
@@ -11958,7 +11941,7 @@ ulonglong_rshift(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_and(PyObject *a, PyObject *b)
@@ -12065,7 +12048,7 @@ byte_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_and(PyObject *a, PyObject *b)
@@ -12172,7 +12155,7 @@ ubyte_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_and(PyObject *a, PyObject *b)
@@ -12279,7 +12262,7 @@ short_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_and(PyObject *a, PyObject *b)
@@ -12386,7 +12369,7 @@ ushort_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_and(PyObject *a, PyObject *b)
@@ -12493,7 +12476,7 @@ int_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_and(PyObject *a, PyObject *b)
@@ -12600,7 +12583,7 @@ uint_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_and(PyObject *a, PyObject *b)
@@ -12707,7 +12690,7 @@ long_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_and(PyObject *a, PyObject *b)
@@ -12814,7 +12797,7 @@ ulong_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_and(PyObject *a, PyObject *b)
@@ -12921,7 +12904,7 @@ longlong_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_and(PyObject *a, PyObject *b)
@@ -13028,7 +13011,7 @@ ulonglong_and(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_or(PyObject *a, PyObject *b)
@@ -13135,7 +13118,7 @@ byte_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_or(PyObject *a, PyObject *b)
@@ -13242,7 +13225,7 @@ ubyte_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_or(PyObject *a, PyObject *b)
@@ -13349,7 +13332,7 @@ short_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_or(PyObject *a, PyObject *b)
@@ -13456,7 +13439,7 @@ ushort_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_or(PyObject *a, PyObject *b)
@@ -13563,7 +13546,7 @@ int_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_or(PyObject *a, PyObject *b)
@@ -13670,7 +13653,7 @@ uint_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_or(PyObject *a, PyObject *b)
@@ -13777,7 +13760,7 @@ long_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_or(PyObject *a, PyObject *b)
@@ -13884,7 +13867,7 @@ ulong_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_or(PyObject *a, PyObject *b)
@@ -13991,7 +13974,7 @@ longlong_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_or(PyObject *a, PyObject *b)
@@ -14098,7 +14081,7 @@ ulonglong_or(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_xor(PyObject *a, PyObject *b)
@@ -14205,7 +14188,7 @@ byte_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_xor(PyObject *a, PyObject *b)
@@ -14312,7 +14295,7 @@ ubyte_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_xor(PyObject *a, PyObject *b)
@@ -14419,7 +14402,7 @@ short_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_xor(PyObject *a, PyObject *b)
@@ -14526,7 +14509,7 @@ ushort_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_xor(PyObject *a, PyObject *b)
@@ -14633,7 +14616,7 @@ int_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_xor(PyObject *a, PyObject *b)
@@ -14740,7 +14723,7 @@ uint_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_xor(PyObject *a, PyObject *b)
@@ -14847,7 +14830,7 @@ long_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_xor(PyObject *a, PyObject *b)
@@ -14954,7 +14937,7 @@ ulong_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_xor(PyObject *a, PyObject *b)
@@ -15061,7 +15044,7 @@ longlong_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_xor(PyObject *a, PyObject *b)
@@ -15168,7 +15151,7 @@ ulonglong_xor(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 byte_true_divide(PyObject *a, PyObject *b)
@@ -15275,7 +15258,7 @@ byte_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ubyte_true_divide(PyObject *a, PyObject *b)
@@ -15382,7 +15365,7 @@ ubyte_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 short_true_divide(PyObject *a, PyObject *b)
@@ -15489,7 +15472,7 @@ short_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ushort_true_divide(PyObject *a, PyObject *b)
@@ -15596,7 +15579,7 @@ ushort_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 int_true_divide(PyObject *a, PyObject *b)
@@ -15703,7 +15686,7 @@ int_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 uint_true_divide(PyObject *a, PyObject *b)
@@ -15810,7 +15793,7 @@ uint_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 long_true_divide(PyObject *a, PyObject *b)
@@ -15917,7 +15900,7 @@ long_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulong_true_divide(PyObject *a, PyObject *b)
@@ -16024,7 +16007,7 @@ ulong_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longlong_true_divide(PyObject *a, PyObject *b)
@@ -16131,7 +16114,7 @@ longlong_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 ulonglong_true_divide(PyObject *a, PyObject *b)
@@ -16238,7 +16221,7 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 half_add(PyObject *a, PyObject *b)
@@ -16345,7 +16328,7 @@ half_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 float_add(PyObject *a, PyObject *b)
@@ -16452,7 +16435,7 @@ float_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 double_add(PyObject *a, PyObject *b)
@@ -16559,7 +16542,7 @@ double_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longdouble_add(PyObject *a, PyObject *b)
@@ -16666,7 +16649,7 @@ longdouble_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cfloat_add(PyObject *a, PyObject *b)
@@ -16773,7 +16756,7 @@ cfloat_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cdouble_add(PyObject *a, PyObject *b)
@@ -16880,7 +16863,7 @@ cdouble_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 clongdouble_add(PyObject *a, PyObject *b)
@@ -16987,7 +16970,7 @@ clongdouble_add(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 half_subtract(PyObject *a, PyObject *b)
@@ -17094,7 +17077,7 @@ half_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 float_subtract(PyObject *a, PyObject *b)
@@ -17201,7 +17184,7 @@ float_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 double_subtract(PyObject *a, PyObject *b)
@@ -17308,7 +17291,7 @@ double_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longdouble_subtract(PyObject *a, PyObject *b)
@@ -17415,7 +17398,7 @@ longdouble_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cfloat_subtract(PyObject *a, PyObject *b)
@@ -17522,7 +17505,7 @@ cfloat_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cdouble_subtract(PyObject *a, PyObject *b)
@@ -17629,7 +17612,7 @@ cdouble_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 clongdouble_subtract(PyObject *a, PyObject *b)
@@ -17736,7 +17719,7 @@ clongdouble_subtract(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 half_multiply(PyObject *a, PyObject *b)
@@ -17843,7 +17826,7 @@ half_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 float_multiply(PyObject *a, PyObject *b)
@@ -17950,7 +17933,7 @@ float_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 double_multiply(PyObject *a, PyObject *b)
@@ -18057,7 +18040,7 @@ double_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longdouble_multiply(PyObject *a, PyObject *b)
@@ -18164,7 +18147,7 @@ longdouble_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cfloat_multiply(PyObject *a, PyObject *b)
@@ -18271,7 +18254,7 @@ cfloat_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cdouble_multiply(PyObject *a, PyObject *b)
@@ -18378,7 +18361,7 @@ cdouble_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 clongdouble_multiply(PyObject *a, PyObject *b)
@@ -18485,7 +18468,7 @@ clongdouble_multiply(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 half_floor_divide(PyObject *a, PyObject *b)
@@ -18592,7 +18575,7 @@ half_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 float_floor_divide(PyObject *a, PyObject *b)
@@ -18699,7 +18682,7 @@ float_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 double_floor_divide(PyObject *a, PyObject *b)
@@ -18806,7 +18789,7 @@ double_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longdouble_floor_divide(PyObject *a, PyObject *b)
@@ -18913,7 +18896,7 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cfloat_floor_divide(PyObject *a, PyObject *b)
@@ -19020,7 +19003,7 @@ cfloat_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cdouble_floor_divide(PyObject *a, PyObject *b)
@@ -19127,7 +19110,7 @@ cdouble_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 clongdouble_floor_divide(PyObject *a, PyObject *b)
@@ -19234,7 +19217,7 @@ clongdouble_floor_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 half_true_divide(PyObject *a, PyObject *b)
@@ -19341,7 +19324,7 @@ half_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 float_true_divide(PyObject *a, PyObject *b)
@@ -19448,7 +19431,7 @@ float_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 double_true_divide(PyObject *a, PyObject *b)
@@ -19555,7 +19538,7 @@ double_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longdouble_true_divide(PyObject *a, PyObject *b)
@@ -19662,7 +19645,7 @@ longdouble_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cfloat_true_divide(PyObject *a, PyObject *b)
@@ -19769,7 +19752,7 @@ cfloat_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 cdouble_true_divide(PyObject *a, PyObject *b)
@@ -19876,7 +19859,7 @@ cdouble_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 clongdouble_true_divide(PyObject *a, PyObject *b)
@@ -19983,7 +19966,7 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 half_divmod(PyObject *a, PyObject *b)
@@ -20090,7 +20073,7 @@ half_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 float_divmod(PyObject *a, PyObject *b)
@@ -20197,7 +20180,7 @@ float_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 double_divmod(PyObject *a, PyObject *b)
@@ -20304,7 +20287,7 @@ double_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longdouble_divmod(PyObject *a, PyObject *b)
@@ -20411,7 +20394,7 @@ longdouble_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 half_remainder(PyObject *a, PyObject *b)
@@ -20518,7 +20501,7 @@ half_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 float_remainder(PyObject *a, PyObject *b)
@@ -20625,7 +20608,7 @@ float_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 double_remainder(PyObject *a, PyObject *b)
@@ -20732,7 +20715,7 @@ double_remainder(PyObject *a, PyObject *b)
 }
 
 
-#line 802
+#line 797
 
 static PyObject *
 longdouble_remainder(PyObject *a, PyObject *b)
@@ -20842,7 +20825,7 @@ longdouble_remainder(PyObject *a, PyObject *b)
 
 #define _IS_ZERO(x) (x == 0)
 
-#line 946
+#line 941
 
 static PyObject *
 byte_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -20927,7 +20910,7 @@ byte_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21012,7 +20995,7 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 short_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21097,7 +21080,7 @@ short_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21182,7 +21165,7 @@ ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 int_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21267,7 +21250,7 @@ int_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 uint_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21352,7 +21335,7 @@ uint_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 long_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21437,7 +21420,7 @@ long_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21522,7 +21505,7 @@ ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21607,7 +21590,7 @@ longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21692,7 +21675,7 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 half_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21777,7 +21760,7 @@ half_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 float_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21862,7 +21845,7 @@ float_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 double_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -21947,7 +21930,7 @@ double_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -22032,7 +22015,7 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -22117,7 +22100,7 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -22202,7 +22185,7 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 946
+#line 941
 
 static PyObject *
 clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
@@ -22290,28 +22273,28 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 #undef _IS_ZERO
 
 
-#line 1038
+#line 1033
 
-#line 1044
+#line 1039
 
 #define cfloat_divmod NULL
 
 
-#line 1044
+#line 1039
 
 #define cfloat_remainder NULL
 
 
 
 
-#line 1038
+#line 1033
 
-#line 1044
+#line 1039
 
 #define cdouble_divmod NULL
 
 
-#line 1044
+#line 1039
 
 #define cdouble_remainder NULL
 
@@ -22319,7 +22302,7 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 
 
-#line 1056
+#line 1051
 
 /* 
 Complex numbers do not support remainder operations. Unfortunately, 
@@ -22368,7 +22351,7 @@ clongdouble_divmod(PyObject *a, PyObject *b)
 }
 
 
-#line 1056
+#line 1051
 
 /* 
 Complex numbers do not support remainder operations. Unfortunately, 
@@ -22418,203 +22401,203 @@ clongdouble_remainder(PyObject *a, PyObject *b)
 
 
 
-#line 1110
+#line 1105
 
-#line 1116
+#line 1111
 
 #define half_lshift NULL
 
 
-#line 1116
+#line 1111
 
 #define half_rshift NULL
 
 
-#line 1116
+#line 1111
 
 #define half_and NULL
 
 
-#line 1116
+#line 1111
 
 #define half_or NULL
 
 
-#line 1116
+#line 1111
 
 #define half_xor NULL
 
 
 
 
-#line 1110
+#line 1105
 
-#line 1116
+#line 1111
 
 #define float_lshift NULL
 
 
-#line 1116
+#line 1111
 
 #define float_rshift NULL
 
 
-#line 1116
+#line 1111
 
 #define float_and NULL
 
 
-#line 1116
+#line 1111
 
 #define float_or NULL
 
 
-#line 1116
+#line 1111
 
 #define float_xor NULL
 
 
 
 
-#line 1110
+#line 1105
 
-#line 1116
+#line 1111
 
 #define double_lshift NULL
 
 
-#line 1116
+#line 1111
 
 #define double_rshift NULL
 
 
-#line 1116
+#line 1111
 
 #define double_and NULL
 
 
-#line 1116
+#line 1111
 
 #define double_or NULL
 
 
-#line 1116
+#line 1111
 
 #define double_xor NULL
 
 
 
 
-#line 1110
+#line 1105
 
-#line 1116
+#line 1111
 
 #define longdouble_lshift NULL
 
 
-#line 1116
+#line 1111
 
 #define longdouble_rshift NULL
 
 
-#line 1116
+#line 1111
 
 #define longdouble_and NULL
 
 
-#line 1116
+#line 1111
 
 #define longdouble_or NULL
 
 
-#line 1116
+#line 1111
 
 #define longdouble_xor NULL
 
 
 
 
-#line 1110
+#line 1105
 
-#line 1116
+#line 1111
 
 #define cfloat_lshift NULL
 
 
-#line 1116
+#line 1111
 
 #define cfloat_rshift NULL
 
 
-#line 1116
+#line 1111
 
 #define cfloat_and NULL
 
 
-#line 1116
+#line 1111
 
 #define cfloat_or NULL
 
 
-#line 1116
+#line 1111
 
 #define cfloat_xor NULL
 
 
 
 
-#line 1110
+#line 1105
 
-#line 1116
+#line 1111
 
 #define cdouble_lshift NULL
 
 
-#line 1116
+#line 1111
 
 #define cdouble_rshift NULL
 
 
-#line 1116
+#line 1111
 
 #define cdouble_and NULL
 
 
-#line 1116
+#line 1111
 
 #define cdouble_or NULL
 
 
-#line 1116
+#line 1111
 
 #define cdouble_xor NULL
 
 
 
 
-#line 1110
+#line 1105
 
-#line 1116
+#line 1111
 
 #define clongdouble_lshift NULL
 
 
-#line 1116
+#line 1111
 
 #define clongdouble_rshift NULL
 
 
-#line 1116
+#line 1111
 
 #define clongdouble_and NULL
 
 
-#line 1116
+#line 1111
 
 #define clongdouble_or NULL
 
 
-#line 1116
+#line 1111
 
 #define clongdouble_xor NULL
 
@@ -22622,7 +22605,7 @@ clongdouble_remainder(PyObject *a, PyObject *b)
 
 
 
-#line 1166
+#line 1161
 static PyObject *
 byte_negative(PyObject *a)
 {
@@ -22658,7 +22641,7 @@ byte_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ubyte_negative(PyObject *a)
 {
@@ -22694,7 +22677,7 @@ ubyte_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 short_negative(PyObject *a)
 {
@@ -22730,7 +22713,7 @@ short_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ushort_negative(PyObject *a)
 {
@@ -22766,7 +22749,7 @@ ushort_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 int_negative(PyObject *a)
 {
@@ -22802,7 +22785,7 @@ int_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 uint_negative(PyObject *a)
 {
@@ -22838,7 +22821,7 @@ uint_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 long_negative(PyObject *a)
 {
@@ -22874,7 +22857,7 @@ long_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulong_negative(PyObject *a)
 {
@@ -22910,7 +22893,7 @@ ulong_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 longlong_negative(PyObject *a)
 {
@@ -22946,7 +22929,7 @@ longlong_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulonglong_negative(PyObject *a)
 {
@@ -22982,7 +22965,7 @@ ulonglong_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 half_negative(PyObject *a)
 {
@@ -23018,7 +23001,7 @@ half_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 float_negative(PyObject *a)
 {
@@ -23054,7 +23037,7 @@ float_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 double_negative(PyObject *a)
 {
@@ -23090,7 +23073,7 @@ double_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 longdouble_negative(PyObject *a)
 {
@@ -23126,7 +23109,7 @@ longdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 cfloat_negative(PyObject *a)
 {
@@ -23162,7 +23145,7 @@ cfloat_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 cdouble_negative(PyObject *a)
 {
@@ -23198,7 +23181,7 @@ cdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 clongdouble_negative(PyObject *a)
 {
@@ -23234,7 +23217,7 @@ clongdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 byte_positive(PyObject *a)
 {
@@ -23270,7 +23253,7 @@ byte_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ubyte_positive(PyObject *a)
 {
@@ -23306,7 +23289,7 @@ ubyte_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 short_positive(PyObject *a)
 {
@@ -23342,7 +23325,7 @@ short_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ushort_positive(PyObject *a)
 {
@@ -23378,7 +23361,7 @@ ushort_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 int_positive(PyObject *a)
 {
@@ -23414,7 +23397,7 @@ int_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 uint_positive(PyObject *a)
 {
@@ -23450,7 +23433,7 @@ uint_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 long_positive(PyObject *a)
 {
@@ -23486,7 +23469,7 @@ long_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulong_positive(PyObject *a)
 {
@@ -23522,7 +23505,7 @@ ulong_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 longlong_positive(PyObject *a)
 {
@@ -23558,7 +23541,7 @@ longlong_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulonglong_positive(PyObject *a)
 {
@@ -23594,7 +23577,7 @@ ulonglong_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 half_positive(PyObject *a)
 {
@@ -23630,7 +23613,7 @@ half_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 float_positive(PyObject *a)
 {
@@ -23666,7 +23649,7 @@ float_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 double_positive(PyObject *a)
 {
@@ -23702,7 +23685,7 @@ double_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 longdouble_positive(PyObject *a)
 {
@@ -23738,7 +23721,7 @@ longdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 cfloat_positive(PyObject *a)
 {
@@ -23774,7 +23757,7 @@ cfloat_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 cdouble_positive(PyObject *a)
 {
@@ -23810,7 +23793,7 @@ cdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 clongdouble_positive(PyObject *a)
 {
@@ -23846,7 +23829,7 @@ clongdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 byte_absolute(PyObject *a)
 {
@@ -23882,7 +23865,7 @@ byte_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ubyte_absolute(PyObject *a)
 {
@@ -23918,7 +23901,7 @@ ubyte_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 short_absolute(PyObject *a)
 {
@@ -23954,7 +23937,7 @@ short_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ushort_absolute(PyObject *a)
 {
@@ -23990,7 +23973,7 @@ ushort_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 int_absolute(PyObject *a)
 {
@@ -24026,7 +24009,7 @@ int_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 uint_absolute(PyObject *a)
 {
@@ -24062,7 +24045,7 @@ uint_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 long_absolute(PyObject *a)
 {
@@ -24098,7 +24081,7 @@ long_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulong_absolute(PyObject *a)
 {
@@ -24134,7 +24117,7 @@ ulong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 longlong_absolute(PyObject *a)
 {
@@ -24170,7 +24153,7 @@ longlong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulonglong_absolute(PyObject *a)
 {
@@ -24206,7 +24189,7 @@ ulonglong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 half_absolute(PyObject *a)
 {
@@ -24242,7 +24225,7 @@ half_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 float_absolute(PyObject *a)
 {
@@ -24278,7 +24261,7 @@ float_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 double_absolute(PyObject *a)
 {
@@ -24314,7 +24297,7 @@ double_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 longdouble_absolute(PyObject *a)
 {
@@ -24350,7 +24333,7 @@ longdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 cfloat_absolute(PyObject *a)
 {
@@ -24386,7 +24369,7 @@ cfloat_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 cdouble_absolute(PyObject *a)
 {
@@ -24422,7 +24405,7 @@ cdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 clongdouble_absolute(PyObject *a)
 {
@@ -24458,7 +24441,7 @@ clongdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 byte_invert(PyObject *a)
 {
@@ -24494,7 +24477,7 @@ byte_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ubyte_invert(PyObject *a)
 {
@@ -24530,7 +24513,7 @@ ubyte_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 short_invert(PyObject *a)
 {
@@ -24566,7 +24549,7 @@ short_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ushort_invert(PyObject *a)
 {
@@ -24602,7 +24585,7 @@ ushort_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 int_invert(PyObject *a)
 {
@@ -24638,7 +24621,7 @@ int_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 uint_invert(PyObject *a)
 {
@@ -24674,7 +24657,7 @@ uint_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 long_invert(PyObject *a)
 {
@@ -24710,7 +24693,7 @@ long_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulong_invert(PyObject *a)
 {
@@ -24746,7 +24729,7 @@ ulong_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 longlong_invert(PyObject *a)
 {
@@ -24782,7 +24765,7 @@ longlong_invert(PyObject *a)
     return ret;
 }
 
-#line 1166
+#line 1161
 static PyObject *
 ulonglong_invert(PyObject *a)
 {
@@ -24819,44 +24802,44 @@ ulonglong_invert(PyObject *a)
 }
 
 
-#line 1206
+#line 1201
 
 #define half_invert NULL
 
 
-#line 1206
+#line 1201
 
 #define float_invert NULL
 
 
-#line 1206
+#line 1201
 
 #define double_invert NULL
 
 
-#line 1206
+#line 1201
 
 #define longdouble_invert NULL
 
 
-#line 1206
+#line 1201
 
 #define cfloat_invert NULL
 
 
-#line 1206
+#line 1201
 
 #define cdouble_invert NULL
 
 
-#line 1206
+#line 1201
 
 #define clongdouble_invert NULL
 
 
 
 #define _IS_NONZERO(x) (x != 0)
-#line 1225
+#line 1220
 static int
 byte_bool(PyObject *a)
 {
@@ -24884,7 +24867,7 @@ byte_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 ubyte_bool(PyObject *a)
 {
@@ -24912,7 +24895,7 @@ ubyte_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 short_bool(PyObject *a)
 {
@@ -24940,7 +24923,7 @@ short_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 ushort_bool(PyObject *a)
 {
@@ -24968,7 +24951,7 @@ ushort_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 int_bool(PyObject *a)
 {
@@ -24996,7 +24979,7 @@ int_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 uint_bool(PyObject *a)
 {
@@ -25024,7 +25007,7 @@ uint_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 long_bool(PyObject *a)
 {
@@ -25052,7 +25035,7 @@ long_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 ulong_bool(PyObject *a)
 {
@@ -25080,7 +25063,7 @@ ulong_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 longlong_bool(PyObject *a)
 {
@@ -25108,7 +25091,7 @@ longlong_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 ulonglong_bool(PyObject *a)
 {
@@ -25136,7 +25119,7 @@ ulonglong_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 half_bool(PyObject *a)
 {
@@ -25164,7 +25147,7 @@ half_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 float_bool(PyObject *a)
 {
@@ -25192,7 +25175,7 @@ float_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 double_bool(PyObject *a)
 {
@@ -25220,7 +25203,7 @@ double_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 longdouble_bool(PyObject *a)
 {
@@ -25248,7 +25231,7 @@ longdouble_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 cfloat_bool(PyObject *a)
 {
@@ -25276,7 +25259,7 @@ cfloat_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 cdouble_bool(PyObject *a)
 {
@@ -25304,7 +25287,7 @@ cdouble_bool(PyObject *a)
     return ret;
 }
 
-#line 1225
+#line 1220
 static int
 clongdouble_bool(PyObject *a)
 {
@@ -25347,7 +25330,7 @@ emit_complexwarning(void)
             "Casting complex values to real discards the imaginary part", 1);
 }
 
-#line 1289
+#line 1284
 static PyObject *
 byte_int(PyObject *obj)
 {
@@ -25373,7 +25356,7 @@ byte_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 ubyte_int(PyObject *obj)
 {
@@ -25399,7 +25382,7 @@ ubyte_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 short_int(PyObject *obj)
 {
@@ -25425,7 +25408,7 @@ short_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 ushort_int(PyObject *obj)
 {
@@ -25451,7 +25434,7 @@ ushort_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 int_int(PyObject *obj)
 {
@@ -25477,7 +25460,7 @@ int_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 uint_int(PyObject *obj)
 {
@@ -25503,7 +25486,7 @@ uint_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 long_int(PyObject *obj)
 {
@@ -25529,7 +25512,7 @@ long_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 ulong_int(PyObject *obj)
 {
@@ -25555,7 +25538,7 @@ ulong_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 longlong_int(PyObject *obj)
 {
@@ -25581,7 +25564,7 @@ longlong_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 ulonglong_int(PyObject *obj)
 {
@@ -25607,7 +25590,7 @@ ulonglong_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 half_int(PyObject *obj)
 {
@@ -25633,7 +25616,7 @@ half_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 float_int(PyObject *obj)
 {
@@ -25659,7 +25642,7 @@ float_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 double_int(PyObject *obj)
 {
@@ -25685,7 +25668,7 @@ double_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 longdouble_int(PyObject *obj)
 {
@@ -25711,7 +25694,7 @@ longdouble_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 cfloat_int(PyObject *obj)
 {
@@ -25737,7 +25720,7 @@ cfloat_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 cdouble_int(PyObject *obj)
 {
@@ -25763,7 +25746,7 @@ cdouble_int(PyObject *obj)
     return long_result;
 }
 
-#line 1289
+#line 1284
 static PyObject *
 clongdouble_int(PyObject *obj)
 {
@@ -25790,7 +25773,7 @@ clongdouble_int(PyObject *obj)
 }
 
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 byte_float(PyObject *obj)
 {
@@ -25804,7 +25787,7 @@ byte_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 ubyte_float(PyObject *obj)
 {
@@ -25818,7 +25801,7 @@ ubyte_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 short_float(PyObject *obj)
 {
@@ -25832,7 +25815,7 @@ short_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 ushort_float(PyObject *obj)
 {
@@ -25846,7 +25829,7 @@ ushort_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 int_float(PyObject *obj)
 {
@@ -25860,7 +25843,7 @@ int_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 uint_float(PyObject *obj)
 {
@@ -25874,7 +25857,7 @@ uint_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 long_float(PyObject *obj)
 {
@@ -25888,7 +25871,7 @@ long_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 ulong_float(PyObject *obj)
 {
@@ -25902,7 +25885,7 @@ ulong_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 longlong_float(PyObject *obj)
 {
@@ -25916,7 +25899,7 @@ longlong_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 ulonglong_float(PyObject *obj)
 {
@@ -25930,7 +25913,7 @@ ulonglong_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 half_float(PyObject *obj)
 {
@@ -25944,7 +25927,7 @@ half_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 float_float(PyObject *obj)
 {
@@ -25958,7 +25941,7 @@ float_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 double_float(PyObject *obj)
 {
@@ -25972,7 +25955,7 @@ double_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 longdouble_float(PyObject *obj)
 {
@@ -25986,7 +25969,7 @@ longdouble_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 cfloat_float(PyObject *obj)
 {
@@ -26000,7 +25983,7 @@ cfloat_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 cdouble_float(PyObject *obj)
 {
@@ -26014,7 +25997,7 @@ cdouble_float(PyObject *obj)
 #endif
 }
 
-#line 1329
+#line 1324
 static NPY_INLINE PyObject *
 clongdouble_float(PyObject *obj)
 {
@@ -26029,42 +26012,42 @@ clongdouble_float(PyObject *obj)
 }
 
 
-#line 1349
+#line 1344
 #define def_cmp_le(arg1, arg2) (arg1 <= arg2)
 #define cmplx_cmp_le(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag <= arg2.imag :        \
                                       arg1.real <= arg2.real)
 #define def_half_cmp_le(arg1, arg2) npy_half_le(arg1, arg2)
 
-#line 1349
+#line 1344
 #define def_cmp_ge(arg1, arg2) (arg1 >= arg2)
 #define cmplx_cmp_ge(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag >= arg2.imag :        \
                                       arg1.real >= arg2.real)
 #define def_half_cmp_ge(arg1, arg2) npy_half_ge(arg1, arg2)
 
-#line 1349
+#line 1344
 #define def_cmp_lt(arg1, arg2) (arg1 < arg2)
 #define cmplx_cmp_lt(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag < arg2.imag :        \
                                       arg1.real < arg2.real)
 #define def_half_cmp_lt(arg1, arg2) npy_half_lt(arg1, arg2)
 
-#line 1349
+#line 1344
 #define def_cmp_gt(arg1, arg2) (arg1 > arg2)
 #define cmplx_cmp_gt(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag > arg2.imag :        \
                                       arg1.real > arg2.real)
 #define def_half_cmp_gt(arg1, arg2) npy_half_gt(arg1, arg2)
 
-#line 1349
+#line 1344
 #define def_cmp_eq(arg1, arg2) (arg1 == arg2)
 #define cmplx_cmp_eq(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag == arg2.imag :        \
                                       arg1.real == arg2.real)
 #define def_half_cmp_eq(arg1, arg2) npy_half_eq(arg1, arg2)
 
-#line 1349
+#line 1344
 #define def_cmp_ne(arg1, arg2) (arg1 != arg2)
 #define cmplx_cmp_ne(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag != arg2.imag :        \
@@ -26072,7 +26055,7 @@ clongdouble_float(PyObject *obj)
 #define def_half_cmp_ne(arg1, arg2) npy_half_ne(arg1, arg2)
 
 
-#line 1363
+#line 1358
 static PyObject*
 byte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26131,7 +26114,7 @@ byte_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 ubyte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26190,7 +26173,7 @@ ubyte_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 short_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26249,7 +26232,7 @@ short_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 ushort_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26308,7 +26291,7 @@ ushort_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 int_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26367,7 +26350,7 @@ int_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 uint_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26426,7 +26409,7 @@ uint_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 long_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26485,7 +26468,7 @@ long_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 ulong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26544,7 +26527,7 @@ ulong_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 longlong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26603,7 +26586,7 @@ longlong_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 ulonglong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26662,7 +26645,7 @@ ulonglong_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 half_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26721,7 +26704,7 @@ half_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 float_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26780,7 +26763,7 @@ float_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 double_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26839,7 +26822,7 @@ double_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 longdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26898,7 +26881,7 @@ longdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 cfloat_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -26957,7 +26940,7 @@ cfloat_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 cdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -27016,7 +26999,7 @@ cdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1363
+#line 1358
 static PyObject*
 clongdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
@@ -27076,7 +27059,7 @@ clongdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 }
 
 
-#line 1428
+#line 1423
 static PyNumberMethods byte_as_number = {
     .nb_add = (binaryfunc)byte_add,
     .nb_subtract = (binaryfunc)byte_subtract,
@@ -27102,7 +27085,7 @@ static PyNumberMethods byte_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods ubyte_as_number = {
     .nb_add = (binaryfunc)ubyte_add,
     .nb_subtract = (binaryfunc)ubyte_subtract,
@@ -27128,7 +27111,7 @@ static PyNumberMethods ubyte_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods short_as_number = {
     .nb_add = (binaryfunc)short_add,
     .nb_subtract = (binaryfunc)short_subtract,
@@ -27154,7 +27137,7 @@ static PyNumberMethods short_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods ushort_as_number = {
     .nb_add = (binaryfunc)ushort_add,
     .nb_subtract = (binaryfunc)ushort_subtract,
@@ -27180,7 +27163,7 @@ static PyNumberMethods ushort_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods int_as_number = {
     .nb_add = (binaryfunc)int_add,
     .nb_subtract = (binaryfunc)int_subtract,
@@ -27206,7 +27189,7 @@ static PyNumberMethods int_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods uint_as_number = {
     .nb_add = (binaryfunc)uint_add,
     .nb_subtract = (binaryfunc)uint_subtract,
@@ -27232,7 +27215,7 @@ static PyNumberMethods uint_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods long_as_number = {
     .nb_add = (binaryfunc)long_add,
     .nb_subtract = (binaryfunc)long_subtract,
@@ -27258,7 +27241,7 @@ static PyNumberMethods long_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods ulong_as_number = {
     .nb_add = (binaryfunc)ulong_add,
     .nb_subtract = (binaryfunc)ulong_subtract,
@@ -27284,7 +27267,7 @@ static PyNumberMethods ulong_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods longlong_as_number = {
     .nb_add = (binaryfunc)longlong_add,
     .nb_subtract = (binaryfunc)longlong_subtract,
@@ -27310,7 +27293,7 @@ static PyNumberMethods longlong_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods ulonglong_as_number = {
     .nb_add = (binaryfunc)ulonglong_add,
     .nb_subtract = (binaryfunc)ulonglong_subtract,
@@ -27336,7 +27319,7 @@ static PyNumberMethods ulonglong_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods half_as_number = {
     .nb_add = (binaryfunc)half_add,
     .nb_subtract = (binaryfunc)half_subtract,
@@ -27362,7 +27345,7 @@ static PyNumberMethods half_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods float_as_number = {
     .nb_add = (binaryfunc)float_add,
     .nb_subtract = (binaryfunc)float_subtract,
@@ -27388,7 +27371,7 @@ static PyNumberMethods float_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods double_as_number = {
     .nb_add = (binaryfunc)double_add,
     .nb_subtract = (binaryfunc)double_subtract,
@@ -27414,7 +27397,7 @@ static PyNumberMethods double_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods longdouble_as_number = {
     .nb_add = (binaryfunc)longdouble_add,
     .nb_subtract = (binaryfunc)longdouble_subtract,
@@ -27440,7 +27423,7 @@ static PyNumberMethods longdouble_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods cfloat_as_number = {
     .nb_add = (binaryfunc)cfloat_add,
     .nb_subtract = (binaryfunc)cfloat_subtract,
@@ -27466,7 +27449,7 @@ static PyNumberMethods cfloat_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods cdouble_as_number = {
     .nb_add = (binaryfunc)cdouble_add,
     .nb_subtract = (binaryfunc)cdouble_subtract,
@@ -27492,7 +27475,7 @@ static PyNumberMethods cdouble_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1428
+#line 1423
 static PyNumberMethods clongdouble_as_number = {
     .nb_add = (binaryfunc)clongdouble_add,
     .nb_subtract = (binaryfunc)clongdouble_subtract,
@@ -27522,87 +27505,87 @@ static PyNumberMethods clongdouble_as_number = {
 NPY_NO_EXPORT void
 add_scalarmath(void)
 {
-    #line 1467
+    #line 1462
     byte_as_number.nb_index = PyByteArrType_Type.tp_as_number->nb_index;
     PyByteArrType_Type.tp_as_number = &(byte_as_number);
     PyByteArrType_Type.tp_richcompare = byte_richcompare;
     
-#line 1467
+#line 1462
     ubyte_as_number.nb_index = PyUByteArrType_Type.tp_as_number->nb_index;
     PyUByteArrType_Type.tp_as_number = &(ubyte_as_number);
     PyUByteArrType_Type.tp_richcompare = ubyte_richcompare;
     
-#line 1467
+#line 1462
     short_as_number.nb_index = PyShortArrType_Type.tp_as_number->nb_index;
     PyShortArrType_Type.tp_as_number = &(short_as_number);
     PyShortArrType_Type.tp_richcompare = short_richcompare;
     
-#line 1467
+#line 1462
     ushort_as_number.nb_index = PyUShortArrType_Type.tp_as_number->nb_index;
     PyUShortArrType_Type.tp_as_number = &(ushort_as_number);
     PyUShortArrType_Type.tp_richcompare = ushort_richcompare;
     
-#line 1467
+#line 1462
     int_as_number.nb_index = PyIntArrType_Type.tp_as_number->nb_index;
     PyIntArrType_Type.tp_as_number = &(int_as_number);
     PyIntArrType_Type.tp_richcompare = int_richcompare;
     
-#line 1467
+#line 1462
     uint_as_number.nb_index = PyUIntArrType_Type.tp_as_number->nb_index;
     PyUIntArrType_Type.tp_as_number = &(uint_as_number);
     PyUIntArrType_Type.tp_richcompare = uint_richcompare;
     
-#line 1467
+#line 1462
     long_as_number.nb_index = PyLongArrType_Type.tp_as_number->nb_index;
     PyLongArrType_Type.tp_as_number = &(long_as_number);
     PyLongArrType_Type.tp_richcompare = long_richcompare;
     
-#line 1467
+#line 1462
     ulong_as_number.nb_index = PyULongArrType_Type.tp_as_number->nb_index;
     PyULongArrType_Type.tp_as_number = &(ulong_as_number);
     PyULongArrType_Type.tp_richcompare = ulong_richcompare;
     
-#line 1467
+#line 1462
     longlong_as_number.nb_index = PyLongLongArrType_Type.tp_as_number->nb_index;
     PyLongLongArrType_Type.tp_as_number = &(longlong_as_number);
     PyLongLongArrType_Type.tp_richcompare = longlong_richcompare;
     
-#line 1467
+#line 1462
     ulonglong_as_number.nb_index = PyULongLongArrType_Type.tp_as_number->nb_index;
     PyULongLongArrType_Type.tp_as_number = &(ulonglong_as_number);
     PyULongLongArrType_Type.tp_richcompare = ulonglong_richcompare;
     
-#line 1467
+#line 1462
     half_as_number.nb_index = PyHalfArrType_Type.tp_as_number->nb_index;
     PyHalfArrType_Type.tp_as_number = &(half_as_number);
     PyHalfArrType_Type.tp_richcompare = half_richcompare;
     
-#line 1467
+#line 1462
     float_as_number.nb_index = PyFloatArrType_Type.tp_as_number->nb_index;
     PyFloatArrType_Type.tp_as_number = &(float_as_number);
     PyFloatArrType_Type.tp_richcompare = float_richcompare;
     
-#line 1467
+#line 1462
     double_as_number.nb_index = PyDoubleArrType_Type.tp_as_number->nb_index;
     PyDoubleArrType_Type.tp_as_number = &(double_as_number);
     PyDoubleArrType_Type.tp_richcompare = double_richcompare;
     
-#line 1467
+#line 1462
     longdouble_as_number.nb_index = PyLongDoubleArrType_Type.tp_as_number->nb_index;
     PyLongDoubleArrType_Type.tp_as_number = &(longdouble_as_number);
     PyLongDoubleArrType_Type.tp_richcompare = longdouble_richcompare;
     
-#line 1467
+#line 1462
     cfloat_as_number.nb_index = PyCFloatArrType_Type.tp_as_number->nb_index;
     PyCFloatArrType_Type.tp_as_number = &(cfloat_as_number);
     PyCFloatArrType_Type.tp_richcompare = cfloat_richcompare;
     
-#line 1467
+#line 1462
     cdouble_as_number.nb_index = PyCDoubleArrType_Type.tp_as_number->nb_index;
     PyCDoubleArrType_Type.tp_as_number = &(cdouble_as_number);
     PyCDoubleArrType_Type.tp_richcompare = cdouble_richcompare;
     
-#line 1467
+#line 1462
     clongdouble_as_number.nb_index = PyCLongDoubleArrType_Type.tp_as_number->nb_index;
     PyCLongDoubleArrType_Type.tp_as_number = &(clongdouble_as_number);
     PyCLongDoubleArrType_Type.tp_richcompare = clongdouble_richcompare;

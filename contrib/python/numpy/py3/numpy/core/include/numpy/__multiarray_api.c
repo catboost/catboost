@@ -307,5 +307,8 @@ void *PyArray_API[] = {
         (void *) PyArray_CheckAnyScalarExact,
         (void *) PyArray_MapIterArrayCopyIfOverlap,
         (void *) PyArray_ResolveWritebackIfCopy,
-        (void *) PyArray_SetWritebackIfCopyBase
+        (void *) PyArray_SetWritebackIfCopyBase,
+        (void *) PyDataMem_SetHandler,
+        (void *) PyDataMem_GetHandler,
+        (PyObject* *) &PyDataMem_DefaultHandler
 };

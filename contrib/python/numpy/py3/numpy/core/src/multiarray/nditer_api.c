@@ -11,8 +11,9 @@
  */
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 
-/* Indicate that this .c file is allowed to include the header */
+/* Allow this .c file to include nditer_impl.h */
 #define NPY_ITERATOR_IMPLEMENTATION_CODE
+
 #include "nditer_impl.h"
 #include "templ_common.h"
 #include "ctors.h"
@@ -115,7 +116,7 @@ NpyIter_RemoveAxis(NpyIter *iter, int axis)
                 --p;
             }
         }
-        else if (p <= 0) {
+        else {
             if (p < -1-axis) {
                 ++p;
             }
@@ -1331,6 +1332,11 @@ NpyIter_GetInnerFixedStrideArray(NpyIter *iter, npy_intp *out_strides)
 
         for (iop = 0; iop < nop; ++iop) {
             stride = strides[iop];
+#if defined(__has_feature)
+#  if __has_feature(memory_sanitizer)
+            __msan_unpoison(&stride, sizeof(stride));
+#  endif
+#endif
             /*
              * Operands which are always/never buffered have fixed strides,
              * and everything has fixed strides when ndim is 0 or 1
@@ -2129,7 +2135,7 @@ npyiter_copy_to_buffers(NpyIter *iter, char **prev_dataptrs)
         /*
          * Try to do make the outersize as big as possible. This allows
          * it to shrink when processing the last bit of the outer reduce loop,
-         * then grow again at the beginnning of the next outer reduce loop.
+         * then grow again at the beginning of the next outer reduce loop.
          */
         NBF_REDUCE_OUTERSIZE(bufferdata) = (NAD_SHAPE(reduce_outeraxisdata)-
                                             NAD_INDEX(reduce_outeraxisdata));
@@ -2803,9 +2809,9 @@ npyiter_checkreducesize(NpyIter *iter, npy_intp count,
     if (coord != 0) {
         /*
          * In this case, it is only safe to reuse the buffer if the amount
-         * of data copied is not more then the current axes, as is the
+         * of data copied is not more than the current axes, as is the
          * case when reuse_reduce_loops was active already.
-         * It should be in principle OK when the idim loop returns immidiatly.
+         * It should be in principle OK when the idim loop returns immediately.
          */
         NIT_ITFLAGS(iter) &= ~NPY_ITFLAG_REUSE_REDUCE_LOOPS;
     }

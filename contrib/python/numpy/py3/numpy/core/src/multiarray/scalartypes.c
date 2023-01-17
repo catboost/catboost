@@ -10,8 +10,8 @@
 #line 1
 /* -*- c -*- */
 #define PY_SSIZE_T_CLEAN
-#include "Python.h"
-#include "structmember.h"
+#include <Python.h>
+#include <structmember.h>
 
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #ifndef _MULTIARRAYMODULE
@@ -44,6 +44,16 @@
 
 #include "binop_override.h"
 
+/*
+ * used for allocating a single scalar, so use the default numpy
+ * memory allocators instead of the (maybe) user overrides
+ */
+NPY_NO_EXPORT void *
+npy_alloc_cache_zero(size_t nmemb, size_t size);
+
+NPY_NO_EXPORT void
+npy_free_cache(void * p, npy_uintp sz);
+
 NPY_NO_EXPORT PyBoolScalarObject _PyArrayScalar_BoolValues[] = {
     {PyObject_HEAD_INIT(&PyBoolArrType_Type) 0},
     {PyObject_HEAD_INIT(&PyBoolArrType_Type) 1},
@@ -57,63 +67,63 @@ NPY_NO_EXPORT PyTypeObject PyTimeIntegerArrType_Type;
  * single inheritance)
  */
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyNumberArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.number",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.integer",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PySignedIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.signedinteger",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyUnsignedIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.unsignedinteger",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyInexactArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.inexact",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyFloatingArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.floating",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyComplexFloatingArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.complexfloating",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyFlexibleArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.flexible",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 66
 NPY_NO_EXPORT PyTypeObject PyCharacterArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.character",
@@ -221,7 +231,7 @@ gentype_add(PyObject *m1, PyObject* m2)
     return PyArray_Type.tp_as_number->nb_add(m1, m2);
 }
 
-#line 168
+#line 178
 static PyObject *
 gentype_subtract(PyObject *m1, PyObject *m2)
 {
@@ -230,7 +240,7 @@ gentype_subtract(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_remainder(PyObject *m1, PyObject *m2)
 {
@@ -239,7 +249,7 @@ gentype_remainder(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_divmod(PyObject *m1, PyObject *m2)
 {
@@ -248,7 +258,7 @@ gentype_divmod(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_lshift(PyObject *m1, PyObject *m2)
 {
@@ -257,7 +267,7 @@ gentype_lshift(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_rshift(PyObject *m1, PyObject *m2)
 {
@@ -266,7 +276,7 @@ gentype_rshift(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_and(PyObject *m1, PyObject *m2)
 {
@@ -275,7 +285,7 @@ gentype_and(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_xor(PyObject *m1, PyObject *m2)
 {
@@ -284,7 +294,7 @@ gentype_xor(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_or(PyObject *m1, PyObject *m2)
 {
@@ -293,7 +303,7 @@ gentype_or(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_floor_divide(PyObject *m1, PyObject *m2)
 {
@@ -302,7 +312,7 @@ gentype_floor_divide(PyObject *m1, PyObject *m2)
 }
 
 
-#line 168
+#line 178
 static PyObject *
 gentype_true_divide(PyObject *m1, PyObject *m2)
 {
@@ -346,7 +356,118 @@ gentype_multiply(PyObject *m1, PyObject *m2)
     return PyArray_Type.tp_as_number->nb_multiply(m1, m2);
 }
 
-#line 215
+#line 231
+static PyObject *
+npy_byte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_byte scalar = PyArrayScalar_VAL(self, Byte);
+    uint8_t count = npy_popcounthh(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_ubyte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ubyte scalar = PyArrayScalar_VAL(self, UByte);
+    uint8_t count = npy_popcountuhh(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_short_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_short scalar = PyArrayScalar_VAL(self, Short);
+    uint8_t count = npy_popcounth(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_ushort_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ushort scalar = PyArrayScalar_VAL(self, UShort);
+    uint8_t count = npy_popcountuh(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_int_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_int scalar = PyArrayScalar_VAL(self, Int);
+    uint8_t count = npy_popcount(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_uint_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_uint scalar = PyArrayScalar_VAL(self, UInt);
+    uint8_t count = npy_popcountu(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_long_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_long scalar = PyArrayScalar_VAL(self, Long);
+    uint8_t count = npy_popcountl(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_ulong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ulong scalar = PyArrayScalar_VAL(self, ULong);
+    uint8_t count = npy_popcountul(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_longlong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_longlong scalar = PyArrayScalar_VAL(self, LongLong);
+    uint8_t count = npy_popcountll(scalar);
+    PyObject *result = PyLong_FromLongLong(count);
+
+    return result;
+}
+
+#line 231
+static PyObject *
+npy_ulonglong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ulonglong scalar = PyArrayScalar_VAL(self, ULongLong);
+    uint8_t count = npy_popcountull(scalar);
+    PyObject *result = PyLong_FromLongLong(count);
+
+    return result;
+}
+
+
+#line 246
 static PyObject *
 gentype_positive(PyObject *m1)
 {
@@ -361,7 +482,7 @@ gentype_positive(PyObject *m1)
     return ret;
 }
 
-#line 215
+#line 246
 static PyObject *
 gentype_negative(PyObject *m1)
 {
@@ -376,7 +497,7 @@ gentype_negative(PyObject *m1)
     return ret;
 }
 
-#line 215
+#line 246
 static PyObject *
 gentype_absolute(PyObject *m1)
 {
@@ -391,7 +512,7 @@ gentype_absolute(PyObject *m1)
     return ret;
 }
 
-#line 215
+#line 246
 static PyObject *
 gentype_invert(PyObject *m1)
 {
@@ -406,7 +527,7 @@ gentype_invert(PyObject *m1)
     return ret;
 }
 
-#line 215
+#line 246
 static PyObject *
 gentype_int(PyObject *m1)
 {
@@ -421,7 +542,7 @@ gentype_int(PyObject *m1)
     return ret;
 }
 
-#line 215
+#line 246
 static PyObject *
 gentype_float(PyObject *m1)
 {
@@ -526,7 +647,7 @@ gentype_format(PyObject *self, PyObject *args)
 #define NPY_LONGDOUBLE_FMT NPY_DOUBLE_FMT
 #endif
 
-#line 326
+#line 357
 
 NPY_NO_EXPORT PyObject *
 format_half(npy_half val, npy_bool scientific,
@@ -547,7 +668,7 @@ format_half(npy_half val, npy_bool scientific,
 
 
 
-#line 326
+#line 357
 
 NPY_NO_EXPORT PyObject *
 format_float(npy_float val, npy_bool scientific,
@@ -568,7 +689,7 @@ format_float(npy_float val, npy_bool scientific,
 
 
 
-#line 326
+#line 357
 
 NPY_NO_EXPORT PyObject *
 format_double(npy_double val, npy_bool scientific,
@@ -589,7 +710,7 @@ format_double(npy_double val, npy_bool scientific,
 
 
 
-#line 326
+#line 357
 
 NPY_NO_EXPORT PyObject *
 format_longdouble(npy_longdouble val, npy_bool scientific,
@@ -616,7 +737,7 @@ format_longdouble(npy_longdouble val, npy_bool scientific,
  * then call the corresponding functions of PyBytes_Type to generate the string
  */
 
-#line 355
+#line 386
 static PyObject *
 stringtype_repr(PyObject *self)
 {
@@ -637,7 +758,7 @@ stringtype_repr(PyObject *self)
     return ret;
 }
 
-#line 355
+#line 386
 static PyObject *
 stringtype_str(PyObject *self)
 {
@@ -664,7 +785,7 @@ stringtype_str(PyObject *self)
  * then call the corresponding functions of PyUnicode_Type to generate the string
  */
 
-#line 384
+#line 415
 static PyObject *
 unicodetype_repr(PyObject *self)
 {
@@ -691,7 +812,7 @@ unicodetype_repr(PyObject *self)
     return ret;
 }
 
-#line 384
+#line 415
 static PyObject *
 unicodetype_str(PyObject *self)
 {
@@ -1017,9 +1138,9 @@ extern int npy_legacy_print_mode;
 #define LONGDOUBLEPREC_STR 12
 #endif
 
-#line 713
+#line 744
 
-#line 720
+#line 751
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 #define _FMT2 "%%+.%i" NPY_FLOAT_FMT
@@ -1103,7 +1224,7 @@ legacy_cfloat_formatstr(npy_cfloat val)
 #undef _FMT2
 
 
-#line 720
+#line 751
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_DOUBLE_FMT
@@ -1187,7 +1308,7 @@ legacy_cdouble_formatstr(npy_cdouble val)
 #undef _FMT2
 
 
-#line 720
+#line 751
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_LONGDOUBLE_FMT
@@ -1272,7 +1393,7 @@ legacy_clongdouble_formatstr(npy_clongdouble val)
 
 
 
-#line 810
+#line 841
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 
@@ -1306,7 +1427,7 @@ legacy_float_formatstr(npy_float val){
 #undef _FMT1
 
 
-#line 810
+#line 841
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 
@@ -1340,7 +1461,7 @@ legacy_double_formatstr(npy_double val){
 #undef _FMT1
 
 
-#line 810
+#line 841
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 
@@ -1376,9 +1497,9 @@ legacy_longdouble_formatstr(npy_longdouble val){
 
 
 
-#line 713
+#line 744
 
-#line 720
+#line 751
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 #define _FMT2 "%%+.%i" NPY_FLOAT_FMT
@@ -1462,7 +1583,7 @@ legacy_cfloat_formatrepr(npy_cfloat val)
 #undef _FMT2
 
 
-#line 720
+#line 751
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_DOUBLE_FMT
@@ -1546,7 +1667,7 @@ legacy_cdouble_formatrepr(npy_cdouble val)
 #undef _FMT2
 
 
-#line 720
+#line 751
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_LONGDOUBLE_FMT
@@ -1631,7 +1752,7 @@ legacy_clongdouble_formatrepr(npy_clongdouble val)
 
 
 
-#line 810
+#line 841
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 
@@ -1665,7 +1786,7 @@ legacy_float_formatrepr(npy_float val){
 #undef _FMT1
 
 
-#line 810
+#line 841
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 
@@ -1699,7 +1820,7 @@ legacy_double_formatrepr(npy_double val){
 #undef _FMT1
 
 
-#line 810
+#line 841
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 
@@ -1742,9 +1863,9 @@ legacy_longdouble_formatrepr(npy_longdouble val){
  */
 
 
-#line 855
+#line 886
 
-#line 861
+#line 892
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -1753,7 +1874,7 @@ floattype_str_either(npy_float val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatstr(val);
     }
 
@@ -1779,7 +1900,7 @@ cfloattype_str(PyObject *self)
     npy_cfloat val = PyArrayScalar_VAL(self, CFloat);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cfloat_formatstr(val);
     }
 
@@ -1835,7 +1956,7 @@ cfloattype_str(PyObject *self)
 #undef PREC
 
 
-#line 861
+#line 892
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -1844,7 +1965,7 @@ doubletype_str_either(npy_double val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_double absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_double_formatstr(val);
     }
 
@@ -1870,7 +1991,7 @@ cdoubletype_str(PyObject *self)
     npy_cdouble val = PyArrayScalar_VAL(self, CDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cdouble_formatstr(val);
     }
 
@@ -1926,7 +2047,7 @@ cdoubletype_str(PyObject *self)
 #undef PREC
 
 
-#line 861
+#line 892
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -1935,7 +2056,7 @@ longdoubletype_str_either(npy_longdouble val, TrimMode trim_pos, TrimMode trim_s
 {
     npy_longdouble absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_longdouble_formatstr(val);
     }
 
@@ -1961,7 +2082,7 @@ clongdoubletype_str(PyObject *self)
     npy_clongdouble val = PyArrayScalar_VAL(self, CLongDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_clongdouble_formatstr(val);
     }
 
@@ -2026,7 +2147,7 @@ halftype_str(PyObject *self)
     float floatval = npy_half_to_float(val);
     float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatstr(floatval);
     }
 
@@ -2040,9 +2161,9 @@ halftype_str(PyObject *self)
 
 
 
-#line 855
+#line 886
 
-#line 861
+#line 892
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2051,7 +2172,7 @@ floattype_repr_either(npy_float val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatrepr(val);
     }
 
@@ -2077,7 +2198,7 @@ cfloattype_repr(PyObject *self)
     npy_cfloat val = PyArrayScalar_VAL(self, CFloat);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cfloat_formatrepr(val);
     }
 
@@ -2133,7 +2254,7 @@ cfloattype_repr(PyObject *self)
 #undef PREC
 
 
-#line 861
+#line 892
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2142,7 +2263,7 @@ doubletype_repr_either(npy_double val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_double absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_double_formatrepr(val);
     }
 
@@ -2168,7 +2289,7 @@ cdoubletype_repr(PyObject *self)
     npy_cdouble val = PyArrayScalar_VAL(self, CDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cdouble_formatrepr(val);
     }
 
@@ -2224,7 +2345,7 @@ cdoubletype_repr(PyObject *self)
 #undef PREC
 
 
-#line 861
+#line 892
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2233,7 +2354,7 @@ longdoubletype_repr_either(npy_longdouble val, TrimMode trim_pos, TrimMode trim_
 {
     npy_longdouble absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_longdouble_formatrepr(val);
     }
 
@@ -2259,7 +2380,7 @@ clongdoubletype_repr(PyObject *self)
     npy_clongdouble val = PyArrayScalar_VAL(self, CLongDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_clongdouble_formatrepr(val);
     }
 
@@ -2324,7 +2445,7 @@ halftype_repr(PyObject *self)
     float floatval = npy_half_to_float(val);
     float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatrepr(floatval);
     }
 
@@ -2339,7 +2460,7 @@ halftype_repr(PyObject *self)
 
 
 
-#line 980
+#line 1011
 static PyObject *
 longdoubletype_float(PyObject *self)
 {
@@ -2355,7 +2476,7 @@ longdoubletype_long(PyObject *self)
 }
 
 
-#line 980
+#line 1011
 static PyObject *
 clongdoubletype_float(PyObject *self)
 {
@@ -2433,19 +2554,19 @@ gentype_richcompare(PyObject *self, PyObject *other, int cmp_op)
 }
 
 static PyObject *
-gentype_ndim_get(PyObject *NPY_UNUSED(self))
+gentype_ndim_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyLong_FromLong(0);
 }
 
 static PyObject *
-gentype_flags_get(PyObject *NPY_UNUSED(self))
+gentype_flags_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyArray_NewFlagsObject(NULL);
 }
 
 static PyObject *
-voidtype_flags_get(PyVoidScalarObject *self)
+voidtype_flags_get(PyVoidScalarObject *self, void *NPY_UNUSED(ignored))
 {
     PyObject *flagobj;
     flagobj = PyArrayFlags_Type.tp_alloc(&PyArrayFlags_Type, 0);
@@ -2458,7 +2579,7 @@ voidtype_flags_get(PyVoidScalarObject *self)
 }
 
 static PyObject *
-voidtype_dtypedescr_get(PyVoidScalarObject *self)
+voidtype_dtypedescr_get(PyVoidScalarObject *self, void *NPY_UNUSED(ignored))
 {
     Py_INCREF(self->descr);
     return (PyObject *)self->descr;
@@ -2466,7 +2587,7 @@ voidtype_dtypedescr_get(PyVoidScalarObject *self)
 
 
 static PyObject *
-inttype_numerator_get(PyObject *self)
+inttype_numerator_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     Py_INCREF(self);
     return self;
@@ -2474,21 +2595,21 @@ inttype_numerator_get(PyObject *self)
 
 
 static PyObject *
-inttype_denominator_get(PyObject *self)
+inttype_denominator_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     return PyLong_FromLong(1);
 }
 
 
 static PyObject *
-gentype_data_get(PyObject *self)
+gentype_data_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     return PyMemoryView_FromObject(self);
 }
 
 
 static PyObject *
-gentype_itemsize_get(PyObject *self)
+gentype_itemsize_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArray_Descr *typecode;
     PyObject *ret;
@@ -2502,16 +2623,16 @@ gentype_itemsize_get(PyObject *self)
 }
 
 static PyObject *
-gentype_size_get(PyObject *NPY_UNUSED(self))
+gentype_size_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyLong_FromLong(1);
 }
 
 static PyObject *
-gentype_sizeof(PyObject *self)
+gentype_sizeof(PyObject *self, PyObject *NPY_UNUSED(args))
 {
     Py_ssize_t nbytes;
-    PyObject * isz = gentype_itemsize_get(self);
+    PyObject * isz = gentype_itemsize_get(self, NULL);
     if (isz == NULL) {
         return NULL;
     }
@@ -2540,7 +2661,7 @@ gentype_struct_free(PyObject *ptr)
 }
 
 static PyObject *
-gentype_struct_get(PyObject *self)
+gentype_struct_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArrayObject *arr;
     PyArrayInterface *inter;
@@ -2566,20 +2687,20 @@ gentype_struct_get(PyObject *self)
 }
 
 static PyObject *
-gentype_priority_get(PyObject *NPY_UNUSED(self))
+gentype_priority_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyFloat_FromDouble(NPY_SCALAR_PRIORITY);
 }
 
 static PyObject *
-gentype_shape_get(PyObject *NPY_UNUSED(self))
+gentype_shape_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyTuple_New(0);
 }
 
 
 static PyObject *
-gentype_interface_get(PyObject *self)
+gentype_interface_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArrayObject *arr;
     PyObject *inter;
@@ -2599,20 +2720,20 @@ gentype_interface_get(PyObject *self)
 
 
 static PyObject *
-gentype_typedescr_get(PyObject *self)
+gentype_typedescr_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     return (PyObject *)PyArray_DescrFromScalar(self);
 }
 
 
 static PyObject *
-gentype_base_get(PyObject *NPY_UNUSED(self))
+gentype_base_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     Py_RETURN_NONE;
 }
 
 static PyObject *
-voidtype_base_get(PyVoidScalarObject *self)
+voidtype_base_get(PyVoidScalarObject *self, void *NPY_UNUSED(ignored))
 {
     if (self->base == NULL) {
         Py_RETURN_NONE;
@@ -2643,7 +2764,7 @@ _realdescr_fromcomplexscalar(PyObject *self, int *typenum)
 }
 
 static PyObject *
-gentype_real_get(PyObject *self)
+gentype_real_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArray_Descr *typecode;
     PyObject *ret;
@@ -2670,7 +2791,7 @@ gentype_real_get(PyObject *self)
 }
 
 static PyObject *
-gentype_imag_get(PyObject *self)
+gentype_imag_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArray_Descr *typecode=NULL;
     PyObject *ret;
@@ -2700,7 +2821,7 @@ gentype_imag_get(PyObject *self)
         int elsize;
         typecode = PyArray_DescrFromScalar(self);
         elsize = typecode->elsize;
-        temp = npy_alloc_cache_zero(elsize);
+        temp = npy_alloc_cache_zero(1, elsize);
         ret = PyArray_Scalar(temp, typecode, NULL);
         npy_free_cache(temp, elsize);
     }
@@ -2710,7 +2831,7 @@ gentype_imag_get(PyObject *self)
 }
 
 static PyObject *
-gentype_flat_get(PyObject *self)
+gentype_flat_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyObject *ret, *arr;
 
@@ -2725,7 +2846,7 @@ gentype_flat_get(PyObject *self)
 
 
 static PyObject *
-gentype_transpose_get(PyObject *self)
+gentype_transpose_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     Py_INCREF(self);
     return self;
@@ -2843,77 +2964,77 @@ gentype_wraparray(PyObject *NPY_UNUSED(scalar), PyObject *args)
  * These gentype_* functions do not take keyword arguments.
  * The proper flag is METH_VARARGS.
  */
-#line 1473
+#line 1504
 static PyObject *
 gentype_tolist(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "tolist");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_item(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "item");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype___deepcopy__(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "__deepcopy__");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype___copy__(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "__copy__");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_swapaxes(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "swapaxes");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_conj(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "conj");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_conjugate(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "conjugate");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_nonzero(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "nonzero");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_fill(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "fill");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_transpose(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "transpose");
 }
 
-#line 1473
+#line 1504
 static PyObject *
 gentype_newbyteorder(PyObject *self, PyObject *args)
 {
@@ -2973,266 +3094,266 @@ gentype_byteswap(PyObject *self, PyObject *args, PyObject *kwds)
  * These gentype_* functions take keyword arguments.
  * The proper flag is METH_VARARGS | METH_KEYWORDS.
  */
-#line 1540
+#line 1571
 static PyObject *
 gentype_take(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "take");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_getfield(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "getfield");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_put(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "put");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_repeat(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "repeat");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_tofile(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tofile");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_mean(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "mean");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_trace(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "trace");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_diagonal(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "diagonal");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_clip(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "clip");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_std(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "std");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_var(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "var");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_sum(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "sum");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_cumsum(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "cumsum");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_prod(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "prod");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_cumprod(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "cumprod");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_compress(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "compress");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_sort(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "sort");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_argsort(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argsort");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "round");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_argmax(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argmax");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_argmin(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argmin");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_max(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "max");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_min(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "min");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_ptp(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "ptp");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_any(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "any");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_all(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "all");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_astype(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "astype");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_resize(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "resize");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_reshape(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "reshape");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_choose(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "choose");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_tostring(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tostring");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_tobytes(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tobytes");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_copy(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "copy");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_searchsorted(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "searchsorted");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_view(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "view");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_flatten(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "flatten");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_ravel(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "ravel");
 }
 
-#line 1540
+#line 1571
 static PyObject *
 gentype_squeeze(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3241,7 +3362,7 @@ gentype_squeeze(PyObject *self, PyObject *args, PyObject *kwds)
 
 
 
-#line 1552
+#line 1583
 static PyObject *
 integertype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3288,7 +3409,7 @@ integertype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
     return obj;
 }
 
-#line 1552
+#line 1583
 static PyObject *
 floatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3335,7 +3456,7 @@ floatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
     return obj;
 }
 
-#line 1552
+#line 1583
 static PyObject *
 complexfloatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3592,12 +3713,65 @@ gentype_setflags(PyObject *NPY_UNUSED(self), PyObject *NPY_UNUSED(args),
     Py_RETURN_NONE;
 }
 
+static PyObject *
+numbertype_class_getitem_abc(PyObject *cls, PyObject *args)
+{
+    PyObject *generic_alias;
+
+#ifdef Py_GENERICALIASOBJECT_H
+    Py_ssize_t args_len;
+    int args_len_expected;
+
+    /* complexfloating should take 2 parameters, all others take 1 */
+    if (PyType_IsSubtype((PyTypeObject *)cls,
+                         &PyComplexFloatingArrType_Type)) {
+        args_len_expected = 2;
+    }
+    else {
+        args_len_expected = 1;
+    }
+
+    args_len = PyTuple_Check(args) ? PyTuple_Size(args) : 1;
+    if (args_len != args_len_expected) {
+        return PyErr_Format(PyExc_TypeError,
+                            "Too %s arguments for %s",
+                            args_len > args_len_expected ? "many" : "few",
+                            ((PyTypeObject *)cls)->tp_name);
+    }
+    generic_alias = Py_GenericAlias(cls, args);
+#else
+    PyErr_SetString(PyExc_TypeError,
+                    "Type subscription requires python >= 3.9");
+    generic_alias = NULL;
+#endif
+    return generic_alias;
+}
+
+/*
+ * Use for concrete np.number subclasses, making them act as if they
+ * were subtyped from e.g. np.signedinteger[object], thus lacking any
+ * free subscription parameters. Requires python >= 3.9.
+ */
+static PyObject *
+numbertype_class_getitem(PyObject *cls, PyObject *args)
+{
+#ifdef Py_GENERICALIASOBJECT_H
+    PyErr_Format(PyExc_TypeError,
+                 "There are no type variables left in %s",
+                 ((PyTypeObject *)cls)->tp_name);
+#else
+    PyErr_SetString(PyExc_TypeError,
+                    "Type subscription requires python >= 3.9");
+#endif
+    return NULL;
+}
+
 /*
  * casting complex numbers (that don't inherit from Python complex)
  * to Python complex
  */
 
-#line 1817
+#line 1901
 static PyObject *
 cfloat_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                PyObject *NPY_UNUSED(kwds))
@@ -3606,7 +3780,7 @@ cfloat_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                                  PyArrayScalar_VAL(self, CFloat).imag);
 }
 
-#line 1817
+#line 1901
 static PyObject *
 clongdouble_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                PyObject *NPY_UNUSED(kwds))
@@ -3616,10 +3790,10 @@ clongdouble_complex(PyObject *self, PyObject *NPY_UNUSED(args),
 }
 
 
-#line 1835
+#line 1919
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-half_as_integer_ratio(PyObject *self)
+half_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 1
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Half));
@@ -3692,10 +3866,10 @@ error:
     return result_pair;
 }
 
-#line 1835
+#line 1919
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-float_as_integer_ratio(PyObject *self)
+float_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 0
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Float));
@@ -3768,10 +3942,10 @@ error:
     return result_pair;
 }
 
-#line 1835
+#line 1919
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-double_as_integer_ratio(PyObject *self)
+double_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 0
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Double));
@@ -3844,10 +4018,10 @@ error:
     return result_pair;
 }
 
-#line 1835
+#line 1919
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-longdouble_as_integer_ratio(PyObject *self)
+longdouble_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 0
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, LongDouble));
@@ -3921,6 +4095,103 @@ error:
 }
 
 
+#line 2001
+static PyObject *
+half_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 1
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Half));
+#else
+    npy_half val = PyArrayScalar_VAL(self, Half);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floorf(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+#line 2001
+static PyObject *
+float_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 0
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Float));
+#else
+    npy_float val = PyArrayScalar_VAL(self, Float);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floorf(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+#line 2001
+static PyObject *
+double_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 0
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Double));
+#else
+    npy_double val = PyArrayScalar_VAL(self, Double);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floor(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+#line 2001
+static PyObject *
+longdouble_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 0
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, LongDouble));
+#else
+    npy_longdouble val = PyArrayScalar_VAL(self, LongDouble);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floorl(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+
+static PyObject *
+integer_is_integer(PyObject *self, PyObject *NPY_UNUSED(args)) {
+    Py_RETURN_TRUE;
+}
 
 /*
  * need to fill in doc-strings for these methods on import -- copy from
@@ -4168,33 +4439,40 @@ static PyGetSetDef inttype_getsets[] = {
     {NULL, NULL, NULL, NULL, NULL}
 };
 
-#line 2161
+static PyMethodDef numbertype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem_abc,
+        METH_CLASS | METH_O, NULL},
+    {NULL, NULL, 0, NULL}  /* sentinel */
+};
+
+#line 2286
 static PyMethodDef cfloattype_methods[] = {
     {"__complex__",
         (PyCFunction)cfloat_complex,
         METH_VARARGS | METH_KEYWORDS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2161
+#line 2286
 static PyMethodDef clongdoubletype_methods[] = {
     {"__complex__",
         (PyCFunction)clongdouble_complex,
         METH_VARARGS | METH_KEYWORDS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
 
-#line 2172
-static PyMethodDef integertype_methods[] = {
-    /* Hook for the round() builtin */
-    {"__round__",
-        (PyCFunction)integertype_dunder_round,
-        METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL, NULL, 0, NULL} /* sentinel */
-};
-
-#line 2172
+#line 2301
 static PyMethodDef floatingtype_methods[] = {
     /* Hook for the round() builtin */
     {"__round__",
@@ -4203,7 +4481,7 @@ static PyMethodDef floatingtype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2172
+#line 2301
 static PyMethodDef complexfloatingtype_methods[] = {
     /* Hook for the round() builtin */
     {"__round__",
@@ -4213,37 +4491,217 @@ static PyMethodDef complexfloatingtype_methods[] = {
 };
 
 
-#line 2184
+static PyMethodDef integertype_methods[] = {
+    /* Hook for the round() builtin */
+    {"__round__",
+        (PyCFunction)integertype_dunder_round,
+        METH_VARARGS | METH_KEYWORDS, NULL},
+    {"is_integer",
+        (PyCFunction)integer_is_integer,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2324
 static PyMethodDef halftype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)half_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)half_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2184
+#line 2324
 static PyMethodDef floattype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)float_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)float_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2184
+#line 2324
 static PyMethodDef doubletype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)double_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)double_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2184
+#line 2324
 static PyMethodDef longdoubletype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)longdouble_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)longdouble_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
+
+
+#line 2342
+static PyMethodDef timedeltatype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {NULL, NULL, 0, NULL}
+};
+
+#line 2342
+static PyMethodDef cdoubletype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {NULL, NULL, 0, NULL}
+};
+
+
+#line 2355
+static PyMethodDef bytetype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_byte_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef ubytetype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ubyte_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef shorttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_short_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef ushorttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ushort_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef inttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_int_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef uinttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_uint_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef longtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_long_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef ulongtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ulong_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef longlongtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_longlong_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2355
+static PyMethodDef ulonglongtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ulonglong_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
 
 
 /************* As_mapping functions for void array scalar ************/
@@ -4466,6 +4924,7 @@ gentype_arrtype_getbuffer(PyObject *self, Py_buffer *view, int flags)
                 "user-defined scalar %R registered for built-in dtype %S? "
                 "This should be impossible.",
                 self, descr);
+        Py_DECREF(descr);
         return -1;
     }
     view->ndim = 0;
@@ -4489,7 +4948,7 @@ static PyBufferProcs gentype_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 bool_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4530,7 +4989,7 @@ static PyBufferProcs bool_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 byte_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4571,7 +5030,7 @@ static PyBufferProcs byte_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 short_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4612,7 +5071,7 @@ static PyBufferProcs short_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 int_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4653,7 +5112,7 @@ static PyBufferProcs int_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 long_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4694,7 +5153,7 @@ static PyBufferProcs long_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 longlong_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4735,7 +5194,7 @@ static PyBufferProcs longlong_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 ubyte_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4776,7 +5235,7 @@ static PyBufferProcs ubyte_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 ushort_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4817,7 +5276,7 @@ static PyBufferProcs ushort_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 uint_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4858,7 +5317,7 @@ static PyBufferProcs uint_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 ulong_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4899,7 +5358,7 @@ static PyBufferProcs ulong_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 ulonglong_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4940,7 +5399,7 @@ static PyBufferProcs ulonglong_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 half_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -4981,7 +5440,7 @@ static PyBufferProcs half_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 float_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5022,7 +5481,7 @@ static PyBufferProcs float_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 double_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5063,7 +5522,7 @@ static PyBufferProcs double_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 longdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5104,7 +5563,7 @@ static PyBufferProcs longdouble_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 cfloat_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5145,7 +5604,7 @@ static PyBufferProcs cfloat_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 cdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5186,7 +5645,7 @@ static PyBufferProcs cdouble_arrtype_as_buffer = {
 };
 
 
-#line 2447
+#line 2624
 
 static int
 clongdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5292,7 +5751,7 @@ static PyBufferProcs unicode_arrtype_as_buffer = {
 };
 
 
-#line 2556
+#line 2733
 
 static int
 datetime_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5334,7 +5793,7 @@ static PyBufferProcs datetime_arrtype_as_buffer = {
 };
 
 
-#line 2556
+#line 2733
 
 static int
 timedelta_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5449,7 +5908,7 @@ unicode_arrtype_dealloc(PyObject *v)
     PyUnicode_Type.tp_dealloc(v);
 }
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _BYTE_IS_BYTE
@@ -5566,7 +6025,7 @@ byte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _BYTE_IS_BYTE
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _SHORT_IS_SHORT
@@ -5683,7 +6142,7 @@ short_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _SHORT_IS_SHORT
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _INT_IS_INT
@@ -5800,7 +6259,7 @@ int_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _INT_IS_INT
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _LONG_IS_LONG
@@ -5917,7 +6376,7 @@ long_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONG_IS_LONG
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _LONGLONG_IS_LONGLONG
@@ -6034,7 +6493,7 @@ longlong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONGLONG_IS_LONGLONG
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _UBYTE_IS_UBYTE
@@ -6151,7 +6610,7 @@ ubyte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _UBYTE_IS_UBYTE
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _USHORT_IS_USHORT
@@ -6268,7 +6727,7 @@ ushort_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _USHORT_IS_USHORT
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _UINT_IS_UINT
@@ -6385,7 +6844,7 @@ uint_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _UINT_IS_UINT
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _ULONG_IS_ULONG
@@ -6502,7 +6961,7 @@ ulong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _ULONG_IS_ULONG
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _ULONGLONG_IS_ULONGLONG
@@ -6619,7 +7078,7 @@ ulonglong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _ULONGLONG_IS_ULONGLONG
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _HALF_IS_HALF
@@ -6736,7 +7195,7 @@ half_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _HALF_IS_HALF
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _FLOAT_IS_FLOAT
@@ -6853,7 +7312,7 @@ float_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _FLOAT_IS_FLOAT
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _DOUBLE_IS_DOUBLE
@@ -6970,7 +7429,7 @@ double_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _DOUBLE_IS_DOUBLE
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _LONGDOUBLE_IS_LONGDOUBLE
@@ -7087,7 +7546,7 @@ longdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONGDOUBLE_IS_LONGDOUBLE
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _CFLOAT_IS_CFLOAT
@@ -7204,7 +7663,7 @@ cfloat_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CFLOAT_IS_CFLOAT
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _CDOUBLE_IS_CDOUBLE
@@ -7321,7 +7780,7 @@ cdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CDOUBLE_IS_CDOUBLE
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _CLONGDOUBLE_IS_CLONGDOUBLE
@@ -7438,7 +7897,7 @@ clongdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CLONGDOUBLE_IS_CLONGDOUBLE
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _STRING_IS_STRING
@@ -7555,7 +8014,7 @@ string_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _STRING_IS_STRING
 
 
-#line 2681
+#line 2858
 
 /* used as a pattern for testing token equality */
 #define _UNICODE_IS_UNICODE
@@ -7690,7 +8149,7 @@ object_arrtype_new(PyTypeObject *NPY_UNUSED(type), PyObject *args, PyObject *kwd
     return PyArray_Return(arr);
 }
 
-#line 2821
+#line 2998
 
 static PyObject *
 datetime_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -7749,7 +8208,7 @@ datetime_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)ret;
 }
 
-#line 2821
+#line 2998
 
 static PyObject *
 timedelta_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -7875,7 +8334,7 @@ bool_arrtype_nonzero(PyObject *a)
     return a == PyArrayScalar_True;
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods byte_arrtype_as_number;
 static PyObject *
 byte_index(PyObject *self)
@@ -7883,7 +8342,7 @@ byte_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Byte));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods short_arrtype_as_number;
 static PyObject *
 short_index(PyObject *self)
@@ -7891,7 +8350,7 @@ short_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Short));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods int_arrtype_as_number;
 static PyObject *
 int_index(PyObject *self)
@@ -7899,7 +8358,7 @@ int_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Int));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods long_arrtype_as_number;
 static PyObject *
 long_index(PyObject *self)
@@ -7907,7 +8366,7 @@ long_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Long));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods ubyte_arrtype_as_number;
 static PyObject *
 ubyte_index(PyObject *self)
@@ -7915,7 +8374,7 @@ ubyte_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, UByte));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods ushort_arrtype_as_number;
 static PyObject *
 ushort_index(PyObject *self)
@@ -7923,7 +8382,7 @@ ushort_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, UShort));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods longlong_arrtype_as_number;
 static PyObject *
 longlong_index(PyObject *self)
@@ -7931,7 +8390,7 @@ longlong_index(PyObject *self)
     return PyLong_FromLongLong(PyArrayScalar_VAL(self, LongLong));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods uint_arrtype_as_number;
 static PyObject *
 uint_index(PyObject *self)
@@ -7939,7 +8398,7 @@ uint_index(PyObject *self)
     return PyLong_FromUnsignedLong(PyArrayScalar_VAL(self, UInt));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods ulong_arrtype_as_number;
 static PyObject *
 ulong_index(PyObject *self)
@@ -7947,7 +8406,7 @@ ulong_index(PyObject *self)
     return PyLong_FromUnsignedLong(PyArrayScalar_VAL(self, ULong));
 }
 
-#line 2954
+#line 3131
 static PyNumberMethods ulonglong_arrtype_as_number;
 static PyObject *
 ulonglong_index(PyObject *self)
@@ -7956,25 +8415,25 @@ ulonglong_index(PyObject *self)
 }
 
 
-#line 2968
+#line 3145
 static PyNumberMethods half_arrtype_as_number;
 
-#line 2968
+#line 3145
 static PyNumberMethods float_arrtype_as_number;
 
-#line 2968
+#line 3145
 static PyNumberMethods double_arrtype_as_number;
 
-#line 2968
+#line 3145
 static PyNumberMethods longdouble_arrtype_as_number;
 
-#line 2968
+#line 3145
 static PyNumberMethods cfloat_arrtype_as_number;
 
-#line 2968
+#line 3145
 static PyNumberMethods cdouble_arrtype_as_number;
 
-#line 2968
+#line 3145
 static PyNumberMethods clongdouble_arrtype_as_number;
 
 
@@ -8032,7 +8491,10 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                     (int) NPY_MAX_INT);
             return NULL;
         }
-        destptr = npy_alloc_cache_zero(memu);
+        if (memu == 0) {
+            memu = 1;
+        }
+        destptr = npy_alloc_cache_zero(memu, 1);
         if (destptr == NULL) {
             return PyErr_NoMemory();
         }
@@ -8043,12 +8505,16 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         }
         ((PyVoidScalarObject *)ret)->obval = destptr;
         Py_SET_SIZE((PyVoidScalarObject *)ret, (int) memu);
-        ((PyVoidScalarObject *)ret)->descr =
-            PyArray_DescrNewFromType(NPY_VOID);
-        ((PyVoidScalarObject *)ret)->descr->elsize = (int) memu;
         ((PyVoidScalarObject *)ret)->flags = NPY_ARRAY_BEHAVED |
                                              NPY_ARRAY_OWNDATA;
         ((PyVoidScalarObject *)ret)->base = NULL;
+        ((PyVoidScalarObject *)ret)->descr =
+            PyArray_DescrNewFromType(NPY_VOID);
+        if (((PyVoidScalarObject *)ret)->descr == NULL) {
+            Py_DECREF(ret);
+            return NULL;
+        }
+        ((PyVoidScalarObject *)ret)->descr->elsize = (int) memu;
         return ret;
     }
 
@@ -8059,21 +8525,21 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 /****************  Define Hash functions ********************/
 
-#line 3056
+#line 3240
 static npy_hash_t
 bool_arrtype_hash(PyObject *obj)
 {
     return (npy_hash_t)(PyArrayScalar_VAL(obj, Bool));
 }
 
-#line 3056
+#line 3240
 static npy_hash_t
 ubyte_arrtype_hash(PyObject *obj)
 {
     return (npy_hash_t)(PyArrayScalar_VAL(obj, UByte));
 }
 
-#line 3056
+#line 3240
 static npy_hash_t
 ushort_arrtype_hash(PyObject *obj)
 {
@@ -8081,7 +8547,7 @@ ushort_arrtype_hash(PyObject *obj)
 }
 
 
-#line 3067
+#line 3251
 static npy_hash_t
 byte_arrtype_hash(PyObject *obj)
 {
@@ -8092,7 +8558,7 @@ byte_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3067
+#line 3251
 static npy_hash_t
 short_arrtype_hash(PyObject *obj)
 {
@@ -8103,7 +8569,7 @@ short_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3067
+#line 3251
 static npy_hash_t
 uint_arrtype_hash(PyObject *obj)
 {
@@ -8143,7 +8609,7 @@ long_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3111
+#line 3295
 static NPY_INLINE npy_hash_t
 longlong_arrtype_hash(PyObject *obj)
 {
@@ -8154,7 +8620,7 @@ longlong_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3111
+#line 3295
 static NPY_INLINE npy_hash_t
 ulonglong_arrtype_hash(PyObject *obj)
 {
@@ -8167,7 +8633,7 @@ ulonglong_arrtype_hash(PyObject *obj)
 
 
 
-#line 3127
+#line 3311
 #if NPY_SIZEOF_HASH_T==NPY_SIZEOF_DATETIME
 static npy_hash_t
 datetime_arrtype_hash(PyObject *obj)
@@ -8204,7 +8670,7 @@ datetime_arrtype_hash(PyObject *obj)
 }
 #endif
 
-#line 3127
+#line 3311
 #if NPY_SIZEOF_HASH_T==NPY_SIZEOF_DATETIME
 static npy_hash_t
 timedelta_arrtype_hash(PyObject *obj)
@@ -8246,7 +8712,7 @@ timedelta_arrtype_hash(PyObject *obj)
 
 /* Wrong thing to do for longdouble, but....*/
 
-#line 3172
+#line 3356
 static npy_hash_t
 float_arrtype_hash(PyObject *obj)
 {
@@ -8276,7 +8742,7 @@ cfloat_arrtype_hash(PyObject *obj)
     return combined;
 }
 
-#line 3172
+#line 3356
 static npy_hash_t
 longdouble_arrtype_hash(PyObject *obj)
 {
@@ -8526,28 +8992,28 @@ gen_arrtype_subscript(PyObject *self, PyObject *key)
 #define NAME_string "bytes"
 #define NAME_unicode "str"
 
-#line 3426
+#line 3610
 NPY_NO_EXPORT PyTypeObject PyBoolArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_bool "_",
     .tp_basicsize = sizeof(PyBoolScalarObject),
 };
 
-#line 3426
+#line 3610
 NPY_NO_EXPORT PyTypeObject PyStringArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_string "_",
     .tp_basicsize = sizeof(PyStringScalarObject),
 };
 
-#line 3426
+#line 3610
 NPY_NO_EXPORT PyTypeObject PyUnicodeArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_unicode "_",
     .tp_basicsize = sizeof(PyUnicodeScalarObject),
 };
 
-#line 3426
+#line 3610
 NPY_NO_EXPORT PyTypeObject PyVoidArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_void "",
@@ -8560,7 +9026,7 @@ NPY_NO_EXPORT PyTypeObject PyVoidArrType_Type = {
 #undef NAME_string
 #undef NAME_unicode
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_CHAR == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_CHAR == 16
@@ -8587,7 +9053,7 @@ NPY_NO_EXPORT PyTypeObject PyByteArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_SHORT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_SHORT == 16
@@ -8614,7 +9080,7 @@ NPY_NO_EXPORT PyTypeObject PyShortArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_INT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_INT == 16
@@ -8641,7 +9107,7 @@ NPY_NO_EXPORT PyTypeObject PyIntArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_LONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONG == 16
@@ -8668,7 +9134,7 @@ NPY_NO_EXPORT PyTypeObject PyLongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_LONGLONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONGLONG == 16
@@ -8695,7 +9161,7 @@ NPY_NO_EXPORT PyTypeObject PyLongLongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_CHAR == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_CHAR == 16
@@ -8722,7 +9188,7 @@ NPY_NO_EXPORT PyTypeObject PyUByteArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_SHORT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_SHORT == 16
@@ -8749,7 +9215,7 @@ NPY_NO_EXPORT PyTypeObject PyUShortArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_INT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_INT == 16
@@ -8776,7 +9242,7 @@ NPY_NO_EXPORT PyTypeObject PyUIntArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_LONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONG == 16
@@ -8803,7 +9269,7 @@ NPY_NO_EXPORT PyTypeObject PyULongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_LONGLONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONGLONG == 16
@@ -8830,7 +9296,7 @@ NPY_NO_EXPORT PyTypeObject PyULongLongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_HALF == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_HALF == 16
@@ -8857,7 +9323,7 @@ NPY_NO_EXPORT PyTypeObject PyHalfArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_FLOAT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_FLOAT == 16
@@ -8884,7 +9350,7 @@ NPY_NO_EXPORT PyTypeObject PyFloatArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_DOUBLE == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_DOUBLE == 16
@@ -8911,7 +9377,7 @@ NPY_NO_EXPORT PyTypeObject PyDoubleArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_LONGDOUBLE == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONGDOUBLE == 16
@@ -8938,7 +9404,7 @@ NPY_NO_EXPORT PyTypeObject PyLongDoubleArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_DATETIME == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_DATETIME == 16
@@ -8965,7 +9431,7 @@ NPY_NO_EXPORT PyTypeObject PyDatetimeArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3445
+#line 3629
 #if NPY_BITSOF_TIMEDELTA == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_TIMEDELTA == 16
@@ -8999,7 +9465,7 @@ static PyMappingMethods gentype_as_mapping = {
 };
 
 
-#line 3483
+#line 3667
 #if NPY_BITSOF_FLOAT == 16
 #define _THIS_SIZE "32"
 #elif NPY_BITSOF_FLOAT == 32
@@ -9025,7 +9491,7 @@ NPY_NO_EXPORT PyTypeObject PyCFloatArrType_Type = {
 #undef _THIS_SIZE
 
 
-#line 3483
+#line 3667
 #if NPY_BITSOF_DOUBLE == 16
 #define _THIS_SIZE "32"
 #elif NPY_BITSOF_DOUBLE == 32
@@ -9051,7 +9517,7 @@ NPY_NO_EXPORT PyTypeObject PyCDoubleArrType_Type = {
 #undef _THIS_SIZE
 
 
-#line 3483
+#line 3667
 #if NPY_BITSOF_LONGDOUBLE == 16
 #define _THIS_SIZE "32"
 #elif NPY_BITSOF_LONGDOUBLE == 32
@@ -9135,109 +9601,109 @@ initialize_casting_tables(void)
 
     /* Compile-time loop of scalar kinds */
 
-    #line 3582
+    #line 3766
 
     _npy_scalar_kinds_table[NPY_BOOL] = NPY_BOOL_SCALAR;
     _npy_next_larger_type_table[NPY_BOOL] = -1;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_BYTE] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_BYTE] = NPY_SHORT;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_UBYTE] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_UBYTE] = NPY_USHORT;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_SHORT] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_SHORT] = NPY_INT;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_USHORT] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_USHORT] = NPY_UINT;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_INT] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_INT] = NPY_LONG;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_UINT] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_UINT] = NPY_ULONG;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_LONG] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_LONG] = NPY_LONGLONG;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_ULONG] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_ULONG] = NPY_ULONGLONG;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_LONGLONG] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_LONGLONG] = -1;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_ULONGLONG] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_ULONGLONG] = -1;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_HALF] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_HALF] = NPY_FLOAT;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_FLOAT] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_FLOAT] = NPY_DOUBLE;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_DOUBLE] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_DOUBLE] = NPY_LONGDOUBLE;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_LONGDOUBLE] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_LONGDOUBLE] = -1;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_CFLOAT] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CFLOAT] = NPY_CDOUBLE;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_CDOUBLE] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CDOUBLE] = NPY_CLONGDOUBLE;
 
     
-#line 3582
+#line 3766
 
     _npy_scalar_kinds_table[NPY_CLONGDOUBLE] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CLONGDOUBLE] = -1;
@@ -9270,7 +9736,7 @@ initialize_casting_tables(void)
 
     /* Compile-time loop of casting rules */
 
-    #line 3636
+    #line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_BYTE
 #define _FROM_NUM   (NPY_BYTE)
@@ -9286,7 +9752,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -9361,7 +9827,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -9436,7 +9902,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -9511,7 +9977,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -9586,7 +10052,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -9661,7 +10127,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -9736,7 +10202,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -9811,7 +10277,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -9886,7 +10352,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -9961,7 +10427,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -10036,7 +10502,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -10111,7 +10577,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -10186,7 +10652,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -10261,7 +10727,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -10336,7 +10802,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -10411,7 +10877,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -10486,7 +10952,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -10566,7 +11032,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_BYTE
 #define _FROM_NUM   (NPY_UBYTE)
@@ -10582,7 +11048,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -10657,7 +11123,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -10732,7 +11198,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -10807,7 +11273,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -10882,7 +11348,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -10957,7 +11423,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -11032,7 +11498,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -11107,7 +11573,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -11182,7 +11648,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -11257,7 +11723,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -11332,7 +11798,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -11407,7 +11873,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -11482,7 +11948,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -11557,7 +12023,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -11632,7 +12098,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -11707,7 +12173,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -11782,7 +12248,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -11862,7 +12328,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_SHORT
 #define _FROM_NUM   (NPY_SHORT)
@@ -11878,7 +12344,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -11953,7 +12419,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -12028,7 +12494,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -12103,7 +12569,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -12178,7 +12644,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -12253,7 +12719,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -12328,7 +12794,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -12403,7 +12869,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -12478,7 +12944,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -12553,7 +13019,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -12628,7 +13094,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -12703,7 +13169,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -12778,7 +13244,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -12853,7 +13319,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -12928,7 +13394,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -13003,7 +13469,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -13078,7 +13544,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -13158,7 +13624,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_SHORT
 #define _FROM_NUM   (NPY_USHORT)
@@ -13174,7 +13640,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -13249,7 +13715,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -13324,7 +13790,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -13399,7 +13865,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -13474,7 +13940,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -13549,7 +14015,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -13624,7 +14090,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -13699,7 +14165,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -13774,7 +14240,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -13849,7 +14315,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -13924,7 +14390,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -13999,7 +14465,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -14074,7 +14540,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -14149,7 +14615,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -14224,7 +14690,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -14299,7 +14765,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -14374,7 +14840,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -14454,7 +14920,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_INT
 #define _FROM_NUM   (NPY_INT)
@@ -14470,7 +14936,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -14545,7 +15011,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -14620,7 +15086,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -14695,7 +15161,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -14770,7 +15236,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -14845,7 +15311,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -14920,7 +15386,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -14995,7 +15461,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -15070,7 +15536,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -15145,7 +15611,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -15220,7 +15686,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -15295,7 +15761,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -15370,7 +15836,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -15445,7 +15911,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -15520,7 +15986,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -15595,7 +16061,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -15670,7 +16136,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -15750,7 +16216,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_INT
 #define _FROM_NUM   (NPY_UINT)
@@ -15766,7 +16232,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -15841,7 +16307,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -15916,7 +16382,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -15991,7 +16457,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -16066,7 +16532,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -16141,7 +16607,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -16216,7 +16682,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -16291,7 +16757,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -16366,7 +16832,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -16441,7 +16907,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -16516,7 +16982,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -16591,7 +17057,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -16666,7 +17132,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -16741,7 +17207,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -16816,7 +17282,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -16891,7 +17357,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -16966,7 +17432,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -17046,7 +17512,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_LONG
 #define _FROM_NUM   (NPY_LONG)
@@ -17062,7 +17528,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -17137,7 +17603,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -17212,7 +17678,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -17287,7 +17753,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -17362,7 +17828,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -17437,7 +17903,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -17512,7 +17978,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -17587,7 +18053,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -17662,7 +18128,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -17737,7 +18203,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -17812,7 +18278,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -17887,7 +18353,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -17962,7 +18428,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -18037,7 +18503,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -18112,7 +18578,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -18187,7 +18653,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -18262,7 +18728,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -18342,7 +18808,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_LONG
 #define _FROM_NUM   (NPY_ULONG)
@@ -18358,7 +18824,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -18433,7 +18899,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -18508,7 +18974,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -18583,7 +19049,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -18658,7 +19124,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -18733,7 +19199,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -18808,7 +19274,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -18883,7 +19349,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -18958,7 +19424,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -19033,7 +19499,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -19108,7 +19574,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -19183,7 +19649,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -19258,7 +19724,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -19333,7 +19799,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -19408,7 +19874,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -19483,7 +19949,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -19558,7 +20024,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -19638,7 +20104,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_LONGLONG
 #define _FROM_NUM   (NPY_LONGLONG)
@@ -19654,7 +20120,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -19729,7 +20195,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -19804,7 +20270,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -19879,7 +20345,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -19954,7 +20420,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -20029,7 +20495,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -20104,7 +20570,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -20179,7 +20645,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -20254,7 +20720,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -20329,7 +20795,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -20404,7 +20870,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -20479,7 +20945,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -20554,7 +21020,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -20629,7 +21095,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -20704,7 +21170,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -20779,7 +21245,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -20854,7 +21320,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -20934,7 +21400,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_LONGLONG
 #define _FROM_NUM   (NPY_ULONGLONG)
@@ -20950,7 +21416,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -21025,7 +21491,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -21100,7 +21566,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -21175,7 +21641,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -21250,7 +21716,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -21325,7 +21791,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -21400,7 +21866,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -21475,7 +21941,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -21550,7 +22016,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -21625,7 +22091,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -21700,7 +22166,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -21775,7 +22241,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -21850,7 +22316,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -21925,7 +22391,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -22000,7 +22466,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -22075,7 +22541,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -22150,7 +22616,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -22230,7 +22696,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_HALF
 #define _FROM_NUM   (NPY_HALF)
@@ -22246,7 +22712,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -22321,7 +22787,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -22396,7 +22862,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -22471,7 +22937,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -22546,7 +23012,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -22621,7 +23087,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -22696,7 +23162,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -22771,7 +23237,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -22846,7 +23312,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -22921,7 +23387,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -22996,7 +23462,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -23071,7 +23537,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -23146,7 +23612,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -23221,7 +23687,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -23296,7 +23762,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -23371,7 +23837,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -23446,7 +23912,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -23526,7 +23992,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_FLOAT
 #define _FROM_NUM   (NPY_FLOAT)
@@ -23542,7 +24008,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -23617,7 +24083,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -23692,7 +24158,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -23767,7 +24233,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -23842,7 +24308,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -23917,7 +24383,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -23992,7 +24458,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -24067,7 +24533,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -24142,7 +24608,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -24217,7 +24683,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -24292,7 +24758,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -24367,7 +24833,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -24442,7 +24908,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -24517,7 +24983,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -24592,7 +25058,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -24667,7 +25133,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -24742,7 +25208,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -24822,7 +25288,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_DOUBLE
 #define _FROM_NUM   (NPY_DOUBLE)
@@ -24838,7 +25304,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -24913,7 +25379,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -24988,7 +25454,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -25063,7 +25529,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -25138,7 +25604,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -25213,7 +25679,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -25288,7 +25754,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -25363,7 +25829,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -25438,7 +25904,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -25513,7 +25979,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -25588,7 +26054,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -25663,7 +26129,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -25738,7 +26204,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -25813,7 +26279,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -25888,7 +26354,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -25963,7 +26429,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -26038,7 +26504,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -26118,7 +26584,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _FROM_NUM   (NPY_LONGDOUBLE)
@@ -26134,7 +26600,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -26209,7 +26675,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -26284,7 +26750,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -26359,7 +26825,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -26434,7 +26900,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -26509,7 +26975,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -26584,7 +27050,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -26659,7 +27125,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -26734,7 +27200,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -26809,7 +27275,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -26884,7 +27350,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -26959,7 +27425,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -27034,7 +27500,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -27109,7 +27575,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -27184,7 +27650,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -27259,7 +27725,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -27334,7 +27800,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -27414,7 +27880,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_FLOAT
 #define _FROM_NUM   (NPY_CFLOAT)
@@ -27430,7 +27896,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -27505,7 +27971,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -27580,7 +28046,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -27655,7 +28121,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -27730,7 +28196,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -27805,7 +28271,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -27880,7 +28346,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -27955,7 +28421,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -28030,7 +28496,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -28105,7 +28571,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -28180,7 +28646,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -28255,7 +28721,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -28330,7 +28796,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -28405,7 +28871,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -28480,7 +28946,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -28555,7 +29021,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -28630,7 +29096,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -28710,7 +29176,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_DOUBLE
 #define _FROM_NUM   (NPY_CDOUBLE)
@@ -28726,7 +29192,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -28801,7 +29267,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -28876,7 +29342,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -28951,7 +29417,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -29026,7 +29492,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -29101,7 +29567,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -29176,7 +29642,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -29251,7 +29717,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -29326,7 +29792,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -29401,7 +29867,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -29476,7 +29942,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -29551,7 +30017,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -29626,7 +30092,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -29701,7 +30167,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -29776,7 +30242,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -29851,7 +30317,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -29926,7 +30392,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -30006,7 +30472,7 @@ initialize_casting_tables(void)
 #undef _FROM_BSIZE
 
 
-#line 3636
+#line 3820
 
 #define _FROM_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _FROM_NUM   (NPY_CLONGDOUBLE)
@@ -30022,7 +30488,7 @@ initialize_casting_tables(void)
     _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
 #endif
 
-    #line 3673
+    #line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_BYTE)
 
@@ -30097,7 +30563,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_BYTE
 #define _TO_NUM   (NPY_UBYTE)
 
@@ -30172,7 +30638,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_SHORT)
 
@@ -30247,7 +30713,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_SHORT
 #define _TO_NUM   (NPY_USHORT)
 
@@ -30322,7 +30788,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_INT)
 
@@ -30397,7 +30863,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_INT
 #define _TO_NUM   (NPY_UINT)
 
@@ -30472,7 +30938,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_LONG)
 
@@ -30547,7 +31013,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONG
 #define _TO_NUM   (NPY_ULONG)
 
@@ -30622,7 +31088,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_LONGLONG)
 
@@ -30697,7 +31163,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGLONG
 #define _TO_NUM   (NPY_ULONGLONG)
 
@@ -30772,7 +31238,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_HALF
 #define _TO_NUM   (NPY_HALF)
 
@@ -30847,7 +31313,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_FLOAT)
 
@@ -30922,7 +31388,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_DOUBLE)
 
@@ -30997,7 +31463,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_LONGDOUBLE)
 
@@ -31072,7 +31538,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_FLOAT
 #define _TO_NUM   (NPY_CFLOAT)
 
@@ -31147,7 +31613,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_DOUBLE
 #define _TO_NUM   (NPY_CDOUBLE)
 
@@ -31222,7 +31688,7 @@ initialize_casting_tables(void)
 #undef _TO_BSIZE
 
 
-#line 3673
+#line 3857
 #define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
 #define _TO_NUM   (NPY_CLONGDOUBLE)
 
@@ -31414,98 +31880,98 @@ initialize_numeric_types(void)
      * also fill array_type_as_number struct with reasonable defaults
      */
 
-    #line 3870
+    #line 4054
     byte_arrtype_as_number = gentype_as_number;
     PyByteArrType_Type.tp_as_number = &byte_arrtype_as_number;
     PyByteArrType_Type.tp_as_number->nb_index = (unaryfunc)byte_index;
 
     
-#line 3870
+#line 4054
     short_arrtype_as_number = gentype_as_number;
     PyShortArrType_Type.tp_as_number = &short_arrtype_as_number;
     PyShortArrType_Type.tp_as_number->nb_index = (unaryfunc)short_index;
 
     
-#line 3870
+#line 4054
     int_arrtype_as_number = gentype_as_number;
     PyIntArrType_Type.tp_as_number = &int_arrtype_as_number;
     PyIntArrType_Type.tp_as_number->nb_index = (unaryfunc)int_index;
 
     
-#line 3870
+#line 4054
     long_arrtype_as_number = gentype_as_number;
     PyLongArrType_Type.tp_as_number = &long_arrtype_as_number;
     PyLongArrType_Type.tp_as_number->nb_index = (unaryfunc)long_index;
 
     
-#line 3870
+#line 4054
     longlong_arrtype_as_number = gentype_as_number;
     PyLongLongArrType_Type.tp_as_number = &longlong_arrtype_as_number;
     PyLongLongArrType_Type.tp_as_number->nb_index = (unaryfunc)longlong_index;
 
     
-#line 3870
+#line 4054
     ubyte_arrtype_as_number = gentype_as_number;
     PyUByteArrType_Type.tp_as_number = &ubyte_arrtype_as_number;
     PyUByteArrType_Type.tp_as_number->nb_index = (unaryfunc)ubyte_index;
 
     
-#line 3870
+#line 4054
     ushort_arrtype_as_number = gentype_as_number;
     PyUShortArrType_Type.tp_as_number = &ushort_arrtype_as_number;
     PyUShortArrType_Type.tp_as_number->nb_index = (unaryfunc)ushort_index;
 
     
-#line 3870
+#line 4054
     uint_arrtype_as_number = gentype_as_number;
     PyUIntArrType_Type.tp_as_number = &uint_arrtype_as_number;
     PyUIntArrType_Type.tp_as_number->nb_index = (unaryfunc)uint_index;
 
     
-#line 3870
+#line 4054
     ulong_arrtype_as_number = gentype_as_number;
     PyULongArrType_Type.tp_as_number = &ulong_arrtype_as_number;
     PyULongArrType_Type.tp_as_number->nb_index = (unaryfunc)ulong_index;
 
     
-#line 3870
+#line 4054
     ulonglong_arrtype_as_number = gentype_as_number;
     PyULongLongArrType_Type.tp_as_number = &ulonglong_arrtype_as_number;
     PyULongLongArrType_Type.tp_as_number->nb_index = (unaryfunc)ulonglong_index;
 
     
 
-    #line 3882
+    #line 4066
     half_arrtype_as_number = gentype_as_number;
     PyHalfArrType_Type.tp_as_number = &half_arrtype_as_number;
 
     
-#line 3882
+#line 4066
     float_arrtype_as_number = gentype_as_number;
     PyFloatArrType_Type.tp_as_number = &float_arrtype_as_number;
 
     
-#line 3882
+#line 4066
     double_arrtype_as_number = gentype_as_number;
     PyDoubleArrType_Type.tp_as_number = &double_arrtype_as_number;
 
     
-#line 3882
+#line 4066
     longdouble_arrtype_as_number = gentype_as_number;
     PyLongDoubleArrType_Type.tp_as_number = &longdouble_arrtype_as_number;
 
     
-#line 3882
+#line 4066
     cfloat_arrtype_as_number = gentype_as_number;
     PyCFloatArrType_Type.tp_as_number = &cfloat_arrtype_as_number;
 
     
-#line 3882
+#line 4066
     cdouble_arrtype_as_number = gentype_as_number;
     PyCDoubleArrType_Type.tp_as_number = &cdouble_arrtype_as_number;
 
     
-#line 3882
+#line 4066
     clongdouble_arrtype_as_number = gentype_as_number;
     PyCLongDoubleArrType_Type.tp_as_number = &clongdouble_arrtype_as_number;
 
@@ -31531,53 +31997,55 @@ initialize_numeric_types(void)
 
     PyIntegerArrType_Type.tp_getset = inttype_getsets;
 
-    #line 3911
+    PyNumberArrType_Type.tp_methods = numbertype_methods;
+
+    #line 4097
 
     PyNumberArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PyIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PySignedIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PyUnsignedIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PyInexactArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PyFloatingArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PyComplexFloatingArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PyFlexibleArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3911
+#line 4097
 
     PyCharacterArrType_Type.tp_flags = BASEFLAGS;
 
     
 
-    #line 3926
+    #line 4112
 
     PyBoolArrType_Type.tp_flags = BASEFLAGS;
     PyBoolArrType_Type.tp_new = bool_arrtype_new;
@@ -31590,7 +32058,7 @@ initialize_numeric_types(void)
 #undef _IS_Bool
 
     
-#line 3926
+#line 4112
 
     PyByteArrType_Type.tp_flags = BASEFLAGS;
     PyByteArrType_Type.tp_new = byte_arrtype_new;
@@ -31603,7 +32071,7 @@ initialize_numeric_types(void)
 #undef _IS_Byte
 
     
-#line 3926
+#line 4112
 
     PyShortArrType_Type.tp_flags = BASEFLAGS;
     PyShortArrType_Type.tp_new = short_arrtype_new;
@@ -31616,7 +32084,7 @@ initialize_numeric_types(void)
 #undef _IS_Short
 
     
-#line 3926
+#line 4112
 
     PyIntArrType_Type.tp_flags = BASEFLAGS;
     PyIntArrType_Type.tp_new = int_arrtype_new;
@@ -31629,7 +32097,7 @@ initialize_numeric_types(void)
 #undef _IS_Int
 
     
-#line 3926
+#line 4112
 
     PyLongArrType_Type.tp_flags = BASEFLAGS;
     PyLongArrType_Type.tp_new = long_arrtype_new;
@@ -31642,7 +32110,7 @@ initialize_numeric_types(void)
 #undef _IS_Long
 
     
-#line 3926
+#line 4112
 
     PyLongLongArrType_Type.tp_flags = BASEFLAGS;
     PyLongLongArrType_Type.tp_new = longlong_arrtype_new;
@@ -31655,7 +32123,7 @@ initialize_numeric_types(void)
 #undef _IS_LongLong
 
     
-#line 3926
+#line 4112
 
     PyUByteArrType_Type.tp_flags = BASEFLAGS;
     PyUByteArrType_Type.tp_new = ubyte_arrtype_new;
@@ -31668,7 +32136,7 @@ initialize_numeric_types(void)
 #undef _IS_UByte
 
     
-#line 3926
+#line 4112
 
     PyUShortArrType_Type.tp_flags = BASEFLAGS;
     PyUShortArrType_Type.tp_new = ushort_arrtype_new;
@@ -31681,7 +32149,7 @@ initialize_numeric_types(void)
 #undef _IS_UShort
 
     
-#line 3926
+#line 4112
 
     PyUIntArrType_Type.tp_flags = BASEFLAGS;
     PyUIntArrType_Type.tp_new = uint_arrtype_new;
@@ -31694,7 +32162,7 @@ initialize_numeric_types(void)
 #undef _IS_UInt
 
     
-#line 3926
+#line 4112
 
     PyULongArrType_Type.tp_flags = BASEFLAGS;
     PyULongArrType_Type.tp_new = ulong_arrtype_new;
@@ -31707,7 +32175,7 @@ initialize_numeric_types(void)
 #undef _IS_ULong
 
     
-#line 3926
+#line 4112
 
     PyULongLongArrType_Type.tp_flags = BASEFLAGS;
     PyULongLongArrType_Type.tp_new = ulonglong_arrtype_new;
@@ -31720,7 +32188,7 @@ initialize_numeric_types(void)
 #undef _IS_ULongLong
 
     
-#line 3926
+#line 4112
 
     PyHalfArrType_Type.tp_flags = BASEFLAGS;
     PyHalfArrType_Type.tp_new = half_arrtype_new;
@@ -31733,7 +32201,7 @@ initialize_numeric_types(void)
 #undef _IS_Half
 
     
-#line 3926
+#line 4112
 
     PyFloatArrType_Type.tp_flags = BASEFLAGS;
     PyFloatArrType_Type.tp_new = float_arrtype_new;
@@ -31746,7 +32214,7 @@ initialize_numeric_types(void)
 #undef _IS_Float
 
     
-#line 3926
+#line 4112
 
     PyDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyDoubleArrType_Type.tp_new = double_arrtype_new;
@@ -31759,7 +32227,7 @@ initialize_numeric_types(void)
 #undef _IS_Double
 
     
-#line 3926
+#line 4112
 
     PyLongDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyLongDoubleArrType_Type.tp_new = longdouble_arrtype_new;
@@ -31772,7 +32240,7 @@ initialize_numeric_types(void)
 #undef _IS_LongDouble
 
     
-#line 3926
+#line 4112
 
     PyCFloatArrType_Type.tp_flags = BASEFLAGS;
     PyCFloatArrType_Type.tp_new = cfloat_arrtype_new;
@@ -31785,7 +32253,7 @@ initialize_numeric_types(void)
 #undef _IS_CFloat
 
     
-#line 3926
+#line 4112
 
     PyCDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyCDoubleArrType_Type.tp_new = cdouble_arrtype_new;
@@ -31798,7 +32266,7 @@ initialize_numeric_types(void)
 #undef _IS_CDouble
 
     
-#line 3926
+#line 4112
 
     PyCLongDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyCLongDoubleArrType_Type.tp_new = clongdouble_arrtype_new;
@@ -31811,7 +32279,7 @@ initialize_numeric_types(void)
 #undef _IS_CLongDouble
 
     
-#line 3926
+#line 4112
 
     PyStringArrType_Type.tp_flags = BASEFLAGS;
     PyStringArrType_Type.tp_new = string_arrtype_new;
@@ -31824,7 +32292,7 @@ initialize_numeric_types(void)
 #undef _IS_String
 
     
-#line 3926
+#line 4112
 
     PyUnicodeArrType_Type.tp_flags = BASEFLAGS;
     PyUnicodeArrType_Type.tp_new = unicode_arrtype_new;
@@ -31837,7 +32305,7 @@ initialize_numeric_types(void)
 #undef _IS_Unicode
 
     
-#line 3926
+#line 4112
 
     PyVoidArrType_Type.tp_flags = BASEFLAGS;
     PyVoidArrType_Type.tp_new = void_arrtype_new;
@@ -31850,7 +32318,7 @@ initialize_numeric_types(void)
 #undef _IS_Void
 
     
-#line 3926
+#line 4112
 
     PyObjectArrType_Type.tp_flags = BASEFLAGS;
     PyObjectArrType_Type.tp_new = object_arrtype_new;
@@ -31863,7 +32331,7 @@ initialize_numeric_types(void)
 #undef _IS_Object
 
     
-#line 3926
+#line 4112
 
     PyDatetimeArrType_Type.tp_flags = BASEFLAGS;
     PyDatetimeArrType_Type.tp_new = datetime_arrtype_new;
@@ -31876,7 +32344,7 @@ initialize_numeric_types(void)
 #undef _IS_Datetime
 
     
-#line 3926
+#line 4112
 
     PyTimedeltaArrType_Type.tp_flags = BASEFLAGS;
     PyTimedeltaArrType_Type.tp_new = timedelta_arrtype_new;
@@ -31892,136 +32360,248 @@ initialize_numeric_types(void)
 
     PyUnicodeArrType_Type.tp_dealloc = unicode_arrtype_dealloc;
 
-    #line 3949
+    #line 4135
 
     PyBoolArrType_Type.tp_hash = bool_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyByteArrType_Type.tp_hash = byte_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyShortArrType_Type.tp_hash = short_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyUByteArrType_Type.tp_hash = ubyte_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyUShortArrType_Type.tp_hash = ushort_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyUIntArrType_Type.tp_hash = uint_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyULongArrType_Type.tp_hash = ulong_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyULongLongArrType_Type.tp_hash = ulonglong_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyHalfArrType_Type.tp_hash = half_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyFloatArrType_Type.tp_hash = float_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyLongDoubleArrType_Type.tp_hash = longdouble_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyCFloatArrType_Type.tp_hash = cfloat_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyCLongDoubleArrType_Type.tp_hash = clongdouble_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyVoidArrType_Type.tp_hash = void_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyObjectArrType_Type.tp_hash = object_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyDatetimeArrType_Type.tp_hash = datetime_arrtype_hash;
 
     
-#line 3949
+#line 4135
 
     PyTimedeltaArrType_Type.tp_hash = timedelta_arrtype_hash;
 
     
 
-    #line 3958
+    #line 4144
 
     PyCFloatArrType_Type.tp_methods = cfloattype_methods;
 
     
-#line 3958
+#line 4144
 
     PyCLongDoubleArrType_Type.tp_methods = clongdoubletype_methods;
 
     
-#line 3958
+#line 4144
 
     PyFloatingArrType_Type.tp_methods = floatingtype_methods;
 
     
-#line 3958
+#line 4144
 
     PyIntegerArrType_Type.tp_methods = integertype_methods;
 
     
-#line 3958
+#line 4144
 
     PyComplexFloatingArrType_Type.tp_methods = complexfloatingtype_methods;
 
     
 
-    #line 3967
+    #line 4155
+
+    PyByteArrType_Type.tp_methods = bytetype_methods;
+
+    
+#line 4155
+
+    PyShortArrType_Type.tp_methods = shorttype_methods;
+
+    
+#line 4155
+
+    PyIntArrType_Type.tp_methods = inttype_methods;
+
+    
+#line 4155
+
+    PyLongArrType_Type.tp_methods = longtype_methods;
+
+    
+#line 4155
+
+    PyLongLongArrType_Type.tp_methods = longlongtype_methods;
+
+    
+#line 4155
+
+    PyUByteArrType_Type.tp_methods = ubytetype_methods;
+
+    
+#line 4155
+
+    PyUShortArrType_Type.tp_methods = ushorttype_methods;
+
+    
+#line 4155
+
+    PyUIntArrType_Type.tp_methods = uinttype_methods;
+
+    
+#line 4155
+
+    PyULongArrType_Type.tp_methods = ulongtype_methods;
+
+    
+#line 4155
+
+    PyULongLongArrType_Type.tp_methods = ulonglongtype_methods;
+
+    
+
+    #line 4164
 
     PyHalfArrType_Type.tp_methods = halftype_methods;
 
     
-#line 3967
+#line 4164
 
     PyFloatArrType_Type.tp_methods = floattype_methods;
 
     
-#line 3967
+#line 4164
 
     PyDoubleArrType_Type.tp_methods = doubletype_methods;
 
     
-#line 3967
+#line 4164
 
     PyLongDoubleArrType_Type.tp_methods = longdoubletype_methods;
+
+    
+
+    #line 4175
+
+    PyByteArrType_Type.tp_methods = bytetype_methods;
+
+    
+#line 4175
+
+    PyShortArrType_Type.tp_methods = shorttype_methods;
+
+    
+#line 4175
+
+    PyIntArrType_Type.tp_methods = inttype_methods;
+
+    
+#line 4175
+
+    PyLongArrType_Type.tp_methods = longtype_methods;
+
+    
+#line 4175
+
+    PyLongLongArrType_Type.tp_methods = longlongtype_methods;
+
+    
+#line 4175
+
+    PyUByteArrType_Type.tp_methods = ubytetype_methods;
+
+    
+#line 4175
+
+    PyUShortArrType_Type.tp_methods = ushorttype_methods;
+
+    
+#line 4175
+
+    PyUIntArrType_Type.tp_methods = uinttype_methods;
+
+    
+#line 4175
+
+    PyULongArrType_Type.tp_methods = ulongtype_methods;
+
+    
+#line 4175
+
+    PyULongLongArrType_Type.tp_methods = ulonglongtype_methods;
+
+    
+#line 4175
+
+    PyTimedeltaArrType_Type.tp_methods = timedeltatype_methods;
+
+    
+#line 4175
+
+    PyCDoubleArrType_Type.tp_methods = cdoubletype_methods;
 
     
 
@@ -32034,7 +32614,7 @@ initialize_numeric_types(void)
     /* We won't be inheriting from Python Int type. */
     PyLongLongArrType_Type.tp_hash = longlong_arrtype_hash;
 
-    #line 3984
+    #line 4192
 
     PyHalfArrType_Type.tp_repr = halftype_repr;
 
@@ -32048,7 +32628,7 @@ initialize_numeric_types(void)
     PyTimedeltaArrType_Type.tp_repr = timedeltatype_repr;
 
     
-#line 3984
+#line 4192
 
     PyHalfArrType_Type.tp_str = halftype_str;
 
@@ -32064,77 +32644,77 @@ initialize_numeric_types(void)
     
 
 
-    #line 4003
+    #line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyBoolArrType_Type.tp_str = genint_type_str;
     PyBoolArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyByteArrType_Type.tp_str = genint_type_str;
     PyByteArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUByteArrType_Type.tp_str = genint_type_str;
     PyUByteArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyShortArrType_Type.tp_str = genint_type_str;
     PyShortArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUShortArrType_Type.tp_str = genint_type_str;
     PyUShortArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyIntArrType_Type.tp_str = genint_type_str;
     PyIntArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUIntArrType_Type.tp_str = genint_type_str;
     PyUIntArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyLongArrType_Type.tp_str = genint_type_str;
     PyLongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyULongArrType_Type.tp_str = genint_type_str;
     PyULongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyLongLongArrType_Type.tp_str = genint_type_str;
     PyLongLongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4003
+#line 4211
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyULongLongArrType_Type.tp_str = genint_type_str;
@@ -32144,7 +32724,7 @@ initialize_numeric_types(void)
 
 
 
-    #line 4016
+    #line 4224
 
     /*
      * These need to be coded specially because longdouble/clongdouble getitem
@@ -32158,7 +32738,7 @@ initialize_numeric_types(void)
     PyLongDoubleArrType_Type.tp_str = longdoubletype_str;
 
     
-#line 4016
+#line 4224
 
     /*
      * These need to be coded specially because longdouble/clongdouble getitem

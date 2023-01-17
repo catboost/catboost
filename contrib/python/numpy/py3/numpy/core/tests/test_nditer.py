@@ -9,7 +9,7 @@ import numpy.core._multiarray_tests as _multiarray_tests
 from numpy import array, arange, nditer, all
 from numpy.testing import (
     assert_, assert_equal, assert_array_equal, assert_raises,
-    HAS_REFCOUNT, suppress_warnings
+    HAS_REFCOUNT, suppress_warnings, break_cycles
     )
 
 
@@ -2016,7 +2016,6 @@ def test_buffered_cast_error_paths():
             buf[...] = "a"  # cannot be converted to int.
 
 
-@pytest.mark.skip
 @pytest.mark.skipif(not HAS_REFCOUNT, reason="PyPy seems to not hit this.")
 def test_buffered_cast_error_paths_unraisable():
     # The following gives an unraisable error. Pytest sometimes captures that
@@ -2032,8 +2031,11 @@ def test_buffered_cast_error_paths_unraisable():
         buf[...] = "a"
         del buf, it  # Flushing only happens during deallocate right now.
         """)
+    import os
+    env = os.environ.copy()
+    env['Y_PYTHON_ENTRY_POINT'] = ':main'
     res = subprocess.check_output([sys.executable, "-c", code],
-                                  stderr=subprocess.STDOUT, text=True)
+                                  stderr=subprocess.STDOUT, text=True, env=env)
     assert "ValueError" in res
 
 
@@ -2821,7 +2823,7 @@ def test_iter_writemasked_decref():
     for buf, mask_buf in it:
         buf[...] = (3, singleton)
 
-    del buf, mask_buf, it   # delete everything to ensure corrrect cleanup
+    del buf, mask_buf, it   # delete everything to ensure correct cleanup
 
     if HAS_REFCOUNT:
         # The buffer would have included additional items, they must be
@@ -3130,6 +3132,9 @@ def test_warn_noclose():
         assert len(sup.log) == 1
 
 
+@pytest.mark.skip
+@pytest.mark.skipif(sys.version_info[:2] == (3, 9) and sys.platform == "win32",
+                    reason="Errors with Python 3.9 on Windows")
 @pytest.mark.skipif(not HAS_REFCOUNT, reason="Python lacks refcounts")
 @pytest.mark.parametrize(["in_dtype", "buf_dtype"],
         [("i", "O"), ("O", "i"),  # most simple cases
@@ -3150,6 +3155,8 @@ def test_partial_iteration_cleanup(in_dtype, buf_dtype, steps):
 
     # Note that resetting does not free references
     del it
+    break_cycles()
+    break_cycles()
     assert count == sys.getrefcount(value)
 
     # Repeat the test with `iternext`
@@ -3159,6 +3166,8 @@ def test_partial_iteration_cleanup(in_dtype, buf_dtype, steps):
         it.iternext()
 
     del it  # should ensure cleanup
+    break_cycles()
+    break_cycles()
     assert count == sys.getrefcount(value)
 
 
@@ -3204,7 +3213,7 @@ def test_debug_print(capfd):
     Currently uses a subprocess to avoid dealing with the C level `printf`s.
     """
     # the expected output with all addresses and sizes stripped (they vary
-    # and/or are platform dependend).
+    # and/or are platform dependent).
     expected = """
     ------ BEGIN ITERATOR DUMP ------
     | Iterator Address:

@@ -1,10 +1,10 @@
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include "structmember.h"
-
-/*#include <stdio.h>*/
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <structmember.h>
+
 #include "numpy/arrayobject.h"
 
 #include "npy_config.h"
@@ -429,6 +429,7 @@ is_scalar_with_conversion(PyObject *o2, double* out_exponent)
             return NPY_NOSCALAR;
         }
         val = PyLong_AsSsize_t(value);
+        Py_DECREF(value);
         if (error_converting(val)) {
             PyErr_Clear();
             return NPY_NOSCALAR;

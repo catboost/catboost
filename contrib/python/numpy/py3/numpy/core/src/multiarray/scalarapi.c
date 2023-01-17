@@ -1,9 +1,10 @@
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include "structmember.h"
-
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <structmember.h>
+
 #include "numpy/arrayobject.h"
 #include "numpy/arrayscalars.h"
 
@@ -232,8 +233,12 @@ PyArray_CastScalarToCtype(PyObject *scalar, void *ctypeptr,
     PyArray_VectorUnaryFunc* castfunc;
 
     descr = PyArray_DescrFromScalar(scalar);
+    if (descr == NULL) {
+        return -1;
+    }
     castfunc = PyArray_GetCastFunc(descr, outcode->type_num);
     if (castfunc == NULL) {
+        Py_DECREF(descr);
         return -1;
     }
     if (PyTypeNum_ISEXTENDED(descr->type_num) ||
@@ -253,6 +258,7 @@ PyArray_CastScalarToCtype(PyObject *scalar, void *ctypeptr,
                     NPY_ARRAY_CARRAY, NULL);
         if (aout == NULL) {
             Py_DECREF(ain);
+            Py_DECREF(descr);
             return -1;
         }
         castfunc(PyArray_DATA(ain), PyArray_DATA(aout), 1, ain, aout);
@@ -619,6 +625,9 @@ PyArray_DescrFromScalar(PyObject *sc)
     }
     if (PyDataType_ISUNSIZED(descr)) {
         PyArray_DESCR_REPLACE(descr);
+        if (descr == NULL) {
+            return NULL;
+        }
         type_num = descr->type_num;
         if (type_num == NPY_STRING) {
             descr->elsize = PyBytes_GET_SIZE(sc);

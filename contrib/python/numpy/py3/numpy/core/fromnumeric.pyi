@@ -1,6 +1,5 @@
-import sys
 import datetime as dt
-from typing import Optional, Union, Sequence, Tuple, Any, overload, TypeVar
+from typing import Optional, Union, Sequence, Tuple, Any, overload, TypeVar, Literal
 
 from numpy import (
     ndarray,
@@ -25,11 +24,6 @@ from numpy.typing import (
     _ArrayLikeInt_co,
     _NumberLike_co,
 )
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
 
 # Various annotations for scalars
 
@@ -130,12 +124,16 @@ def argmax(
     a: ArrayLike,
     axis: None = ...,
     out: Optional[ndarray] = ...,
+    *,
+    keepdims: Literal[False] = ...,
 ) -> intp: ...
 @overload
 def argmax(
     a: ArrayLike,
     axis: Optional[int] = ...,
     out: Optional[ndarray] = ...,
+    *,
+    keepdims: bool = ...,
 ) -> Any: ...
 
 @overload
@@ -143,12 +141,16 @@ def argmin(
     a: ArrayLike,
     axis: None = ...,
     out: Optional[ndarray] = ...,
+    *,
+    keepdims: Literal[False] = ...,
 ) -> intp: ...
 @overload
 def argmin(
     a: ArrayLike,
     axis: Optional[int] = ...,
     out: Optional[ndarray] = ...,
+    *,
+    keepdims: bool = ...,
 ) -> Any: ...
 
 @overload
@@ -244,6 +246,8 @@ def all(
     axis: None = ...,
     out: None = ...,
     keepdims: Literal[False] = ...,
+    *,
+    where: _ArrayLikeBool_co = ...,
 ) -> bool_: ...
 @overload
 def all(
@@ -251,6 +255,8 @@ def all(
     axis: Optional[_ShapeLike] = ...,
     out: Optional[ndarray] = ...,
     keepdims: bool = ...,
+    *,
+    where: _ArrayLikeBool_co = ...,
 ) -> Any: ...
 
 @overload
@@ -259,6 +265,8 @@ def any(
     axis: None = ...,
     out: None = ...,
     keepdims: Literal[False] = ...,
+    *,
+    where: _ArrayLikeBool_co = ...,
 ) -> bool_: ...
 @overload
 def any(
@@ -266,6 +274,8 @@ def any(
     axis: Optional[_ShapeLike] = ...,
     out: Optional[ndarray] = ...,
     keepdims: bool = ...,
+    *,
+    where: _ArrayLikeBool_co = ...,
 ) -> Any: ...
 
 def cumsum(
@@ -340,6 +350,8 @@ def mean(
     dtype: DTypeLike = ...,
     out: Optional[ndarray] = ...,
     keepdims: bool = ...,
+    *,
+    where: _ArrayLikeBool_co = ...,
 ) -> Any: ...
 
 def std(
@@ -349,6 +361,8 @@ def std(
     out: Optional[ndarray] = ...,
     ddof: int = ...,
     keepdims: bool = ...,
+    *,
+    where: _ArrayLikeBool_co = ...,
 ) -> Any: ...
 
 def var(
@@ -358,4 +372,6 @@ def var(
     out: Optional[ndarray] = ...,
     ddof: int = ...,
     keepdims: bool = ...,
+    *,
+    where: _ArrayLikeBool_co = ...,
 ) -> Any: ...

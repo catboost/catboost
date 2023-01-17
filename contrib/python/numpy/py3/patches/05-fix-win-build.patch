@@ -1,6 +1,6 @@
 --- contrib/python/numpy/py3/numpy/core/src/npymath/npy_math_private.h	(index)
 +++ contrib/python/numpy/py3/numpy/core/src/npymath/npy_math_private.h	(working tree)
-@@ -28,6 +28,10 @@
+@@ -34,6 +34,10 @@
  #include "numpy/npy_endian.h"
  #include "numpy/npy_common.h"
  

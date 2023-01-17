@@ -11,7 +11,7 @@
      (void)remainder;
 --- contrib/python/numpy/py3/numpy/core/src/multiarray/common_dtype.c	(index)
 +++ contrib/python/numpy/py3/numpy/core/src/multiarray/common_dtype.c	(working tree)
-@@ -40,7 +40,11 @@
+@@ -41,7 +41,11 @@
   * @param dtype2 Second DType class.
   * @return The common DType or NULL with an error set
   */

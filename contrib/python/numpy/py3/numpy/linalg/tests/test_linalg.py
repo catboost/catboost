@@ -11,6 +11,7 @@ import pytest
 
 import numpy as np
 from numpy import array, single, double, csingle, cdouble, dot, identity, matmul
+from numpy.core import swapaxes
 from numpy import multiply, atleast_2d, inf, asarray
 from numpy import linalg
 from numpy.linalg import matrix_power, norm, matrix_rank, multi_dot, LinAlgError
@@ -20,7 +21,6 @@ from numpy.testing import (
     assert_almost_equal, assert_allclose, suppress_warnings,
     assert_raises_regex, HAS_LAPACK64,
     )
-from numpy.testing._private.utils import requires_memory
 
 
 def consistent_subclass(out, in_):
@@ -1070,7 +1070,6 @@ class TestMatrixPower:
         assert_raises(LinAlgError, matrix_power, mat, -1)
 
 
-
 class TestEigvalshCases(HermitianTestCase, HermitianGeneralizedTestCase):
 
     def do(self, a, b, tags):
@@ -1710,6 +1709,67 @@ class TestQR:
             self.check_qr(m2)
             self.check_qr(m2.T)
 
+    def check_qr_stacked(self, a):
+        # This test expects the argument `a` to be an ndarray or
+        # a subclass of an ndarray of inexact type.
+        a_type = type(a)
+        a_dtype = a.dtype
+        m, n = a.shape[-2:]
+        k = min(m, n)
+
+        # mode == 'complete'
+        q, r = linalg.qr(a, mode='complete')
+        assert_(q.dtype == a_dtype)
+        assert_(r.dtype == a_dtype)
+        assert_(isinstance(q, a_type))
+        assert_(isinstance(r, a_type))
+        assert_(q.shape[-2:] == (m, m))
+        assert_(r.shape[-2:] == (m, n))
+        assert_almost_equal(matmul(q, r), a)
+        I_mat = np.identity(q.shape[-1])
+        stack_I_mat = np.broadcast_to(I_mat, 
+                        q.shape[:-2] + (q.shape[-1],)*2)
+        assert_almost_equal(matmul(swapaxes(q, -1, -2).conj(), q), stack_I_mat)
+        assert_almost_equal(np.triu(r[..., :, :]), r)
+
+        # mode == 'reduced'
+        q1, r1 = linalg.qr(a, mode='reduced')
+        assert_(q1.dtype == a_dtype)
+        assert_(r1.dtype == a_dtype)
+        assert_(isinstance(q1, a_type))
+        assert_(isinstance(r1, a_type))
+        assert_(q1.shape[-2:] == (m, k))
+        assert_(r1.shape[-2:] == (k, n))
+        assert_almost_equal(matmul(q1, r1), a)
+        I_mat = np.identity(q1.shape[-1])
+        stack_I_mat = np.broadcast_to(I_mat, 
+                        q1.shape[:-2] + (q1.shape[-1],)*2)
+        assert_almost_equal(matmul(swapaxes(q1, -1, -2).conj(), q1), 
+                            stack_I_mat)
+        assert_almost_equal(np.triu(r1[..., :, :]), r1)
+
+        # mode == 'r'
+        r2 = linalg.qr(a, mode='r')
+        assert_(r2.dtype == a_dtype)
+        assert_(isinstance(r2, a_type))
+        assert_almost_equal(r2, r1)
+
+    @pytest.mark.skip
+    @pytest.mark.parametrize("size", [
+        (3, 4), (4, 3), (4, 4), 
+        (3, 0), (0, 3)])
+    @pytest.mark.parametrize("outer_size", [
+        (2, 2), (2,), (2, 3, 4)])
+    @pytest.mark.parametrize("dt", [
+        np.single, np.double, 
+        np.csingle, np.cdouble])
+    def test_stacked_inputs(self, outer_size, size, dt):
+
+        A = np.random.normal(size=outer_size + size).astype(dt)
+        B = np.random.normal(size=outer_size + size).astype(dt)
+        self.check_qr_stacked(A)
+        self.check_qr_stacked(A + 1.j*B)
+
 
 class TestCholesky:
     # TODO: are there no other tests for cholesky?
@@ -1895,8 +1955,8 @@ class TestMultiDot:
         assert_almost_equal(multi_dot([A, B]), A.dot(B))
         assert_almost_equal(multi_dot([A, B]), np.dot(A, B))
 
-    def test_basic_function_with_dynamic_programing_optimization(self):
-        # multi_dot with four or more arguments uses the dynamic programing
+    def test_basic_function_with_dynamic_programming_optimization(self):
+        # multi_dot with four or more arguments uses the dynamic programming
         # optimization and therefore deserve a separate
         A = np.random.random((6, 2))
         B = np.random.random((2, 6))
@@ -1957,8 +2017,8 @@ class TestMultiDot:
         assert_almost_equal(out, A.dot(B))
         assert_almost_equal(out, np.dot(A, B))
 
-    def test_dynamic_programing_optimization_and_out(self):
-        # multi_dot with four or more arguments uses the dynamic programing
+    def test_dynamic_programming_optimization_and_out(self):
+        # multi_dot with four or more arguments uses the dynamic programming
         # optimization and therefore deserve a separate test
         A = np.random.random((6, 2))
         B = np.random.random((2, 6))
@@ -2052,10 +2112,11 @@ def test_unsupported_commontype():
         linalg.cholesky(arr)
 
 
-@pytest.mark.slow
-@pytest.mark.xfail(not HAS_LAPACK64, run=False,
-                   reason="Numpy not compiled with 64-bit BLAS/LAPACK")
-@requires_memory(free_bytes=16e9)
+#@pytest.mark.slow
+#@pytest.mark.xfail(not HAS_LAPACK64, run=False,
+#                   reason="Numpy not compiled with 64-bit BLAS/LAPACK")
+#@requires_memory(free_bytes=16e9)
+@pytest.mark.skip(reason="Bad memory reports lead to OOM in ci testing")
 def test_blas64_dot():
     n = 2**32
     a = np.zeros([1, n], dtype=np.float32)

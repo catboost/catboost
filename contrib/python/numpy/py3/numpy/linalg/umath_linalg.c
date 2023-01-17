@@ -15,9 +15,10 @@
  **                            INCLUDES                                     **
  *****************************************************************************
  */
-#define NPY_NO_DEPRECATED_API NPY_API_VERSION
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
-#include "Python.h"
+#define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
 
@@ -171,6 +172,24 @@ FNAME(zgelsd)(fortran_int *m, fortran_int *n, fortran_int *nrhs,
               f2c_doublecomplex work[], fortran_int *lwork,
               double rwork[], fortran_int iwork[],
               fortran_int *info);
+
+extern fortran_int
+FNAME(dgeqrf)(fortran_int *m, fortran_int *n, double a[], fortran_int *lda,
+              double tau[], double work[],
+              fortran_int *lwork, fortran_int *info);
+extern fortran_int
+FNAME(zgeqrf)(fortran_int *m, fortran_int *n, f2c_doublecomplex a[], fortran_int *lda,
+              f2c_doublecomplex tau[], f2c_doublecomplex work[],
+              fortran_int *lwork, fortran_int *info);
+
+extern fortran_int
+FNAME(dorgqr)(fortran_int *m, fortran_int *n, fortran_int *k, double a[], fortran_int *lda,
+              double tau[], double work[],
+              fortran_int *lwork, fortran_int *info);
+extern fortran_int
+FNAME(zungqr)(fortran_int *m, fortran_int *n, fortran_int *k, f2c_doublecomplex a[],
+              fortran_int *lda, f2c_doublecomplex tau[],
+              f2c_doublecomplex work[], fortran_int *lwork, fortran_int *info);
 
 extern fortran_int
 FNAME(sgesv)(fortran_int *n, fortran_int *nrhs,
@@ -603,7 +622,7 @@ print_CDOUBLE(npy_cdouble z)
     TRACE_TXT("(%8.4f, %8.4fj)", z_parts[0], z_parts[1]);
 }
 
-#line 600
+#line 619
 static NPY_INLINE void
 dump_FLOAT_matrix(const char* name,
                    size_t rows, size_t columns,
@@ -624,7 +643,7 @@ dump_FLOAT_matrix(const char* name,
     }
 }
 
-#line 600
+#line 619
 static NPY_INLINE void
 dump_DOUBLE_matrix(const char* name,
                    size_t rows, size_t columns,
@@ -645,7 +664,7 @@ dump_DOUBLE_matrix(const char* name,
     }
 }
 
-#line 600
+#line 619
 static NPY_INLINE void
 dump_CFLOAT_matrix(const char* name,
                    size_t rows, size_t columns,
@@ -666,7 +685,7 @@ dump_CFLOAT_matrix(const char* name,
     }
 }
 
-#line 600
+#line 619
 static NPY_INLINE void
 dump_CDOUBLE_matrix(const char* name,
                    size_t rows, size_t columns,
@@ -811,7 +830,7 @@ update_pointers(npy_uint8** bases, ptrdiff_t* offsets, size_t count)
 
              /* rearranging of 2D matrices using blas */
 
-#line 751
+#line 770
 static NPY_INLINE void *
 linearize_FLOAT_matrix(void *dst_in,
                         void *src_in,
@@ -942,7 +961,7 @@ zero_FLOAT_matrix(void *dst_in, const LINEARIZE_DATA_t* data)
 }
 
 
-#line 751
+#line 770
 static NPY_INLINE void *
 linearize_DOUBLE_matrix(void *dst_in,
                         void *src_in,
@@ -1073,7 +1092,7 @@ zero_DOUBLE_matrix(void *dst_in, const LINEARIZE_DATA_t* data)
 }
 
 
-#line 751
+#line 770
 static NPY_INLINE void *
 linearize_CFLOAT_matrix(void *dst_in,
                         void *src_in,
@@ -1204,7 +1223,7 @@ zero_CFLOAT_matrix(void *dst_in, const LINEARIZE_DATA_t* data)
 }
 
 
-#line 751
+#line 770
 static NPY_INLINE void *
 linearize_CDOUBLE_matrix(void *dst_in,
                         void *src_in,
@@ -1337,7 +1356,7 @@ zero_CDOUBLE_matrix(void *dst_in, const LINEARIZE_DATA_t* data)
 
 
                /* identity square matrix generation */
-#line 888
+#line 907
 static NPY_INLINE void
 identity_FLOAT_matrix(void *ptr, size_t n)
 {
@@ -1353,7 +1372,7 @@ identity_FLOAT_matrix(void *ptr, size_t n)
     }
 }
 
-#line 888
+#line 907
 static NPY_INLINE void
 identity_DOUBLE_matrix(void *ptr, size_t n)
 {
@@ -1369,7 +1388,7 @@ identity_DOUBLE_matrix(void *ptr, size_t n)
     }
 }
 
-#line 888
+#line 907
 static NPY_INLINE void
 identity_CFLOAT_matrix(void *ptr, size_t n)
 {
@@ -1385,7 +1404,7 @@ identity_CFLOAT_matrix(void *ptr, size_t n)
     }
 }
 
-#line 888
+#line 907
 static NPY_INLINE void
 identity_CDOUBLE_matrix(void *ptr, size_t n)
 {
@@ -1403,7 +1422,7 @@ identity_CDOUBLE_matrix(void *ptr, size_t n)
 
 
          /* lower/upper triangular matrix using blas (in place) */
-#line 911
+#line 930
 
 static NPY_INLINE void
 triu_FLOAT_matrix(void *ptr, size_t n)
@@ -1419,7 +1438,7 @@ triu_FLOAT_matrix(void *ptr, size_t n)
     }
 }
 
-#line 911
+#line 930
 
 static NPY_INLINE void
 triu_DOUBLE_matrix(void *ptr, size_t n)
@@ -1435,7 +1454,7 @@ triu_DOUBLE_matrix(void *ptr, size_t n)
     }
 }
 
-#line 911
+#line 930
 
 static NPY_INLINE void
 triu_CFLOAT_matrix(void *ptr, size_t n)
@@ -1451,7 +1470,7 @@ triu_CFLOAT_matrix(void *ptr, size_t n)
     }
 }
 
-#line 911
+#line 930
 
 static NPY_INLINE void
 triu_CDOUBLE_matrix(void *ptr, size_t n)
@@ -1472,7 +1491,7 @@ triu_CDOUBLE_matrix(void *ptr, size_t n)
 /* -------------------------------------------------------------------------- */
                           /* Determinants */
 
-#line 938
+#line 957
 
 static NPY_INLINE void
 FLOAT_slogdet_from_factored_diagonal(npy_float* src,
@@ -1506,7 +1525,7 @@ FLOAT_det_from_slogdet(npy_float sign, npy_float logdet)
 }
 
 
-#line 938
+#line 957
 
 static NPY_INLINE void
 DOUBLE_slogdet_from_factored_diagonal(npy_double* src,
@@ -1542,7 +1561,7 @@ DOUBLE_det_from_slogdet(npy_double sign, npy_double logdet)
 
 
 
-#line 982
+#line 1001
 #define RE(COMPLEX) (((npy_float*)(&COMPLEX))[0])
 #define IM(COMPLEX) (((npy_float*)(&COMPLEX))[1])
 
@@ -1595,7 +1614,7 @@ CFLOAT_det_from_slogdet(npy_cfloat sign, npy_float logdet)
 #undef RE
 #undef IM
 
-#line 982
+#line 1001
 #define RE(COMPLEX) (((npy_double*)(&COMPLEX))[0])
 #define IM(COMPLEX) (((npy_double*)(&COMPLEX))[1])
 
@@ -1655,7 +1674,7 @@ CDOUBLE_det_from_slogdet(npy_cdouble sign, npy_double logdet)
  * slogdet computes sign + log(determinant).
  * det computes sign * exp(slogdet).
  */
-#line 1048
+#line 1067
 
 static NPY_INLINE void
 FLOAT_slogdet_single_element(fortran_int m,
@@ -1783,7 +1802,7 @@ FLOAT_det(char **args,
     }
 }
 
-#line 1048
+#line 1067
 
 static NPY_INLINE void
 DOUBLE_slogdet_single_element(fortran_int m,
@@ -1911,7 +1930,7 @@ DOUBLE_det(char **args,
     }
 }
 
-#line 1048
+#line 1067
 
 static NPY_INLINE void
 CFLOAT_slogdet_single_element(fortran_int m,
@@ -2039,7 +2058,7 @@ CFLOAT_det(char **args,
     }
 }
 
-#line 1048
+#line 1067
 
 static NPY_INLINE void
 CDOUBLE_slogdet_single_element(fortran_int m,
@@ -2187,7 +2206,7 @@ typedef struct eigh_params_struct {
     fortran_int LDA;
 } EIGH_PARAMS_t;
 
-#line 1201
+#line 1220
 
 static NPY_INLINE fortran_int
 call_ssyevd(EIGH_PARAMS_t *params)
@@ -2277,7 +2296,7 @@ init_ssyevd(EIGH_PARAMS_t* params, char JOBZ, char UPLO,
     return 0;
 }
 
-#line 1201
+#line 1220
 
 static NPY_INLINE fortran_int
 call_dsyevd(EIGH_PARAMS_t *params)
@@ -2369,7 +2388,7 @@ init_dsyevd(EIGH_PARAMS_t* params, char JOBZ, char UPLO,
 
 
 
-#line 1300
+#line 1319
 static NPY_INLINE fortran_int
 call_cheevd(EIGH_PARAMS_t *params)
 {
@@ -2468,7 +2487,7 @@ error:
     return 0;
 }
 
-#line 1300
+#line 1319
 static NPY_INLINE fortran_int
 call_zheevd(EIGH_PARAMS_t *params)
 {
@@ -2569,7 +2588,7 @@ error:
 
 
 
-#line 1407
+#line 1426
 /*
  * (M, M)->(M,)(M, M)
  * dimensions[1] -> M
@@ -2660,7 +2679,7 @@ FLOAT_eigh_wrapper(char JOBZ,
     set_fp_invalid_or_clear(error_occurred);
 }
 
-#line 1407
+#line 1426
 /*
  * (M, M)->(M,)(M, M)
  * dimensions[1] -> M
@@ -2751,7 +2770,7 @@ DOUBLE_eigh_wrapper(char JOBZ,
     set_fp_invalid_or_clear(error_occurred);
 }
 
-#line 1407
+#line 1426
 /*
  * (M, M)->(M,)(M, M)
  * dimensions[1] -> M
@@ -2842,7 +2861,7 @@ CFLOAT_eigh_wrapper(char JOBZ,
     set_fp_invalid_or_clear(error_occurred);
 }
 
-#line 1407
+#line 1426
 /*
  * (M, M)->(M,)(M, M)
  * dimensions[1] -> M
@@ -2935,7 +2954,7 @@ CDOUBLE_eigh_wrapper(char JOBZ,
 
 
 
-#line 1502
+#line 1521
 static void
 FLOAT_eighlo(char **args,
               npy_intp const *dimensions,
@@ -2972,7 +2991,7 @@ FLOAT_eigvalshup(char **args,
     FLOAT_eigh_wrapper('N', 'U', args, dimensions, steps);
 }
 
-#line 1502
+#line 1521
 static void
 DOUBLE_eighlo(char **args,
               npy_intp const *dimensions,
@@ -3009,7 +3028,7 @@ DOUBLE_eigvalshup(char **args,
     DOUBLE_eigh_wrapper('N', 'U', args, dimensions, steps);
 }
 
-#line 1502
+#line 1521
 static void
 CFLOAT_eighlo(char **args,
               npy_intp const *dimensions,
@@ -3046,7 +3065,7 @@ CFLOAT_eigvalshup(char **args,
     CFLOAT_eigh_wrapper('N', 'U', args, dimensions, steps);
 }
 
-#line 1502
+#line 1521
 static void
 CDOUBLE_eighlo(char **args,
               npy_intp const *dimensions,
@@ -3099,7 +3118,7 @@ typedef struct gesv_params_struct
     fortran_int LDB;
 } GESV_PARAMS_t;
 
-#line 1561
+#line 1580
 
 static NPY_INLINE fortran_int
 call_sgesv(GESV_PARAMS_t *params)
@@ -3266,7 +3285,7 @@ FLOAT_inv(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 1561
+#line 1580
 
 static NPY_INLINE fortran_int
 call_dgesv(GESV_PARAMS_t *params)
@@ -3433,7 +3452,7 @@ DOUBLE_inv(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 1561
+#line 1580
 
 static NPY_INLINE fortran_int
 call_cgesv(GESV_PARAMS_t *params)
@@ -3600,7 +3619,7 @@ CFLOAT_inv(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 1561
+#line 1580
 
 static NPY_INLINE fortran_int
 call_zgesv(GESV_PARAMS_t *params)
@@ -3780,7 +3799,7 @@ typedef struct potr_params_struct
     char UPLO;
 } POTR_PARAMS_t;
 
-#line 1747
+#line 1766
 
 static NPY_INLINE fortran_int
 call_spotrf(POTR_PARAMS_t *params)
@@ -3869,7 +3888,7 @@ FLOAT_cholesky_lo(char **args, npy_intp const *dimensions, npy_intp const *steps
 }
 
 
-#line 1747
+#line 1766
 
 static NPY_INLINE fortran_int
 call_dpotrf(POTR_PARAMS_t *params)
@@ -3958,7 +3977,7 @@ DOUBLE_cholesky_lo(char **args, npy_intp const *dimensions, npy_intp const *step
 }
 
 
-#line 1747
+#line 1766
 
 static NPY_INLINE fortran_int
 call_cpotrf(POTR_PARAMS_t *params)
@@ -4047,7 +4066,7 @@ CFLOAT_cholesky_lo(char **args, npy_intp const *dimensions, npy_intp const *step
 }
 
 
-#line 1747
+#line 1766
 
 static NPY_INLINE fortran_int
 call_zpotrf(POTR_PARAMS_t *params)
@@ -4207,7 +4226,7 @@ dump_geev_params(const char *name, GEEV_PARAMS_t* params)
               "JOBVR", params->JOBVR);
 }
 
-#line 1914
+#line 1933
 
 static NPY_INLINE fortran_int
 call_sgeev(GEEV_PARAMS_t* params)
@@ -4398,7 +4417,7 @@ process_sgeev_results(GEEV_PARAMS_t *params)
 }
 
 
-#line 1914
+#line 1933
 
 static NPY_INLINE fortran_int
 call_dgeev(GEEV_PARAMS_t* params)
@@ -4591,7 +4610,7 @@ process_dgeev_results(GEEV_PARAMS_t *params)
 
 
 
-#line 2113
+#line 2132
 
 static NPY_INLINE fortran_int
 call_cgeev(GEEV_PARAMS_t* params)
@@ -4696,7 +4715,7 @@ process_cgeev_results(GEEV_PARAMS_t *NPY_UNUSED(params))
     /* nothing to do here, complex versions are ready to copy out */
 }
 
-#line 2113
+#line 2132
 
 static NPY_INLINE fortran_int
 call_zgeev(GEEV_PARAMS_t* params)
@@ -4803,7 +4822,7 @@ process_zgeev_results(GEEV_PARAMS_t *NPY_UNUSED(params))
 
 
 
-#line 2225
+#line 2244
 
 static NPY_INLINE void
 release_sgeev(GEEV_PARAMS_t *params)
@@ -4928,7 +4947,7 @@ FLOAT_eigvals(char **args,
 }
 
 
-#line 2225
+#line 2244
 
 static NPY_INLINE void
 release_dgeev(GEEV_PARAMS_t *params)
@@ -5053,7 +5072,7 @@ DOUBLE_eigvals(char **args,
 }
 
 
-#line 2225
+#line 2244
 
 static NPY_INLINE void
 release_zgeev(GEEV_PARAMS_t *params)
@@ -5276,7 +5295,7 @@ compute_urows_vtcolumns(char jobz,
 }
 
 
-#line 2452
+#line 2471
 
 static NPY_INLINE fortran_int
 call_sgesdd(GESDD_PARAMS_t *params)
@@ -5392,7 +5411,7 @@ init_sgesdd(GESDD_PARAMS_t *params,
 }
 
 
-#line 2452
+#line 2471
 
 static NPY_INLINE fortran_int
 call_dgesdd(GESDD_PARAMS_t *params)
@@ -5509,7 +5528,7 @@ init_dgesdd(GESDD_PARAMS_t *params,
 
 
 
-#line 2575
+#line 2594
 
 static NPY_INLINE fortran_int
 call_cgesdd(GESDD_PARAMS_t *params)
@@ -5631,7 +5650,7 @@ init_cgesdd(GESDD_PARAMS_t *params,
     return 0;
 }
 
-#line 2575
+#line 2594
 
 static NPY_INLINE fortran_int
 call_zgesdd(GESDD_PARAMS_t *params)
@@ -5755,7 +5774,7 @@ init_zgesdd(GESDD_PARAMS_t *params,
 
 
 
-#line 2703
+#line 2722
 static NPY_INLINE void
 release_sgesdd(GESDD_PARAMS_t* params)
 {
@@ -5889,7 +5908,7 @@ FLOAT_svd_A(char **args,
 }
 
 
-#line 2703
+#line 2722
 static NPY_INLINE void
 release_dgesdd(GESDD_PARAMS_t* params)
 {
@@ -6023,7 +6042,7 @@ DOUBLE_svd_A(char **args,
 }
 
 
-#line 2703
+#line 2722
 static NPY_INLINE void
 release_cgesdd(GESDD_PARAMS_t* params)
 {
@@ -6157,7 +6176,7 @@ CFLOAT_svd_A(char **args,
 }
 
 
-#line 2703
+#line 2722
 static NPY_INLINE void
 release_zgesdd(GESDD_PARAMS_t* params)
 {
@@ -6292,6 +6311,817 @@ CDOUBLE_svd_A(char **args,
 
 
 
+/* -------------------------------------------------------------------------- */
+                 /* qr (modes - r, raw) */
+
+typedef struct geqfr_params_struct
+{
+    fortran_int M;
+    fortran_int N;
+    void *A;
+    fortran_int LDA;
+    void* TAU;
+    void *WORK;
+    fortran_int LWORK;
+} GEQRF_PARAMS_t;
+
+
+static inline void
+dump_geqrf_params(const char *name,
+                  GEQRF_PARAMS_t *params)
+{
+    TRACE_TXT("\n%s:\n"\
+
+              "%14s: %18p\n"\
+              "%14s: %18p\n"\
+              "%14s: %18p\n"\
+              "%14s: %18d\n"\
+              "%14s: %18d\n"\
+              "%14s: %18d\n"\
+              "%14s: %18d\n",
+
+              name,
+
+              "A", params->A,
+              "TAU", params->TAU,
+              "WORK", params->WORK,
+
+              "M", (int)params->M,
+              "N", (int)params->N,
+              "LDA", (int)params->LDA,
+              "LWORK", (int)params->LWORK);
+}
+
+#line 2900
+
+static inline fortran_int
+call_dgeqrf(GEQRF_PARAMS_t *params)
+{
+    fortran_int rv;
+    LAPACK(dgeqrf)(&params->M, &params->N,
+                          params->A, &params->LDA,
+                          params->TAU,
+                          params->WORK, &params->LWORK,
+                          &rv);
+    return rv;
+}
+
+
+#line 2900
+
+static inline fortran_int
+call_zgeqrf(GEQRF_PARAMS_t *params)
+{
+    fortran_int rv;
+    LAPACK(zgeqrf)(&params->M, &params->N,
+                          params->A, &params->LDA,
+                          params->TAU,
+                          params->WORK, &params->LWORK,
+                          &rv);
+    return rv;
+}
+
+
+
+#line 2920
+static inline int
+init_dgeqrf(GEQRF_PARAMS_t *params,
+                   fortran_int m,
+                   fortran_int n)
+{
+    npy_uint8 *mem_buff = NULL;
+    npy_uint8 *mem_buff2 = NULL;
+    npy_uint8 *a, *tau, *work;
+    fortran_int min_m_n = fortran_int_min(m, n);
+    size_t safe_min_m_n = min_m_n;
+    size_t safe_m = m;
+    size_t safe_n = n;
+
+    size_t a_size = safe_m * safe_n * sizeof(fortran_doublereal);
+    size_t tau_size = safe_min_m_n * sizeof(fortran_doublereal);
+
+    fortran_int work_count;
+    size_t work_size;
+    fortran_int lda = fortran_int_max(1, m);
+
+    mem_buff = malloc(a_size + tau_size);
+
+    if (!mem_buff)
+        goto error;
+
+    a = mem_buff;
+    tau = a + a_size;
+    memset(tau, 0, tau_size);
+
+
+    params->M = m;
+    params->N = n;
+    params->A = a;
+    params->TAU = tau;
+    params->LDA = lda;
+
+    {
+        /* compute optimal work size */
+
+        fortran_doublereal work_size_query;
+
+        params->WORK = &work_size_query;
+        params->LWORK = -1;
+
+        if (call_dgeqrf(params) != 0)
+            goto error;
+
+        work_count = (fortran_int) *(fortran_doublereal*) params->WORK;
+
+    }
+
+    params->LWORK = fortran_int_max(fortran_int_max(1, n), work_count);
+
+    work_size = (size_t) params->LWORK * sizeof(fortran_doublereal);
+    mem_buff2 = malloc(work_size);
+    if (!mem_buff2)
+        goto error;
+
+    work = mem_buff2;
+
+    params->WORK = work;
+
+    return 1;
+ error:
+    TRACE_TXT("%s failed init\n", __FUNCTION__);
+    free(mem_buff);
+    free(mem_buff2);
+    memset(params, 0, sizeof(*params));
+
+    return 0;
+}
+
+
+
+#line 2999
+static inline int
+init_zgeqrf(GEQRF_PARAMS_t *params,
+                   fortran_int m,
+                   fortran_int n)
+{
+    npy_uint8 *mem_buff = NULL;
+    npy_uint8 *mem_buff2 = NULL;
+    npy_uint8 *a, *tau, *work;
+    fortran_int min_m_n = fortran_int_min(m, n);
+    size_t safe_min_m_n = min_m_n;
+    size_t safe_m = m;
+    size_t safe_n = n;
+
+    size_t a_size = safe_m * safe_n * sizeof(fortran_doublecomplex);
+    size_t tau_size = safe_min_m_n * sizeof(fortran_doublecomplex);
+
+    fortran_int work_count;
+    size_t work_size;
+    fortran_int lda = fortran_int_max(1, m);
+
+    mem_buff = malloc(a_size + tau_size);
+
+    if (!mem_buff)
+        goto error;
+
+    a = mem_buff;
+    tau = a + a_size;
+    memset(tau, 0, tau_size);
+
+
+    params->M = m;
+    params->N = n;
+    params->A = a;
+    params->TAU = tau;
+    params->LDA = lda;
+
+    {
+        /* compute optimal work size */
+
+        fortran_doublecomplex work_size_query;
+
+        params->WORK = &work_size_query;
+        params->LWORK = -1;
+
+        if (call_zgeqrf(params) != 0)
+            goto error;
+
+        work_count = (fortran_int) ((fortran_doublecomplex*)params->WORK)->r;
+
+    }
+
+    params->LWORK = fortran_int_max(fortran_int_max(1, n),
+                                    work_count);
+
+    work_size = (size_t) params->LWORK * sizeof(fortran_doublecomplex);
+
+    mem_buff2 = malloc(work_size);
+    if (!mem_buff2)
+        goto error;
+
+    work = mem_buff2;
+
+    params->WORK = work;
+
+    return 1;
+ error:
+    TRACE_TXT("%s failed init\n", __FUNCTION__);
+    free(mem_buff);
+    free(mem_buff2);
+    memset(params, 0, sizeof(*params));
+
+    return 0;
+}
+
+
+
+#line 3078
+static inline void
+release_dgeqrf(GEQRF_PARAMS_t* params)
+{
+    /* A and WORK contain allocated blocks */
+    free(params->A);
+    free(params->WORK);
+    memset(params, 0, sizeof(*params));
+}
+
+
+#line 3078
+static inline void
+release_zgeqrf(GEQRF_PARAMS_t* params)
+{
+    /* A and WORK contain allocated blocks */
+    free(params->A);
+    free(params->WORK);
+    memset(params, 0, sizeof(*params));
+}
+
+
+
+#line 3098
+static void
+DOUBLE_qr_r_raw(char **args, npy_intp const *dimensions, npy_intp const *steps,
+          void *NPY_UNUSED(func))
+{
+    GEQRF_PARAMS_t params;
+    int error_occurred = get_fp_invalid_and_clear();
+    fortran_int n, m;
+
+    INIT_OUTER_LOOP_2
+
+    m = (fortran_int)dimensions[0];
+    n = (fortran_int)dimensions[1];
+
+    if (init_dgeqrf(&params, m, n)) {
+        LINEARIZE_DATA_t a_in, tau_out;
+
+        init_linearize_data(&a_in, n, m, steps[1], steps[0]);
+        init_linearize_data(&tau_out, 1, fortran_int_min(m, n), 1, steps[2]);
+
+        BEGIN_OUTER_LOOP_2
+            int not_ok;
+            linearize_DOUBLE_matrix(params.A, args[0], &a_in);
+            not_ok = call_dgeqrf(&params);
+            if (!not_ok) {
+                delinearize_DOUBLE_matrix(args[0], params.A, &a_in);
+                delinearize_DOUBLE_matrix(args[1], params.TAU, &tau_out);
+            } else {
+                error_occurred = 1;
+                nan_DOUBLE_matrix(args[1], &tau_out);
+            }
+        END_OUTER_LOOP
+
+        release_dgeqrf(&params);
+    }
+
+    set_fp_invalid_or_clear(error_occurred);
+}
+
+
+#line 3098
+static void
+CDOUBLE_qr_r_raw(char **args, npy_intp const *dimensions, npy_intp const *steps,
+          void *NPY_UNUSED(func))
+{
+    GEQRF_PARAMS_t params;
+    int error_occurred = get_fp_invalid_and_clear();
+    fortran_int n, m;
+
+    INIT_OUTER_LOOP_2
+
+    m = (fortran_int)dimensions[0];
+    n = (fortran_int)dimensions[1];
+
+    if (init_zgeqrf(&params, m, n)) {
+        LINEARIZE_DATA_t a_in, tau_out;
+
+        init_linearize_data(&a_in, n, m, steps[1], steps[0]);
+        init_linearize_data(&tau_out, 1, fortran_int_min(m, n), 1, steps[2]);
+
+        BEGIN_OUTER_LOOP_2
+            int not_ok;
+            linearize_CDOUBLE_matrix(params.A, args[0], &a_in);
+            not_ok = call_zgeqrf(&params);
+            if (!not_ok) {
+                delinearize_CDOUBLE_matrix(args[0], params.A, &a_in);
+                delinearize_CDOUBLE_matrix(args[1], params.TAU, &tau_out);
+            } else {
+                error_occurred = 1;
+                nan_CDOUBLE_matrix(args[1], &tau_out);
+            }
+        END_OUTER_LOOP
+
+        release_zgeqrf(&params);
+    }
+
+    set_fp_invalid_or_clear(error_occurred);
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+                 /* qr common code (modes - reduced and complete) */ 
+
+typedef struct gqr_params_struct
+{
+    fortran_int M;
+    fortran_int MC;
+    fortran_int MN;
+    void* A;
+    void *Q;
+    fortran_int LDA;
+    void* TAU;
+    void *WORK;
+    fortran_int LWORK;
+} GQR_PARAMS_t;
+
+#line 3157
+
+static inline fortran_int
+call_dorgqr(GQR_PARAMS_t *params)
+{
+    fortran_int rv;
+    LAPACK(dorgqr)(&params->M, &params->MC, &params->MN,
+                          params->Q, &params->LDA,
+                          params->TAU,
+                          params->WORK, &params->LWORK,
+                          &rv);
+    return rv;
+}
+
+
+#line 3157
+
+static inline fortran_int
+call_zungqr(GQR_PARAMS_t *params)
+{
+    fortran_int rv;
+    LAPACK(zungqr)(&params->M, &params->MC, &params->MN,
+                          params->Q, &params->LDA,
+                          params->TAU,
+                          params->WORK, &params->LWORK,
+                          &rv);
+    return rv;
+}
+
+
+
+#line 3176
+static inline int
+init_dorgqr_common(GQR_PARAMS_t *params,
+                          fortran_int m,
+                          fortran_int n,
+                          fortran_int mc)
+{
+    npy_uint8 *mem_buff = NULL;
+    npy_uint8 *mem_buff2 = NULL;
+    npy_uint8 *a, *q, *tau, *work;
+    fortran_int min_m_n = fortran_int_min(m, n);
+    size_t safe_mc = mc;
+    size_t safe_min_m_n = min_m_n;
+    size_t safe_m = m;
+    size_t safe_n = n;
+    size_t a_size = safe_m * safe_n * sizeof(fortran_doublereal);
+    size_t q_size = safe_m * safe_mc * sizeof(fortran_doublereal);
+    size_t tau_size = safe_min_m_n * sizeof(fortran_doublereal);
+
+    fortran_int work_count;
+    size_t work_size;
+    fortran_int lda = fortran_int_max(1, m);
+
+    mem_buff = malloc(q_size + tau_size + a_size);
+
+    if (!mem_buff)
+        goto error;
+
+    q = mem_buff;
+    tau = q + q_size;
+    a = tau + tau_size;
+
+
+    params->M = m;
+    params->MC = mc;
+    params->MN = min_m_n;
+    params->A = a;
+    params->Q = q;
+    params->TAU = tau;
+    params->LDA = lda;
+
+    {
+        /* compute optimal work size */
+        fortran_doublereal work_size_query;
+
+        params->WORK = &work_size_query;
+        params->LWORK = -1;
+
+        if (call_dorgqr(params) != 0)
+            goto error;
+
+        work_count = (fortran_int) *(fortran_doublereal*) params->WORK;
+
+    }
+
+    params->LWORK = fortran_int_max(fortran_int_max(1, n), work_count);
+
+    work_size = (size_t) params->LWORK * sizeof(fortran_doublereal);
+
+    mem_buff2 = malloc(work_size);
+    if (!mem_buff2)
+        goto error;
+
+    work = mem_buff2;
+
+    params->WORK = work;
+
+    return 1;
+ error:
+    TRACE_TXT("%s failed init\n", __FUNCTION__);
+    free(mem_buff);
+    free(mem_buff2);
+    memset(params, 0, sizeof(*params));
+
+    return 0;
+}
+
+
+
+#line 3258
+static inline int
+init_zungqr_common(GQR_PARAMS_t *params,
+                          fortran_int m,
+                          fortran_int n,
+                          fortran_int mc)
+{
+    npy_uint8 *mem_buff = NULL;
+    npy_uint8 *mem_buff2 = NULL;
+    npy_uint8 *a, *q, *tau, *work;
+    fortran_int min_m_n = fortran_int_min(m, n);
+    size_t safe_mc = mc;
+    size_t safe_min_m_n = min_m_n;
+    size_t safe_m = m;
+    size_t safe_n = n;
+
+    size_t a_size = safe_m * safe_n * sizeof(fortran_doublecomplex);
+    size_t q_size = safe_m * safe_mc * sizeof(fortran_doublecomplex);
+    size_t tau_size = safe_min_m_n * sizeof(fortran_doublecomplex);
+
+    fortran_int work_count;
+    size_t work_size;
+    fortran_int lda = fortran_int_max(1, m);
+
+    mem_buff = malloc(q_size + tau_size + a_size);
+
+    if (!mem_buff)
+        goto error;
+
+    q = mem_buff;
+    tau = q + q_size;
+    a = tau + tau_size;
+
+
+    params->M = m;
+    params->MC = mc;
+    params->MN = min_m_n;
+    params->A = a;
+    params->Q = q;
+    params->TAU = tau;
+    params->LDA = lda;
+
+    {
+        /* compute optimal work size */
+        fortran_doublecomplex work_size_query;
+
+        params->WORK = &work_size_query;
+        params->LWORK = -1;
+
+        if (call_zungqr(params) != 0)
+            goto error;
+
+        work_count = (fortran_int) ((fortran_doublecomplex*)params->WORK)->r;
+
+    }
+
+    params->LWORK = fortran_int_max(fortran_int_max(1, n),
+                                    work_count);
+
+    work_size = (size_t) params->LWORK * sizeof(fortran_doublecomplex);
+
+    mem_buff2 = malloc(work_size);
+    if (!mem_buff2)
+        goto error;
+
+    work = mem_buff2;
+
+    params->WORK = work;
+    params->LWORK = work_count;
+
+    return 1;
+ error:
+    TRACE_TXT("%s failed init\n", __FUNCTION__);
+    free(mem_buff);
+    free(mem_buff2);
+    memset(params, 0, sizeof(*params));
+
+    return 0;
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+                 /* qr (modes - reduced) */
+
+
+static inline void
+dump_gqr_params(const char *name,
+                GQR_PARAMS_t *params)
+{
+    TRACE_TXT("\n%s:\n"\
+
+              "%14s: %18p\n"\
+              "%14s: %18p\n"\
+              "%14s: %18p\n"\
+              "%14s: %18d\n"\
+              "%14s: %18d\n"\
+              "%14s: %18d\n"\
+              "%14s: %18d\n"\
+              "%14s: %18d\n",
+
+              name,
+
+              "Q", params->Q,
+              "TAU", params->TAU,
+              "WORK", params->WORK,
+
+              "M", (int)params->M,
+              "MC", (int)params->MC,
+              "MN", (int)params->MN,
+              "LDA", (int)params->LDA,
+              "LWORK", (int)params->LWORK);
+}
+
+#line 3375
+static inline int
+init_dorgqr(GQR_PARAMS_t *params,
+                   fortran_int m,
+                   fortran_int n)
+{
+    return init_dorgqr_common(
+        params, m, n, 
+        fortran_int_min(m, n));
+}
+
+
+#line 3375
+static inline int
+init_zungqr(GQR_PARAMS_t *params,
+                   fortran_int m,
+                   fortran_int n)
+{
+    return init_zungqr_common(
+        params, m, n, 
+        fortran_int_min(m, n));
+}
+
+
+
+#line 3390
+static inline void
+release_dorgqr(GQR_PARAMS_t* params)
+{
+    /* A and WORK contain allocated blocks */
+    free(params->Q);
+    free(params->WORK);
+    memset(params, 0, sizeof(*params));
+}
+
+
+#line 3390
+static inline void
+release_zungqr(GQR_PARAMS_t* params)
+{
+    /* A and WORK contain allocated blocks */
+    free(params->Q);
+    free(params->WORK);
+    memset(params, 0, sizeof(*params));
+}
+
+
+
+#line 3410
+static void
+DOUBLE_qr_reduced(char **args, npy_intp const *dimensions, npy_intp const *steps,
+                  void *NPY_UNUSED(func))
+{
+    GQR_PARAMS_t params;
+    int error_occurred = get_fp_invalid_and_clear();
+    fortran_int n, m;
+
+    INIT_OUTER_LOOP_3
+
+    m = (fortran_int)dimensions[0];
+    n = (fortran_int)dimensions[1];
+
+    if (init_dorgqr(&params, m, n)) {
+        LINEARIZE_DATA_t a_in, tau_in, q_out;
+
+        init_linearize_data(&a_in, n, m, steps[1], steps[0]);
+        init_linearize_data(&tau_in, 1, fortran_int_min(m, n), 1, steps[2]);
+        init_linearize_data(&q_out, fortran_int_min(m, n), m, steps[4], steps[3]);
+
+        BEGIN_OUTER_LOOP_3
+            int not_ok;
+            linearize_DOUBLE_matrix(params.A, args[0], &a_in);
+            linearize_DOUBLE_matrix(params.Q, args[0], &a_in);
+            linearize_DOUBLE_matrix(params.TAU, args[1], &tau_in);
+            not_ok = call_dorgqr(&params);
+            if (!not_ok) {
+                delinearize_DOUBLE_matrix(args[2], params.Q, &q_out);
+            } else {
+                error_occurred = 1;
+                nan_DOUBLE_matrix(args[2], &q_out);
+            }
+        END_OUTER_LOOP
+
+        release_dorgqr(&params);
+    }
+
+    set_fp_invalid_or_clear(error_occurred);
+}
+
+
+#line 3410
+static void
+CDOUBLE_qr_reduced(char **args, npy_intp const *dimensions, npy_intp const *steps,
+                  void *NPY_UNUSED(func))
+{
+    GQR_PARAMS_t params;
+    int error_occurred = get_fp_invalid_and_clear();
+    fortran_int n, m;
+
+    INIT_OUTER_LOOP_3
+
+    m = (fortran_int)dimensions[0];
+    n = (fortran_int)dimensions[1];
+
+    if (init_zungqr(&params, m, n)) {
+        LINEARIZE_DATA_t a_in, tau_in, q_out;
+
+        init_linearize_data(&a_in, n, m, steps[1], steps[0]);
+        init_linearize_data(&tau_in, 1, fortran_int_min(m, n), 1, steps[2]);
+        init_linearize_data(&q_out, fortran_int_min(m, n), m, steps[4], steps[3]);
+
+        BEGIN_OUTER_LOOP_3
+            int not_ok;
+            linearize_CDOUBLE_matrix(params.A, args[0], &a_in);
+            linearize_CDOUBLE_matrix(params.Q, args[0], &a_in);
+            linearize_CDOUBLE_matrix(params.TAU, args[1], &tau_in);
+            not_ok = call_zungqr(&params);
+            if (!not_ok) {
+                delinearize_CDOUBLE_matrix(args[2], params.Q, &q_out);
+            } else {
+                error_occurred = 1;
+                nan_CDOUBLE_matrix(args[2], &q_out);
+            }
+        END_OUTER_LOOP
+
+        release_zungqr(&params);
+    }
+
+    set_fp_invalid_or_clear(error_occurred);
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+                 /* qr (modes - complete) */
+
+#line 3459
+static inline int
+init_dorgqr_complete(GQR_PARAMS_t *params,
+                            fortran_int m,
+                            fortran_int n)
+{
+    return init_dorgqr_common(params, m, n, m);
+}
+
+
+#line 3459
+static inline int
+init_zungqr_complete(GQR_PARAMS_t *params,
+                            fortran_int m,
+                            fortran_int n)
+{
+    return init_zungqr_common(params, m, n, m);
+}
+
+
+
+#line 3478
+static void
+DOUBLE_qr_complete(char **args, npy_intp const *dimensions, npy_intp const *steps,
+                  void *NPY_UNUSED(func))
+{
+    GQR_PARAMS_t params;
+    int error_occurred = get_fp_invalid_and_clear();
+    fortran_int n, m;
+
+    INIT_OUTER_LOOP_3
+
+    m = (fortran_int)dimensions[0];
+    n = (fortran_int)dimensions[1];
+
+
+    if (init_dorgqr_complete(&params, m, n)) {
+        LINEARIZE_DATA_t a_in, tau_in, q_out;
+
+        init_linearize_data(&a_in, n, m, steps[1], steps[0]);
+        init_linearize_data(&tau_in, 1, fortran_int_min(m, n), 1, steps[2]);
+        init_linearize_data(&q_out, m, m, steps[4], steps[3]);
+
+        BEGIN_OUTER_LOOP_3
+            int not_ok;
+            linearize_DOUBLE_matrix(params.A, args[0], &a_in);
+            linearize_DOUBLE_matrix(params.Q, args[0], &a_in);
+            linearize_DOUBLE_matrix(params.TAU, args[1], &tau_in);
+            not_ok = call_dorgqr(&params);
+            if (!not_ok) {
+                delinearize_DOUBLE_matrix(args[2], params.Q, &q_out);
+            } else {
+                error_occurred = 1;
+                nan_DOUBLE_matrix(args[2], &q_out);
+            }
+        END_OUTER_LOOP
+
+        release_dorgqr(&params);
+    }
+
+    set_fp_invalid_or_clear(error_occurred);
+}
+
+
+#line 3478
+static void
+CDOUBLE_qr_complete(char **args, npy_intp const *dimensions, npy_intp const *steps,
+                  void *NPY_UNUSED(func))
+{
+    GQR_PARAMS_t params;
+    int error_occurred = get_fp_invalid_and_clear();
+    fortran_int n, m;
+
+    INIT_OUTER_LOOP_3
+
+    m = (fortran_int)dimensions[0];
+    n = (fortran_int)dimensions[1];
+
+
+    if (init_zungqr_complete(&params, m, n)) {
+        LINEARIZE_DATA_t a_in, tau_in, q_out;
+
+        init_linearize_data(&a_in, n, m, steps[1], steps[0]);
+        init_linearize_data(&tau_in, 1, fortran_int_min(m, n), 1, steps[2]);
+        init_linearize_data(&q_out, m, m, steps[4], steps[3]);
+
+        BEGIN_OUTER_LOOP_3
+            int not_ok;
+            linearize_CDOUBLE_matrix(params.A, args[0], &a_in);
+            linearize_CDOUBLE_matrix(params.Q, args[0], &a_in);
+            linearize_CDOUBLE_matrix(params.TAU, args[1], &tau_in);
+            not_ok = call_zungqr(&params);
+            if (!not_ok) {
+                delinearize_CDOUBLE_matrix(args[2], params.Q, &q_out);
+            } else {
+                error_occurred = 1;
+                nan_CDOUBLE_matrix(args[2], &q_out);
+            }
+        END_OUTER_LOOP
+
+        release_zungqr(&params);
+    }
+
+    set_fp_invalid_or_clear(error_occurred);
+}
+
+
 
 /* -------------------------------------------------------------------------- */
                  /* least squares */
@@ -6359,7 +7189,7 @@ dump_gelsd_params(const char *name,
 }
 
 
-#line 2909
+#line 3592
 
 static inline fortran_int
 call_sgelsd(GELSD_PARAMS_t *params)
@@ -6464,7 +7294,7 @@ init_sgelsd(GELSD_PARAMS_t *params,
 }
 
 
-#line 2909
+#line 3592
 
 static inline fortran_int
 call_dgelsd(GELSD_PARAMS_t *params)
@@ -6570,7 +7400,7 @@ init_dgelsd(GELSD_PARAMS_t *params,
 
 
 
-#line 3021
+#line 3704
 
 static inline fortran_int
 call_cgelsd(GELSD_PARAMS_t *params)
@@ -6677,7 +7507,7 @@ init_cgelsd(GELSD_PARAMS_t *params,
 }
 
 
-#line 3021
+#line 3704
 
 static inline fortran_int
 call_zgelsd(GELSD_PARAMS_t *params)
@@ -6786,7 +7616,7 @@ init_zgelsd(GELSD_PARAMS_t *params,
 
 
 
-#line 3140
+#line 3823
 static inline void
 release_sgelsd(GELSD_PARAMS_t* params)
 {
@@ -6884,7 +7714,7 @@ FLOAT_lstsq(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 3140
+#line 3823
 static inline void
 release_dgelsd(GELSD_PARAMS_t* params)
 {
@@ -6982,7 +7812,7 @@ DOUBLE_lstsq(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 3140
+#line 3823
 static inline void
 release_cgelsd(GELSD_PARAMS_t* params)
 {
@@ -7080,7 +7910,7 @@ CFLOAT_lstsq(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 3140
+#line 3823
 static inline void
 release_zgelsd(GELSD_PARAMS_t* params)
 {
@@ -7235,6 +8065,17 @@ static void *array_of_nulls[] = {
         CDOUBLE_ ## NAME                                \
     }
 
+/* The single precision functions are not used at all,
+ * due to input data being promoted to double precision
+ * in Python, so they are not implemented here.
+ */
+#define GUFUNC_FUNC_ARRAY_QR(NAME)                      \
+    static PyUFuncGenericFunction                       \
+    FUNC_ARRAY_NAME(NAME)[] = {                         \
+        DOUBLE_ ## NAME,                                \
+        CDOUBLE_ ## NAME                                \
+    }
+
 
 GUFUNC_FUNC_ARRAY_REAL_COMPLEX(slogdet);
 GUFUNC_FUNC_ARRAY_REAL_COMPLEX(det);
@@ -7249,6 +8090,9 @@ GUFUNC_FUNC_ARRAY_REAL_COMPLEX(cholesky_lo);
 GUFUNC_FUNC_ARRAY_REAL_COMPLEX(svd_N);
 GUFUNC_FUNC_ARRAY_REAL_COMPLEX(svd_S);
 GUFUNC_FUNC_ARRAY_REAL_COMPLEX(svd_A);
+GUFUNC_FUNC_ARRAY_QR(qr_r_raw);
+GUFUNC_FUNC_ARRAY_QR(qr_reduced);
+GUFUNC_FUNC_ARRAY_QR(qr_complete);
 GUFUNC_FUNC_ARRAY_REAL_COMPLEX(lstsq);
 GUFUNC_FUNC_ARRAY_EIG(eig);
 GUFUNC_FUNC_ARRAY_EIG(eigvals);
@@ -7313,6 +8157,24 @@ static char svd_1_3_types[] = {
     NPY_DOUBLE,  NPY_DOUBLE,  NPY_DOUBLE, NPY_DOUBLE,
     NPY_CFLOAT,  NPY_CFLOAT,  NPY_FLOAT,  NPY_CFLOAT,
     NPY_CDOUBLE, NPY_CDOUBLE, NPY_DOUBLE, NPY_CDOUBLE
+};
+
+/* A, tau */
+static char qr_r_raw_types[] = {
+    NPY_DOUBLE,  NPY_DOUBLE,
+    NPY_CDOUBLE, NPY_CDOUBLE,
+};
+
+/* A, tau, q */
+static char qr_reduced_types[] = {
+    NPY_DOUBLE,  NPY_DOUBLE,  NPY_DOUBLE,
+    NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE,
+};
+
+/* A, tau, q */
+static char qr_complete_types[] = {
+    NPY_DOUBLE,  NPY_DOUBLE,  NPY_DOUBLE,
+    NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE,
 };
 
 /*  A,           b,           rcond,      x,           resid,      rank,    s,        */
@@ -7515,6 +8377,42 @@ GUFUNC_DESCRIPTOR_t gufunc_descriptors [] = {
         eigvals_types
     },
     {
+        "qr_r_raw_m",
+        "(m,n)->(m)",
+        "Compute TAU vector for the last two dimensions \n"\
+        "and broadcast to the rest. For m <= n. \n",
+        2, 1, 1,
+        FUNC_ARRAY_NAME(qr_r_raw),
+        qr_r_raw_types
+    },
+    {
+        "qr_r_raw_n",
+        "(m,n)->(n)",
+        "Compute TAU vector for the last two dimensions \n"\
+        "and broadcast to the rest. For m > n. \n",
+        2, 1, 1,
+        FUNC_ARRAY_NAME(qr_r_raw),
+        qr_r_raw_types
+    },
+    {
+        "qr_reduced",
+        "(m,n),(k)->(m,k)",
+        "Compute Q matrix for the last two dimensions \n"\
+        "and broadcast to the rest. \n",
+        2, 2, 1,
+        FUNC_ARRAY_NAME(qr_reduced),
+        qr_reduced_types
+    },
+    {
+        "qr_complete",
+        "(m,n),(n)->(m,m)",
+        "Compute Q matrix for the last two dimensions \n"\
+        "and broadcast to the rest. For m > n. \n",
+        2, 2, 1,
+        FUNC_ARRAY_NAME(qr_complete),
+        qr_complete_types
+    },
+    {
         "lstsq_m",
         "(m,n),(m,nrhs),()->(n,nrhs),(nrhs),(),(m)",
         "least squares on the last two dimensions and broadcast to the rest. \n"\
@@ -7589,7 +8487,7 @@ static struct PyModuleDef moduledef = {
         NULL
 };
 
-PyObject *PyInit__umath_linalg(void)
+PyMODINIT_FUNC PyInit__umath_linalg(void)
 {
     PyObject *m;
     PyObject *d;

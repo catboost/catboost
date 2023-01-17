@@ -147,7 +147,7 @@ new reference -- accepts NULL for mintype
 This function is only used in one place within NumPy and should
 generally be avoided. It is provided mainly for backward compatibility.
 
-The user of the function has to free the returned array.
+The user of the function has to free the returned array with PyDataMem_FREE.
 
 ::
 
@@ -1586,7 +1586,7 @@ TO BE REMOVED - NOT USED INTERNALLY.
                                      , npy_timedeltastruct
                                      *NPY_UNUSED(d) )
 
-Create a timdelta value from a filled timedelta struct and resolution unit.
+Create a timedelta value from a filled timedelta struct and resolution unit.
 
 TO BE REMOVED - NOT USED INTERNALLY.
 
@@ -2428,7 +2428,7 @@ Convert object to select kind
 ::
 
   void *
-  PyDataMem_NEW_ZEROED(size_t size, size_t elsize)
+  PyDataMem_NEW_ZEROED(size_t nmemb, size_t size)
 
 Allocates zeroed memory for array data.
 
@@ -2480,4 +2480,23 @@ changes back to 'base' before deallocating the array.
 Steals a reference to 'base'.
 
 Returns 0 on success, -1 on failure.
+
+::
+
+  PyObject *
+  PyDataMem_SetHandler(PyObject *handler)
+
+Set a new allocation policy. If the input value is NULL, will reset
+the policy to the default. Return the previous policy, or
+return NULL if an error has occurred. We wrap the user-provided
+functions so they will still call the python and numpy
+memory management callback hooks.
+
+::
+
+  PyObject *
+  PyDataMem_GetHandler()
+
+Return the policy that will be used to allocate data
+for the next PyArrayObject. On failure, return NULL.
 

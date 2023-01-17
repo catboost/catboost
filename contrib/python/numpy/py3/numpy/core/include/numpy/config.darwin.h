@@ -215,6 +215,6 @@
 /* #undef inline */
 #endif
 
-#ifndef _NPY_NPY_CONFIG_H_
+#ifndef NUMPY_CORE_SRC_COMMON_NPY_CONFIG_H_
 #error config.h should never be included directly, include npy_config.h instead
 #endif

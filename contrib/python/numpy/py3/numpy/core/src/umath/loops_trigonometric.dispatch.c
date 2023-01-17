@@ -216,7 +216,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cos)
     const npy_intp ssrc = steps[0] / lsize;
     const npy_intp sdst = steps[1] / lsize;
     npy_intp len = dimensions[0];
-    assert(steps[0] % lsize == 0 && steps[1] % lsize == 0);
+    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
 #if NPY_SIMD_FMA3
     if (is_mem_overlap(src, steps[0], dst, steps[1], len) ||
         !npyv_loadable_stride_f32(ssrc) || !npyv_storable_stride_f32(sdst)
@@ -246,7 +246,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sin)
     const npy_intp ssrc = steps[0] / lsize;
     const npy_intp sdst = steps[1] / lsize;
     npy_intp len = dimensions[0];
-    assert(steps[0] % lsize == 0 && steps[1] % lsize == 0);
+    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
 #if NPY_SIMD_FMA3
     if (is_mem_overlap(src, steps[0], dst, steps[1], len) ||
         !npyv_loadable_stride_f32(ssrc) || !npyv_storable_stride_f32(sdst)

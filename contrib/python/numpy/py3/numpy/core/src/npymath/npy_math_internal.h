@@ -64,6 +64,32 @@
  * ====================================================
  */
 #include "npy_math_private.h"
+#ifdef _MSC_VER
+#  include <intrin.h>   // for __popcnt
+#endif
+
+/* Magic binary numbers used by bit_count
+ * For type T, the magic numbers are computed as follows:
+ * Magic[0]: 01 01 01 01 01 01... = (T)~(T)0/3
+ * Magic[1]: 0011 0011 0011...    = (T)~(T)0/15  * 3
+ * Magic[2]: 00001111 00001111... = (T)~(T)0/255 * 15
+ * Magic[3]: 00000001 00000001... = (T)~(T)0/255
+ *
+ * Counting bits set, in parallel
+ * Based on: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+ *
+ * Generic Algorithm for type T:
+ * a = a - ((a >> 1) & (T)~(T)0/3);
+ * a = (a & (T)~(T)0/15*3) + ((a >> 2) & (T)~(T)0/15*3);
+ * a = (a + (a >> 4)) & (T)~(T)0/255*15;
+ * c = (T)(a * ((T)~(T)0/255)) >> (sizeof(T) - 1) * CHAR_BIT;
+*/
+
+static const npy_uint8  MAGIC8[]  = {0x55u,                 0x33u,                 0x0Fu,                 0x01u};
+static const npy_uint16 MAGIC16[] = {0x5555u,               0x3333u,               0x0F0Fu,               0x0101u};
+static const npy_uint32 MAGIC32[] = {0x55555555ul,          0x33333333ul,          0x0F0F0F0Ful,          0x01010101ul};
+static const npy_uint64 MAGIC64[] = {0x5555555555555555ull, 0x3333333333333333ull, 0x0F0F0F0F0F0F0F0Full, 0x0101010101010101ull};
+
 
 /*
  *****************************************************************************
@@ -381,9 +407,9 @@ NPY_INPLACE double npy_log2(double x)
  * instead test for the macro, but I am lazy to do that for now.
  */
 
-#line 380
+#line 406
 
-#line 387
+#line 413
 
 #ifdef sinl
 #undef sinl
@@ -396,7 +422,7 @@ NPY_INPLACE npy_longdouble npy_sinl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef cosl
 #undef cosl
@@ -409,7 +435,7 @@ NPY_INPLACE npy_longdouble npy_cosl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef tanl
 #undef tanl
@@ -422,7 +448,7 @@ NPY_INPLACE npy_longdouble npy_tanl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef sinhl
 #undef sinhl
@@ -435,7 +461,7 @@ NPY_INPLACE npy_longdouble npy_sinhl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef coshl
 #undef coshl
@@ -448,7 +474,7 @@ NPY_INPLACE npy_longdouble npy_coshl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef tanhl
 #undef tanhl
@@ -461,7 +487,7 @@ NPY_INPLACE npy_longdouble npy_tanhl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef fabsl
 #undef fabsl
@@ -474,7 +500,7 @@ NPY_INPLACE npy_longdouble npy_fabsl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef floorl
 #undef floorl
@@ -487,7 +513,7 @@ NPY_INPLACE npy_longdouble npy_floorl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef ceill
 #undef ceill
@@ -500,7 +526,7 @@ NPY_INPLACE npy_longdouble npy_ceill(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef rintl
 #undef rintl
@@ -513,7 +539,7 @@ NPY_INPLACE npy_longdouble npy_rintl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef truncl
 #undef truncl
@@ -526,7 +552,7 @@ NPY_INPLACE npy_longdouble npy_truncl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef sqrtl
 #undef sqrtl
@@ -539,7 +565,7 @@ NPY_INPLACE npy_longdouble npy_sqrtl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef log10l
 #undef log10l
@@ -552,7 +578,7 @@ NPY_INPLACE npy_longdouble npy_log10l(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef logl
 #undef logl
@@ -565,7 +591,7 @@ NPY_INPLACE npy_longdouble npy_logl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef expl
 #undef expl
@@ -578,7 +604,7 @@ NPY_INPLACE npy_longdouble npy_expl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef expm1l
 #undef expm1l
@@ -591,7 +617,7 @@ NPY_INPLACE npy_longdouble npy_expm1l(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef asinl
 #undef asinl
@@ -604,7 +630,7 @@ NPY_INPLACE npy_longdouble npy_asinl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef acosl
 #undef acosl
@@ -617,7 +643,7 @@ NPY_INPLACE npy_longdouble npy_acosl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef atanl
 #undef atanl
@@ -630,7 +656,7 @@ NPY_INPLACE npy_longdouble npy_atanl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef asinhl
 #undef asinhl
@@ -643,7 +669,7 @@ NPY_INPLACE npy_longdouble npy_asinhl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef acoshl
 #undef acoshl
@@ -656,7 +682,7 @@ NPY_INPLACE npy_longdouble npy_acoshl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef atanhl
 #undef atanhl
@@ -669,7 +695,7 @@ NPY_INPLACE npy_longdouble npy_atanhl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef log1pl
 #undef log1pl
@@ -682,7 +708,7 @@ NPY_INPLACE npy_longdouble npy_log1pl(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef exp2l
 #undef exp2l
@@ -695,7 +721,7 @@ NPY_INPLACE npy_longdouble npy_exp2l(npy_longdouble x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef log2l
 #undef log2l
@@ -709,7 +735,7 @@ NPY_INPLACE npy_longdouble npy_log2l(npy_longdouble x)
 
 
 
-#line 404
+#line 430
 #ifdef atan2l
 #undef atan2l
 #endif
@@ -720,7 +746,7 @@ NPY_INPLACE npy_longdouble npy_atan2l(npy_longdouble x, npy_longdouble y)
 }
 #endif
 
-#line 404
+#line 430
 #ifdef hypotl
 #undef hypotl
 #endif
@@ -731,7 +757,7 @@ NPY_INPLACE npy_longdouble npy_hypotl(npy_longdouble x, npy_longdouble y)
 }
 #endif
 
-#line 404
+#line 430
 #ifdef powl
 #undef powl
 #endif
@@ -742,7 +768,18 @@ NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y)
 }
 #endif
 
-#line 404
+#line 430
+#ifdef fmodl
+#undef fmodl
+#endif
+#ifndef HAVE_FMODL
+NPY_INPLACE npy_longdouble npy_fmodl(npy_longdouble x, npy_longdouble y)
+{
+    return (npy_longdouble) npy_fmod((double)x, (double) y);
+}
+#endif
+
+#line 430
 #ifdef copysignl
 #undef copysignl
 #endif
@@ -750,29 +787,6 @@ NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y)
 NPY_INPLACE npy_longdouble npy_copysignl(npy_longdouble x, npy_longdouble y)
 {
     return (npy_longdouble) npy_copysign((double)x, (double) y);
-}
-#endif
-
-
-#line 419
-#ifdef fmodl
-#undef fmodl
-#endif
-#ifndef HAVE_MODFL
-NPY_INPLACE npy_longdouble
-npy_fmodl(npy_longdouble x, npy_longdouble y)
-{
-    int are_inputs_inf = (npy_isinf(x) && npy_isinf(y));
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(x) || npy_isnan(y)) {
-        npy_set_floatstatus_invalid();
-    }
-    if (are_inputs_inf || !y) {
-        if (!npy_isnan(x)) {
-            npy_set_floatstatus_invalid();
-        }
-    }
-    return (npy_longdouble) npy_fmod((double)x, (double) y);
 }
 #endif
 
@@ -811,9 +825,9 @@ NPY_INPLACE npy_longdouble npy_frexpl(npy_longdouble x, int* exp)
 #endif
 
 
-#line 380
+#line 406
 
-#line 387
+#line 413
 
 #ifdef sinf
 #undef sinf
@@ -826,7 +840,7 @@ NPY_INPLACE npy_float npy_sinf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef cosf
 #undef cosf
@@ -839,7 +853,7 @@ NPY_INPLACE npy_float npy_cosf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef tanf
 #undef tanf
@@ -852,7 +866,7 @@ NPY_INPLACE npy_float npy_tanf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef sinhf
 #undef sinhf
@@ -865,7 +879,7 @@ NPY_INPLACE npy_float npy_sinhf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef coshf
 #undef coshf
@@ -878,7 +892,7 @@ NPY_INPLACE npy_float npy_coshf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef tanhf
 #undef tanhf
@@ -891,7 +905,7 @@ NPY_INPLACE npy_float npy_tanhf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef fabsf
 #undef fabsf
@@ -904,7 +918,7 @@ NPY_INPLACE npy_float npy_fabsf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef floorf
 #undef floorf
@@ -917,7 +931,7 @@ NPY_INPLACE npy_float npy_floorf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef ceilf
 #undef ceilf
@@ -930,7 +944,7 @@ NPY_INPLACE npy_float npy_ceilf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef rintf
 #undef rintf
@@ -943,7 +957,7 @@ NPY_INPLACE npy_float npy_rintf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef truncf
 #undef truncf
@@ -956,7 +970,7 @@ NPY_INPLACE npy_float npy_truncf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef sqrtf
 #undef sqrtf
@@ -969,7 +983,7 @@ NPY_INPLACE npy_float npy_sqrtf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef log10f
 #undef log10f
@@ -982,7 +996,7 @@ NPY_INPLACE npy_float npy_log10f(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef logf
 #undef logf
@@ -995,7 +1009,7 @@ NPY_INPLACE npy_float npy_logf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef expf
 #undef expf
@@ -1008,7 +1022,7 @@ NPY_INPLACE npy_float npy_expf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef expm1f
 #undef expm1f
@@ -1021,7 +1035,7 @@ NPY_INPLACE npy_float npy_expm1f(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef asinf
 #undef asinf
@@ -1034,7 +1048,7 @@ NPY_INPLACE npy_float npy_asinf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef acosf
 #undef acosf
@@ -1047,7 +1061,7 @@ NPY_INPLACE npy_float npy_acosf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef atanf
 #undef atanf
@@ -1060,7 +1074,7 @@ NPY_INPLACE npy_float npy_atanf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef asinhf
 #undef asinhf
@@ -1073,7 +1087,7 @@ NPY_INPLACE npy_float npy_asinhf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef acoshf
 #undef acoshf
@@ -1086,7 +1100,7 @@ NPY_INPLACE npy_float npy_acoshf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef atanhf
 #undef atanhf
@@ -1099,7 +1113,7 @@ NPY_INPLACE npy_float npy_atanhf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef log1pf
 #undef log1pf
@@ -1112,7 +1126,7 @@ NPY_INPLACE npy_float npy_log1pf(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef exp2f
 #undef exp2f
@@ -1125,7 +1139,7 @@ NPY_INPLACE npy_float npy_exp2f(npy_float x)
 #endif
 
 
-#line 387
+#line 413
 
 #ifdef log2f
 #undef log2f
@@ -1139,7 +1153,7 @@ NPY_INPLACE npy_float npy_log2f(npy_float x)
 
 
 
-#line 404
+#line 430
 #ifdef atan2f
 #undef atan2f
 #endif
@@ -1150,7 +1164,7 @@ NPY_INPLACE npy_float npy_atan2f(npy_float x, npy_float y)
 }
 #endif
 
-#line 404
+#line 430
 #ifdef hypotf
 #undef hypotf
 #endif
@@ -1161,7 +1175,7 @@ NPY_INPLACE npy_float npy_hypotf(npy_float x, npy_float y)
 }
 #endif
 
-#line 404
+#line 430
 #ifdef powf
 #undef powf
 #endif
@@ -1172,7 +1186,18 @@ NPY_INPLACE npy_float npy_powf(npy_float x, npy_float y)
 }
 #endif
 
-#line 404
+#line 430
+#ifdef fmodf
+#undef fmodf
+#endif
+#ifndef HAVE_FMODF
+NPY_INPLACE npy_float npy_fmodf(npy_float x, npy_float y)
+{
+    return (npy_float) npy_fmod((double)x, (double) y);
+}
+#endif
+
+#line 430
 #ifdef copysignf
 #undef copysignf
 #endif
@@ -1180,29 +1205,6 @@ NPY_INPLACE npy_float npy_powf(npy_float x, npy_float y)
 NPY_INPLACE npy_float npy_copysignf(npy_float x, npy_float y)
 {
     return (npy_float) npy_copysign((double)x, (double) y);
-}
-#endif
-
-
-#line 419
-#ifdef fmodf
-#undef fmodf
-#endif
-#ifndef HAVE_MODFF
-NPY_INPLACE npy_float
-npy_fmodf(npy_float x, npy_float y)
-{
-    int are_inputs_inf = (npy_isinf(x) && npy_isinf(y));
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(x) || npy_isnan(y)) {
-        npy_set_floatstatus_invalid();
-    }
-    if (are_inputs_inf || !y) {
-        if (!npy_isnan(x)) {
-            npy_set_floatstatus_invalid();
-        }
-    }
-    return (npy_float) npy_fmod((double)x, (double) y);
 }
 #endif
 
@@ -1642,30 +1644,18 @@ NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y)
 #endif
 
 #line 530
+#ifdef HAVE_FMODL
+NPY_INPLACE npy_longdouble npy_fmodl(npy_longdouble x, npy_longdouble y)
+{
+    return NPY__FP_SFX(fmod)(x, y);
+}
+#endif
+
+#line 530
 #ifdef HAVE_COPYSIGNL
 NPY_INPLACE npy_longdouble npy_copysignl(npy_longdouble x, npy_longdouble y)
 {
     return NPY__FP_SFX(copysign)(x, y);
-}
-#endif
-
-
-#line 542
-#ifdef HAVE_FMODL
-NPY_INPLACE npy_longdouble
-npy_fmodl(npy_longdouble x, npy_longdouble y)
-{
-    int are_inputs_inf = (npy_isinf(x) && npy_isinf(y));
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(x) || npy_isnan(y)) {
-        npy_set_floatstatus_invalid();
-    }
-    if (are_inputs_inf || !y) {
-        if (!npy_isnan(x)) {
-            npy_set_floatstatus_invalid();
-        }
-    }
-    return fmodl(x, y);
 }
 #endif
 
@@ -2110,30 +2100,18 @@ NPY_INPLACE npy_double npy_pow(npy_double x, npy_double y)
 #endif
 
 #line 530
+#ifdef HAVE_FMOD
+NPY_INPLACE npy_double npy_fmod(npy_double x, npy_double y)
+{
+    return NPY__FP_SFX(fmod)(x, y);
+}
+#endif
+
+#line 530
 #ifdef HAVE_COPYSIGN
 NPY_INPLACE npy_double npy_copysign(npy_double x, npy_double y)
 {
     return NPY__FP_SFX(copysign)(x, y);
-}
-#endif
-
-
-#line 542
-#ifdef HAVE_FMOD
-NPY_INPLACE npy_double
-npy_fmod(npy_double x, npy_double y)
-{
-    int are_inputs_inf = (npy_isinf(x) && npy_isinf(y));
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(x) || npy_isnan(y)) {
-        npy_set_floatstatus_invalid();
-    }
-    if (are_inputs_inf || !y) {
-        if (!npy_isnan(x)) {
-            npy_set_floatstatus_invalid();
-        }
-    }
-    return fmod(x, y);
 }
 #endif
 
@@ -2578,30 +2556,18 @@ NPY_INPLACE npy_float npy_powf(npy_float x, npy_float y)
 #endif
 
 #line 530
+#ifdef HAVE_FMODF
+NPY_INPLACE npy_float npy_fmodf(npy_float x, npy_float y)
+{
+    return NPY__FP_SFX(fmod)(x, y);
+}
+#endif
+
+#line 530
 #ifdef HAVE_COPYSIGNF
 NPY_INPLACE npy_float npy_copysignf(npy_float x, npy_float y)
 {
     return NPY__FP_SFX(copysign)(x, y);
-}
-#endif
-
-
-#line 542
-#ifdef HAVE_FMODF
-NPY_INPLACE npy_float
-npy_fmodf(npy_float x, npy_float y)
-{
-    int are_inputs_inf = (npy_isinf(x) && npy_isinf(y));
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(x) || npy_isnan(y)) {
-        npy_set_floatstatus_invalid();
-    }
-    if (are_inputs_inf || !y) {
-        if (!npy_isnan(x)) {
-            npy_set_floatstatus_invalid();
-        }
-    }
-    return fmodf(x, y);
 }
 #endif
 
@@ -2657,7 +2623,7 @@ NPY_INPLACE npy_float npy_cbrtf(npy_float x)
  * Non standard functions
  */
 
-#line 618
+#line 595
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_FLOAT == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -2756,8 +2722,14 @@ npy_remainderf(npy_float a, npy_float b)
 {
     npy_float mod;
     if (NPY_UNLIKELY(!b)) {
+        /*
+         * in2 == 0 (and not NaN): normal fmod will give the correct
+         * result (always NaN). `divmod` may set additional FPE for the
+         * division by zero creating an inf.
+         */
         mod = npy_fmodf(a, b);
-    } else {
+    }
+    else {
         npy_divmodf(a, b, &mod);
     }
     return mod;
@@ -2767,13 +2739,14 @@ NPY_INPLACE npy_float
 npy_floor_dividef(npy_float a, npy_float b) {
     npy_float div, mod;
     if (NPY_UNLIKELY(!b)) {
+        /*
+         * in2 == 0 (and not NaN): normal division will give the correct
+         * result (Inf or NaN). `divmod` may set additional FPE for the modulo
+         * evaluating to NaN.
+         */
         div = a / b;
-        if (!a || npy_isnan(a)) {
-            npy_set_floatstatus_invalid();
-        } else {
-            npy_set_floatstatus_divbyzero();
-        }
-    } else {
+    }
+    else {
         div = npy_divmodf(a, b, &mod);
     }
     return div;
@@ -2789,19 +2762,11 @@ npy_divmodf(npy_float a, npy_float b, npy_float *modulus)
 {
     npy_float div, mod, floordiv;
 
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(a) || npy_isnan(b)) {
-        npy_set_floatstatus_invalid();
-    }
     mod = npy_fmodf(a, b);
     if (NPY_UNLIKELY(!b)) {
-        div = a / b;
-        if (a && !npy_isnan(a)) {
-            npy_set_floatstatus_divbyzero();
-        }
-        /* If b == 0, return result of fmod. For IEEE is nan */
+        /* b == 0 (not NaN): return result of fmod. For IEEE is nan */
         *modulus = mod;
-        return div;
+        return a / b;
     }
 
     /* a - mod should be very nearly an integer multiple of b */
@@ -2809,7 +2774,7 @@ npy_divmodf(npy_float a, npy_float b, npy_float *modulus)
 
     /* adjust fmod result to conform to Python convention of remainder */
     if (mod) {
-        if ((b < 0) != (mod < 0)) {
+        if (isless(b, 0) != isless(mod, 0)) {
             mod += b;
             div -= 1.0f;
         }
@@ -2822,7 +2787,7 @@ npy_divmodf(npy_float a, npy_float b, npy_float *modulus)
     /* snap quotient to nearest integral value */
     if (div) {
         floordiv = npy_floorf(div);
-        if (div - floordiv > 0.5f)
+        if (isgreater(div - floordiv, 0.5f))
             floordiv += 1.0f;
     }
     else {
@@ -2840,7 +2805,7 @@ npy_divmodf(npy_float a, npy_float b, npy_float *modulus)
 #undef DEG2RAD
 #undef NPY__FP_SFX
 
-#line 618
+#line 595
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_DOUBLE == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -2939,8 +2904,14 @@ npy_remainder(npy_double a, npy_double b)
 {
     npy_double mod;
     if (NPY_UNLIKELY(!b)) {
+        /*
+         * in2 == 0 (and not NaN): normal fmod will give the correct
+         * result (always NaN). `divmod` may set additional FPE for the
+         * division by zero creating an inf.
+         */
         mod = npy_fmod(a, b);
-    } else {
+    }
+    else {
         npy_divmod(a, b, &mod);
     }
     return mod;
@@ -2950,13 +2921,14 @@ NPY_INPLACE npy_double
 npy_floor_divide(npy_double a, npy_double b) {
     npy_double div, mod;
     if (NPY_UNLIKELY(!b)) {
+        /*
+         * in2 == 0 (and not NaN): normal division will give the correct
+         * result (Inf or NaN). `divmod` may set additional FPE for the modulo
+         * evaluating to NaN.
+         */
         div = a / b;
-        if (!a || npy_isnan(a)) {
-            npy_set_floatstatus_invalid();
-        } else {
-            npy_set_floatstatus_divbyzero();
-        }
-    } else {
+    }
+    else {
         div = npy_divmod(a, b, &mod);
     }
     return div;
@@ -2972,19 +2944,11 @@ npy_divmod(npy_double a, npy_double b, npy_double *modulus)
 {
     npy_double div, mod, floordiv;
 
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(a) || npy_isnan(b)) {
-        npy_set_floatstatus_invalid();
-    }
     mod = npy_fmod(a, b);
     if (NPY_UNLIKELY(!b)) {
-        div = a / b;
-        if (a && !npy_isnan(a)) {
-            npy_set_floatstatus_divbyzero();
-        }
-        /* If b == 0, return result of fmod. For IEEE is nan */
+        /* b == 0 (not NaN): return result of fmod. For IEEE is nan */
         *modulus = mod;
-        return div;
+        return a / b;
     }
 
     /* a - mod should be very nearly an integer multiple of b */
@@ -2992,7 +2956,7 @@ npy_divmod(npy_double a, npy_double b, npy_double *modulus)
 
     /* adjust fmod result to conform to Python convention of remainder */
     if (mod) {
-        if ((b < 0) != (mod < 0)) {
+        if (isless(b, 0) != isless(mod, 0)) {
             mod += b;
             div -= 1.0;
         }
@@ -3005,7 +2969,7 @@ npy_divmod(npy_double a, npy_double b, npy_double *modulus)
     /* snap quotient to nearest integral value */
     if (div) {
         floordiv = npy_floor(div);
-        if (div - floordiv > 0.5)
+        if (isgreater(div - floordiv, 0.5))
             floordiv += 1.0;
     }
     else {
@@ -3023,7 +2987,7 @@ npy_divmod(npy_double a, npy_double b, npy_double *modulus)
 #undef DEG2RAD
 #undef NPY__FP_SFX
 
-#line 618
+#line 595
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_LONGDOUBLE == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -3122,8 +3086,14 @@ npy_remainderl(npy_longdouble a, npy_longdouble b)
 {
     npy_longdouble mod;
     if (NPY_UNLIKELY(!b)) {
+        /*
+         * in2 == 0 (and not NaN): normal fmod will give the correct
+         * result (always NaN). `divmod` may set additional FPE for the
+         * division by zero creating an inf.
+         */
         mod = npy_fmodl(a, b);
-    } else {
+    }
+    else {
         npy_divmodl(a, b, &mod);
     }
     return mod;
@@ -3133,13 +3103,14 @@ NPY_INPLACE npy_longdouble
 npy_floor_dividel(npy_longdouble a, npy_longdouble b) {
     npy_longdouble div, mod;
     if (NPY_UNLIKELY(!b)) {
+        /*
+         * in2 == 0 (and not NaN): normal division will give the correct
+         * result (Inf or NaN). `divmod` may set additional FPE for the modulo
+         * evaluating to NaN.
+         */
         div = a / b;
-        if (!a || npy_isnan(a)) {
-            npy_set_floatstatus_invalid();
-        } else {
-            npy_set_floatstatus_divbyzero();
-        }
-    } else {
+    }
+    else {
         div = npy_divmodl(a, b, &mod);
     }
     return div;
@@ -3155,19 +3126,11 @@ npy_divmodl(npy_longdouble a, npy_longdouble b, npy_longdouble *modulus)
 {
     npy_longdouble div, mod, floordiv;
 
-    /* force set invalid flag, doesnt raise by default on gcc < 8 */
-    if (npy_isnan(a) || npy_isnan(b)) {
-        npy_set_floatstatus_invalid();
-    }
     mod = npy_fmodl(a, b);
     if (NPY_UNLIKELY(!b)) {
-        div = a / b;
-        if (a && !npy_isnan(a)) {
-            npy_set_floatstatus_divbyzero();
-        }
-        /* If b == 0, return result of fmod. For IEEE is nan */
+        /* b == 0 (not NaN): return result of fmod. For IEEE is nan */
         *modulus = mod;
-        return div;
+        return a / b;
     }
 
     /* a - mod should be very nearly an integer multiple of b */
@@ -3175,7 +3138,7 @@ npy_divmodl(npy_longdouble a, npy_longdouble b, npy_longdouble *modulus)
 
     /* adjust fmod result to conform to Python convention of remainder */
     if (mod) {
-        if ((b < 0) != (mod < 0)) {
+        if (isless(b, 0) != isless(mod, 0)) {
             mod += b;
             div -= 1.0l;
         }
@@ -3188,7 +3151,7 @@ npy_divmodl(npy_longdouble a, npy_longdouble b, npy_longdouble *modulus)
     /* snap quotient to nearest integral value */
     if (div) {
         floordiv = npy_floorl(div);
-        if (div - floordiv > 0.5l)
+        if (isgreater(div - floordiv, 0.5l))
             floordiv += 1.0l;
     }
     else {
@@ -3207,7 +3170,7 @@ npy_divmodl(npy_longdouble a, npy_longdouble b, npy_longdouble *modulus)
 #undef NPY__FP_SFX
 
 
-#line 806
+#line 782
 NPY_INPLACE npy_uint
 npy_gcdu(npy_uint a, npy_uint b)
 {
@@ -3227,7 +3190,7 @@ npy_lcmu(npy_uint a, npy_uint b)
     return gcd == 0 ? 0 : a / gcd * b;
 }
 
-#line 806
+#line 782
 NPY_INPLACE npy_ulong
 npy_gcdul(npy_ulong a, npy_ulong b)
 {
@@ -3247,7 +3210,7 @@ npy_lcmul(npy_ulong a, npy_ulong b)
     return gcd == 0 ? 0 : a / gcd * b;
 }
 
-#line 806
+#line 782
 NPY_INPLACE npy_ulonglong
 npy_gcdull(npy_ulonglong a, npy_ulonglong b)
 {
@@ -3268,42 +3231,42 @@ npy_lcmull(npy_ulonglong a, npy_ulonglong b)
 }
 
 
-#line 832
+#line 808
 NPY_INPLACE npy_int
 npy_gcd(npy_int a, npy_int b)
 {
     return npy_gcdu(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 832
+#line 808
 NPY_INPLACE npy_long
 npy_gcdl(npy_long a, npy_long b)
 {
     return npy_gcdul(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 832
+#line 808
 NPY_INPLACE npy_longlong
 npy_gcdll(npy_longlong a, npy_longlong b)
 {
     return npy_gcdull(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 832
+#line 808
 NPY_INPLACE npy_int
 npy_lcm(npy_int a, npy_int b)
 {
     return npy_lcmu(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 832
+#line 808
 NPY_INPLACE npy_long
 npy_lcml(npy_long a, npy_long b)
 {
     return npy_lcmul(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 832
+#line 808
 NPY_INPLACE npy_longlong
 npy_lcmll(npy_longlong a, npy_longlong b)
 {
@@ -3314,8 +3277,8 @@ npy_lcmll(npy_longlong a, npy_longlong b)
 /* Unlike LCM and GCD, we need byte and short variants for the shift operators,
  * since the result is dependent on the width of the type
  */
-#line 847
-#line 852
+#line 823
+#line 828
 NPY_INPLACE npy_ubyte
 npy_lshiftuhh(npy_ubyte a, npy_ubyte b)
 {
@@ -3342,7 +3305,7 @@ npy_rshiftuhh(npy_ubyte a, npy_ubyte b)
     }
 }
 
-#line 852
+#line 828
 NPY_INPLACE npy_byte
 npy_lshifthh(npy_byte a, npy_byte b)
 {
@@ -3370,8 +3333,8 @@ npy_rshifthh(npy_byte a, npy_byte b)
 }
 
 
-#line 847
-#line 852
+#line 823
+#line 828
 NPY_INPLACE npy_ushort
 npy_lshiftuh(npy_ushort a, npy_ushort b)
 {
@@ -3398,7 +3361,7 @@ npy_rshiftuh(npy_ushort a, npy_ushort b)
     }
 }
 
-#line 852
+#line 828
 NPY_INPLACE npy_short
 npy_lshifth(npy_short a, npy_short b)
 {
@@ -3426,8 +3389,8 @@ npy_rshifth(npy_short a, npy_short b)
 }
 
 
-#line 847
-#line 852
+#line 823
+#line 828
 NPY_INPLACE npy_uint
 npy_lshiftu(npy_uint a, npy_uint b)
 {
@@ -3454,7 +3417,7 @@ npy_rshiftu(npy_uint a, npy_uint b)
     }
 }
 
-#line 852
+#line 828
 NPY_INPLACE npy_int
 npy_lshift(npy_int a, npy_int b)
 {
@@ -3482,8 +3445,8 @@ npy_rshift(npy_int a, npy_int b)
 }
 
 
-#line 847
-#line 852
+#line 823
+#line 828
 NPY_INPLACE npy_ulong
 npy_lshiftul(npy_ulong a, npy_ulong b)
 {
@@ -3510,7 +3473,7 @@ npy_rshiftul(npy_ulong a, npy_ulong b)
     }
 }
 
-#line 852
+#line 828
 NPY_INPLACE npy_long
 npy_lshiftl(npy_long a, npy_long b)
 {
@@ -3538,8 +3501,8 @@ npy_rshiftl(npy_long a, npy_long b)
 }
 
 
-#line 847
-#line 852
+#line 823
+#line 828
 NPY_INPLACE npy_ulonglong
 npy_lshiftull(npy_ulonglong a, npy_ulonglong b)
 {
@@ -3566,7 +3529,7 @@ npy_rshiftull(npy_ulonglong a, npy_ulonglong b)
     }
 }
 
-#line 852
+#line 828
 NPY_INPLACE npy_longlong
 npy_lshiftll(npy_longlong a, npy_longlong b)
 {
@@ -3593,5 +3556,309 @@ npy_rshiftll(npy_longlong a, npy_longlong b)
     }
 }
 
+
+
+
+#define __popcnt32 __popcnt
+#line 864
+#undef TO_BITS_LEN
+#if 0
+#line 869
+#elif NPY_BITSOF_BYTE == 8
+    #define TO_BITS_LEN(X) X##8
+
+#line 869
+#elif NPY_BITSOF_BYTE == 16
+    #define TO_BITS_LEN(X) X##16
+
+#line 869
+#elif NPY_BITSOF_BYTE == 32
+    #define TO_BITS_LEN(X) X##32
+
+#line 869
+#elif NPY_BITSOF_BYTE == 64
+    #define TO_BITS_LEN(X) X##64
+
+#endif
+
+
+NPY_INPLACE uint8_t
+npy_popcount_parallelhh(npy_ubyte a)
+{
+    a = a - ((a >> 1) & (npy_ubyte) TO_BITS_LEN(MAGIC)[0]);
+    a = ((a & (npy_ubyte) TO_BITS_LEN(MAGIC)[1])) + ((a >> 2) & (npy_ubyte) TO_BITS_LEN(MAGIC)[1]);
+    a = (a + (a >> 4)) & (npy_ubyte) TO_BITS_LEN(MAGIC)[2];
+    return (npy_ubyte) (a * (npy_ubyte) TO_BITS_LEN(MAGIC)[3]) >> ((NPY_SIZEOF_BYTE - 1) * CHAR_BIT);
+}
+
+NPY_INPLACE uint8_t
+npy_popcountuhh(npy_ubyte a)
+{
+/* use built-in popcount if present, else use our implementation */
+#if (defined(__clang__) || defined(__GNUC__)) && NPY_BITSOF_BYTE >= 32
+    return __builtin_popcounthh(a);
+#elif defined(_MSC_VER) && NPY_BITSOF_BYTE >= 16 && !defined(_M_ARM64) && !defined(_M_ARM)
+    /* no builtin __popcnt64 for 32 bits */
+    #if defined(_WIN64) || (defined(_WIN32) && NPY_BITSOF_BYTE != 64)
+        return TO_BITS_LEN(__popcnt)(a);
+    /* split 64 bit number into two 32 bit ints and return sum of counts */
+    #elif (defined(_WIN32) && NPY_BITSOF_BYTE == 64)
+        npy_uint32 left  = (npy_uint32) (a>>32);
+        npy_uint32 right = (npy_uint32) a;
+        return __popcnt32(left) + __popcnt32(right);
+    #endif
+#else
+    return npy_popcount_parallelhh(a);
+#endif
+}
+
+#line 864
+#undef TO_BITS_LEN
+#if 0
+#line 869
+#elif NPY_BITSOF_SHORT == 8
+    #define TO_BITS_LEN(X) X##8
+
+#line 869
+#elif NPY_BITSOF_SHORT == 16
+    #define TO_BITS_LEN(X) X##16
+
+#line 869
+#elif NPY_BITSOF_SHORT == 32
+    #define TO_BITS_LEN(X) X##32
+
+#line 869
+#elif NPY_BITSOF_SHORT == 64
+    #define TO_BITS_LEN(X) X##64
+
+#endif
+
+
+NPY_INPLACE uint8_t
+npy_popcount_parallelh(npy_ushort a)
+{
+    a = a - ((a >> 1) & (npy_ushort) TO_BITS_LEN(MAGIC)[0]);
+    a = ((a & (npy_ushort) TO_BITS_LEN(MAGIC)[1])) + ((a >> 2) & (npy_ushort) TO_BITS_LEN(MAGIC)[1]);
+    a = (a + (a >> 4)) & (npy_ushort) TO_BITS_LEN(MAGIC)[2];
+    return (npy_ushort) (a * (npy_ushort) TO_BITS_LEN(MAGIC)[3]) >> ((NPY_SIZEOF_SHORT - 1) * CHAR_BIT);
+}
+
+NPY_INPLACE uint8_t
+npy_popcountuh(npy_ushort a)
+{
+/* use built-in popcount if present, else use our implementation */
+#if (defined(__clang__) || defined(__GNUC__)) && NPY_BITSOF_SHORT >= 32
+    return __builtin_popcounth(a);
+#elif defined(_MSC_VER) && NPY_BITSOF_SHORT >= 16 && !defined(_M_ARM64) && !defined(_M_ARM)
+    /* no builtin __popcnt64 for 32 bits */
+    #if defined(_WIN64) || (defined(_WIN32) && NPY_BITSOF_SHORT != 64)
+        return TO_BITS_LEN(__popcnt)(a);
+    /* split 64 bit number into two 32 bit ints and return sum of counts */
+    #elif (defined(_WIN32) && NPY_BITSOF_SHORT == 64)
+        npy_uint32 left  = (npy_uint32) (a>>32);
+        npy_uint32 right = (npy_uint32) a;
+        return __popcnt32(left) + __popcnt32(right);
+    #endif
+#else
+    return npy_popcount_parallelh(a);
+#endif
+}
+
+#line 864
+#undef TO_BITS_LEN
+#if 0
+#line 869
+#elif NPY_BITSOF_INT == 8
+    #define TO_BITS_LEN(X) X##8
+
+#line 869
+#elif NPY_BITSOF_INT == 16
+    #define TO_BITS_LEN(X) X##16
+
+#line 869
+#elif NPY_BITSOF_INT == 32
+    #define TO_BITS_LEN(X) X##32
+
+#line 869
+#elif NPY_BITSOF_INT == 64
+    #define TO_BITS_LEN(X) X##64
+
+#endif
+
+
+NPY_INPLACE uint8_t
+npy_popcount_parallel(npy_uint a)
+{
+    a = a - ((a >> 1) & (npy_uint) TO_BITS_LEN(MAGIC)[0]);
+    a = ((a & (npy_uint) TO_BITS_LEN(MAGIC)[1])) + ((a >> 2) & (npy_uint) TO_BITS_LEN(MAGIC)[1]);
+    a = (a + (a >> 4)) & (npy_uint) TO_BITS_LEN(MAGIC)[2];
+    return (npy_uint) (a * (npy_uint) TO_BITS_LEN(MAGIC)[3]) >> ((NPY_SIZEOF_INT - 1) * CHAR_BIT);
+}
+
+NPY_INPLACE uint8_t
+npy_popcountu(npy_uint a)
+{
+/* use built-in popcount if present, else use our implementation */
+#if (defined(__clang__) || defined(__GNUC__)) && NPY_BITSOF_INT >= 32
+    return __builtin_popcount(a);
+#elif defined(_MSC_VER) && NPY_BITSOF_INT >= 16 && !defined(_M_ARM64) && !defined(_M_ARM)
+    /* no builtin __popcnt64 for 32 bits */
+    #if defined(_WIN64) || (defined(_WIN32) && NPY_BITSOF_INT != 64)
+        return TO_BITS_LEN(__popcnt)(a);
+    /* split 64 bit number into two 32 bit ints and return sum of counts */
+    #elif (defined(_WIN32) && NPY_BITSOF_INT == 64)
+        npy_uint32 left  = (npy_uint32) (a>>32);
+        npy_uint32 right = (npy_uint32) a;
+        return __popcnt32(left) + __popcnt32(right);
+    #endif
+#else
+    return npy_popcount_parallel(a);
+#endif
+}
+
+#line 864
+#undef TO_BITS_LEN
+#if 0
+#line 869
+#elif NPY_BITSOF_LONG == 8
+    #define TO_BITS_LEN(X) X##8
+
+#line 869
+#elif NPY_BITSOF_LONG == 16
+    #define TO_BITS_LEN(X) X##16
+
+#line 869
+#elif NPY_BITSOF_LONG == 32
+    #define TO_BITS_LEN(X) X##32
+
+#line 869
+#elif NPY_BITSOF_LONG == 64
+    #define TO_BITS_LEN(X) X##64
+
+#endif
+
+
+NPY_INPLACE uint8_t
+npy_popcount_parallell(npy_ulong a)
+{
+    a = a - ((a >> 1) & (npy_ulong) TO_BITS_LEN(MAGIC)[0]);
+    a = ((a & (npy_ulong) TO_BITS_LEN(MAGIC)[1])) + ((a >> 2) & (npy_ulong) TO_BITS_LEN(MAGIC)[1]);
+    a = (a + (a >> 4)) & (npy_ulong) TO_BITS_LEN(MAGIC)[2];
+    return (npy_ulong) (a * (npy_ulong) TO_BITS_LEN(MAGIC)[3]) >> ((NPY_SIZEOF_LONG - 1) * CHAR_BIT);
+}
+
+NPY_INPLACE uint8_t
+npy_popcountul(npy_ulong a)
+{
+/* use built-in popcount if present, else use our implementation */
+#if (defined(__clang__) || defined(__GNUC__)) && NPY_BITSOF_LONG >= 32
+    return __builtin_popcountl(a);
+#elif defined(_MSC_VER) && NPY_BITSOF_LONG >= 16 && !defined(_M_ARM64) && !defined(_M_ARM)
+    /* no builtin __popcnt64 for 32 bits */
+    #if defined(_WIN64) || (defined(_WIN32) && NPY_BITSOF_LONG != 64)
+        return TO_BITS_LEN(__popcnt)(a);
+    /* split 64 bit number into two 32 bit ints and return sum of counts */
+    #elif (defined(_WIN32) && NPY_BITSOF_LONG == 64)
+        npy_uint32 left  = (npy_uint32) (a>>32);
+        npy_uint32 right = (npy_uint32) a;
+        return __popcnt32(left) + __popcnt32(right);
+    #endif
+#else
+    return npy_popcount_parallell(a);
+#endif
+}
+
+#line 864
+#undef TO_BITS_LEN
+#if 0
+#line 869
+#elif NPY_BITSOF_LONGLONG == 8
+    #define TO_BITS_LEN(X) X##8
+
+#line 869
+#elif NPY_BITSOF_LONGLONG == 16
+    #define TO_BITS_LEN(X) X##16
+
+#line 869
+#elif NPY_BITSOF_LONGLONG == 32
+    #define TO_BITS_LEN(X) X##32
+
+#line 869
+#elif NPY_BITSOF_LONGLONG == 64
+    #define TO_BITS_LEN(X) X##64
+
+#endif
+
+
+NPY_INPLACE uint8_t
+npy_popcount_parallelll(npy_ulonglong a)
+{
+    a = a - ((a >> 1) & (npy_ulonglong) TO_BITS_LEN(MAGIC)[0]);
+    a = ((a & (npy_ulonglong) TO_BITS_LEN(MAGIC)[1])) + ((a >> 2) & (npy_ulonglong) TO_BITS_LEN(MAGIC)[1]);
+    a = (a + (a >> 4)) & (npy_ulonglong) TO_BITS_LEN(MAGIC)[2];
+    return (npy_ulonglong) (a * (npy_ulonglong) TO_BITS_LEN(MAGIC)[3]) >> ((NPY_SIZEOF_LONGLONG - 1) * CHAR_BIT);
+}
+
+NPY_INPLACE uint8_t
+npy_popcountull(npy_ulonglong a)
+{
+/* use built-in popcount if present, else use our implementation */
+#if (defined(__clang__) || defined(__GNUC__)) && NPY_BITSOF_LONGLONG >= 32
+    return __builtin_popcountll(a);
+#elif defined(_MSC_VER) && NPY_BITSOF_LONGLONG >= 16 && !defined(_M_ARM64) && !defined(_M_ARM)
+    /* no builtin __popcnt64 for 32 bits */
+    #if defined(_WIN64) || (defined(_WIN32) && NPY_BITSOF_LONGLONG != 64)
+        return TO_BITS_LEN(__popcnt)(a);
+    /* split 64 bit number into two 32 bit ints and return sum of counts */
+    #elif (defined(_WIN32) && NPY_BITSOF_LONGLONG == 64)
+        npy_uint32 left  = (npy_uint32) (a>>32);
+        npy_uint32 right = (npy_uint32) a;
+        return __popcnt32(left) + __popcnt32(right);
+    #endif
+#else
+    return npy_popcount_parallelll(a);
+#endif
+}
+
+
+#line 911
+NPY_INPLACE uint8_t
+npy_popcounthh(npy_byte a)
+{
+    /* Return popcount of abs(a) */
+    return npy_popcountuhh(a < 0 ? -a : a);
+}
+
+#line 911
+NPY_INPLACE uint8_t
+npy_popcounth(npy_short a)
+{
+    /* Return popcount of abs(a) */
+    return npy_popcountuh(a < 0 ? -a : a);
+}
+
+#line 911
+NPY_INPLACE uint8_t
+npy_popcount(npy_int a)
+{
+    /* Return popcount of abs(a) */
+    return npy_popcountu(a < 0 ? -a : a);
+}
+
+#line 911
+NPY_INPLACE uint8_t
+npy_popcountl(npy_long a)
+{
+    /* Return popcount of abs(a) */
+    return npy_popcountul(a < 0 ? -a : a);
+}
+
+#line 911
+NPY_INPLACE uint8_t
+npy_popcountll(npy_longlong a)
+{
+    /* Return popcount of abs(a) */
+    return npy_popcountull(a < 0 ? -a : a);
+}
 
 

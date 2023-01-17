@@ -10,8 +10,8 @@
 #line 1
 /* -*- c -*- */
 #define PY_SSIZE_T_CLEAN
-#include "Python.h"
-#include "structmember.h"
+#include <Python.h>
+#include <structmember.h>
 #include <limits.h>
 #include <assert.h>
 
@@ -72,7 +72,7 @@ get_dummy_stack_array(PyArrayObject *orig)
     PyArrayObject_fields new_fields;
     new_fields.flags = PyArray_FLAGS(orig);
     /* Set to NULL so the dummy object can be distinguished from the real one */
-    Py_TYPE(&new_fields) = NULL;
+    Py_SET_TYPE(&new_fields, NULL);
     new_fields.base = (PyObject *)orig;
     return new_fields;
 }
@@ -18253,7 +18253,7 @@ ULONGLONG_compare (npy_ulonglong *pa, npy_ulonglong *pb, PyArrayObject *NPY_UNUS
 #define LT(a,b) ((a) < (b) || ((b) != (b) && (a) ==(a)))
 
 static int
-FLOAT_compare(npy_float *pa, npy_float *pb)
+FLOAT_compare(npy_float *pa, npy_float *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_float a = *pa;
     const npy_float b = *pb;
@@ -18273,7 +18273,7 @@ FLOAT_compare(npy_float *pa, npy_float *pb)
 
 
 static int
-CFLOAT_compare(npy_float *pa, npy_float *pb)
+CFLOAT_compare(npy_float *pa, npy_float *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_float ar = pa[0];
     const npy_float ai = pa[1];
@@ -18326,7 +18326,7 @@ CFLOAT_compare(npy_float *pa, npy_float *pb)
 #define LT(a,b) ((a) < (b) || ((b) != (b) && (a) ==(a)))
 
 static int
-DOUBLE_compare(npy_double *pa, npy_double *pb)
+DOUBLE_compare(npy_double *pa, npy_double *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_double a = *pa;
     const npy_double b = *pb;
@@ -18346,7 +18346,7 @@ DOUBLE_compare(npy_double *pa, npy_double *pb)
 
 
 static int
-CDOUBLE_compare(npy_double *pa, npy_double *pb)
+CDOUBLE_compare(npy_double *pa, npy_double *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_double ar = pa[0];
     const npy_double ai = pa[1];
@@ -18399,7 +18399,7 @@ CDOUBLE_compare(npy_double *pa, npy_double *pb)
 #define LT(a,b) ((a) < (b) || ((b) != (b) && (a) ==(a)))
 
 static int
-LONGDOUBLE_compare(npy_longdouble *pa, npy_longdouble *pb)
+LONGDOUBLE_compare(npy_longdouble *pa, npy_longdouble *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_longdouble a = *pa;
     const npy_longdouble b = *pb;
@@ -18419,7 +18419,7 @@ LONGDOUBLE_compare(npy_longdouble *pa, npy_longdouble *pb)
 
 
 static int
-CLONGDOUBLE_compare(npy_longdouble *pa, npy_longdouble *pb)
+CLONGDOUBLE_compare(npy_longdouble *pa, npy_longdouble *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_longdouble ar = pa[0];
     const npy_longdouble ai = pa[1];
@@ -18471,7 +18471,7 @@ CLONGDOUBLE_compare(npy_longdouble *pa, npy_longdouble *pb)
 #line 2925
 
 static int
-DATETIME_compare(npy_datetime *pa, npy_datetime *pb)
+DATETIME_compare(npy_datetime *pa, npy_datetime *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_datetime a = *pa;
     const npy_datetime b = *pb;
@@ -18498,7 +18498,7 @@ DATETIME_compare(npy_datetime *pa, npy_datetime *pb)
 #line 2925
 
 static int
-TIMEDELTA_compare(npy_timedelta *pa, npy_timedelta *pb)
+TIMEDELTA_compare(npy_timedelta *pa, npy_timedelta *pb, PyArrayObject *NPY_UNUSED(ap))
 {
     const npy_timedelta a = *pa;
     const npy_timedelta b = *pb;
@@ -18667,6 +18667,10 @@ VOID_compare(char *ip1, char *ip2, PyArrayObject *ap)
     if (!PyArray_HASFIELDS(ap)) {
         return STRING_compare(ip1, ip2, ap);
     }
+    PyObject *mem_handler = PyDataMem_GetHandler();
+    if (mem_handler == NULL) {
+        goto finish;
+    }
     descr = PyArray_DESCR(ap);
     /*
      * Compare on the first-field.  If equal, then
@@ -18681,15 +18685,19 @@ VOID_compare(char *ip1, char *ip2, PyArrayObject *ap)
         if (_unpack_field(tup, &new, &offset) < 0) {
             goto finish;
         }
-        /* descr is the only field checked by compare or copyswap */
+        /* Set the fields needed by compare or copyswap */
         dummy_struct.descr = new;
+
         swap = PyArray_ISBYTESWAPPED(dummy);
         nip1 = ip1 + offset;
         nip2 = ip2 + offset;
         if (swap || new->alignment > 1) {
             if (swap || !npy_is_aligned(nip1, new->alignment)) {
-                /* create buffer and copy */
-                nip1 = npy_alloc_cache(new->elsize);
+                /*
+                 * create temporary buffer and copy,
+                 * always use the current handler for internal allocations
+                 */
+                nip1 = PyDataMem_UserNEW(new->elsize, mem_handler);
                 if (nip1 == NULL) {
                     goto finish;
                 }
@@ -18698,11 +18706,15 @@ VOID_compare(char *ip1, char *ip2, PyArrayObject *ap)
                     new->f->copyswap(nip1, NULL, swap, dummy);
             }
             if (swap || !npy_is_aligned(nip2, new->alignment)) {
-                /* create buffer and copy */
-                nip2 = npy_alloc_cache(new->elsize);
+                /*
+                 * create temporary buffer and copy,
+                 * always use the current handler for internal allocations
+                 */
+                nip2 = PyDataMem_UserNEW(new->elsize, mem_handler);
                 if (nip2 == NULL) {
                     if (nip1 != ip1 + offset) {
-                        npy_free_cache(nip1, new->elsize);
+                        /* destroy temporary buffer */
+                        PyDataMem_UserFREE(nip1, new->elsize, mem_handler);
                     }
                     goto finish;
                 }
@@ -18714,10 +18726,12 @@ VOID_compare(char *ip1, char *ip2, PyArrayObject *ap)
         res = new->f->compare(nip1, nip2, dummy);
         if (swap || new->alignment > 1) {
             if (nip1 != ip1 + offset) {
-                npy_free_cache(nip1, new->elsize);
+                /* destroy temporary buffer */
+                PyDataMem_UserFREE(nip1, new->elsize, mem_handler);
             }
             if (nip2 != ip2 + offset) {
-                npy_free_cache(nip2, new->elsize);
+                /* destroy temporary buffer */
+                PyDataMem_UserFREE(nip2, new->elsize, mem_handler);
             }
         }
         if (res != 0) {
@@ -18726,6 +18740,7 @@ VOID_compare(char *ip1, char *ip2, PyArrayObject *ap)
     }
 
 finish:
+    Py_XDECREF(mem_handler);
     return res;
 }
 
@@ -18788,7 +18803,7 @@ BOOL_argmax(npy_bool *ip, npy_intp n, npy_intp *max_ind,
     return 0;
 }
 
-#line 3236
+#line 3251
 static int
 BYTE_argmax(npy_byte *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -18861,7 +18876,7 @@ BYTE_argmax(npy_byte *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 UBYTE_argmax(npy_ubyte *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -18934,7 +18949,7 @@ UBYTE_argmax(npy_ubyte *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 SHORT_argmax(npy_short *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19007,7 +19022,7 @@ SHORT_argmax(npy_short *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 USHORT_argmax(npy_ushort *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19080,7 +19095,7 @@ USHORT_argmax(npy_ushort *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 INT_argmax(npy_int *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19153,7 +19168,7 @@ INT_argmax(npy_int *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 UINT_argmax(npy_uint *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19226,7 +19241,7 @@ UINT_argmax(npy_uint *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 LONG_argmax(npy_long *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19299,7 +19314,7 @@ LONG_argmax(npy_long *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 ULONG_argmax(npy_ulong *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19372,7 +19387,7 @@ ULONG_argmax(npy_ulong *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 LONGLONG_argmax(npy_longlong *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19445,7 +19460,7 @@ LONGLONG_argmax(npy_longlong *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 ULONGLONG_argmax(npy_ulonglong *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19518,7 +19533,7 @@ ULONGLONG_argmax(npy_ulonglong *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 HALF_argmax(npy_half *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19591,7 +19606,7 @@ HALF_argmax(npy_half *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 FLOAT_argmax(npy_float *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19664,7 +19679,7 @@ FLOAT_argmax(npy_float *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 DOUBLE_argmax(npy_double *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19737,7 +19752,7 @@ DOUBLE_argmax(npy_double *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 LONGDOUBLE_argmax(npy_longdouble *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19810,7 +19825,7 @@ LONGDOUBLE_argmax(npy_longdouble *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 CFLOAT_argmax(npy_float *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19883,7 +19898,7 @@ CFLOAT_argmax(npy_float *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 CDOUBLE_argmax(npy_double *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19956,7 +19971,7 @@ CDOUBLE_argmax(npy_double *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 CLONGDOUBLE_argmax(npy_longdouble *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20029,7 +20044,7 @@ CLONGDOUBLE_argmax(npy_longdouble *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 DATETIME_argmax(npy_datetime *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20102,7 +20117,7 @@ DATETIME_argmax(npy_datetime *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3236
+#line 3251
 static int
 TIMEDELTA_argmax(npy_timedelta *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20190,7 +20205,7 @@ BOOL_argmin(npy_bool *ip, npy_intp n, npy_intp *min_ind,
     return 0;
 }
 
-#line 3342
+#line 3357
 static int
 BYTE_argmin(npy_byte *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20263,7 +20278,7 @@ BYTE_argmin(npy_byte *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 UBYTE_argmin(npy_ubyte *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20336,7 +20351,7 @@ UBYTE_argmin(npy_ubyte *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 SHORT_argmin(npy_short *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20409,7 +20424,7 @@ SHORT_argmin(npy_short *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 USHORT_argmin(npy_ushort *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20482,7 +20497,7 @@ USHORT_argmin(npy_ushort *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 INT_argmin(npy_int *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20555,7 +20570,7 @@ INT_argmin(npy_int *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 UINT_argmin(npy_uint *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20628,7 +20643,7 @@ UINT_argmin(npy_uint *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 LONG_argmin(npy_long *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20701,7 +20716,7 @@ LONG_argmin(npy_long *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 ULONG_argmin(npy_ulong *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20774,7 +20789,7 @@ ULONG_argmin(npy_ulong *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 LONGLONG_argmin(npy_longlong *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20847,7 +20862,7 @@ LONGLONG_argmin(npy_longlong *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 ULONGLONG_argmin(npy_ulonglong *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20920,7 +20935,7 @@ ULONGLONG_argmin(npy_ulonglong *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 HALF_argmin(npy_half *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -20993,7 +21008,7 @@ HALF_argmin(npy_half *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 FLOAT_argmin(npy_float *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21066,7 +21081,7 @@ FLOAT_argmin(npy_float *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 DOUBLE_argmin(npy_double *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21139,7 +21154,7 @@ DOUBLE_argmin(npy_double *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 LONGDOUBLE_argmin(npy_longdouble *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21212,7 +21227,7 @@ LONGDOUBLE_argmin(npy_longdouble *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 CFLOAT_argmin(npy_float *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21285,7 +21300,7 @@ CFLOAT_argmin(npy_float *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 CDOUBLE_argmin(npy_double *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21358,7 +21373,7 @@ CDOUBLE_argmin(npy_double *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 CLONGDOUBLE_argmin(npy_longdouble *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21431,7 +21446,7 @@ CLONGDOUBLE_argmin(npy_longdouble *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 DATETIME_argmin(npy_datetime *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21504,7 +21519,7 @@ DATETIME_argmin(npy_datetime *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3342
+#line 3357
 static int
 TIMEDELTA_argmin(npy_timedelta *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -21612,7 +21627,7 @@ OBJECT_argmax(PyObject **ip, npy_intp n, npy_intp *max_ind,
     return 0;
 }
 
-#line 3454
+#line 3469
 static int
 STRING_argmax(npy_char *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip)
 {
@@ -21637,7 +21652,7 @@ STRING_argmax(npy_char *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip)
 }
 
 
-#line 3454
+#line 3469
 static int
 UNICODE_argmax(npy_ucs4 *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip)
 {
@@ -21697,7 +21712,7 @@ OBJECT_argmin(PyObject **ip, npy_intp n, npy_intp *min_ind,
     return 0;
 }
 
-#line 3518
+#line 3533
 static int
 STRING_argmin(npy_char *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 {
@@ -21720,7 +21735,7 @@ STRING_argmin(npy_char *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 }
 
 
-#line 3518
+#line 3533
 static int
 UNICODE_argmin(npy_ucs4 *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 {
@@ -21761,7 +21776,7 @@ UNICODE_argmin(npy_ucs4 *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 /************************** MAYBE USE CBLAS *********************************/
 
 
-#line 3564
+#line 3579
 NPY_NO_EXPORT void
 FLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
            npy_intp n, void *NPY_UNUSED(ignore))
@@ -21803,7 +21818,7 @@ FLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
     }
 }
 
-#line 3564
+#line 3579
 NPY_NO_EXPORT void
 DOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
            npy_intp n, void *NPY_UNUSED(ignore))
@@ -21846,7 +21861,7 @@ DOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
 }
 
 
-#line 3613
+#line 3628
 NPY_NO_EXPORT void
 CFLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2,
            char *op, npy_intp n, void *NPY_UNUSED(ignore))
@@ -21895,7 +21910,7 @@ CFLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2,
 }
 
 
-#line 3613
+#line 3628
 NPY_NO_EXPORT void
 CDOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2,
            char *op, npy_intp n, void *NPY_UNUSED(ignore))
@@ -21963,7 +21978,7 @@ BOOL_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_bool *)op) = tmp;
 }
 
-#line 3692
+#line 3707
 static void
 BYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -21978,7 +21993,7 @@ BYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_byte *)op) = (npy_byte) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 UBYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -21993,7 +22008,7 @@ UBYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n
     *((npy_ubyte *)op) = (npy_ubyte) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 SHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22008,7 +22023,7 @@ SHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n
     *((npy_short *)op) = (npy_short) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 USHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22023,7 +22038,7 @@ USHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp 
     *((npy_ushort *)op) = (npy_ushort) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 INT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22038,7 +22053,7 @@ INT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_int *)op) = (npy_int) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 UINT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22053,7 +22068,7 @@ UINT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_uint *)op) = (npy_uint) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 LONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22068,7 +22083,7 @@ LONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_long *)op) = (npy_long) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 ULONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22083,7 +22098,7 @@ ULONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n
     *((npy_ulong *)op) = (npy_ulong) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 LONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22098,7 +22113,7 @@ LONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_int
     *((npy_longlong *)op) = (npy_longlong) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 ULONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22113,7 +22128,7 @@ ULONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_in
     *((npy_ulonglong *)op) = (npy_ulonglong) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 LONGDOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22128,7 +22143,7 @@ LONGDOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_i
     *((npy_longdouble *)op) = (npy_longdouble) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 DATETIME_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22143,7 +22158,7 @@ DATETIME_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_int
     *((npy_datetime *)op) = (npy_datetime) tmp;
 }
 
-#line 3692
+#line 3707
 static void
 TIMEDELTA_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -22286,7 +22301,7 @@ finish:
     return retval;
 }
 
-#line 3845
+#line 3860
 static int
 BYTE_fill(npy_byte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22301,7 +22316,7 @@ BYTE_fill(npy_byte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 UBYTE_fill(npy_ubyte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22316,7 +22331,7 @@ UBYTE_fill(npy_ubyte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 SHORT_fill(npy_short *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22331,7 +22346,7 @@ SHORT_fill(npy_short *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 USHORT_fill(npy_ushort *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22346,7 +22361,7 @@ USHORT_fill(npy_ushort *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 INT_fill(npy_int *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22361,7 +22376,7 @@ INT_fill(npy_int *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 UINT_fill(npy_uint *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22376,7 +22391,7 @@ UINT_fill(npy_uint *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 LONG_fill(npy_long *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22391,7 +22406,7 @@ LONG_fill(npy_long *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 ULONG_fill(npy_ulong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22406,7 +22421,7 @@ ULONG_fill(npy_ulong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 LONGLONG_fill(npy_longlong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22421,7 +22436,7 @@ LONGLONG_fill(npy_longlong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 ULONGLONG_fill(npy_ulonglong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22436,7 +22451,7 @@ ULONGLONG_fill(npy_ulonglong *buffer, npy_intp length, void *NPY_UNUSED(ignored)
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 FLOAT_fill(npy_float *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22451,7 +22466,7 @@ FLOAT_fill(npy_float *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 DOUBLE_fill(npy_double *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22466,7 +22481,7 @@ DOUBLE_fill(npy_double *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 LONGDOUBLE_fill(npy_longdouble *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22481,7 +22496,7 @@ LONGDOUBLE_fill(npy_longdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 DATETIME_fill(npy_datetime *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22496,7 +22511,7 @@ DATETIME_fill(npy_datetime *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3845
+#line 3860
 static int
 TIMEDELTA_fill(npy_timedelta *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -22526,7 +22541,7 @@ HALF_fill(npy_half *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3879
+#line 3894
 static int
 CFLOAT_fill(npy_cfloat *buffer, npy_intp length, void *NPY_UNUSED(ignore))
 {
@@ -22548,7 +22563,7 @@ CFLOAT_fill(npy_cfloat *buffer, npy_intp length, void *NPY_UNUSED(ignore))
     return 0;
 }
 
-#line 3879
+#line 3894
 static int
 CDOUBLE_fill(npy_cdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore))
 {
@@ -22570,7 +22585,7 @@ CDOUBLE_fill(npy_cdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore))
     return 0;
 }
 
-#line 3879
+#line 3894
 static int
 CLONGDOUBLE_fill(npy_clongdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore))
 {
@@ -22607,7 +22622,7 @@ OBJECT_fillwithscalar(PyObject **buffer, npy_intp length, PyObject **value,
         buffer[i] = val;
     }
 }
-#line 3920
+#line 3935
 static void
 BOOL_fillwithscalar(npy_bool *buffer, npy_intp length, npy_bool *value,
         void *NPY_UNUSED(ignored))
@@ -22615,7 +22630,7 @@ BOOL_fillwithscalar(npy_bool *buffer, npy_intp length, npy_bool *value,
     memset(buffer, *value, length);
 }
 
-#line 3920
+#line 3935
 static void
 BYTE_fillwithscalar(npy_byte *buffer, npy_intp length, npy_byte *value,
         void *NPY_UNUSED(ignored))
@@ -22623,7 +22638,7 @@ BYTE_fillwithscalar(npy_byte *buffer, npy_intp length, npy_byte *value,
     memset(buffer, *value, length);
 }
 
-#line 3920
+#line 3935
 static void
 UBYTE_fillwithscalar(npy_ubyte *buffer, npy_intp length, npy_ubyte *value,
         void *NPY_UNUSED(ignored))
@@ -22632,7 +22647,7 @@ UBYTE_fillwithscalar(npy_ubyte *buffer, npy_intp length, npy_ubyte *value,
 }
 
 
-#line 3941
+#line 3956
 static void
 SHORT_fillwithscalar(npy_short *buffer, npy_intp length, npy_short *value,
         void *NPY_UNUSED(ignored))
@@ -22645,7 +22660,7 @@ SHORT_fillwithscalar(npy_short *buffer, npy_intp length, npy_short *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 USHORT_fillwithscalar(npy_ushort *buffer, npy_intp length, npy_ushort *value,
         void *NPY_UNUSED(ignored))
@@ -22658,7 +22673,7 @@ USHORT_fillwithscalar(npy_ushort *buffer, npy_intp length, npy_ushort *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 INT_fillwithscalar(npy_int *buffer, npy_intp length, npy_int *value,
         void *NPY_UNUSED(ignored))
@@ -22671,7 +22686,7 @@ INT_fillwithscalar(npy_int *buffer, npy_intp length, npy_int *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 UINT_fillwithscalar(npy_uint *buffer, npy_intp length, npy_uint *value,
         void *NPY_UNUSED(ignored))
@@ -22684,7 +22699,7 @@ UINT_fillwithscalar(npy_uint *buffer, npy_intp length, npy_uint *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 LONG_fillwithscalar(npy_long *buffer, npy_intp length, npy_long *value,
         void *NPY_UNUSED(ignored))
@@ -22697,7 +22712,7 @@ LONG_fillwithscalar(npy_long *buffer, npy_intp length, npy_long *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 ULONG_fillwithscalar(npy_ulong *buffer, npy_intp length, npy_ulong *value,
         void *NPY_UNUSED(ignored))
@@ -22710,7 +22725,7 @@ ULONG_fillwithscalar(npy_ulong *buffer, npy_intp length, npy_ulong *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 LONGLONG_fillwithscalar(npy_longlong *buffer, npy_intp length, npy_longlong *value,
         void *NPY_UNUSED(ignored))
@@ -22723,7 +22738,7 @@ LONGLONG_fillwithscalar(npy_longlong *buffer, npy_intp length, npy_longlong *val
     }
 }
 
-#line 3941
+#line 3956
 static void
 ULONGLONG_fillwithscalar(npy_ulonglong *buffer, npy_intp length, npy_ulonglong *value,
         void *NPY_UNUSED(ignored))
@@ -22736,7 +22751,7 @@ ULONGLONG_fillwithscalar(npy_ulonglong *buffer, npy_intp length, npy_ulonglong *
     }
 }
 
-#line 3941
+#line 3956
 static void
 HALF_fillwithscalar(npy_half *buffer, npy_intp length, npy_half *value,
         void *NPY_UNUSED(ignored))
@@ -22749,7 +22764,7 @@ HALF_fillwithscalar(npy_half *buffer, npy_intp length, npy_half *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 FLOAT_fillwithscalar(npy_float *buffer, npy_intp length, npy_float *value,
         void *NPY_UNUSED(ignored))
@@ -22762,7 +22777,7 @@ FLOAT_fillwithscalar(npy_float *buffer, npy_intp length, npy_float *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 DOUBLE_fillwithscalar(npy_double *buffer, npy_intp length, npy_double *value,
         void *NPY_UNUSED(ignored))
@@ -22775,7 +22790,7 @@ DOUBLE_fillwithscalar(npy_double *buffer, npy_intp length, npy_double *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 LONGDOUBLE_fillwithscalar(npy_longdouble *buffer, npy_intp length, npy_longdouble *value,
         void *NPY_UNUSED(ignored))
@@ -22788,7 +22803,7 @@ LONGDOUBLE_fillwithscalar(npy_longdouble *buffer, npy_intp length, npy_longdoubl
     }
 }
 
-#line 3941
+#line 3956
 static void
 CFLOAT_fillwithscalar(npy_cfloat *buffer, npy_intp length, npy_cfloat *value,
         void *NPY_UNUSED(ignored))
@@ -22801,7 +22816,7 @@ CFLOAT_fillwithscalar(npy_cfloat *buffer, npy_intp length, npy_cfloat *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 CDOUBLE_fillwithscalar(npy_cdouble *buffer, npy_intp length, npy_cdouble *value,
         void *NPY_UNUSED(ignored))
@@ -22814,7 +22829,7 @@ CDOUBLE_fillwithscalar(npy_cdouble *buffer, npy_intp length, npy_cdouble *value,
     }
 }
 
-#line 3941
+#line 3956
 static void
 CLONGDOUBLE_fillwithscalar(npy_clongdouble *buffer, npy_intp length, npy_clongdouble *value,
         void *NPY_UNUSED(ignored))
@@ -22827,7 +22842,7 @@ CLONGDOUBLE_fillwithscalar(npy_clongdouble *buffer, npy_intp length, npy_clongdo
     }
 }
 
-#line 3941
+#line 3956
 static void
 DATETIME_fillwithscalar(npy_datetime *buffer, npy_intp length, npy_datetime *value,
         void *NPY_UNUSED(ignored))
@@ -22840,7 +22855,7 @@ DATETIME_fillwithscalar(npy_datetime *buffer, npy_intp length, npy_datetime *val
     }
 }
 
-#line 3941
+#line 3956
 static void
 TIMEDELTA_fillwithscalar(npy_timedelta *buffer, npy_intp length, npy_timedelta *value,
         void *NPY_UNUSED(ignored))
@@ -22890,7 +22905,7 @@ small_correlate(const char * d_, npy_intp dstride,
     }
 
     switch (dtype) {
-#line 3995
+#line 4010
         case NPY_FLOAT:
             {
                 npy_intp i;
@@ -22902,70 +22917,70 @@ small_correlate(const char * d_, npy_intp dstride,
                 ostride /= sizeof(npy_float);
                 /* unroll inner loop to optimize register usage of the kernel*/
                 switch (nk) {
-#line 4008
+#line 4023
                     case 1:
                     {
-#line 4012
+#line 4027
 #if 1 <= 1
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 1
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 1
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 1
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 1
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 1
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 1
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 1
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 1
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 1
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 1
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -22973,57 +22988,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 1
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 1
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 1
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 1
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 1
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 1
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 1
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 1
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 1
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 1
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 1
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23033,70 +23048,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 2:
                     {
-#line 4012
+#line 4027
 #if 1 <= 2
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 2
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 2
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 2
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 2
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 2
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 2
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 2
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 2
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 2
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 2
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -23104,57 +23119,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 2
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 2
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 2
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 2
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 2
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 2
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 2
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 2
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 2
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 2
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 2
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23164,70 +23179,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 3:
                     {
-#line 4012
+#line 4027
 #if 1 <= 3
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 3
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 3
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 3
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 3
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 3
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 3
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 3
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 3
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 3
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 3
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -23235,57 +23250,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 3
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 3
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 3
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 3
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 3
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 3
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 3
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 3
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 3
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 3
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 3
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23295,70 +23310,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 4:
                     {
-#line 4012
+#line 4027
 #if 1 <= 4
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 4
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 4
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 4
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 4
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 4
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 4
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 4
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 4
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 4
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 4
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -23366,57 +23381,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 4
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 4
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 4
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 4
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 4
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 4
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 4
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 4
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 4
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 4
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 4
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23426,70 +23441,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 5:
                     {
-#line 4012
+#line 4027
 #if 1 <= 5
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 5
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 5
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 5
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 5
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 5
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 5
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 5
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 5
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 5
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 5
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -23497,57 +23512,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 5
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 5
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 5
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 5
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 5
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 5
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 5
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 5
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 5
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 5
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 5
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23557,70 +23572,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 6:
                     {
-#line 4012
+#line 4027
 #if 1 <= 6
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 6
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 6
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 6
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 6
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 6
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 6
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 6
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 6
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 6
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 6
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -23628,57 +23643,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 6
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 6
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 6
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 6
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 6
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 6
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 6
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 6
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 6
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 6
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 6
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23688,70 +23703,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 7:
                     {
-#line 4012
+#line 4027
 #if 1 <= 7
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 7
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 7
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 7
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 7
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 7
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 7
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 7
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 7
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 7
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 7
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -23759,57 +23774,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 7
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 7
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 7
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 7
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 7
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 7
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 7
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 7
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 7
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 7
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 7
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23819,70 +23834,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 8:
                     {
-#line 4012
+#line 4027
 #if 1 <= 8
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 8
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 8
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 8
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 8
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 8
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 8
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 8
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 8
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 8
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 8
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -23890,57 +23905,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 8
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 8
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 8
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 8
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 8
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 8
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 8
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 8
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 8
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 8
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 8
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23950,70 +23965,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 9:
                     {
-#line 4012
+#line 4027
 #if 1 <= 9
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 9
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 9
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 9
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 9
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 9
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 9
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 9
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 9
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 9
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 9
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -24021,57 +24036,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 9
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 9
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 9
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 9
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 9
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 9
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 9
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 9
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 9
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 9
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 9
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -24081,70 +24096,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 10:
                     {
-#line 4012
+#line 4027
 #if 1 <= 10
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 10
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 10
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 10
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 10
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 10
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 10
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 10
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 10
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 10
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 10
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -24152,57 +24167,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 10
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 10
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 10
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 10
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 10
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 10
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 10
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 10
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 10
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 10
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 10
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -24212,70 +24227,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 11:
                     {
-#line 4012
+#line 4027
 #if 1 <= 11
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 11
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 11
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 11
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 11
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 11
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 11
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 11
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 11
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 11
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 11
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -24283,57 +24298,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 4021
+#line 4036
 #if 1 <= 11
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 11
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 11
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 11
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 11
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 11
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 11
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 11
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 11
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 11
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 11
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -24348,7 +24363,7 @@ small_correlate(const char * d_, npy_intp dstride,
                 }
             }
 
-#line 3995
+#line 4010
         case NPY_DOUBLE:
             {
                 npy_intp i;
@@ -24360,70 +24375,70 @@ small_correlate(const char * d_, npy_intp dstride,
                 ostride /= sizeof(npy_double);
                 /* unroll inner loop to optimize register usage of the kernel*/
                 switch (nk) {
-#line 4008
+#line 4023
                     case 1:
                     {
-#line 4012
+#line 4027
 #if 1 <= 1
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 1
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 1
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 1
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 1
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 1
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 1
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 1
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 1
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 1
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 1
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -24431,57 +24446,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 1
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 1
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 1
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 1
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 1
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 1
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 1
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 1
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 1
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 1
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 1
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -24491,70 +24506,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 2:
                     {
-#line 4012
+#line 4027
 #if 1 <= 2
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 2
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 2
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 2
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 2
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 2
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 2
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 2
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 2
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 2
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 2
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -24562,57 +24577,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 2
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 2
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 2
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 2
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 2
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 2
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 2
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 2
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 2
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 2
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 2
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -24622,70 +24637,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 3:
                     {
-#line 4012
+#line 4027
 #if 1 <= 3
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 3
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 3
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 3
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 3
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 3
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 3
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 3
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 3
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 3
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 3
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -24693,57 +24708,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 3
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 3
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 3
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 3
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 3
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 3
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 3
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 3
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 3
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 3
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 3
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -24753,70 +24768,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 4:
                     {
-#line 4012
+#line 4027
 #if 1 <= 4
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 4
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 4
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 4
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 4
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 4
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 4
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 4
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 4
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 4
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 4
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -24824,57 +24839,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 4
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 4
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 4
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 4
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 4
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 4
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 4
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 4
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 4
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 4
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 4
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -24884,70 +24899,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 5:
                     {
-#line 4012
+#line 4027
 #if 1 <= 5
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 5
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 5
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 5
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 5
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 5
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 5
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 5
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 5
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 5
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 5
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -24955,57 +24970,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 5
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 5
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 5
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 5
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 5
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 5
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 5
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 5
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 5
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 5
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 5
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -25015,70 +25030,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 6:
                     {
-#line 4012
+#line 4027
 #if 1 <= 6
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 6
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 6
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 6
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 6
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 6
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 6
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 6
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 6
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 6
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 6
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -25086,57 +25101,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 6
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 6
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 6
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 6
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 6
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 6
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 6
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 6
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 6
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 6
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 6
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -25146,70 +25161,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 7:
                     {
-#line 4012
+#line 4027
 #if 1 <= 7
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 7
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 7
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 7
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 7
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 7
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 7
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 7
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 7
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 7
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 7
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -25217,57 +25232,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 7
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 7
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 7
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 7
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 7
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 7
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 7
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 7
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 7
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 7
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 7
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -25277,70 +25292,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 8:
                     {
-#line 4012
+#line 4027
 #if 1 <= 8
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 8
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 8
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 8
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 8
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 8
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 8
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 8
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 8
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 8
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 8
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -25348,57 +25363,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 8
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 8
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 8
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 8
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 8
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 8
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 8
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 8
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 8
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 8
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 8
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -25408,70 +25423,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 9:
                     {
-#line 4012
+#line 4027
 #if 1 <= 9
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 9
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 9
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 9
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 9
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 9
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 9
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 9
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 9
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 9
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 9
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -25479,57 +25494,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 9
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 9
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 9
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 9
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 9
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 9
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 9
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 9
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 9
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 9
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 9
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -25539,70 +25554,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 10:
                     {
-#line 4012
+#line 4027
 #if 1 <= 10
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 10
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 10
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 10
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 10
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 10
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 10
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 10
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 10
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 10
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 10
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -25610,57 +25625,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 10
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 10
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 10
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 10
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 10
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 10
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 10
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 10
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 10
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 10
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 10
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -25670,70 +25685,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 4008
+#line 4023
                     case 11:
                     {
-#line 4012
+#line 4027
 #if 1 <= 11
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 2 <= 11
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 3 <= 11
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 4 <= 11
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 5 <= 11
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 6 <= 11
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 7 <= 11
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 8 <= 11
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 9 <= 11
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 10 <= 11
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 4012
+#line 4027
 #if 11 <= 11
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -25741,57 +25756,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 4021
+#line 4036
 #if 1 <= 11
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 4021
+#line 4036
 #if 2 <= 11
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 4021
+#line 4036
 #if 3 <= 11
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 4021
+#line 4036
 #if 4 <= 11
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 4021
+#line 4036
 #if 5 <= 11
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 4021
+#line 4036
 #if 6 <= 11
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 4021
+#line 4036
 #if 7 <= 11
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 4021
+#line 4036
 #if 8 <= 11
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 4021
+#line 4036
 #if 9 <= 11
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 4021
+#line 4036
 #if 10 <= 11
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 4021
+#line 4036
 #if 11 <= 11
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -25864,7 +25879,7 @@ _create_datetime_metadata(NPY_DATETIMEUNIT base, int num)
  *****************************************************************************
  */
 
-#line 4103
+#line 4118
 static PyArray_ArrFuncs _PyVoid_ArrFuncs = {
     {
         VOID_to_BOOL,
@@ -25968,7 +25983,7 @@ static PyArray_Descr VOID_Descr = {
 };
 
 
-#line 4103
+#line 4118
 static PyArray_ArrFuncs _PyString_ArrFuncs = {
     {
         STRING_to_BOOL,
@@ -26072,7 +26087,7 @@ static PyArray_Descr STRING_Descr = {
 };
 
 
-#line 4103
+#line 4118
 static PyArray_ArrFuncs _PyUnicode_ArrFuncs = {
     {
         UNICODE_to_BOOL,
@@ -26177,7 +26192,7 @@ static PyArray_Descr UNICODE_Descr = {
 
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyBool_ArrFuncs = {
     {
@@ -26290,7 +26305,7 @@ NPY_NO_EXPORT PyArray_Descr BOOL_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyByte_ArrFuncs = {
     {
@@ -26403,7 +26418,7 @@ NPY_NO_EXPORT PyArray_Descr BYTE_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyUByte_ArrFuncs = {
     {
@@ -26516,7 +26531,7 @@ NPY_NO_EXPORT PyArray_Descr UBYTE_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyShort_ArrFuncs = {
     {
@@ -26629,7 +26644,7 @@ NPY_NO_EXPORT PyArray_Descr SHORT_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyUShort_ArrFuncs = {
     {
@@ -26742,7 +26757,7 @@ NPY_NO_EXPORT PyArray_Descr USHORT_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyInt_ArrFuncs = {
     {
@@ -26855,7 +26870,7 @@ NPY_NO_EXPORT PyArray_Descr INT_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyUInt_ArrFuncs = {
     {
@@ -26968,7 +26983,7 @@ NPY_NO_EXPORT PyArray_Descr UINT_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyLong_ArrFuncs = {
     {
@@ -27081,7 +27096,7 @@ NPY_NO_EXPORT PyArray_Descr LONG_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyULong_ArrFuncs = {
     {
@@ -27194,7 +27209,7 @@ NPY_NO_EXPORT PyArray_Descr ULONG_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyLongLong_ArrFuncs = {
     {
@@ -27307,7 +27322,7 @@ NPY_NO_EXPORT PyArray_Descr LONGLONG_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyULongLong_ArrFuncs = {
     {
@@ -27420,7 +27435,7 @@ NPY_NO_EXPORT PyArray_Descr ULONGLONG_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyHalf_ArrFuncs = {
     {
@@ -27533,7 +27548,7 @@ NPY_NO_EXPORT PyArray_Descr HALF_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyFloat_ArrFuncs = {
     {
@@ -27646,7 +27661,7 @@ NPY_NO_EXPORT PyArray_Descr FLOAT_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyDouble_ArrFuncs = {
     {
@@ -27759,7 +27774,7 @@ NPY_NO_EXPORT PyArray_Descr DOUBLE_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyLongDouble_ArrFuncs = {
     {
@@ -27872,7 +27887,7 @@ NPY_NO_EXPORT PyArray_Descr LONGDOUBLE_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyCFloat_ArrFuncs = {
     {
@@ -27985,7 +28000,7 @@ NPY_NO_EXPORT PyArray_Descr CFLOAT_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyCDouble_ArrFuncs = {
     {
@@ -28098,7 +28113,7 @@ NPY_NO_EXPORT PyArray_Descr CDOUBLE_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyCLongDouble_ArrFuncs = {
     {
@@ -28211,7 +28226,7 @@ NPY_NO_EXPORT PyArray_Descr CLONGDOUBLE_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyObject_ArrFuncs = {
     {
@@ -28324,7 +28339,7 @@ NPY_NO_EXPORT PyArray_Descr OBJECT_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyDatetime_ArrFuncs = {
     {
@@ -28437,7 +28452,7 @@ NPY_NO_EXPORT PyArray_Descr DATETIME_Descr = {
 };
 
 
-#line 4244
+#line 4259
 
 static PyArray_ArrFuncs _PyTimedelta_ArrFuncs = {
     {
@@ -28691,9 +28706,9 @@ set_typeinfo(PyObject *dict)
      * Add cast functions for the new types
      */
 
-    #line 4507
+    #line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -28720,7 +28735,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -28747,7 +28762,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -28776,9 +28791,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -28805,7 +28820,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -28832,7 +28847,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -28861,9 +28876,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -28890,7 +28905,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -28917,7 +28932,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -28946,9 +28961,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -28975,7 +28990,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -29002,7 +29017,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -29031,9 +29046,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -29060,7 +29075,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -29087,7 +29102,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -29116,9 +29131,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -29145,7 +29160,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -29172,7 +29187,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -29201,9 +29216,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -29230,7 +29245,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -29257,7 +29272,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -29286,9 +29301,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -29315,7 +29330,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -29342,7 +29357,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -29371,9 +29386,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -29400,7 +29415,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -29427,7 +29442,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -29456,9 +29471,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -29485,7 +29500,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -29512,7 +29527,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -29541,9 +29556,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -29570,7 +29585,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -29597,7 +29612,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -29626,9 +29641,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -29655,7 +29670,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -29682,7 +29697,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -29711,9 +29726,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -29740,7 +29755,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -29767,7 +29782,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -29796,9 +29811,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -29825,7 +29840,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -29852,7 +29867,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -29881,9 +29896,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -29910,7 +29925,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -29937,7 +29952,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -29966,9 +29981,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -29995,7 +30010,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -30022,7 +30037,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -30051,9 +30066,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -30080,7 +30095,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -30107,7 +30122,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -30136,9 +30151,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -30165,7 +30180,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -30192,7 +30207,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -30221,9 +30236,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -30250,7 +30265,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -30277,7 +30292,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -30306,9 +30321,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -30335,7 +30350,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -30362,7 +30377,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -30391,9 +30406,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -30420,7 +30435,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -30447,7 +30462,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -30476,9 +30491,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -30505,7 +30520,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -30532,7 +30547,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -30561,9 +30576,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -30590,7 +30605,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -30617,7 +30632,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -30646,9 +30661,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4507
+#line 4522
 
-    #line 4512
+    #line 4527
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -30675,7 +30690,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -30702,7 +30717,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4512
+#line 4527
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -30747,132 +30762,132 @@ set_typeinfo(PyObject *dict)
         _letter_to_num[i] = NPY_NTYPES;
     }
 
-    #line 4567
+    #line 4582
 
     _letter_to_num[NPY_BOOLLTR] = NPY_BOOL;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_BYTELTR] = NPY_BYTE;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_UBYTELTR] = NPY_UBYTE;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_SHORTLTR] = NPY_SHORT;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_USHORTLTR] = NPY_USHORT;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_INTLTR] = NPY_INT;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_UINTLTR] = NPY_UINT;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_INTPLTR] = NPY_INTP;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_UINTPLTR] = NPY_UINTP;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_LONGLTR] = NPY_LONG;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_ULONGLTR] = NPY_ULONG;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_LONGLONGLTR] = NPY_LONGLONG;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_ULONGLONGLTR] = NPY_ULONGLONG;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_HALFLTR] = NPY_HALF;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_FLOATLTR] = NPY_FLOAT;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_DOUBLELTR] = NPY_DOUBLE;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_LONGDOUBLELTR] = NPY_LONGDOUBLE;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_CFLOATLTR] = NPY_CFLOAT;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_CDOUBLELTR] = NPY_CDOUBLE;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_CLONGDOUBLELTR] = NPY_CLONGDOUBLE;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_OBJECTLTR] = NPY_OBJECT;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_STRINGLTR] = NPY_STRING;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_UNICODELTR] = NPY_UNICODE;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_VOIDLTR] = NPY_VOID;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_DATETIMELTR] = NPY_DATETIME;
 
     
-#line 4567
+#line 4582
 
     _letter_to_num[NPY_TIMEDELTALTR] = NPY_TIMEDELTA;
 
@@ -30880,139 +30895,139 @@ set_typeinfo(PyObject *dict)
 
     _letter_to_num[NPY_STRINGLTR2] = NPY_STRING;
 
-    #line 4583
+    #line 4598
 
     BOOL_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     BYTE_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     UBYTE_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     SHORT_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     USHORT_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     INT_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     UINT_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     LONG_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     ULONG_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     LONGLONG_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     ULONGLONG_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     HALF_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     FLOAT_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     DOUBLE_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     LONGDOUBLE_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     CFLOAT_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     CDOUBLE_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     CLONGDOUBLE_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     OBJECT_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     STRING_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     UNICODE_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     VOID_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     DATETIME_Descr.fields = Py_None;
 
     
-#line 4583
+#line 4598
 
     TIMEDELTA_Descr.fields = Py_None;
 
     
 
 
-    #line 4592
+    #line 4607
 
     PyDataType_MAKEUNSIZED(&STRING_Descr);
 
     
-#line 4592
+#line 4607
 
     PyDataType_MAKEUNSIZED(&UNICODE_Descr);
 
     
-#line 4592
+#line 4607
 
     PyDataType_MAKEUNSIZED(&VOID_Descr);
 
@@ -31023,7 +31038,7 @@ set_typeinfo(PyObject *dict)
     if (infodict == NULL) return -1;
 
     int ret;
-    #line 4636
+    #line 4651
 
     s = PyArray_typeinforanged(
         NPY_BOOLLTR, NPY_BOOL, NPY_BITSOF_BOOL, _ALIGN(npy_bool),
@@ -31044,7 +31059,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_BYTELTR, NPY_BYTE, NPY_BITSOF_BYTE, _ALIGN(npy_byte),
@@ -31065,7 +31080,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_UBYTELTR, NPY_UBYTE, NPY_BITSOF_BYTE, _ALIGN(npy_ubyte),
@@ -31086,7 +31101,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_SHORTLTR, NPY_SHORT, NPY_BITSOF_SHORT, _ALIGN(npy_short),
@@ -31107,7 +31122,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_USHORTLTR, NPY_USHORT, NPY_BITSOF_SHORT, _ALIGN(npy_ushort),
@@ -31128,7 +31143,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_INTLTR, NPY_INT, NPY_BITSOF_INT, _ALIGN(npy_int),
@@ -31149,7 +31164,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_UINTLTR, NPY_UINT, NPY_BITSOF_INT, _ALIGN(npy_uint),
@@ -31170,7 +31185,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_INTPLTR, NPY_INTP, NPY_BITSOF_INTP, _ALIGN(npy_intp),
@@ -31191,7 +31206,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_UINTPLTR, NPY_UINTP, NPY_BITSOF_INTP, _ALIGN(npy_uintp),
@@ -31212,7 +31227,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_LONGLTR, NPY_LONG, NPY_BITSOF_LONG, _ALIGN(npy_long),
@@ -31233,7 +31248,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_ULONGLTR, NPY_ULONG, NPY_BITSOF_LONG, _ALIGN(npy_ulong),
@@ -31254,7 +31269,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_LONGLONGLTR, NPY_LONGLONG, NPY_BITSOF_LONGLONG, _ALIGN(npy_longlong),
@@ -31275,7 +31290,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4636
+#line 4651
 
     s = PyArray_typeinforanged(
         NPY_ULONGLONGLTR, NPY_ULONGLONG, NPY_BITSOF_LONGLONG, _ALIGN(npy_ulonglong),
@@ -31298,7 +31313,7 @@ set_typeinfo(PyObject *dict)
     
 
 
-    #line 4667
+    #line 4682
     s = PyArray_typeinfo(
         NPY_HALFLTR, NPY_HALF, NPY_BITSOF_HALF,
         _ALIGN(npy_half), &PyHalfArrType_Type
@@ -31315,7 +31330,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4667
+#line 4682
     s = PyArray_typeinfo(
         NPY_FLOATLTR, NPY_FLOAT, NPY_BITSOF_FLOAT,
         _ALIGN(npy_float), &PyFloatArrType_Type
@@ -31332,7 +31347,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4667
+#line 4682
     s = PyArray_typeinfo(
         NPY_DOUBLELTR, NPY_DOUBLE, NPY_BITSOF_DOUBLE,
         _ALIGN(npy_double), &PyDoubleArrType_Type
@@ -31349,7 +31364,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4667
+#line 4682
     s = PyArray_typeinfo(
         NPY_LONGDOUBLELTR, NPY_LONGDOUBLE, NPY_BITSOF_LONGDOUBLE,
         _ALIGN(npy_longdouble), &PyLongDoubleArrType_Type
@@ -31366,7 +31381,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4667
+#line 4682
     s = PyArray_typeinfo(
         NPY_CFLOATLTR, NPY_CFLOAT, NPY_BITSOF_CFLOAT,
         _ALIGN(npy_cfloat), &PyCFloatArrType_Type
@@ -31383,7 +31398,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4667
+#line 4682
     s = PyArray_typeinfo(
         NPY_CDOUBLELTR, NPY_CDOUBLE, NPY_BITSOF_CDOUBLE,
         _ALIGN(npy_cdouble), &PyCDoubleArrType_Type
@@ -31400,7 +31415,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4667
+#line 4682
     s = PyArray_typeinfo(
         NPY_CLONGDOUBLELTR, NPY_CLONGDOUBLE, NPY_BITSOF_CLONGDOUBLE,
         _ALIGN(npy_clongdouble), &PyCLongDoubleArrType_Type

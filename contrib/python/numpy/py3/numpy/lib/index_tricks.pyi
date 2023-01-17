@@ -1,4 +1,3 @@
-import sys
 from typing import (
     Any,
     Tuple,
@@ -8,6 +7,8 @@ from typing import (
     List,
     Union,
     Sequence,
+    Literal,
+    SupportsIndex,
 )
 
 from numpy import (
@@ -32,7 +33,7 @@ from numpy.typing import (
     # Arrays
     ArrayLike,
     _NestedSequence,
-    _RecursiveSequence,
+    _FiniteNestedSequence,
     NDArray,
     _ArrayLikeInt,
 
@@ -44,10 +45,10 @@ from numpy.typing import (
     _ShapeLike,
 )
 
-if sys.version_info >= (3, 8):
-    from typing import Literal, SupportsIndex
-else:
-    from typing_extensions import Literal, SupportsIndex
+from numpy.core.multiarray import (
+    unravel_index as unravel_index,
+    ravel_multi_index as ravel_multi_index,
+)
 
 _T = TypeVar("_T")
 _DType = TypeVar("_DType", bound=dtype[Any])
@@ -58,49 +59,19 @@ _ArrayType = TypeVar("_ArrayType", bound=ndarray[Any, Any])
 __all__: List[str]
 
 @overload
-def unravel_index(  # type: ignore[misc]
-    indices: Union[int, integer[Any]],
-    shape: _ShapeLike,
-    order: _OrderCF = ...
-) -> Tuple[intp, ...]: ...
+def ix_(*args: _FiniteNestedSequence[_SupportsDType[_DType]]) -> Tuple[ndarray[Any, _DType], ...]: ...
 @overload
-def unravel_index(
-    indices: _ArrayLikeInt,
-    shape: _ShapeLike,
-    order: _OrderCF = ...
-) -> Tuple[NDArray[intp], ...]: ...
-
+def ix_(*args: str | _NestedSequence[str]) -> Tuple[NDArray[str_], ...]: ...
 @overload
-def ravel_multi_index(  # type: ignore[misc]
-    multi_index: Sequence[Union[int, integer[Any]]],
-    dims: _ShapeLike,
-    mode: Union[_ModeKind, Tuple[_ModeKind, ...]] = ...,
-    order: _OrderCF = ...
-) -> intp: ...
+def ix_(*args: bytes | _NestedSequence[bytes]) -> Tuple[NDArray[bytes_], ...]: ...
 @overload
-def ravel_multi_index(
-    multi_index: Sequence[_ArrayLikeInt],
-    dims: _ShapeLike,
-    mode: Union[_ModeKind, Tuple[_ModeKind, ...]] = ...,
-    order: _OrderCF = ...
-) -> NDArray[intp]: ...
-
+def ix_(*args: bool | _NestedSequence[bool]) -> Tuple[NDArray[bool_], ...]: ...
 @overload
-def ix_(*args: _NestedSequence[_SupportsDType[_DType]]) -> Tuple[ndarray[Any, _DType], ...]: ...
+def ix_(*args: int | _NestedSequence[int]) -> Tuple[NDArray[int_], ...]: ...
 @overload
-def ix_(*args: _NestedSequence[str]) -> Tuple[NDArray[str_], ...]: ...
+def ix_(*args: float | _NestedSequence[float]) -> Tuple[NDArray[float_], ...]: ...
 @overload
-def ix_(*args: _NestedSequence[bytes]) -> Tuple[NDArray[bytes_], ...]: ...
-@overload
-def ix_(*args: _NestedSequence[bool]) -> Tuple[NDArray[bool_], ...]: ...
-@overload
-def ix_(*args: _NestedSequence[int]) -> Tuple[NDArray[int_], ...]: ...
-@overload
-def ix_(*args: _NestedSequence[float]) -> Tuple[NDArray[float_], ...]: ...
-@overload
-def ix_(*args: _NestedSequence[complex]) -> Tuple[NDArray[complex_], ...]: ...
-@overload
-def ix_(*args: _RecursiveSequence) -> Tuple[NDArray[Any], ...]: ...
+def ix_(*args: complex | _NestedSequence[complex]) -> Tuple[NDArray[complex_], ...]: ...
 
 class nd_grid(Generic[_BoolType]):
     sparse: _BoolType

@@ -2,7 +2,7 @@
 """Fortran to Python Interface Generator.
 
 """
-__all__ = ['run_main', 'compile', 'get_include', 'f2py_testing']
+__all__ = ['run_main', 'compile', 'get_include']
 
 import sys
 import subprocess
@@ -71,8 +71,8 @@ def compile(source,
 
     Examples
     --------
-    .. include:: compile_session.dat
-        :literal:
+    .. literalinclude:: ../../source/f2py/code/results/compile_session.dat
+        :language: python
 
     """
     import tempfile

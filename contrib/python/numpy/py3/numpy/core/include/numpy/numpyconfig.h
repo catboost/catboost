@@ -1,5 +1,5 @@
-#ifndef _NPY_NUMPYCONFIG_H_
-#define _NPY_NUMPYCONFIG_H_
+#ifndef NUMPY_CORE_INCLUDE_NUMPY_NPY_NUMPYCONFIG_H_
+#define NUMPY_CORE_INCLUDE_NUMPY_NPY_NUMPYCONFIG_H_
 
 #include "_numpyconfig.h"
 
@@ -23,12 +23,18 @@
     #undef NPY_SIZEOF_LONGDOUBLE
     #undef NPY_SIZEOF_COMPLEX_LONGDOUBLE
 
-    #ifdef __x86_64
-        #define NPY_SIZEOF_LONGDOUBLE         16
-        #define NPY_SIZEOF_COMPLEX_LONGDOUBLE 32
-    #elif defined(__arm64__)
+    #if defined(__arm64__)
         #define NPY_SIZEOF_LONGDOUBLE         8
         #define NPY_SIZEOF_COMPLEX_LONGDOUBLE 16
+    #elif defined(__x86_64)
+        #define NPY_SIZEOF_LONGDOUBLE         16
+        #define NPY_SIZEOF_COMPLEX_LONGDOUBLE 32
+    #elif defined (__i386)
+        #define NPY_SIZEOF_LONGDOUBLE         12
+        #define NPY_SIZEOF_COMPLEX_LONGDOUBLE 24
+    #elif defined(__ppc__) || defined (__ppc64__)
+        #define NPY_SIZEOF_LONGDOUBLE         16
+        #define NPY_SIZEOF_COMPLEX_LONGDOUBLE 32
     #else
         #error "unknown architecture"
     #endif
@@ -56,5 +62,6 @@
 #define NPY_1_19_API_VERSION 0x00000008
 #define NPY_1_20_API_VERSION 0x0000000e
 #define NPY_1_21_API_VERSION 0x0000000e
+#define NPY_1_22_API_VERSION 0x0000000f
 
-#endif
+#endif  /* NUMPY_CORE_INCLUDE_NUMPY_NPY_NUMPYCONFIG_H_ */

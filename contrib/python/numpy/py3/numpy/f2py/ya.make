@@ -24,6 +24,7 @@ PY_SRCS(
     f90mod_rules.py
     func2subr.py
     rules.py
+    symbolic.py
     use_rules.py
 )
 

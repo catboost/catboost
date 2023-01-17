@@ -18,6 +18,12 @@ SRCDIR(
 )
 
 TEST_SRCS(
+    array_api/tests/__init__.py
+    array_api/tests/test_array_object.py
+    array_api/tests/test_creation_functions.py
+    array_api/tests/test_elementwise_functions.py
+    array_api/tests/test_set_functions.py
+    array_api/tests/test_sorting_functions.py
     compat/tests/__init__.py
     compat/tests/test_compat.py
     conftest.py
@@ -34,10 +40,12 @@ TEST_SRCS(
     core/tests/test_conversion_utils.py
     core/tests/test_cpu_dispatcher.py
     core/tests/test_cpu_features.py
+    core/tests/test_custom_dtypes.py
     core/tests/test_cython.py
     core/tests/test_datetime.py
     core/tests/test_defchararray.py
     core/tests/test_deprecations.py
+    core/tests/test_dlpack.py
     core/tests/test_dtype.py
     core/tests/test_einsum.py
     core/tests/test_errstate.py
@@ -45,12 +53,15 @@ TEST_SRCS(
     core/tests/test_function_base.py
     core/tests/test_getlimits.py
     core/tests/test_half.py
+    core/tests/test_hashtable.py
     core/tests/test_indexerrors.py
     core/tests/test_indexing.py
     core/tests/test_item_selection.py
+    core/tests/test_limited_api.py
     core/tests/test_longdouble.py
     core/tests/test_machar.py
     core/tests/test_mem_overlap.py
+    #core/tests/test_mem_policy.py
     core/tests/test_memmap.py
     core/tests/test_multiarray.py
     core/tests/test_nditer.py
@@ -85,6 +96,7 @@ TEST_SRCS(
     #distutils/tests/test_fcompiler_intel.py
     #distutils/tests/test_fcompiler_nagfor.py
     #distutils/tests/test_from_template.py
+    #distutils/tests/test_log.py
     #distutils/tests/test_mingw32ccompiler.py
     #distutils/tests/test_misc_util.py
     #distutils/tests/test_npy_pkg_config.py
@@ -113,6 +125,7 @@ TEST_SRCS(
     #f2py/tests/test_semicolon_split.py
     #f2py/tests/test_size.py
     #f2py/tests/test_string.py
+    #f2py/tests/test_symbolic.py
     #f2py/tests/util.py
     fft/tests/__init__.py
     fft/tests/test_helper.py
@@ -143,7 +156,6 @@ TEST_SRCS(
     lib/tests/test_ufunclike.py
     lib/tests/test_utils.py
     linalg/tests/__init__.py
-    linalg/tests/test_build.py
     linalg/tests/test_deprecations.py
     linalg/tests/test_linalg.py
     linalg/tests/test_regression.py
@@ -189,6 +201,7 @@ TEST_SRCS(
     #testing/tests/test_doctesting.py
     testing/tests/test_utils.py
     tests/__init__.py
+    tests/test__all__.py
     #tests/test_ctypeslib.py
     tests/test_matlib.py
     tests/test_numpy_version.py
@@ -201,7 +214,6 @@ TEST_SRCS(
     #typing/tests/test_isfile.py
     #typing/tests/test_runtime.py
     typing/tests/test_typing.py
-    #typing/tests/test_typing_extensions.py
 )
 
 NO_LINT()

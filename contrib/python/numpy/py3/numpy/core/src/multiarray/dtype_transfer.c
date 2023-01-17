@@ -7,16 +7,16 @@
  * The University of British Columbia
  *
  * See LICENSE.txt for the license.
-
+ *
  */
-
-#define PY_SSIZE_T_CLEAN
-#include "Python.h"
-#include "structmember.h"
-
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
-#include <numpy/arrayobject.h>
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <structmember.h>
+
+#include "numpy/arrayobject.h"
 
 #include "lowlevel_strided_loops.h"
 #include "npy_pycompat.h"
@@ -3021,9 +3021,9 @@ init_cast_info(NPY_cast_info *cast_info, NPY_CASTING *casting,
         if (!PyErr_Occurred()) {
             PyErr_Format(PyExc_TypeError,
                     "Cannot cast array data from %R to %R.", src_dtype, dst_dtype);
-            Py_DECREF(meth);
-            return -1;
         }
+        Py_DECREF(meth);
+        return -1;
     }
     assert(PyArray_DescrCheck(cast_info->descriptors[0]));
     assert(PyArray_DescrCheck(cast_info->descriptors[1]));

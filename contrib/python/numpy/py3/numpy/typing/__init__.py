@@ -3,12 +3,7 @@
 Typing (:mod:`numpy.typing`)
 ============================
 
-.. warning::
-
-  Some of the types in this module rely on features only present in
-  the standard library in Python 3.8 and greater. If you want to use
-  these types in earlier versions of Python, you should install the
-  typing-extensions_ package.
+.. versionadded:: 1.20
 
 Large parts of the NumPy API have PEP-484-style type annotations. In
 addition a number of type aliases are available to users, most prominently
@@ -22,29 +17,11 @@ the two below:
 Mypy plugin
 -----------
 
-A mypy_ plugin is distributed in `numpy.typing` for managing a number of
-platform-specific annotations. Its function can be split into to parts:
+.. versionadded:: 1.21
 
-* Assigning the (platform-dependent) precisions of certain `~numpy.number` subclasses,
-  including the likes of `~numpy.int_`, `~numpy.intp` and `~numpy.longlong`.
-  See the documentation on :ref:`scalar types <arrays.scalars.built-in>` for a
-  comprehensive overview of the affected classes. without the plugin the precision
-  of all relevant classes will be inferred as `~typing.Any`.
-* Removing all extended-precision `~numpy.number` subclasses that are unavailable
-  for the platform in question. Most notable this includes the likes of
-  `~numpy.float128` and `~numpy.complex256`. Without the plugin *all*
-  extended-precision types will, as far as mypy is concerned, be available
-  to all platforms.
+.. automodule:: numpy.typing.mypy_plugin
 
-To enable the plugin, one must add it to their mypy `configuration file`_:
-
-.. code-block:: ini
-
-    [mypy]
-    plugins = numpy.typing.mypy_plugin
-
-.. _mypy: http://mypy-lang.org/
-.. _configuration file: https://mypy.readthedocs.io/en/stable/config_file.html
+.. currentmodule:: numpy.typing
 
 Differences from the runtime NumPy API
 --------------------------------------
@@ -137,8 +114,9 @@ runtime, they're not necessarily considered as sub-classes.
 Timedelta64
 ~~~~~~~~~~~
 
-The `~numpy.timedelta64` class is not considered a subclass of `~numpy.signedinteger`,
-the former only inheriting from `~numpy.generic` while static type checking.
+The `~numpy.timedelta64` class is not considered a subclass of
+`~numpy.signedinteger`, the former only inheriting from `~numpy.generic`
+while static type checking.
 
 0D arrays
 ~~~~~~~~~
@@ -154,6 +132,22 @@ If it is known in advance that an operation _will_ perform a
 0D-array -> scalar cast, then one can consider manually remedying the
 situation with either `typing.cast` or a ``# type: ignore`` comment.
 
+Record array dtypes
+~~~~~~~~~~~~~~~~~~~
+
+The dtype of `numpy.recarray`, and the `numpy.rec` functions in general,
+can be specified in one of two ways:
+
+* Directly via the ``dtype`` argument.
+* With up to five helper arguments that operate via `numpy.format_parser`:
+  ``formats``, ``names``, ``titles``, ``aligned`` and ``byteorder``.
+
+These two approaches are currently typed as being mutually exclusive,
+*i.e.* if ``dtype`` is specified than one may not specify ``formats``.
+While this mutual exclusivity is not (strictly) enforced during runtime,
+combining both dtype specifiers can lead to unexpected or even downright
+buggy behavior.
+
 API
 ---
 
@@ -161,17 +155,10 @@ API
 # NOTE: The API section will be appended with additional entries
 # further down in this file
 
-from numpy import ufunc
-from typing import TYPE_CHECKING, List
+from __future__ import annotations
 
-if TYPE_CHECKING:
-    import sys
-    if sys.version_info >= (3, 8):
-        from typing import final
-    else:
-        from typing_extensions import final
-else:
-    def final(f): return f
+from numpy import ufunc
+from typing import TYPE_CHECKING, final
 
 if not TYPE_CHECKING:
     __all__ = ["ArrayLike", "DTypeLike", "NBitBase", "NDArray"]
@@ -182,37 +169,40 @@ else:
     #
     # Declare to mypy that `__all__` is a list of strings without assigning
     # an explicit value
-    __all__: List[str]
+    __all__: list[str]
+    __path__: list[str]
 
 
-@final  # Dissallow the creation of arbitrary `NBitBase` subclasses
+@final  # Disallow the creation of arbitrary `NBitBase` subclasses
 class NBitBase:
     """
-    An object representing `numpy.number` precision during static type checking.
+    A type representing `numpy.number` precision during static type checking.
 
     Used exclusively for the purpose static type checking, `NBitBase`
     represents the base of a hierarchical set of subclasses.
     Each subsequent subclass is herein used for representing a lower level
     of precision, *e.g.* ``64Bit > 32Bit > 16Bit``.
 
+    .. versionadded:: 1.20
+
     Examples
     --------
-    Below is a typical usage example: `NBitBase` is herein used for annotating a
-    function that takes a float and integer of arbitrary precision as arguments
-    and returns a new float of whichever precision is largest
+    Below is a typical usage example: `NBitBase` is herein used for annotating
+    a function that takes a float and integer of arbitrary precision
+    as arguments and returns a new float of whichever precision is largest
     (*e.g.* ``np.float16 + np.int64 -> np.float64``).
 
     .. code-block:: python
 
         >>> from __future__ import annotations
-        >>> from typing import TypeVar, Union, TYPE_CHECKING
+        >>> from typing import TypeVar, TYPE_CHECKING
         >>> import numpy as np
         >>> import numpy.typing as npt
 
         >>> T1 = TypeVar("T1", bound=npt.NBitBase)
         >>> T2 = TypeVar("T2", bound=npt.NBitBase)
 
-        >>> def add(a: np.floating[T1], b: np.integer[T2]) -> np.floating[Union[T1, T2]]:
+        >>> def add(a: np.floating[T1], b: np.integer[T2]) -> np.floating[T1 | T2]:
         ...     return a + b
 
         >>> a = np.float16()
@@ -239,15 +229,32 @@ class NBitBase:
 
 
 # Silence errors about subclassing a `@final`-decorated class
-class _256Bit(NBitBase): ...  # type: ignore[misc]
-class _128Bit(_256Bit): ...  # type: ignore[misc]
-class _96Bit(_128Bit): ...  # type: ignore[misc]
-class _80Bit(_96Bit): ...  # type: ignore[misc]
-class _64Bit(_80Bit): ...  # type: ignore[misc]
-class _32Bit(_64Bit): ...  # type: ignore[misc]
-class _16Bit(_32Bit): ...  # type: ignore[misc]
-class _8Bit(_16Bit): ...  # type: ignore[misc]
+class _256Bit(NBitBase):  # type: ignore[misc]
+    pass
 
+class _128Bit(_256Bit):  # type: ignore[misc]
+    pass
+
+class _96Bit(_128Bit):  # type: ignore[misc]
+    pass
+
+class _80Bit(_96Bit):  # type: ignore[misc]
+    pass
+
+class _64Bit(_80Bit):  # type: ignore[misc]
+    pass
+
+class _32Bit(_64Bit):  # type: ignore[misc]
+    pass
+
+class _16Bit(_32Bit):  # type: ignore[misc]
+    pass
+
+class _8Bit(_16Bit):  # type: ignore[misc]
+    pass
+
+
+from ._nested_sequence import _NestedSequence
 from ._nbit import (
     _NBitByte,
     _NBitShort,
@@ -334,8 +341,7 @@ from ._dtype_like import (
 from ._array_like import (
     ArrayLike as ArrayLike,
     _ArrayLike,
-    _NestedSequence,
-    _RecursiveSequence,
+    _FiniteNestedSequence,
     _SupportsArray,
     _ArrayLikeInt,
     _ArrayLikeBool_co,
@@ -353,6 +359,7 @@ from ._array_like import (
 )
 from ._generic_alias import (
     NDArray as NDArray,
+    _DType,
     _GenericAlias,
 )
 
@@ -374,7 +381,7 @@ else:
     _GUFunc_Nin2_Nout1 = ufunc
 
 # Clean up the namespace
-del TYPE_CHECKING, final, List, ufunc
+del TYPE_CHECKING, final, ufunc
 
 if __doc__ is not None:
     from ._add_docstring import _docstrings

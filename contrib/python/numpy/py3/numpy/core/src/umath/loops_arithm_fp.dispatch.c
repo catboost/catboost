@@ -3933,53 +3933,53 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
 #endif
 
 #ifdef AVX512F_NOMSVC
-static NPY_INLINE __mmask16
+NPY_FINLINE __mmask16
 avx512_get_full_load_mask_ps(void)
 {
     return 0xFFFF;
 }
 
-static NPY_INLINE __mmask8
+NPY_FINLINE __mmask8
 avx512_get_full_load_mask_pd(void)
 {
     return 0xFF;
 }
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_masked_load_ps(__mmask16 mask, npy_float* addr)
 {
     return _mm512_maskz_loadu_ps(mask, (__m512 *)addr);
 }
 
-static NPY_INLINE __m512d
+NPY_FINLINE __m512d
 avx512_masked_load_pd(__mmask8 mask, npy_double* addr)
 {
     return _mm512_maskz_loadu_pd(mask, (__m512d *)addr);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
 avx512_get_partial_load_mask_ps(const npy_int num_elem, const npy_int total_elem)
 {
     return (0x0001 << num_elem) - 0x0001;
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
 avx512_get_partial_load_mask_pd(const npy_int num_elem, const npy_int total_elem)
 {
     return (0x01 << num_elem) - 0x01;
 }
 #line 616
-static __m512
+NPY_FINLINE __m512
 avx512_hadd_ps(const __m512 x)
 {
     return _mm512_add_ps(x, _mm512_permute_ps(x, 0xb1));
 }
 
-static __m512
+NPY_FINLINE __m512
 avx512_hsub_ps(const __m512 x)
 {
     return _mm512_sub_ps(x, _mm512_permute_ps(x, 0xb1));
 }
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_cmul_ps(__m512 x1, __m512 x2)
 {
     // x1 = r1, i1
@@ -3993,18 +3993,18 @@ avx512_cmul_ps(__m512 x1, __m512 x2)
 }
 
 #line 616
-static __m512d
+NPY_FINLINE __m512d
 avx512_hadd_pd(const __m512d x)
 {
     return _mm512_add_pd(x, _mm512_permute_pd(x, 0x55));
 }
 
-static __m512d
+NPY_FINLINE __m512d
 avx512_hsub_pd(const __m512d x)
 {
     return _mm512_sub_pd(x, _mm512_permute_pd(x, 0x55));
 }
-static NPY_INLINE __m512d
+NPY_FINLINE __m512d
 avx512_cmul_pd(__m512d x1, __m512d x2)
 {
     // x1 = r1, i1
