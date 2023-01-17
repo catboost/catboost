@@ -1454,8 +1454,57 @@ def _get_catboost_widget(train_dirs):
         raise ImportError(str(e))
 
 
+def _get_plotly_figs(data):
+    try:
+        import plotly.graph_objs as go
+    except ImportError as e:
+        warnings.warn("To save plots to files you should install plotly.")
+        raise ImportError(str(e))
+
+    figs = []
+    for path, dir_data in data.items():
+        fig = go.Figure()
+        fig['layout']['title'] = go.layout.Title(text=dir_data['name'])
+        
+        iterations = dir_data['content']['iterations']
+        
+        learn_graph_color = 'rgb(160,0,0)'
+        
+        fig.add_trace(go.Scatter(
+            x=[e['iteration'] for e in iterations],
+            y=[e['learn'][0] for e in iterations],
+            line=go.scatter.Line(color=learn_graph_color),
+            mode='lines+markers',
+            name='learn'
+        ))
+        
+        test_graph_color = 'rgb(0,160,0)'
+        
+        fig.add_trace(go.Scatter(
+            x=[e['iteration'] for e in iterations],
+            y=[e['test'][0] for e in iterations],
+            line=go.scatter.Line(color=test_graph_color),
+            mode='lines+markers',
+            name='test'
+        ))
+        
+        fig.update_layout(
+            xaxis=dict(title='iterations'),
+            yaxis=dict(title='loss value')
+        )
+        
+        figs.append(fig)
+    
+    return figs
+    
+
+def _save_train_plot(widget, plot_file):
+    figs = _get_plotly_figs(widget.data)
+    save_plot_file(plot_file, 'Train errors', figs[0])
+
+
 @contextmanager
-def plot_wrapper(plot, train_dirs):
+def plot_wrapper(plot, plot_file, train_dirs):
     if plot:
         widget = _get_catboost_widget(train_dirs)
         widget._run_update()
@@ -1464,6 +1513,8 @@ def plot_wrapper(plot, train_dirs):
     finally:
         if plot:
             widget._stop_update()
+            if plot_file:
+                _save_train_plot(widget, plot_file)
 
 
 # the first element of the synonyms list is the canonical name
@@ -2127,7 +2178,7 @@ class CatBoost(_CatBoostBase):
     def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
                               pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
                               pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
-                              logging_level=None, plot=None, column_description=None, verbose_eval=None,
+                              logging_level=None, plot=None, plot_file=None, column_description=None, verbose_eval=None,
                               metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None,
                               snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None):
         params = deepcopy(self._init_params)
@@ -2249,7 +2300,7 @@ class CatBoost(_CatBoostBase):
         }
 
     def _fit(self, X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
-             pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+             pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, plot_file,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
              save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout=sys.stdout, log_cerr=sys.stderr):
 
@@ -2263,7 +2314,7 @@ class CatBoost(_CatBoostBase):
             X=X, y=y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features,
             pairs=pairs, sample_weight=sample_weight, group_id=group_id, group_weight=group_weight,
             subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline, use_best_model=use_best_model,
-            eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot,
+            eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot, plot_file=plot_file,
             column_description=column_description, verbose_eval=verbose_eval, metric_period=metric_period,
             silent=silent, early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
             snapshot_file=snapshot_file, snapshot_interval=snapshot_interval, init_model=init_model,
@@ -2274,7 +2325,7 @@ class CatBoost(_CatBoostBase):
         allow_clear_pool = train_params["allow_clear_pool"]
 
         with log_fixup(log_cout, log_cerr), \
-            plot_wrapper(plot, [_get_train_dir(self.get_params())]):
+            plot_wrapper(plot, plot_file, [_get_train_dir(self.get_params())]):
             self._train(
                 train_pool,
                 train_params["eval_sets"],
@@ -2301,7 +2352,7 @@ class CatBoost(_CatBoostBase):
 
     def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, sample_weight=None, group_id=None,
             group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -2397,6 +2448,9 @@ class CatBoost(_CatBoostBase):
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
 
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
+
         early_stopping_rounds : int
             Activates Iter overfitting detector with od_wait parameter set to early_stopping_rounds.
 
@@ -2425,7 +2479,7 @@ class CatBoost(_CatBoostBase):
         model : CatBoost
         """
         return self._fit(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
-                         pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+                         pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, plot_file,
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
 
@@ -2735,7 +2789,7 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Model is not fitted")
         return self._get_embedding_feature_indices()
 
-    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir, plot, log_cout=sys.stdout, log_cerr=sys.stderr):
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir, plot, plot_file, log_cout=sys.stdout, log_cerr=sys.stderr):
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to evaluate metrics on. Use fit() to train model. Then call this method.")
         if not isinstance(data, Pool):
@@ -2752,12 +2806,12 @@ class CatBoost(_CatBoostBase):
         if isinstance(metrics, STRING_TYPES) or isinstance(metrics, BuiltinMetric):
             metrics = [metrics]
         metrics = stringify_builtin_metrics_list(metrics)
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [res_dir]):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, [res_dir]):
             metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir)
 
         return dict(zip(metric_names, metrics_score))
 
-    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, log_cout=sys.stdout, log_cerr=sys.stderr):
+    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, plot_file=None, log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Calculate metrics.
 
@@ -2790,6 +2844,9 @@ class CatBoost(_CatBoostBase):
 
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
+            
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
 
         log_cout: output stream or callback for logging
 
@@ -2799,7 +2856,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
-        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot, log_cout, log_cerr)
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot, plot_file, log_cout, log_cerr)
 
     def compare(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, log_cout=sys.stdout, log_cerr=sys.stderr):
         """
@@ -2859,11 +2916,11 @@ class CatBoost(_CatBoostBase):
         create_if_not_exist(first_dir)
         create_if_not_exist(second_dir)
 
-        with plot_wrapper(True, [first_dir, second_dir]):
+        with plot_wrapper(True, plot_file=None, train_dirs=[first_dir, second_dir]):
             self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, first_dir, tmp_dir,
-                               plot=False, log_cout=log_cout, log_cerr=log_cerr)
+                               plot=False, plot_file=None, log_cout=log_cout, log_cerr=log_cerr)
             model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, second_dir, tmp_dir,
-                                plot=False, log_cout=log_cout, log_cerr=log_cerr)
+                                plot=False, plot_file=None, log_cout=log_cout, log_cerr=log_cerr)
 
         if need_to_remove:
             shutil.rmtree(tmp_dir)
@@ -3848,7 +3905,7 @@ class CatBoost(_CatBoostBase):
 
     def _tune_hyperparams(self, param_grid, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
-                          refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=1, plot=False,
+                          refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=1, plot=False, plot_file=None,
                           log_cout=sys.stdout, log_cerr=sys.stderr):
 
         if refit and self.is_fitted():
@@ -3907,7 +3964,7 @@ class CatBoost(_CatBoostBase):
             loss_function = params.get('loss_function', None)
             stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
 
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [_get_train_dir(params)]):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, [_get_train_dir(params)]):
             cv_result = self._object._tune_hyperparams(
                 param_grid, train_params["train_pool"], params, n_iter,
                 fold_count, partition_random_seed, shuffle, stratified, train_size,
@@ -4302,7 +4359,7 @@ class CatBoost(_CatBoostBase):
         for plot_dir in plot_dirs:
             create_if_not_exist(plot_dir)
 
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_dirs):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=None, train_dirs=plot_dirs):
             summary = self._object._select_features(train_pool, test_pool, params)
 
         if train_final_model:
@@ -4904,7 +4961,7 @@ class CatBoostClassifier(CatBoost):
         super(CatBoostClassifier, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, sample_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -4968,6 +5025,9 @@ class CatBoostClassifier(CatBoost):
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
 
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
+
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
 
@@ -5005,7 +5065,7 @@ class CatBoostClassifier(CatBoost):
             CatBoostClassifier._check_is_compatible_loss(params['loss_function'])
 
         self._fit(X, y, cat_features, text_features, embedding_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
-                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
+                  eval_set, verbose, logging_level, plot, plot_file, column_description, verbose_eval, metric_period,
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
@@ -5494,7 +5554,7 @@ class CatBoostRegressor(CatBoost):
         super(CatBoostRegressor, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -5550,6 +5610,9 @@ class CatBoostRegressor(CatBoost):
 
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
+            
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file (requires installed plotly)
 
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
@@ -5588,7 +5651,7 @@ class CatBoostRegressor(CatBoost):
             CatBoostRegressor._check_is_compatible_loss(params['loss_function'])
 
         return self._fit(X, y, cat_features, None, None, None, sample_weight, None, None, None, None, baseline,
-                         use_best_model, eval_set, verbose, logging_level, plot, column_description,
+                         use_best_model, eval_set, verbose, logging_level, plot, plot_file, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
 
@@ -5874,7 +5937,7 @@ class CatBoostRanker(CatBoost):
     def fit(self, X, y=None, group_id=None, cat_features=None, text_features=None,
             embedding_features=None, pairs=None, sample_weight=None, group_weight=None,
             subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -5939,6 +6002,8 @@ class CatBoostRanker(CatBoost):
                 - 'Debug'
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
         metric_period : int
@@ -5976,7 +6041,7 @@ class CatBoostRanker(CatBoost):
 
         self._fit(X, y, cat_features, text_features, embedding_features, pairs,
                   sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, use_best_model,
-                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
+                  eval_set, verbose, logging_level, plot, plot_file, column_description, verbose_eval, metric_period,
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
@@ -6103,7 +6168,7 @@ class CatBoostRanker(CatBoost):
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
-          num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
+          num_boost_round=None, evals=None, eval_set=None, plot=None, plot_file=None, verbose_eval=None, metric_period=None,
           early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None,
           init_model=None, log_cout=sys.stdout, log_cerr=sys.stderr):
     """
@@ -6158,6 +6223,9 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
     plot : bool, optional (default=False)
         If True, draw train and eval error in Jupyter notebook
+`
+    plot_file : file-like or str, optional (default=None)
+        If not None, save train and eval error graphs to file
 
     early_stopping_rounds : int
         Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
@@ -6220,7 +6288,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
         eval_set = evals
 
     model = CatBoost(params)
-    model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose,
+    model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, plot_file=plot_file, verbose=verbose,
               verbose_eval=verbose_eval, metric_period=metric_period,
               early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
               snapshot_file=snapshot_file, snapshot_interval=snapshot_interval, init_model=init_model,
@@ -6496,7 +6564,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     for plot_dir in plot_dirs:
         create_if_not_exist(plot_dir)
 
-    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_dirs):
+    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=None, train_dirs=plot_dirs):
         if not return_models:
             return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
                     metric_update_interval, as_pandas, folds, type, return_models)
