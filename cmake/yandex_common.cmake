@@ -11,7 +11,7 @@ function(target_ragel_lexers TgtName Key Src)
   string(APPEND OutPath .cpp)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${OutPath}
-    COMMAND Python2::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py -- ${RAGEL_BIN} ${RAGEL_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
+    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py -- ${RAGEL_BIN} ${RAGEL_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
     DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py ${Src}
   )
   target_sources(${TgtName} ${Key} ${CMAKE_CURRENT_BINARY_DIR}/${OutPath})
@@ -23,7 +23,7 @@ function(target_yasm_source TgtName Key Src)
   string(APPEND OutPath .o)
   add_custom_command(
       OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${OutPath}
-      COMMAND Python2::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py -- ${YASM_BIN} ${YASM_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
+      COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py -- ${YASM_BIN} ${YASM_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
     DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py ${Src}
   )
   target_sources(${TgtName} ${Key} ${CMAKE_CURRENT_BINARY_DIR}/${OutPath})
