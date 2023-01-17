@@ -372,6 +372,6 @@ def on_jdk_version_macro_check(unit, *args):
     if len(args) != 1:
         unit.message(["error", "Invalid syntax. Single argument required."])
     jdk_version = args[0]
-    available_versions = ('10', '11', '12', '13', '14', '15', '16', '17',)
+    available_versions = ('10', '11', '12', '13', '14', '15', '16', '17', '18',)
     if jdk_version not in available_versions:
         unit.message(["error", "Invalid jdk version: {}. {} are available".format(jdk_version, available_versions)])
