@@ -78,14 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\614d47b5fe49abc92f3a334d77.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\b42a2ca9e98d838bc9c88ca1cd.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_02ef824d7cb6f747d9cc53db3f.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\6ea9dc683b780e1badc18d3b22.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\e8ef55298aa718a4ca217137a8.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_ccd45cd04fdc1903f3f6f31959.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\_version_info.py.dnmj.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_096f514ba656d8571c9b98384b.yasm" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "_d3ee42e6e454a15014757a872f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_083cd001cc7f4a36e2cd335448.rodata" "-" "contrib/python/attrs/py3/attr/converters.py" "_6421375597bc10a20847b1cc1e.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_2714a910f1374973f5d0a2ceb1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "_fa35cd7027f8b34ec500c10e37.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_998a9a35612010a1b0f9ce0e01.rodata" "-" "contrib/python/attrs/py3/attr/exceptions.py" "_e698c1adbcfba66b9d45d56fe3.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_7dfb35df0162baec92e38cc2c8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "_b63daf68234d38bbaeccd8bfe3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_eed50ceed0b3d2049756f6939f.rodata" "-" "contrib/python/attrs/py3/attr/filters.py" "_2f5ebef02f607ed79917f0da1c.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fe8d65ccbfd9a79fac12cee1b2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "_a02357b031043a76cb6b383e5c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fc4b678ae9de1b6f18f8f91860.rodata" "-" "contrib/python/attrs/py3/attr/setters.py" "_bc9a09ed7241b6163f82568480.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_656a93672b5802093e9261b4fb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "_f0bd56afd5e091278db8a6db69.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_df86ea5a76ca5849d061ef86c5.rodata" "-" "contrib/python/attrs/py3/attr/validators.py" "_1f5fc88736bdfbba0094787e99.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_c07a55993a7583852238ef21e6.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "_d0f16bb66a3e918ba72068aa7b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_9b55dc1824b6cb4e6e4fae07e1.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_a26ef6bb3d45adb3024941f5e8.yasm" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "_d3ee42e6e454a15014757a872f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_083cd001cc7f4a36e2cd335448.rodata" "-" "contrib/python/attrs/py3/attr/converters.py" "_6421375597bc10a20847b1cc1e.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_2714a910f1374973f5d0a2ceb1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "_fa35cd7027f8b34ec500c10e37.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_998a9a35612010a1b0f9ce0e01.rodata" "-" "contrib/python/attrs/py3/attr/exceptions.py" "_e698c1adbcfba66b9d45d56fe3.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_7dfb35df0162baec92e38cc2c8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "_b63daf68234d38bbaeccd8bfe3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_eed50ceed0b3d2049756f6939f.rodata" "-" "contrib/python/attrs/py3/attr/filters.py" "_2f5ebef02f607ed79917f0da1c.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fe8d65ccbfd9a79fac12cee1b2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "_a02357b031043a76cb6b383e5c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fc4b678ae9de1b6f18f8f91860.rodata" "-" "contrib/python/attrs/py3/attr/setters.py" "_bc9a09ed7241b6163f82568480.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_656a93672b5802093e9261b4fb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "_f0bd56afd5e091278db8a6db69.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_df86ea5a76ca5849d061ef86c5.rodata" "-" "contrib/python/attrs/py3/attr/validators.py" "_1f5fc88736bdfbba0094787e99.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_c07a55993a7583852238ef21e6.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "_d0f16bb66a3e918ba72068aa7b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_9b55dc1824b6cb4e6e4fae07e1.rodata" "-" "contrib/python/attrs/py3/attrs/__init__.py" "_5121240b234dab36acfedfe38b.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_f81343fd5f651975d78d685b77.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/__init__.py.z4h3.yapyc3" "_25067b414e7dfc11f57e1e88e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/__init__.py.z4h3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_af124968f90a6290e2150fff13.rodata" "-" "contrib/python/attrs/py3/attrs/converters.py" "_dde5b0f9c3a50da0c5199e21fc.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_e717ea808bcf75c9abb66da9b0.rodata" "-" "attrs/converters.py.nctm.yapyc3" "_055ab195470d5743ce556d6e71.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +96,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_096f514ba656d8571c9b98384b.yasm" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "_d3ee42e6e454a15014757a872f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_083cd001cc7f4a36e2cd335448.rodata" "-" "contrib/python/attrs/py3/attr/converters.py" "_6421375597bc10a20847b1cc1e.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_2714a910f1374973f5d0a2ceb1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "_fa35cd7027f8b34ec500c10e37.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_998a9a35612010a1b0f9ce0e01.rodata" "-" "contrib/python/attrs/py3/attr/exceptions.py" "_e698c1adbcfba66b9d45d56fe3.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_7dfb35df0162baec92e38cc2c8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "_b63daf68234d38bbaeccd8bfe3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_eed50ceed0b3d2049756f6939f.rodata" "-" "contrib/python/attrs/py3/attr/filters.py" "_2f5ebef02f607ed79917f0da1c.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fe8d65ccbfd9a79fac12cee1b2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "_a02357b031043a76cb6b383e5c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fc4b678ae9de1b6f18f8f91860.rodata" "-" "contrib/python/attrs/py3/attr/setters.py" "_bc9a09ed7241b6163f82568480.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_656a93672b5802093e9261b4fb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "_f0bd56afd5e091278db8a6db69.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_df86ea5a76ca5849d061ef86c5.rodata" "-" "contrib/python/attrs/py3/attr/validators.py" "_1f5fc88736bdfbba0094787e99.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_c07a55993a7583852238ef21e6.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "_d0f16bb66a3e918ba72068aa7b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_9b55dc1824b6cb4e6e4fae07e1.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_a26ef6bb3d45adb3024941f5e8.yasm" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "_d3ee42e6e454a15014757a872f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/_version_info.py.dnmj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_083cd001cc7f4a36e2cd335448.rodata" "-" "contrib/python/attrs/py3/attr/converters.py" "_6421375597bc10a20847b1cc1e.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_2714a910f1374973f5d0a2ceb1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "_fa35cd7027f8b34ec500c10e37.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/converters.py.oqg6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_998a9a35612010a1b0f9ce0e01.rodata" "-" "contrib/python/attrs/py3/attr/exceptions.py" "_e698c1adbcfba66b9d45d56fe3.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_7dfb35df0162baec92e38cc2c8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "_b63daf68234d38bbaeccd8bfe3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/exceptions.py.bnme.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_eed50ceed0b3d2049756f6939f.rodata" "-" "contrib/python/attrs/py3/attr/filters.py" "_2f5ebef02f607ed79917f0da1c.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fe8d65ccbfd9a79fac12cee1b2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "_a02357b031043a76cb6b383e5c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/filters.py.4jwx.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_fc4b678ae9de1b6f18f8f91860.rodata" "-" "contrib/python/attrs/py3/attr/setters.py" "_bc9a09ed7241b6163f82568480.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_656a93672b5802093e9261b4fb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "_f0bd56afd5e091278db8a6db69.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/setters.py.utwm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_df86ea5a76ca5849d061ef86c5.rodata" "-" "contrib/python/attrs/py3/attr/validators.py" "_1f5fc88736bdfbba0094787e99.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_c07a55993a7583852238ef21e6.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "_d0f16bb66a3e918ba72068aa7b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_9b55dc1824b6cb4e6e4fae07e1.rodata" "-" "contrib/python/attrs/py3/attrs/__init__.py" "_5121240b234dab36acfedfe38b.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_f81343fd5f651975d78d685b77.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/__init__.py.z4h3.yapyc3" "_25067b414e7dfc11f57e1e88e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/__init__.py.z4h3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_af124968f90a6290e2150fff13.rodata" "-" "contrib/python/attrs/py3/attrs/converters.py" "_dde5b0f9c3a50da0c5199e21fc.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_e717ea808bcf75c9abb66da9b0.rodata" "-" "attrs/converters.py.nctm.yapyc3" "_055ab195470d5743ce556d6e71.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,15 +104,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/py3/_096f514ba656d8571c9b98384b.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\_version_info.py.dnmj.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\converters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\converters.py.oqg6.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\exceptions.py.bnme.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\filters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\filters.py.4jwx.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\setters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\setters.py.utwm.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\validators.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\validators.py.xi5i.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_096f514ba656d8571c9b98384b.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_083cd001cc7f4a36e2cd335448.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_2714a910f1374973f5d0a2ceb1.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_998a9a35612010a1b0f9ce0e01.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_7dfb35df0162baec92e38cc2c8.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_eed50ceed0b3d2049756f6939f.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_fe8d65ccbfd9a79fac12cee1b2.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_fc4b678ae9de1b6f18f8f91860.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_656a93672b5802093e9261b4fb.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_df86ea5a76ca5849d061ef86c5.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_c07a55993a7583852238ef21e6.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_9b55dc1824b6cb4e6e4fae07e1.rodata;</Outputs>
+      <Message>$B/contrib/python/attrs/py3/_a26ef6bb3d45adb3024941f5e8.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\_version_info.py.dnmj.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\converters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\converters.py.oqg6.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\exceptions.py.bnme.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\filters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\filters.py.4jwx.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\setters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\setters.py.utwm.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attr\validators.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\validators.py.xi5i.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attrs\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\__init__.py.z4h3.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attrs\converters.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_a26ef6bb3d45adb3024941f5e8.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_083cd001cc7f4a36e2cd335448.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_2714a910f1374973f5d0a2ceb1.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_998a9a35612010a1b0f9ce0e01.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_7dfb35df0162baec92e38cc2c8.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_eed50ceed0b3d2049756f6939f.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_fe8d65ccbfd9a79fac12cee1b2.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_fc4b678ae9de1b6f18f8f91860.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_656a93672b5802093e9261b4fb.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_df86ea5a76ca5849d061ef86c5.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_c07a55993a7583852238ef21e6.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_9b55dc1824b6cb4e6e4fae07e1.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_f81343fd5f651975d78d685b77.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_af124968f90a6290e2150fff13.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_e717ea808bcf75c9abb66da9b0.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_86a5c9007eb224404501a015dd.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\converters.py.nctm.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.yasm"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_75fa2403f1547b902b755c7234.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/converters.py.nctm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_b4c08b6e2dc56339e638e8e32d.rodata" "-" "contrib/python/attrs/py3/attrs/exceptions.py" "_66b953995a5c8b26ce4992b8fd.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_047d74ab9e13b21c9612fd37df.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/exceptions.py.uefi.yapyc3" "_ba4f73079dd2696cbc0d7e428c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/exceptions.py.uefi.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_e0353730dab23ec09cb7586535.rodata" "-" "contrib/python/attrs/py3/attrs/filters.py" "_c7b9990f5b4f7c065c15e29119.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_0b99989c928dfd6f18e388453e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/filters.py.rej4.yapyc3" "_f2958f3517b51b7a856d020066.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/filters.py.rej4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_86dd37b27ddff1aa8c7166b8b8.rodata" "-" "contrib/python/attrs/py3/attrs/setters.py" "_71c52ff4af4e7b985edf526529.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_5dd28df809c420243bab1b41bc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/setters.py.zm5f.yapyc3" "_42bbbf115df91bcf062a417bce.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/setters.py.zm5f.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_d0f3660104233c30072ea78fbe.rodata" "-" "contrib/python/attrs/py3/attrs/validators.py" "_c793e980773b0493083df437da.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_5607c81ad07daa851140717235.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/validators.py.z4pb.yapyc3" "_27f783657aeab994585cde17c3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/validators.py.z4pb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_0d4779a73b3281ddbec234255d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -123,7 +123,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.yasm"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_75fa2403f1547b902b755c7234.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/converters.py.nctm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_b4c08b6e2dc56339e638e8e32d.rodata" "-" "contrib/python/attrs/py3/attrs/exceptions.py" "_66b953995a5c8b26ce4992b8fd.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_047d74ab9e13b21c9612fd37df.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/exceptions.py.uefi.yapyc3" "_ba4f73079dd2696cbc0d7e428c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/exceptions.py.uefi.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_e0353730dab23ec09cb7586535.rodata" "-" "contrib/python/attrs/py3/attrs/filters.py" "_c7b9990f5b4f7c065c15e29119.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_0b99989c928dfd6f18e388453e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/filters.py.rej4.yapyc3" "_f2958f3517b51b7a856d020066.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/filters.py.rej4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_86dd37b27ddff1aa8c7166b8b8.rodata" "-" "contrib/python/attrs/py3/attrs/setters.py" "_71c52ff4af4e7b985edf526529.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_5dd28df809c420243bab1b41bc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/setters.py.zm5f.yapyc3" "_42bbbf115df91bcf062a417bce.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/setters.py.zm5f.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_d0f3660104233c30072ea78fbe.rodata" "-" "contrib/python/attrs/py3/attrs/validators.py" "_c793e980773b0493083df437da.rodata" "$(SolutionDir)../contrib/python/attrs/py3/attrs/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_5607c81ad07daa851140717235.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/validators.py.z4pb.yapyc3" "_27f783657aeab994585cde17c3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/validators.py.z4pb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_0d4779a73b3281ddbec234255d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -131,19 +131,50 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_86a5c9007eb224404501a015dd.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_86a5c9007eb224404501a015dd.obj;</Outputs>
+      <Message>$B/contrib/python/attrs/py3/_75fa2403f1547b902b755c7234.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\converters.py.nctm.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attrs\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\exceptions.py.uefi.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attrs\filters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\filters.py.rej4.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attrs\setters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\setters.py.zm5f.yapyc3;$(SolutionDir)..\contrib\python\attrs\py3\attrs\validators.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\validators.py.z4pb.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_75fa2403f1547b902b755c7234.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_b4c08b6e2dc56339e638e8e32d.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_047d74ab9e13b21c9612fd37df.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_e0353730dab23ec09cb7586535.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_0b99989c928dfd6f18e388453e.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_86dd37b27ddff1aa8c7166b8b8.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_5dd28df809c420243bab1b41bc.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_d0f3660104233c30072ea78fbe.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_5607c81ad07daa851140717235.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_0d4779a73b3281ddbec234255d.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_741b29c626fa65e01d7c030e76.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_741b29c626fa65e01d7c030e76.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_741b29c626fa65e01d7c030e76.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/096f514ba656d8571c9b98384b.cpp" "_d3ee42e6e454a15014757a872f=resfs/src/resfs/file/py/attr/_version_info.py.yapyc3" "_083cd001cc7f4a36e2cd335448=resfs/file/py/attr/_version_info.py.yapyc3" "_6421375597bc10a20847b1cc1e=resfs/src/resfs/file/py/attr/converters.py" "_2714a910f1374973f5d0a2ceb1=resfs/file/py/attr/converters.py" "_fa35cd7027f8b34ec500c10e37=resfs/src/resfs/file/py/attr/converters.py.yapyc3" "_998a9a35612010a1b0f9ce0e01=resfs/file/py/attr/converters.py.yapyc3" "_e698c1adbcfba66b9d45d56fe3=resfs/src/resfs/file/py/attr/exceptions.py" "_7dfb35df0162baec92e38cc2c8=resfs/file/py/attr/exceptions.py" "_b63daf68234d38bbaeccd8bfe3=resfs/src/resfs/file/py/attr/exceptions.py.yapyc3" "_eed50ceed0b3d2049756f6939f=resfs/file/py/attr/exceptions.py.yapyc3" "_2f5ebef02f607ed79917f0da1c=resfs/src/resfs/file/py/attr/filters.py" "_fe8d65ccbfd9a79fac12cee1b2=resfs/file/py/attr/filters.py" "_a02357b031043a76cb6b383e5c=resfs/src/resfs/file/py/attr/filters.py.yapyc3" "_fc4b678ae9de1b6f18f8f91860=resfs/file/py/attr/filters.py.yapyc3" "_bc9a09ed7241b6163f82568480=resfs/src/resfs/file/py/attr/setters.py" "_656a93672b5802093e9261b4fb=resfs/file/py/attr/setters.py" "_f0bd56afd5e091278db8a6db69=resfs/src/resfs/file/py/attr/setters.py.yapyc3" "_df86ea5a76ca5849d061ef86c5=resfs/file/py/attr/setters.py.yapyc3" "_1f5fc88736bdfbba0094787e99=resfs/src/resfs/file/py/attr/validators.py" "_c07a55993a7583852238ef21e6=resfs/file/py/attr/validators.py" "_d0f16bb66a3e918ba72068aa7b=resfs/src/resfs/file/py/attr/validators.py.yapyc3" "_9b55dc1824b6cb4e6e4fae07e1=resfs/file/py/attr/validators.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/6ea9dc683b780e1badc18d3b22.cpp" "_8b0e65bf2e536751496f21df4b=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_c8c02d9bfe83e4757bdbfcef07=resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_316c9548dc20f69167b11a8ebe=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_827b0cf436275815f31d9a35ce=resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_bb844fd0f3518c0fcc5b2dca51=resfs/src/resfs/file/contrib/python/attrs/py3/attr/py.typed" "_baa9711d484c397178209350cf=resfs/file/contrib/python/attrs/py3/attr/py.typed" "_5901a16be8dc069fc9f0fabefd=resfs/src/resfs/file/contrib/python/attrs/py3/attrs/py.typed" "_9fee0f6740146e69a03bf20245=resfs/file/contrib/python/attrs/py3/attrs/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/614d47b5fe49abc92f3a334d77.cpp" "_8b0e65bf2e536751496f21df4b=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_c8c02d9bfe83e4757bdbfcef07=resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_316c9548dc20f69167b11a8ebe=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_827b0cf436275815f31d9a35ce=resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_bb844fd0f3518c0fcc5b2dca51=resfs/src/resfs/file/contrib/python/attrs/py3/attr/py.typed" "_baa9711d484c397178209350cf=resfs/file/contrib/python/attrs/py3/attr/py.typed"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/75fa2403f1547b902b755c7234.cpp" "_b4c08b6e2dc56339e638e8e32d=resfs/file/py/attrs/converters.py.yapyc3" "_66b953995a5c8b26ce4992b8fd=resfs/src/resfs/file/py/attrs/exceptions.py" "_047d74ab9e13b21c9612fd37df=resfs/file/py/attrs/exceptions.py" "_ba4f73079dd2696cbc0d7e428c=resfs/src/resfs/file/py/attrs/exceptions.py.yapyc3" "_e0353730dab23ec09cb7586535=resfs/file/py/attrs/exceptions.py.yapyc3" "_c7b9990f5b4f7c065c15e29119=resfs/src/resfs/file/py/attrs/filters.py" "_0b99989c928dfd6f18e388453e=resfs/file/py/attrs/filters.py" "_f2958f3517b51b7a856d020066=resfs/src/resfs/file/py/attrs/filters.py.yapyc3" "_86dd37b27ddff1aa8c7166b8b8=resfs/file/py/attrs/filters.py.yapyc3" "_71c52ff4af4e7b985edf526529=resfs/src/resfs/file/py/attrs/setters.py" "_5dd28df809c420243bab1b41bc=resfs/file/py/attrs/setters.py" "_42bbbf115df91bcf062a417bce=resfs/src/resfs/file/py/attrs/setters.py.yapyc3" "_d0f3660104233c30072ea78fbe=resfs/file/py/attrs/setters.py.yapyc3" "_c793e980773b0493083df437da=resfs/src/resfs/file/py/attrs/validators.py" "_5607c81ad07daa851140717235=resfs/file/py/attrs/validators.py" "_27f783657aeab994585cde17c3=resfs/src/resfs/file/py/attrs/validators.py.yapyc3" "_0d4779a73b3281ddbec234255d=resfs/file/py/attrs/validators.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/a26ef6bb3d45adb3024941f5e8.cpp" "_d3ee42e6e454a15014757a872f=resfs/src/resfs/file/py/attr/_version_info.py.yapyc3" "_083cd001cc7f4a36e2cd335448=resfs/file/py/attr/_version_info.py.yapyc3" "_6421375597bc10a20847b1cc1e=resfs/src/resfs/file/py/attr/converters.py" "_2714a910f1374973f5d0a2ceb1=resfs/file/py/attr/converters.py" "_fa35cd7027f8b34ec500c10e37=resfs/src/resfs/file/py/attr/converters.py.yapyc3" "_998a9a35612010a1b0f9ce0e01=resfs/file/py/attr/converters.py.yapyc3" "_e698c1adbcfba66b9d45d56fe3=resfs/src/resfs/file/py/attr/exceptions.py" "_7dfb35df0162baec92e38cc2c8=resfs/file/py/attr/exceptions.py" "_b63daf68234d38bbaeccd8bfe3=resfs/src/resfs/file/py/attr/exceptions.py.yapyc3" "_eed50ceed0b3d2049756f6939f=resfs/file/py/attr/exceptions.py.yapyc3" "_2f5ebef02f607ed79917f0da1c=resfs/src/resfs/file/py/attr/filters.py" "_fe8d65ccbfd9a79fac12cee1b2=resfs/file/py/attr/filters.py" "_a02357b031043a76cb6b383e5c=resfs/src/resfs/file/py/attr/filters.py.yapyc3" "_fc4b678ae9de1b6f18f8f91860=resfs/file/py/attr/filters.py.yapyc3" "_bc9a09ed7241b6163f82568480=resfs/src/resfs/file/py/attr/setters.py" "_656a93672b5802093e9261b4fb=resfs/file/py/attr/setters.py" "_f0bd56afd5e091278db8a6db69=resfs/src/resfs/file/py/attr/setters.py.yapyc3" "_df86ea5a76ca5849d061ef86c5=resfs/file/py/attr/setters.py.yapyc3" "_1f5fc88736bdfbba0094787e99=resfs/src/resfs/file/py/attr/validators.py" "_c07a55993a7583852238ef21e6=resfs/file/py/attr/validators.py" "_d0f16bb66a3e918ba72068aa7b=resfs/src/resfs/file/py/attr/validators.py.yapyc3" "_9b55dc1824b6cb4e6e4fae07e1=resfs/file/py/attr/validators.py.yapyc3" "_5121240b234dab36acfedfe38b=resfs/src/resfs/file/py/attrs/__init__.py" "_f81343fd5f651975d78d685b77=resfs/file/py/attrs/__init__.py" "_25067b414e7dfc11f57e1e88e9=resfs/src/resfs/file/py/attrs/__init__.py.yapyc3" "_af124968f90a6290e2150fff13=resfs/file/py/attrs/__init__.py.yapyc3" "_dde5b0f9c3a50da0c5199e21fc=resfs/src/resfs/file/py/attrs/converters.py" "_e717ea808bcf75c9abb66da9b0=resfs/file/py/attrs/converters.py" "_055ab195470d5743ce556d6e71=resfs/src/resfs/file/py/attrs/converters.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
@@ -151,7 +182,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/b42a2ca9e98d838bc9c88ca1cd.cpp" "_78d31f0a45f67d46375849208f=py/namespace/47e64a5b28cc266c3202271dce693f72/contrib/python/attrs/py3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/e8ef55298aa718a4ca217137a8.cpp" "_21559792eacd5789ff7e23241f=py/namespace/627a98de9077daa758e597bc414be421/contrib/python/attrs/py3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -162,11 +193,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/096f514ba656d8571c9b98384b.cpp" "_d3ee42e6e454a15014757a872f=resfs/src/resfs/file/py/attr/_version_info.py.yapyc3" "_083cd001cc7f4a36e2cd335448=resfs/file/py/attr/_version_info.py.yapyc3" "_6421375597bc10a20847b1cc1e=resfs/src/resfs/file/py/attr/converters.py" "_2714a910f1374973f5d0a2ceb1=resfs/file/py/attr/converters.py" "_fa35cd7027f8b34ec500c10e37=resfs/src/resfs/file/py/attr/converters.py.yapyc3" "_998a9a35612010a1b0f9ce0e01=resfs/file/py/attr/converters.py.yapyc3" "_e698c1adbcfba66b9d45d56fe3=resfs/src/resfs/file/py/attr/exceptions.py" "_7dfb35df0162baec92e38cc2c8=resfs/file/py/attr/exceptions.py" "_b63daf68234d38bbaeccd8bfe3=resfs/src/resfs/file/py/attr/exceptions.py.yapyc3" "_eed50ceed0b3d2049756f6939f=resfs/file/py/attr/exceptions.py.yapyc3" "_2f5ebef02f607ed79917f0da1c=resfs/src/resfs/file/py/attr/filters.py" "_fe8d65ccbfd9a79fac12cee1b2=resfs/file/py/attr/filters.py" "_a02357b031043a76cb6b383e5c=resfs/src/resfs/file/py/attr/filters.py.yapyc3" "_fc4b678ae9de1b6f18f8f91860=resfs/file/py/attr/filters.py.yapyc3" "_bc9a09ed7241b6163f82568480=resfs/src/resfs/file/py/attr/setters.py" "_656a93672b5802093e9261b4fb=resfs/file/py/attr/setters.py" "_f0bd56afd5e091278db8a6db69=resfs/src/resfs/file/py/attr/setters.py.yapyc3" "_df86ea5a76ca5849d061ef86c5=resfs/file/py/attr/setters.py.yapyc3" "_1f5fc88736bdfbba0094787e99=resfs/src/resfs/file/py/attr/validators.py" "_c07a55993a7583852238ef21e6=resfs/file/py/attr/validators.py" "_d0f16bb66a3e918ba72068aa7b=resfs/src/resfs/file/py/attr/validators.py.yapyc3" "_9b55dc1824b6cb4e6e4fae07e1=resfs/file/py/attr/validators.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/6ea9dc683b780e1badc18d3b22.cpp" "_8b0e65bf2e536751496f21df4b=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_c8c02d9bfe83e4757bdbfcef07=resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_316c9548dc20f69167b11a8ebe=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_827b0cf436275815f31d9a35ce=resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_bb844fd0f3518c0fcc5b2dca51=resfs/src/resfs/file/contrib/python/attrs/py3/attr/py.typed" "_baa9711d484c397178209350cf=resfs/file/contrib/python/attrs/py3/attr/py.typed" "_5901a16be8dc069fc9f0fabefd=resfs/src/resfs/file/contrib/python/attrs/py3/attrs/py.typed" "_9fee0f6740146e69a03bf20245=resfs/file/contrib/python/attrs/py3/attrs/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/614d47b5fe49abc92f3a334d77.cpp" "_8b0e65bf2e536751496f21df4b=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_c8c02d9bfe83e4757bdbfcef07=resfs/file/contrib/python/attrs/py3/.dist-info/METADATA" "_316c9548dc20f69167b11a8ebe=resfs/src/resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_827b0cf436275815f31d9a35ce=resfs/file/contrib/python/attrs/py3/.dist-info/top_level.txt" "_bb844fd0f3518c0fcc5b2dca51=resfs/src/resfs/file/contrib/python/attrs/py3/attr/py.typed" "_baa9711d484c397178209350cf=resfs/file/contrib/python/attrs/py3/attr/py.typed"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/75fa2403f1547b902b755c7234.cpp" "_b4c08b6e2dc56339e638e8e32d=resfs/file/py/attrs/converters.py.yapyc3" "_66b953995a5c8b26ce4992b8fd=resfs/src/resfs/file/py/attrs/exceptions.py" "_047d74ab9e13b21c9612fd37df=resfs/file/py/attrs/exceptions.py" "_ba4f73079dd2696cbc0d7e428c=resfs/src/resfs/file/py/attrs/exceptions.py.yapyc3" "_e0353730dab23ec09cb7586535=resfs/file/py/attrs/exceptions.py.yapyc3" "_c7b9990f5b4f7c065c15e29119=resfs/src/resfs/file/py/attrs/filters.py" "_0b99989c928dfd6f18e388453e=resfs/file/py/attrs/filters.py" "_f2958f3517b51b7a856d020066=resfs/src/resfs/file/py/attrs/filters.py.yapyc3" "_86dd37b27ddff1aa8c7166b8b8=resfs/file/py/attrs/filters.py.yapyc3" "_71c52ff4af4e7b985edf526529=resfs/src/resfs/file/py/attrs/setters.py" "_5dd28df809c420243bab1b41bc=resfs/file/py/attrs/setters.py" "_42bbbf115df91bcf062a417bce=resfs/src/resfs/file/py/attrs/setters.py.yapyc3" "_d0f3660104233c30072ea78fbe=resfs/file/py/attrs/setters.py.yapyc3" "_c793e980773b0493083df437da=resfs/src/resfs/file/py/attrs/validators.py" "_5607c81ad07daa851140717235=resfs/file/py/attrs/validators.py" "_27f783657aeab994585cde17c3=resfs/src/resfs/file/py/attrs/validators.py.yapyc3" "_0d4779a73b3281ddbec234255d=resfs/file/py/attrs/validators.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/a26ef6bb3d45adb3024941f5e8.cpp" "_d3ee42e6e454a15014757a872f=resfs/src/resfs/file/py/attr/_version_info.py.yapyc3" "_083cd001cc7f4a36e2cd335448=resfs/file/py/attr/_version_info.py.yapyc3" "_6421375597bc10a20847b1cc1e=resfs/src/resfs/file/py/attr/converters.py" "_2714a910f1374973f5d0a2ceb1=resfs/file/py/attr/converters.py" "_fa35cd7027f8b34ec500c10e37=resfs/src/resfs/file/py/attr/converters.py.yapyc3" "_998a9a35612010a1b0f9ce0e01=resfs/file/py/attr/converters.py.yapyc3" "_e698c1adbcfba66b9d45d56fe3=resfs/src/resfs/file/py/attr/exceptions.py" "_7dfb35df0162baec92e38cc2c8=resfs/file/py/attr/exceptions.py" "_b63daf68234d38bbaeccd8bfe3=resfs/src/resfs/file/py/attr/exceptions.py.yapyc3" "_eed50ceed0b3d2049756f6939f=resfs/file/py/attr/exceptions.py.yapyc3" "_2f5ebef02f607ed79917f0da1c=resfs/src/resfs/file/py/attr/filters.py" "_fe8d65ccbfd9a79fac12cee1b2=resfs/file/py/attr/filters.py" "_a02357b031043a76cb6b383e5c=resfs/src/resfs/file/py/attr/filters.py.yapyc3" "_fc4b678ae9de1b6f18f8f91860=resfs/file/py/attr/filters.py.yapyc3" "_bc9a09ed7241b6163f82568480=resfs/src/resfs/file/py/attr/setters.py" "_656a93672b5802093e9261b4fb=resfs/file/py/attr/setters.py" "_f0bd56afd5e091278db8a6db69=resfs/src/resfs/file/py/attr/setters.py.yapyc3" "_df86ea5a76ca5849d061ef86c5=resfs/file/py/attr/setters.py.yapyc3" "_1f5fc88736bdfbba0094787e99=resfs/src/resfs/file/py/attr/validators.py" "_c07a55993a7583852238ef21e6=resfs/file/py/attr/validators.py" "_d0f16bb66a3e918ba72068aa7b=resfs/src/resfs/file/py/attr/validators.py.yapyc3" "_9b55dc1824b6cb4e6e4fae07e1=resfs/file/py/attr/validators.py.yapyc3" "_5121240b234dab36acfedfe38b=resfs/src/resfs/file/py/attrs/__init__.py" "_f81343fd5f651975d78d685b77=resfs/file/py/attrs/__init__.py" "_25067b414e7dfc11f57e1e88e9=resfs/src/resfs/file/py/attrs/__init__.py.yapyc3" "_af124968f90a6290e2150fff13=resfs/file/py/attrs/__init__.py.yapyc3" "_dde5b0f9c3a50da0c5199e21fc=resfs/src/resfs/file/py/attrs/converters.py" "_e717ea808bcf75c9abb66da9b0=resfs/file/py/attrs/converters.py" "_055ab195470d5743ce556d6e71=resfs/src/resfs/file/py/attrs/converters.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
@@ -174,7 +209,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/b42a2ca9e98d838bc9c88ca1cd.cpp" "_78d31f0a45f67d46375849208f=py/namespace/47e64a5b28cc266c3202271dce693f72/contrib/python/attrs/py3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/e8ef55298aa718a4ca217137a8.cpp" "_21559792eacd5789ff7e23241f=py/namespace/627a98de9077daa758e597bc414be421/contrib/python/attrs/py3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,15 +217,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/py3/096f514ba656d8571c9b98384b.cpp	$B/contrib/python/attrs/py3/614d47b5fe49abc92f3a334d77.cpp	$B/contrib/python/attrs/py3/aa1008f96b831c126630de2744.cpp	$B/contrib/python/attrs/py3/b42a2ca9e98d838bc9c88ca1cd.cpp	</Message>
+      <Message>$B/contrib/python/attrs/py3/6ea9dc683b780e1badc18d3b22.cpp	$B/contrib/python/attrs/py3/75fa2403f1547b902b755c7234.cpp	$B/contrib/python/attrs/py3/a26ef6bb3d45adb3024941f5e8.cpp	$B/contrib/python/attrs/py3/aa1008f96b831c126630de2744.cpp	$B/contrib/python/attrs/py3/e8ef55298aa718a4ca217137a8.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\096f514ba656d8571c9b98384b.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\614d47b5fe49abc92f3a334d77.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\aa1008f96b831c126630de2744.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\b42a2ca9e98d838bc9c88ca1cd.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\6ea9dc683b780e1badc18d3b22.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\75fa2403f1547b902b755c7234.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\a26ef6bb3d45adb3024941f5e8.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\aa1008f96b831c126630de2744.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\e8ef55298aa718a4ca217137a8.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_aa1008f96b831c126630de2744.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_096f514ba656d8571c9b98384b.yasm" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_aa1008f96b831c126630de2744.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_a26ef6bb3d45adb3024941f5e8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_75fa2403f1547b902b755c7234.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +236,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_aa1008f96b831c126630de2744.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_096f514ba656d8571c9b98384b.yasm" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_aa1008f96b831c126630de2744.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_a26ef6bb3d45adb3024941f5e8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/_75fa2403f1547b902b755c7234.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,15 +244,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/py3/join_86a5c9007eb224404501a015dd.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_aa1008f96b831c126630de2744.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_096f514ba656d8571c9b98384b.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_86a5c9007eb224404501a015dd.yasm;</Outputs>
+      <Message>$B/contrib/python/attrs/py3/join_741b29c626fa65e01d7c030e76.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_aa1008f96b831c126630de2744.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_a26ef6bb3d45adb3024941f5e8.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\_75fa2403f1547b902b755c7234.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_741b29c626fa65e01d7c030e76.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_02ef824d7cb6f747d9cc53db3f.cpp" "--ya-start-command-file" "contrib/python/attrs/py3/aa1008f96b831c126630de2744.cpp" "contrib/python/attrs/py3/096f514ba656d8571c9b98384b.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_ccd45cd04fdc1903f3f6f31959.cpp" "--ya-start-command-file" "contrib/python/attrs/py3/aa1008f96b831c126630de2744.cpp" "contrib/python/attrs/py3/a26ef6bb3d45adb3024941f5e8.cpp" "contrib/python/attrs/py3/75fa2403f1547b902b755c7234.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -228,7 +263,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_02ef824d7cb6f747d9cc53db3f.cpp" "--ya-start-command-file" "contrib/python/attrs/py3/aa1008f96b831c126630de2744.cpp" "contrib/python/attrs/py3/096f514ba656d8571c9b98384b.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/join_ccd45cd04fdc1903f3f6f31959.cpp" "--ya-start-command-file" "contrib/python/attrs/py3/aa1008f96b831c126630de2744.cpp" "contrib/python/attrs/py3/a26ef6bb3d45adb3024941f5e8.cpp" "contrib/python/attrs/py3/75fa2403f1547b902b755c7234.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,9 +271,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/py3/join_02ef824d7cb6f747d9cc53db3f.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\aa1008f96b831c126630de2744.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\096f514ba656d8571c9b98384b.cpp;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_02ef824d7cb6f747d9cc53db3f.cpp;</Outputs>
+      <Message>$B/contrib/python/attrs/py3/join_ccd45cd04fdc1903f3f6f31959.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\aa1008f96b831c126630de2744.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\a26ef6bb3d45adb3024941f5e8.cpp;$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\75fa2403f1547b902b755c7234.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\join_ccd45cd04fdc1903f3f6f31959.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\py3\attr\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -650,6 +685,192 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/attrs/py3/attr/validators.py.xi5i.yapyc3	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\py3\attr\validators.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attr\validators.py.xi5i.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\py3\attrs\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/__init__.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/__init__.py.z4h3.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/__init__.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/__init__.py.z4h3.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/py3/attrs/__init__.py.z4h3.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\py3\attrs\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\__init__.py.z4h3.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\py3\attrs\converters.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/converters.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/converters.py.nctm.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/converters.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/converters.py.nctm.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/py3/attrs/converters.py.nctm.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\py3\attrs\converters.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\converters.py.nctm.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\py3\attrs\exceptions.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/exceptions.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/exceptions.py.uefi.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/exceptions.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/exceptions.py.uefi.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/py3/attrs/exceptions.py.uefi.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\py3\attrs\exceptions.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\exceptions.py.uefi.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\py3\attrs\filters.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/filters.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/filters.py.rej4.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/filters.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/filters.py.rej4.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/py3/attrs/filters.py.rej4.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\py3\attrs\filters.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\filters.py.rej4.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\py3\attrs\setters.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/setters.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/setters.py.zm5f.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/setters.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/setters.py.zm5f.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/py3/attrs/setters.py.zm5f.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\py3\attrs\setters.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\setters.py.zm5f.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\py3\attrs\validators.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/validators.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/validators.py.z4pb.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py3
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/attrs/py3/attrs/validators.py-" "$(SolutionDir)../contrib/python/attrs/py3/attrs/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py3/attrs/validators.py.z4pb.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/attrs/py3/attrs/validators.py.z4pb.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\py3\attrs\validators.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\attrs\validators.py.z4pb.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
