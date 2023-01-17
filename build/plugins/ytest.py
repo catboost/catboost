@@ -435,7 +435,7 @@ def onadd_ytest(unit, *args):
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
         # that's why we add ADD_YTEST(coverage.extractor) to every PROGRAM entry and check requirements later
         return
-    elif flat_args[1] == "clang_tidy" and unit.get("TIDY") != "yes":
+    elif flat_args[1] == "clang_tidy" and unit.get("TIDY_ENABLED") != "yes":
         # Graph is not prepared
         return
     elif flat_args[1] == "no.test":
@@ -445,7 +445,7 @@ def onadd_ytest(unit, *args):
     test_timeout = ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or ''
     test_requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
 
-    if flat_args[1] != "clang_tidy" and unit.get("TIDY") == "yes":
+    if flat_args[1] != "clang_tidy" and unit.get("TIDY_ENABLED") == "yes":
         # graph changed for clang_tidy tests
         if flat_args[1] in ("unittest.py", "gunittest", "g_benchmark"):
             flat_args[1] = "clang_tidy"
@@ -457,7 +457,7 @@ def onadd_ytest(unit, *args):
         else:
             return
 
-    if flat_args[1] == "clang_tidy" and unit.get("TIDY") == "yes":
+    if flat_args[1] == "clang_tidy" and unit.get("TIDY_ENABLED") == "yes":
         if unit.get("TIDY_CONFIG"):
             default_config_path = unit.get("TIDY_CONFIG")
             project_config_path = unit.get("TIDY_CONFIG")

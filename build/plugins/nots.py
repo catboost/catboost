@@ -75,6 +75,9 @@ def on_ts_configure(unit, tsconfig_path):
 
 
 def on_ts_test_configure(unit):
+    if unit.get("TIDY") == "yes":
+        # graph changed for clang_tidy tests
+        return
     from lib.nots.package_manager import constants
 
     test_runner_handlers = _get_test_runner_handlers()
