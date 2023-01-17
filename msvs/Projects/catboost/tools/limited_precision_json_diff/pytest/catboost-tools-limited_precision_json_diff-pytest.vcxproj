@@ -254,6 +254,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\build\rules\py2_deprecation\build-rules-py2_deprecation.pkg.fake.vcxproj">
       <Project>{FF87C0EF-A0AD-AEB4-F6D5-57C9CF5C289D}</Project>
     </ProjectReference>

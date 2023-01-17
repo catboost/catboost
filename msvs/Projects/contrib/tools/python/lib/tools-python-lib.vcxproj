@@ -81,11 +81,13 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\bootstrap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\rodata2asm.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQVfdHlwZXEDVQZ4ODZfNjRxBFUEX2ZtdHEFVQV3aW42NHEGVQxfcHJlX2luY2x1ZGVxB11xCFUHX3ByZWZpeHEJVQBxClUJX3BsYXRmb3JtcQtdcQxVBVdJTjMycQ1hVQZfZmxhZ3NxDl1xD1UFX3BhdGhxEFU4JEIvY29udHJpYi90b29scy9weXRob24vbGliL3B5dGhvbl9mcm96ZW5fbW9kdWxlcy5yb2RhdGFxEXWFcRJiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "--includes" "$(SolutionDir)$(Configuration)" "$(SolutionDir).."
+"python3.exe" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +98,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQVfdHlwZXEDVQZ4ODZfNjRxBFUEX2ZtdHEFVQV3aW42NHEGVQxfcHJlX2luY2x1ZGVxB11xCFUHX3ByZWZpeHEJVQBxClUJX3BsYXRmb3JtcQtdcQxVBVdJTjMycQ1hVQZfZmxhZ3NxDl1xD1UFX3BhdGhxEFU4JEIvY29udHJpYi90b29scy9weXRob24vbGliL3B5dGhvbl9mcm96ZW5fbW9kdWxlcy5yb2RhdGFxEXWFcRJiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "--includes" "$(SolutionDir)$(Configuration)" "$(SolutionDir).."
+"python3.exe" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,11 +108,10 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/tools/python/lib/python_frozen_modules.o	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.o;</Outputs>
+      <Message>$B/contrib/tools/python/lib/python_frozen_modules.rodata.asm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\rodata2asm.py;$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata.asm;$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.o"/>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\python\lib\bootstrap.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
@@ -145,6 +148,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
