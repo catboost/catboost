@@ -286,9 +286,10 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         crypto/threads_none.c [2:2]
         crypto/threads_pthread.c [2:2]
         include/crypto/dso_conf-android.h [4:4]
-        include/crypto/dso_conf-osx-linux_aarch64-linux.h [4:4]
+        include/crypto/dso_conf-linux-aarch64.h [4:4]
+        include/crypto/dso_conf-linux.h [4:4]
+        include/crypto/dso_conf-osx-arm64.h [4:4]
         include/crypto/dso_conf-win.h [4:4]
-        include/crypto/dso_conf_darwin_arm64.h [4:4]
         include/crypto/rand.h [2:2]
         include/crypto/store.h [2:2]
         include/internal/conf.h [2:2]
@@ -336,8 +337,7 @@ BELONGS crypto/ya.make ya.make
         include/internal/bio.h [2:2]
         include/openssl/ct.h [2:2]
         include/openssl/kdf.h [2:2]
-        include/openssl/opensslconf-ios-armv7.h [5:5]
-        include/openssl/opensslconf-linux_arm.h [5:5]
+        include/openssl/opensslconf-linux-arm.h [5:5]
         ssl/record/ssl3_record_tls13.c [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 152cb2fcd20e240bc7b164bd15144f6f
@@ -746,7 +746,9 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         include/crypto/bn_conf-ios-armv7.h [4:4]
         include/crypto/bn_conf-ios-i386.h [4:4]
         include/crypto/bn_conf-ios-x86_64.h [4:4]
-        include/crypto/bn_conf-osx-linux_aarch64-osx_arm64-linux.h [4:4]
+        include/crypto/bn_conf-linux-aarch64.h [4:4]
+        include/crypto/bn_conf-linux-arm.h [4:4]
+        include/crypto/bn_conf-linux.h [4:4]
         include/crypto/bn_conf-win-i686.h [4:4]
         include/crypto/bn_conf-win-x86_64.h [4:4]
         include/crypto/engine.h [2:2]
@@ -1084,7 +1086,6 @@ BELONGS apps/ya.make crypto/ya.make ya.make
         apps/ca.c [2:2]
         apps/crl2p7.c [2:2]
         apps/enc.c [2:2]
-        apps/progs-linux_aarch64-linux-osx_arm64.h [5:5]
         apps/s_cb.c [2:2]
         apps/s_server.c [2:2]
         apps/s_socket.c [2:2]
@@ -1375,18 +1376,17 @@ BELONGS crypto/ya.make ya.make
         asm/ppc64le/crypto/buildinf.h [5:5]
         crypto/bn/bn_dh.c [2:2]
         crypto/bn/bn_srp.c [2:2]
-        crypto/buildinf-android_arm.h [5:5]
-        crypto/buildinf-android_arm64.h [5:5]
-        crypto/buildinf-android_x86.h [5:5]
-        crypto/buildinf-android_x86_64.h [5:5]
-        crypto/buildinf-ios-arm.h [5:5]
+        crypto/buildinf-android-arm.h [5:5]
+        crypto/buildinf-android-arm64.h [5:5]
+        crypto/buildinf-android-i686.h [5:5]
+        crypto/buildinf-android-x86_64.h [5:5]
         crypto/buildinf-ios-arm64.h [5:5]
+        crypto/buildinf-ios-armv7.h [5:5]
         crypto/buildinf-ios-i386.h [5:5]
         crypto/buildinf-ios-x86_64.h [5:5]
         crypto/buildinf-linux.h [5:5]
-        crypto/buildinf-linux_aarch64.h [5:5]
+        crypto/buildinf-osx-arm64.h [5:5]
         crypto/buildinf-osx.h [5:5]
-        crypto/buildinf-osx_arm64.h [5:5]
         crypto/buildinf-win.h [5:5]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 85e6d9e3d4942ae64aedd7739565c328
@@ -1787,6 +1787,17 @@ BELONGS crypto/ya.make
     Files with this license:
         crypto/pem/pvkfmt.c [2:2]
         crypto/whrlpool/wp_block.c [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a55cec7c794574e1d94e9e0675a99ded
+BELONGS apps/ya.make
+    License text:
+         * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        apps/progs-linux.h [5:5]
 
 KEEP     COPYRIGHT_SERVICE_LABEL a74524cba47e5ae22059015969d08fbf
 BELONGS crypto/ya.make
@@ -2521,10 +2532,9 @@ BELONGS crypto/ya.make ya.make
         include/openssl/opensslconf-android-i686.h [5:5]
         include/openssl/opensslconf-android-x86_64.h [5:5]
         include/openssl/opensslconf-ios-arm64.h [5:5]
-        include/openssl/opensslconf-ios-i386.h [5:5]
         include/openssl/opensslconf-ios-x86_64.h [5:5]
+        include/openssl/opensslconf-linux-aarch64.h [5:5]
         include/openssl/opensslconf-linux.h [5:5]
-        include/openssl/opensslconf-linux_aarch64.h [5:5]
         include/openssl/opensslconf-osx-arm64.h [5:5]
         include/openssl/opensslconf-osx.h [5:5]
         include/openssl/opensslconf-win-i686.h [5:5]
