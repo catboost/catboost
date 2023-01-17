@@ -182,6 +182,7 @@ enum class ELossFunction {
     Recall,
     F1,
     TotalF1,
+    F,
     MCC,
     ZeroOneLoss,
     HammingLoss,

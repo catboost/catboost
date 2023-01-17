@@ -2415,6 +2415,16 @@ def _test_generated_metrics(loss_function, train_pool, test_pool, metrics, task)
             assert np.abs(td_results[metric][-1] - score) < 1e-6, "Eval metric results differ for {}".format(metric)
 
 
+def test_f1_vs_fbeta():
+    model = CatBoost({'loss_function': metrics.CrossEntropy(), 'iterations': 50})
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+    model.fit(train_pool, eval_set=test_pool)
+
+    results = model.eval_metrics(test_pool, ['F1', 'F:beta=1'])
+    assert np.allclose(results['F1'], results['F:beta=1']), "Different results for F1 and F:beta=1"
+
+
 def test_generated_classification_metrics():
     _test_generated_metrics(
         'Logloss',
@@ -2428,7 +2438,7 @@ def test_generated_classification_metrics():
             'NormalizedGini': metrics.NormalizedGini(), 'BrierScore': metrics.BrierScore(),
             'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
             'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
-            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction()
+            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction(), 'F:beta=2': metrics.F(beta=2)
         },
         "classification"
     )
@@ -3592,7 +3602,7 @@ def test_grid_search_and_get_best_result(task_type):
                     "loss_function": "Logloss",
                     "eval_metric": "AUC",
                     "task_type": task_type,
-                    "custom_metric": ["CrossEntropy", "F1"]
+                    "custom_metric": ["CrossEntropy", "F1", "F:beta=2"]
                 }
             )
             feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
@@ -3621,10 +3631,10 @@ def test_grid_search_and_get_best_result(task_type):
                 assert 'validation' not in best_scores, 'validation results found for refit=False, search_by_train_test_split=False'
                 assert 'learn' not in best_scores, 'train results found for refit=False, search_by_train_test_split=False'
             if 'validation' in best_scores:
-                for metric in ["AUC", "Logloss", "CrossEntropy", "F1"]:
+                for metric in ["AUC", "Logloss", "CrossEntropy", "F1", "F:beta=2"]:
                     assert metric in best_scores['validation'], 'no validation ' + metric + ' results found'
             if 'learn' in best_scores:
-                for metric in ["Logloss", "CrossEntropy", "F1"]:
+                for metric in ["Logloss", "CrossEntropy", "F1", "F:beta=2"]:
                     assert metric in best_scores['learn'], 'no train ' + metric + ' results found'
                 assert "AUC" not in best_scores['learn'], 'train AUC results found'
 
@@ -6186,6 +6196,7 @@ class Metrics(object):
             'Precision',
             'Recall',
             'F1',
+            'F:beta=2',
             'BalancedAccuracy',
             'BalancedErrorRate',
             'MCC',
@@ -6211,6 +6222,7 @@ class Metrics(object):
             'Precision',
             'Recall',
             'F1',
+            'F:beta=2',
             'TotalF1',
             'MCC',
             'Accuracy',
@@ -6263,6 +6275,7 @@ class Metrics(object):
             'CrossEntropy',
             'CtrFactor',
             'PythonUserDefinedPerObject',
+            'F:beta=2',
             'F1',
             'HammingLoss',
             'HingeLoss',

@@ -3766,6 +3766,7 @@ def test_custom_loss_for_classification(loss_function, boosting_type):
             'Recall',
             'F1',
             'TotalF1',
+            'F:beta=2',
             'MCC',
             'BalancedAccuracy',
             'BalancedErrorRate',
@@ -3844,7 +3845,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric',
-        'AUC:hints=skip_train~false;type=OneVsAll,Accuracy,Precision,Recall,F1,TotalF1,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss,NormalizedGini',
+        'AUC:hints=skip_train~false;type=OneVsAll,Accuracy,Precision,Recall,F1,TotalF1,F:beta=2,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss,NormalizedGini',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -4415,7 +4416,7 @@ def test_custom_metric_for_multilabel():
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric',
-        'Accuracy,Accuracy:type=PerClass,Precision,Recall,F1,HammingLoss',
+        'Accuracy,Accuracy:type=PerClass,Precision,Recall,F1,F:beta=0.5,F:beta=2,HammingLoss',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -5910,7 +5911,7 @@ def do_test_eval_metrics(metric, metric_period, train, test, cd, loss_function, 
 
 
 @pytest.mark.parametrize('metric_period', ['1', '2'])
-@pytest.mark.parametrize('metric', ['Logloss', 'F1', 'Accuracy', 'PFound', 'TotalF1', 'MCC', 'PairAccuracy'])
+@pytest.mark.parametrize('metric', ['Logloss', 'F1', 'F:beta=0.5', 'Accuracy', 'PFound', 'TotalF1', 'MCC', 'PairAccuracy'])
 def test_eval_metrics(metric, metric_period):
     if metric == 'PFound':
         train, test, cd, loss_function = data_file('querywise', 'train'), data_file('querywise', 'test'), data_file('querywise', 'train.cd'), 'QueryRMSE'
@@ -6081,7 +6082,7 @@ def test_eval_metrics_with_binarized_target(metrics):
 
 
 @pytest.mark.parametrize('metric_period', ['1', '2'])
-@pytest.mark.parametrize('metric', ['MultiClass', 'MultiClassOneVsAll', 'F1', 'Accuracy', 'TotalF1', 'MCC', 'Precision', 'Recall'])
+@pytest.mark.parametrize('metric', ['MultiClass', 'MultiClassOneVsAll', 'F1', 'F:beta=0.5', 'Accuracy', 'TotalF1', 'MCC', 'Precision', 'Recall'])
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('dataset', ['cloudness_small', 'cloudness_lost_class'])
 def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
@@ -6132,7 +6133,7 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
 
 
 @pytest.mark.parametrize('metric_period', ['1', '2'])
-@pytest.mark.parametrize('metric', ['MultiLogloss', 'F1', 'Accuracy', 'Accuracy:type=PerClass', 'Precision', 'Recall'])
+@pytest.mark.parametrize('metric', ['MultiLogloss', 'F1', 'F:beta=0.5', 'Accuracy', 'Accuracy:type=PerClass', 'Precision', 'Recall'])
 @pytest.mark.parametrize('dataset', ['scene', 'yeast'])
 def test_eval_metrics_multilabel(metric, dataset, metric_period):
     train, test, cd = data_file(dataset, 'train'), data_file(dataset, 'test'), data_file(dataset, 'train.cd')

@@ -1047,24 +1047,30 @@ TVector<TParamSet> TPrecisionCachingMetric::ValidParamSets() {
     return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
 };
 
-/* F1 caching metric */
+/* F beta caching metric */
 
 namespace {
-    struct TF1CachingMetric final: public TCachingUniversalMetric {
-        explicit TF1CachingMetric(const TLossParams& params,
-                                  double predictionBorder)
-            : TCachingUniversalMetric(ELossFunction::F1, params)
+    struct TFCachingMetric: public TCachingUniversalMetric {
+        explicit TFCachingMetric(const TLossParams& params, double beta,
+                                 double predictionBorder)
+            : TCachingUniversalMetric(ELossFunction::F, params)
             , ClassesCount(BinaryClassesCount)
+            , Beta(beta)
             , PredictionBorder(predictionBorder)
-            , IsMultiClass(false) {
+            , IsMultiClass(false)
+        {
+            Y_ASSERT(Beta > 0);
         }
 
-        explicit TF1CachingMetric(const TLossParams& params,
-                                  int classesCount, int positiveClass)
-            : TCachingUniversalMetric(ELossFunction::F1, params)
+        explicit TFCachingMetric(const TLossParams& params, double beta,
+                                 int classesCount, int positiveClass)
+            : TCachingUniversalMetric(ELossFunction::F, params)
             , ClassesCount(classesCount)
             , PositiveClass(positiveClass)
-            , IsMultiClass(true) {
+            , Beta(beta)
+            , IsMultiClass(true)
+        {
+            Y_ASSERT(Beta > 0);
         }
 
         using ISingleTargetEval::Eval;
@@ -1101,26 +1107,27 @@ namespace {
 
         static TVector<TParamSet> ValidParamSets();
 
-    private:
+    protected:
         static constexpr double TargetBorder = GetDefaultTargetBorder();
         const int ClassesCount = BinaryClassesCount;
         const int PositiveClass = 1;
+        const double Beta = 1;
         const double PredictionBorder = GetDefaultPredictionBorder();
         const bool IsMultiClass = false;
     };
 }
 
-THolder<IMetric> MakeBinClassF1Metric(const TLossParams& params,
-                                      double predictionBorder) {
-    return MakeHolder<TF1CachingMetric>(params, predictionBorder);
+THolder<IMetric> MakeBinClassFMetric(const TLossParams& params, double beta,
+                                     double predictionBorder) {
+    return MakeHolder<TFCachingMetric>(params, beta, predictionBorder);
 }
 
-THolder<IMetric> MakeMultiClassF1Metric(const TLossParams& params,
-                                        int classesCount, int positiveClass) {
-    return MakeHolder<TF1CachingMetric>(params, classesCount, positiveClass);
+THolder<IMetric> MakeMultiClassFMetric(const TLossParams& params, double beta,
+                                       int classesCount, int positiveClass) {
+    return MakeHolder<TFCachingMetric>(params, beta, classesCount, positiveClass);
 }
 
-TMetricHolder TF1CachingMetric::Eval(
+TMetricHolder TFCachingMetric::Eval(
     const TConstArrayRef<TConstArrayRef<double>> approx,
     const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
@@ -1136,7 +1143,7 @@ TMetricHolder TF1CachingMetric::Eval(
 
     const auto makeMatrix = [&]() {
         return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
-                TargetBorder, PredictionBorder);
+                                    TargetBorder, PredictionBorder);
     };
     auto confusionMatrix = cache.Empty() ? makeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, makeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
@@ -1150,7 +1157,7 @@ TMetricHolder TF1CachingMetric::Eval(
     return error;
 }
 
-TMetricHolder TF1CachingMetric::Eval(
+TMetricHolder TFCachingMetric::Eval(
     TConstArrayRef<TConstArrayRef<double>> approx,
     TConstArrayRef<TConstArrayRef<double>> approxDelta,
     TConstArrayRef<TConstArrayRef<float>> target,
@@ -1163,7 +1170,7 @@ TMetricHolder TF1CachingMetric::Eval(
 
     const auto makeMatrix = [&]() {
         return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
-                TargetBorder, PredictionBorder);
+                                    TargetBorder, PredictionBorder);
     };
     auto confusionMatrix = cache.Empty() ? makeMatrix() : cache.GetRef()->Get(MultiLabelConfusionMatrixCacheKey,
                                                                               makeMatrix, bool(UseWeights),
@@ -1179,9 +1186,74 @@ TMetricHolder TF1CachingMetric::Eval(
     return error;
 }
 
-TVector<TString> TF1CachingMetric::GetStatDescriptions() const {
+TVector<TString> TFCachingMetric::GetStatDescriptions() const {
     return {"TP", "TP+FP", "TP+FN"};
 }
+
+TString TFCachingMetric::GetDescription() const {
+    const TMetricParam<double> beta("beta", Beta, /*userDefined*/true);
+    if (IsMultiClass) {
+        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+        return BuildDescription(ELossFunction::F, UseWeights, "%.3g", beta, positiveClass);
+    } else {
+        return BuildDescription(ELossFunction::F, UseWeights, "%.3g", beta,"%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
+    }
+}
+
+double TFCachingMetric::GetFinalError(const TMetricHolder& error) const {
+    double precision = error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1.0;
+    double recall = error.Stats[2] != 0 ? error.Stats[0] / error.Stats[2] : 1.0;
+    double beta_square = Beta * Beta;
+    return precision + recall != 0 ? (1 + beta_square) * precision * recall / (beta_square * precision + recall) : 0.0;
+}
+
+void TFCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+TVector<TParamSet> TFCachingMetric::ValidParamSets() {
+    return {
+        TParamSet{
+            {
+                TParamInfo{"use_weights", false, true},
+                TParamInfo{"beta", true, {}}
+            },
+            ""
+        }
+    };
+}
+
+/* F1 caching metric */
+
+namespace {
+    struct TF1CachingMetric final : public TFCachingMetric {
+        explicit TF1CachingMetric(const TLossParams &params,
+                                  double predictionBorder)
+            : TFCachingMetric(params, 1.0, predictionBorder) {
+        }
+
+        explicit TF1CachingMetric(const TLossParams &params,
+                                  int classesCount, int positiveClass)
+            : TFCachingMetric(params, 1.0, classesCount, positiveClass) {
+        }
+        TString GetDescription() const override;
+
+        static TVector<TParamSet> ValidParamSets();
+    };
+}
+
+THolder<IMetric> MakeBinClassF1Metric(const TLossParams& params,
+                                      double predictionBorder) {
+    return MakeHolder<TF1CachingMetric>(params, predictionBorder);
+}
+
+THolder<IMetric> MakeMultiClassF1Metric(const TLossParams& params,
+                                        int classesCount, int positiveClass) {
+    return MakeHolder<TF1CachingMetric>(params, classesCount, positiveClass);
+}
+
+
 
 TString TF1CachingMetric::GetDescription() const {
     if (IsMultiClass) {
@@ -1193,15 +1265,6 @@ TString TF1CachingMetric::GetDescription() const {
     }
 }
 
-double TF1CachingMetric::GetFinalError(const TMetricHolder& error) const {
-    double precision = error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1.0;
-    double recall = error.Stats[2] != 0 ? error.Stats[0] / error.Stats[2] : 1.0;
-    return precision + recall != 0 ? 2 * precision * recall / (precision + recall) : 0.0;
-}
-
-void TF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
-}
 
 TVector<TParamSet> TF1CachingMetric::ValidParamSets() {
     return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
@@ -1680,6 +1743,20 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
         case ELossFunction::F1: {
             return CreateMetricClasswise<TF1CachingMetric>(config.ApproxDimension, config);
         }
+        case ELossFunction::F:  {
+            CB_ENSURE(config.GetParamsMap().contains("beta"), "Metric " << ELossFunction::F << " requires beta as parameter");
+            config.ValidParams->insert("beta");
+            double beta_param = FromString<float>(config.GetParamsMap().at("beta"));
+
+            if (config.ApproxDimension == 1) {
+                result.emplace_back(MakeHolder<TFCachingMetric>(config.Params, beta_param, config.GetPredictionBorderOrDefault()));
+            } else {
+                for (int i : xrange(config.ApproxDimension)) {
+                    result.emplace_back(MakeHolder<TFCachingMetric>(config.Params, beta_param, config.ApproxDimension, i));
+                }
+            }
+            return result;
+        }
         case ELossFunction::TotalF1: {
             config.ValidParams->insert("average");
             EF1AverageType averageType = EF1AverageType::Weighted;
@@ -1748,6 +1825,8 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
 
 TVector<TParamSet> CachingMetricValidParamSets(ELossFunction metric) {
     switch (metric) {
+        case ELossFunction::F:
+            return TFCachingMetric::ValidParamSets();
         case ELossFunction::F1:
             return TF1CachingMetric::ValidParamSets();
         case ELossFunction::TotalF1:
