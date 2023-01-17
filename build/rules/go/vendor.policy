@@ -421,7 +421,13 @@ ALLOW .* -> vendor/golang.org/x/xerrors
 # golang.org/x/sys required for SO_REUSEPORT, for example
 ALLOW .* -> vendor/golang.org/x/sys
 
+# modules
 ALLOW .* -> vendor/golang.org/x/mod
+
+# exp generics
+ALLOW .* -> vendor/golang.org/x/exp/slices
+ALLOW .* -> vendor/golang.org/x/exp/maps
+ALLOW .* -> vendor/golang.org/x/exp/constraints
 
 # basic LDAP v3 functionality for the GO programming language
 ALLOW .* -> vendor/gopkg.in/ldap.v3
