@@ -1,43 +1,3 @@
-Metadata-Version: 2.1
-Name: scikit-learn
-Version: 0.22.2.post1
-Summary: A set of python modules for machine learning and data mining
-Home-page: http://scikit-learn.org
-Maintainer: Andreas Mueller
-Maintainer-email: amueller@ais.uni-bonn.de
-License: new BSD
-Download-URL: https://pypi.org/project/scikit-learn/#files
-Project-URL: Bug Tracker, https://github.com/scikit-learn/scikit-learn/issues
-Project-URL: Documentation, https://scikit-learn.org/stable/documentation.html
-Project-URL: Source Code, https://github.com/scikit-learn/scikit-learn
-Platform: UNKNOWN
-Classifier: Intended Audience :: Science/Research
-Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved
-Classifier: Programming Language :: C
-Classifier: Programming Language :: Python
-Classifier: Topic :: Software Development
-Classifier: Topic :: Scientific/Engineering
-Classifier: Operating System :: Microsoft :: Windows
-Classifier: Operating System :: POSIX
-Classifier: Operating System :: Unix
-Classifier: Operating System :: MacOS
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: Implementation :: CPython
-Classifier: Programming Language :: Python :: Implementation :: PyPy
-Requires-Python: >=3.5
-Provides-Extra: alldeps
-Requires-Dist: numpy (>=1.11.0)
-Requires-Dist: scipy (>=0.17.0)
-Requires-Dist: joblib (>=0.11)
-Provides-Extra: alldeps
-Requires-Dist: numpy (>=1.11.0); extra == 'alldeps'
-Requires-Dist: scipy (>=0.17.0); extra == 'alldeps'
-
 .. -*- mode: rst -*-
 
 |Azure|_ |Travis|_ |Codecov|_ |CircleCI|_ |PythonVersion|_ |PyPi|_ |DOI|_
@@ -208,5 +168,3 @@ Citation
 ~~~~~~~~
 
 If you use scikit-learn in a scientific publication, we would appreciate citations: http://scikit-learn.org/stable/about.html#citing-scikit-learn
-
-
