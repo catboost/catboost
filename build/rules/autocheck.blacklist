@@ -91,3 +91,4 @@ data-ui/generic-socket
 data-ui/infra-buzzer
 data-ui/tvm-utils
 data-ui/reconnecting-websocket
+portal/frontend/morda-stubs
