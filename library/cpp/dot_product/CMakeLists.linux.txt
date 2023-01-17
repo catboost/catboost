@@ -15,17 +15,15 @@ target_link_libraries(library-cpp-dot_product PUBLIC
   cpp-testing-common
 )
 target_sources(library-cpp-dot_product PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/dot_product/dot_product_avx2.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/dot_product/dot_product.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/dot_product/dot_product_sse.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/dot_product/dot_product_simple.cpp
 )
-set_property(
-  SOURCE
+target_sources_custom(library-cpp-dot_product
+  .avx2
+  SRCS
   ${CMAKE_SOURCE_DIR}/library/cpp/dot_product/dot_product_avx2.cpp
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
+  CUSTOM_FLAGS
   -mavx2
   -mfma
   -mbmi
