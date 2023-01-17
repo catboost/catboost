@@ -2143,7 +2143,7 @@
                 "type": "xcode",
                 "local": true,
                 "werror_mode": "all",
-                "gcc_version": "13.1"
+                "gcc_version": "13.2.1"
             }
         },
         "xcode_12_5": {

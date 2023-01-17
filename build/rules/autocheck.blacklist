@@ -912,7 +912,6 @@ quality/ab_testing/scripts/adminka/frontend/calculations_front
 data-ui/united-storage
 sprav/legacy/callcenter
 data-ui/charts-console
-education/english/services/aula
 taxi/github/taximeter/yandex-taximeter-tvmtool
 taxi/github/taximeter/yandex-taximeter-dotnet
 taxi/github/taximeter/yandex-taximeter-dotnet-sdk
@@ -1216,3 +1215,6 @@ education/english/mobile/ios-app
 data-ui/infra-portal
 practicum/services/serverhub
 data-ui/cloud-doc-sync
+data-ui/yandex-cloud-org-bot
+adv/pcode/web/master-system
+kinopoisk/php/backend/source
