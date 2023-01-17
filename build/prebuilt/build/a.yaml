@@ -2,12 +2,68 @@ service: ya_make
 title: Build and deploy prebuilt tools
 
 ci:
-  secret: sec-01g2yx8rzeak0z9qh4w558desc
-
+  secret: sec-01g9yyfb1fdnszke6vdd80za1y
   runtime:
     sandbox:
-      owner: YA_TOOL
+      owner: YATOOL
+  
+  actions:
+    prebuilt-tools:
+      title: Prebuilt tools
+      flow: build-n-commit
+      flow-vars-ui: &flow-vars-ui
+        schema:
+          required: [platforms, tools]
+          type: object
+          properties:
+            musl:
+              title: Build with musl-libc
+              type: boolean
+            platforms:
+              title: Platforms
+              type: array
+              uniqueItems: true
+              items:
+                type: string
+                enum:
+                  - linux
+                  - linux-aarch64
+                  - linux-ppc64le
+                  - darwin
+                  - darwin-arm64
+                  - win32
+            tools:
+              title: Tools
+              type: array
+              items:
+                type: object
+                properties:
+                  tool-path:
+                    title: Path to build artefact
+                    type: string
+                  build-flags:
+                    title: Build flags (optional)
+                    type: string
+                  json-path:
+                    title: "Path to json file (optional)"
+                    type: string
 
-
-
-
+  flows:
+    build-n-commit:
+      title: Build & Commit
+      jobs:
+        build:
+          title: Building
+          task: common/arcadia/build_arcadia_project_for_all
+          multiply:
+            by: ${flow-vars.tools}
+            title: Build ${by.tool-path}
+          input:
+            platforms_list: ${flow-vars.platforms}
+            checkout_arcadia_from_url: arcadia-arc:/#${context.target_revision.hash}
+            project: ${by.tool-path}
+            musl: ${flow-vars.musl}
+        build-all:
+          needs:
+            - build
+          task: dummy
