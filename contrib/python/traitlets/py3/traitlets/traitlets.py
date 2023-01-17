@@ -2131,11 +2131,22 @@ class Union(TraitType):
         ----------
         trait_types : sequence
             The list of trait types of length at least 1.
+        **kwargs
+            Extra kwargs passed to `TraitType`
 
         Notes
         -----
         Union([Float(), Bool(), Int()]) attempts to validate the provided values
         with the validation function of Float, then Bool, and finally Int.
+
+        Parsing from string is ambiguous for container types which accept other
+        collection-like literals (e.g. List accepting both `[]` and `()`
+        precludes Union from ever parsing ``Union([List(), Tuple()])`` as a tuple;
+        you can modify behaviour of too permissive container traits by overriding
+        ``_literal_from_string_pairs`` in subclasses.
+        Similarly, parsing unions of numeric types is only unambiguous if
+        types are provided in order of increasing permissiveness, e.g.
+        ``Union([Int(), Float()])`` (since floats accept integer-looking values).
         """
         self.trait_types = list(trait_types)
         self.info_text = " or ".join([tt.info() for tt in self.trait_types])
@@ -2178,6 +2189,15 @@ class Union(TraitType):
             return Union(self.trait_types + other.trait_types)
         else:
             return Union(self.trait_types + [other])
+
+    def from_string(self, s):
+        for trait_type in self.trait_types:
+            try:
+                v = trait_type.from_string(s)
+                return trait_type.validate(None, v)
+            except (TraitError, ValueError):
+                continue
+        return super().from_string(s)
 
 
 # -----------------------------------------------------------------------------

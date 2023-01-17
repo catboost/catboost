@@ -82,6 +82,10 @@ class HasTraitsStub(HasTraits):
         self._notify_type = change["type"]
 
 
+class CrossValidationStub(HasTraits):
+    _cross_validation_lock = False
+
+
 # -----------------------------------------------------------------------------
 # Test classes
 # -----------------------------------------------------------------------------
@@ -2924,7 +2928,7 @@ def _from_string_test(traittype, s, expected):
     if type(expected) is type and issubclass(expected, Exception):
         with pytest.raises(expected):
             value = cast(s)
-            trait.validate(None, value)
+            trait.validate(CrossValidationStub(), value)
     else:
         value = cast(s)
         assert value == expected
@@ -3134,6 +3138,30 @@ def test_object_from_string(s, expected):
 )
 def test_tcp_from_string(s, expected):
     _from_string_test(TCPAddress, s, expected)
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [("[]", []), ("{}", "{}")],
+)
+def test_union_of_list_and_unicode_from_string(s, expected):
+    _from_string_test(Union([List(), Unicode()]), s, expected)
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [("1", 1), ("1.5", 1.5)],
+)
+def test_union_of_int_and_float_from_string(s, expected):
+    _from_string_test(Union([Int(), Float()]), s, expected)
+
+
+@pytest.mark.parametrize(
+    "s, expected, allow_none",
+    [("[]", [], False), ("{}", {}, False), ("None", TraitError, False), ("None", None, True)],
+)
+def test_union_of_list_and_dict_from_string(s, expected, allow_none):
+    _from_string_test(Union([List(), Dict()], allow_none=allow_none), s, expected)
 
 
 def test_all_attribute():
