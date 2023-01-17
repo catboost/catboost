@@ -162,7 +162,7 @@
       - contrib/restricted/boost/config/include/boost/config/compiler/clang.hpp
       - contrib/restricted/boost/config/include/boost/config/compiler/gcc.hpp
     - BOOST_REGEX_USER_CONFIG:
-      - contrib/restricted/boost/boost/regex/user.hpp
+      - contrib/restricted/boost/regex/include/boost/regex/user.hpp
 
 - source_filter: "^contrib/libs/gperftools"
   includes:
