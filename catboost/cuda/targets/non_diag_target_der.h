@@ -4,8 +4,8 @@
 
 namespace NCatboostCuda {
     struct TNonDiagQuerywiseTargetDers {
-        TStripeBuffer<float> PairDer2OrWeights;
-        TStripeBuffer<uint2> Pairs;
+        TStripeBuffer<float> PairDer2OrWeights; // size can exceed 32-bits
+        TStripeBuffer<uint2> Pairs; // size can exceed 32-bits
 
         TStripeBuffer<float> PointWeightedDer;
         //optional, pointwise weights or der2
