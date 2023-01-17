@@ -12,7 +12,7 @@ def escape_special_symbols(strval):
         if c in ("\\", "\""):
             retval += "\\" + c
         elif ord(c) < 0x20:
-            retval += c.encode("string_escape")
+            retval += c.encode('unicode_escape').decode('utf-8')
         else:
             retval += c
     return retval
@@ -42,22 +42,43 @@ def get_compiler_info(compiler):
         compiler_ver_cmd = [compiler]
         if compiler_binary not in ("cl", "cl.exe"):
             compiler_ver_cmd.append('--version')
-        compiler_ver_out = subprocess.Popen(compiler_ver_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.read()
+        env = os.environ.copy()
+        env['LOCALE'] = 'C'
+        compiler_ver_out = subprocess.Popen(compiler_ver_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env).stdout.read().decode('utf-8')
     return "\n".join(['{}{}'.format(indent * 2, line.strip()) for line in compiler_ver_out.splitlines() if line.strip()])
+
+
+def filterflags(flags_str):
+    badflgs = {
+        '-fdebug-prefix-map',
+        '-DARCADIA_ROOT',
+        '-DARCADIA_BUILD_ROOT',
+        '/DARCADIA_ROOT',
+        '/DARCADIA_BUILD_ROOT',
+    }
+
+    def flags_iter():
+        for flag in flags_str.split():
+            if not flag:
+                continue
+            if flag.split('=', 1)[0] in badflgs:
+                continue
+            yield flag
+    return ' '.join(flags_iter())
 
 
 def main():
     if len(sys.argv) != 4:
-        print >>sys.stderr, "Usage: build_info_gen.py <output file> <CXX compiler> <CXX flags>"
+        print("Usage: build_info_gen.py <output file> <CXX compiler> <CXX flags>", file=sys.stderr)
         sys.exit(1)
     cxx_compiler = sys.argv[2]
-    cxx_flags = sys.argv[3]
+    cxx_flags = filterflags(sys.argv[3])
     with open(sys.argv[1], 'w') as result:
-        print >> result, "#pragma once\n"
-        print >> result, escaped_define("BUILD_INFO", get_build_info(cxx_compiler, cxx_flags))
-        print >> result, escaped_define("BUILD_COMPILER", cxx_compiler)
-        print >> result, escaped_define("BUILD_COMPILER_VERSION", get_compiler_info(cxx_compiler))
-        print >> result, escaped_define("BUILD_COMPILER_FLAGS", cxx_flags)
+        print("#pragma once\n", file=result)
+        print(escaped_define("BUILD_INFO", get_build_info(cxx_compiler, cxx_flags)), file=result)
+        print(escaped_define("BUILD_COMPILER", cxx_compiler), file=result)
+        print(escaped_define("BUILD_COMPILER_VERSION", get_compiler_info(cxx_compiler)), file=result)
+        print(escaped_define("BUILD_COMPILER_FLAGS", cxx_flags), file=result)
 
 if __name__ == "__main__":
     main()
