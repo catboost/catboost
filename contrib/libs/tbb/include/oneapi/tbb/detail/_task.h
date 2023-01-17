@@ -211,12 +211,7 @@ static constexpr std::size_t task_alignment = 64;
 
 //! Base class for user-defined tasks.
 /** @ingroup task_scheduling */
-
-class
-#if __TBB_ALIGNAS_AVAILABLE
-alignas(task_alignment)
-#endif
-task : public task_traits {
+class alignas(task_alignment) task : public task_traits {
 protected:
     virtual ~task() = default;
 
@@ -228,9 +223,8 @@ private:
     std::uint64_t m_reserved[6]{};
     friend struct r1::task_accessor;
 };
-#if __TBB_ALIGNAS_AVAILABLE
 static_assert(sizeof(task) == task_alignment, "task size is broken");
-#endif
+
 } // namespace d1
 } // namespace detail
 } // namespace tbb
