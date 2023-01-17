@@ -21,7 +21,8 @@
     ],
     "KnownAttrs":
     [
-      "proto_files"
+      "proto_files",
+      "proto_namespace"
     ],
     "KnownInducedAttrs":
     [
