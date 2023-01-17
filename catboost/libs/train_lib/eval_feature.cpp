@@ -1113,6 +1113,9 @@ static void CountDisjointFolds(
         samplingUnitsCount = GetSamplingUnitCount(objectsGrouping, isObjectwise);
     } else {
         const auto timestamps = *data->ObjectsData->GetTimestamp();
+        CB_ENSURE(
+            data->ObjectsData->GetGroupIds(),
+            "Timestamps require group ids");
         const auto timesplitQuantileTimestamp = FindQuantileTimestamp(
             *data->ObjectsData->GetGroupIds(),
             timestamps,
