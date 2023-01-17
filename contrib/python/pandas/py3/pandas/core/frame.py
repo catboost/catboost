@@ -4359,8 +4359,11 @@ class DataFrame(NDFrame, OpsMixin):
             raise ValueError(f"include and exclude overlap on {(include & exclude)}")
 
         def dtype_predicate(dtype: DtypeObj, dtypes_set) -> bool:
+            # GH 46870: BooleanDtype._is_numeric == True but should be excluded
             return issubclass(dtype.type, tuple(dtypes_set)) or (
-                np.number in dtypes_set and getattr(dtype, "_is_numeric", False)
+                np.number in dtypes_set
+                and getattr(dtype, "_is_numeric", False)
+                and not is_bool_dtype(dtype)
             )
 
         def predicate(arr: ArrayLike) -> bool:
@@ -4375,7 +4378,7 @@ class DataFrame(NDFrame, OpsMixin):
 
             return True
 
-        mgr = self._mgr._get_data_subset(predicate)
+        mgr = self._mgr._get_data_subset(predicate).copy()
         return type(self)(mgr).__finalize__(self)
 
     def insert(
@@ -4527,8 +4530,8 @@ class DataFrame(NDFrame, OpsMixin):
         """
         self._ensure_valid_index(value)
 
-        # We should never get here with DataFrame value
-        if isinstance(value, Series):
+        # We can get there through loc single_block_path
+        if isinstance(value, (DataFrame, Series)):
             return _reindex_for_setitem(value, self.index)
 
         if is_list_like(value):

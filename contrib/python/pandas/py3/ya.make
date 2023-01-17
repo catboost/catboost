@@ -1,10 +1,10 @@
 PY3_LIBRARY()
 
+
+
+VERSION(1.4.4)
+
 LICENSE(BSD-3-Clause)
-
-VERSION(1.4.3)
-
-
 
 PEERDIR(
     contrib/python/Jinja2
@@ -22,6 +22,10 @@ ADDINCL(
     contrib/python/pandas/py3/pandas/_libs/tslibs
 )
 
+NO_COMPILER_WARNINGS()
+
+NO_LINT()
+
 NO_CHECK_IMPORTS(
     pandas._testing._hypothesis
     pandas.core._numba.*
@@ -32,19 +36,12 @@ NO_CHECK_IMPORTS(
     pandas.util.*
 )
 
-NO_COMPILER_WARNINGS()
-
-NO_LINT()
-
 CFLAGS(
-    # For pandas.json
     -D__LITTLE_ENDIAN__=1
     -DNPY_NO_DEPRECATED_API=0
 )
 
 INCLUDE(symbols.cmake)
-
-PY_REGISTER(pandas._libs.json)
 
 SRCS(
     pandas/_libs/src/parser/io.c
@@ -59,57 +56,12 @@ SRCS(
     pandas/_libs/tslibs/src/datetime/np_datetime_strings.c
 )
 
+PY_REGISTER(
+    pandas._libs.json
+)
+
 PY_SRCS(
     TOP_LEVEL
-
-    CYTHON_DIRECTIVE
-    language_level=3
-
-    CYTHON_C
-    pandas/_libs/algos.pyx
-    pandas/_libs/arrays.pyx
-    pandas/_libs/groupby.pyx
-    pandas/_libs/hashing.pyx
-    pandas/_libs/hashtable.pyx
-    pandas/_libs/index.pyx
-    pandas/_libs/indexing.pyx
-    pandas/_libs/internals.pyx
-    pandas/_libs/interval.pyx
-    pandas/_libs/join.pyx
-    pandas/_libs/lib.pyx
-    pandas/_libs/missing.pyx
-    pandas/_libs/ops.pyx
-    pandas/_libs/ops_dispatch.pyx
-    pandas/_libs/parsers.pyx
-    pandas/_libs/properties.pyx
-    pandas/_libs/reduction.pyx
-    pandas/_libs/reshape.pyx
-    pandas/_libs/sparse.pyx
-    pandas/_libs/testing.pyx
-    pandas/_libs/tslib.pyx
-    pandas/_libs/tslibs/base.pyx
-    pandas/_libs/tslibs/ccalendar.pyx
-    pandas/_libs/tslibs/conversion.pyx
-    pandas/_libs/tslibs/dtypes.pyx
-    pandas/_libs/tslibs/fields.pyx
-    pandas/_libs/tslibs/nattype.pyx
-    pandas/_libs/tslibs/np_datetime.pyx
-    pandas/_libs/tslibs/offsets.pyx
-    pandas/_libs/tslibs/parsing.pyx
-    pandas/_libs/tslibs/period.pyx
-    pandas/_libs/tslibs/strptime.pyx
-    pandas/_libs/tslibs/timedeltas.pyx
-    pandas/_libs/tslibs/timestamps.pyx
-    pandas/_libs/tslibs/timezones.pyx
-    pandas/_libs/tslibs/tzconversion.pyx
-    pandas/_libs/tslibs/vectorized.pyx
-    pandas/_libs/window/indexers.pyx
-    pandas/_libs/writers.pyx
-    pandas/io/sas/sas.pyx
-
-    CYTHON_CPP
-    pandas/_libs/window/aggregations.pyx
-
     pandas/__init__.py
     pandas/_config/__init__.py
     pandas/_config/config.py
@@ -117,8 +69,43 @@ PY_SRCS(
     pandas/_config/display.py
     pandas/_config/localization.py
     pandas/_libs/__init__.py
+    pandas/_libs/algos.pyi
+    pandas/_libs/arrays.pyi
+    pandas/_libs/groupby.pyi
+    pandas/_libs/hashing.pyi
+    pandas/_libs/hashtable.pyi
+    pandas/_libs/index.pyi
+    pandas/_libs/internals.pyi
+    pandas/_libs/join.pyi
+    pandas/_libs/lib.pyi
+    pandas/_libs/missing.pyi
+    pandas/_libs/ops.pyi
+    pandas/_libs/ops_dispatch.pyi
+    pandas/_libs/parsers.pyi
+    pandas/_libs/properties.pyi
+    pandas/_libs/reshape.pyi
+    pandas/_libs/sparse.pyi
+    pandas/_libs/testing.pyi
+    pandas/_libs/tslib.pyi
     pandas/_libs/tslibs/__init__.py
+    pandas/_libs/tslibs/ccalendar.pyi
+    pandas/_libs/tslibs/conversion.pyi
+    pandas/_libs/tslibs/dtypes.pyi
+    pandas/_libs/tslibs/fields.pyi
+    pandas/_libs/tslibs/nattype.pyi
+    pandas/_libs/tslibs/np_datetime.pyi
+    pandas/_libs/tslibs/parsing.pyi
+    pandas/_libs/tslibs/period.pyi
+    pandas/_libs/tslibs/strptime.pyi
+    pandas/_libs/tslibs/timedeltas.pyi
+    pandas/_libs/tslibs/timestamps.pyi
+    pandas/_libs/tslibs/timezones.pyi
+    pandas/_libs/tslibs/tzconversion.pyi
+    pandas/_libs/tslibs/vectorized.pyi
     pandas/_libs/window/__init__.py
+    pandas/_libs/window/aggregations.pyi
+    pandas/_libs/window/indexers.pyi
+    pandas/_libs/writers.pyi
     pandas/_testing/__init__.py
     pandas/_testing/_hypothesis.py
     pandas/_testing/_io.py
@@ -391,42 +378,51 @@ PY_SRCS(
     pandas/util/_validators.py
     pandas/util/testing.py
     pandas/util/version/__init__.py
-
-    pandas/_libs/algos.pyi
-    pandas/_libs/arrays.pyi
-    pandas/_libs/groupby.pyi
-    pandas/_libs/hashing.pyi
-    pandas/_libs/hashtable.pyi
-    pandas/_libs/index.pyi
-    pandas/_libs/internals.pyi
-    pandas/_libs/join.pyi
-    pandas/_libs/lib.pyi
-    pandas/_libs/missing.pyi
-    pandas/_libs/ops.pyi
-    pandas/_libs/ops_dispatch.pyi
-    pandas/_libs/parsers.pyi
-    pandas/_libs/properties.pyi
-    pandas/_libs/reshape.pyi
-    pandas/_libs/sparse.pyi
-    pandas/_libs/testing.pyi
-    pandas/_libs/tslib.pyi
-    pandas/_libs/tslibs/ccalendar.pyi
-    pandas/_libs/tslibs/conversion.pyi
-    pandas/_libs/tslibs/dtypes.pyi
-    pandas/_libs/tslibs/fields.pyi
-    pandas/_libs/tslibs/nattype.pyi
-    pandas/_libs/tslibs/np_datetime.pyi
-    pandas/_libs/tslibs/parsing.pyi
-    pandas/_libs/tslibs/period.pyi
-    pandas/_libs/tslibs/strptime.pyi
-    pandas/_libs/tslibs/timedeltas.pyi
-    pandas/_libs/tslibs/timestamps.pyi
-    pandas/_libs/tslibs/timezones.pyi
-    pandas/_libs/tslibs/tzconversion.pyi
-    pandas/_libs/tslibs/vectorized.pyi
-    pandas/_libs/window/aggregations.pyi
-    pandas/_libs/window/indexers.pyi
-    pandas/_libs/writers.pyi
+    CYTHON_DIRECTIVE
+    language_level=3
+    CYTHON_C
+    pandas/_libs/algos.pyx
+    pandas/_libs/arrays.pyx
+    pandas/_libs/groupby.pyx
+    pandas/_libs/hashing.pyx
+    pandas/_libs/hashtable.pyx
+    pandas/_libs/index.pyx
+    pandas/_libs/indexing.pyx
+    pandas/_libs/internals.pyx
+    pandas/_libs/interval.pyx
+    pandas/_libs/join.pyx
+    pandas/_libs/lib.pyx
+    pandas/_libs/missing.pyx
+    pandas/_libs/ops.pyx
+    pandas/_libs/ops_dispatch.pyx
+    pandas/_libs/parsers.pyx
+    pandas/_libs/properties.pyx
+    pandas/_libs/reduction.pyx
+    pandas/_libs/reshape.pyx
+    pandas/_libs/sparse.pyx
+    pandas/_libs/testing.pyx
+    pandas/_libs/tslib.pyx
+    pandas/_libs/tslibs/base.pyx
+    pandas/_libs/tslibs/ccalendar.pyx
+    pandas/_libs/tslibs/conversion.pyx
+    pandas/_libs/tslibs/dtypes.pyx
+    pandas/_libs/tslibs/fields.pyx
+    pandas/_libs/tslibs/nattype.pyx
+    pandas/_libs/tslibs/np_datetime.pyx
+    pandas/_libs/tslibs/offsets.pyx
+    pandas/_libs/tslibs/parsing.pyx
+    pandas/_libs/tslibs/period.pyx
+    pandas/_libs/tslibs/strptime.pyx
+    pandas/_libs/tslibs/timedeltas.pyx
+    pandas/_libs/tslibs/timestamps.pyx
+    pandas/_libs/tslibs/timezones.pyx
+    pandas/_libs/tslibs/tzconversion.pyx
+    pandas/_libs/tslibs/vectorized.pyx
+    pandas/_libs/window/indexers.pyx
+    pandas/_libs/writers.pyx
+    pandas/io/sas/sas.pyx
+    CYTHON_CPP
+    pandas/_libs/window/aggregations.pyx
 )
 
 RESOURCE_FILES(
