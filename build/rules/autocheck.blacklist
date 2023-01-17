@@ -946,3 +946,13 @@ billing/frontend/cart
 billing/frontend/qa
 billing/frontend/publisher
 classifieds/subscriptions
+taxi/github/taxi-client_analytics
+classifieds/autoru-searchline
+classifieds/vos2-realty-tests
+classifieds/swagger-coverage
+classifieds/general-tests
+data-ui/infra-api
+classifieds/apitests-template
+data-ui/cloud-www
+ofd/promo-old
+investors/ir/frontend
