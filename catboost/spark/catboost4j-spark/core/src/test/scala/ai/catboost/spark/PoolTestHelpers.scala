@@ -1,5 +1,7 @@
 package ai.catboost.spark;
 
+import java.io.{File,PrintWriter}
+
 import java.nio.file.{Files,Path}
 import java.nio.charset.StandardCharsets
 
@@ -55,7 +57,7 @@ object PoolTestHelpers {
         expectedFeatureNames: Array[String],
         expectedPairsData: Option[Seq[Row]] = None,
         expectedPairsDataSchema: Option[Seq[StructField]] = None,
-        
+
          // set to true if order of rows might change. Requires sampleId or (groupId, sampleId) in data
         compareByIds: Boolean = false
     ) = {
@@ -65,11 +67,11 @@ object PoolTestHelpers {
         spark.sparkContext.parallelize(expectedData),
         StructType(expectedDataSchema)
       )
-      
+
       Assert.assertTrue(pool.getFeatureNames.sameElements(expectedFeatureNames))
-      
+
       Assert.assertEquals(pool.data.schema, StructType(expectedDataSchema))
-      
+
       val (expectedDataToCompare, poolDataToCompare) = if (compareByIds) {
         if (pool.isDefined(pool.groupIdCol)) {
           (
@@ -87,17 +89,17 @@ object PoolTestHelpers {
       }
 
       TestHelpers.assertEqualsWithPrecision(expectedDataToCompare, poolDataToCompare)
-      
-      
+
+
       expectedPairsData match {
         case Some(expectedPairsData) => {
           val poolPairsDataToCompare = pool.pairsData.orderBy("groupId", "winnerId", "loserId")
-          
+
           val expectedPairsDataToCompare = spark.createDataFrame(
             spark.sparkContext.parallelize(expectedPairsData),
             StructType(expectedPairsDataSchema.get)
           ).orderBy("groupId", "winnerId", "loserId")
-          
+
           Assert.assertTrue(pool.pairsData != null)
           TestHelpers.assertEqualsWithPrecision(expectedPairsDataToCompare, poolPairsDataToCompare)
         }
@@ -105,10 +107,52 @@ object PoolTestHelpers {
       }
     }
 
+    def assertEqualsWithPrecision(
+      expected: Pool,
+      actual: Pool,
+
+      // set to true if order of rows might change. Requires sampleId or (groupId, sampleId) in data
+      compareByIds: Boolean = false,
+      ignoreNullableInSchema: Boolean = false
+    ) = {
+      val dataSortByFields = if (compareByIds) {
+        if (expected.isDefined(expected.groupIdCol)) {
+          Seq(expected.getOrDefault(expected.groupIdCol), actual.getOrDefault(actual.sampleIdCol))
+        } else {
+          Seq(expected.getOrDefault(expected.sampleIdCol))
+        }
+      } else {
+        Seq()
+      }
+
+      TestHelpers.assertEqualsWithPrecision(
+        expected.data,
+        actual.data,
+        dataSortByFields,
+        ignoreNullableInSchema
+      )
+
+      if (expected.quantizedFeaturesInfo == null) {
+        Assert.assertNull(actual.quantizedFeaturesInfo)
+      } else {
+        Assert.assertNotNull(actual.quantizedFeaturesInfo)
+        Assert.assertTrue(actual.quantizedFeaturesInfo.EqualWithoutOptionsTo(expected.quantizedFeaturesInfo.__deref__))
+      }
+
+      TestHelpers.assertEqualsWithPrecision(
+        expected.pairsData,
+        actual.pairsData,
+        Seq("groupId", "winnerId", "loserId"),
+        ignoreNullableInSchema
+      )
+
+      Assert.assertEquals(expected.partitionedByGroups, actual.partitionedByGroups)
+    }
+
     def createRawPool(
       appName: String,
       srcDataSchema : Seq[StructField],
-      srcData: Seq[Row], 
+      srcData: Seq[Row],
       columnNames: Map[String, String], // standard column name to name of column in the dataset
       srcPairsData: Option[Seq[Row]] = None,
       pairsHaveWeight: Boolean=false
@@ -117,7 +161,7 @@ object PoolTestHelpers {
 
       val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema));
       var pool = srcPairsData match {
-        case Some(srcPairsData) => {  
+        case Some(srcPairsData) => {
           var pairsSchema = Seq(
             StructField("groupId", LongType, false),
             StructField("winnerId", LongType, false),
@@ -131,10 +175,10 @@ object PoolTestHelpers {
             StructType(pairsSchema)
           )
           new Pool(df, pairsDf)
-        } 
+        }
         case None => new Pool(df)
       }
-      
+
       if (columnNames.contains("features")) {
         pool = pool.setFeaturesCol(columnNames("features"))
       }
@@ -165,7 +209,8 @@ object PoolTestHelpers {
       expectedGroupSize: Int = 20,
       hasWeight: Boolean = false,
       pairsFraction: Double = 0.0, // fraction from all n^2/2 possible pairs for each group
-      pairsHaveWeight: Boolean = false
+      pairsHaveWeight: Boolean = false,
+      hasSampleId: Boolean = false
     ) : Pool = {
       if ((groupCount != 0) && (objectCount != 0)) {
         throw new RuntimeException("both objectCount and groupCount specified")
@@ -180,7 +225,9 @@ object PoolTestHelpers {
       if (hasWeight) {
         schemaFields = schemaFields :+ StructField("weight", DoubleType, false)
       }
-      if (pairsFraction != 0.0) {
+
+      val hasSampleIdUpdated = hasSampleId || (pairsFraction != 0)
+      if (hasSampleIdUpdated) {
         schemaFields = schemaFields :+ StructField("sampleId", LongType, false)
       }
 
@@ -190,7 +237,7 @@ object PoolTestHelpers {
 
       val createRow = () => Row {
         var fields = Seq[Any]()
-        
+
         if (groupCount != 0) {
           fields = fields :+ groupId
         }
@@ -211,7 +258,7 @@ object PoolTestHelpers {
           fields = fields :+ random.nextDouble()
         }
 
-        if (pairsFraction != 0) {
+        if (hasSampleIdUpdated) {
           // sampleId
           fields = fields :+ sampleId
         }
@@ -267,7 +314,7 @@ object PoolTestHelpers {
           pairsSchemaFields = pairsSchemaFields :+ StructField("weight", FloatType, false)
         }
         val pairsDf = spark.createDataFrame(
-          spark.sparkContext.parallelize(pairsRows), 
+          spark.sparkContext.parallelize(pairsRows),
           StructType(pairsSchemaFields)
         )
         pool = (new Pool(mainDf, pairsDf)).setGroupIdCol("groupId")
@@ -280,6 +327,24 @@ object PoolTestHelpers {
       if (hasWeight) {
         pool = pool.setWeightCol("weight")
       }
+      if (hasSampleIdUpdated) {
+        pool = pool.setSampleIdCol("sampleId")
+      }
       pool
+    }
+
+    def printDataFrame(df: DataFrame, file: File) = {
+      val dfWriter = new PrintWriter(file)
+      for (row <- df.collect()) {
+        val rowFields = row.toSeq.map { cell =>
+          cell match {
+            case null => "null"
+            case binary: Array[Byte] => binary.map("%02X".format(_)).mkString("[", " ", "]")
+            case _ => cell.toString
+          }
+        }
+        dfWriter.println(rowFields.mkString(" , "))
+      }
+      dfWriter.close()
     }
 }
