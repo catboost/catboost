@@ -82,7 +82,6 @@ RECURSE(
     string_utils
     svnversion
     terminate_handler
-    terminate_handler/sample
     testing
     text_processing
     threading

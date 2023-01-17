@@ -19,6 +19,8 @@ SRCS(
 
 END()
 
-RECURSE_FOR_TESTS(
+RECURSE(
     mt_ut
+    perf
+    ut
 )
