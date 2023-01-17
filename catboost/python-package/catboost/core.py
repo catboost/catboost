@@ -1271,6 +1271,38 @@ class Pool(_PoolBase):
                 thread_count,
                 quantization_params
             )
+            
+    def _infer_feature_names(self, data_as_data_frame, embedding_features_data=None, embedding_features=None):
+        non_embedding_data_feature_names = list(data_as_data_frame.columns)
+        
+        if embedding_features_data is not None:
+            if isinstance(embedding_features_data, dict):
+                embedding_feature_names = list(embedding_features_data.keys())
+                if embedding_features is not None:
+                    if set(embedding_features) != set(embedding_feature_names):
+                        raise CatBoostError('keys of embedding_features_data and embedding_features are different')
+                return non_embedding_data_feature_names + embedding_feature_names
+            else:
+                if embedding_features is None:
+                    raise CatBoostError('embedding_features is not specified but embedding_features_data without feature names is present')
+                if not all([isinstance(embedding_feature_id, INTEGER_TYPES) for embedding_feature_id in embedding_features]):
+                    raise CatBoostError('embedding_features contain feature names but embedding_features_data without feature names is present')
+                
+                embedding_features_set = set(embedding_features)
+
+                feature_names = []
+                non_embedding_feature_idx = 0
+                for feature_idx in range(len(non_embedding_data_feature_names) + len(embedding_features)):
+                    if feature_idx in embedding_features_set:
+                        feature_names.append('_embedding_feature_%i' % feature_idx)
+                    else:
+                        feature_names.append(non_embedding_data_feature_names[non_embedding_feature_idx])
+                        non_embedding_feature_idx += 1
+                        
+                return feature_names
+        else:
+            return non_embedding_data_feature_names
+
 
     def _init(
         self,
@@ -1296,23 +1328,27 @@ class Pool(_PoolBase):
         """
         if isinstance(data, DataFrame):
             if feature_names is None:
-                feature_names = list(data.columns)
+                feature_names = self._infer_feature_names(data, embedding_features_data, embedding_features)
         if isinstance(data, Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):
             samples_count = data.get_object_count()
             features_count = data.get_feature_count()
-        else:
+        elif data is not None:
             if len(np.shape(data)) == 1:
                 data = np.expand_dims(data, 1)
             samples_count, features_count = np.shape(data)
-            if embedding_features_data is not None:
-                features_count += len(embedding_features_data)
-                for embedding_feature_data in embedding_features_data:
-                    if len(embedding_feature_data) != samples_count:
-                        raise CatBoostError(
-                            "samples count in 'embeddings_features_data' does not correspond to samples count in main data"
-                        )
+        if embedding_features_data is not None:
+            features_count += len(embedding_features_data)
+            if isinstance(embedding_features_data, dict):
+                embedding_features_data_values = list(embedding_features_data.values())
+            else:
+                embedding_features_data_values = embedding_features_data
+            for embedding_feature_data in embedding_features_data_values:
+                if len(embedding_feature_data) != samples_count:
+                    raise CatBoostError(
+                        "samples count in 'embeddings_features_data' does not correspond to samples count in main data"
+                    )
         pairs_len = 0
         if label is not None:
             self._check_label_type(label)
