@@ -312,6 +312,9 @@
         "news": {
             "description": "Run news team tools"
         },
+        "taxi-format": {
+            "description": "Run taxi formatters utility"
+        },
         "saas2": {
             "description": "Run saas2 cli"
         },
@@ -5456,6 +5459,28 @@
                 }
             ]
         },
+        "taxi-format": {
+            "tools": {
+                "taxi-format": {
+                    "bottle": "taxi-format",
+                    "executable": "taxi-format"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "apphost": {
             "tools": {
                 "apphost": {
@@ -8235,6 +8260,21 @@
                 ]
             }
         },
+        "taxi-format": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "TAXI_FORMAT_BINARY",
+                        "owner": "TAXI-AUTOMATIZATION"
+                    }
+                }
+            },
+            "executable": {
+                "taxi-format": [
+                    "taxi-format"
+                ]
+            }
+        },
         "apphost": {
             "formula": {
                 "sandbox_id": 1481618035,
@@ -9183,7 +9223,7 @@
         },
         "rm": {
             "formula": {
-                "sandbox_id": 1411851575,
+                "sandbox_id": 1467056045,
                 "match": "rm_tool"
             },
             "executable": {
