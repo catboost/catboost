@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(1.1.1)
+VERSION(1.2.0)
 
 LICENSE(MIT)
 
@@ -23,6 +23,7 @@ RESOURCE_FILES(
     PREFIX contrib/python/executing/
     .dist-info/METADATA
     .dist-info/top_level.txt
+    executing/py.typed
 )
 
 END()
