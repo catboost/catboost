@@ -66,7 +66,7 @@ def _is_relaxed_runtime_allowed():
     global _relaxed_runtime_allowed
     if _relaxed_runtime_allowed:
         return True
-    return _is_binary()
+    return not _is_binary()
 
 
 def default_arg0(func):
@@ -86,7 +86,7 @@ def default_arg(func, narg):
         try:
             return func(*args, **kw)
         except NoRuntimeFormed:
-            if not _is_relaxed_runtime_allowed():
+            if _is_relaxed_runtime_allowed():
                 if len(args) > narg:
                     return args[narg]
                 return None
@@ -102,7 +102,7 @@ def default_value(value):
             try:
                 return func(*args, **kw)
             except NoRuntimeFormed:
-                if not _is_relaxed_runtime_allowed():
+                if _is_relaxed_runtime_allowed():
                     return value
                 raise
 
@@ -324,7 +324,7 @@ def gdb_path():
     """
     Get path to the gdb
     """
-    if not _is_relaxed_runtime_allowed():
+    if _is_relaxed_runtime_allowed():
         return "gdb"
     return _get_ya_plugin_instance().gdb_path
 
