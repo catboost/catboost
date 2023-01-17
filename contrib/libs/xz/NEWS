@@ -2,6 +2,111 @@
 XZ Utils Release Notes
 ======================
 
+5.2.5 (2020-03-17)
+
+    * liblzma:
+
+        - Fixed several C99/C11 conformance bugs. Now the code is clean
+          under gcc/clang -fsanitize=undefined. Some of these changes
+          might have a negative effect on performance with old GCC
+          versions or compilers other than GCC and Clang. The configure
+          option --enable-unsafe-type-punning can be used to (mostly)
+          restore the old behavior but it shouldn't normally be used.
+
+        - Improved API documentation of lzma_properties_decode().
+
+        - Added a very minor encoder speed optimization.
+
+    * xz:
+
+        - Fixed a crash in "xz -dcfv not_an_xz_file". All four options
+          were required to trigger it. The crash occurred in the
+          progress indicator code when xz was in passthru mode where
+          xz works like "cat".
+
+        - Fixed an integer overflow with 32-bit off_t. It could happen
+          when decompressing a file that has a long run of zero bytes
+          which xz would try to write as a sparse file. Since the build
+          system enables large file support by default, off_t is
+          normally 64-bit even on 32-bit systems.
+
+        - Fixes for --flush-timeout:
+            * Fix semi-busy-waiting.
+            * Avoid unneeded flushes when no new input has arrived
+              since the previous flush was completed.
+
+        - Added a special case for 32-bit xz: If --memlimit-compress is
+          used to specify a limit that exceeds 4020 MiB, the limit will
+          be set to 4020 MiB. The values "0" and "max" aren't affected
+          by this and neither is decompression. This hack can be
+          helpful when a 32-bit xz has access to 4 GiB address space
+          but the specified memlimit exceeds 4 GiB. This can happen
+          e.g. with some scripts.
+
+        - Capsicum sandbox is now enabled by default where available
+          (FreeBSD >= 10). The sandbox debug messages (xz -vv) were
+          removed since they seemed to be more annoying than useful.
+
+        - DOS build now requires DJGPP 2.05 instead of 2.04beta.
+          A workaround for a locale problem with DJGPP 2.05 was added.
+
+    * xzgrep and other scripts:
+
+        - Added a configure option --enable-path-for-scripts=PREFIX.
+          It is disabled by default except on Solaris where the default
+          is /usr/xpg4/bin. See INSTALL for details.
+
+        - Added a workaround for a POSIX shell detection problem on
+          Solaris.
+
+    * Build systems:
+
+        - Added preliminary build instructions for z/OS. See INSTALL
+          section 1.2.9.
+
+        - Experimental CMake support was added. It should work to build
+          static liblzma on a few operating systems. It may or may not
+          work to build shared liblzma. On some platforms it can build
+          xz and xzdec too but those are only for testing. See the
+          comment in the beginning of CMakeLists.txt for details.
+
+        - Visual Studio project files were updated.
+          WindowsTargetPlatformVersion was removed from VS2017 files
+          and set to "10.0" in the added VS2019 files. In the future
+          the VS project files will be removed when CMake support is
+          good enough.
+
+        - New #defines in config.h: HAVE___BUILTIN_ASSUME_ALIGNED,
+          HAVE___BUILTIN_BSWAPXX, and TUKLIB_USE_UNSAFE_TYPE_PUNNING.
+
+        - autogen.sh has a new optional dependency on po4a and a new
+          option --no-po4a to skip that step. This matters only if one
+          wants to remake the build files. po4a is used to update the
+          translated man pages but as long as the man pages haven't
+          been modified, there's nothing to update and one can use
+          --no-po4a to avoid the dependency on po4a.
+
+    * Translations:
+
+        - XZ Utils translations are now handled by the Translation
+          Project: https://translationproject.org/domain/xz.html
+
+        - All man pages are now included in German too.
+
+        - New xz translations: Brazilian Portuguese, Finnish,
+          Hungarian, Chinese (simplified), Chinese (traditional),
+          and Danish (partial translation)
+
+        - Updated xz translations: French, German, Italian, and Polish
+
+        - Unfortunately a few new xz translations weren't included due
+          to technical problems like too long lines in --help output or
+          misaligned column headings in tables. In the future, many of
+          these strings will be split and e.g. the table column
+          alignment will be handled in software. This should make the
+          strings easier to translate.
+
+
 5.2.4 (2018-04-29)
 
     * liblzma:
@@ -21,7 +126,7 @@ XZ Utils Release Notes
     * xz:
 
         - Fix "xz --list --robot missing_or_bad_file.xz" which would
-          try to print an unitialized string and thus produce garbage
+          try to print an uninitialized string and thus produce garbage
           output. Since the exit status is non-zero, most uses of such
           a command won't try to interpret the garbage output.
 

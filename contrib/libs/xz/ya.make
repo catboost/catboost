@@ -2,9 +2,9 @@
 
 
 
-VERSION(5.2.4)
+VERSION(5.2.5)
 
-ORIGINAL_SOURCE(https://tukaani.org/xz/xz-5.2.4.tar.bz2)
+ORIGINAL_SOURCE(https://tukaani.org/xz/xz-5.2.5.tar.bz2)
 
 RECURSE(
     liblzma
