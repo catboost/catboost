@@ -11,9 +11,10 @@ if t.TYPE_CHECKING:
             pass
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
-_striptags_re = re.compile(r"(<!--.*?-->|<[^>]*>)")
+_strip_comments_re = re.compile(r"<!--.*?-->")
+_strip_tags_re = re.compile(r"<.*?>")
 
 
 def _simple_escaping_wrapper(name: str) -> t.Callable[..., "Markup"]:
@@ -158,8 +159,11 @@ class Markup(str):
         >>> Markup("Main &raquo;\t<em>About</em>").striptags()
         'Main » About'
         """
-        stripped = " ".join(_striptags_re.sub("", self).split())
-        return Markup(stripped).unescape()
+        # Use two regexes to avoid ambiguous matches.
+        value = _strip_comments_re.sub("", self)
+        value = _strip_tags_re.sub("", value)
+        value = " ".join(value.split())
+        return Markup(value).unescape()
 
     @classmethod
     def escape(cls, s: t.Any) -> "Markup":
