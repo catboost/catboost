@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-strings)
 target_compile_options(abseil-cpp-absl-strings PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-strings PUBLIC
