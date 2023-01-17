@@ -6,18 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(model_interface-static-lib)
-target_compile_options(model_interface-static-lib PRIVATE
-  -DCATBOOST_API_STATIC_LIB
-)
-target_link_libraries(model_interface-static-lib PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-cat_feature
-  catboost-libs-data
-  catboost-libs-model
-)
-target_sources(model_interface-static-lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

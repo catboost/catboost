@@ -6,15 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-pugixml)
-target_compile_options(contrib-libs-pugixml PRIVATE
-  -Wno-everything
-)
-target_link_libraries(contrib-libs-pugixml PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(contrib-libs-pugixml PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/pugixml/pugixml.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

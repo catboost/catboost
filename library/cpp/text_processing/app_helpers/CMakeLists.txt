@@ -6,14 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-text_processing-app_helpers)
-target_link_libraries(cpp-text_processing-app_helpers PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-text_processing-dictionary
-  cpp-text_processing-tokenizer
-)
-target_sources(cpp-text_processing-app_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/app_helpers/app_helpers.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

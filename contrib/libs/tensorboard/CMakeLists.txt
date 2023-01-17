@@ -6,31 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-tensorboard)
-target_link_libraries(contrib-libs-tensorboard PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-protobuf
-)
-target_proto_messages(contrib-libs-tensorboard PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/event.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/resource_handle.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/summary.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/tensor.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/tensor_shape.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/types.proto
-)
-target_proto_addincls(contrib-libs-tensorboard
-  ./
-  ${CMAKE_SOURCE_DIR}/
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-)
-target_proto_outs(contrib-libs-tensorboard
-  --cpp_out=${CMAKE_BINARY_DIR}/
-  --cpp_styleguide_out=${CMAKE_BINARY_DIR}/
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

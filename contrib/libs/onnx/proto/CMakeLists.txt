@@ -6,32 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(libs-onnx-proto)
-target_include_directories(libs-onnx-proto PUBLIC
-  ${CMAKE_BINARY_DIR}/contrib/libs/onnx
-)
-target_link_libraries(libs-onnx-proto PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-protobuf
-)
-target_proto_messages(libs-onnx-proto PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx_data.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx_ml.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx_operators_ml.proto
-)
-target_proto_addincls(libs-onnx-proto
-  ./contrib/libs/onnx
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-)
-target_proto_outs(libs-onnx-proto
-  --cpp_out=${CMAKE_BINARY_DIR}/contrib/libs/onnx
-  --cpp_styleguide_out=${CMAKE_BINARY_DIR}/contrib/libs/onnx
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

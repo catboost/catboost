@@ -6,55 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(ut)
-
-add_library(private-libs-embedding_features)
-target_link_libraries(private-libs-embedding_features PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-text_features
-  private-libs-text_processing
-  contrib-libs-clapack
-  contrib-libs-flatbuffers
-  cpp-hnsw-index
-  cpp-online_hnsw-dense_vectors
-)
-target_sources(private-libs-embedding_features PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_calcers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_feature_calcer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_processing_collection.cpp
-  ${CMAKE_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.cpp
-  ${CMAKE_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.cpp
-)
-target_fbs_source(private-libs-embedding_features
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs
-  -I
-  ${CMAKE_BINARY_DIR}
-  -I
-  ${CMAKE_SOURCE_DIR}
-)
-target_fbs_source(private-libs-embedding_features
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs
-  -I
-  ${CMAKE_BINARY_DIR}
-  -I
-  ${CMAKE_SOURCE_DIR}
-)
-
-add_global_library_for(private-libs-embedding_features.global private-libs-embedding_features)
-target_link_libraries(private-libs-embedding_features.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-text_features
-  private-libs-text_processing
-  contrib-libs-clapack
-  contrib-libs-flatbuffers
-  cpp-hnsw-index
-  cpp-online_hnsw-dense_vectors
-)
-target_sources(private-libs-embedding_features.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/knn.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/lda.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

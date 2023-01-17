@@ -6,25 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(ut)
-
-add_library(private-libs-feature_estimator)
-target_link_libraries(private-libs-feature_estimator PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-helpers
-  private-libs-embeddings
-  private-libs-embedding_features
-  private-libs-text_features
-  private-libs-text_processing
-  private-libs-options
-  cpp-threading-local_executor
-)
-target_sources(private-libs-feature_estimator PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_embedding_feature_estimator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_text_feature_estimator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/classification_target.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/embedding_feature_estimators.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/feature_estimator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/text_feature_estimators.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

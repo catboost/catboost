@@ -6,25 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(ut)
-
-add_library(private-libs-quantization_schema)
-target_link_libraries(private-libs-quantization_schema PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  idl-pool-proto
-  catboost-libs-helpers
-  private-libs-options
-  library-cpp-json
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(private-libs-quantization_schema PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization_schema/detail.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization_schema/schema.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization_schema/serialization.cpp
-)
-generate_enum_serilization(private-libs-quantization_schema
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization_schema/serialization.h
-  INCLUDE_HEADERS
-  catboost/private/libs/quantization_schema/serialization.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

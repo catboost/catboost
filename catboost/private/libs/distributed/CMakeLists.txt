@@ -6,25 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-distributed)
-target_link_libraries(private-libs-distributed PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-data
-  catboost-libs-helpers
-  catboost-libs-metrics
-  private-libs-algo
-  libs-algo-approx_calcer
-  private-libs-algo_helpers
-  private-libs-index_range
-  private-libs-options
-  library-cpp-binsaver
-  library-cpp-json
-  library-cpp-par
-)
-target_sources(private-libs-distributed PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/distributed/mappers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/distributed/master.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/distributed/worker.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

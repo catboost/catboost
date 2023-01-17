@@ -6,13 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(assert)
-add_subdirectory(coding)
-add_subdirectory(exception)
-add_subdirectory(malloc)
-add_subdirectory(memory)
-add_subdirectory(misc)
-add_subdirectory(small_containers)
-add_subdirectory(string)
-add_subdirectory(yson)
-add_subdirectory(yson_string)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

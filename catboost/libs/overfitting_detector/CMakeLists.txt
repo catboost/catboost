@@ -6,24 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-overfitting_detector)
-target_link_libraries(catboost-libs-overfitting_detector PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-helpers
-  catboost-libs-logging
-  catboost-libs-metrics
-  private-libs-options
-  library-cpp-statistics
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(catboost-libs-overfitting_detector PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/overfitting_detector/error_tracker.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/overfitting_detector/overfitting_detector.cpp
-)
-generate_enum_serilization(catboost-libs-overfitting_detector
-  ${CMAKE_SOURCE_DIR}/catboost/libs/overfitting_detector/overfitting_detector.h
-  INCLUDE_HEADERS
-  catboost/libs/overfitting_detector/overfitting_detector.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

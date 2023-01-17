@@ -6,18 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-init INTERFACE)
-target_link_libraries(private-libs-init INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-)
-
-add_global_library_for(private-libs-init.global private-libs-init)
-target_link_libraries(private-libs-init.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(private-libs-init.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/init/init_reg.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

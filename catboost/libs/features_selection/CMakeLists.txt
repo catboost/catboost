@@ -6,26 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-features_selection)
-target_link_libraries(catboost-libs-features_selection PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-data
-  catboost-libs-eval_result
-  catboost-libs-fstr
-  catboost-libs-model
-  catboost-libs-helpers
-  catboost-libs-train_lib
-  private-libs-algo
-  private-libs-distributed
-  private-libs-labels
-  private-libs-options
-  private-libs-target
-  cpp-json-writer
-)
-target_sources(catboost-libs-features_selection PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/features_selection/recursive_features_elimination.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/features_selection/select_features.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/features_selection/selection_results.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

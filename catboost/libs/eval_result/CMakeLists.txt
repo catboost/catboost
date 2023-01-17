@@ -6,32 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-eval_result)
-target_link_libraries(catboost-libs-eval_result PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-threading-local_executor
-  catboost-libs-column_description
-  catboost-libs-data
-  private-libs-data_util
-  catboost-libs-helpers
-  idl-pool-flat
-  private-libs-labels
-  catboost-libs-logging
-  catboost-libs-model
-  private-libs-options
-  private-libs-quantized_pool
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(catboost-libs-eval_result PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/column_printer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/eval_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/eval_result.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/pool_printer.cpp
-)
-generate_enum_serilization(catboost-libs-eval_result
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/eval_helpers.h
-  INCLUDE_HEADERS
-  catboost/libs/eval_result/eval_helpers.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -6,18 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(ut_util)
-
-add_library(library-cpp-binsaver)
-target_link_libraries(library-cpp-binsaver PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-containers-2d_array
-)
-target_sources(library-cpp-binsaver PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/bin_saver.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/blob_io.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/buffered_io.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/mem_io.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/util_stream_io.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

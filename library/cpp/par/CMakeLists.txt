@@ -6,42 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(library-cpp-par)
-target_link_libraries(library-cpp-par PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  tools-enum_parser-enum_serialization_runtime
-  library-cpp-binsaver
-  library-cpp-blockcodecs
-  library-cpp-chromium_trace
-  cpp-containers-ring_buffer
-  cpp-digest-crc32c
-  cpp-logger-global
-  library-cpp-neh
-  cpp-netliba-v12
-  cpp-threading-atomic
-  cpp-threading-local_executor
-  cpp-deprecated-atomic
-)
-target_sources(library-cpp-par PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/distr_tree.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/compression.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_context.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_exec.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_host.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_jobreq.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_master.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_mr.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_network.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_remote.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_util.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_log.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_wb.cpp
-)
-generate_enum_serilization(library-cpp-par
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_host_stats.h
-  INCLUDE_HEADERS
-  library/cpp/par/par_host_stats.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

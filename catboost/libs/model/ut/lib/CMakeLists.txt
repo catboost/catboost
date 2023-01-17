@@ -6,17 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(model-ut-lib)
-target_link_libraries(model-ut-lib PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-data
-  data-ut-lib
-  catboost-libs-model
-  catboost-libs-train_lib
-  library-cpp-json
-)
-target_sources(model-ut-lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/lib/model_test_helpers.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -6,17 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-calc_metrics)
-target_link_libraries(catboost-libs-calc_metrics PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-threading-local_executor
-  catboost-libs-data
-  catboost-libs-metrics
-  private-libs-target
-  private-libs-options
-)
-target_sources(catboost-libs-calc_metrics PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/calc_metrics/calc_metrics.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

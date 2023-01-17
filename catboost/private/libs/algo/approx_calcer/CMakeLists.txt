@@ -6,18 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(libs-algo-approx_calcer)
-target_link_libraries(libs-algo-approx_calcer PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-helpers
-  catboost-libs-metrics
-  private-libs-algo_helpers
-  private-libs-options
-)
-target_sources(libs-algo-approx_calcer PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/approx_calcer_multi.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/eval_additive_metric_with_leaves.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/leafwise_approx_calcer.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

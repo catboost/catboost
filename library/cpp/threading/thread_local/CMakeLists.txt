@@ -6,20 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-threading-thread_local)
-target_link_libraries(cpp-threading-thread_local PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-threading-hot_swap
-  cpp-threading-skip_list
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(cpp-threading-thread_local PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.cpp
-)
-generate_enum_serilization(cpp-threading-thread_local
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.h
-  INCLUDE_HEADERS
-  library/cpp/threading/thread_local/thread_local.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

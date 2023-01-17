@@ -6,57 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-find_package(OpenSSL REQUIRED)
-add_subdirectory(asio)
-
-add_library(library-cpp-neh)
-target_link_libraries(library-cpp-neh PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  OpenSSL::OpenSSL
-  cpp-containers-intrusive_rb_tree
-  cpp-coroutine-engine
-  cpp-coroutine-listener
-  library-cpp-dns
-  cpp-http-io
-  cpp-http-misc
-  cpp-http-push_parser
-  cpp-neh-asio
-  cpp-netliba-v6
-  cpp-openssl-init
-  cpp-openssl-method
-  cpp-threading-atomic
-  cpp-threading-thread_local
-  cpp-deprecated-atomic
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(library-cpp-neh PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/conn_cache.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/factory.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/https.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http_common.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http_headers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http2.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/inproc.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/jobqueue.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/location.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/multi.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/multiclient.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/netliba.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/netliba_udp_http.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/neh.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/pipequeue.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/rpc.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/rq.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/smart_ptr.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/stat.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/tcp.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/tcp2.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/udp.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/utils.cpp
-)
-generate_enum_serilization(library-cpp-neh
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http_common.h
-  INCLUDE_HEADERS
-  library/cpp/neh/http_common.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

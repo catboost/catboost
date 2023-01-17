@@ -6,32 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(library-cpp-chromium_trace)
-target_link_libraries(library-cpp-chromium_trace PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-containers-stack_vector
-  cpp-json-writer
-  library-cpp-yson
-  cpp-deprecated-atomic
-)
-target_sources(library-cpp-chromium_trace PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/blocking_queue.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/consumer.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/event.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/gettime.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/global.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/guard.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/json.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/queue.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/sampler.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/samplers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/sync.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/tracer.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/yson.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/counter.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/interface.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/sample_value.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/saveload.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

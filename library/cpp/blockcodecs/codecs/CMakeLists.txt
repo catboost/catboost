@@ -6,12 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(brotli)
-add_subdirectory(bzip)
-add_subdirectory(fastlz)
-add_subdirectory(legacy_zstd06)
-add_subdirectory(lz4)
-add_subdirectory(lzma)
-add_subdirectory(snappy)
-add_subdirectory(zlib)
-add_subdirectory(zstd)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

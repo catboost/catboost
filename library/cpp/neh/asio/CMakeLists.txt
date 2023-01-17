@@ -6,22 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-neh-asio)
-target_link_libraries(cpp-neh-asio PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-libc_compat
-  cpp-coroutine-engine
-  library-cpp-dns
-  cpp-deprecated-atomic
-)
-target_sources(cpp-neh-asio PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/asio.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/deadline_timer_impl.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/executor.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/io_service_impl.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/poll_interrupter.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/tcp_acceptor_impl.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/tcp_socket_impl.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -6,21 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(tensorboard_logger_example)
-
-add_library(catboost-libs-loggers)
-target_link_libraries(catboost-libs-loggers PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-logging
-  private-libs-options
-  catboost-libs-metrics
-  contrib-libs-tensorboard
-  cpp-digest-crc32c
-  cpp-json-writer
-)
-target_sources(catboost-libs-loggers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/loggers/catboost_logger_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/loggers/logger.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -6,14 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-find_package(OpenSSL REQUIRED)
-
-add_library(cpp-openssl-init)
-target_link_libraries(cpp-openssl-init PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  OpenSSL::OpenSSL
-)
-target_sources(cpp-openssl-init PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/openssl/init/init.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -6,21 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(idl-pool-flat)
-target_link_libraries(idl-pool-flat PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-flatbuffers
-)
-target_sources(idl-pool-flat PRIVATE
-  ${CMAKE_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.fbs.cpp
-)
-target_fbs_source(idl-pool-flat
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/idl/pool/flat/quantized_chunk_t.fbs
-  -I
-  ${CMAKE_BINARY_DIR}
-  -I
-  ${CMAKE_SOURCE_DIR}
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

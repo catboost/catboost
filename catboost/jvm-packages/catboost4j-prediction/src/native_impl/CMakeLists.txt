@@ -6,18 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-find_package(JNITarget REQUIRED)
-
-add_library(catboost4j-prediction SHARED)
-target_link_libraries(catboost4j-prediction PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-malloc-mimalloc
-  catboost-libs-helpers
-  catboost-libs-model
-  JNITarget::jni
-)
-target_sources(catboost4j-prediction PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/ai_catboost_CatBoostJNIImpl.cpp
-)
-vcs_info(catboost4j-prediction)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()
