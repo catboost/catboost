@@ -171,3 +171,4 @@ market/sovetnik/postcss-scopify
 market/sovetnik/internal-postcss-scopify
 market/sovetnik/internal-postcss-all-important
 market/sovetnik/luster-log-pid
+market/sovetnik/luster-log-winston
