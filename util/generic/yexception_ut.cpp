@@ -51,6 +51,9 @@ class TExceptionTest: public TTestBase {
     UNIT_TEST(TestEnsureWithBackTrace2)
 #ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
     UNIT_TEST(TestFormatCurrentException)
+#endif
+    UNIT_TEST(TestFormatCurrentExceptionWithNoException)
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
     UNIT_TEST(TestFormatCurrentExceptionWithInvalidBacktraceFormatter)
 #endif
     UNIT_TEST(TestRethrowAppend)
@@ -147,6 +150,10 @@ private:
         }
     }
 #endif
+
+    void TestFormatCurrentExceptionWithNoException() {
+        UNIT_ASSERT_VALUES_EQUAL(FormatCurrentException(), "(NO EXCEPTION)\n");
+    }
 
 #ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
     void TestFormatCurrentExceptionWithInvalidBacktraceFormatter() {
