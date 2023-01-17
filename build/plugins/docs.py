@@ -32,6 +32,9 @@ def onprocess_docs(unit, *args):
     if unit.enabled('_DOCS_USE_PLANTUML'):
         unit.on_docs_yfm_use_plantuml([])
 
+    if unit.get('_DOCS_DIR_VALUE') == '':
+        unit.on_yfm_docs_dir([unit.get('_YFM_DOCS_DIR_DEFAULT_VALUE')])
+
     variables = get_variables(unit)
     if variables:
         unit.set(['_DOCS_VARS_FLAG', '--vars {}'.format(json.dumps(json.dumps(variables, sort_keys=True)))])
