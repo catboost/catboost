@@ -30,8 +30,7 @@
 
 - includes:
   - cxxabi.h:
-    - contrib/libs/cxxsupp/libcxx/include/cxxabi.h
-    - contrib/libs/cxxsupp/libcxxrt/cxxabi.h
+    - contrib/libs/cxxsupp/libcxxrt/include/cxxabi.h
   - omp.h:
     - contrib/libs/cxxsupp/openmp/omp.h
   - unwind.h:

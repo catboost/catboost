@@ -18,11 +18,12 @@ target_compile_options(libs-cxxsupp-libcxx PRIVATE
 )
 target_include_directories(libs-cxxsupp-libcxx PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/include
 )
 target_include_directories(libs-cxxsupp-libcxx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/include
 )
 target_link_libraries(libs-cxxsupp-libcxx PUBLIC
   libs-cxxsupp-libcxxabi-parts
