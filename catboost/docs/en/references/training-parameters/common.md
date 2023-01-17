@@ -924,8 +924,7 @@ Depends on the mode and the selected loss function:
 
 **Supported processing units**
 
-- The {{ fit__leaf_estimation_method__Exact }} method is available only on {{ calcer_type__cpu }}
-- All other methods are available on both {{ calcer_type__cpu }} and {{ calcer_type__gpu }}
+ {{ cpu-gpu }}
 
 
 ## leaf_estimation_iterations {#leaf_estimation_iterations}
