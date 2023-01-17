@@ -77,6 +77,7 @@ target_joined_source(yutil
   ${CMAKE_SOURCE_DIR}/util/generic/fastqueue.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/flags.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/function.cpp
+  ${CMAKE_SOURCE_DIR}/util/generic/function_ref.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/fwd.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/guid.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/hash.cpp
