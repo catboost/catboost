@@ -6609,12 +6609,7 @@
             }
         },
         "ymake": {
-            "formula": {
-                "sandbox_id": [
-                    1468386780
-                ],
-                "match": "ymake"
-            },
+            "formula": "build/external_resources/ymake/resources.json",
             "executable": {
                 "ymake": [
                     "ymake"
@@ -8963,7 +8958,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1472183897,
+                "sandbox_id": 1473474364,
                 "match": "yt_sync"
             },
             "executable": {
