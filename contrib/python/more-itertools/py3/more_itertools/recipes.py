@@ -7,14 +7,16 @@ Some backward-compatible usability improvements have been made.
 .. [1] http://docs.python.org/library/itertools.html#recipes
 
 """
+import math
 import operator
-import warnings
 
 from collections import deque
 from collections.abc import Sized
+from functools import reduce
 from itertools import (
     chain,
     combinations,
+    compress,
     count,
     cycle,
     groupby,
@@ -28,6 +30,7 @@ from random import randrange, sample, choice
 
 __all__ = [
     'all_equal',
+    'batched',
     'before_and_after',
     'consume',
     'convolve',
@@ -43,6 +46,7 @@ __all__ = [
     'pad_none',
     'pairwise',
     'partition',
+    'polynomial_from_roots',
     'powerset',
     'prepend',
     'quantify',
@@ -52,6 +56,7 @@ __all__ = [
     'random_product',
     'repeatfunc',
     'roundrobin',
+    'sieve',
     'sliding_window',
     'subslices',
     'tabulate',
@@ -364,11 +369,6 @@ def grouper(iterable, n, incomplete='fill', fillvalue=None):
     UnequalIterablesError
 
     """
-    if isinstance(iterable, int):
-        warnings.warn(
-            "grouper expects iterable as first parameter", DeprecationWarning
-        )
-        n, iterable = iterable, n
     args = [iter(iterable)] * n
     if incomplete == 'fill':
         return zip_longest(*args, fillvalue=fillvalue)
@@ -738,11 +738,12 @@ def before_and_after(predicate, it):
                 transition.append(elem)
                 return
 
-    def remainder_iterator():
-        yield from transition
-        yield from it
+    # Note: this is different from itertools recipes to allow nesting
+    # before_and_after remainders into before_and_after again. See tests
+    # for an example.
+    remainder_iterator = chain(transition, it)
 
-    return true_iterator(), remainder_iterator()
+    return true_iterator(), remainder_iterator
 
 
 def triplewise(iterable):
@@ -790,3 +791,51 @@ def subslices(iterable):
     seq = list(iterable)
     slices = starmap(slice, combinations(range(len(seq) + 1), 2))
     return map(operator.getitem, repeat(seq), slices)
+
+
+def polynomial_from_roots(roots):
+    """Compute a polynomial's coefficients from its roots.
+
+    >>> roots = [5, -4, 3]  # (x - 5) * (x + 4) * (x - 3)
+    >>> polynomial_from_roots(roots)  # x^3 - 4 * x^2 - 17 * x + 60
+    [1, -4, -17, 60]
+    """
+    # Use math.prod for Python 3.8+,
+    prod = getattr(math, 'prod', lambda x: reduce(operator.mul, x, 1))
+    roots = list(map(operator.neg, roots))
+    return [
+        sum(map(prod, combinations(roots, k))) for k in range(len(roots) + 1)
+    ]
+
+
+def sieve(n):
+    """Yield the primes less than n.
+
+    >>> list(sieve(30))
+    [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+    """
+    isqrt = getattr(math, 'isqrt', lambda x: int(math.sqrt(x)))
+    limit = isqrt(n) + 1
+    data = bytearray([1]) * n
+    data[:2] = 0, 0
+    for p in compress(range(limit), data):
+        data[p + p : n : p] = bytearray(len(range(p + p, n, p)))
+
+    return compress(count(), data)
+
+
+def batched(iterable, n):
+    """Batch data into lists of length *n*. The last batch may be shorter.
+
+    >>> list(batched('ABCDEFG', 3))
+    [['A', 'B', 'C'], ['D', 'E', 'F'], ['G']]
+
+    This recipe is from the ``itertools`` docs. This library also provides
+    :func:`chunked`, which has a different implementation.
+    """
+    it = iter(iterable)
+    while True:
+        batch = list(islice(it, n))
+        if not batch:
+            break
+        yield batch
