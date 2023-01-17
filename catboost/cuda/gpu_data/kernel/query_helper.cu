@@ -157,7 +157,7 @@ namespace NKernel {
         for (int i = x; i < querySize; i += 32) {
             const float t = __ldg(target + i);
             const float w = weights != nullptr ? __ldg(weights + i) : 1.0f;
-            sumTarget += t;
+            sumTarget += t * w;
             sumWeight += w;
         }
 
