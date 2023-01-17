@@ -22,6 +22,16 @@ trait TrainingParamsTrait
   )
 
   @ParamGetterSetter
+  final val trainingDriverListeningPort: IntParam = new IntParam(
+    this,
+    "trainingDriverListeningPort",
+    "Port used for communication on the driver's side during training. Default is 0, that means automatic assignment"
+    + ""
+  )
+
+  setDefault(trainingDriverListeningPort, 0)
+
+  @ParamGetterSetter
   final val workerInitializationTimeout: DurationParam = new DurationParam(
     this,
     "workerInitializationTimeout",
@@ -40,6 +50,16 @@ trait TrainingParamsTrait
   )
 
   setDefault(workerMaxFailures, 4)
+
+  @ParamGetterSetter
+  final val workerListeningPort: IntParam = new IntParam(
+    this,
+    "workerListeningPort",
+    "Port used for communication on the workers' side during training. Default is 0, that means automatic assignment"
+    + ""
+  )
+
+  setDefault(workerListeningPort, 0)
 
   @ParamGetterSetter
   final val connectTimeout: DurationParam = new DurationParam(
