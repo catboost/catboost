@@ -4,7 +4,7 @@
 
     Lexer for Relax-NG Compact syntax
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,12 +17,13 @@ __all__ = ['RNCCompactLexer']
 
 class RNCCompactLexer(RegexLexer):
     """
-    For `RelaxNG-compact <http://relaxng.org>`_ syntax.
+    For RelaxNG-compact syntax.
 
     .. versionadded:: 2.2
     """
 
     name = 'Relax-NG Compact'
+    url = 'http://relaxng.org'
     aliases = ['rng-compact', 'rnc']
     filenames = ['*.rnc']
 

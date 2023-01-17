@@ -6,7 +6,7 @@
 
     The description of the format can be found in the wiki: https://wiki.archlinux.org/title/.SRCINFO
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

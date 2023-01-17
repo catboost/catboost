@@ -177,21 +177,27 @@ THolder<IDerCalcer> BuildError(
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
-            for (auto &param: lossParams) {
-                CB_ENSURE(
-                        param.first == "alpha" || param.first == "delta",
-                        "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
-            }
+            const auto badParam = FindIf(lossParams, [] (const auto& param) { return !EqualToOneOf(param.first, "alpha", "delta"); });
+            CB_ENSURE(badParam == lossParams.end(), "Invalid loss description " << ToString(badParam->first));
             double alpha = lossParams.contains("alpha") ? FromString<float>(lossParams.at("alpha")) : 0.5;
             double delta = lossParams.contains("delta") ? FromString<float>(lossParams.at("delta")) : 1e-6;
             return MakeHolder<TQuantileError>(alpha, delta, isStoreExpApprox);
+        }
+        case ELossFunction::MultiQuantile: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            const auto badParam = FindIf(lossParams, [] (const auto& param) { return !EqualToOneOf(param.first, "alpha", "delta"); });
+            CB_ENSURE(badParam == lossParams.end(), "Invalid loss description " << ToString(badParam->first));
+            const auto alpha = NCatboostOptions::GetAlphaMultiQuantile(lossParams);
+            CB_ENSURE(alpha.size() >= 2, "Parameter alpha should contain at least two quantiles separated by comma");
+            double delta = lossParams.contains("delta") ? FromString<float>(lossParams.at("delta")) : 1e-6;
+            return MakeHolder<TMultiQuantileError>(alpha, delta, isStoreExpApprox);
         }
         case ELossFunction::Expectile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
             if (lossParams.empty()) {
                 return MakeHolder<TExpectileError>(isStoreExpApprox);
             } else {
-                CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+                CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description " << ToString(params.LossFunctionDescription.Get()));
                 return MakeHolder<TExpectileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
             }
         }
@@ -202,7 +208,7 @@ THolder<IDerCalcer> BuildError(
             } else {
                 CB_ENSURE(
                     lossParams.begin()->first == "alpha",
-                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+                    "Invalid loss description " << ToString(params.LossFunctionDescription.Get()));
                 return MakeHolder<TLogLinQuantileError>(
                     FromString<float>(lossParams.at("alpha")),
                     isStoreExpApprox);

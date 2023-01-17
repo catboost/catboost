@@ -4,7 +4,7 @@
 
     Lexers for TigerGraph GSQL graph query language
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,11 +20,12 @@ __all__ = ["GSQLLexer"]
 class GSQLLexer(RegexLexer):
 
     """
-    For `GSQL <https://docs.tigergraph.com/dev/gsql-ref>`_ queries (version 3.x).
+    For GSQL queries (version 3.x).
     .. versionadded:: 2.10
     """
 
     name = 'GSQL'
+    url = 'https://docs.tigergraph.com/dev/gsql-ref'
     aliases = ['gsql']
     filenames = ['*.gsql']
 

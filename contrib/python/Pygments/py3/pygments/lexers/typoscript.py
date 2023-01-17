@@ -13,7 +13,7 @@
     `TypoScriptHtmlDataLexer`
         Lexer that highlights markers, constants and registers within html tags.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -100,12 +100,11 @@ class TypoScriptLexer(RegexLexer):
     """
     Lexer for TypoScript code.
 
-    http://docs.typo3.org/typo3cms/TyposcriptReference/
-
     .. versionadded:: 2.2
     """
 
     name = 'TypoScript'
+    url = 'http://docs.typo3.org/typo3cms/TyposcriptReference/'
     aliases = ['typoscript']
     filenames = ['*.typoscript']
     mimetypes = ['text/x-typoscript']

@@ -4,7 +4,7 @@
 
     Lexer for SAS.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,7 +18,7 @@ __all__ = ['SASLexer']
 
 class SASLexer(RegexLexer):
     """
-    For `SAS <http://www.sas.com/>`_ files.
+    For SAS files.
 
     .. versionadded:: 2.2
     """

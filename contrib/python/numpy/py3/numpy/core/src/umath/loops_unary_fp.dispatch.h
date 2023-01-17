@@ -10,5 +10,10 @@
 #undef NPY__CPU_DISPATCH_CALL
 #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
+#if defined(__x86_64__) || defined(_M_X64)
 #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(SSE)&&CHK(SSE2)&&CHK(SSE3)&&CHK(SSSE3)&&CHK(SSE41)), SSE41, __VA_ARGS__))
+#elif defined(__aarch64__)
+#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+
+#endif

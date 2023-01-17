@@ -450,6 +450,34 @@ void TSurvivalAftError::CalcDers(
 }
 
 
+void TMultiQuantileError::CalcDersMulti(
+    const TVector<double>& approx,
+    float target,
+    float weight,
+    TVector<double>* der,
+    THessianInfo* der2
+) const {
+    const auto quantileCount = Alpha.size();
+    Y_ASSERT(approx.size() == quantileCount);
+    Y_ASSERT(der && der->size() == quantileCount);
+    for (auto idx : xrange(quantileCount)) {
+        const auto arg = target - approx[idx];
+        if (abs(arg) < Delta) {
+            (*der)[idx] = 0;
+        } else {
+            (*der)[idx] = weight * (arg > 0 ? Alpha[idx] : -(1.0 - Alpha[idx]));
+        }
+    }
+
+    if (der2 != nullptr) {
+        Y_ASSERT(
+            der2->HessianType == EHessianType::Diagonal
+            && der2->ApproxDimension == SafeIntegerCast<int>(quantileCount));
+        Fill(der2->Data.begin(), der2->Data.end(), weight * QUANTILE_DER2_AND_DER3);
+    }
+}
+
+
 void TCrossEntropyError::CalcFirstDerRange(
     int start,
     int count,

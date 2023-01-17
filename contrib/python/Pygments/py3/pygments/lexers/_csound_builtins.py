@@ -2,7 +2,7 @@
     pygments.lexers._csound_builtins
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -34,7 +34,7 @@ tabrowlin
 vbap1move
 '''.split())
 
-# Opcodes in Csound 6.16.0 using:
+# Opcodes in Csound 6.17.0 using:
 #   python3 -c "
 #   import re
 #   from subprocess import Popen, PIPE
@@ -256,6 +256,7 @@ bbcuts
 betarand
 bexprnd
 bformdec1
+bformdec2
 bformenc1
 binit
 biquad
@@ -565,6 +566,7 @@ grain
 grain2
 grain3
 granule
+gtadsr
 gtf
 guiro
 harmon
@@ -896,6 +898,7 @@ median
 mediank
 metro
 metro2
+metrobpm
 mfb
 midglobal
 midiarp
@@ -944,6 +947,7 @@ mp3bitrate
 mp3in
 mp3len
 mp3nchnls
+mp3out
 mp3scal
 mp3sr
 mpulse
@@ -1147,6 +1151,7 @@ pvsftr
 pvsftw
 pvsfwrite
 pvsgain
+pvsgendy
 pvshift
 pvsifd
 pvsin
@@ -1313,7 +1318,9 @@ scale
 scale2
 scalearray
 scanhammer
+scanmap
 scans
+scansmap
 scantable
 scanu
 scanu2
@@ -1332,6 +1339,7 @@ sense
 sensekey
 seqtime
 seqtime2
+sequ
 serialBegin
 serialEnd
 serialFlush
@@ -1524,8 +1532,10 @@ trfilter
 trhighest
 trigExpseg
 trigLinseg
+trigexpseg
 trigger
 trighold
+triglinseg
 trigphasor
 trigseq
 trim
@@ -1656,10 +1666,6 @@ wterrain2
 xadsr
 xin
 xout
-xscanmap
-xscans
-xscansmap
-xscanu
 xtratim
 xyscale
 zacl
@@ -1761,5 +1767,9 @@ vbap4
 vbap4move
 vbap8
 vbap8move
+xscanmap
+xscans
+xscansmap
+xscanu
 xyin
 '''.split())

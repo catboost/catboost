@@ -575,6 +575,10 @@ module std [system] {
     header "ios"
     export iosfwd
     export *
+
+    module __ios {
+      module fpos { private header "__ios/fpos.h" }
+    }
   }
   module iosfwd {
     header "iosfwd"
@@ -817,6 +821,7 @@ module std [system] {
         export functional.__functional.perfect_forward
       }
       module view_interface         { private header "__ranges/view_interface.h" }
+      module views                  { private header "__ranges/views.h" }
     }
   }
   module ratio {

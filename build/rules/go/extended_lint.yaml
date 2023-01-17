@@ -29,6 +29,8 @@ scopes:
     - importcheck
   a.yandex-team.ru/strm/cacto:
     - exhaustivestruct
+  a.yandex-team.ru/strm/gorshok:
+    - exhaustivestruct
   a.yandex-team.ru/strm/media/gomsr:
     - exhaustivestruct
   a.yandex-team.ru/strm/plgo:

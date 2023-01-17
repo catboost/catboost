@@ -3,11 +3,12 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     This file contains the names of SourceMod functions.
-    It is able to re-generate itself.
 
     Do not edit the FUNCTIONS list by hand.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    Run with `python -I` to regenerate.
+
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -1093,18 +1094,9 @@ FUNCTIONS = (
 if __name__ == '__main__':  # pragma: no cover
     import re
     import sys
-    try:
-        from urllib import FancyURLopener
-    except ImportError:
-        from urllib.request import FancyURLopener
+    from urllib.request import FancyURLopener
 
     from pygments.util import format_lines
-
-    # urllib ends up wanting to import a module called 'math' -- if
-    # pygments/lexers is in the path, this ends badly.
-    for i in range(len(sys.path)-1, -1, -1):
-        if sys.path[i].endswith('/lexers'):
-            del sys.path[i]
 
     class Opener(FancyURLopener):
         version = 'Mozilla/5.0 (Pygments Sourcemod Builtins Update)'
@@ -1115,7 +1107,7 @@ if __name__ == '__main__':  # pragma: no cover
         f = opener.open('http://docs.sourcemod.net/api/index.php')
         r = re.compile(r'SourceMod v\.<b>([\d\.]+(?:-\w+)?)</td>')
         for line in f:
-            m = r.search(line)
+            m = r.search(line.decode())
             if m is not None:
                 return m.groups()[0]
         raise ValueError('No version in api docs')
@@ -1125,7 +1117,7 @@ if __name__ == '__main__':  # pragma: no cover
         r = re.compile(r'SMfunctions\[\d+\] = Array \("(?:public )?([^,]+)",".+"\);')
         functions = []
         for line in f:
-            m = r.match(line)
+            m = r.match(line.decode())
             if m is not None:
                 functions.append(m.groups()[0])
         return functions
@@ -1141,7 +1133,7 @@ if __name__ == '__main__':  # pragma: no cover
         with open(filename, 'w') as fp:
             fp.write(header)
             fp.write(format_lines('FUNCTIONS', natives))
-            fp.write(footer)
+            fp.write('\n\n' + footer)
 
     def run():
         version = get_version()

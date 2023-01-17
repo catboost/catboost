@@ -211,6 +211,7 @@ static TPoolMetainfo MakePoolMetainfo(
             case EColumn::Timestamp:
                 pbColumnType = NCB::NIdl::CT_TIMESTAMP;
                 break;
+            case EColumn::HashedCateg:
             case EColumn::Prediction:
             case EColumn::Auxiliary:
             case EColumn::Text:

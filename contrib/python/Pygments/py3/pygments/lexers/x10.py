@@ -4,7 +4,7 @@
 
     Lexers for the X10 programming language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,6 +21,7 @@ class X10Lexer(RegexLexer):
     """
 
     name = 'X10'
+    url = 'http://x10-lang.org/'
     aliases = ['x10', 'xten']
     filenames = ['*.x10']
     mimetypes = ['text/x-x10']

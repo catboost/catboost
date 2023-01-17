@@ -2,6 +2,7 @@
 
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/cuda_events_provider.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/spinlock.h>
 #include <util/generic/hash.h>
 

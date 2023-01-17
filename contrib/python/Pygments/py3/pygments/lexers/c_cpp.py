@@ -4,7 +4,7 @@
 
     Lexers for C/C++ languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -52,14 +52,17 @@ class CFamilyLexer(RegexLexer):
              bygroups(using(this), Comment.Preproc), 'if0'),
             ('^(' + _ws1 + ')(#)',
              bygroups(using(this), Comment.Preproc), 'macro'),
-            (r'(^[ \t]*)(?!(?:public|private|protected|default)\b)(case\b\s+)?(' + _ident + r')(\s*)(:)(?!:)',
-             bygroups(Whitespace, using(this), Name.Label, Whitespace, Punctuation)),
+            # Labels:
+            (r'(^[ \t]*)'                                  # Line start and possible indentation.
+             r'(?!(?:public|private|protected|default)\b)' # Not followed by keywords which can be mistaken as labels.
+             r'(' + _ident + r')(\s*)(:)(?!:)',            # Actual label, followed by a single colon.
+             bygroups(Whitespace, Name.Label, Whitespace, Punctuation)),
             (r'\n', Whitespace),
             (r'[^\S\n]+', Whitespace),
             (r'\\\n', Text),  # line continuation
             (r'//(\n|[\w\W]*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?[*][\w\W]*?[*](\\\n)?/', Comment.Multiline),
-            # Open until EOF, so no ending delimeter
+            # Open until EOF, so no ending delimiter
             (r'/(\\\n)?[*][\w\W]*', Comment.Multiline),
         ],
         'statements': [
@@ -91,9 +94,10 @@ class CFamilyLexer(RegexLexer):
         ],
         'keywords': [
             (r'(struct|union)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
-            (words(('asm', 'auto', 'break', 'case', 'const', 'continue',
-                    'default', 'do', 'else', 'enum', 'extern', 'for', 'goto',
-                    'if', 'register', 'restricted', 'return', 'sizeof', 'struct',
+            (r'case\b', Keyword, 'case-value'),
+            (words(('asm', 'auto', 'break', 'const', 'continue', 'default', 
+                    'do', 'else', 'enum', 'extern', 'for', 'goto', 'if',
+                    'register', 'restricted', 'return', 'sizeof', 'struct',
                     'static', 'switch', 'typedef', 'volatile', 'while', 'union',
                     'thread_local', 'alignas', 'alignof', 'static_assert', '_Pragma'),
                    suffix=r'\b'), Keyword),
@@ -174,6 +178,13 @@ class CFamilyLexer(RegexLexer):
             # template specification
             (r'\s*(?=>)', Text, '#pop'),
             default('#pop')
+        ],
+        # Mark identifiers preceded by `case` keyword as constants.
+        'case-value': [
+            (r'(?<!:)(:)(?!:)', Punctuation, '#pop'),
+            (_ident, Name.Constant),
+            include('whitespace'),
+            include('statements'),
         ]
     }
 
@@ -300,10 +311,11 @@ class CppLexer(CFamilyLexer):
         (default: ``True``).
     """
     name = 'C++'
+    url = 'https://isocpp.org/'
     aliases = ['cpp', 'c++']
     filenames = ['*.cpp', '*.hpp', '*.c++', '*.h++',
                  '*.cc', '*.hh', '*.cxx', '*.hxx',
-                 '*.C', '*.H', '*.cp', '*.CPP']
+                 '*.C', '*.H', '*.cp', '*.CPP', '*.tpp']
     mimetypes = ['text/x-c++hdr', 'text/x-c++src']
     priority = 0.1
 

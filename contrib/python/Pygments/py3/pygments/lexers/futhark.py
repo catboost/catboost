@@ -4,7 +4,7 @@
 
     Lexer for the Futhark language
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -28,17 +28,17 @@ class FutharkLexer(RegexLexer):
     .. versionadded:: 2.8
     """
     name = 'Futhark'
+    url = 'https://futhark-lang.org/'
     aliases = ['futhark']
     filenames = ['*.fut']
     mimetypes = ['text/x-futhark']
-
-    flags = re.MULTILINE | re.UNICODE
 
     num_types = ('i8', 'i16', 'i32', 'i64', 'u8', 'u16', 'u32', 'u64', 'f32', 'f64')
 
     other_types = ('bool', )
 
-    reserved = ('if', 'then', 'else', 'let', 'loop', 'in', 'with', 'type',
+    reserved = ('if', 'then', 'else', 'def', 'let', 'loop', 'in', 'with',
+                'type', 'type~', 'type^',
                 'val', 'entry', 'for', 'while', 'do', 'case', 'match',
                 'include', 'import', 'module', 'open', 'local', 'assert', '_')
 
@@ -63,11 +63,11 @@ class FutharkLexer(RegexLexer):
 
             # Identifiers
             (r'#\[([a-zA-Z_\(\) ]*)\]', Comment.Preproc),
-            (r'!?(%s\.)*%s' % (identifier_re, identifier_re), Name),
+            (r'[#!]?(%s\.)*%s' % (identifier_re, identifier_re), Name),
 
             (r'\\', Operator),
             (r'[-+/%=!><|&*^][-+/%=!><|&*^.]*', Operator),
-            (r'[][(),:;`{}]', Punctuation),
+            (r'[][(),:;`{}?.\'~^]', Punctuation),
 
             #  Numbers
             (r'0[xX]_*[\da-fA-F](_*[\da-fA-F])*_*[pP][+-]?\d(_*\d)*' + num_postfix,

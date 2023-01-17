@@ -4,7 +4,7 @@
 
     Lexers for the AMPL language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,11 +17,12 @@ __all__ = ['AmplLexer']
 
 class AmplLexer(RegexLexer):
     """
-    For `AMPL <http://ampl.com/>`_ source code.
+    For AMPL source code.
 
     .. versionadded:: 2.2
     """
     name = 'Ampl'
+    url = 'http://ampl.com/'
     aliases = ['ampl']
     filenames = ['*.run']
 

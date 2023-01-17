@@ -4,7 +4,7 @@
 
     Lexer for Procfile file format.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,12 +20,11 @@ class ProcfileLexer(RegexLexer):
 
     The format is used to run processes on Heroku or is used by Foreman or
     Honcho tools.
-    For more information about the definition of the format, see:
-    https://devcenter.heroku.com/articles/procfile#procfile-format
 
     .. versionadded:: 2.10
     """
     name = 'Procfile'
+    url = 'https://devcenter.heroku.com/articles/procfile#procfile-format'
     aliases = ['procfile']
     filenames = ['Procfile']
 

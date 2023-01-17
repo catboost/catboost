@@ -4,7 +4,7 @@
 
     Lexers for the Dylan language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,12 +19,13 @@ __all__ = ['DylanLexer', 'DylanConsoleLexer', 'DylanLidLexer']
 
 class DylanLexer(RegexLexer):
     """
-    For the `Dylan <http://www.opendylan.org/>`_ language.
+    For the Dylan language.
 
     .. versionadded:: 0.7
     """
 
     name = 'Dylan'
+    url = 'http://www.opendylan.org/'
     aliases = ['dylan']
     filenames = ['*.dylan', '*.dyl', '*.intr']
     mimetypes = ['text/x-dylan']

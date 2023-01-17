@@ -4,7 +4,7 @@
 
     Lexer for Intermediate Verification Languages (IVLs).
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,11 +17,12 @@ __all__ = ['BoogieLexer', 'SilverLexer']
 
 class BoogieLexer(RegexLexer):
     """
-    For `Boogie <https://boogie.codeplex.com/>`_ source code.
+    For Boogie source code.
 
     .. versionadded:: 2.1
     """
     name = 'Boogie'
+    url = 'https://boogie-docs.readthedocs.io/en/latest/'
     aliases = ['boogie']
     filenames = ['*.bpl']
 
@@ -64,7 +65,7 @@ class BoogieLexer(RegexLexer):
 
 class SilverLexer(RegexLexer):
     """
-    For `Silver <https://bitbucket.org/viperproject/silver>`_ source code.
+    For Silver source code.
 
     .. versionadded:: 2.2
     """

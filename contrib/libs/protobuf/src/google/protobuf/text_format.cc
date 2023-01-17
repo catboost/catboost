@@ -2475,7 +2475,7 @@ void TextFormat::Printer::PrintFieldValue(const Message& message,
         printer->PrintString(*value_to_print, generator);
       } else {
         GOOGLE_DCHECK_EQ(field->type(), FieldDescriptor::TYPE_BYTES);
-        printer->PrintString(*value_to_print, generator);
+        printer->PrintBytes(*value_to_print, generator);
       }
       break;
     }

@@ -2,6 +2,8 @@
 
 #include "fwd.h"
 
+#include <library/cpp/deprecated/atomic/atomic.h>
+
 #include <util/datetime/base.h>
 #include <util/generic/function.h>
 #include <util/generic/maybe.h>

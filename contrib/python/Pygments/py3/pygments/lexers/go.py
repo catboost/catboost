@@ -4,7 +4,7 @@
 
     Lexers for the Google Go language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,16 +19,15 @@ __all__ = ['GoLexer']
 
 class GoLexer(RegexLexer):
     """
-    For `Go <http://golang.org>`_ source.
+    For Go source.
 
     .. versionadded:: 1.2
     """
     name = 'Go'
+    url = 'https://go.dev/'
     filenames = ['*.go']
     aliases = ['go', 'golang']
     mimetypes = ['text/x-gosrc']
-
-    flags = re.MULTILINE | re.UNICODE
 
     tokens = {
         'root': [

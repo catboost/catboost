@@ -4,7 +4,7 @@
 
     Lexers for languages related to text processing.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -83,7 +83,7 @@ class SedLexer(RegexLexer):
     mimetypes = ['text/x-sed']
     flags = re.MULTILINE
 
-    # Match the contents within delimeters such as /<contents>/
+    # Match the contents within delimiters such as /<contents>/
     _inside_delims = r'((?:(?:\\[^\n]|[^\\])*?\\\n)*?(?:\\.|[^\\])*?)'
 
     tokens = {

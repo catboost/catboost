@@ -4,7 +4,7 @@
 
     Lexer for the Nim language (formerly known as Nimrod).
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,17 +19,18 @@ __all__ = ['NimrodLexer']
 
 class NimrodLexer(RegexLexer):
     """
-    For `Nim <http://nim-lang.org/>`_ source code.
+    For Nim source code.
 
     .. versionadded:: 1.5
     """
 
     name = 'Nimrod'
+    url = 'http://nim-lang.org/'
     aliases = ['nimrod', 'nim']
     filenames = ['*.nim', '*.nimrod']
     mimetypes = ['text/x-nim']
 
-    flags = re.MULTILINE | re.IGNORECASE | re.UNICODE
+    flags = re.MULTILINE | re.IGNORECASE
 
     def underscorize(words):
         newWords = []

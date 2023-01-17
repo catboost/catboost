@@ -4,7 +4,7 @@
 
     Lexers for UrbiScript language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -51,7 +51,7 @@ class UrbiscriptLexer(ExtendedRegexLexer):
             ctx.pos += len(result)
             return
 
-        # if blob is well formated, yield as Escape
+        # if blob is well formatted, yield as Escape
         blob_text = blob_start + ctx.text[match.end():match.end()+blob_size] + ")"
         yield match.start(), String.Escape, blob_text
         ctx.pos = match.end() + blob_size + 1  # +1 is the ending ")"
@@ -78,9 +78,9 @@ class UrbiscriptLexer(ExtendedRegexLexer):
                 'struct', 'template', 'typedef', 'typeid', 'typename', 'union',
                 'unsigned', 'using', 'virtual', 'volatile', 'wchar_t'), suffix=r'\b'),
              Keyword.Reserved),
-            # deprecated keywords, use a meaningfull token when available
+            # deprecated keywords, use a meaningful token when available
             (r'(emit|foreach|internal|loopn|static)\b', Keyword),
-            # ignored keywords, use a meaningfull token when available
+            # ignored keywords, use a meaningful token when available
             (r'(private|protected|public)\b', Keyword),
             (r'(var|do|const|function|class)\b', Keyword.Declaration),
             (r'(true|false|nil|void)\b', Keyword.Constant),

@@ -310,7 +310,8 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
         } case EColumn::Timestamp: {
             visitor->AddTimestampPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<ui64>(quants));
             break;
-        } case EColumn::Categ: {
+        } case EColumn::Categ:
+          case EColumn::HashedCateg: {
             CB_ENSURE(flatFeatureIdx != nullptr, "Feature not found in index");
             AddQuantizedCatFeatureChunk(chunk, *flatFeatureIdx, visitor);
             break;

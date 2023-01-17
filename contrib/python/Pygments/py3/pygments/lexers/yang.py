@@ -4,7 +4,7 @@
 
     Lexer for the YANG 1.1 modeling language. See :rfc:`7950`.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,11 +16,12 @@ __all__ = ['YangLexer']
 
 class YangLexer(RegexLexer):
     """
-    Lexer for `YANG <https://tools.ietf.org/html/rfc7950/>`_, based on RFC7950
+    Lexer for YANG, based on RFC7950.
 
     .. versionadded:: 2.7
     """
     name = 'YANG'
+    url = 'https://tools.ietf.org/html/rfc7950/'
     aliases = ['yang']
     filenames = ['*.yang']
     mimetypes = ['application/yang']

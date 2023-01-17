@@ -4,7 +4,7 @@
 
     Lexer for the DOT language (graphviz).
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,6 +23,7 @@ class GraphvizLexer(RegexLexer):
     .. versionadded:: 2.8
     """
     name = 'Graphviz'
+    url = 'https://www.graphviz.org/doc/info/lang.html'
     aliases = ['graphviz', 'dot']
     filenames = ['*.gv', '*.dot']
     mimetypes = ['text/x-graphviz', 'text/vnd.graphviz']

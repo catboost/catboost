@@ -333,6 +333,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\unary_negate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\unwrap_ref.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\weak_result_type.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ios\fpos.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\access.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\advance.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\back_insert_iterator.h"/>

@@ -65,6 +65,7 @@ ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/wait
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/yaml
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/watch
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/api/resource
+ALLOW .* -> vendor/k8s.io/utils/clock
 
 # CONTRIB-2279
 ALLOW .* -> vendor/sigs.k8s.io/controller-runtime
@@ -926,6 +927,12 @@ ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driv
 
 # CONTRIB-2578 JSONRPC client
 ALLOW .* -> vendor/github.com/ybbus/jsonrpc/v3
+
+# CONTRIB-2591
+ALLOW .* -> vendor/nhooyr.io/websocket
+
+# CONTRIB-2592 Calico API definitions.
+ALLOW .* -> vendor/github.com/projectcalico/api
 
 #
 # Tools

@@ -4,7 +4,7 @@
 
     Lexer for Tera Term macro files.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,11 +19,12 @@ __all__ = ['TeraTermLexer']
 
 class TeraTermLexer(RegexLexer):
     """
-    For `Tera Term <https://ttssh2.osdn.jp/>`_ macro source code.
+    For Tera Term macro source code.
 
     .. versionadded:: 2.4
     """
     name = 'Tera Term macro'
+    url = 'https://ttssh2.osdn.jp/'
     aliases = ['teratermmacro', 'teraterm', 'ttl']
     filenames = ['*.ttl']
     mimetypes = ['text/x-teratermmacro']

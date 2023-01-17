@@ -6,7 +6,7 @@
 
     Derived from pygments/lexers/reason.py.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,7 +18,7 @@ __all__ = ['SophiaLexer']
 
 class SophiaLexer(RegexLexer):
     """
-    A `Sophia <https://buildwithsophia.com/>`_ lexer.
+    A Sophia lexer.
 
     .. versionadded:: 2.11
     """

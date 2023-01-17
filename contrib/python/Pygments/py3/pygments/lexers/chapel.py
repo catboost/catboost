@@ -4,7 +4,7 @@
 
     Lexer for the Chapel language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,11 +17,12 @@ __all__ = ['ChapelLexer']
 
 class ChapelLexer(RegexLexer):
     """
-    For `Chapel <https://chapel-lang.org/>`_ source.
+    For Chapel source.
 
     .. versionadded:: 2.0
     """
     name = 'Chapel'
+    url = 'https://chapel-lang.org/'
     filenames = ['*.chpl']
     aliases = ['chapel', 'chpl']
     # mimetypes = ['text/x-chapel']

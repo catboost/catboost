@@ -4,7 +4,7 @@
 
     Pygments lexers for Dalvik VM-related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,12 +19,13 @@ __all__ = ['SmaliLexer']
 
 class SmaliLexer(RegexLexer):
     """
-    For `Smali <http://code.google.com/p/smali/>`_ (Android/Dalvik) assembly
+    For Smali (Android/Dalvik) assembly
     code.
 
     .. versionadded:: 1.6
     """
     name = 'Smali'
+    url = 'http://code.google.com/p/smali/'
     aliases = ['smali']
     filenames = ['*.smali']
     mimetypes = ['text/smali']

@@ -70,6 +70,7 @@ TTargetClassifier BuildTargetClassifier(
                 targetId);
         case ELossFunction::RMSEWithUncertainty:
         case ELossFunction::Quantile:
+        case ELossFunction::MultiQuantile:
         case ELossFunction::Expectile:
         case ELossFunction::Lq:
         case ELossFunction::LogLinQuantile:

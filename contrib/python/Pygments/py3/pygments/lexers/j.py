@@ -4,25 +4,26 @@
 
     Lexer for the J programming language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, words, include
+from pygments.lexer import RegexLexer, words, include, bygroups
 from pygments.token import Comment, Keyword, Name, Number, Operator, Punctuation, \
-    String, Text
+    String, Text, Whitespace
 
 __all__ = ['JLexer']
 
 
 class JLexer(RegexLexer):
     """
-    For `J <http://jsoftware.com/>`_ source code.
+    For J source code.
 
     .. versionadded:: 2.1
     """
 
     name = 'J'
+    url = 'http://jsoftware.com/'
     aliases = ['j']
     filenames = ['*.ijs']
     mimetypes = ['text/x-j']
@@ -36,19 +37,25 @@ class JLexer(RegexLexer):
 
             # Comments
             (r'NB\..*', Comment.Single),
-            (r'\n+\s*Note', Comment.Multiline, 'comment'),
-            (r'\s*Note.*', Comment.Single),
+            (r'(\n+\s*)(Note)', bygroups(Whitespace, Comment.Multiline),
+                'comment'),
+            (r'(\s*)(Note.*)', bygroups(Whitespace, Comment.Single)),
 
             # Whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # Strings
             (r"'", String, 'singlequote'),
 
             # Definitions
-            (r'0\s+:\s*0|noun\s+define\s*$', Name.Entity, 'nounDefinition'),
-            (r'(([1-4]|13)\s+:\s*0|(adverb|conjunction|dyad|monad|verb)\s+define)\b',
-             Name.Function, 'explicitDefinition'),
+            (r'0\s+:\s*0', Name.Entity, 'nounDefinition'),
+            (r'(noun)(\s+)(define)(\s*)$', bygroups(Name.Entity, Whitespace,
+                Name.Entity, Whitespace), 'nounDefinition'),
+            (r'([1-4]|13)\s+:\s*0\b',
+                Name.Function, 'explicitDefinition'),
+            (r'(adverb|conjunction|dyad|monad|verb)(\s+)(define)\b',
+                bygroups(Name.Function, Whitespace, Name.Function),
+                'explicitDefinition'),
 
             # Flow Control
             (words(('for_', 'goto_', 'label_'), suffix=validName+r'\.'), Name.Label),
@@ -125,7 +132,7 @@ class JLexer(RegexLexer):
         ],
 
         'nounDefinition': [
-            (r'[^)]', String),
+            (r'[^)]+', String),
             (r'^\)', Name.Label, '#pop'),
             (r'[)]', String),
         ],
@@ -138,7 +145,7 @@ class JLexer(RegexLexer):
         ],
 
         'singlequote': [
-            (r"[^']", String),
+            (r"[^']+", String),
             (r"''", String),
             (r"'", String, '#pop'),
         ],

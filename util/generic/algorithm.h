@@ -714,6 +714,34 @@ constexpr std::pair<It, It> EqualRange(It begin, It end, const Val& val, Comp co
     return std::equal_range(begin, end, val, comp);
 }
 
+template <class TContainer>
+constexpr auto AdjacentFind(const TContainer& c) {
+    using std::begin;
+    using std::end;
+    return std::adjacent_find(begin(c), end(c));
+}
+
+template <class TContainer, class Compare>
+constexpr auto AdjacentFind(const TContainer& c, Compare comp) {
+    using std::begin;
+    using std::end;
+    return std::adjacent_find(begin(c), end(c), comp);
+}
+
+namespace NPrivate {
+    template <class TForwardIterator, class TGetKey>
+    constexpr TForwardIterator AdjacentFindBy(TForwardIterator begin, TForwardIterator end, const TGetKey& getKey) {
+        return std::adjacent_find(begin, end, [&](auto&& left, auto&& right) { return getKey(left) == getKey(right); });
+    }
+}
+
+template <class TContainer, class TGetKey>
+constexpr auto AdjacentFindBy(const TContainer& c, const TGetKey& getKey) {
+    using std::begin;
+    using std::end;
+    return ::NPrivate::AdjacentFindBy(begin(c), end(c), getKey);
+}
+
 template <class ForwardIt>
 constexpr bool IsSorted(ForwardIt begin, ForwardIt end) {
     return std::is_sorted(begin, end);

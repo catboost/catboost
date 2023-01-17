@@ -246,7 +246,15 @@ void GenerateEnum(
     out << "    using TNameBufsBase = ::NEnumSerializationRuntime::TEnumDescription<" << name << ">;\n\n";
 
     // Initialization data
-    defineConstArray("    ", "TNameBufsBase::TEnumStringPair", "NAMES_INITIALIZATION_PAIRS", nameInitializerPairs);
+    {
+        out << "    static constexpr const std::array<TNameBufsBase::TEnumStringPair, " << nameInitializerPairs.size() << "> NAMES_INITIALIZATION_PAIRS_PAYLOAD = ::NEnumSerializationRuntime::TryStableSortKeys(";
+        out << "std::array<TNameBufsBase::TEnumStringPair, " << nameInitializerPairs.size() << ">{{\n";
+        for (const auto& it : nameInitializerPairs) {
+            out << "        " << it << ",\n";
+        }
+        out << "    }});\n";
+        out << "    " << "static constexpr const TArrayRef<const TNameBufsBase::TEnumStringPair> " << "NAMES_INITIALIZATION_PAIRS{NAMES_INITIALIZATION_PAIRS_PAYLOAD};\n\n";
+    }
     {
         StableSortBy(valueInitializerPairsUnsorted, [](const auto& pair) -> const TString& { return pair.second; });
         TVector<TString> valueInitializerPairs(Reserve(valueInitializerPairsUnsorted.size()));

@@ -4,7 +4,7 @@
 
     Lexers for Makefiles and similar.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -125,11 +125,12 @@ class BaseMakefileLexer(RegexLexer):
 
 class CMakeLexer(RegexLexer):
     """
-    Lexer for `CMake <http://cmake.org/Wiki/CMake>`_ files.
+    Lexer for CMake files.
 
     .. versionadded:: 1.2
     """
     name = 'CMake'
+    url = 'https://cmake.org/documentation/'
     aliases = ['cmake']
     filenames = ['*.cmake', 'CMakeLists.txt']
     mimetypes = ['text/x-cmake']

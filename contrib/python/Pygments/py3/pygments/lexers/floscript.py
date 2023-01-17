@@ -4,7 +4,7 @@
 
     Lexer for FloScript
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,12 +17,13 @@ __all__ = ['FloScriptLexer']
 
 class FloScriptLexer(RegexLexer):
     """
-    For `FloScript <https://github.com/ioflo/ioflo>`_ configuration language source code.
+    For FloScript configuration language source code.
 
     .. versionadded:: 2.4
     """
 
     name = 'FloScript'
+    url = 'https://github.com/ioflo/ioflo'
     aliases = ['floscript', 'flo']
     filenames = ['*.flo']
 

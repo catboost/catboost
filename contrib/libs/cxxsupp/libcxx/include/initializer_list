@@ -53,7 +53,7 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 #else
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 namespace std  // purposefully not versioned

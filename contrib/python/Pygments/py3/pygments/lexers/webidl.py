@@ -4,7 +4,7 @@
 
     Lexers for Web IDL, including some extensions.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -44,6 +44,7 @@ class WebIDLLexer(RegexLexer):
     """
 
     name = 'Web IDL'
+    url = 'https://www.w3.org/wiki/Web_IDL'
     aliases = ['webidl']
     filenames = ['*.webidl']
 

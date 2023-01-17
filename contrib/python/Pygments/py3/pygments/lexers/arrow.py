@@ -4,7 +4,7 @@
 
     Lexer for Arrow.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,12 +21,13 @@ DECL = TYPES + r'(\s+)' + IDENT
 
 class ArrowLexer(RegexLexer):
     """
-    Lexer for Arrow: https://pypi.org/project/py-arrow-lang/
+    Lexer for Arrow
 
     .. versionadded:: 2.7
     """
 
     name = 'Arrow'
+    url = 'https://pypi.org/project/py-arrow-lang/'
     aliases = ['arrow']
     filenames = ['*.arw']
 

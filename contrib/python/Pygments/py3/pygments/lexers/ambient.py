@@ -4,7 +4,7 @@
 
     Lexers for AmbientTalk language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,11 +19,12 @@ __all__ = ['AmbientTalkLexer']
 
 class AmbientTalkLexer(RegexLexer):
     """
-    Lexer for `AmbientTalk <https://code.google.com/p/ambienttalk>`_ source code.
+    Lexer for AmbientTalk source code.
 
     .. versionadded:: 2.0
     """
     name = 'AmbientTalk'
+    url = 'https://code.google.com/p/ambienttalk'
     filenames = ['*.at']
     aliases = ['ambienttalk', 'ambienttalk/2', 'at']
     mimetypes = ['text/x-ambienttalk']

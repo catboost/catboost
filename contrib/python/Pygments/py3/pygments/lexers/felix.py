@@ -4,7 +4,7 @@
 
     Lexer for the Felix language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,12 +18,13 @@ __all__ = ['FelixLexer']
 
 class FelixLexer(RegexLexer):
     """
-    For `Felix <http://www.felix-lang.org>`_ source code.
+    For Felix source code.
 
     .. versionadded:: 1.2
     """
 
     name = 'Felix'
+    url = 'http://www.felix-lang.org'
     aliases = ['felix', 'flx']
     filenames = ['*.flx', '*.flxh']
     mimetypes = ['text/x-felix']

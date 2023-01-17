@@ -173,6 +173,7 @@ ALLOW market/access/server/env -> contrib/restricted/boost
 ALLOW sdg/sdc -> contrib/restricted/boost
 ALLOW search/meta/scatter/ant -> contrib/restricted/boost
 ALLOW search/meta/scatter/ut -> contrib/restricted/boost
+ALLOW extsearch/video/robot/rt_transcoder/util -> contrib/restricted/boost
 
 # use GTEST target in ya.make instead of PEERDIRing contrib/restricted/googletest
 # and include <library/cpp/testing/gtest.h> instead of <gtest/gtest.h> (<gmock/gmock.h>)

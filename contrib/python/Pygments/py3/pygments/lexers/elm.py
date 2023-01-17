@@ -4,7 +4,7 @@
 
     Lexer for the Elm programming language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,12 +17,13 @@ __all__ = ['ElmLexer']
 
 class ElmLexer(RegexLexer):
     """
-    For `Elm <http://elm-lang.org/>`_ source code.
+    For Elm source code.
 
     .. versionadded:: 2.1
     """
 
     name = 'Elm'
+    url = 'http://elm-lang.org/'
     aliases = ['elm']
     filenames = ['*.elm']
     mimetypes = ['text/x-elm']

@@ -4,7 +4,7 @@
 
     Lexers for other C-like languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -573,12 +573,13 @@ class CharmciLexer(CppLexer):
 
 class OmgIdlLexer(CLexer):
     """
-    Lexer for `Object Management Group Interface Definition Language <https://www.omg.org/spec/IDL/About-IDL/>`_.
+    Lexer for Object Management Group Interface Definition Language.
 
     .. versionadded:: 2.9
     """
 
     name = 'OMG Interface Definition Language'
+    url = 'https://www.omg.org/spec/IDL/About-IDL/'
     aliases = ['omg-idl']
     filenames = ['*.idl', '*.pidl']
     mimetypes = []

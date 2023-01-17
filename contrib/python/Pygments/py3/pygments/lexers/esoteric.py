@@ -4,7 +4,7 @@
 
     Lexers for esoteric languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,11 +18,11 @@ __all__ = ['BrainfuckLexer', 'BefungeLexer', 'RedcodeLexer', 'CAmkESLexer',
 
 class BrainfuckLexer(RegexLexer):
     """
-    Lexer for the esoteric `BrainFuck <http://www.muppetlabs.com/~breadbox/bf/>`_
-    language.
+    Lexer for the esoteric BrainFuck language.
     """
 
     name = 'Brainfuck'
+    url = 'http://www.muppetlabs.com/~breadbox/bf/'
     aliases = ['brainfuck', 'bf']
     filenames = ['*.bf', '*.b']
     mimetypes = ['application/x-brainfuck']
@@ -75,12 +75,12 @@ class BrainfuckLexer(RegexLexer):
 
 class BefungeLexer(RegexLexer):
     """
-    Lexer for the esoteric `Befunge <http://en.wikipedia.org/wiki/Befunge>`_
-    language.
+    Lexer for the esoteric Befunge language.
 
     .. versionadded:: 0.7
     """
     name = 'Befunge'
+    url = 'http://en.wikipedia.org/wiki/Befunge'
     aliases = ['befunge']
     filenames = ['*.befunge']
     mimetypes = ['application/x-befunge']
@@ -105,12 +105,12 @@ class BefungeLexer(RegexLexer):
 
 class CAmkESLexer(RegexLexer):
     """
-    Basic lexer for the input language for the
-    `CAmkES <https://sel4.systems/CAmkES/>`_ component platform.
+    Basic lexer for the input language for the CAmkES component platform.
 
     .. versionadded:: 2.1
     """
     name = 'CAmkES'
+    url = 'https://sel4.systems/CAmkES/'
     aliases = ['camkes', 'idl4']
     filenames = ['*.camkes', '*.idl4']
 
@@ -173,8 +173,7 @@ class CAmkESLexer(RegexLexer):
 
 class CapDLLexer(RegexLexer):
     """
-    Basic lexer for
-    `CapDL <https://ssrg.nicta.com.au/publications/nictaabstracts/Kuz_KLW_10.abstract.pml>`_.
+    Basic lexer for CapDL.
 
     The source of the primary tool that reads such specifications is available
     at https://github.com/seL4/capdl/tree/master/capDL-tool. Note that this
@@ -186,6 +185,7 @@ class CapDLLexer(RegexLexer):
     .. versionadded:: 2.2
     """
     name = 'CapDL'
+    url = 'https://ssrg.nicta.com.au/publications/nictaabstracts/Kuz_KLW_10.abstract.pml'
     aliases = ['capdl']
     filenames = ['*.cdl']
 
@@ -269,15 +269,11 @@ class RedcodeLexer(RegexLexer):
 
 class AheuiLexer(RegexLexer):
     """
-    Aheui_ Lexer.
-
-    Aheui_ is esoteric language based on Korean alphabets.
-
-    .. _Aheui: http://aheui.github.io/
-
+    Aheui is esoteric language based on Korean alphabets.
     """
 
     name = 'Aheui'
+    url = 'http://aheui.github.io/'
     aliases = ['aheui']
     filenames = ['*.aheui']
 
