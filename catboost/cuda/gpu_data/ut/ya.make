@@ -15,6 +15,7 @@ ENDIF()
 SRCS(
     test_bin_builder.cpp
     test_binarization.cpp
+    test_uniform_binarization.cpp
 )
 
 PEERDIR(
