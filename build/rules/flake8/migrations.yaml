@@ -2011,7 +2011,6 @@ migrations:
     - logbroker/tools/lb-cm
     - logbroker/tools/manual/send_projections_to_solomon
     - logbroker/tools/manual/test_front
-    - mail/contrib/aioconsole
     - mail/contrib/aiohttp-swagger
     - mail/contrib/asyncpgsa
     - mail/contrib/python/bottle
@@ -3274,7 +3273,6 @@ migrations:
     - rtmapreduce/mrtasks/cocaine_log/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
-    - rtmapreduce/mrtasks/orgvisits/tests
     - rtmapreduce/mrtasks/parselib_errors/tests
     - rtmapreduce/mrtasks/postprocess_sessions/tests
     - rtmapreduce/mrtasks/rtmr/pqout/tests
