@@ -555,7 +555,12 @@ def execute(
         'user_stderr': user_stderr,
     }
 
-    if 'core_pattern' in inspect.getargspec(executor.__init__).args:
+    if six.PY2:
+        executor_args = inspect.getargspec(executor.__init__).args
+    else:
+        executor_args = inspect.getfullargspec(executor.__init__).args
+
+    if 'core_pattern' in executor_args:
         kwargs.update([('core_pattern', core_pattern)])
 
     res = executor(command, process, out_file, err_file, process_progress_listener,
