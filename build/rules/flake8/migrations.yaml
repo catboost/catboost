@@ -1123,7 +1123,6 @@ migrations:
     - yabs/server/cs/pylibs/full_graph_plot
     - yabs/server/cs/pylibs/gantt_chart/lib
     - yabs/server/cs/pylibs/settings
-    - yabs/server/test/ft/BSSERVER-13708
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
@@ -1461,7 +1460,6 @@ migrations:
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
-    - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-13878
     - yabs/server/test/ft/BSSERVER-14107
     - yabs/server/test/ft/BSSERVER-14309
@@ -2506,7 +2504,6 @@ migrations:
     - sandbox/projects/market/logistics
     - sandbox/projects/market/mcrp/MarketMcrpAbcSync
     - sandbox/projects/market/mcrp/MarketMcrpAbcTopServicesSync
-    - sandbox/projects/market/mcrp/MarketMcrpReport
     - sandbox/projects/market/monitoring
     - sandbox/projects/market/multitesting
     - sandbox/projects/market/promocoordinator
