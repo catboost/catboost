@@ -1,0 +1,13 @@
+plugins {
+    `java-library`
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies{
+{% for library in consumer_link_library -%}
+{{library}}
+{% endfor -%}
+}
