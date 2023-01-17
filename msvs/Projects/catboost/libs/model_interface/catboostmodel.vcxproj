@@ -510,9 +510,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\cpp-containers-flat_hash.vcxproj">
       <Project>{04DA2786-9E81-9095-5FF3-4808684F4945}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
-      <Project>{03219428-83B6-7413-0454-07C8A8ABA708}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cuda\exception\cpp-cuda-exception.vcxproj">
       <Project>{4485FA18-F2CA-4E61-F357-3E8F126F57AE}</Project>
     </ProjectReference>

@@ -78,8 +78,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\container.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\iterator.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\size_fitter.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\value_marker.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\containers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\expanders.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\iterator.cpp">
+      <ObjectFileName>$(IntDir)iterator_extra1.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\map.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\probings.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\set.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\size_fitters.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\table.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\value_markers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\flat_hash.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\flat_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\container.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\size_fitter.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\concepts\value_marker.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\containers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\expanders.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\map.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\probings.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\set.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\size_fitters.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\table.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\lib\value_markers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -98,9 +126,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
-      <Project>{03219428-83B6-7413-0454-07C8A8ABA708}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

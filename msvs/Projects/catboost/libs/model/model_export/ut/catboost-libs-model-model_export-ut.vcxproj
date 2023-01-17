@@ -1138,9 +1138,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\cpp-containers-flat_hash.vcxproj">
       <Project>{04DA2786-9E81-9095-5FF3-4808684F4945}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
-      <Project>{03219428-83B6-7413-0454-07C8A8ABA708}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\intrusive_rb_tree\cpp-containers-intrusive_rb_tree.vcxproj">
       <Project>{B43F59AA-F4C6-C980-DC64-0ED89BEB2617}</Project>
     </ProjectReference>
