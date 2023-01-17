@@ -9,7 +9,6 @@
 
 add_executable(json_options_ut)
 target_link_libraries(json_options_ut PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

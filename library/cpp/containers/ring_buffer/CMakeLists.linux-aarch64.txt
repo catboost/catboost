@@ -9,7 +9,6 @@
 
 add_library(cpp-containers-ring_buffer)
 target_link_libraries(cpp-containers-ring_buffer PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

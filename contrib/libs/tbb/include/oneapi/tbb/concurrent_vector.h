@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -644,21 +644,6 @@ private:
         }
     }
 
-    segment_type nullify_segment( segment_table_type table, size_type segment_index ) {
-        segment_type target_segment = table[segment_index].load(std::memory_order_relaxed);
-        if (segment_index >= this->my_first_block) {
-            table[segment_index].store(nullptr, std::memory_order_relaxed);
-        } else {
-            if (segment_index == 0) {
-                for (size_type i = 0; i < this->my_first_block; ++i) {
-                    table[i].store(nullptr, std::memory_order_relaxed);
-                }
-            }
-        }
-
-        return target_segment;
-    }
-
     void deallocate_segment( segment_type address, segment_index_type seg_index ) {
         segment_element_allocator_type segment_allocator(base_type::get_allocator());
         size_type first_block = this->my_first_block.load(std::memory_order_relaxed);
@@ -892,7 +877,7 @@ private:
 
     #if TBB_USE_DEBUG
         size_type cap = capacity();
-        __TBB_ASSERT( cap >= new_size, nullptr);
+        __TBB_ASSERT( cap >= new_size, NULL);
     #endif
         return iterator(*this, size());
     }

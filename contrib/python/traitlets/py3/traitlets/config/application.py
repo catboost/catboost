@@ -17,7 +17,6 @@ from contextlib import suppress
 from copy import deepcopy
 from logging.config import dictConfig
 from textwrap import dedent
-from typing import Any, Callable, TypeVar, cast
 
 from traitlets.config.configurable import Configurable, SingletonConfigurable
 from traitlets.config.loader import (
@@ -95,10 +94,8 @@ else:
 
 IS_PYTHONW = sys.executable and sys.executable.endswith("pythonw.exe")
 
-T = TypeVar("T", bound=Callable[..., Any])
 
-
-def catch_config_error(method: T) -> T:
+def catch_config_error(method):
     """Method decorator for catching invalid config (Trait/ArgumentErrors) during init.
 
     On a TraitError (generally caused by bad config), this will print the trait's
@@ -116,7 +113,7 @@ def catch_config_error(method: T) -> T:
             app.log.debug("Config at the time: %s", app.config)
             app.exit(1)
 
-    return cast(T, inner)
+    return inner
 
 
 class ApplicationError(Exception):

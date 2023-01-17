@@ -1943,7 +1943,7 @@ aesni_ocb_encrypt:
 	movdqu	%xmm6,-32(%edi,%esi,1)
 	movdqu	%xmm7,-16(%edi,%esi,1)
 	cmpl	%eax,%esi
-	jbe	.L077grandloop
+	jb	.L077grandloop
 .L076short:
 	addl	$96,%eax
 	subl	%esi,%eax
@@ -2338,7 +2338,7 @@ aesni_ocb_decrypt:
 	pxor	%xmm7,%xmm1
 	movdqu	%xmm7,-16(%edi,%esi,1)
 	cmpl	%eax,%esi
-	jbe	.L087grandloop
+	jb	.L087grandloop
 .L086short:
 	addl	$96,%eax
 	subl	%esi,%eax

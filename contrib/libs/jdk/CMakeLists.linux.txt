@@ -13,6 +13,5 @@ target_include_directories(contrib-libs-jdk INTERFACE
   ${CMAKE_SOURCE_DIR}/contrib/libs/jdk/include/linux
 )
 target_link_libraries(contrib-libs-jdk INTERFACE
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )

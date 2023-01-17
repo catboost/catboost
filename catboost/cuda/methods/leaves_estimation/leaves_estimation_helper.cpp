@@ -15,7 +15,7 @@ namespace NCatboostCuda {
         auto sortedPairs = TStripeBuffer<uint2>::CopyMapping(*pairs);
         auto sortedPairWeights = TStripeBuffer<float>::CopyMapping(*pairWeights);
 
-        auto indices = TStripeBuffer<ui64>::CopyMapping(pairs);
+        auto indices = TStripeBuffer<ui32>::CopyMapping(pairs);
         MakeSequence(indices);
         const ui32 depth = NCB::IntLog2(binCount);
         RadixSort(*pairBins, indices, false, 0, depth * 2);
@@ -34,7 +34,7 @@ namespace NCatboostCuda {
                                *pairs,
                                pairWeights);
 
-        auto indices = TStripeBuffer<ui64>::CopyMapping(*pairs);
+        auto indices = TStripeBuffer<ui32>::CopyMapping(*pairs);
         MakeSequence(indices);
 
         FilterZeroEntries(pairWeights,

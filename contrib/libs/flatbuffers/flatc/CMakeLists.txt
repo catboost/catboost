@@ -6,18 +6,47 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(libs-flatbuffers-flatc)
+target_compile_options(libs-flatbuffers-flatc PRIVATE
+  -DFLATBUFFERS_LOCALE_INDEPENDENT=1
+  -Wno-everything
+)
+target_include_directories(libs-flatbuffers-flatc PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
+)
+target_link_libraries(libs-flatbuffers-flatc PUBLIC
+  contrib-libs-cxxsupp
+)
+target_sources(libs-flatbuffers-flatc PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/cpp_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/go_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/java_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/python_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/swift_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/ts_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/code_generators.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp_yandex_maps_iter.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_csharp.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_dart.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_fbs.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_go.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_grpc.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_java.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_json_schema.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_kotlin.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_lobster.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_lua.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_php.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_python.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_rust.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_swift.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_ts.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
+)

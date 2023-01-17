@@ -289,14 +289,10 @@ private:
 
     private:
         void ChildAction() {
-            TTryGuard guard{ActionMutex};
-            // If you get an error here, it means you've used fork(2) in multi-threaded environment and probably created thread pools often.
-            // Don't use fork(2) in multi-threaded programs, don't create thread pools often.
-            // The mutex is locked after fork iff the fork(2) call was concurrent with RegisterObject / UnregisterObject in another thread.
-            Y_VERIFY(guard.WasAcquired(), "Failed to acquire ActionMutex after fork");
-
-            for (auto it = RegisteredObjects.Begin(); it != RegisteredObjects.End(); ++it) {
-                it->AtforkAction();
+            with_lock (ActionMutex) {
+                for (auto it = RegisteredObjects.Begin(); it != RegisteredObjects.End(); ++it) {
+                    it->AtforkAction();
+                }
             }
         }
 

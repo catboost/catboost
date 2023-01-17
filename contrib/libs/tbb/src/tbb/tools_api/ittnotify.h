@@ -188,7 +188,7 @@ The same ID may not be reused for different instances, unless a previous
 
 #if ITT_PLATFORM==ITT_PLATFORM_WIN
 /* use __forceinline (VC++ specific) */
-#define ITT_INLINE           static __forceinline
+#define ITT_INLINE           __forceinline
 #define ITT_INLINE_ATTRIBUTE /* nothing */
 #else  /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 /*
@@ -210,7 +210,8 @@ The same ID may not be reused for different instances, unless a previous
 #  if ITT_PLATFORM==ITT_PLATFORM_WIN
 #    pragma message("WARNING!!! Deprecated API is used. Please undefine INTEL_ITTNOTIFY_ENABLE_LEGACY macro")
 #  else /* ITT_PLATFORM==ITT_PLATFORM_WIN */
-#    warning "Deprecated API is used. Please undefine INTEL_ITTNOTIFY_ENABLE_LEGACY macro"
+// #warning usage leads to ICC's compilation error
+// #    warning "Deprecated API is used. Please undefine INTEL_ITTNOTIFY_ENABLE_LEGACY macro"
 #  endif /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 #  include "legacy/ittnotify.h"
 #endif /* INTEL_ITTNOTIFY_ENABLE_LEGACY */
@@ -1537,7 +1538,7 @@ ITT_STUBV(ITTAPI, void, heap_allocate_end, (__itt_heap_function h, void** addr, 
 /** @endcond */
 
 /**
- * @brief Record a free begin occurrence.
+ * @brief Record an free begin occurrence.
  */
 void ITTAPI __itt_heap_free_begin(__itt_heap_function h, void* addr);
 
@@ -1557,7 +1558,7 @@ ITT_STUBV(ITTAPI, void, heap_free_begin, (__itt_heap_function h, void* addr))
 /** @endcond */
 
 /**
- * @brief Record a free end occurrence.
+ * @brief Record an free end occurrence.
  */
 void ITTAPI __itt_heap_free_end(__itt_heap_function h, void* addr);
 
@@ -1577,7 +1578,7 @@ ITT_STUBV(ITTAPI, void, heap_free_end, (__itt_heap_function h, void* addr))
 /** @endcond */
 
 /**
- * @brief Record a reallocation begin occurrence.
+ * @brief Record an reallocation begin occurrence.
  */
 void ITTAPI __itt_heap_reallocate_begin(__itt_heap_function h, void* addr, size_t new_size, int initialized);
 
@@ -1597,7 +1598,7 @@ ITT_STUBV(ITTAPI, void, heap_reallocate_begin, (__itt_heap_function h, void* add
 /** @endcond */
 
 /**
- * @brief Record a reallocation end occurrence.
+ * @brief Record an reallocation end occurrence.
  */
 void ITTAPI __itt_heap_reallocate_end(__itt_heap_function h, void* addr, void** new_addr, size_t new_size, int initialized);
 
@@ -3638,12 +3639,11 @@ ITT_STUBV(ITTAPI, void, enable_attach, (void))
 /** @endcond */
 
 /**
- * @brief Module load notification
- * This API is used to report necessary information in case of bypassing default system loader.
- * Notification should be done immediately after this module is loaded to process memory.
- * @param[in] start_addr - module start address
- * @param[in] end_addr - module end address
- * @param[in] path - file system full path to the module
+ * @brief Module load info
+ * This API is used to report necessary information in case of module relocation
+ * @param[in] start_addr - relocated module start address
+ * @param[in] end_addr - relocated module end address
+ * @param[in] path - file system path to the module
  */
 #if ITT_PLATFORM==ITT_PLATFORM_WIN
 void ITTAPI __itt_module_loadA(void *start_addr, void *end_addr, const char *path);
@@ -3698,176 +3698,7 @@ ITT_STUB(ITTAPI, void, module_load,  (void *start_addr, void *end_addr, const ch
 #endif /* INTEL_NO_MACRO_BODY */
 /** @endcond */
 
-/**
- * @brief Report module unload
- * This API is used to report necessary information in case of bypassing default system loader.
- * Notification should be done just before the module is unloaded from process memory.
- * @param[in] addr - base address of loaded module
- */
-void ITTAPI __itt_module_unload(void *addr);
 
-/** @cond exclude_from_documentation */
-#ifndef INTEL_NO_MACRO_BODY
-#ifndef INTEL_NO_ITTNOTIFY_API
-ITT_STUBV(ITTAPI, void, module_unload, (void *addr))
-#define __itt_module_unload     ITTNOTIFY_VOID(module_unload)
-#define __itt_module_unload_ptr ITTNOTIFY_NAME(module_unload)
-#else  /* INTEL_NO_ITTNOTIFY_API */
-#define __itt_module_unload(addr)
-#define __itt_module_unload_ptr 0
-#endif /* INTEL_NO_ITTNOTIFY_API */
-#else  /* INTEL_NO_MACRO_BODY */
-#define __itt_module_unload_ptr 0
-#endif /* INTEL_NO_MACRO_BODY */
-/** @endcond */
-
-/** @cond exclude_from_documentation */
-typedef enum
-{
-    __itt_module_type_unknown = 0,
-    __itt_module_type_elf,
-    __itt_module_type_coff
-} __itt_module_type;
-/** @endcond */
-
-/** @cond exclude_from_documentation */
-typedef enum
-{
-    itt_section_type_unknown,
-    itt_section_type_bss,        /* notifies that the section contains uninitialized data. These are the relevant section types and the modules that contain them:
-                                  * ELF module:  SHT_NOBITS section type
-                                  * COFF module: IMAGE_SCN_CNT_UNINITIALIZED_DATA section type
-                                  */
-    itt_section_type_data,       /* notifies that section contains initialized data. These are the relevant section types and the modules that contain them:
-                                  * ELF module:  SHT_PROGBITS section type
-                                  * COFF module: IMAGE_SCN_CNT_INITIALIZED_DATA section type
-                                  */
-    itt_section_type_text        /* notifies that the section contains executable code. These are the relevant section types and the modules that contain them:
-                                  * ELF module:  SHT_PROGBITS section type
-                                  * COFF module: IMAGE_SCN_CNT_CODE section type
-                                  */
-} __itt_section_type;
-/** @endcond */
-
-/**
- * @hideinitializer
- * @brief bit-mask, detects a section attribute that indicates whether a section can be executed as code:
- * These are the relevant section attributes and the modules that contain them:
- * ELF module:  PF_X section attribute
- * COFF module: IMAGE_SCN_MEM_EXECUTE attribute
- */
-#define __itt_section_exec 0x20000000
-
-/**
- * @hideinitializer
- * @brief bit-mask, detects a section attribute that indicates whether a section can be read.
- * These are the relevant section attributes and the modules that contain them:
- * ELF module:  PF_R attribute
- * COFF module: IMAGE_SCN_MEM_READ attribute
- */
-#define __itt_section_read 0x40000000
-
-/**
- * @hideinitializer
- * @brief bit-mask, detects a section attribute that indicates whether a section can be written to.
- * These are the relevant section attributes and the modules that contain them:
- * ELF module:  PF_W attribute
- * COFF module: IMAGE_SCN_MEM_WRITE attribute
- */
-#define __itt_section_write 0x80000000
-
-/** @cond exclude_from_documentation */
-#pragma pack(push, 8)
-
-typedef struct ___itt_section_info
-{
-    const char* name;                 /*!< Section name in UTF8 */
-    __itt_section_type type;          /*!< Section content and semantics description */
-    size_t flags;                     /*!< Section bit flags that describe attributes using bit mask
-                                       * Zero if disabled, non-zero if enabled
-                                       */
-    void* start_addr;                 /*!< Section load(relocated) start address */
-    size_t size;                      /*!< Section file offset */
-    size_t file_offset;               /*!< Section size */
-} __itt_section_info;
-
-#pragma pack(pop)
-/** @endcond */
-
-/** @cond exclude_from_documentation */
-#pragma pack(push, 8)
-
-typedef struct ___itt_module_object
-{
-    unsigned int version;                 /*!< API version*/
-    __itt_id module_id;                   /*!< Unique identifier. This is unchanged for sections that belong to the same module */
-    __itt_module_type module_type;        /*!< Binary module format */
-    const char* module_name;              /*!< Unique module name or path to module in UTF8
-                                           * Contains module name when module_bufer and module_size exist
-                                           * Contains module path when module_bufer and module_size absent
-                                           * module_name remains the same for the certain module_id
-                                           */
-    void* module_buffer;                  /*!< Module buffer content */
-    size_t module_size;                   /*!< Module buffer size */
-                                          /*!< If module_buffer and module_size exist, the binary module is dumped onto the system.
-                                           * If module_buffer and module_size do not exist,
-                                           * the binary module exists on the system already.
-                                           * The module_name parameter contains the path to the module.
-                                           */
-    __itt_section_info* section_array;    /*!< Reference to section information */
-    size_t section_number;
-} __itt_module_object;
-
-#pragma pack(pop)
-/** @endcond */
-
-/**
- * @brief Load module content and its loaded(relocated) sections.
- * This API is useful to save a module, or specify its location on the system and report information about loaded sections.
- * The target module is saved on the system if module buffer content and size are available.
- * If module buffer content and size are unavailable, the module name contains the path to the existing binary module.
- * @param[in] module_obj - provides module and section information, along with unique module identifiers (name,module ID)
- * which bind the binary module to particular sections.
- */
-void ITTAPI __itt_module_load_with_sections(__itt_module_object* module_obj);
-
-/** @cond exclude_from_documentation */
-#ifndef INTEL_NO_MACRO_BODY
-#ifndef INTEL_NO_ITTNOTIFY_API
-ITT_STUBV(ITTAPI, void, module_load_with_sections,  (__itt_module_object* module_obj))
-#define __itt_module_load_with_sections     ITTNOTIFY_VOID(module_load_with_sections)
-#define __itt_module_load_with_sections_ptr ITTNOTIFY_NAME(module_load_with_sections)
-#else  /* INTEL_NO_ITTNOTIFY_API */
-#define __itt_module_load_with_sections(module_obj)
-#define __itt_module_load_with_sections_ptr 0
-#endif /* INTEL_NO_ITTNOTIFY_API */
-#else  /* INTEL_NO_MACRO_BODY */
-#define __itt_module_load_with_sections_ptr  0
-#endif /* INTEL_NO_MACRO_BODY */
-/** @endcond */
-
-/**
- * @brief Unload a module and its loaded(relocated) sections.
- * This API notifies that the module and its sections were unloaded.
- * @param[in] module_obj - provides module and sections information, along with unique module identifiers (name,module ID)
- * which bind the binary module to particular sections.
- */
-void ITTAPI __itt_module_unload_with_sections(__itt_module_object* module_obj);
-
-/** @cond exclude_from_documentation */
-#ifndef INTEL_NO_MACRO_BODY
-#ifndef INTEL_NO_ITTNOTIFY_API
-ITT_STUBV(ITTAPI, void, module_unload_with_sections,  (__itt_module_object* module_obj))
-#define __itt_module_unload_with_sections     ITTNOTIFY_VOID(module_unload_with_sections)
-#define __itt_module_unload_with_sections_ptr ITTNOTIFY_NAME(module_unload_with_sections)
-#else  /* INTEL_NO_ITTNOTIFY_API */
-#define __itt_module_unload_with_sections(module_obj)
-#define __itt_module_unload_with_sections_ptr 0
-#endif /* INTEL_NO_ITTNOTIFY_API */
-#else  /* INTEL_NO_MACRO_BODY */
-#define __itt_module_unload_with_sections_ptr  0
-#endif /* INTEL_NO_MACRO_BODY */
-/** @endcond */
 
 #ifdef __cplusplus
 }

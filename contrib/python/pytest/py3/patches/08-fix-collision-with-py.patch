@@ -1,8 +1,0 @@
---- contrib/python/pytest/py3/_pytest/compat.py	(index)
-+++ contrib/python/pytest/py3/_pytest/compat.py	(working tree)
-@@ -22,1 +22,1 @@ from typing import Union
--import py
-+import _pytest._py.path as py_path
-@@ -46,1 +46,1 @@ _S = TypeVar("_S")
--LEGACY_PATH = py.path. local
-+LEGACY_PATH = py_path. local

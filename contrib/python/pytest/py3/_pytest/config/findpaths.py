@@ -1,5 +1,4 @@
 import os
-import sys
 from pathlib import Path
 from typing import Dict
 from typing import Iterable
@@ -65,15 +64,12 @@ def load_config_dict_from_file(
 
     # '.toml' files are considered if they contain a [tool.pytest.ini_options] table.
     elif filepath.suffix == ".toml":
-        if sys.version_info >= (3, 11):
-            import tomllib
-        else:
-            import tomli as tomllib
+        import tomli
 
         toml_text = filepath.read_text(encoding="utf-8")
         try:
-            config = tomllib.loads(toml_text)
-        except tomllib.TOMLDecodeError as exc:
+            config = tomli.loads(toml_text)
+        except tomli.TOMLDecodeError as exc:
             raise UsageError(f"{filepath}: {exc}") from exc
 
         result = config.get("tool", {}).get("pytest", {}).get("ini_options", None)
@@ -96,7 +92,6 @@ def locate_config(
     and return a tuple of (rootdir, inifile, cfg-dict)."""
     config_names = [
         "pytest.ini",
-        ".pytest.ini",
         "pyproject.toml",
         "tox.ini",
         "setup.cfg",

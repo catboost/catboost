@@ -9,7 +9,6 @@
 
 add_library(cpp-streams-brotli)
 target_link_libraries(cpp-streams-brotli PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   libs-brotli-enc

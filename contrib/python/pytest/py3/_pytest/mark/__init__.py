@@ -62,8 +62,8 @@ def param(
             assert eval(test_input) == expected
 
     :param values: Variable args of the values of the parameter set, in order.
-    :param marks: A single mark or a list of marks to be applied to this parameter set.
-    :param id: The id to attribute to this parameter set.
+    :keyword marks: A single mark or a list of marks to be applied to this parameter set.
+    :keyword str id: The id to attribute to this parameter set.
     """
     return ParameterSet.param(*values, marks=marks, id=id)
 
@@ -76,8 +76,8 @@ def pytest_addoption(parser: Parser) -> None:
         dest="keyword",
         default="",
         metavar="EXPRESSION",
-        help="Only run tests which match the given substring expression. "
-        "An expression is a Python evaluatable expression "
+        help="only run tests which match the given substring expression. "
+        "An expression is a python evaluatable expression "
         "where all names are substring-matched against test names "
         "and their parent classes. Example: -k 'test_method or test_"
         "other' matches all test functions and classes whose name "
@@ -96,7 +96,7 @@ def pytest_addoption(parser: Parser) -> None:
         dest="markexpr",
         default="",
         metavar="MARKEXPR",
-        help="Only run tests matching given mark expression. "
+        help="only run tests matching given mark expression.\n"
         "For example: -m 'mark1 and not mark2'.",
     )
 
@@ -106,8 +106,8 @@ def pytest_addoption(parser: Parser) -> None:
         help="show markers (builtin, plugin and per-project ones).",
     )
 
-    parser.addini("markers", "Markers for test functions", "linelist")
-    parser.addini(EMPTY_PARAMETERSET_OPTION, "Default marker for empty parametersets")
+    parser.addini("markers", "markers for test functions", "linelist")
+    parser.addini(EMPTY_PARAMETERSET_OPTION, "default marker for empty parametersets")
 
 
 @hookimpl(tryfirst=True)

@@ -258,9 +258,7 @@ cdef _to_dt64D(dt):
     if getattr(dt, 'tzinfo', None) is not None:
         # Get the nanosecond timestamp,
         #  equiv `Timestamp(dt).value` or `dt.timestamp() * 10**9`
-        # The `naive` must be the `dt` naive wall time
-        #  instead of the naive absolute time (GH#49441)
-        naive = dt.replace(tzinfo=None)
+        naive = dt.astimezone(None)
         dt = np.datetime64(naive, "D")
     else:
         dt = np.datetime64(dt)

@@ -6,18 +6,107 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(contrib-libs-protoc)
+target_compile_options(contrib-libs-protoc PRIVATE
+  -DHAVE_CONFIG_H
+  -DHAVE_PTHREAD=1
+  -DHAVE_ZLIB=1
+  -Wno-everything
+)
+target_include_directories(contrib-libs-protoc PUBLIC
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src
+)
+target_link_libraries(contrib-libs-protoc PUBLIC
+  contrib-libs-cxxsupp
+  contrib-libs-protobuf
+)
+target_sources(contrib-libs-protoc PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/code_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/command_line_interface.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_enum.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_enum_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_extension.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_file.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_helpers.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_map_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_message.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_message_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_padding_optimizer.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_parse_function_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_primitive_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_service.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_string_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_doc_comment.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_enum.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_enum_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_field_base.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_helpers.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_map_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_message.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_message_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_primitive_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_reflection_class.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_repeated_enum_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_repeated_message_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_repeated_primitive_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_source_generator_base.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_wrapper_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/importer.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_context.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_doc_comment.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum_field_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_extension.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_extension_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_file.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_generator_factory.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_helpers.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_kotlin_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_map_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_map_field_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_builder.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_builder_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_field_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_name_resolver.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_primitive_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_primitive_field_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_service.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_shared_code_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_string_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_string_field_lite.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/js/js_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/js/well_known_types_embed.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_enum.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_enum_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_extension.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_file.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_helpers.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_map_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_message.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_message_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_oneof.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_primitive_field.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/parser.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/perlxs/perlxs_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/perlxs/perlxs_helpers.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/php/php_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/plugin.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/python_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/ruby/ruby_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/subprocess.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/zip_writer.cc
+)

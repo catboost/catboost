@@ -9,7 +9,6 @@
 
 add_executable(cuda_util)
 target_link_libraries(cuda_util PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

@@ -10,7 +10,6 @@ find_package(OpenSSL REQUIRED)
 
 add_library(cpp-openssl-method)
 target_link_libraries(cpp-openssl-method PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   OpenSSL::OpenSSL

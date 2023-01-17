@@ -10,7 +10,6 @@ add_subdirectory(lib)
 
 add_executable(triecompiler)
 target_link_libraries(triecompiler PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

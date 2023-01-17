@@ -789,8 +789,8 @@ void Compiler::AddRuneRangeUTF8(Rune lo, Rune hi, bool foldcase) {
 // Should not be called.
 Frag Compiler::Copy(Frag arg) {
   // We're using WalkExponential; there should be no copying.
-  failed_ = true;
   LOG(DFATAL) << "Compiler::Copy called!";
+  failed_ = true;
   return NoMatch();
 }
 
@@ -916,8 +916,8 @@ Frag Compiler::PostVisit(Regexp* re, Frag, Frag, Frag* child_frags,
       CharClass* cc = re->cc();
       if (cc->empty()) {
         // This can't happen.
-        failed_ = true;
         LOG(DFATAL) << "No ranges in char class";
+        failed_ = true;
         return NoMatch();
       }
 
@@ -974,8 +974,8 @@ Frag Compiler::PostVisit(Regexp* re, Frag, Frag, Frag* child_frags,
     case kRegexpNoWordBoundary:
       return EmptyWidth(kEmptyNonWordBoundary);
   }
-  failed_ = true;
   LOG(DFATAL) << "Missing case in Compiler: " << re->op();
+  failed_ = true;
   return NoMatch();
 }
 

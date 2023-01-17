@@ -11,6 +11,7 @@ Inheritance diagram:
 # Distributed under the terms of the Modified BSD License.
 
 import abc
+import json
 import sys
 import traceback
 import warnings

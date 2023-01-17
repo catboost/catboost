@@ -97,7 +97,7 @@
 #  if ITT_PLATFORM==ITT_PLATFORM_WIN
 #    define ITTAPI_CDECL __cdecl
 #  else /* ITT_PLATFORM==ITT_PLATFORM_WIN */
-#    if defined _M_IX86 || defined __i386__
+#    if defined _M_IX86 || defined __i386__ 
 #      define ITTAPI_CDECL __attribute__ ((cdecl))
 #    else  /* _M_IX86 || __i386__ */
 #      define ITTAPI_CDECL /* actual only on x86 platform */
@@ -110,7 +110,7 @@
 #    define STDCALL __stdcall
 #  else /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 #    if defined _M_IX86 || defined __i386__
-#      define STDCALL __attribute__ ((stdcall))
+#      define STDCALL __attribute__ ((stdcall)) 
 #    else  /* _M_IX86 || __i386__ */
 #      define STDCALL /* supported only on x86 platform */
 #    endif /* _M_IX86 || __i386__ */
@@ -126,7 +126,7 @@
 
 #if ITT_PLATFORM==ITT_PLATFORM_WIN
 /* use __forceinline (VC++ specific) */
-#define ITT_INLINE           static __forceinline
+#define ITT_INLINE           __forceinline
 #define ITT_INLINE_ATTRIBUTE /* nothing */
 #else  /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 /*
@@ -964,9 +964,9 @@ ITT_STUB(ITTAPI, __itt_frame, frame_create,  (const char *domain))
 #endif /* INTEL_NO_MACRO_BODY */
 /** @endcond */
 
-/** @brief Record a frame begin occurrence. */
+/** @brief Record an frame begin occurrence. */
 void ITTAPI __itt_frame_begin(__itt_frame frame);
-/** @brief Record a frame end occurrence. */
+/** @brief Record an frame end occurrence. */
 void ITTAPI __itt_frame_end  (__itt_frame frame);
 
 /** @cond exclude_from_documentation */

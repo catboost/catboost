@@ -72,33 +72,13 @@ template <typename Key>
 class tbb_hash_compare {
 public:
     std::size_t hash( const Key& a ) const { return my_hash_func(a); }
-#if defined(_MSC_VER) && _MSC_VER <= 1900
-#pragma warning (push)
-// MSVC 2015 throws a strange warning: 'std::size_t': forcing value to bool 'true' or 'false'
-#pragma warning (disable: 4800)
-#endif
     bool equal( const Key& a, const Key& b ) const { return my_key_equal(a, b); }
-#if defined(_MSC_VER) && _MSC_VER <= 1900
-#pragma warning (pop)
-#endif
 private:
     std::hash<Key> my_hash_func;
     std::equal_to<Key> my_key_equal;
 };
 
 } // namespace d1
-#if __TBB_CPP20_CONCEPTS_PRESENT
-inline namespace d0 {
-
-template <typename HashCompare, typename Key>
-concept hash_compare = std::copy_constructible<HashCompare> &&
-                       requires( const std::remove_reference_t<HashCompare>& hc, const Key& key1, const Key& key2 ) {
-                           { hc.hash(key1) } -> std::same_as<std::size_t>;
-                           { hc.equal(key1, key2) } -> std::convertible_to<bool>;
-                       };
-
-} // namespace d0
-#endif // __TBB_CPP20_CONCEPTS_PRESENT
 } // namespace detail
 } // namespace tbb
 

@@ -16,7 +16,7 @@
 
 #include "ittnotify_config.h"
 
-#if ITT_PLATFORM==ITT_PLATFORM_WIN && _MSC_VER
+#if ITT_PLATFORM==ITT_PLATFORM_WIN
 
 #pragma warning (disable: 593)   /* parameter "XXXX" was set but never used                 */
 #pragma warning (disable: 344)   /* typedef name has already been declared (with same type) */

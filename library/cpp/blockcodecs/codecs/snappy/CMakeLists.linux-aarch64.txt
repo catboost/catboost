@@ -9,7 +9,6 @@
 
 add_library(blockcodecs-codecs-snappy INTERFACE)
 target_link_libraries(blockcodecs-codecs-snappy INTERFACE
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-snappy
@@ -18,7 +17,6 @@ target_link_libraries(blockcodecs-codecs-snappy INTERFACE
 
 add_global_library_for(blockcodecs-codecs-snappy.global blockcodecs-codecs-snappy)
 target_link_libraries(blockcodecs-codecs-snappy.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-snappy

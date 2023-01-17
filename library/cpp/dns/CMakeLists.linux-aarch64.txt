@@ -9,7 +9,6 @@
 
 add_library(library-cpp-dns)
 target_link_libraries(library-cpp-dns PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

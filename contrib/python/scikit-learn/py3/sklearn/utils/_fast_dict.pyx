@@ -38,6 +38,8 @@ np.import_array()
 
 cdef class IntFloatDict:
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def __init__(self, np.ndarray[ITYPE_t, ndim=1] keys,
                        np.ndarray[DTYPE_t, ndim=1] values):
         cdef int i

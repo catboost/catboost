@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ inline namespace d0 {
     };
 
 //! Unicode support
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
     //! Unicode character type. Always wchar_t on Windows.
     using tchar = wchar_t;
 #else /* !WIN */
@@ -70,27 +70,27 @@ namespace d1 {
 } // namespace d1
 
 namespace r1 {
-    TBB_EXPORT void __TBB_EXPORTED_FUNC call_itt_notify(int t, void* ptr);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC create_itt_sync(void* ptr, const tchar* objtype, const tchar* objname);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_make_task_group(d1::itt_domain_enum domain, void* group, unsigned long long group_extra,
+    void __TBB_EXPORTED_FUNC call_itt_notify(int t, void* ptr);
+    void __TBB_EXPORTED_FUNC create_itt_sync(void* ptr, const tchar* objtype, const tchar* objname);
+    void __TBB_EXPORTED_FUNC itt_make_task_group(d1::itt_domain_enum domain, void* group, unsigned long long group_extra,
         void* parent, unsigned long long parent_extra, string_resource_index name_index);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_task_begin(d1::itt_domain_enum domain, void* task, unsigned long long task_extra,
+    void __TBB_EXPORTED_FUNC itt_task_begin(d1::itt_domain_enum domain, void* task, unsigned long long task_extra,
         void* parent, unsigned long long parent_extra, string_resource_index name_index);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_task_end(d1::itt_domain_enum domain);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_set_sync_name(void* obj, const tchar* name);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_metadata_str_add(d1::itt_domain_enum domain, void* addr, unsigned long long addr_extra,
+    void __TBB_EXPORTED_FUNC itt_task_end(d1::itt_domain_enum domain);
+    void __TBB_EXPORTED_FUNC itt_set_sync_name(void* obj, const tchar* name);
+    void __TBB_EXPORTED_FUNC itt_metadata_str_add(d1::itt_domain_enum domain, void* addr, unsigned long long addr_extra,
         string_resource_index key, const char* value);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_metadata_ptr_add(d1::itt_domain_enum domain, void* addr, unsigned long long addr_extra,
+    void __TBB_EXPORTED_FUNC itt_metadata_ptr_add(d1::itt_domain_enum domain, void* addr, unsigned long long addr_extra,
         string_resource_index key, void* value);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_relation_add(d1::itt_domain_enum domain, void* addr0, unsigned long long addr0_extra,
+    void __TBB_EXPORTED_FUNC itt_relation_add(d1::itt_domain_enum domain, void* addr0, unsigned long long addr0_extra,
         itt_relation relation, void* addr1, unsigned long long addr1_extra);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_region_begin(d1::itt_domain_enum domain, void* region, unsigned long long region_extra,
+    void __TBB_EXPORTED_FUNC itt_region_begin(d1::itt_domain_enum domain, void* region, unsigned long long region_extra,
         void* parent, unsigned long long parent_extra, string_resource_index /* name_index */);
-    TBB_EXPORT void __TBB_EXPORTED_FUNC itt_region_end(d1::itt_domain_enum domain, void* region, unsigned long long region_extra);
+    void __TBB_EXPORTED_FUNC itt_region_end(d1::itt_domain_enum domain, void* region, unsigned long long region_extra);
 } // namespace r1
 
 namespace d1 {
-#if TBB_USE_PROFILING_TOOLS && (_WIN32||_WIN64)
+#if TBB_USE_PROFILING_TOOLS && (_WIN32||_WIN64) && !__MINGW32__
     inline std::size_t multibyte_to_widechar(wchar_t* wcs, const char* mbs, std::size_t bufsize) {
         std::size_t len;
         mbstowcs_s(&len, wcs, bufsize, mbs, _TRUNCATE);
@@ -100,7 +100,7 @@ namespace d1 {
 
 #if TBB_USE_PROFILING_TOOLS
     inline void create_itt_sync(void *ptr, const char *objtype, const char *objname) {
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
         std::size_t len_type = multibyte_to_widechar(nullptr, objtype, 0);
         wchar_t *type = new wchar_t[len_type];
         multibyte_to_widechar(type, objtype, len_type);
@@ -113,7 +113,7 @@ namespace d1 {
 #endif
         r1::create_itt_sync(ptr, type, name);
 
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
         delete[] type;
         delete[] name;
 #endif // WIN
@@ -204,7 +204,7 @@ class event {
     const std::string my_name;
 
     static void emit_trace(const std::string &input) {
-        itt_metadata_str_add( ITT_DOMAIN_FLOW, nullptr, FLOW_NULL, USER_EVENT, ( "FGA::DATAID::" + input ).c_str() );
+        itt_metadata_str_add( ITT_DOMAIN_FLOW, NULL, FLOW_NULL, USER_EVENT, ( "FGA::DATAID::" + input ).c_str() );
     }
 
 public:

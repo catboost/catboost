@@ -6,18 +6,19 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(private-libs-labels)
+target_link_libraries(private-libs-labels PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  catboost-libs-logging
+  catboost-libs-model
+  private-libs-options
+  library-cpp-binsaver
+  library-cpp-json
+)
+target_sources(private-libs-labels PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/labels/label_converter.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/labels/external_label_helper.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/labels/helpers.cpp
+)

@@ -260,8 +260,7 @@ def get_stdout_and_code(command):
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = process.communicate()
         return stdout, process.returncode
-    except Exception as e:
-        logger.info("While run: `%s`", e)
+    except Exception:
         return None, None
 
 
@@ -729,16 +728,14 @@ class YMake(object):
     def print_presets(self):
         presets = opts().presets
         if presets and 'YMAKE_JAVA_MODULES' not in presets:
-            presets['YMAKE_JAVA_MODULES'] = 'yes'
+            if 'YA_IDE_IDEA' in presets or 'MAVEN_EXPORT' in presets:
+                presets['YMAKE_JAVA_MODULES'] = 'no'
+            else:
+                presets['YMAKE_JAVA_MODULES'] = 'yes'
         if presets and 'YMAKE_JAVA_MODULES' in presets and presets['YMAKE_JAVA_MODULES'] == "yes":
             print('@import "${CONF_ROOT}/conf/java.ymake.conf"')
         else:
             print('@import "${CONF_ROOT}/conf/jbuild.ymake.conf"')
-
-        if is_positive_str(presets.get('EXPORT_GRADLE', 'no')):
-            print('@import "${CONF_ROOT}/conf/export_gradle.yes.conf"')
-        else:
-            print('@import "${CONF_ROOT}/conf/export_gradle.no.conf"')
 
         if presets:
             print('# Variables set from command line by -D options')
@@ -839,11 +836,9 @@ class CompilerDetector(object):
         try:
             fd, path = tempfile.mkstemp(suffix='.cpp')
             try:
-                with os.fdopen(fd, 'w') as output:
+                with os.fdopen(fd, 'wb') as output:
                     output.write(source)
                 stdout, code = get_stdout_and_code([compiler, '-E', path])
-            except Exception as e:
-                logger.info("While writing: `%s`", e)
             finally:
                 os.remove(path)
             return stdout, code
@@ -861,14 +856,13 @@ class CompilerDetector(object):
         # Мы можем только удостовериться после разбора stdout, что в нём
         # присутствовала хотя бы одна подставленная переменная.
         # TODO(somov): Исследовать, можно ли проверять ограниченный набор кодов возврата.
-        # TODO(v-korovin): Нормально прокидывать Exception-ы, оно и так упадёт
         stdout, _ = CompilerDetector.preprocess_source(compiler, source)
 
         if stdout is None:
             return None
 
         vars_ = {}
-        for line in six.ensure_str(stdout).split('\n'):
+        for line in stdout.split('\n'):
             parts = line.split('=', 1)
             if len(parts) == 2 and parts[0].startswith(prefix):
                 name, value = parts[0][len(prefix):], parts[1]
@@ -1397,6 +1391,7 @@ class GnuCompiler(Compiler):
         self.c_warnings += [
             '-Wno-parentheses',
             '-Wno-unused-but-set-variable',
+            '-Wno-unused-but-set-parameter',
         ]
 
         self.c_defines = ['-DFAKEID=$CPP_FAKEID']
@@ -1427,6 +1422,8 @@ class GnuCompiler(Compiler):
 
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
+            if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
+                self.c_foptions.append('-fembed-bitcode')
 
         self.extra_compile_opts = []
 
@@ -1665,6 +1662,9 @@ class LD(Linker):
             (not target.is_iossim and target.is_ios, '-Wl,-sdk_version,13.1'),
             (target.is_iossim, '-Wl,-sdk_version,14.5'),
         ])
+
+        if self.target.is_ios and preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
+            self.ld_flags.extend(('-fembed-bitcode', '-Wl,-bitcode_verify'))
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
@@ -2381,6 +2381,8 @@ class Cuda(object):
                 return False
             if not self.cuda_version.from_user:
                 return False
+            if self.cuda_version.value not in ('11.3',):
+                raise ConfigureError('Only CUDA 11.3 are available for cross compilation from linux-x86 to linux-aarch64.\nUse -DCUDA_VERSION=11.3 flag.')
 
         if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2', '10.0'):
             raise ConfigureError('CUDA versions 8.x, 9.x and 10.0 are no longer supported.\nSee DEVTOOLS-7108.')

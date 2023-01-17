@@ -9,7 +9,6 @@
 
 add_executable(ctrs)
 target_link_libraries(ctrs PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

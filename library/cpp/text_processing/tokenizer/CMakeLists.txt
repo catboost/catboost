@@ -6,18 +6,44 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(cpp-text_processing-tokenizer)
+target_link_libraries(cpp-text_processing-tokenizer PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  library-cpp-cache
+  library-cpp-json
+  library-cpp-langs
+  library-cpp-object_factory
+  library-cpp-tokenizer
+  tools-enum_parser-enum_serialization_runtime
+)
+target_sources(cpp-text_processing-tokenizer PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/tokenizer/options.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/tokenizer/tokenizer.cpp
+)
+generate_enum_serilization(cpp-text_processing-tokenizer
+  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/tokenizer/options.h
+  INCLUDE_HEADERS
+  library/cpp/text_processing/tokenizer/options.h
+)
+generate_enum_serilization(cpp-text_processing-tokenizer
+  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/tokenizer/lemmer_impl.h
+  INCLUDE_HEADERS
+  library/cpp/text_processing/tokenizer/lemmer_impl.h
+)
+
+add_global_library_for(cpp-text_processing-tokenizer.global cpp-text_processing-tokenizer)
+target_link_libraries(cpp-text_processing-tokenizer.global PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  library-cpp-cache
+  library-cpp-json
+  library-cpp-langs
+  library-cpp-object_factory
+  library-cpp-tokenizer
+  tools-enum_parser-enum_serialization_runtime
+)
+target_sources(cpp-text_processing-tokenizer.global PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/tokenizer/lemmer_impl.cpp
+)

@@ -9,7 +9,6 @@
 
 add_library(cpp-yt-exception)
 target_link_libraries(cpp-yt-exception PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

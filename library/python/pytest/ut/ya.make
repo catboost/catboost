@@ -9,6 +9,4 @@ PEERDIR(
     library/python/pytest
 )
 
-STYLE_PYTHON()
-
 END()

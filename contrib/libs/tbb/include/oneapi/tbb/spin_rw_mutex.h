@@ -18,13 +18,11 @@
 #define __TBB_spin_rw_mutex_H
 
 #include "detail/_namespace_injection.h"
-#include "detail/_mutex_common.h"
 
 #include "profiling.h"
 
 #include "detail/_assert.h"
 #include "detail/_utils.h"
-#include "detail/_scoped_lock.h"
 
 #include <atomic>
 
@@ -54,7 +52,88 @@ public:
     spin_rw_mutex(const spin_rw_mutex&) = delete;
     spin_rw_mutex& operator=(const spin_rw_mutex&) = delete;
 
-    using scoped_lock = rw_scoped_lock<spin_rw_mutex>;
+    //! The scoped locking pattern
+    /** It helps to avoid the common problem of forgetting to release lock.
+        It also nicely provides the "node" for queuing locks. */
+    class scoped_lock {
+    public:
+        //! Construct lock that has not acquired a mutex.
+        /** Equivalent to zero-initialization of *this. */
+        constexpr scoped_lock() noexcept : m_mutex(nullptr), m_is_writer(false) {}
+
+        //! Acquire lock on given mutex.
+        scoped_lock(spin_rw_mutex& m, bool write = true) : m_mutex(nullptr) {
+            acquire(m, write);
+        }
+
+        //! Release lock (if lock is held).
+        ~scoped_lock() {
+            if (m_mutex) {
+                release();
+            }
+        }
+
+        //! No Copy
+        scoped_lock(const scoped_lock&) = delete;
+        scoped_lock& operator=(const scoped_lock&) = delete;
+
+        //! Acquire lock on given mutex.
+        void acquire(spin_rw_mutex& m, bool write = true) {
+            m_is_writer = write;
+            m_mutex = &m;
+            if (write) {
+                m_mutex->lock();
+            } else {
+                m_mutex->lock_shared();
+            }
+        }
+
+        //! Try acquire lock on given mutex.
+        bool try_acquire(spin_rw_mutex& m, bool write = true) {
+            m_is_writer = write;
+            bool result = write ? m.try_lock() : m.try_lock_shared();
+            if (result) {
+                m_mutex = &m;
+            }
+            return result;
+        }
+
+        //! Release lock.
+        void release() {
+            spin_rw_mutex* m = m_mutex;
+            m_mutex = nullptr;
+
+            if (m_is_writer) {
+                m->unlock();
+            } else {
+                m->unlock_shared();
+            }
+        }
+
+        //! Upgrade reader to become a writer.
+        /** Returns whether the upgrade happened without releasing and re-acquiring the lock */
+        bool upgrade_to_writer() {
+            if (m_is_writer) return true; // Already a writer
+            m_is_writer = true;
+            return m_mutex->upgrade();
+        }
+
+        //! Downgrade writer to become a reader.
+        bool downgrade_to_reader() {
+            if (!m_is_writer) return true; // Already a reader
+            m_mutex->downgrade();
+            m_is_writer = false;
+            return true;
+        }
+
+    protected:
+        //! The pointer to the current mutex that is held, or nullptr if no mutex is held.
+        spin_rw_mutex* m_mutex;
+
+        //! If mutex != nullptr, then is_writer is true if holding a writer lock, false if holding a reader lock.
+        /** Not defined if not holding a lock. */
+        bool m_is_writer;
+    };
 
     //! Mutex traits
     static constexpr bool is_rw_mutex = true;
@@ -179,7 +258,6 @@ protected:
     static constexpr state_type READERS = ~(WRITER | WRITER_PENDING);
     static constexpr state_type ONE_READER = 4;
     static constexpr state_type BUSY = WRITER | READERS;
-    friend scoped_lock;
     //! State of lock
     /** Bit 0 = writer is holding lock
         Bit 1 = request by a writer to acquire lock (hint to readers to wait)
@@ -191,14 +269,14 @@ protected:
 inline void set_name(spin_rw_mutex& obj, const char* name) {
     itt_set_sync_name(&obj, name);
 }
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
 inline void set_name(spin_rw_mutex& obj, const wchar_t* name) {
     itt_set_sync_name(&obj, name);
 }
 #endif // WIN
 #else
 inline void set_name(spin_rw_mutex&, const char*) {}
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
 inline void set_name(spin_rw_mutex&, const wchar_t*) {}
 #endif // WIN
 #endif

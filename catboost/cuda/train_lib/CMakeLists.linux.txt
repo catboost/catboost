@@ -10,7 +10,6 @@ add_subdirectory(ut)
 
 add_library(catboost-cuda-train_lib INTERFACE)
 target_link_libraries(catboost-cuda-train_lib INTERFACE
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-cuda-cpu_compatibility_helpers
@@ -41,7 +40,6 @@ target_link_libraries(catboost-cuda-train_lib INTERFACE
 
 add_global_library_for(catboost-cuda-train_lib.global catboost-cuda-train_lib)
 target_link_libraries(catboost-cuda-train_lib.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-cuda-cpu_compatibility_helpers

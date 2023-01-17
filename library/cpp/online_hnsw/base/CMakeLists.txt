@@ -6,18 +6,20 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(cpp-online_hnsw-base)
+target_link_libraries(cpp-online_hnsw-base PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  cpp-hnsw-index_builder
+  cpp-containers-dense_hash
+  cpp-threading-local_executor
+)
+target_sources(cpp-online_hnsw-base PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/online_hnsw/base/build_options.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/online_hnsw/base/dynamic_dense_graph.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/online_hnsw/base/index_base.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/online_hnsw/base/index_reader.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/online_hnsw/base/index_writer.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/online_hnsw/base/item_storage_index.cpp
+)

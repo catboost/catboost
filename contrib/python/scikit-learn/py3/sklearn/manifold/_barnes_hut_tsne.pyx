@@ -1,3 +1,7 @@
+# cython: boundscheck=False
+# cython: wraparound=False
+# cython: cdivision=True
+#
 # Author: Christopher Moody <chrisemoody@gmail.com>
 # Author: Nick Travers <nickt@squareup.com>
 # Implementation by Chris Moody & Nick Travers
@@ -13,8 +17,6 @@ from libc.stdlib cimport malloc, free
 from cython.parallel cimport prange, parallel
 
 from ..neighbors._quad_tree cimport _QuadTree
-
-np.import_array()
 
 
 cdef char* EMPTY_STRING = ""
@@ -269,7 +271,7 @@ def gradient(float[:] val_P,
              bint compute_error=1,
              int num_threads=1):
     # This function is designed to be called from external Python
-    # it passes the 'forces' array by reference and fills that's array
+    # it passes the 'forces' array by reference and fills thats array
     # up in-place
     cdef float C
     cdef int n

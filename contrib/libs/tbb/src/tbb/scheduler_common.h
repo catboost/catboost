@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@
 #endif
 // TODO: add conditional inclusion based on specified type
 #include "oneapi/tbb/spin_mutex.h"
-#include "oneapi/tbb/mutex.h"
 
 #if TBB_USE_ASSERT
 #include <atomic>
@@ -115,7 +114,7 @@ struct task_accessor {
 //------------------------------------------------------------------------
 //! Extended variant of the standard offsetof macro
 /** The standard offsetof macro is not sufficient for TBB as it can be used for
-    POD-types only. The constant 0x1000 (not nullptr) is necessary to appease GCC. **/
+    POD-types only. The constant 0x1000 (not NULL) is necessary to appease GCC. **/
 #define __TBB_offsetof(class_name, member_name) \
     ((ptrdiff_t)&(reinterpret_cast<class_name*>(0x1000)->member_name) - 0x1000)
 
@@ -133,7 +132,7 @@ class context_guard_helper {
     d1::cpu_ctl_env guard_cpu_ctl_env;
     d1::cpu_ctl_env curr_cpu_ctl_env;
 public:
-    context_guard_helper() : curr_ctx(nullptr) {
+    context_guard_helper() : curr_ctx(NULL) {
         guard_cpu_ctl_env.get_env();
         curr_cpu_ctl_env = guard_cpu_ctl_env;
     }
@@ -160,8 +159,8 @@ public:
                 ITT_TASK_END;
             // reporting begin of new task group context execution frame.
             // using address of task group context object to group tasks (parent).
-            // id of task execution frame is nullptr and reserved for future use.
-            ITT_TASK_BEGIN(ctx, ctx->my_name, nullptr);
+            // id of task execution frame is NULL and reserved for future use.
+            ITT_TASK_BEGIN(ctx, ctx->my_name, NULL);
             curr_ctx = ctx;
         }
     }
@@ -175,7 +174,7 @@ public:
 #endif // _WIN64
 };
 
-#if (_WIN32 || _WIN64 || __unix__ || __APPLE__) && (__TBB_x86_32 || __TBB_x86_64)
+#if (_WIN32 || _WIN64 || __linux__) && (__TBB_x86_32 || __TBB_x86_64)
 #if _MSC_VER
 #pragma intrinsic(__rdtsc)
 #endif
@@ -220,7 +219,7 @@ inline void prolonged_pause_impl() {
 #endif
 
 inline void prolonged_pause() {
-#if __TBB_WAITPKG_INTRINSICS_PRESENT
+#if __TBB_WAITPKG_INTRINSICS_PRESENT && (_WIN32 || _WIN64 || __linux__) && (__TBB_x86_32 || __TBB_x86_64)
     if (governor::wait_package_enabled()) {
         std::uint64_t time_stamp = machine_time_stamp();
         // _tpause function directs the processor to enter an implementation-dependent optimized state
@@ -234,10 +233,6 @@ inline void prolonged_pause() {
     prolonged_pause_impl();
 }
 
-// TODO: investigate possibility to work with number of CPU cycles
-// because for different configurations this number of pauses + yields
-// will be calculated in different amount of CPU cycles
-// for example use rdtsc for it
 class stealing_loop_backoff {
     const int my_pause_threshold;
     const int my_yield_threshold;
@@ -248,13 +243,13 @@ public:
     // the time spent spinning before calling is_out_of_work() should be approximately
     // the time it takes for a thread to be woken up. Doing so would guarantee that we do
     // no worse than 2x the optimal spin time. Or perhaps a time-slice quantum is the right amount.
-    stealing_loop_backoff(int num_workers, int yields_multiplier)
+    stealing_loop_backoff(int num_workers)
         : my_pause_threshold{ 2 * (num_workers + 1) }
 #if __APPLE__
         // threshold value tuned separately for macOS due to high cost of sched_yield there
-        , my_yield_threshold{10 * yields_multiplier}
+        , my_yield_threshold{10}
 #else
-        , my_yield_threshold{100 * yields_multiplier}
+        , my_yield_threshold{100}
 #endif
         , my_pause_count{}
         , my_yield_count{}
@@ -353,54 +348,6 @@ struct suspend_point_type {
     bool m_is_critical{ false };
     //! Associated coroutine
     co_context m_co_context;
-    //! Supend point before resume
-    suspend_point_type* m_prev_suspend_point{nullptr};
-
-    // Possible state transitions:
-    // A -> S -> N -> A
-    // A -> N -> S -> N -> A
-    enum class stack_state {
-        active, // some thread is working with this stack
-        suspended, // no thread is working with this stack
-        notified // some thread tried to resume this stack
-    };
-
-    //! The flag required to protect suspend finish and resume call
-    std::atomic<stack_state> m_stack_state{stack_state::active};
-
-    void resume(suspend_point_type* sp) {
-        __TBB_ASSERT(m_stack_state.load(std::memory_order_relaxed) != stack_state::suspended, "The stack is expected to be active");
-
-        sp->m_prev_suspend_point = this;
-
-        // Do not access sp after resume
-        m_co_context.resume(sp->m_co_context);
-        __TBB_ASSERT(m_stack_state.load(std::memory_order_relaxed) != stack_state::active, nullptr);
-
-        finilize_resume();
-    }
-
-    void finilize_resume() {
-        m_stack_state.store(stack_state::active, std::memory_order_relaxed);
-        // Set the suspended state for the stack that we left. If the state is already notified, it means that 
-        // someone already tried to resume our previous stack but failed. So, we need to resume it.
-        // m_prev_suspend_point might be nullptr when destroying co_context based on threads
-        if (m_prev_suspend_point && m_prev_suspend_point->m_stack_state.exchange(stack_state::suspended) == stack_state::notified) {
-            r1::resume(m_prev_suspend_point);
-        }
-        m_prev_suspend_point = nullptr;
-    }
-
-    bool try_notify_resume() {
-        // Check that stack is already suspended. Return false if not yet.
-        return m_stack_state.exchange(stack_state::notified) == stack_state::suspended;
-    }
-
-    void recall_owner() {
-        __TBB_ASSERT(m_stack_state.load(std::memory_order_relaxed) == stack_state::suspended, nullptr);
-        m_stack_state.store(stack_state::notified, std::memory_order_relaxed);
-        m_is_owner_recalled.store(true, std::memory_order_release);
-    }
 
     struct resume_task final : public d1::task {
         task_dispatcher& m_target;
@@ -418,12 +365,6 @@ struct suspend_point_type {
 #endif /*__TBB_RESUMABLE_TASKS */
 };
 
-#if _MSC_VER && !defined(__INTEL_COMPILER)
-// structure was padded due to alignment specifier
-#pragma warning( push )
-#pragma warning( disable: 4324 )
-#endif
-
 class alignas (max_nfs_size) task_dispatcher {
 public:
     // TODO: reconsider low level design to better organize dependencies and files.
@@ -432,15 +373,6 @@ public:
     friend class nested_arena_context;
     friend class delegated_task;
     friend struct base_waiter;
-
-    //! The list of possible post resume actions.
-    enum class post_resume_action {
-        invalid,
-        register_waiter,
-        cleanup,
-        notify,
-        none
-    };
 
     //! The data of the current thread attached to this task_dispatcher
     thread_data* m_thread_data{ nullptr };
@@ -463,7 +395,7 @@ public:
 
     //! Attempt to get a task from the mailbox.
     /** Gets a task only if it has not been executed by its sender or a thief
-        that has stolen it from the sender's task pool. Otherwise returns nullptr.
+        that has stolen it from the sender's task pool. Otherwise returns NULL.
         This method is intended to be used only by the thread extracting the proxy
         from its mailbox. (In contrast to local task pool, mailbox can be read only
         by its owner). **/
@@ -532,10 +464,7 @@ public:
 #if __TBB_RESUMABLE_TASKS
     /* [[noreturn]] */ void co_local_wait_for_all() noexcept;
     void suspend(suspend_callback_type suspend_callback, void* user_callback);
-    void internal_suspend();
-    void do_post_resume_action();
-
-    bool resume(task_dispatcher& target);
+    void resume(task_dispatcher& target);
     suspend_point_type* get_suspend_point();
     void init_suspend_point(arena* a, std::size_t stack_size);
     friend void internal_resume(suspend_point_type*);
@@ -543,12 +472,7 @@ public:
 #endif /* __TBB_RESUMABLE_TASKS */
 };
 
-#if _MSC_VER && !defined(__INTEL_COMPILER)
-#pragma warning( pop )
-#endif
-
 inline std::uintptr_t calculate_stealing_threshold(std::uintptr_t base, std::size_t stack_size) {
-    __TBB_ASSERT(base > stack_size / 2, "Stack anchor calculation overflow");
     return base - stack_size / 2;
 }
 

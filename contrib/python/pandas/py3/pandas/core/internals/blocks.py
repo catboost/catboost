@@ -569,6 +569,7 @@ class Block(PandasObject):
         # Note: the checks we do in NDFrame.replace ensure we never get
         #  here with listlike to_replace or value, as those cases
         #  go through replace_list
+
         values = self.values
 
         if isinstance(values, Categorical):
@@ -607,10 +608,7 @@ class Block(PandasObject):
             return blocks
 
         elif self.ndim == 1 or self.shape[0] == 1:
-            if value is None:
-                blk = self.astype(np.dtype(object))
-            else:
-                blk = self.coerce_to_target_dtype(value)
+            blk = self.coerce_to_target_dtype(value)
             return blk.replace(
                 to_replace=to_replace,
                 value=value,

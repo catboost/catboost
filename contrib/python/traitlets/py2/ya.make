@@ -11,8 +11,8 @@ VERSION(4.3.3)
 LICENSE(BSD-3-Clause)
 
 PEERDIR(
-    contrib/deprecated/python/enum34
     contrib/python/decorator
+    contrib/python/enum34
     contrib/python/ipython-genutils
     contrib/python/six
 )

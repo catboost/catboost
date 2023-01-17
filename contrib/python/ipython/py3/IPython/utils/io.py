@@ -12,6 +12,7 @@ import atexit
 import os
 import sys
 import tempfile
+import warnings
 from pathlib import Path
 from warnings import warn
 

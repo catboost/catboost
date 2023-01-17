@@ -42,6 +42,14 @@ def ontest_data(unit, *args):
     ymake.report_configure_error("TEST_DATA is removed in favour of DATA")
 
 
+def save_in_file(filepath, data):
+    if filepath:
+        with open(filepath, 'a') as file_handler:
+            if os.stat(filepath).st_size == 0:
+                print >>file_handler,  BLOCK_SEPARATOR
+            print >> file_handler, data
+
+
 def prepare_recipes(data):
     data = data.replace('"USE_RECIPE_DELIM"', "\n")
     data = data.replace("$TEST_RECIPES_VALUE", "")
@@ -427,7 +435,7 @@ def onadd_ytest(unit, *args):
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
         # that's why we add ADD_YTEST(coverage.extractor) to every PROGRAM entry and check requirements later
         return
-    elif flat_args[1] == "clang_tidy" and unit.get("TIDY_ENABLED") != "yes":
+    elif flat_args[1] == "clang_tidy" and unit.get("TIDY") != "yes":
         # Graph is not prepared
         return
     elif flat_args[1] == "no.test":
@@ -437,7 +445,7 @@ def onadd_ytest(unit, *args):
     test_timeout = ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or ''
     test_requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
 
-    if flat_args[1] != "clang_tidy" and unit.get("TIDY_ENABLED") == "yes":
+    if flat_args[1] != "clang_tidy" and unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
         if flat_args[1] in ("unittest.py", "gunittest", "g_benchmark"):
             flat_args[1] = "clang_tidy"
@@ -449,7 +457,7 @@ def onadd_ytest(unit, *args):
         else:
             return
 
-    if flat_args[1] == "clang_tidy" and unit.get("TIDY_ENABLED") == "yes":
+    if flat_args[1] == "clang_tidy" and unit.get("TIDY") == "yes":
         if unit.get("TIDY_CONFIG"):
             default_config_path = unit.get("TIDY_CONFIG")
             project_config_path = unit.get("TIDY_CONFIG")
@@ -518,6 +526,7 @@ def onadd_ytest(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
+        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def java_srcdirs_to_data(unit, var):
@@ -647,6 +656,7 @@ def onadd_check(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
+        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def on_register_no_check_imports(unit):
@@ -696,6 +706,7 @@ def onadd_check_py_imports(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
+        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def onadd_pytest_script(unit, *args):
@@ -1013,6 +1024,7 @@ def _dump_test(
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
+        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def onsetup_pytest_bin(unit, *args):

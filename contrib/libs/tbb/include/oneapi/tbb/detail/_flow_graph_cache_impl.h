@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -152,66 +152,67 @@ public:
     typedef receiver<T> successor_type;
 
     reservable_predecessor_cache( successor_type* owner )
-        : predecessor_cache<T,M>(owner), reserved_src(nullptr)
+        : predecessor_cache<T,M>(owner), reserved_src(NULL)
     {
         // Do not work with the passed pointer here as it may not be fully initialized yet
     }
 
-    bool try_reserve( output_type &v ) {
+    bool
+    try_reserve( output_type &v ) {
         bool msg = false;
 
         do {
-            predecessor_type* pred = nullptr;
             {
                 typename mutex_type::scoped_lock lock(this->my_mutex);
-                if ( reserved_src.load(std::memory_order_relaxed) || this->internal_empty() )
+                if ( reserved_src || this->internal_empty() )
                     return false;
 
-                pred = &this->internal_pop();
-                reserved_src.store(pred, std::memory_order_relaxed);
+                reserved_src = &this->internal_pop();
             }
 
             // Try to get from this sender
-            msg = pred->try_reserve( v );
+            msg = reserved_src->try_reserve( v );
 
             if (msg == false) {
                 typename mutex_type::scoped_lock lock(this->my_mutex);
                 // Relinquish ownership of the edge
-                register_successor( *pred, *this->my_owner );
-                reserved_src.store(nullptr, std::memory_order_relaxed);
+                register_successor( *reserved_src, *this->my_owner );
+                reserved_src = NULL;
             } else {
                 // Retain ownership of the edge
-                this->add( *pred);
+                this->add( *reserved_src );
             }
         } while ( msg == false );
 
         return msg;
     }
 
-    bool try_release() {
-        reserved_src.load(std::memory_order_relaxed)->try_release();
-        reserved_src.store(nullptr, std::memory_order_relaxed);
+    bool
+    try_release( ) {
+        reserved_src->try_release( );
+        reserved_src = NULL;
         return true;
     }
 
-    bool try_consume() {
-        reserved_src.load(std::memory_order_relaxed)->try_consume();
-        reserved_src.store(nullptr, std::memory_order_relaxed);
+    bool
+    try_consume( ) {
+        reserved_src->try_consume( );
+        reserved_src = NULL;
         return true;
     }
 
-    void reset() {
-        reserved_src.store(nullptr, std::memory_order_relaxed);
-        predecessor_cache<T, M>::reset();
+    void reset( ) {
+        reserved_src = NULL;
+        predecessor_cache<T,M>::reset( );
     }
 
     void clear() {
-        reserved_src.store(nullptr, std::memory_order_relaxed);
-        predecessor_cache<T, M>::clear();
+        reserved_src = NULL;
+        predecessor_cache<T,M>::clear();
     }
 
 private:
-    std::atomic<predecessor_type*> reserved_src;
+    predecessor_type *reserved_src;
 };
 
 
@@ -427,7 +428,7 @@ public:
                }
             }
         }
-        return nullptr;
+        return NULL;
     }
 };
 

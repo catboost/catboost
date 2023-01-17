@@ -1,3 +1,7 @@
+#cython: boundscheck=False
+#cython: cdivision=True
+#cython: wraparound=False
+#
 # Author: Andreas Mueller <amueller@ais.uni-bonn.de>
 #         Lars Buitinck
 #         Paolo Toccaceli

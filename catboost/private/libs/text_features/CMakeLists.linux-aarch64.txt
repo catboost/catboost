@@ -10,7 +10,6 @@ add_subdirectory(ut)
 
 add_library(private-libs-text_features)
 target_link_libraries(private-libs-text_features PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers
@@ -47,7 +46,6 @@ target_fbs_source(private-libs-text_features
 
 add_global_library_for(private-libs-text_features.global private-libs-text_features)
 target_link_libraries(private-libs-text_features.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers

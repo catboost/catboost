@@ -332,6 +332,7 @@ namespace NCB {
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
 
+        TConstArrayRef<float> learnTarget = *pools.Learn->TargetData->GetOneDimensionalTarget();
         TClassificationTargetPtr learnClassificationTarget;
         if (isClassification) {
             learnClassificationTarget = CreateClassificationTarget(*pools.Learn->TargetData);
@@ -388,6 +389,7 @@ namespace NCB {
         }
 
         auto embeddingFeaturesDescription = quantizedFeaturesInfo->GetEmbeddingProcessingOptions().GetFeatureDescriptions();
+
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Embedding>(
             [&](TEmbeddingFeatureIdx embeddingFeature) {
 
@@ -407,7 +409,6 @@ namespace NCB {
                 const auto& featureDescription = embeddingFeaturesDescription[embeddingFeatureIdx];
                 const ui32 featureId = embeddingFeaturesDescription[embeddingFeatureIdx].EmbeddingFeatureId;
                 TEstimatorSourceId sourceFeatureIdx{featureId, embeddingFeatureIdx};
-                TConstArrayRef<float> learnTarget = *pools.Learn->TargetData->GetOneDimensionalTarget();
 
                 auto onlineEstimators = CreateEmbeddingEstimators(
                     featureDescription.FeatureEstimators.Get(),

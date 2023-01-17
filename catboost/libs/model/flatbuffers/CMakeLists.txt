@@ -6,18 +6,39 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(libs-model-flatbuffers)
+target_link_libraries(libs-model-flatbuffers PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  contrib-libs-flatbuffers
+)
+target_sources(libs-model-flatbuffers PRIVATE
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.cpp
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp
+)
+target_fbs_source(libs-model-flatbuffers
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/libs/model/flatbuffers/features.fbs
+  -I
+  ${CMAKE_BINARY_DIR}
+  -I
+  ${CMAKE_SOURCE_DIR}
+)
+target_fbs_source(libs-model-flatbuffers
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs
+  -I
+  ${CMAKE_BINARY_DIR}
+  -I
+  ${CMAKE_SOURCE_DIR}
+)
+target_fbs_source(libs-model-flatbuffers
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/libs/model/flatbuffers/model.fbs
+  -I
+  ${CMAKE_BINARY_DIR}
+  -I
+  ${CMAKE_SOURCE_DIR}
+)

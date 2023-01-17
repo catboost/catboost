@@ -13,7 +13,6 @@ target_cuda_sources(catboost-cuda-ctrs PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/kernel/ctr_calcers.cu
 )
 target_link_libraries(catboost-cuda-ctrs PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-cuda-cuda_lib
@@ -59,7 +58,6 @@ target_cuda_flags(catboost-cuda-ctrs
 
 add_global_library_for(catboost-cuda-ctrs.global catboost-cuda-ctrs)
 target_link_libraries(catboost-cuda-ctrs.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-cuda-cuda_lib

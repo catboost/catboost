@@ -50,7 +50,7 @@ namespace detail {
 namespace r1 {
 
 //! Unicode support
-#if (_WIN32||_WIN64)
+#if (_WIN32||_WIN64) && !__MINGW32__
     //! Unicode character type. Always wchar_t on Windows.
     /** We do not use typedefs from Windows TCHAR family to keep consistence of TBB coding style. **/
     using tchar = wchar_t;
