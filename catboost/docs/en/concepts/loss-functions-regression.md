@@ -178,6 +178,17 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 {% endcut %}
 
+### {{ error-function__LogCosh }} {#LogCosh}
+
+$\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
+
+**{{ optimization }}** See [more](#optimization).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
+
 ### {{ error-function__FairLoss }} {#FairLoss}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} c^2(\frac{|t_{i} - a_{i} |}{c} - \ln(\frac{|t_{i} - a_{i} |}{c} + 1))w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
@@ -276,6 +287,7 @@ No.
 [{{ error-function__Huber }}](#Huber)                             |     +                   |
 [{{ error-function__Expectile }}](#Expectile)                     |     +                   |
 [{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |
+[{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |
 [{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |
 [{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |
 [{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |
