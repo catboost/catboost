@@ -178,6 +178,8 @@ _Examples_: `QueryAUC:type=Ranking;use_weights=False`.
 
 {% include [query-auc](../_includes/concepts/query-auc.md) %}
 
+{% include [pr-auc](../_includes/concepts/pr-auc.md) %}
+
 ### {{ error-function--NormalizedGini }} {#NormalizedGini}
 
 See {{ error-function--AUC }}.
