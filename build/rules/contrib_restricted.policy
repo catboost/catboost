@@ -44,6 +44,9 @@ ALLOW mds -> contrib/restricted/uriparser
 # https://st.yandex-team.ru/CONTRIB-2020
 ALLOW weather -> contrib/restricted/range-v3
 
+# https://st.yandex-team.ru/CONTRIB-2492
+ALLOW weather -> contrib/restricted/aviso-fes
+
 # ALSA library is LGPL
 ALLOW yandex_io -> contrib/restricted/alsa-lib
 ALLOW smart_devices -> contrib/restricted/alsa-lib
