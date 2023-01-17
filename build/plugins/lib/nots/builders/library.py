@@ -7,7 +7,7 @@ from ..typescript import TsConfig, TsCompilationError
 
 
 class LibraryBuilder(BaseBuilder):
-    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, node_modules_bundle_path, script_path, config_path):
+    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, node_modules_bundle_path, script_path, config_path, typings=[]):
         super(LibraryBuilder, self).__init__(
             build_root=build_root,
             build_path=build_path,
@@ -16,6 +16,7 @@ class LibraryBuilder(BaseBuilder):
             node_modules_bundle_path=node_modules_bundle_path,
             copy_package_json=True,
             output_node_modules_path=constants.NODE_MODULES_WORKSPACE_BUNDLE_FILENAME,
+            external_dependencies=dict([t.split(":") for t in typings]),
         )
         self.script_path = script_path
         self.ts_config_curpath = config_path
