@@ -13,6 +13,7 @@ from typing import (
     Union,
     cast,
 )
+from weakref import WeakKeyDictionary, WeakValueDictionary
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import CompletionState
@@ -163,9 +164,13 @@ class CompletionsMenuControl(UIControl):
             return get_cwidth(completion.display_meta_text)
 
         if self._show_meta(complete_state):
-            return min(
-                max_width, max(meta_width(c) for c in complete_state.completions) + 2
-            )
+            # If the amount of completions is over 200, compute the width based
+            # on the first 200 completions, otherwise this can be very slow.
+            completions = complete_state.completions
+            if len(completions) > 200:
+                completions = completions[:200]
+
+            return min(max_width, max(meta_width(c) for c in completions) + 2)
         else:
             return 0
 
@@ -332,6 +337,16 @@ class MultiColumnCompletionMenuControl(UIControl):
         self.min_rows = min_rows
         self.suggested_max_column_width = suggested_max_column_width
         self.scroll = 0
+
+        # Cache for column width computations. This computation is not cheap,
+        # so we don't want to do it over and over again while the user
+        # navigates through the completions.
+        # (map `completion_state` to `(completion_count, width)`. We remember
+        # the count, because a completer can add new completions to the
+        # `CompletionState` while loading.)
+        self._column_width_for_completion_state: "WeakKeyDictionary[CompletionState, Tuple[int, int]]" = (
+            WeakKeyDictionary()
+        )
 
         # Info of last rendering.
         self._rendered_rows = 0
@@ -509,11 +524,26 @@ class MultiColumnCompletionMenuControl(UIControl):
 
         return UIContent(get_line=get_line, line_count=len(rows_))
 
-    def _get_column_width(self, complete_state: CompletionState) -> int:
+    def _get_column_width(self, completion_state: CompletionState) -> int:
         """
         Return the width of each column.
         """
-        return max(get_cwidth(c.display_text) for c in complete_state.completions) + 1
+        try:
+            count, width = self._column_width_for_completion_state[completion_state]
+            if count != len(completion_state.completions):
+                # Number of completions changed, recompute.
+                raise KeyError
+            return width
+        except KeyError:
+            result = (
+                max(get_cwidth(c.display_text) for c in completion_state.completions)
+                + 1
+            )
+            self._column_width_for_completion_state[completion_state] = (
+                len(completion_state.completions),
+                result,
+            )
+            return result
 
     def mouse_handler(self, mouse_event: MouseEvent) -> "NotImplementedOrNone":
         """
@@ -683,7 +713,19 @@ class _SelectedCompletionMetaControl(UIControl):
         app = get_app()
         if app.current_buffer.complete_state:
             state = app.current_buffer.complete_state
-            return 2 + max(get_cwidth(c.display_meta_text) for c in state.completions)
+
+            if len(state.completions) >= 30:
+                # When there are many completions, calling `get_cwidth` for
+                # every `display_meta_text` is too expensive. In this case,
+                # just return the max available width. There will be enough
+                # columns anyway so that the whole screen is filled with
+                # completions and `create_content` will then take up as much
+                # space as needed.
+                return max_available_width
+
+            return 2 + max(
+                get_cwidth(c.display_meta_text) for c in state.completions[:100]
+            )
         else:
             return 0
 
