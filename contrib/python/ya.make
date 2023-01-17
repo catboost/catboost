@@ -44,7 +44,6 @@ RECURSE(
     pyparsing
     pytest
     pytz
-    scandir
     scikit-learn
     scipy
     setuptools

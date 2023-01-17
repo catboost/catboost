@@ -22,7 +22,7 @@ PY_SRCS(
 )
 
 RESOURCE_FILES(
-    PREFIX contrib/python/scandir/
+    PREFIX contrib/deprecated/python/scandir/
     .dist-info/METADATA
     .dist-info/top_level.txt
 )
