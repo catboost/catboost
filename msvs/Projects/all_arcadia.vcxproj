@@ -771,14 +771,20 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.vcxproj">
       <Project>2A505A08-73FD-9F97-DBC1-5BC70FFD9C70</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3contrib-python-attrs.global.vcxproj">
-      <Project>C833F46B-5133-2225-17FA-BA9CBACB3D28</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py2\pypython-attrs-py2.global.vcxproj">
+      <Project>6A81ED2F-526B-2A15-0804-DCA4DA17C887</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py2\pypython-attrs-py2.vcxproj">
+      <Project>5AB9292C-6324-89DD-6877-F04958F9F526</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3\pypython-attrs-py3.global.vcxproj">
+      <Project>ADB613B0-8D3A-4DFE-77B5-B78F8208C333</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3\pypython-attrs-py3.vcxproj">
+      <Project>0CD7AE88-DE09-CF37-A443-C3C5415FAD33</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3contrib-python-attrs.vcxproj">
       <Project>87CA5CA6-1C23-2B8C-87B3-81C77768D493</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.global.vcxproj">
-      <Project>31AB3A5F-7E5B-9E60-93B9-51EA299DE4D8</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
       <Project>B19D597D-A363-F744-6165-C68C1835DD61</Project>
