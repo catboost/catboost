@@ -757,6 +757,11 @@ bool HasGpuImplementation(ELossFunction loss) {
     return GetInfo(loss)->HasFlags(EMetricAttribute::HasGpuImplementation);
 }
 
+bool HasGpuImplementation(TStringBuf metricName) {
+    ELossFunction lossType = ParseLossType(metricName);
+    return HasGpuImplementation(lossType);
+}
+
 bool IsClassificationObjective(const TStringBuf lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
     return IsClassificationObjective(lossType);
