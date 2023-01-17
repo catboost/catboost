@@ -12,10 +12,8 @@ add_library(contrib-restricted-abseil-cpp INTERFACE)
 target_link_libraries(contrib-restricted-abseil-cpp INTERFACE
   abseil-cpp-absl-algorithm
   abseil-cpp-absl-base
-  abseil-cpp-absl-city
   abseil-cpp-absl-container
   abseil-cpp-absl-debugging
-  abseil-cpp-absl-demangle
   abseil-cpp-absl-flags
   abseil-cpp-absl-functional
   abseil-cpp-absl-hash

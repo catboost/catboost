@@ -19,7 +19,6 @@ target_link_libraries(abseil-cpp-absl-container PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
   abseil-cpp-absl-debugging
-  abseil-cpp-absl-demangle
   abseil-cpp-absl-hash
   abseil-cpp-absl-numeric
   abseil-cpp-absl-profiling

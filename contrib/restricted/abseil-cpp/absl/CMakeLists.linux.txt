@@ -8,10 +8,8 @@
 
 add_subdirectory(algorithm)
 add_subdirectory(base)
-add_subdirectory(city)
 add_subdirectory(container)
 add_subdirectory(debugging)
-add_subdirectory(demangle)
 add_subdirectory(flags)
 add_subdirectory(functional)
 add_subdirectory(hash)

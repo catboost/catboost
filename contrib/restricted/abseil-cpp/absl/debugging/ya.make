@@ -27,6 +27,7 @@ CFLAGS(
 SRCS(
     failure_signal_handler.cc
     internal/address_is_readable.cc
+    internal/demangle.cc
     internal/elf_mem_image.cc
     internal/examine_stack.cc
     internal/vdso_support.cc
