@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/generic/ptr.h>
+#include <util/system/atomic.h>
 
 namespace NNeh {
     //limited emulation shared_ptr/weak_ptr from boost lib.

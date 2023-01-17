@@ -1,6 +1,7 @@
 #pragma once
 
-#include <util/system/atomic.h>
+#include <cstddef>
+#include <atomic>
 
 /**
  * Simple thread-safe per-class counter that can be used to make sure you don't
@@ -20,19 +21,19 @@ template <class T>
 class TObjectCounter {
 public:
     inline TObjectCounter() noexcept {
-        AtomicIncrement(Count_);
+        ++Count_;
     }
 
     inline TObjectCounter(const TObjectCounter& /*item*/) noexcept {
-        AtomicIncrement(Count_);
+        ++Count_;
     }
 
     inline ~TObjectCounter() {
-        AtomicDecrement(Count_);
+        --Count_;
     }
 
     static inline long ObjectCount() noexcept {
-        return AtomicGet(Count_);
+        return Count_.load();
     }
 
     /**
@@ -42,12 +43,12 @@ public:
      * \returns                         Current object count.
      */
     static inline long ResetObjectCount() noexcept {
-        return AtomicSwap(&Count_, 0);
+        return Count_.exchange(0);
     }
 
 private:
-    static TAtomic Count_;
+    static std::atomic<intptr_t> Count_;
 };
 
 template <class T>
-TAtomic TObjectCounter<T>::Count_ = 0;
+std::atomic<intptr_t> TObjectCounter<T>::Count_ = 0;

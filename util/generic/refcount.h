@@ -1,9 +1,10 @@
 #pragma once
 
 #include <util/system/guard.h>
-#include <util/system/atomic.h>
 #include <util/system/defaults.h>
 #include <util/system/yassert.h>
+
+#include <atomic>
 
 template <class TCounterCheckPolicy>
 class TSimpleCounterTemplate: public TCounterCheckPolicy {
@@ -19,21 +20,21 @@ public:
         Check();
     }
 
-    inline TAtomicBase Add(TAtomicBase d) noexcept {
+    inline intptr_t Add(intptr_t d) noexcept {
         Check();
         return Counter_ += d;
     }
 
-    inline TAtomicBase Inc() noexcept {
+    inline intptr_t Inc() noexcept {
         return Add(1);
     }
 
-    inline TAtomicBase Sub(TAtomicBase d) noexcept {
+    inline intptr_t Sub(intptr_t d) noexcept {
         Check();
         return Counter_ -= d;
     }
 
-    inline TAtomicBase Dec() noexcept {
+    inline intptr_t Dec() noexcept {
         return Sub(1);
     }
 
@@ -48,12 +49,12 @@ public:
         return true;
     }
 
-    inline TAtomicBase Val() const noexcept {
+    inline intptr_t Val() const noexcept {
         return Counter_;
     }
 
 private:
-    TAtomicBase Counter_;
+    intptr_t Counter_;
 };
 
 class TNoCheckPolicy {
@@ -107,47 +108,52 @@ public:
     {
     }
 
-    inline ~TAtomicCounter() = default;
-
-    inline TAtomicBase Add(TAtomicBase d) noexcept {
-        return AtomicAdd(Counter_, d);
+    TAtomicCounter(const TAtomicCounter& other)
+        : Counter_(other.Counter_.load())
+    {
     }
 
-    inline TAtomicBase Inc() noexcept {
+    TAtomicCounter& operator=(const TAtomicCounter& other) {
+        Counter_.store(other.Counter_.load());
+        return *this;
+    }
+
+    inline ~TAtomicCounter() = default;
+
+    inline intptr_t Add(intptr_t d) noexcept {
+        return Counter_ += d;
+    }
+
+    inline intptr_t Inc() noexcept {
         return Add(1);
     }
 
-    inline TAtomicBase Sub(TAtomicBase d) noexcept {
-        return AtomicSub(Counter_, d);
+    inline intptr_t Sub(intptr_t d) noexcept {
+        return Counter_ -= d;
     }
 
-    inline TAtomicBase Dec() noexcept {
+    inline intptr_t Dec() noexcept {
         return Sub(1);
     }
 
-    inline TAtomicBase Val() const noexcept {
-        return AtomicGet(Counter_);
+    inline intptr_t Val() const noexcept {
+        return Counter_.load();
     }
 
     inline bool TryWeakInc() noexcept {
-        while (true) {
-            intptr_t curValue = Counter_;
-
+        for (auto curValue = Counter_.load(std::memory_order_acquire);;) {
             if (!curValue) {
                 return false;
             }
 
-            intptr_t newValue = curValue + 1;
-            Y_ASSERT(newValue != 0);
-
-            if (AtomicCas(&Counter_, newValue, curValue)) {
+            if (Counter_.compare_exchange_weak(curValue, curValue + 1)) {
                 return true;
             }
         }
     }
 
 private:
-    TAtomic Counter_;
+    std::atomic<intptr_t> Counter_;
 };
 
 template <>
