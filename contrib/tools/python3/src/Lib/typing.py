@@ -125,16 +125,16 @@ __all__ = [
 # legitimate imports of those modules.
 
 
-def _type_convert(arg, module=None):
+def _type_convert(arg, module=None, *, allow_special_forms=False):
     """For converting None to type(None), and strings to ForwardRef."""
     if arg is None:
         return type(None)
     if isinstance(arg, str):
-        return ForwardRef(arg, module=module)
+        return ForwardRef(arg, module=module, is_class=allow_special_forms)
     return arg
 
 
-def _type_check(arg, msg, is_argument=True, module=None, *, is_class=False):
+def _type_check(arg, msg, is_argument=True, module=None, *, allow_special_forms=False):
     """Check that the argument is a type, and return it (internal helper).
 
     As a special case, accept None and return type(None) instead. Also wrap strings
@@ -147,12 +147,12 @@ def _type_check(arg, msg, is_argument=True, module=None, *, is_class=False):
     We append the repr() of the actual value (truncated to 100 chars).
     """
     invalid_generic_forms = (Generic, Protocol)
-    if not is_class:
+    if not allow_special_forms:
         invalid_generic_forms += (ClassVar,)
         if is_argument:
             invalid_generic_forms += (Final,)
 
-    arg = _type_convert(arg, module=module)
+    arg = _type_convert(arg, module=module, allow_special_forms=allow_special_forms)
     if (isinstance(arg, _GenericAlias) and
             arg.__origin__ in invalid_generic_forms):
         raise TypeError(f"{arg} is not valid as type argument")
@@ -285,8 +285,8 @@ def _tp_cache(func=None, /, *, typed=False):
 def _eval_type(t, globalns, localns, recursive_guard=frozenset()):
     """Evaluate all forward references in the given type t.
     For use of globalns and localns see the docstring for get_type_hints().
-    recursive_guard is used to prevent prevent infinite recursion
-    with recursive ForwardRef.
+    recursive_guard is used to prevent infinite recursion with a recursive
+    ForwardRef.
     """
     if isinstance(t, ForwardRef):
         return t._evaluate(globalns, localns, recursive_guard)
@@ -554,7 +554,7 @@ class ForwardRef(_Final, _root=True):
                 eval(self.__forward_code__, globalns, localns),
                 "Forward references must evaluate to types.",
                 is_argument=self.__forward_is_argument__,
-                is_class=self.__forward_is_class__,
+                allow_special_forms=self.__forward_is_class__,
             )
             self.__forward_value__ = _eval_type(
                 type_, globalns, localns, recursive_guard | {self.__forward_arg__}
@@ -568,10 +568,11 @@ class ForwardRef(_Final, _root=True):
         if self.__forward_evaluated__ and other.__forward_evaluated__:
             return (self.__forward_arg__ == other.__forward_arg__ and
                     self.__forward_value__ == other.__forward_value__)
-        return self.__forward_arg__ == other.__forward_arg__
+        return (self.__forward_arg__ == other.__forward_arg__ and
+                self.__forward_module__ == other.__forward_module__)
 
     def __hash__(self):
-        return hash(self.__forward_arg__)
+        return hash((self.__forward_arg__, self.__forward_module__))
 
     def __repr__(self):
         return f'ForwardRef({self.__forward_arg__!r})'
@@ -704,7 +705,7 @@ class _BaseGenericAlias(_Final, _root=True):
 
     def __getattr__(self, attr):
         # We are careful for copy and pickle.
-        # Also for simplicity we just don't relay all dunder names
+        # Also for simplicity we don't relay any dunder names
         if '__origin__' in self.__dict__ and not _is_dunder(attr):
             return getattr(self.__origin__, attr)
         raise AttributeError(attr)
@@ -1336,7 +1337,7 @@ class Annotated:
                             "with at least two arguments (a type and an "
                             "annotation).")
         msg = "Annotated[t, ...]: t must be a type."
-        origin = _type_check(params[0], msg)
+        origin = _type_check(params[0], msg, allow_special_forms=True)
         metadata = tuple(params[1:])
         return _AnnotatedAlias(origin, metadata)
 
