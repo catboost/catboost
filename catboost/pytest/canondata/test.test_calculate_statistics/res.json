@@ -40,7 +40,6 @@
       "FloatFeatureStatistics":
         [
           {
-            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":72,
             "MinValue":17,
             "ObjectCount":101,
@@ -49,7 +48,6 @@
             "SumSqr":"168730"
           },
           {
-            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":749105,
             "MinValue":30226,
             "ObjectCount":101,
@@ -58,7 +56,6 @@
             "SumSqr":"6.152885338e+12"
           },
           {
-            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":16,
             "MinValue":4,
             "ObjectCount":101,
@@ -67,7 +64,6 @@
             "SumSqr":"11455"
           },
           {
-            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":20051,
             "MinValue":0,
             "ObjectCount":101,
@@ -76,7 +72,6 @@
             "SumSqr":"989813173"
           },
           {
-            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":2415,
             "MinValue":0,
             "ObjectCount":101,
@@ -85,7 +80,6 @@
             "SumSqr":"31250680"
           },
           {
-            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":80,
             "MinValue":7,
             "ObjectCount":101,
