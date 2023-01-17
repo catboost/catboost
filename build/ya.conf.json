@@ -4552,6 +4552,13 @@
                         "os": "DARWIN"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -7968,8 +7975,17 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1431276836,
-                "match": "infractl"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "INFRACTL_CLI_BINARY",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "DRUG-RELEASERS"
+                    },
+                    "update_inteval": 43200,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "infractl": [
@@ -8403,7 +8419,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1429171459,
+                "sandbox_id": 1431850325,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9059,7 +9075,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1430511676,
+                "sandbox_id": 1431850993,
                 "match": "bb_requester"
             },
             "executable": {
@@ -9070,7 +9086,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1430510445,
+                "sandbox_id": 1431850861,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -9092,7 +9108,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1430511066,
+                "sandbox_id": 1431850954,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -9141,7 +9157,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1430511400,
+                "sandbox_id": 1431850178,
                 "match": "yt_sync"
             },
             "executable": {
@@ -9152,7 +9168,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1430511478,
+                "sandbox_id": 1431850543,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9163,7 +9179,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1430515547,
+                "sandbox_id": 1431850675,
                 "match": "exp_stats"
             },
             "executable": {
@@ -9260,7 +9276,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1429171463,
+                "sandbox_id": 1431851041,
                 "match": "profile_size_analyzer"
             },
             "executable": {
