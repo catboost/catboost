@@ -82,6 +82,11 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64")
 endif()
 
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsigned-char")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsigned-char")
+endif()
+
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   set(CMAKE_CXX_FLAGS "\
   ${CMAKE_CXX_FLAGS} \
