@@ -78,6 +78,9 @@ SRCS(
 )
 
 IF (OS_WINDOWS)
+    SRCS(
+        system/fs_win_ut.cpp
+    )
     DEPENDS(
         util/system/ut/stdin_osfhandle
     )
