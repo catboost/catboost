@@ -315,6 +315,9 @@
         "taxi-format": {
             "description": "Run taxi formatters utility"
         },
+        "taxi-linter": {
+            "description": "Run taxi linters utility"
+        },
         "saas2": {
             "description": "Run saas2 cli"
         },
@@ -5484,6 +5487,28 @@
                 }
             ]
         },
+        "taxi-linter": {
+            "tools": {
+                "taxi-linter": {
+                    "bottle": "taxi-linter",
+                    "executable": "taxi-linter"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "apphost": {
             "tools": {
                 "apphost": {
@@ -8297,6 +8322,21 @@
             "executable": {
                 "taxi-format": [
                     "bin_taxi_format/taxi-format"
+                ]
+            }
+        },
+        "taxi-linter": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "TAXI_LINTER_BINARY",
+                        "owner": "TAXI-AUTOMATIZATION"
+                    }
+                }
+            },
+            "executable": {
+                "taxi-linter": [
+                    "bin_taxi_linter/taxi-linter"
                 ]
             }
         },
