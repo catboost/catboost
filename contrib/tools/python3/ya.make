@@ -4,9 +4,9 @@ PROGRAM()
 
 
 
-VERSION(3.10.6)
+VERSION(3.10.7)
 
-ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.6.tar.gz)
+ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.7.tar.gz)
 
 LICENSE(Python-2.0)
 
