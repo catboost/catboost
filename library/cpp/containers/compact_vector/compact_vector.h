@@ -52,6 +52,32 @@ public:
         }
     }
 
+    TCompactVector(TThis&& that) noexcept
+        : Ptr(nullptr)
+    {
+        Swap(that);
+    }
+
+    TCompactVector(std::initializer_list<T> init)
+        : Ptr(nullptr)
+    {
+        Reserve(init.size());
+        for (const T& val : init) {
+            PushBack(val);
+        }
+    }
+
+    template <class InputIterator>
+    TCompactVector(InputIterator begin, InputIterator end)
+        : Ptr(nullptr)
+    {
+        Reserve(std::distance(begin, end));
+
+        for (auto it = begin; it != end; ++it) {
+            push_back(*it);
+        }
+    }
+
     ~TCompactVector() {
         for (size_t i = 0; i < Size(); ++i) {
             try {
@@ -61,6 +87,17 @@ public:
         }
         if (Ptr)
             free(Header());
+    }
+
+    TThis& operator = (TThis&& that) noexcept {
+        Swap(that);
+        return *this;
+    }
+
+    TThis& operator = (std::initializer_list<T> init) {
+        TThis data(init);
+        Swap(data);
+        return *this;
     }
 
     TIterator Begin() {
@@ -95,23 +132,33 @@ public:
         return End();
     }
 
-    void Swap(TThis& that) {
+    void Swap(TThis& that) noexcept {
         DoSwap(Ptr, that.Ptr);
     }
 
     void Reserve(size_t newCapacity) {
         if (newCapacity <= Capacity()) {
         } else if (Ptr == nullptr) {
-            void* mem = ::malloc(sizeof(THeader) + newCapacity * sizeof(T));
+            constexpr size_t maxBlockSize = static_cast<size_t>(1) << (sizeof(size_t) * 8 - 1);
+            constexpr size_t maxCapacity = (maxBlockSize - sizeof(THeader)) / sizeof(T);
+            Y_ENSURE(newCapacity <= maxCapacity);
+
+            const size_t requiredMemSize = sizeof(THeader) + newCapacity * sizeof(T);
+            // most allocators operates pow-of-two memory blocks,
+            // so we try to allocate such memory block to fully utilize its capacity
+            const size_t memSizePowOf2 = FastClp2(requiredMemSize);
+            const size_t realNewCapacity = (memSizePowOf2 - sizeof(THeader)) / sizeof(T);
+            Y_ASSERT(realNewCapacity >= newCapacity);
+
+            void* mem = ::malloc(memSizePowOf2);
             if (mem == nullptr)
                 ythrow yexception() << "out of memory";
             Ptr = (T*)(((THeader*)mem) + 1);
             Header()->Size = 0;
-            Header()->Capacity = newCapacity;
+            Header()->Capacity = realNewCapacity;
         } else {
             TThis copy;
-            size_t realNewCapacity = Max(Capacity() * 2, newCapacity);
-            copy.Reserve(realNewCapacity);
+            copy.Reserve(newCapacity);
             for (TConstIterator it = Begin(); it != End(); ++it) {
                 copy.PushBack(*it);
             }
@@ -143,6 +190,10 @@ public:
         Reserve(Size() + 1);
         new (Ptr + Size()) T(elem);
         ++(Header()->Size);
+    }
+
+    void push_back(const T& elem) {
+        PushBack(elem);
     }
 
     T& Back() {
