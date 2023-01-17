@@ -10,6 +10,8 @@
 #include <library/cpp/getopt/small/last_getopt_opts.h>
 #include <library/cpp/object_factory/object_factory.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/map.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
@@ -20,6 +22,8 @@ struct TCalculateStatisticsParams {
     NCatboostOptions::TDatasetReadingParams DatasetReadingParams;
     int ThreadCount = -1; // -1 means undefined, set to CPU core count by default
     bool OnlyGroupStatistics = false;
+    size_t BorderCount = 64;
+    TFeatureCustomBorders FeatureLimits;
     ui32 SpotSize = 0;
     ui32 SpotCount = 0;
 
