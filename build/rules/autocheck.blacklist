@@ -153,3 +153,4 @@ market/erp_axapta/libs/SecretVault
 market/erp_axapta/libs/DynamicObjectSerializer
 partner/frontend/krush
 market/erp_axapta/libs/JsonHelper
+market/erp_axapta/libs/TelegramBotClientApi
