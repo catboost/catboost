@@ -7,6 +7,7 @@
 #include "typetraits.h"
 #include "singleton.h"
 
+#include <type_traits>
 #include <utility>
 
 #include <util/system/compiler.h>
@@ -893,6 +894,24 @@ public:
 
     inline long RefCount() const noexcept {
         return C_ ? C_->Val() : 0;
+    }
+
+    template <class TT>
+    [[nodiscard]] inline TSharedPtr<TT, C, D> As() & noexcept {
+        static_assert(std::has_virtual_destructor<TT>(), "Type should have a virtual dtor");
+        static_assert(std::is_base_of<T, TT>(), "When downcasting from T to TT, T should be a parent of TT");
+        Ref();
+        return TSharedPtr<TT, C, D>(dynamic_cast<TT*>(T_), C_);
+    }
+
+    template <class TT>
+    [[nodiscard]] inline TSharedPtr<TT, C, D> As() && noexcept {
+        static_assert(std::has_virtual_destructor<TT>(), "Type should have a virtual dtor");
+        static_assert(std::is_base_of<T, TT>(), "When downcasting from T to TT, T should be a parent of TT");
+        auto resultPtr = TSharedPtr<TT, C, D>(dynamic_cast<TT*>(T_), C_);
+        T_ = nullptr;
+        C_ = nullptr;
+        return resultPtr;
     }
 
 #ifdef __cpp_impl_three_way_comparison
