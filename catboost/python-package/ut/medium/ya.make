@@ -29,6 +29,7 @@ PEERDIR(
 TEST_SRCS(
     conftest.py
     test.py
+    test_catboost_utils.py
     test_whl.py
 )
 
