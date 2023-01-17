@@ -1,4 +1,4 @@
 exclude:
-- testing/.+
+- testing/*
 keep:
-- tests/.+
+- tests/*

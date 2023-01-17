@@ -19,14 +19,10 @@ CheckOptions:
     value: _
   - key: readability-identifier-naming.FunctionCase
     value: CamelCase
+  - key: readability-identifier-naming.ClassMethodCase
+    value: CamelCase
   # do not tide public begin / end methods to workaround clang-tidy bug in range-based for loops
   - key: readability-identifier-naming.PublicMethodIgnoredRegexp
     value: "(begin|end|empty|size|ysize|front|back)"
-  - key: readability-identifier-naming.PublicMethodCase
-    value: CamelCase
-  - key: readability-identifier-naming.ProtectedMethodCase
-    value: CamelCase
-  - key: readability-identifier-naming.PrivateMethodCase
-    value: CamelCase
   - key: readability-identifier-naming.MacroDefinitionCase
     value: UPPER_CASE

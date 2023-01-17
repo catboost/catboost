@@ -7,23 +7,15 @@ Checks: >
 CheckOptions:
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
-  - key: readability-identifier-naming.PublicMemberCase
-    value: camelBack
-  - key: readability-identifier-naming.ProtectedMemberCase
+  - key: readability-identifier-naming.ClassMemberCase
     value: camelBack
   - key: readability-identifier-naming.ProtectedMemberSuffix
     value: _
-  - key: readability-identifier-naming.PrivateMemberCase
-    value: camelBack
   - key: readability-identifier-naming.PrivateMemberSuffix
     value: _
   - key: readability-identifier-naming.FunctionCase
     value: camelBack
-  - key: readability-identifier-naming.PublicMethodCase
-    value: camelBack
-  - key: readability-identifier-naming.ProtectedMethodCase
-    value: camelBack
-  - key: readability-identifier-naming.PrivateMethodCase
+  - key: readability-identifier-naming.ClassMethodCase
     value: camelBack
   - key: readability-identifier-naming.GlobalConstantCase
     value: UPPER_CASE
@@ -43,4 +35,3 @@ CheckOptions:
     value: g_
   - key: readability-identifier-naming.ParameterCase
     value: camelBack
-
