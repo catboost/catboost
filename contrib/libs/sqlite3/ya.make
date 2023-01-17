@@ -2,18 +2,18 @@
 
 LIBRARY()
 
-
-
-VERSION(3.38.5)
-
-ORIGINAL_SOURCE(https://github.com/sqlite/sqlite/archive/version-3.38.5.tar.gz)
-
 LICENSE(
     Public-Domain AND
     blessing
 )
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+
+
+VERSION(3.38.5)
+
+ORIGINAL_SOURCE(https://github.com/sqlite/sqlite/archive/version-3.38.5.tar.gz)
 
 ADDINCL(
     contrib/libs/sqlite3
