@@ -57,10 +57,8 @@ def on_ts_configure(unit, tsconfig_path):
     tsconfig.validate()
     root_dir = tsconfig.compiler_option("rootDir")
     out_dir = tsconfig.compiler_option("outDir")
-    if unit.get("TS_TEST_FOR") == "yes":
-        # Use `TEST_FOR_PATH`-relative `rootDir`, since tsc will be run with `TEST_FOR_PATH`'s as curdir.
-        rel_test_for_path = os.path.relpath(unit.get("TS_TEST_FOR_PATH"), strip_roots(unit.path()))
-        root_dir = os.path.join(rel_test_for_path, root_dir)
+
+    unit.onsrcs(tsconfig.get_extended_paths())
 
     unit.set(["TS_CONFIG_ROOT_DIR", root_dir])
     unit.set(["TS_CONFIG_OUT_DIR", out_dir])
