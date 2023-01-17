@@ -2,7 +2,6 @@ import warnings
 
 from collections import Counter, defaultdict, deque, abc
 from collections.abc import Sequence
-from concurrent.futures import ThreadPoolExecutor
 from functools import partial, reduce, wraps
 from heapq import merge, heapify, heapreplace, heappop
 from itertools import (
@@ -36,6 +35,7 @@ from .recipes import (
     powerset,
     take,
     unique_everseen,
+    all_equal,
 )
 
 __all__ = [
@@ -70,6 +70,7 @@ __all__ = [
     'first',
     'groupby_transform',
     'ichunked',
+    'iequals',
     'ilen',
     'interleave',
     'interleave_evenly',
@@ -80,6 +81,7 @@ __all__ = [
     'iterate',
     'last',
     'locate',
+    'longest_common_prefix',
     'lstrip',
     'make_decorator',
     'map_except',
@@ -2337,6 +2339,16 @@ def locate(iterable, pred=bool, window_size=None):
     return compress(count(), starmap(pred, it))
 
 
+def longest_common_prefix(iterables):
+    """Yield elements of the longest common prefix amongst given *iterables*.
+
+    >>> ''.join(longest_common_prefix(['abcd', 'abc', 'abf']))
+    'ab'
+
+    """
+    return (c[0] for c in takewhile(all_equal, zip(*iterables)))
+
+
 def lstrip(iterable, pred):
     """Yield the items from *iterable*, but strip any from the beginning
     for which *pred* returns ``True``.
@@ -3345,6 +3357,26 @@ def ichunked(iterable, n):
         chunk.fill_cache()
 
 
+def iequals(*iterables):
+    """Return ``True`` if all given *iterables* are equal to each other,
+    which means that they contain the same elements in the same order.
+
+    The function is useful for comparing iterables of different data types
+    or iterables that do not support equality checks.
+
+    >>> iequals("abc", ['a', 'b', 'c'], ('a', 'b', 'c'), iter("abc"))
+    True
+
+    >>> iequals("abc", "acb")
+    False
+
+    Not to be confused with :func:`all_equals`, which checks whether all
+    elements of iterable are equal to each other.
+
+    """
+    return all(map(all_equal, zip_longest(*iterables, fillvalue=object())))
+
+
 def distinct_combinations(iterable, r):
     """Yield the distinct combinations of *r* items taken from *iterable*.
 
@@ -3637,7 +3669,10 @@ class callback_iter:
         self._aborted = False
         self._future = None
         self._wait_seconds = wait_seconds
-        self._executor = ThreadPoolExecutor(max_workers=1)
+        # Lazily import concurrent.future
+        self._executor = __import__(
+            'concurrent.futures'
+        ).futures.ThreadPoolExecutor(max_workers=1)
         self._iterator = self._reader()
 
     def __enter__(self):
@@ -3942,7 +3977,7 @@ def combination_index(element, iterable):
 
     n, _ = last(pool, default=(n, None))
 
-    # Python versiosn below 3.8 don't have math.comb
+    # Python versions below 3.8 don't have math.comb
     index = 1
     for i, j in enumerate(reversed(indexes), start=1):
         j = n - j

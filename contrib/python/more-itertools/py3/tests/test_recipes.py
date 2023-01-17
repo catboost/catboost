@@ -59,21 +59,29 @@ class TabulateTests(TestCase):
 class TailTests(TestCase):
     """Tests for ``tail()``"""
 
-    def test_greater(self):
-        """Length of iterable is greater than requested tail"""
-        self.assertEqual(list(mi.tail(3, 'ABCDEFG')), ['E', 'F', 'G'])
+    def test_iterator_greater(self):
+        """Length of iterator is greater than requested tail"""
+        self.assertEqual(list(mi.tail(3, iter('ABCDEFG'))), list('EFG'))
 
-    def test_equal(self):
-        """Length of iterable is equal to the requested tail"""
-        self.assertEqual(
-            list(mi.tail(7, 'ABCDEFG')), ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-        )
+    def test_iterator_equal(self):
+        """Length of iterator is equal to the requested tail"""
+        self.assertEqual(list(mi.tail(7, iter('ABCDEFG'))), list('ABCDEFG'))
 
-    def test_less(self):
-        """Length of iterable is less than requested tail"""
-        self.assertEqual(
-            list(mi.tail(8, 'ABCDEFG')), ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-        )
+    def test_iterator_less(self):
+        """Length of iterator is less than requested tail"""
+        self.assertEqual(list(mi.tail(8, iter('ABCDEFG'))), list('ABCDEFG'))
+
+    def test_sized_greater(self):
+        """Length of sized iterable is greater than requested tail"""
+        self.assertEqual(list(mi.tail(3, 'ABCDEFG')), list('EFG'))
+
+    def test_sized_equal(self):
+        """Length of sized iterable is less than requested tail"""
+        self.assertEqual(list(mi.tail(7, 'ABCDEFG')), list('ABCDEFG'))
+
+    def test_sized_less(self):
+        """Length of sized iterable is less than requested tail"""
+        self.assertEqual(list(mi.tail(8, 'ABCDEFG')), list('ABCDEFG'))
 
 
 class ConsumeTests(TestCase):

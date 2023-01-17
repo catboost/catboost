@@ -3218,8 +3218,8 @@ class StripFunctionTests(TestCase):
 class IsliceExtendedTests(TestCase):
     def test_all(self):
         iterable = ['0', '1', '2', '3', '4', '5']
-        indexes = list(range(-4, len(iterable) + 4)) + [None]
-        steps = [1, 2, 3, 4, -1, -2, -3, 4]
+        indexes = [*range(-4, 10), None]
+        steps = [1, 2, 3, 4, -1, -2, -3, -4]
         for slice_args in product(indexes, indexes, steps):
             with self.subTest(slice_args=slice_args):
                 actual = list(mi.islice_extended(iterable, *slice_args))
@@ -5054,3 +5054,86 @@ class DuplicatesJustSeenTests(TestCase):
     def test_nested(self):
         iterable = [[[1, 2], [1, 2]], [5, 6], [5, 6]]
         self.assertEqual(list(mi.duplicates_justseen(iterable)), [[5, 6]])
+
+
+class LongestCommonPrefixTests(TestCase):
+    def test_basic(self):
+        iterables = [[1, 2], [1, 2, 3], [1, 2, 4]]
+        self.assertEqual(list(mi.longest_common_prefix(iterables)), [1, 2])
+
+    def test_iterators(self):
+        iterables = iter([iter([1, 2]), iter([1, 2, 3]), iter([1, 2, 4])])
+        self.assertEqual(list(mi.longest_common_prefix(iterables)), [1, 2])
+
+    def test_no_iterables(self):
+        iterables = []
+        self.assertEqual(list(mi.longest_common_prefix(iterables)), [])
+
+    def test_empty_iterables_only(self):
+        iterables = [[], [], []]
+        self.assertEqual(list(mi.longest_common_prefix(iterables)), [])
+
+    def test_includes_empty_iterables(self):
+        iterables = [[1, 2], [1, 2, 3], [1, 2, 4], []]
+        self.assertEqual(list(mi.longest_common_prefix(iterables)), [])
+
+    def test_non_hashable(self):
+        # See https://github.com/more-itertools/more-itertools/issues/603
+        iterables = [[[1], [2]], [[1], [2], [3]], [[1], [2], [4]]]
+        self.assertEqual(list(mi.longest_common_prefix(iterables)), [[1], [2]])
+
+    def test_prefix_contains_elements_of_the_first_iterable(self):
+        iterables = [[[1], [2]], [[1], [2], [3]], [[1], [2], [4]]]
+        prefix = list(mi.longest_common_prefix(iterables))
+        self.assertIs(prefix[0], iterables[0][0])
+        self.assertIs(prefix[1], iterables[0][1])
+        self.assertIsNot(prefix[0], iterables[1][0])
+        self.assertIsNot(prefix[1], iterables[1][1])
+        self.assertIsNot(prefix[0], iterables[2][0])
+        self.assertIsNot(prefix[1], iterables[2][1])
+
+    def test_infinite_iterables(self):
+        prefix = mi.longest_common_prefix([count(), count()])
+        self.assertEqual(next(prefix), 0)
+        self.assertEqual(next(prefix), 1)
+        self.assertEqual(next(prefix), 2)
+
+    def test_contains_infinite_iterables(self):
+        iterables = [[0, 1, 2], count()]
+        self.assertEqual(list(mi.longest_common_prefix(iterables)), [0, 1, 2])
+
+
+class IequalsTests(TestCase):
+    def test_basic(self):
+        self.assertTrue(mi.iequals("abc", iter("abc")))
+        self.assertTrue(mi.iequals(range(3), [0, 1, 2]))
+        self.assertFalse(mi.iequals("abc", [0, 1, 2]))
+
+    def test_no_iterables(self):
+        self.assertTrue(mi.iequals())
+
+    def test_one_iterable(self):
+        self.assertTrue(mi.iequals("abc"))
+
+    def test_more_than_two_iterable(self):
+        self.assertTrue(mi.iequals("abc", iter("abc"), ['a', 'b', 'c']))
+        self.assertFalse(mi.iequals("abc", iter("abc"), ['a', 'b', 'd']))
+
+    def test_order_matters(self):
+        self.assertFalse(mi.iequals("abc", "acb"))
+
+    def test_not_equal_lengths(self):
+        self.assertFalse(mi.iequals("abc", "ab"))
+        self.assertFalse(mi.iequals("abc", "bc"))
+        self.assertFalse(mi.iequals("aaa", "aaaa"))
+
+    def test_empty_iterables(self):
+        self.assertTrue(mi.iequals([], ""))
+
+    def test_none_is_not_a_sentinel(self):
+        # See https://stackoverflow.com/a/900444
+        self.assertFalse(mi.iequals([1, 2], [1, 2, None]))
+        self.assertFalse(mi.iequals([1, 2], [None, 1, 2]))
+
+    def test_not_identical_but_equal(self):
+        self.assertTrue([1, True], [1.0, complex(1, 0)])
