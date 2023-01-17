@@ -101,7 +101,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.openssl.org/source/license.html, https://spdx.org/licenses/OpenSSL
     Files with this license:
-        CHANGES [13131:13131]
+        CHANGES [12976:12976]
 
 KEEP     OpenSSL AND BSD-3-Clause 1adfb84ae7e27ca94fca4b131d0d9c19
 BELONGS ya.make
@@ -187,7 +187,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/proprietary-license.LICENSE
     Files with this license:
-        CHANGES [6886:6886]
+        CHANGES [6731:6731]
 
 SKIP     BSD-3-Clause         2b124c177b4014ac0f5d8989bc6738ae
 BELONGS ya.make
@@ -213,7 +213,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
-        CHANGES [10704:10704]
+        CHANGES [10549:10549]
 
 KEEP     OpenSSL              2faeb70aa2f6d428f0311b95c6c4c7c5
 BELONGS apps/ya.make crypto/ya.make ya.make
@@ -1459,7 +1459,7 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
-        CHANGES [11150:11150]
+        CHANGES [10995:10995]
 
 KEEP     Public-Domain        5fe881e7276d75cf27372274151bbbbf
 BELONGS crypto/ya.make
@@ -1558,18 +1558,6 @@ BELONGS ya.make
         asm/ios/armv7/crypto/aes/aes-armv4.S [11:13]
         asm/ios/armv7/crypto/aes/bsaes-armv7.S [11:13]
 
-KEEP     OpenSSL              74f908f5901de6d04081580b1f2d9183
-BELONGS apps/ya.make
-FILE_INCLUDE LICENSE found in files: apps/vms_decc_argv.c at line 6
-    Note: matched license text is too long. Read it in the source files.
-    Scancode info:
-        Original SPDX id: OpenSSL
-        Score           : 97.50
-        Match type      : NOTICE
-        Links           : http://www.openssl.org/source/license.html, https://spdx.org/licenses/OpenSSL
-    Files with this license:
-        apps/vms_decc_argv.c [4:7]
-
 KEEP     OpenSSL              7e5b7e78f70f2f04c0533a2737411eb1
 BELONGS crypto/ya.make
     License text:
@@ -1596,7 +1584,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/proprietary-license.LICENSE
     Files with this license:
-        CHANGES [6253:6254]
+        CHANGES [6098:6099]
 
 KEEP     BSD-3-Clause         914e5a5901ee81cfc58769f23df179c7
 BELONGS crypto/ya.make
@@ -1658,7 +1646,7 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        CHANGES [4110:4110]
+        CHANGES [3955:3955]
 
 KEEP     OpenSSL              a7016078ab897ba5a355a0c84cd2a561
 BELONGS ya.make
@@ -1708,14 +1696,14 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.openssl.org/source/license.html, https://spdx.org/licenses/OpenSSL
     Files with this license:
-        CHANGES [2284:2286]
+        CHANGES [2129:2131]
     Scancode info:
         Original SPDX id: LicenseRef-scancode-other-permissive
         Score           : 100.00
         Match type      : REFERENCE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/other-permissive.LICENSE
     Files with this license:
-        CHANGES [2284:2286]
+        CHANGES [2129:2131]
 
 KEEP     CC0-1.0              bb6d21592a294b2a300e3eba8500b27e
 BELONGS crypto/ya.make

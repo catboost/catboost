@@ -20,20 +20,14 @@ class _Result(object):
 def lazy(func):
     result = _Result()
 
-    lock = threading.Lock()
-
     @functools.wraps(func)
     def wrapper(*args):
         try:
             return result.result
         except AttributeError:
-            with lock:
-                try:
-                    return result.result
-                except AttributeError:
-                    result.result = func(*args)
+            result.result = func(*args)
 
-            return result.result
+        return result.result
 
     return wrapper
 
@@ -41,17 +35,11 @@ def lazy(func):
 def lazy_property(fn):
     attr_name = '_lazy_' + fn.__name__
 
-    lock = threading.Lock()
-
     @property
     def _lazy_property(self):
-        if hasattr(self, attr_name):
-            return getattr(self, attr_name)
-
-        with lock:
-            if not hasattr(self, attr_name):
-                setattr(self, attr_name, fn(self))
-            return getattr(self, attr_name)
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
 
     return _lazy_property
 

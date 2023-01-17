@@ -1,13 +1,15 @@
-.abiversion	2
 .text
 
 .globl	x25519_fe51_mul
 .type	x25519_fe51_mul,@function
+.section	".opd","aw"
+.align	3
+x25519_fe51_mul:
+.quad	.x25519_fe51_mul,.TOC.@tocbase,0
+.previous
 .type	x25519_fe51_mul,@function
 .align	5
-x25519_fe51_mul:
-.localentry	x25519_fe51_mul,0
-
+.x25519_fe51_mul:
 	stdu	1,-144(1)
 	std	21,56(1)
 	std	22,64(1)
@@ -209,14 +211,18 @@ x25519_fe51_mul:
 .long	0
 .byte	0,12,4,0,0x80,11,3,0
 .long	0
-.size	x25519_fe51_mul,.-x25519_fe51_mul
+.size	.x25519_fe51_mul,.-.x25519_fe51_mul
+.size	x25519_fe51_mul,.-.x25519_fe51_mul
 .globl	x25519_fe51_sqr
 .type	x25519_fe51_sqr,@function
+.section	".opd","aw"
+.align	3
+x25519_fe51_sqr:
+.quad	.x25519_fe51_sqr,.TOC.@tocbase,0
+.previous
 .type	x25519_fe51_sqr,@function
 .align	5
-x25519_fe51_sqr:
-.localentry	x25519_fe51_sqr,0
-
+.x25519_fe51_sqr:
 	stdu	1,-144(1)
 	std	21,56(1)
 	std	22,64(1)
@@ -301,14 +307,18 @@ x25519_fe51_sqr:
 .long	0
 .byte	0,12,4,0,0x80,11,2,0
 .long	0
-.size	x25519_fe51_sqr,.-x25519_fe51_sqr
+.size	.x25519_fe51_sqr,.-.x25519_fe51_sqr
+.size	x25519_fe51_sqr,.-.x25519_fe51_sqr
 .globl	x25519_fe51_mul121666
 .type	x25519_fe51_mul121666,@function
+.section	".opd","aw"
+.align	3
+x25519_fe51_mul121666:
+.quad	.x25519_fe51_mul121666,.TOC.@tocbase,0
+.previous
 .type	x25519_fe51_mul121666,@function
 .align	5
-x25519_fe51_mul121666:
-.localentry	x25519_fe51_mul121666,0
-
+.x25519_fe51_mul121666:
 	stdu	1,-144(1)
 	std	21,56(1)
 	std	22,64(1)
@@ -345,4 +355,5 @@ x25519_fe51_mul121666:
 .long	0
 .byte	0,12,4,0,0x80,11,2,0
 .long	0
-.size	x25519_fe51_mul121666,.-x25519_fe51_mul121666
+.size	.x25519_fe51_mul121666,.-.x25519_fe51_mul121666
+.size	x25519_fe51_mul121666,.-.x25519_fe51_mul121666

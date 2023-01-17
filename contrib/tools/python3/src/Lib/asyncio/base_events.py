@@ -971,8 +971,6 @@ class BaseEventLoop(events.AbstractEventLoop):
             if sock is not None:
                 sock.close()
             raise
-        finally:
-            exceptions = my_exceptions = None
 
     async def create_connection(
             self, protocol_factory, host=None, port=None,
@@ -1065,20 +1063,17 @@ class BaseEventLoop(events.AbstractEventLoop):
 
             if sock is None:
                 exceptions = [exc for sub in exceptions for exc in sub]
-                try:
-                    if len(exceptions) == 1:
+                if len(exceptions) == 1:
+                    raise exceptions[0]
+                else:
+                    # If they all have the same str(), raise one.
+                    model = str(exceptions[0])
+                    if all(str(exc) == model for exc in exceptions):
                         raise exceptions[0]
-                    else:
-                        # If they all have the same str(), raise one.
-                        model = str(exceptions[0])
-                        if all(str(exc) == model for exc in exceptions):
-                            raise exceptions[0]
-                        # Raise a combined exception so the user can see all
-                        # the various error messages.
-                        raise OSError('Multiple exceptions: {}'.format(
-                            ', '.join(str(exc) for exc in exceptions)))
-                finally:
-                    exceptions = None
+                    # Raise a combined exception so the user can see all
+                    # the various error messages.
+                    raise OSError('Multiple exceptions: {}'.format(
+                        ', '.join(str(exc) for exc in exceptions)))
 
         else:
             if sock is None:
@@ -1867,8 +1862,6 @@ class BaseEventLoop(events.AbstractEventLoop):
 
         event_list = self._selector.select(timeout)
         self._process_events(event_list)
-        # Needed to break cycles when an exception occurs.
-        event_list = None
 
         # Handle 'later' callbacks that are ready.
         end_time = self.time() + self._clock_resolution

@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -26,9 +26,7 @@
 
 # ifdef USE_BCRYPTGENRANDOM
 #  include <bcrypt.h>
-#  ifdef _MSC_VER
-#   pragma comment(lib, "bcrypt.lib")
-#  endif
+#  pragma comment(lib, "bcrypt.lib")
 #  ifndef STATUS_SUCCESS
 #   define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
 #  endif
