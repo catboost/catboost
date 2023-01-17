@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(8.4.0)
+VERSION(8.5.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -16,7 +16,6 @@ PEERDIR(
     contrib/python/matplotlib-inline
     contrib/python/pickleshare
     contrib/python/prompt-toolkit
-    contrib/python/setuptools
     contrib/python/stack-data
     contrib/python/traitlets
 )

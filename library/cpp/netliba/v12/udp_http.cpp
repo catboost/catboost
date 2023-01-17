@@ -17,6 +17,7 @@
 #endif
 #include "block_chain.h"
 #include <util/system/shmat.h>
+#include <util/generic/hash_multi_map.h>
 #include <exception>
 
 #include <atomic>
