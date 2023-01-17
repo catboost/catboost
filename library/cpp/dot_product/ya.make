@@ -9,7 +9,7 @@ SRCS(
 )
 
 IF (USE_SSE4 == "yes" AND OS_LINUX == "yes")
-    SRC_CPP_AVX2(dot_product_avx2.cpp -mfma)
+    SRC_C_AVX2(dot_product_avx2.cpp -mfma)
 ELSE()
     SRC(dot_product_avx2.cpp)
 ENDIF()
