@@ -51,10 +51,28 @@ class PackageJson(object):
             path = self.path
 
         with open(path, "w") as f:
-            json.dump(self.data, f)
+            json.dump(self.data, f, indent=4)
 
     def get_name(self):
-        return self.data.get("name")
+        return self.data["name"]
+
+    def get_version(self):
+        return self.data["version"]
+
+    def get_description(self):
+        return self.data.get("description")
+
+    def get_nodejs_version(self):
+        return self.data.get("engines", {}).get("node")
+
+    def dependencies_iter(self):
+        for key in self.DEP_KEYS:
+            deps = self.data.get(key)
+            if not deps:
+                continue
+
+            for name, spec in iteritems(deps):
+                yield (name, spec)
 
     def get_workspace_dep_spec_paths(self):
         """
@@ -65,20 +83,16 @@ class PackageJson(object):
         schema = self.WORKSPACE_SCHEMA
         schema_len = len(schema)
 
-        for deps in map(lambda x: self.data.get(x), self.DEP_KEYS):
-            if not deps:
+        for name, spec in self.dependencies_iter():
+            if not spec.startswith(schema):
                 continue
 
-            for name, spec in iteritems(deps):
-                if not spec.startswith(schema):
-                    continue
+            spec_path = spec[schema_len:]
+            if not (spec_path.startswith(".") or spec_path.startswith("..")):
+                raise PackageJsonWorkspaceError(
+                    "Expected relative path specifier for workspace dependency, but got '{}' for {} in {}".format(spec, name, self.path))
 
-                spec_path = spec[schema_len:]
-                if not (spec_path.startswith(".") or spec_path.startswith("..")):
-                    raise PackageJsonWorkspaceError(
-                        "Expected relative path specifier for workspace dependency, but got '{}' for {} in {}".format(spec, name, self.path))
-
-                spec_paths.append((name, spec_path))
+            spec_paths.append((name, spec_path))
 
         return spec_paths
 

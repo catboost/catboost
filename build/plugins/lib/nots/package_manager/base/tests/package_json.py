@@ -15,9 +15,9 @@ def test_get_workspace_dep_spec_paths_ok():
         },
     }
 
-    ws_dep_paths = pj.get_workspace_dep_spec_paths()
+    ws_dep_spec_paths = pj.get_workspace_dep_spec_paths()
 
-    assert ws_dep_paths == [
+    assert ws_dep_spec_paths == [
         ("@yandex-int/bar", "../bar"),
         ("@yandex-int/baz", "../baz"),
     ]
@@ -51,8 +51,8 @@ def test_get_workspace_dep_paths_ok():
     ws_dep_paths = pj.get_workspace_dep_paths()
 
     assert ws_dep_paths == [
-        ("@yandex-int/bar", "/packages/bar"),
-        ("@yandex-int/baz", "/packages/baz"),
+        "/packages/bar",
+        "/packages/baz",
     ]
 
 
@@ -70,8 +70,8 @@ def test_get_workspace_dep_paths_with_custom_base_path():
     ws_dep_paths = pj.get_workspace_dep_paths(base_path="custom/dir")
 
     assert ws_dep_paths == [
-        ("@yandex-int/bar", "custom/dir/bar"),
-        ("@yandex-int/baz", "custom/dir/baz"),
+        "custom/bar",
+        "custom/baz",
     ]
 
 
