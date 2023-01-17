@@ -8367,7 +8367,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1529765349,
+                "sandbox_id": 1531084007,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8890,7 +8890,7 @@
         },
         "yadi": {
             "formula": {
-                "sandbox_id": 1423151849,
+                "sandbox_id": 1530501902,
                 "match": "yadi-arc"
             },
             "executable": {
