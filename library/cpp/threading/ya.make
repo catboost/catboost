@@ -1,5 +1,6 @@
 RECURSE(
     atomic
+    cancellation
     chunk_queue
     future
     future/subscription
