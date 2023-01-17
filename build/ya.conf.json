@@ -8263,10 +8263,16 @@
         },
         "qyp": {
             "formula": {
-                "sandbox_id": [
-                    1553081558
-                ],
-                "match": "infra/qyp/vmctl/bin/vmctl"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "VMCTL_TGZ",
+                        "owner": "QYP",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    },
+                    "update_interval": 86400
+                }
             },
             "executable": {
                 "vmctl": [
@@ -8601,7 +8607,8 @@
                 "sandbox_id": [
                     1459597978,
                     1459598823,
-                    1459599001
+                    1459599001,
+                    1523085698
                 ],
                 "match": "ktlint"
             },
