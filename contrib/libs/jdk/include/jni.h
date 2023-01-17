@@ -36,6 +36,10 @@
 #ifndef _JAVASOFT_JNI_H_
 #define _JAVASOFT_JNI_H_
 
+#if defined(__ANDROID__)
+#error This is the Oracle JDK implementation of <jni.h>. Using it in Android builds is invalid. Please check your build configuration.
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 
