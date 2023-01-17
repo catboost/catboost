@@ -6584,7 +6584,14 @@
                 },
                 {
                     "host": {
-                        "os": "darwin"
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
                     },
                     "default": true
                 }
@@ -9094,7 +9101,7 @@
         },
         "abcd": {
             "formula": {
-                "sandbox_id": 1357392225,
+                "sandbox_id": 1391496425,
                 "match": "quota_mover"
             },
             "executable": {
