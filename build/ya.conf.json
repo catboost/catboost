@@ -6759,7 +6759,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [1452793716],
+                "sandbox_id": [
+                    1452793716
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -9191,7 +9193,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1453170389,
+                "sandbox_id": 1454027788,
                 "match": "lama"
             },
             "executable": {
