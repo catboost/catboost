@@ -44,9 +44,9 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         Create a new lock object.
 
         :param lock_file: path to the file
-        :param timeout: default timeout when acquiring the lock. It will be used as fallback value in the acquire
-        method, if no timeout value (``None``) is given. If you want to disable the timeout, set it to a negative value.
-         A timeout of 0 means, that there is exactly one attempt to acquire the file lock.
+        :param timeout: default timeout when acquiring the lock, in seconds. It will be used as fallback value in
+        the acquire method, if no timeout value (``None``) is given. If you want to disable the timeout, set it
+        to a negative value. A timeout of 0 means, that there is exactly one attempt to acquire the file lock.
         """
         # The path to the lock file.
         self._lock_file: str = os.fspath(lock_file)
@@ -73,7 +73,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
     @property
     def timeout(self) -> float:
         """
-        :return: the default timeout value
+        :return: the default timeout value, in seconds
 
         .. versionadded:: 2.0.0
         """
@@ -84,7 +84,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         """
         Change the default timeout value.
 
-        :param value: the new value
+        :param value: the new value, in seconds
         """
         self._timeout = float(value)
 
