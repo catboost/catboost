@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     guid.cpp
     source_location.cpp
+    variant.cpp
 )
 
 PEERDIR(
