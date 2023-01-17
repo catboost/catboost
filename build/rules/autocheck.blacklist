@@ -683,6 +683,7 @@ classifieds/mobile-autoru-test-discover-ios
 market/front/libs/hermione-file-writer
 market/front/misc/microformats
 trust/trust
+classifieds/mobile-autoru-client-ios
 market/front/libs/webdriver-io-commands
 market/front/libs/codestyle
 market/front/libs/hermione-suite-manager
@@ -710,3 +711,13 @@ market/front/libs/luster-var-log
 strm/admins/yandex-strm-h264bitstream
 portal/archive/static-mng
 market/front/misc/vendors-api-spec/vendors-api-spec
+market/front/libs/luster-rebundle
+market/front/libs/luster-tvm-mon
+strm/strm-trns-manager
+market/front/libs/seo
+market/front/libs/tvm-ticket
+trust/billing-ci
+market/front/libs/envy
+strm/admins/yandex-strm-norm-tools
+taxi/lavka/platform/polka
+geoadv/analytics
