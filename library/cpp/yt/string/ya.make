@@ -10,6 +10,7 @@ PEERDIR(
     library/cpp/yt/assert
     library/cpp/yt/exception
     library/cpp/yt/misc
+    library/cpp/yt/small_containers
 )
 
 CHECK_DEPENDENT_DIRS(
