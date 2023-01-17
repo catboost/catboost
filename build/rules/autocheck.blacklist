@@ -1381,8 +1381,8 @@ classifieds/nodejs/nodejs-nodules-blackbox
 classifieds/nodejs/nodejs-nodules-cache
 classifieds/nodejs/node-monrun
 classifieds/nodejs/nodejs-nodules-filters
-adv/pcode/mobileadssdk/android/sample-internal
-adv/pcode/mobileadssdk/android/sample-public
+adv/pcode/mobileadssdk/sdk/android/sample-internal
+adv/pcode/mobileadssdk/sdk/android/sample-public
 noc/traffic/dns/junk/hx
 noc/traffic/dns/junk/dns2-server
 noc/traffic/dns/junk/dns2-api
@@ -1397,9 +1397,9 @@ noc/traffic/dns/junk/d2
 noc/traffic/dns/junk/e2
 noc/traffic/dns/junk/lxs
 noc/traffic/dns/junk/dns-api
-adv/pcode/mobileadssdk/ios/sample-public
+adv/pcode/mobileadssdk/sdk/ios/sample-public
 noc/traffic/dns/junk/cc-core
-adv/pcode/mobileadssdk/ios/sample-internal
+adv/pcode/mobileadssdk/sdk/ios/sample-internal
 adv/pcode/mobileadssdk/scripts
 classifieds/services
 classifieds/octopus
