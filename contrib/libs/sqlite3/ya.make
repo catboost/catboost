@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(3.38.1)
+VERSION(3.38.2)
 
-ORIGINAL_SOURCE(https://github.com/sqlite/sqlite/archive/version-3.38.1.tar.gz)
+ORIGINAL_SOURCE(https://github.com/sqlite/sqlite/archive/version-3.38.2.tar.gz)
 
 LICENSE(
     Public-Domain AND
