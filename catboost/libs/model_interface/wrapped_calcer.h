@@ -355,6 +355,10 @@ public:
         return ::GetCatFeaturesCount(CalcerHolder.get());
     }
 
+    size_t GetTextFeaturesCount() const {
+        return ::GetTextFeaturesCount(CalcerHolder.get());
+    }
+
     bool CheckMetadataHasKey(const std::string& key) const {
         return ::CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
     }
