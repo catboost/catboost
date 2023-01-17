@@ -1220,3 +1220,11 @@ adv/pcode/web/master-system
 kinopoisk/php/backend/source
 yandex360/yandex-winx
 kinopoisk/php/mysql-migrations/source
+direct/frontend/legacy/canvas
+market/sovetnik/scripts
+taxi/infra/tools
+data-ui/yql
+data-ui/abt
+data-ui/playwrighter
+data-ui/playwright-utils
+haas/bot/vintage/dc
