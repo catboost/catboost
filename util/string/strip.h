@@ -102,14 +102,14 @@ struct TStripImpl {
     }
 
     template <class T, class TStripCriterion>
-    static inline T StripString(const T& from, TStripCriterion&& criterion) {
+    [[nodiscard]] static inline T StripString(const T& from, TStripCriterion&& criterion) {
         T ret;
         StripString(from, ret, criterion);
         return ret;
     }
 
     template <class T>
-    static inline T StripString(const T& from) {
+    [[nodiscard]] static inline T StripString(const T& from) {
         return StripString(from, IsAsciiSpaceAdapter(from.begin()));
     }
 };
@@ -153,32 +153,32 @@ static inline bool StripString(const T& from, T& to) {
 }
 
 template <class T, class TStripCriterion>
-static inline T StripString(const T& from, TStripCriterion&& criterion) {
+[[nodiscard]] static inline T StripString(const T& from, TStripCriterion&& criterion) {
     return TStripImpl<true, true>::StripString(from, criterion);
 }
 
 template <class T>
-static inline T StripString(const T& from) {
+[[nodiscard]] static inline T StripString(const T& from) {
     return TStripImpl<true, true>::StripString(from);
 }
 
 template <class T>
-static inline T StripStringLeft(const T& from) {
+[[nodiscard]] static inline T StripStringLeft(const T& from) {
     return TStripImpl<true, false>::StripString(from);
 }
 
 template <class T>
-static inline T StripStringRight(const T& from) {
+[[nodiscard]] static inline T StripStringRight(const T& from) {
     return TStripImpl<false, true>::StripString(from);
 }
 
 template <class T, class TStripCriterion>
-static inline T StripStringLeft(const T& from, TStripCriterion&& criterion) {
+[[nodiscard]] static inline T StripStringLeft(const T& from, TStripCriterion&& criterion) {
     return TStripImpl<true, false>::StripString(from, criterion);
 }
 
 template <class T, class TStripCriterion>
-static inline T StripStringRight(const T& from, TStripCriterion&& criterion) {
+[[nodiscard]] static inline T StripStringRight(const T& from, TStripCriterion&& criterion) {
     return TStripImpl<false, true>::StripString(from, criterion);
 }
 
@@ -199,8 +199,7 @@ inline void StripInPlace(T& s) {
 }
 
 /// Returns a copy of the given string with removed leading and trailing spaces.
-inline TString Strip(const TString& s) Y_WARN_UNUSED_RESULT;
-inline TString Strip(const TString& s) {
+[[nodiscard]] inline TString Strip(const TString& s) {
     TString ret = s;
     Strip(ret, ret);
     return ret;
@@ -263,8 +262,7 @@ inline TStringType& CollapseInPlace(TStringType& s, TWhitespaceFunc isWhitespace
 }
 
 /// Replaces several consequtive space symbols with one (processing is limited to maxLen bytes)
-inline TString Collapse(const TString& s, size_t maxLen = 0) Y_WARN_UNUSED_RESULT;
-inline TString Collapse(const TString& s, size_t maxLen) {
+[[nodiscard]] inline TString Collapse(const TString& s, size_t maxLen = 0) {
     TString ret;
     Collapse(s, ret, maxLen);
     return ret;
