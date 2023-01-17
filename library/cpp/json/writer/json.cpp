@@ -30,7 +30,7 @@ namespace NJsonWriter {
         StackPush(JE_OUTER_SPACE);
     }
 
-    static const char* EntityToStr(EJsonEntity e) {
+    static TStringBuf EntityToStr(EJsonEntity e) {
         switch (e) {
             case JE_OUTER_SPACE:
                 return "JE_OUTER_SPACE";
