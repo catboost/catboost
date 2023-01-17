@@ -300,6 +300,7 @@ public:
     const TSharedRef* End() const;
 
     std::vector<TSharedRef> ToVector() const;
+    TString ToString() const;
 
 private:
     friend class TSharedRefArrayBuilder;

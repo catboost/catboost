@@ -332,6 +332,27 @@ std::vector<TSharedRef> TSharedRefArray::ToVector() const
     return std::vector<TSharedRef>(Begin(), End());
 }
 
+TString TSharedRefArray::ToString() const
+{
+    if (!Impl_) {
+        return {};
+    }
+
+    TString result;
+    size_t size = 0;
+    for (const auto& part : *this) {
+        size += part.size();
+    }
+    result.ReserveAndResize(size);
+    char* ptr = result.begin();
+    for (const auto& part : *this) {
+        size += part.size();
+        ::memcpy(ptr, part.begin(), part.size());
+        ptr += part.size();
+    }
+    return result;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 TSharedRefArrayBuilder::TSharedRefArrayBuilder(
