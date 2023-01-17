@@ -180,7 +180,7 @@ static double ParallelSortAndCountInversions(
     return result;
 }
 
-double CalcAUC(TVector<TSample>* samples, NPar::ILocalExecutor* localExecutor, double* outWeightSum, double* outPairWeightSum) {
+double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairWeightSum, NPar::ILocalExecutor* localExecutor) {
     TVector<TSample> aux(samples->begin(), samples->end());
 
     if (localExecutor != nullptr) {
@@ -238,15 +238,6 @@ double CalcAUC(TVector<TSample>* samples, NPar::ILocalExecutor* localExecutor, d
     }
 
     return 1 - ((2 * optimisticAUC + deltaSum) / (2.0 * pairWeightSum));
-}
-
-double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairWeightSum, int threadCount) {
-    THolder<NPar::TLocalExecutor> localExecutor;
-    if (threadCount > 1) {
-        localExecutor = MakeHolder<NPar::TLocalExecutor>();
-        localExecutor->RunAdditionalThreads(threadCount - 1);
-    }
-    return CalcAUC(samples, localExecutor.Get(), outWeightSum, outPairWeightSum);
 }
 
 static bool CompareBinClassSamplesByPrediction(const TBinClassSample& left, const TBinClassSample& right) {

@@ -173,7 +173,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         for (ui32 i = 0; i < prediction.size(); ++i) {
             samples.emplace_back(target[i], prediction[i], weight[i]);
         }
-        double scoreParallel = CalcAUC(&samples, &executor);
+        double scoreParallel = CalcAUC(&samples, nullptr, nullptr, &executor);
         Shuffle(samples.begin(), samples.end());
         double score = CalcAUC(&samples);
         Shuffle(samples.begin(), samples.end());
@@ -254,7 +254,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         Shuffle(positiveSamples.begin(), positiveSamples.end());
         Shuffle(negativeSamples.begin(), negativeSamples.end());
         double scoreManyThreads = CalcBinClassAuc(&positiveSamples, &negativeSamples, 32);
-        double usualAucScore = CalcAUC(&samples, &executor);
+        double usualAucScore = CalcAUC(&samples, nullptr, nullptr, &executor);
         Shuffle(samples.begin(), samples.end());
         double usualAucScoreOneThread = CalcAUC(&samples);
         double naiveRealizationScore = MyAUC(prediction, doubleTarget, weight);
@@ -421,7 +421,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
             samples.emplace_back(target[i], approx[i], weight[i]);
         }
 
-        double score = CalcAUC(&samples, &executor);
+        double score = CalcAUC(&samples, nullptr, nullptr, &executor);
         UNIT_ASSERT_DOUBLES_EQUAL(score, 0.5, 1e-6);
     }
 
