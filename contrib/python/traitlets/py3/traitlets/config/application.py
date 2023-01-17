@@ -327,7 +327,7 @@ class Application(SingletonConfigurable):
 
             .. code-block:: python
 
-               c.Application.logging_configuration = {
+               c.Application.logging_config = {
                    'handlers': {
                        'file': {
                            'class': 'logging.FileHandler',
