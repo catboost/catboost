@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-rev=13fa4fcf
+rev=529a7930
 output_dir="libcxx-r$rev"
 if [ -z $1 ] ; then
     git clone https://github.com/llvm/llvm-project.git --no-checkout "$output_dir/tmp"
