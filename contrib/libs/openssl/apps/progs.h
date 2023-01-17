@@ -1,5 +1,7 @@
-#if defined(_MSC_VER) && defined(_M_X64)
+#pragma once
+
+#if defined(_MSC_VER)
 #   include "progs-win.h"
 #else
-#   include "progs-linux_aarch64-linux-osx_arm64.h"
+#   include "progs-linux.h"
 #endif
