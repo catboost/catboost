@@ -2257,7 +2257,6 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang-cl",
                 "cxx_compiler": "$(CLANG)/bin/clang-cl",
-                "cxx_std": "c++latest",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "wine": "yes",
                 "version": "2019"

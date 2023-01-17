@@ -23,6 +23,7 @@ class TsBundleWrapper(object):
 
     def compile(self):
         self._prepare_dependencies()
+        self._prepare_bindir()
         self._build_configs()
         self._exec_webpack()
         self._pack_bundle()
@@ -44,6 +45,20 @@ class TsBundleWrapper(object):
             with tarfile.open(nm_bundle_path) as tf:
                 tf.extractall(os.path.join(self.build_path, "node_modules"))
 
+    def _prepare_bindir(self):
+        os.symlink(
+            os.path.join(self.sources_path, "src"),
+            os.path.join(self.build_path, "src")
+        )
+
+        ts_bundle_dir = os.path.join(self.build_path, "node_modules", ".ts_bundle")
+        os.makedirs(ts_bundle_dir, exist_ok=True)
+
+        os.symlink(
+            os.path.join(self.webpack_resource, "node_modules"),
+            os.path.join(ts_bundle_dir, "node_modules")
+        )
+
     def _build_configs(self):
         shutil.copyfile(
             self.webpack_config_curpath,
@@ -62,10 +77,8 @@ class TsBundleWrapper(object):
 
     def _exec_webpack(self):
         custom_envs = {
-            "WEBPACK_CONFIG": self.webpack_config_binpath,
-            "CURDIR": self.sources_path,
-            "BINDIR": self.build_path,
-            "NODE_MODULES_DIRS": self.webpack_resource
+            # https://nodejs.org/api/modules.html#loading-from-the-global-folders
+            "NODE_PATH": "{}:{}".format(self.webpack_resource, "./node_modules")
         }
 
         p = subprocess.Popen(
