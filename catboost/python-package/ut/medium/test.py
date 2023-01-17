@@ -1987,6 +1987,25 @@ def test_inconsistent_class_labels_count():
         classifier.fit([[0], [1], [2]], [0, 1, 2])
 
 
+def test_unknown_class_labels_in_eval_dataset():
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='Logloss',
+        class_names=[0, 1, 2],
+    )
+    with pytest.raises(CatBoostError):
+        classifier.fit([[0], [1], [2]], [0, 1, 2])
+
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        class_names=[0, 1],
+        classes_count=3
+    )
+    with pytest.raises(CatBoostError):
+        classifier.fit([[0], [1], [2]], [0, 1, 2])
+
+
 @pytest.mark.parametrize(
     'features_dtype',
     ['str', 'np.float32'],
