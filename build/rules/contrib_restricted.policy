@@ -201,6 +201,8 @@ ALLOW cloud/filestore/gateway/nfs -> contrib/restricted/nfs_ganesha
 
 ALLOW yandex_io -> contrib/restricted/patched/hostap_client
 
+ALLOW yandex_io -> contrib/restricted/tgcalls
+
 # Default policies:
 #
 # Do not restrict contrib
