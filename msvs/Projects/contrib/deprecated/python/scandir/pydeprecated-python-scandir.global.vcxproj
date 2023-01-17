@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</ProjectGUID>
+    <ProjectGUID>{87348AFB-273E-11AA-F496-31B32B8D1BE4}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-scandir</ProjectName>
+    <ProjectName>pydeprecated-python-scandir.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-scandir</TargetName>
+    <TargetName>pydeprecated-python-scandir.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scandir\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\659BFF29-3F80-CC93-FD3E-1AB88F02D68C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\87348AFB-273E-11AA-F496-31B32B8D1BE4\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -78,14 +78,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scandir\_scandir.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scandir\_2acd4adabc68fd684b768ee866.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\1d05184247622286a8b52f5bc2.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\971633969b11ef1b25e7cd903d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_scandir.reg.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_2acd4adabc68fd684b768ee866.obj" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_2acd4adabc68fd684b768ee866.yasm"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/1d05184247622286a8b52f5bc2.cpp" "_289f1831afe2b7c33bffced9ae=/py_modules/scandir" "_608b048b8fbabfaa0d8d4828a3=resfs/src//py_modules/scandir" "_9c779f6a5f4f125def47dd6ab5=/py_code/scandir"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/971633969b11ef1b25e7cd903d.cpp" "_facf014f5db25ebbbb20b94c47=resfs/src/resfs/file/contrib/deprecated/python/scandir/.dist-info/METADATA" "_dfd5bc73b9ffaa016da265ec39=resfs/file/contrib/deprecated/python/scandir/.dist-info/METADATA" "_c88f4b4116ec7a42105fddf162=resfs/src/resfs/file/contrib/deprecated/python/scandir/.dist-info/top_level.txt" "_c7517af3025001f48613ea13c5=resfs/file/contrib/deprecated/python/scandir/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,9 +98,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_2acd4adabc68fd684b768ee866.obj" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_2acd4adabc68fd684b768ee866.yasm"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/1d05184247622286a8b52f5bc2.cpp" "_289f1831afe2b7c33bffced9ae=/py_modules/scandir" "_608b048b8fbabfaa0d8d4828a3=resfs/src//py_modules/scandir" "_9c779f6a5f4f125def47dd6ab5=/py_code/scandir"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/971633969b11ef1b25e7cd903d.cpp" "_facf014f5db25ebbbb20b94c47=resfs/src/resfs/file/contrib/deprecated/python/scandir/.dist-info/METADATA" "_dfd5bc73b9ffaa016da265ec39=resfs/file/contrib/deprecated/python/scandir/.dist-info/METADATA" "_c88f4b4116ec7a42105fddf162=resfs/src/resfs/file/contrib/deprecated/python/scandir/.dist-info/top_level.txt" "_c7517af3025001f48613ea13c5=resfs/file/contrib/deprecated/python/scandir/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,15 +112,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scandir/_2acd4adabc68fd684b768ee866.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_2acd4adabc68fd684b768ee866.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_2acd4adabc68fd684b768ee866.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/scandir/1d05184247622286a8b52f5bc2.cpp	$B/contrib/deprecated/python/scandir/971633969b11ef1b25e7cd903d.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\1d05184247622286a8b52f5bc2.cpp;$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\971633969b11ef1b25e7cd903d.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.yasm">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.obj" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "_scandir" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_scandir.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,9 +129,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.obj" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "_scandir" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_scandir.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -131,93 +139,10 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scandir/_ca2f2e36702c22c680b7955297.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/scandir/_scandir.reg.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_scandir.reg.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scandir/scandir.py-" "$(SolutionDir)../contrib/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/python/scandir/scandir.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scandir/scandir.py-" "$(SolutionDir)../contrib/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/python/scandir/scandir.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scandir/scandir.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scandir\scandir.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\scandir.py.yapyc;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\scandir\.dist-info\METADATA">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm" "-" "contrib/python/scandir/.dist-info/METADATA" "_5b18c3e02f5a4983cbf225ded3.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_cd5eccd89686a811555abd9153.rodata" "-" "contrib/python/scandir/.dist-info/top_level.txt" "_ac0ae29802527451592c60d8bf.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_bdcc1e06979810bc2e164f30d1.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm" "-" "contrib/python/scandir/.dist-info/METADATA" "_5b18c3e02f5a4983cbf225ded3.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_cd5eccd89686a811555abd9153.rodata" "-" "contrib/python/scandir/.dist-info/top_level.txt" "_ac0ae29802527451592c60d8bf.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_bdcc1e06979810bc2e164f30d1.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\scandir\.dist-info\METADATA;$(SolutionDir)..\contrib\python\scandir\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.yasm;$(SolutionDir)$(Configuration)\contrib\python\scandir\_cd5eccd89686a811555abd9153.rodata;$(SolutionDir)$(Configuration)\contrib\python\scandir\_bdcc1e06979810bc2e164f30d1.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\scandir\scandir.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_2acd4adabc68fd684b768ee866.yasm" "$(SolutionDir)../contrib/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_c6c1091a8064d09c2fc88cdaa1.rodata" "-" "contrib/python/scandir/scandir.py" "_84a2250c544706e8d13ae952ea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scandir/scandir.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_3816411e305148ebe520f98b93.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_2acd4adabc68fd684b768ee866.yasm" "$(SolutionDir)../contrib/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_c6c1091a8064d09c2fc88cdaa1.rodata" "-" "contrib/python/scandir/scandir.py" "_84a2250c544706e8d13ae952ea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scandir/scandir.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_3816411e305148ebe520f98b93.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scandir/_2acd4adabc68fd684b768ee866.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\scandir\scandir.py;$(SolutionDir)$(Configuration)\contrib\python\scandir\scandir.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_2acd4adabc68fd684b768ee866.yasm;$(SolutionDir)$(Configuration)\contrib\python\scandir\_c6c1091a8064d09c2fc88cdaa1.rodata;$(SolutionDir)$(Configuration)\contrib\python\scandir\_3816411e305148ebe520f98b93.rodata;</Outputs>
-    </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\scandir\osdefs.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\scandir\winreparse.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
