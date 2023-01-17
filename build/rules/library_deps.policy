@@ -41,4 +41,6 @@ ALLOW library/cpp/digest/benchmark -> yabs/server/util
 ALLOW library/cpp/eventlog/rt/tool -> search/idl
 ALLOW library/cpp/dolbilo/planner -> search/idl
 ALLOW library/cpp/vowpalwabbit/tools/vw_ops -> ml/differential_evolution
+ALLOW library/cpp/user_agent -> metrika/uatraits
+ALLOW library/go/yandex/uatraits -> metrika/uatraits
 DENY library -> .*

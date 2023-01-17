@@ -380,8 +380,14 @@
   includes:
     - mem.h
 
-- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl|uatraits)"
+- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl)"
   includes:
+    - patchlevel.h
+
+- source_filter: "^metrika/uatraits"
+  includes:
+    - note.h
+    - could_not_find_Perl_patchlevel.h
     - patchlevel.h
 
 - source_filter: "^contrib/tools/watchman"
