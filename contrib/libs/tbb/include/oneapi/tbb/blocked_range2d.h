@@ -21,6 +21,7 @@
 
 #include "detail/_config.h"
 #include "detail/_namespace_injection.h"
+#include "detail/_range_common.h"
 
 #include "blocked_range.h"
 
@@ -31,6 +32,8 @@ namespace d1 {
 //! A 2-dimensional range that models the Range concept.
 /** @ingroup algorithms */
 template<typename RowValue, typename ColValue = RowValue>
+    __TBB_requires(blocked_range_value<RowValue> &&
+                   blocked_range_value<ColValue>)
 class blocked_range2d {
 public:
     //! Type for size of an iteration range

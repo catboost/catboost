@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ class base_filter;
 }
 
 namespace r1 {
-void __TBB_EXPORTED_FUNC set_end_of_input(d1::base_filter&);
+TBB_EXPORT void __TBB_EXPORTED_FUNC set_end_of_input(d1::base_filter&);
 class pipeline;
 class stage_task;
 class input_buffer;
@@ -129,7 +129,9 @@ class flow_control {
     bool is_pipeline_stopped = false;
     flow_control() = default;
     template<typename Body, typename InputType, typename OutputType > friend class concrete_filter;
-    template<typename Output> friend class input_node;
+    template<typename Output>
+    __TBB_requires(std::copyable<Output>)
+    friend class input_node;
 public:
     void stop() { is_pipeline_stopped = true; }
 };
@@ -418,7 +420,7 @@ inline void filter_node_ptr::operator=(filter_node_ptr && rhs) {
 }
 
 inline filter_node& filter_node_ptr::operator*() const{
-    __TBB_ASSERT(my_node,"NULL node is used");
+    __TBB_ASSERT(my_node,"nullptr node is used");
     return *my_node;
 }
 

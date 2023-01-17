@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include "detail/_task.h"
 #include "detail/_aligned_space.h"
 #include "detail/_small_object_pool.h"
+#include "detail/_range_common.h"
 
 #include "task_group.h" // task_group_context
 #include "partitioner.h"
@@ -29,6 +30,31 @@
 
 namespace tbb {
 namespace detail {
+#if __TBB_CPP20_CONCEPTS_PRESENT
+inline namespace d0 {
+
+template <typename Body, typename Range>
+concept parallel_reduce_body = splittable<Body> &&
+                               requires( Body& body, const Range& range, Body& rhs ) {
+                                   body(range);
+                                   body.join(rhs);
+                               };
+
+template <typename Function, typename Range, typename Value>
+concept parallel_reduce_function = requires( const std::remove_reference_t<Function>& func,
+                                             const Range& range,
+                                             const Value& value ) {
+    { func(range, value) } -> std::convertible_to<Value>;
+};
+
+template <typename Combine, typename Value>
+concept parallel_reduce_combine = requires( const std::remove_reference_t<Combine>& combine,
+                                            const Value& lhs, const Value& rhs ) {
+    { combine(lhs, rhs) } -> std::convertible_to<Value>;
+};
+
+} // namespace d0
+#endif // __TBB_CPP20_CONCEPTS_PRESENT
 namespace d1 {
 
 //! Tree node type for parallel_reduce.
@@ -316,14 +342,14 @@ task* start_deterministic_reduce<Range,Body,Partitioner>::execute(execution_data
     my_partition.execute(*this, my_range, ed);
 
     finalize(ed);
-    return NULL;
+    return nullptr;
 }
 
 //! Cancel parallel_deterministic_reduce task
 template<typename Range, typename Body, typename Partitioner>
 task* start_deterministic_reduce<Range, Body, Partitioner>::cancel(execution_data& ed) {
     finalize(ed);
-    return NULL;
+    return nullptr;
 }
 
 
@@ -392,6 +418,7 @@ public:
 //! Parallel iteration with reduction and default partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body ) {
     start_reduce<Range,Body, const __TBB_DEFAULT_PARTITIONER>::run( range, body, __TBB_DEFAULT_PARTITIONER() );
 }
@@ -399,6 +426,7 @@ void parallel_reduce( const Range& range, Body& body ) {
 //! Parallel iteration with reduction and simple_partitioner
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, const simple_partitioner& partitioner ) {
     start_reduce<Range,Body,const simple_partitioner>::run( range, body, partitioner );
 }
@@ -406,6 +434,7 @@ void parallel_reduce( const Range& range, Body& body, const simple_partitioner& 
 //! Parallel iteration with reduction and auto_partitioner
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, const auto_partitioner& partitioner ) {
     start_reduce<Range,Body,const auto_partitioner>::run( range, body, partitioner );
 }
@@ -413,6 +442,7 @@ void parallel_reduce( const Range& range, Body& body, const auto_partitioner& pa
 //! Parallel iteration with reduction and static_partitioner
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, const static_partitioner& partitioner ) {
     start_reduce<Range,Body,const static_partitioner>::run( range, body, partitioner );
 }
@@ -420,6 +450,7 @@ void parallel_reduce( const Range& range, Body& body, const static_partitioner& 
 //! Parallel iteration with reduction and affinity_partitioner
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, affinity_partitioner& partitioner ) {
     start_reduce<Range,Body,affinity_partitioner>::run( range, body, partitioner );
 }
@@ -427,6 +458,7 @@ void parallel_reduce( const Range& range, Body& body, affinity_partitioner& part
 //! Parallel iteration with reduction, default partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, task_group_context& context ) {
     start_reduce<Range,Body,const __TBB_DEFAULT_PARTITIONER>::run( range, body, __TBB_DEFAULT_PARTITIONER(), context );
 }
@@ -434,6 +466,7 @@ void parallel_reduce( const Range& range, Body& body, task_group_context& contex
 //! Parallel iteration with reduction, simple partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, const simple_partitioner& partitioner, task_group_context& context ) {
     start_reduce<Range,Body,const simple_partitioner>::run( range, body, partitioner, context );
 }
@@ -441,6 +474,7 @@ void parallel_reduce( const Range& range, Body& body, const simple_partitioner& 
 //! Parallel iteration with reduction, auto_partitioner and user-supplied context
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, const auto_partitioner& partitioner, task_group_context& context ) {
     start_reduce<Range,Body,const auto_partitioner>::run( range, body, partitioner, context );
 }
@@ -448,6 +482,7 @@ void parallel_reduce( const Range& range, Body& body, const auto_partitioner& pa
 //! Parallel iteration with reduction, static_partitioner and user-supplied context
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, const static_partitioner& partitioner, task_group_context& context ) {
     start_reduce<Range,Body,const static_partitioner>::run( range, body, partitioner, context );
 }
@@ -455,6 +490,7 @@ void parallel_reduce( const Range& range, Body& body, const static_partitioner& 
 //! Parallel iteration with reduction, affinity_partitioner and user-supplied context
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_reduce( const Range& range, Body& body, affinity_partitioner& partitioner, task_group_context& context ) {
     start_reduce<Range,Body,affinity_partitioner>::run( range, body, partitioner, context );
 }
@@ -464,6 +500,8 @@ void parallel_reduce( const Range& range, Body& body, affinity_partitioner& part
 //! Parallel iteration with reduction and default partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
     start_reduce<Range,lambda_reduce_body<Range,Value,RealBody,Reduction>,const __TBB_DEFAULT_PARTITIONER>
@@ -474,6 +512,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction and simple_partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        const simple_partitioner& partitioner ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -485,6 +525,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction and auto_partitioner
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        const auto_partitioner& partitioner ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -496,6 +538,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction and static_partitioner
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        const static_partitioner& partitioner ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -507,6 +551,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction and affinity_partitioner
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        affinity_partitioner& partitioner ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -518,6 +564,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction, default partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        task_group_context& context ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -529,6 +577,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction, simple partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        const simple_partitioner& partitioner, task_group_context& context ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -540,6 +590,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction, auto_partitioner and user-supplied context
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        const auto_partitioner& partitioner, task_group_context& context ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -551,6 +603,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction, static_partitioner and user-supplied context
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        const static_partitioner& partitioner, task_group_context& context ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -562,6 +616,8 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with reduction, affinity_partitioner and user-supplied context
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
                        affinity_partitioner& partitioner, task_group_context& context ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
@@ -573,6 +629,7 @@ Value parallel_reduce( const Range& range, const Value& identity, const RealBody
 //! Parallel iteration with deterministic reduction and default simple partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_deterministic_reduce( const Range& range, Body& body ) {
     start_deterministic_reduce<Range, Body, const simple_partitioner>::run(range, body, simple_partitioner());
 }
@@ -580,6 +637,7 @@ void parallel_deterministic_reduce( const Range& range, Body& body ) {
 //! Parallel iteration with deterministic reduction and simple partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_deterministic_reduce( const Range& range, Body& body, const simple_partitioner& partitioner ) {
     start_deterministic_reduce<Range, Body, const simple_partitioner>::run(range, body, partitioner);
 }
@@ -587,6 +645,7 @@ void parallel_deterministic_reduce( const Range& range, Body& body, const simple
 //! Parallel iteration with deterministic reduction and static partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_deterministic_reduce( const Range& range, Body& body, const static_partitioner& partitioner ) {
     start_deterministic_reduce<Range, Body, const static_partitioner>::run(range, body, partitioner);
 }
@@ -594,6 +653,7 @@ void parallel_deterministic_reduce( const Range& range, Body& body, const static
 //! Parallel iteration with deterministic reduction, default simple partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_deterministic_reduce( const Range& range, Body& body, task_group_context& context ) {
     start_deterministic_reduce<Range,Body, const simple_partitioner>::run( range, body, simple_partitioner(), context );
 }
@@ -601,6 +661,7 @@ void parallel_deterministic_reduce( const Range& range, Body& body, task_group_c
 //! Parallel iteration with deterministic reduction, simple partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_deterministic_reduce( const Range& range, Body& body, const simple_partitioner& partitioner, task_group_context& context ) {
     start_deterministic_reduce<Range, Body, const simple_partitioner>::run(range, body, partitioner, context);
 }
@@ -608,6 +669,7 @@ void parallel_deterministic_reduce( const Range& range, Body& body, const simple
 //! Parallel iteration with deterministic reduction, static partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Body>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_body<Body, Range>)
 void parallel_deterministic_reduce( const Range& range, Body& body, const static_partitioner& partitioner, task_group_context& context ) {
     start_deterministic_reduce<Range, Body, const static_partitioner>::run(range, body, partitioner, context);
 }
@@ -619,6 +681,8 @@ void parallel_deterministic_reduce( const Range& range, Body& body, const static
 // TODO: consider making static_partitioner the default
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_deterministic_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction ) {
     return parallel_deterministic_reduce(range, identity, real_body, reduction, simple_partitioner());
 }
@@ -626,6 +690,8 @@ Value parallel_deterministic_reduce( const Range& range, const Value& identity, 
 //! Parallel iteration with deterministic reduction and simple partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_deterministic_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction, const simple_partitioner& partitioner ) {
     lambda_reduce_body<Range,Value,RealBody,Reduction> body(identity, real_body, reduction);
     start_deterministic_reduce<Range,lambda_reduce_body<Range,Value,RealBody,Reduction>, const simple_partitioner>
@@ -636,6 +702,8 @@ Value parallel_deterministic_reduce( const Range& range, const Value& identity, 
 //! Parallel iteration with deterministic reduction and static partitioner.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_deterministic_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction, const static_partitioner& partitioner ) {
     lambda_reduce_body<Range, Value, RealBody, Reduction> body(identity, real_body, reduction);
     start_deterministic_reduce<Range, lambda_reduce_body<Range, Value, RealBody, Reduction>, const static_partitioner>
@@ -646,6 +714,8 @@ Value parallel_deterministic_reduce( const Range& range, const Value& identity, 
 //! Parallel iteration with deterministic reduction, default simple partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_deterministic_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
     task_group_context& context ) {
     return parallel_deterministic_reduce(range, identity, real_body, reduction, simple_partitioner(), context);
@@ -654,6 +724,8 @@ Value parallel_deterministic_reduce( const Range& range, const Value& identity, 
 //! Parallel iteration with deterministic reduction, simple partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_deterministic_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
     const simple_partitioner& partitioner, task_group_context& context ) {
     lambda_reduce_body<Range, Value, RealBody, Reduction> body(identity, real_body, reduction);
@@ -665,6 +737,8 @@ Value parallel_deterministic_reduce( const Range& range, const Value& identity, 
 //! Parallel iteration with deterministic reduction, static partitioner and user-supplied context.
 /** @ingroup algorithms **/
 template<typename Range, typename Value, typename RealBody, typename Reduction>
+    __TBB_requires(tbb_range<Range> && parallel_reduce_function<RealBody, Range, Value> &&
+                   parallel_reduce_combine<Reduction, Value>)
 Value parallel_deterministic_reduce( const Range& range, const Value& identity, const RealBody& real_body, const Reduction& reduction,
     const static_partitioner& partitioner, task_group_context& context ) {
     lambda_reduce_body<Range, Value, RealBody, Reduction> body(identity, real_body, reduction);
