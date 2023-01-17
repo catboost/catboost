@@ -8,6 +8,8 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
+TAG(ya:explicit_data)
+
 PEERDIR(
     contrib/libs/re2
 )
