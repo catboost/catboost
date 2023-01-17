@@ -105,7 +105,7 @@ TString Trim(const TString& str, const TString& whitespaces)
 
 namespace {
 
-ui16 DecimalDigits2[100] = {
+const ui16 DecimalDigits2[100] = {
     12336,  12592,  12848,  13104,  13360,  13616,  13872,  14128,  14384,  14640,
     12337,  12593,  12849,  13105,  13361,  13617,  13873,  14129,  14385,  14641,
     12338,  12594,  12850,  13106,  13362,  13618,  13874,  14130,  14386,  14642,
@@ -119,7 +119,7 @@ ui16 DecimalDigits2[100] = {
 };
 
 template <class T>
-char* WriteSignedIntToBufferBackwardsImpl(char* ptr, T value, TStringBuf min)
+char* WriteSignedDecIntToBufferBackwardsImpl(char* ptr, T value, TStringBuf min)
 {
     if (value == 0) {
         --ptr;
@@ -141,8 +141,8 @@ char* WriteSignedIntToBufferBackwardsImpl(char* ptr, T value, TStringBuf min)
     }
 
     while (value >= 10) {
-        i64 rem = value % 100;
-        i64 quot = value / 100;
+        auto rem = value % 100;
+        auto quot = value / 100;
         ptr -= 2;
         ::memcpy(ptr, &DecimalDigits2[rem], 2);
         value = quot;
@@ -162,7 +162,7 @@ char* WriteSignedIntToBufferBackwardsImpl(char* ptr, T value, TStringBuf min)
 }
 
 template <class T>
-char* WriteUnsignedIntToBufferBackwardsImpl(char* ptr, T value)
+char* WriteUnsignedDecIntToBufferBackwardsImpl(char* ptr, T value)
 {
     if (value == 0) {
         --ptr;
@@ -171,8 +171,8 @@ char* WriteUnsignedIntToBufferBackwardsImpl(char* ptr, T value)
     }
 
     while (value >= 10) {
-        i64 rem = value % 100;
-        i64 quot = value / 100;
+        auto rem = value % 100;
+        auto quot = value / 100;
         ptr -= 2;
         ::memcpy(ptr, &DecimalDigits2[rem], 2);
         value = quot;
@@ -189,27 +189,115 @@ char* WriteUnsignedIntToBufferBackwardsImpl(char* ptr, T value)
 } // namespace
 
 template <>
-char* WriteIntToBufferBackwards(char* ptr, i32 value)
+char* WriteDecIntToBufferBackwards(char* ptr, i32 value)
 {
-    return WriteSignedIntToBufferBackwardsImpl(ptr, value, TStringBuf("-2147483647"));
+    return WriteSignedDecIntToBufferBackwardsImpl(ptr, value, TStringBuf("-2147483647"));
 }
 
 template <>
-char* WriteIntToBufferBackwards(char* ptr, i64 value)
+char* WriteDecIntToBufferBackwards(char* ptr, i64 value)
 {
-    return WriteSignedIntToBufferBackwardsImpl(ptr, value, TStringBuf("-9223372036854775808"));
+    return WriteSignedDecIntToBufferBackwardsImpl(ptr, value, TStringBuf("-9223372036854775808"));
 }
 
 template <>
-char* WriteIntToBufferBackwards(char* ptr, ui32 value)
+char* WriteDecIntToBufferBackwards(char* ptr, ui32 value)
 {
-    return WriteUnsignedIntToBufferBackwardsImpl(ptr, value);
+    return WriteUnsignedDecIntToBufferBackwardsImpl(ptr, value);
 }
 
 template <>
-char* WriteIntToBufferBackwards(char* ptr, ui64 value)
+char* WriteDecIntToBufferBackwards(char* ptr, ui64 value)
 {
-    return WriteUnsignedIntToBufferBackwardsImpl(ptr, value);
+    return WriteUnsignedDecIntToBufferBackwardsImpl(ptr, value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+template <class T>
+char* WriteSignedHexIntToBufferBackwardsImpl(char* ptr, T value, bool uppercase, TStringBuf min)
+{
+    if (value == 0) {
+        --ptr;
+        *ptr = '0';
+        return ptr;
+    }
+
+    // The negative value handling code below works incorrectly for min values.
+    if (value == std::numeric_limits<T>::min()) {
+        ptr -= min.length();
+        ::memcpy(ptr, min.begin(), min.length());
+        return ptr;
+    }
+
+    bool negative = false;
+    if (value < 0) {
+        negative = true;
+        value = -value;
+    }
+
+    while (value != 0) {
+        auto rem = value & 0xf;
+        auto quot = value >> 4;
+        --ptr;
+        *ptr = uppercase ? IntToHexUppercase[rem] : IntToHexLowercase[rem];
+        value = quot;
+    }
+
+    if (negative) {
+        --ptr;
+        *ptr = '-';
+    }
+
+    return ptr;
+}
+
+template <class T>
+char* WriteUnsignedHexIntToBufferBackwardsImpl(char* ptr, T value, bool uppercase)
+{
+    if (value == 0) {
+        --ptr;
+        *ptr = '0';
+        return ptr;
+    }
+
+    while (value != 0) {
+        auto rem = value & 0xf;
+        auto quot = value >> 4;
+        --ptr;
+        *ptr = uppercase ? IntToHexUppercase[rem] : IntToHexLowercase[rem];
+        value = quot;
+    }
+
+    return ptr;
+}
+
+} // namespace
+
+template <>
+char* WriteHexIntToBufferBackwards(char* ptr, i32 value, bool uppercase)
+{
+    return WriteSignedHexIntToBufferBackwardsImpl(ptr, value, uppercase, TStringBuf("-80000000"));
+}
+
+template <>
+char* WriteHexIntToBufferBackwards(char* ptr, i64 value, bool uppercase)
+{
+    return WriteSignedHexIntToBufferBackwardsImpl(ptr, value, uppercase, TStringBuf("-8000000000000000"));
+}
+
+template <>
+char* WriteHexIntToBufferBackwards(char* ptr, ui32 value, bool uppercase)
+{
+    return WriteUnsignedHexIntToBufferBackwardsImpl(ptr, value, uppercase);
+}
+
+template <>
+char* WriteHexIntToBufferBackwards(char* ptr, ui64 value, bool uppercase)
+{
+    return WriteUnsignedHexIntToBufferBackwardsImpl(ptr, value, uppercase);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

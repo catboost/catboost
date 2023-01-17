@@ -1,4 +1,4 @@
-GTEST(unittester-library-string-helpers)
+GTEST(unittester-library-string)
 
 
 

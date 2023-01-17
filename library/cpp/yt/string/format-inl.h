@@ -13,6 +13,8 @@
 
 #include <library/cpp/yt/misc/enum.h>
 
+#include <util/system/platform.h>
+
 #include <cctype>
 #include <optional>
 
@@ -20,7 +22,7 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static const char GenericSpecSymbol = 'v';
+static constexpr char GenericSpecSymbol = 'v';
 
 inline bool IsQuotationSpecSymbol(char symbol)
 {
@@ -91,8 +93,8 @@ inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBu
                 builder->AppendString("\\t");
             } else if (ch < PrintableASCIILow || ch > PrintableASCIIHigh) {
                 builder->AppendString("\\x");
-                builder->AppendChar(Int2Hex[static_cast<ui8>(ch) >> 4]);
-                builder->AppendChar(Int2Hex[static_cast<ui8>(ch) & 0xf]);
+                builder->AppendChar(IntToHexLowercase[static_cast<ui8>(ch) >> 4]);
+                builder->AppendChar(IntToHexLowercase[static_cast<ui8>(ch) & 0xf]);
             } else if ((singleQuotes && ch == '\'') || (doubleQuotes && ch == '\"')) {
                 builder->AppendChar('\\');
                 builder->AppendChar(ch);
@@ -117,6 +119,12 @@ inline void FormatValue(TStringBuilderBase* builder, const TString& value, TStri
 
 // const char*
 inline void FormatValue(TStringBuilderBase* builder, const char* value, TStringBuf format)
+{
+    FormatValue(builder, TStringBuf(value), format);
+}
+
+// char*
+inline void FormatValue(TStringBuilderBase* builder, char* value, TStringBuf format)
 {
     FormatValue(builder, TStringBuf(value), format);
 }
@@ -438,91 +446,54 @@ auto FormatValue(TStringBuilderBase* builder, const TValue& value, TStringBuf fo
     return TValueFormatter<TValue>::Do(builder, value, format);
 }
 
+namespace NDetail {
+
 template <class TValue>
 void FormatValueViaSprintf(
     TStringBuilderBase* builder,
     TValue value,
     TStringBuf format,
-    TStringBuf genericSpec)
-{
-    constexpr int MaxFormatSize = 64;
-    constexpr int SmallResultSize = 64;
-
-    auto copyFormat = [] (char* destination, const char* source, int length) {
-        int position = 0;
-        for (int index = 0; index < length; ++index) {
-            if (IsQuotationSpecSymbol(source[index])) {
-                continue;
-            }
-            destination[position] = source[index];
-            ++position;
-        }
-        return destination + position;
-    };
-
-    char formatBuf[MaxFormatSize];
-    YT_VERIFY(format.length() >= 1 && format.length() <= MaxFormatSize - 2); // one for %, one for \0
-    formatBuf[0] = '%';
-    if (format[format.length() - 1] == GenericSpecSymbol) {
-        char* formatEnd = copyFormat(formatBuf + 1, format.begin(), format.length() - 1);
-        ::memcpy(formatEnd, genericSpec.begin(), genericSpec.length());
-        formatEnd[genericSpec.length()] = '\0';
-    } else {
-        char* formatEnd = copyFormat(formatBuf + 1, format.begin(), format.length());
-        *formatEnd = '\0';
-    }
-
-    char* result = builder->Preallocate(SmallResultSize);
-    size_t resultSize = ::snprintf(result, SmallResultSize, formatBuf, value);
-    if (resultSize >= SmallResultSize) {
-        result = builder->Preallocate(resultSize + 1);
-        YT_VERIFY(::snprintf(result, resultSize + 1, formatBuf, value) == static_cast<int>(resultSize));
-    }
-    builder->Advance(resultSize);
-}
+    TStringBuf genericSpec);
 
 template <class TValue>
-char* WriteIntToBufferBackwards(char* buffer, TValue value);
+void FormatIntValue(
+    TStringBuilderBase* builder,
+    TValue value,
+    TStringBuf format,
+    TStringBuf genericSpec);
 
-template <class TValue>
-void FormatValueViaHelper(TStringBuilderBase* builder, TValue value, TStringBuf format, TStringBuf genericSpec)
-{
-    if (format == TStringBuf("v")) {
-        const int MaxResultSize = 64;
-        char buffer[MaxResultSize];
-        char* end = buffer + MaxResultSize;
-        char* start = WriteIntToBufferBackwards(end, value);
-        builder->AppendString(TStringBuf(start, end));
-    } else {
-        FormatValueViaSprintf(builder, value, format, genericSpec);
-    }
-}
+} // namespace NDetail
 
 #define XX(valueType, castType, genericSpec) \
     inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf format) \
     { \
-        FormatValueViaHelper(builder, static_cast<castType>(value), format, genericSpec); \
+        NYT::NDetail::FormatIntValue(builder, static_cast<castType>(value), format, genericSpec); \
     }
 
-XX(i8,              int,                TStringBuf("d"))
-XX(ui8,             unsigned int,       TStringBuf("u"))
-XX(i16,             int,                TStringBuf("d"))
-XX(ui16,            unsigned int,       TStringBuf("u"))
-XX(i32,             int,                TStringBuf("d"))
-XX(ui32,            unsigned int,       TStringBuf("u"))
-XX(long,            long,               TStringBuf("ld"))
-XX(unsigned long,   unsigned long,      TStringBuf("lu"))
+XX(i8,                  i32,      TStringBuf("d"))
+XX(ui8,                 ui32,     TStringBuf("u"))
+XX(i16,                 i32,      TStringBuf("d"))
+XX(ui16,                ui32,     TStringBuf("u"))
+XX(i32,                 i32,      TStringBuf("d"))
+XX(ui32,                ui32,     TStringBuf("u"))
+#ifdef _win_
+XX(long long,           i64,      TStringBuf("lld"))
+XX(unsigned long long,  ui64,     TStringBuf("llu"))
+#else
+XX(long,                i64,      TStringBuf("ld"))
+XX(unsigned long,       ui64,     TStringBuf("lu"))
+#endif
 
 #undef XX
 
 #define XX(valueType, castType, genericSpec) \
     inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf format) \
     { \
-        FormatValueViaSprintf(builder, static_cast<castType>(value), format, genericSpec); \
+        NYT::NDetail::FormatValueViaSprintf(builder, static_cast<castType>(value), format, genericSpec); \
     }
 
-XX(double,          double,             TStringBuf("lf"))
-XX(float,           float,              TStringBuf("f"))
+XX(double,              double,   TStringBuf("lf"))
+XX(float,               float,    TStringBuf("f"))
 
 #undef XX
 
@@ -530,7 +501,7 @@ XX(float,           float,              TStringBuf("f"))
 template <class T>
 void FormatValue(TStringBuilderBase* builder, T* value, TStringBuf format)
 {
-    FormatValueViaSprintf(builder, value, format, TStringBuf("p"));
+    NYT::NDetail::FormatValueViaSprintf(builder, static_cast<const void*>(value), format, TStringBuf("p"));
 }
 
 // TDuration (specialize for performance reasons)
@@ -547,6 +518,8 @@ inline void FormatValue(TStringBuilderBase* builder, TInstant value, TStringBuf 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+namespace NDetail {
 
 template <class TArgFormatter>
 void FormatImpl(
@@ -649,6 +622,8 @@ void FormatImpl(
     }
 }
 
+} // namespace NDetail
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
@@ -716,7 +691,7 @@ void Format(
     TArgs&&... args)
 {
     TArgFormatterImpl<0, TArgs...> argFormatter(args...);
-    FormatImpl(builder, format, argFormatter);
+    NYT::NDetail::FormatImpl(builder, format, argFormatter);
 }
 
 template <size_t Length, class... TArgs>
