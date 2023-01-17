@@ -1450,7 +1450,6 @@ migrations:
     - voicetech/spotter/difftools/score_output
     - voicetech/spotter/online_metrics/lib
     - voicetech/spotter/run/difftool
-    - voicetech/spotter/score/prepare_for_online_validation/bin
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
     - yabs/analytics/anomaly_analyzer/src
@@ -2662,7 +2661,6 @@ migrations:
     - sport/backend/tests/projects/batches
     - sprav/java/editor/recipe
     - sprav/mining/ontodb
-    - sprav/mining/partners/gis/lib
     - sprav/mining/quarantine/feature_grep/lib
     - sprav/tycoon/tools/add_table_replica
     - statbox/jam/jobs/outer-job/dmz_reports/superapp-1/app_sessions
