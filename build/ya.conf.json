@@ -536,6 +536,9 @@
         "marketsre": {
             "description": "Run Market SRE Cli"
         },
+        "dns-client2": {
+            "description": "Run dns-client2(tools for change RRs)"
+        },
         "metrika-core": {
             "description": "Run metrika-core toolkit"
         },
@@ -828,6 +831,35 @@
                 {
                     "host": {
                         "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "dns-client2": {
+            "tools": {
+                "dns-client2": {
+                    "bottle": "dns-client2",
+                    "executable": "dns-client2"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
                     },
                     "default": true
                 },
@@ -8114,7 +8146,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1396373868,
+                "sandbox_id": 1397622074,
                 "match": "horadric"
             },
             "executable": {
@@ -8257,7 +8289,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1396374565,
+                "sandbox_id": 1397622039,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8328,7 +8360,7 @@
                     1395387837,
                     1395387835,
                     1395387834,
-                    1395387836
+                    1397763416
                 ],
                 "match": "GOLANG"
             },
@@ -8899,7 +8931,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1396374474,
+                "sandbox_id": 1397622025,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8910,7 +8942,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1396374269,
+                "sandbox_id": 1397622034,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8932,7 +8964,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1396374568,
+                "sandbox_id": 1397621558,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8978,7 +9010,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1396374566,
+                "sandbox_id": 1397622177,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8989,7 +9021,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1396374287,
+                "sandbox_id": 1397622460,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9000,7 +9032,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1396373637,
+                "sandbox_id": 1397621396,
                 "match": "exp_stats"
             },
             "executable": {
@@ -9061,9 +9093,26 @@
                 ]
             }
         },
+        "dns-client2": {
+            "formula": {
+              "latest_matched": {
+                 "query": {
+                     "resource_type": "DNS_CLIENT2_BINARY",
+                     "owner": "MNT_TRAF"
+                 },
+                 "update_interval": 86400,
+                 "ignore_platform": false
+              }
+            },
+            "executable": {
+                "dns-client2": [
+                    "dns-client2"
+                ]
+            }
+        },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1396373923,
+                "sandbox_id": 1397622020,
                 "match": "profile_size_analyzer"
             },
             "executable": {
