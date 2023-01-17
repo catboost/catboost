@@ -175,11 +175,15 @@ Y_FORCE_INLINE TIntrusivePtr<T> SafeConstruct(void* ptr, As&&... args)
 template <size_t Size, size_t Alignment>
 void* AllocateConstSizeAligned()
 {
+#ifdef _win_
+    return ::aligned_malloc(Size, Alignment);
+#else
     if (Alignment <= alignof(std::max_align_t)) {
         return ::malloc(Size);
     } else {
         return ::aligned_malloc(Size, Alignment);
     }
+#endif
 }
 
 } // namespace NDetail
@@ -219,11 +223,15 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithExtraSpace(
     auto totalSize = NYT::NDetail::TConstructHelper<T>::Size + extraSpaceSize;
     void* ptr = nullptr;
 
+#ifdef _win_
+    ptr = ::aligned_malloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
+#else
     if (NYT::NDetail::TConstructHelper<T>::Alignment <= alignof(std::max_align_t)) {
         ptr = ::malloc(totalSize);
     } else {
         ptr = ::aligned_malloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
     }
+#endif
 
     return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
 }
