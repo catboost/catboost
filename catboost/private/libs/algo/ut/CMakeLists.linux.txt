@@ -33,6 +33,9 @@ target_link_options(catboost_ut PRIVATE
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(catboost_ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/apply_ut.cpp

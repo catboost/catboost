@@ -33,6 +33,8 @@ target_link_libraries(catboost_train_interface PUBLIC
   cpp-threading-local_executor
   library-cpp-json
   library-cpp-logger
+  catboost-cuda-train_lib
+  libs-model-cuda
 )
 target_sources(catboost_train_interface PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp

@@ -28,6 +28,8 @@ target_link_libraries(catboostr PUBLIC
   private-libs-documents_importance
   private-libs-init
   private-libs-options
+  catboost-cuda-train_lib
+  libs-model-cuda
 )
 target_sources(catboostr PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp

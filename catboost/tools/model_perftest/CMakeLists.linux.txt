@@ -27,5 +27,8 @@ target_link_options(model_perftest PRIVATE
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 vcs_info(model_perftest)

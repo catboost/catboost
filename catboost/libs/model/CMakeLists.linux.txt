@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(cuda)
 add_subdirectory(flatbuffers)
 add_subdirectory(model_export)
 add_subdirectory(ut)

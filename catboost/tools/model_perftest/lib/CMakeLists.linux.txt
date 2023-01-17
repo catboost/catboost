@@ -15,6 +15,7 @@ target_link_libraries(tools-model_perftest-lib INTERFACE
   catboost-libs-data
   cpp-getopt-small
   cpp-threading-future
+  libs-model-cuda
 )
 
 add_global_library_for(tools-model_perftest-lib.global tools-model_perftest-lib)
@@ -25,6 +26,7 @@ target_link_libraries(tools-model_perftest-lib.global PUBLIC
   catboost-libs-data
   cpp-getopt-small
   cpp-threading-future
+  libs-model-cuda
 )
 target_sources(tools-model_perftest-lib.global PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/tools/model_perftest/lib/main.cpp

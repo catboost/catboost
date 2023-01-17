@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(accurate_accumulate)
 add_subdirectory(archive)
 add_subdirectory(binsaver)
 add_subdirectory(blockcodecs)
@@ -19,6 +20,7 @@ add_subdirectory(containers)
 add_subdirectory(coroutine)
 add_subdirectory(cppparser)
 add_subdirectory(cpuid_check)
+add_subdirectory(cuda)
 add_subdirectory(dbg_output)
 add_subdirectory(deprecated)
 add_subdirectory(diff)
@@ -28,6 +30,7 @@ add_subdirectory(dot_product)
 add_subdirectory(enumbitset)
 add_subdirectory(fast_exp)
 add_subdirectory(fast_log)
+add_subdirectory(float16)
 add_subdirectory(getopt)
 add_subdirectory(grid_creator)
 add_subdirectory(hnsw)

@@ -10,6 +10,9 @@ add_subdirectory(approx_calcer)
 add_subdirectory(ut)
 
 add_library(private-libs-algo)
+target_compile_options(private-libs-algo PRIVATE
+  -DHAVE_CUDA
+)
 target_link_libraries(private-libs-algo PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -49,6 +52,7 @@ target_link_libraries(private-libs-algo PUBLIC
   library-cpp-sse
   library-cpp-svnversion
   cpp-threading-local_executor
+  libs-model-cuda
 )
 target_sources(private-libs-algo PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/apply.cpp
