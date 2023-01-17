@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\blob.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\ref.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\ref_tracked.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\shared_range.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\blob.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\intrusive_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\new-inl.h"/>
