@@ -114,13 +114,13 @@
   includes:
     - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
-- source_filter: "^contrib/libs/clang11-rt"
-  includes:
-    - xray/xray_interface.h: contrib/libs/clang11-rt/include/xray/xray_interface.h
-
 - source_filter: "^contrib/libs/clang12-rt"
   includes:
     - xray/xray_interface.h: contrib/libs/clang12-rt/include/xray/xray_interface.h
+
+- source_filter: "^contrib/libs/clang14-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang14-rt/include/xray/xray_interface.h
 
 - source_filter: "^contrib/libs/llvm"
   includes:
