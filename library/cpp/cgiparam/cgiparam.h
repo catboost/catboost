@@ -121,6 +121,7 @@ public:
 
     bool Erase(const TStringBuf name, size_t numOfValue = 0);
     bool Erase(const TStringBuf name, const TStringBuf val);
+    bool ErasePattern(const TStringBuf name, const TStringBuf pat);
 
     inline const char* FormField(const TStringBuf name, size_t numOfValue = 0) const {
         const_iterator it = Find(name, numOfValue);

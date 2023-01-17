@@ -8041,7 +8041,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1317664183,
+                "sandbox_id": 1318846019,
                 "match": "horadric"
             },
             "executable": {
@@ -8184,7 +8184,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1317664147,
+                "sandbox_id": 1318844870,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8841,7 +8841,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1317663370,
+                "sandbox_id": 1318844758,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8852,7 +8852,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1317665729,
+                "sandbox_id": 1318844730,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8874,7 +8874,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1317664133,
+                "sandbox_id": 1318844743,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8920,7 +8920,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1317665746,
+                "sandbox_id": 1318847467,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8931,7 +8931,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1317663404,
+                "sandbox_id": 1318844748,
                 "match": "lookup_profile"
             },
             "executable": {
