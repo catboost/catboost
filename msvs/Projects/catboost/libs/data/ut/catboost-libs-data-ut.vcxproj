@@ -375,9 +375,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\simplegeneric\pycontrib-python-simplegeneric.global.vcxproj">
       <Project>{F54B6D62-F8CC-ECD7-1A0B-41EE7306CD5D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.global.vcxproj">
-      <Project>{98BECBCB-1D2E-EDF1-F31E-6972718E51F5}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.global.vcxproj">
       <Project>{DBA6354E-4A60-1922-EC62-1291EF2B35E3}</Project>
     </ProjectReference>
