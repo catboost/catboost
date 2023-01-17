@@ -255,6 +255,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Objects\unicodeobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Objects\unionobject.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Objects\weakrefobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -279,37 +282,19 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\PC\winsound.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\acceler.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\grammar1.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\listnode.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\myreadline.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\node.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\parser.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\parsetok.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\peg_api.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen\parse.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen\parse_string.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen\peg_api.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen\pegen.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\string_parser.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\token.c">
@@ -399,9 +384,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\getversion.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\graminit.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\hamt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -430,9 +412,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\pathconfig.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\peephole.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\preconfig.c">
@@ -477,6 +456,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\structmember.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\suggestions.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\symtable.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -489,12 +471,8 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Python\traceback.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\Python-ast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\Python.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\abstract.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\asdl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\ast.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\bitset.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\bltinmodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\boolobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\bytearrayobject.h"/>
@@ -512,6 +490,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\bytesobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\ceval.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\code.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\compile.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\dictobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\fileobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\fileutils.h"/>
@@ -523,10 +502,17 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\methodobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\object.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\objimpl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\odictobject.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\picklebufobject.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pyctype.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pydebug.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pyerrors.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pyfpe.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pylifecycle.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pymem.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pystate.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pythonrun.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\pytime.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\sysmodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\traceback.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\cpython\tupleobject.h"/>
@@ -546,22 +532,26 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\funcobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\genericaliasobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\genobject.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\graminit.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\grammar.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\import.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pegen_interface.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_abstract.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_accu.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_asdl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_ast.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_ast_state.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_atomic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_atomic_funcs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_bitutils.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_blocks_output_buffer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_bytes_methods.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_byteswap.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_call.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_ceval.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_code.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_compile.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_condvar.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_context.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_dtoa.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_fileutils.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_format.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_gc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_getopt.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_gil.h"/>
@@ -570,17 +560,26 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_import.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_initconfig.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_interp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_list.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_long.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_moduleobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_object.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_parser.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_pathconfig.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_pyarena.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_pyerrors.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_pyhash.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_pylifecycle.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_pymem.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_pystate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_runtime.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_structseq.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_symtable.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_sysmodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_traceback.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_tupleobject.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_tuple.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_ucnhash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_unionobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\internal\pycore_warnings.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\interpreteridobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\intrcheck.h"/>
@@ -594,29 +593,21 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\modsupport.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\moduleobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\namespaceobject.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\node.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\object.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\objimpl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\odictobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\opcode.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\osdefs.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\osmodule.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\parsetok.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\patchlevel.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\picklebufobject.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyarena.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pycapsule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-musl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-osx-arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyconfig.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyctype.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pydebug.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pydtrace.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyerrors.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyexpat.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyfpe.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyframe.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pyhash.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pylifecycle.h"/>
@@ -631,20 +622,17 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pystrtod.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pythonrun.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pythread.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\pytime.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\rangeobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\setobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\sliceobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\structmember.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\structseq.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\symtable.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\sysmodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\token.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\traceback.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\tracemalloc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\tupleobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\typeslots.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\ucnhash.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\unicodeobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\warnings.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Include\weakrefobject.h"/>
@@ -695,9 +683,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\PC\clinic\winsound.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\PC\errmap.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\PC\pyconfig.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\parser.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen\parse_string.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen\pegen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\pegen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\string_parser.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Parser\tokenizer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\ceval_gil.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\clinic\_warnings.c.h"/>
@@ -708,11 +695,13 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\clinic\sysmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\clinic\traceback.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\condvar.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\frozen_hello.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\importdl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\importlib.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\importlib_external.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\importlib_zipimport.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\opcode_targets.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\stdlib_module_names.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\thread_nt.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\thread_pthread.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Python\wordcode_helpers.h"/>
