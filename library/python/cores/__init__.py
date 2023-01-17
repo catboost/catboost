@@ -181,8 +181,8 @@ def resolve_addresses(addresses, symbolizer, binary):
     addresses = list(set(addresses))
     cmd = [
         symbolizer,
-        "-demangle",
-        "-obj",
+        "--demangle",
+        "--obj",
         binary,
     ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
