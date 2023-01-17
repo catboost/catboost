@@ -17,7 +17,6 @@ target_link_libraries(catboost-libs-dataset_statistics PUBLIC
   library-cpp-json
 )
 target_sources(catboost-libs-dataset_statistics PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/calculate_statistics.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/dataset_statistics_data_provider_builder.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/statistics_data_structures.cpp
 )

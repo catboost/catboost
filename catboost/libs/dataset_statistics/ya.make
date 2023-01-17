@@ -3,7 +3,6 @@ LIBRARY()
 
 
 SRCS(
-    calculate_statistics.cpp
     dataset_statistics_data_provider_builder.cpp
     statistics_data_structures.cpp
 )

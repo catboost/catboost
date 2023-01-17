@@ -18,6 +18,7 @@ class TDatasetStatisticsProviderBuilder: public IRawObjectsOrderDataVisitor {
 public:
     TDatasetStatisticsProviderBuilder(
         const TDataProviderBuilderOptions& options,
+        bool isLocal,
         NPar::ILocalExecutor* localExecutor)
         : InBlock(false)
         , ObjectCount(0)
@@ -26,6 +27,7 @@ public:
         , LocalExecutor(localExecutor)
         , InProcess(false)
         , ResultTaken(false)
+        , IsLocal(isLocal)
     {
     }
 
@@ -36,8 +38,9 @@ public:
         ui32 objectCount,
         EObjectsOrder /* objectsOrder */,
         TVector<TIntrusivePtr<IResourceHolder>> /* resourceHolders */
-        ) override {
+    ) override {
         CB_ENSURE(!InProcess, "Attempt to start new processing without finishing the last");
+        CB_ENSURE(!haveUnknownNumberOfSparseFeatures, "Not supported");
         InProcess = true;
         ResultTaken = false;
 
@@ -53,17 +56,8 @@ public:
             NextCursor = 0;
         }
         ObjectCount = objectCount + prevTailSize;
-
-        MetaInfo = metaInfo;
-        if (haveUnknownNumberOfSparseFeatures) {
-            // make a copy because it can be updated
-            MetaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*metaInfo.FeaturesLayout);
-        }
-
-        FeatureStatistics.Init(MetaInfo);
-        TargetsStatistics.Init(MetaInfo);
-
         CatFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
+        DatasetStatistics.Init(metaInfo);
     }
 
     void StartNextBlock(ui32 blockSize) override {
@@ -92,14 +86,14 @@ public:
 
     // TRawObjectsData
     void AddFloatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, float feature) override {
-        FeatureStatistics
+        DatasetStatistics.FeatureStatistics
             .FloatFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx)]
             .Update(feature);
         Y_UNUSED(localObjectIdx);
     }
     void AddAllFloatFeatures(ui32 localObjectIdx, TConstArrayRef<float> features) override {
         for (auto perTypeFeatureIdx : xrange(features.size())) {
-            FeatureStatistics
+            DatasetStatistics.FeatureStatistics
                 .FloatFeatureStatistics[TFloatFeatureIdx(perTypeFeatureIdx).Idx]
                 .Update(features[perTypeFeatureIdx]);
         }
@@ -205,11 +199,11 @@ public:
         Y_UNUSED(localObjectIdx, value);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
-        TargetsStatistics.Update(flatTargetIdx, value);
+        DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
-        TargetsStatistics.Update(flatTargetIdx, value);
+        DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
         Y_UNUSED(localObjectIdx);
     }
     void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) override {
@@ -228,18 +222,35 @@ public:
     void Finish() override {
         CB_ENSURE(InProcess, "Attempt to Finish without starting processing");
         CB_ENSURE(
-            NextCursor >= ObjectCount,
-            "processed object count is less than than specified in metadata");
+            !IsLocal || NextCursor >= ObjectCount,
+            "processed object count is less than than specified in metadata: " << NextCursor << "<" << ObjectCount);
 
         if (ObjectCount != 0) {
             CATBOOST_INFO_LOG << "Object info sizes: " << ObjectCount << " "
-                              << MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
+                              << DatasetStatistics.MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
         } else {
             // should this be an error?
             CATBOOST_ERROR_LOG << "No objects info loaded" << Endl;
         }
 
         InProcess = false;
+
+        if (CatFeatureCount) {
+            if (!DatasetStatistics.CatFeaturesHashToString) {
+                DatasetStatistics.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>();
+            }
+            DatasetStatistics.CatFeaturesHashToString->resize(CatFeatureCount);
+            for (const auto& part : HashMapParts) {
+                if (part.CatFeatureHashes.empty()) {
+                    continue;
+                }
+                for (auto catFeatureIdx : xrange(CatFeatureCount)) {
+                    (*DatasetStatistics.CatFeaturesHashToString)[catFeatureIdx].insert(
+                        part.CatFeatureHashes[catFeatureIdx].begin(),
+                        part.CatFeatureHashes[catFeatureIdx].end());
+                }
+            }
+        }
     }
 
     // IDatasetVisitor
@@ -272,26 +283,7 @@ public:
 private:
     template <EFeatureType FeatureType>
     ui32 GetInternalFeatureIdx(ui32 flatFeatureIdx) const {
-        return MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx).Idx;
-    }
-
-    void GetResult() {
-        if (CatFeatureCount) {
-            if (!CatFeaturesHashToString) {
-                CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>();
-            }
-            CatFeaturesHashToString->resize(CatFeatureCount);
-            for (const auto& part : HashMapParts) {
-                if (part.CatFeatureHashes.empty()) {
-                    continue;
-                }
-                for (auto catFeatureIdx : xrange(CatFeatureCount)) {
-                    (*CatFeaturesHashToString)[catFeatureIdx].insert(
-                        part.CatFeatureHashes[catFeatureIdx].begin(),
-                        part.CatFeatureHashes[catFeatureIdx].end());
-                }
-            }
-        }
+        return DatasetStatistics.MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx).Idx;
     }
 
 private:
@@ -305,17 +297,14 @@ private:
     bool InProcess;
     bool ResultTaken;
 
+    bool IsLocal;
+
     struct THashPart {
         TVector<THashMap<ui32, TString>> CatFeatureHashes;
     };
     std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
-    TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
-
-    TDataMetaInfo MetaInfo;
+    TDatasetStatistics DatasetStatistics;
     ui32 CatFeatureCount;
-    TFeatureStatistics FeatureStatistics;
-    TTargetsStatistics TargetsStatistics;
-    // ToDo: maybe add GroupStatistics
 
 public:
     void OutputResult(const TString& outputPath) const;

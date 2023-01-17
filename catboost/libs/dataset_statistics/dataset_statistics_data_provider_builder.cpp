@@ -12,8 +12,8 @@ void TDatasetStatisticsProviderBuilder::OutputResult(const TString& outputPath) 
 NJson::TJsonValue TDatasetStatisticsProviderBuilder::GetResult() const {
     TJsonValue result;
 
-    result.InsertValue("TargetsStatistics", TargetsStatistics.ToJson());
-    result.InsertValue("FeatureStatistics", FeatureStatistics.ToJson());
+    result.InsertValue("TargetsStatistics", DatasetStatistics.TargetsStatistics.ToJson());
+    result.InsertValue("FeatureStatistics", DatasetStatistics.FeatureStatistics.ToJson());
 
     result.InsertValue("ObjectCount", ObjectCount);
 
