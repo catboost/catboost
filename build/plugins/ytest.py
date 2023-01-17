@@ -572,6 +572,11 @@ def onadd_check(unit, *args):
     script_rel_path = check_type
     test_files = flat_args[1:]
 
+    supported_no_lint_values = ('none', 'none_internal', 'ktlint')
+    no_lint_value = unit.get('_NO_LINT_VALUE')
+    if no_lint_value and no_lint_value not in supported_no_lint_values:
+        ymake.report_configure_error('Unsupported value for NO_LINT macro: {}'.format(no_lint_value))
+
     if check_type in ["check.data", "check.resource"]:
         uid_ext = unit.get("SBR_UID_EXT").split(" ", 1)[-1]  # strip variable name
 
