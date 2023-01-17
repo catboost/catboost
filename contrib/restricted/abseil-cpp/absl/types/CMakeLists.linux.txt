@@ -17,6 +17,7 @@ target_include_directories(abseil-cpp-absl-types PUBLIC
 target_link_libraries(abseil-cpp-absl-types PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
+  abseil-cpp-absl-memory
 )
 target_sources(abseil-cpp-absl-types PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/bad_any_cast.cc

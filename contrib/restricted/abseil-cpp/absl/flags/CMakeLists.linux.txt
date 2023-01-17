@@ -20,6 +20,7 @@ target_link_libraries(abseil-cpp-absl-flags PUBLIC
   abseil-cpp-absl-container
   abseil-cpp-absl-debugging
   abseil-cpp-absl-hash
+  abseil-cpp-absl-memory
   abseil-cpp-absl-numeric
   abseil-cpp-absl-profiling
   abseil-cpp-absl-strings
