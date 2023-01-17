@@ -4,15 +4,11 @@
 Commonly useful converters.
 """
 
-from __future__ import absolute_import, division, print_function
 
-from ._compat import PY2
+import typing
+
+from ._compat import _AnnotationExtractor
 from ._make import NOTHING, Factory, pipe
-
-
-if not PY2:
-    import inspect
-    import typing
 
 
 __all__ = [
@@ -42,22 +38,15 @@ def optional(converter):
             return None
         return converter(val)
 
-    if not PY2:
-        sig = None
-        try:
-            sig = inspect.signature(converter)
-        except (ValueError, TypeError):  # inspect failed
-            pass
-        if sig:
-            params = list(sig.parameters.values())
-            if params and params[0].annotation is not inspect.Parameter.empty:
-                optional_converter.__annotations__["val"] = typing.Optional[
-                    params[0].annotation
-                ]
-            if sig.return_annotation is not inspect.Signature.empty:
-                optional_converter.__annotations__["return"] = typing.Optional[
-                    sig.return_annotation
-                ]
+    xtr = _AnnotationExtractor(converter)
+
+    t = xtr.get_first_param_type()
+    if t:
+        optional_converter.__annotations__["val"] = typing.Optional[t]
+
+    rt = xtr.get_return_type()
+    if rt:
+        optional_converter.__annotations__["return"] = typing.Optional[rt]
 
     return optional_converter
 

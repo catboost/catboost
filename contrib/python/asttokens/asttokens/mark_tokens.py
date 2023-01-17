@@ -26,7 +26,7 @@ from .asttokens import ASTTokens
 from .util import AstConstant
 
 try:
-  import astroid.node_classes as nc # type: ignore[import]
+  import astroid.node_classes as nc
 except Exception:
   # This is only used for type checking, we don't need it if astroid isn't installed.
   nc = None

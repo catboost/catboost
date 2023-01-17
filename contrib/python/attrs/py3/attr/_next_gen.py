@@ -49,16 +49,20 @@ def define(
 
     Differences to the classic `attr.s` that it uses underneath:
 
-    - Automatically detect whether or not *auto_attribs* should be `True`
-      (c.f. *auto_attribs* parameter).
+    - Automatically detect whether or not *auto_attribs* should be `True` (c.f.
+      *auto_attribs* parameter).
     - If *frozen* is `False`, run converters and validators when setting an
       attribute by default.
-    - *slots=True* (see :term:`slotted classes` for potentially surprising
-      behaviors)
+    - *slots=True*
+
+      .. caution::
+
+         Usually this has only upsides and few visible effects in everyday
+         programming. But it *can* lead to some suprising behaviors, so please
+         make sure to read :term:`slotted classes`.
     - *auto_exc=True*
     - *auto_detect=True*
     - *order=False*
-    - *match_args=True*
     - Some options that were only relevant on Python 2 or were kept around for
       backwards-compatibility have been removed.
 
