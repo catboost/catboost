@@ -1,22 +1,20 @@
 .machine	"any"
+.abiversion	2
 .text
 
 .globl	sha256_block_p8
 .type	sha256_block_p8,@function
-.section	".opd","aw"
-.align	3
-sha256_block_p8:
-.quad	.sha256_block_p8,.TOC.@tocbase,0
-.previous
 .align	6
-.sha256_block_p8:
+sha256_block_p8:
+.localentry	sha256_block_p8,0
+
 	stdu	1,-384(1)
 	mflr	8
 	li	10,207
 	li	11,223
 	stvx	24,10,1
 	addi	10,10,32
-	mfspr	12,256
+	li	12,-1
 	stvx	25,11,1
 	addi	11,11,32
 	stvx	26,10,1
@@ -45,10 +43,14 @@ sha256_block_p8:
 	std	31,376(1)
 	li	31,0x70
 	std	8,400(1)
-	mtspr	256,11
+	or	11,11,11
 
 	bl	.LPICmeup
 	addi	11,1,79
+	li	7,8
+	lvsl	31,0,7
+	vspltisb	28,0x0f
+	vxor	31,31,28
 	.long	0x7C001E19
 	.long	0x7C8A1E19
 	vsldoi	1,0,0,4
@@ -75,6 +77,7 @@ sha256_block_p8:
 	stvx	7,31,11
 	vadduwm	7,7,28
 	lvx	28,10,6
+	vperm	8,8,8,31
 	vadduwm	7,7,8
 	vsel	29,6,5,4
 	vadduwm	6,6,28
@@ -132,6 +135,7 @@ sha256_block_p8:
 	vadduwm	30,30,29
 	vadduwm	4,4,30
 	lvx	28,29,7
+	vperm	12,12,12,31
 	vadduwm	3,3,12
 	vsel	29,2,1,0
 	vadduwm	2,2,28
@@ -190,6 +194,7 @@ sha256_block_p8:
 	vadduwm	30,30,29
 	vadduwm	0,0,30
 	lvx	28,10,7
+	vperm	16,16,16,31
 	vadduwm	7,7,16
 	vsel	29,6,5,4
 	vadduwm	6,6,28
@@ -247,6 +252,7 @@ sha256_block_p8:
 	vadduwm	30,30,29
 	vadduwm	4,4,30
 	lvx	28,29,7
+	vperm	24,24,24,31
 	vadduwm	3,3,24
 	vsel	29,2,1,0
 	vadduwm	2,2,28
@@ -634,7 +640,7 @@ sha256_block_p8:
 	.long	0x7C8A1F19
 	addi	11,1,207
 	mtlr	8
-	mtspr	256,12
+	or	12,12,12
 	lvx	24,0,11
 	lvx	25,10,11
 	lvx	26,26,11
@@ -654,8 +660,7 @@ sha256_block_p8:
 .long	0
 .byte	0,12,4,1,0x80,6,3,0
 .long	0
-.size	.sha256_block_p8,.-.sha256_block_p8
-.size	sha256_block_p8,.-.sha256_block_p8
+.size	sha256_block_p8,.-sha256_block_p8
 .align	6
 .LPICmeup:
 	mflr	0
@@ -732,9 +737,9 @@ sha256_block_p8:
 .long	0xbef9a3f7,0xbef9a3f7,0xbef9a3f7,0xbef9a3f7
 .long	0xc67178f2,0xc67178f2,0xc67178f2,0xc67178f2
 .long	0,0,0,0
-.long	0x00010203,0x10111213,0x10111213,0x10111213
-.long	0x00010203,0x04050607,0x10111213,0x10111213
-.long	0x00010203,0x04050607,0x08090a0b,0x10111213
+.long	0x10111213,0x10111213,0x10111213,0x00010203
+.long	0x10111213,0x10111213,0x04050607,0x00010203
+.long	0x10111213,0x08090a0b,0x04050607,0x00010203
 .byte	83,72,65,50,53,54,32,102,111,114,32,80,111,119,101,114,73,83,65,32,50,46,48,55,44,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
 .align	2
 .align	2

@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  * Copyright 2005 Nokia. All rights reserved.
  *
@@ -1510,12 +1510,26 @@ int SSL_has_pending(const SSL *s)
 {
     /*
      * Similar to SSL_pending() but returns a 1 to indicate that we have
-     * unprocessed data available or 0 otherwise (as opposed to the number of
-     * bytes available). Unlike SSL_pending() this will take into account
-     * read_ahead data. A 1 return simply indicates that we have unprocessed
-     * data. That data may not result in any application data, or we may fail
-     * to parse the records for some reason.
+     * processed or unprocessed data available or 0 otherwise (as opposed to the
+     * number of bytes available). Unlike SSL_pending() this will take into
+     * account read_ahead data. A 1 return simply indicates that we have data.
+     * That data may not result in any application data, or we may fail to parse
+     * the records for some reason.
      */
+
+    /* Check buffered app data if any first */
+    if (SSL_IS_DTLS(s)) {
+        DTLS1_RECORD_DATA *rdata;
+        pitem *item, *iter;
+
+        iter = pqueue_iterator(s->rlayer.d->buffered_app_data.q);
+        while ((item = pqueue_next(&iter)) != NULL) {
+            rdata = item->data;
+            if (rdata->rrec.length > 0)
+                return 1;
+        }
+    }
+
     if (RECORD_LAYER_processed_read_pending(&s->rlayer))
         return 1;
 
@@ -1684,6 +1698,8 @@ static int ssl_start_async_job(SSL *s, struct ssl_async_args *args,
         if (s->waitctx == NULL)
             return -1;
     }
+
+    s->rwstate = SSL_NOTHING;
     switch (ASYNC_start_job(&s->job, s->waitctx, &ret, func, args,
                             sizeof(struct ssl_async_args))) {
     case ASYNC_ERR:
@@ -2082,6 +2098,7 @@ int SSL_shutdown(SSL *s)
         if ((s->mode & SSL_MODE_ASYNC) && ASYNC_get_current_job() == NULL) {
             struct ssl_async_args args;
 
+            memset(&args, 0, sizeof(args));
             args.s = s;
             args.type = OTHERFUNC;
             args.f.func_other = s->method->ssl_shutdown;
@@ -3707,6 +3724,7 @@ int SSL_do_handshake(SSL *s)
         if ((s->mode & SSL_MODE_ASYNC) && ASYNC_get_current_job() == NULL) {
             struct ssl_async_args args;
 
+            memset(&args, 0, sizeof(args));
             args.s = s;
 
             ret = ssl_start_async_job(s, &args, ssl_do_handshake_intern);
