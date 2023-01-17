@@ -217,6 +217,7 @@ enum kmp_i18n_id {
     kmp_i18n_msg_Using_uint_Value,
     kmp_i18n_msg_Using_uint64_Value,
     kmp_i18n_msg_Using_str_Value,
+    kmp_i18n_msg_BarrierPatternOverride,
     kmp_i18n_msg_MaxValueUsing,
     kmp_i18n_msg_MinValueUsing,
     kmp_i18n_msg_MemoryAllocFailed,
@@ -301,6 +302,8 @@ enum kmp_i18n_id {
     kmp_i18n_msg_OmpNoAllocator,
     kmp_i18n_msg_TopologyGeneric,
     kmp_i18n_msg_AffGranularityBad,
+    kmp_i18n_msg_TopologyHybrid,
+    kmp_i18n_msg_TopologyHybridCoreEff,
     kmp_i18n_msg_CnsBoundToWorksharing,
     kmp_i18n_msg_CnsDetectedEnd,
     kmp_i18n_msg_CnsIterationRangeTooLarge,
@@ -396,6 +399,15 @@ enum kmp_i18n_id {
     kmp_i18n_msg_AffHWSubsetEqvLayers,
     kmp_i18n_msg_AffHWSubsetOutOfOrder,
     kmp_i18n_msg_AffEqualTopologyTypes,
+    kmp_i18n_msg_AffGranTooCoarseProcGroup,
+    kmp_i18n_msg_StgDeprecatedValue,
+    kmp_i18n_msg_NumTeamsNotPositive,
+    kmp_i18n_msg_AffHWSubsetIncompat,
+    kmp_i18n_msg_AffHWSubsetAttrRepeat,
+    kmp_i18n_msg_AffHWSubsetAttrInvalid,
+    kmp_i18n_msg_AffHWSubsetAllFiltered,
+    kmp_i18n_msg_AffHWSubsetAttrsNonHybrid,
+    kmp_i18n_msg_AffHWSubsetIgnoringAttr,
     kmp_i18n_msg_last,
 
     // Set #5, hints.
@@ -428,6 +440,7 @@ enum kmp_i18n_id {
     kmp_i18n_hnt_BadExeFormat,
     kmp_i18n_hnt_SystemLimitOnThreads,
     kmp_i18n_hnt_SetNewBound,
+    kmp_i18n_hnt_ValidValuesRange,
     kmp_i18n_hnt_last,
 
     kmp_i18n_xxx_lastest
