@@ -186,7 +186,6 @@ ALLOW .* -> vendor/github.com/DATA-DOG/godog
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew
 
 # CONTRIB-425 implementation of JSON Web Tokens (JWT)
-ALLOW .* -> vendor/github.com/golang-jwt/jwt
 ALLOW .* -> vendor/github.com/golang-jwt/jwt/v4
 
 # Docker API client
