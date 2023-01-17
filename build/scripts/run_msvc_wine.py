@@ -387,6 +387,7 @@ def make_full_path_arg(arg, bld_root, short_root):
 
 def fix_path(p):
     topdirs = ['/%s/' % d for d in os.listdir('/')]
+
     def abs_path_start(path, pos):
         if pos < 0:
             return False
@@ -416,6 +417,7 @@ def process_free_args(args, wine, bld_root, mode):
     free_args, wa_peers, wa_libs = pwa.get_whole_archive_peers_and_libs(pcf.skip_markers(args))
 
     process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
+
     def process_arg(arg):
         with_wa_prefix = arg.startswith(whole_archive_prefix)
         prefix = whole_archive_prefix if with_wa_prefix else ''
