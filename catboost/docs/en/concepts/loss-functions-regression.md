@@ -54,6 +54,24 @@ _Default:_ {{ fit--alpha }}
 
 {% endcut %}
 
+### {{ error-function--MultiQuantile }} {#MultiQuantile}
+
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \sum\limits_{q=1}^{Q} (\alpha_{q} - I(t_{i} \leq a_{i,q}))(t_{i} - a_{i,q}) }{\sum\limits_{i=1}^{N} w_{i}}$
+
+**{{ optimization }}** See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
+{% cut "{{ loss-functions__params__alpha }}" %}
+
+The vector of coefficients used in multi-quantile loss.
+
+_Default:_ {{ fit--alpha }}
+
+{% endcut %}
+
 ### {{ error-function--RMSE }} {#RMSE}
 
 $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{i=1}^N (a_{i}-t_{i})^2 w_{i}}{\sum\limits_{i=1}^{N}w_{i}}}$
