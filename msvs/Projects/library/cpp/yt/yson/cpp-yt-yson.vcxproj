@@ -109,11 +109,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\exception\cpp-yt-exception.vcxproj">
       <Project>{51217491-819C-DE27-161A-18D787542A3D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\malloc\cpp-yt-malloc.vcxproj">
+      <Project>{6B88D0D6-B2A2-0B5B-EB03-2EFBCE7B1CAB}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\memory\cpp-yt-memory.vcxproj">
       <Project>{202131E1-2CB7-AD9D-424C-5EED820FF864}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\misc\cpp-yt-misc.vcxproj">
       <Project>{C6F036AA-9EA5-68E2-EAF2-CDEFE55C0DD5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\small_containers\cpp-yt-small_containers.vcxproj">
+      <Project>{25A2404E-7B90-107A-9FD8-B4ADB7899541}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\string\cpp-yt-string.vcxproj">
       <Project>{095E35E3-819C-26EC-ADF1-7A7720B6D0C9}</Project>
