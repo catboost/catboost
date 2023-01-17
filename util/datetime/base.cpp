@@ -6,7 +6,6 @@
 #include <util/system/compat.h>
 #include <util/memory/tempbuf.h>
 #include <util/generic/string.h>
-#include <util/generic/strbuf.h>
 #include <util/generic/yexception.h>
 
 TString Strftime(const char* format, const struct tm* tm) {
