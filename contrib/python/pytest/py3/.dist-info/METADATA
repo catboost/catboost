@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pytest
-Version: 7.1.1
+Version: 7.1.2
 Summary: pytest: simple powerful testing with Python
 Home-page: https://docs.pytest.org/en/latest/
 Author: Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Florian Bruhin and others
@@ -73,8 +73,8 @@ Requires-Dist: xmlschema ; extra == 'testing'
     :target: https://codecov.io/gh/pytest-dev/pytest
     :alt: Code coverage Status
 
-.. image:: https://github.com/pytest-dev/pytest/workflows/main/badge.svg
-    :target: https://github.com/pytest-dev/pytest/actions?query=workflow%3Amain
+.. image:: https://github.com/pytest-dev/pytest/workflows/test/badge.svg
+    :target: https://github.com/pytest-dev/pytest/actions?query=workflow%3Atest
 
 .. image:: https://results.pre-commit.ci/badge/github/pytest-dev/pytest/main.svg
    :target: https://results.pre-commit.ci/latest/github/pytest-dev/pytest/main
