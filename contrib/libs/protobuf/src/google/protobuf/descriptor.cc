@@ -543,8 +543,6 @@ struct PointerStringPairHash {
 };
 
 
-const Symbol kNullSymbol;
-
 struct SymbolByFullNameHash {
   size_t operator()(Symbol s) const {
     return HASH_FXN<StringPiece>{}(s.full_name());
@@ -1401,7 +1399,7 @@ inline Symbol DescriptorPool::Tables::FindSymbol(StringPiece key) const {
   Symbol::QueryKey name;
   name.name = key;
   auto it = symbols_by_name_.find(Symbol(&name));
-  return it == symbols_by_name_.end() ? kNullSymbol : *it;
+  return it == symbols_by_name_.end() ? Symbol() : *it;
 }
 
 inline Symbol FileDescriptorTables::FindNestedSymbol(
@@ -1410,7 +1408,7 @@ inline Symbol FileDescriptorTables::FindNestedSymbol(
   query.name = name;
   query.parent = parent;
   auto it = symbols_by_parent_.find(Symbol(&query));
-  return it == symbols_by_parent_.end() ? kNullSymbol : *it;
+  return it == symbols_by_parent_.end() ? Symbol() : *it;
 }
 
 Symbol DescriptorPool::Tables::FindByNameHelper(const DescriptorPool* pool,
@@ -4269,7 +4267,7 @@ Symbol DescriptorBuilder::FindSymbol(const TProtoStringType& name, bool build_it
 
   possible_undeclared_dependency_ = file;
   possible_undeclared_dependency_name_ = name;
-  return kNullSymbol;
+  return Symbol();
 }
 
 Symbol DescriptorBuilder::LookupSymbolNoPlaceholder(
@@ -4397,7 +4395,7 @@ Symbol DescriptorPool::NewPlaceholderWithMutexHeld(
   StringPiece placeholder_name;
   const TProtoStringType* placeholder_package;
 
-  if (!ValidateQualifiedName(name)) return kNullSymbol;
+  if (!ValidateQualifiedName(name)) return Symbol();
   if (name[0] == '.') {
     // Fully-qualified.
     placeholder_full_name = name.substr(1);
