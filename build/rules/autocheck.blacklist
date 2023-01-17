@@ -262,9 +262,7 @@ maps/b2bgeo/analytics/analytics
 classifieds/kafka-push-server
 classifieds/ydb-wrapper
 classifieds/mobile-autoru-tests-mediator-ios
-geoadv/analytics/statistics
-geoadv/analytics/dynamic_prices
-geoadv/analytics/arbitrate
+geoadv/analytics/geoproduct
 intranet/moebius
 market/sovetnik/e2e
 market/sovetnik/landings
@@ -713,7 +711,6 @@ trust/billing-ci
 market/front/libs/envy
 strm/admins/yandex-strm-norm-tools
 taxi/lavka/platform/polka
-geoadv/analytics
 portal/archive/static-lighttpd
 taxi/github/pahtest
 portal/archive/imgcss-admin
