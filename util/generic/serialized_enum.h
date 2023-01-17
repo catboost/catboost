@@ -81,6 +81,14 @@ namespace NEnumSerializationRuntime {
      */
     template <typename EnumT>
     const TVector<TString>& GetEnumAllCppNamesImpl();
+
+    /**
+     * Converts @c e to a string. Works like @c ToString(e) function, but returns @c TStringBuf instead of @c TString.
+     * Thus works slightly faster and usually avoids any dynamic memory allocation.
+     * @throw yexception is case of unknown enum value
+     */
+    template <typename EnumT>
+    TStringBuf ToStringBuf(EnumT e);
 }
 
 /**

@@ -27,6 +27,21 @@ namespace NEnumSerializationRuntime {
     }
 
     template <class TNameBufs, typename EEnum>
+    inline TStringBuf DispatchToStringBufFn(EEnum n) {
+        constexpr auto order = TNameBufs::NamesOrder;
+        if constexpr (order >= ::NEnumSerializationRuntime::ESortOrder::DirectMapping) {
+            return TNameBufs::ToStringBufDirect(n, TNameBufs::EnumInitializationData);
+        } else if constexpr (std::size(TNameBufs::EnumInitializationData.NamesInitializer) <= LINEAR_SEARCH_KEYS_SIZE_THRESHOLD) {
+            return TNameBufs::ToStringBufFullScan(n, TNameBufs::EnumInitializationData);
+        } else if constexpr (order >= ::NEnumSerializationRuntime::ESortOrder::Ascending) {
+            return TNameBufs::ToStringBufSorted(n, TNameBufs::EnumInitializationData);
+        } else {
+            const TNameBufs& names = TNameBufs::Instance();
+            return names.ToStringBuf(n);
+        }
+    }
+
+    template <class TNameBufs, typename EEnum>
     inline EEnum DispatchFromStringImplFn(const char* data, size_t len) {
         const TStringBuf name{data, len};
         constexpr auto order = TNameBufs::ValuesOrder;

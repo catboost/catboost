@@ -102,34 +102,51 @@ namespace NEnumSerializationRuntime {
     public:
         using TBase::TBase;
 
+        // ToString
+        // Return reference to singleton preallocated string
         const TString& ToString(const EEnum key) const {
             return TBase::ToString(TCast::CastToRepresentationType(key));
         }
 
+        // ToStringBuf
+        TStringBuf ToStringBuf(EEnum key) const {
+            return TBase::ToStringBuf(TCast::CastToRepresentationType(key));
+        }
+        static TStringBuf ToStringBufFullScan(const EEnum key, const TInitializationData& enumInitData) {
+            return TBase::ToStringBufFullScan(TCast::CastToRepresentationType(key), enumInitData);
+        }
+        static TStringBuf ToStringBufSorted(const EEnum key, const TInitializationData& enumInitData) {
+            return TBase::ToStringBufSorted(TCast::CastToRepresentationType(key), enumInitData);
+        }
+        static TStringBuf ToStringBufDirect(const EEnum key, const TInitializationData& enumInitData) {
+            return TBase::ToStringBufDirect(TCast::CastToRepresentationType(key), enumInitData);
+        }
+
+        // TryFromString-like functons
+        // Return false for unknown enumeration names
         bool FromString(const TStringBuf name, EEnum& ret) const {
             return MapFindResult(TBase::TryFromString(name), ret);
         }
-
-        EEnum FromString(const TStringBuf name) const {
-            return TCast::CastFromRepresentationType(TBase::FromString(name));
-        }
-
         static bool TryFromStringFullScan(const TStringBuf name, EEnum& ret, const TInitializationData& enumInitData) {
             return MapFindResult(TBase::TryFromStringFullScan(name, enumInitData), ret);
         }
-
         static bool TryFromStringSorted(const TStringBuf name, EEnum& ret, const TInitializationData& enumInitData) {
             return MapFindResult(TBase::TryFromStringSorted(name, enumInitData), ret);
         }
 
+        // FromString
+        // Throw exception for unknown enumeration names
+        EEnum FromString(const TStringBuf name) const {
+            return TCast::CastFromRepresentationType(TBase::FromString(name));
+        }
         static EEnum FromStringFullScan(const TStringBuf name, const TInitializationData& enumInitData) {
             return TCast::CastFromRepresentationType(TBase::FromStringFullScan(name, enumInitData));
         }
-
         static EEnum FromStringSorted(const TStringBuf name, const TInitializationData& enumInitData) {
             return TCast::CastFromRepresentationType(TBase::FromStringSorted(name, enumInitData));
         }
 
+        // Inspection
         TMappedDictView<EEnum, TString> EnumNames() const noexcept {
             return {TBase::TypelessEnumNames()};
         }
@@ -138,18 +155,16 @@ namespace NEnumSerializationRuntime {
             return {TBase::TypelessEnumValues()};
         }
 
+        // Out
         void Out(IOutputStream* os, const EEnum key) const {
             TBase::Out(os, TCast::CastToRepresentationType(key));
         }
-
         static void OutFullScan(IOutputStream* os, const EEnum key, const TInitializationData& enumInitData) {
             TBase::OutFullScan(os, TCast::CastToRepresentationType(key), enumInitData);
         }
-
         static void OutSorted(IOutputStream* os, const EEnum key, const TInitializationData& enumInitData) {
             TBase::OutSorted(os, TCast::CastToRepresentationType(key), enumInitData);
         }
-
         static void OutDirect(IOutputStream* os, const EEnum key, const TInitializationData& enumInitData) {
             TBase::OutDirect(os, TCast::CastToRepresentationType(key), enumInitData);
         }

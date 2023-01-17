@@ -310,6 +310,9 @@ void GenerateEnum(
     // outer ToString
     if (headerOutPtr) {
         (*headerOutPtr) << "const TString& ToString(" << name << ");\n";
+        (*headerOutPtr) << "Y_FORCE_INLINE TStringBuf ToStringBuf(" << name << " e) {\n";
+        (*headerOutPtr) << "    return ::NEnumSerializationRuntime::ToStringBuf<" << name << ">(e);\n";
+        (*headerOutPtr) << "}\n";
     }
     out << "const TString& ToString(" << name << " x) {\n";
     out << "    const " << nsNameBufsClass << "& names = " << nsNameBufsClass << "::Instance();\n";
@@ -352,6 +355,12 @@ void GenerateEnum(
 
     // specializations for NEnumSerializationRuntime function family
     out << "namespace NEnumSerializationRuntime {\n";
+    // template<> ToStringBuf
+    out << "    template<>\n";
+    out << "    TStringBuf ToStringBuf<" << name << ">(" << name << " e) {\n";
+    out << "        return ::NEnumSerializationRuntime::DispatchToStringBufFn<" << nsNameBufsClass << ">(e);\n";
+    out << "    }\n\n";
+
     // template<> GetEnumAllValues
     out << "    template<>\n";
     out << "    TMappedArrayView<" << name <<"> GetEnumAllValuesImpl<" << name << ">() {\n";
