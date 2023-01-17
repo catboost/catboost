@@ -2,7 +2,8 @@ import os
 import re
 import optparse
 
-PACKAGE_REGEX = re.compile(r'^\s*package\s+(.*?);', flags=re.MULTILINE | re.DOTALL)
+JAVA_PACKAGE_REGEX = re.compile(r'^\s*package\s+(.*?);', flags=re.MULTILINE | re.DOTALL)
+KOTLIN_PACKAGE_REGEX = re.compile(r'^\s*package\s+(.*?)^', flags=re.MULTILINE | re.DOTALL)
 
 
 def parse_args():
@@ -14,9 +15,15 @@ def parse_args():
 
 def get_package_name(filename):
     with open(filename) as afile:
-        match = PACKAGE_REGEX.search(afile.read())
-        if match:
-            return match.group(1).replace('\n\t ', '').replace('.', '/')
+        content = afile.read()
+        if filename.endswith(".kt"):
+            match = KOTLIN_PACKAGE_REGEX.search(content)
+            if match:
+                return match.group(1).strip().replace('.', '/')
+        else:
+            match = JAVA_PACKAGE_REGEX.search(content)
+            if match:
+                return match.group(1).replace('\n\t ', '').replace('.', '/')
     return ''
 
 

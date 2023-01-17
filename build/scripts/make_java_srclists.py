@@ -10,6 +10,12 @@ def writelines(f, rng):
     f.writelines(item + '\n' for item in rng)
 
 
+def add_rel_src_to_coverage(coverage, src, source_root):
+    rel = os.path.relpath(src, source_root)
+    if not rel.startswith('..' + os.path.sep):
+        coverage.append(rel)
+
+
 def main():
     args = pcf.get_args(sys.argv[1:])
     parser = argparse.ArgumentParser()
@@ -60,11 +66,11 @@ def main():
             java.append(src)
             kotlin.append(src)
             if args.coverage and args.source_root:
-                rel = os.path.relpath(src, args.source_root)
-                if not rel.startswith('..' + os.path.sep):
-                    coverage.append(rel)
+                add_rel_src_to_coverage(coverage, src, args.source_root)
         elif args.kotlin and src.endswith(".kt"):
             kotlin.append(src)
+            if args.coverage and args.source_root:
+                add_rel_src_to_coverage(coverage, src, args.source_root)
         elif args.groovy and src.endswith(".groovy"):
             groovy.append(src)
         else:
