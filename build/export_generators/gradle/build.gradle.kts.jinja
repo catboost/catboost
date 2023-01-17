@@ -62,14 +62,6 @@ repositories {
     mavenCentral()
 }
 
-{% for jdk_ver in targets|selectattr("required_jdk")|map(attribute="required_jdk")|sum(start=[])|unique -%}
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of({{ jdk_ver }}))
-    }
-}
-{% endfor -%}
-
 dependencies{
 {% for target in targets -%}
 {% if target.junit5_test -%}
