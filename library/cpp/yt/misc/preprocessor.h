@@ -52,6 +52,15 @@
 #define PP_EMPTY()
 //! \endcond
 
+//! Removes the enclosing parens, if any.
+#define PP_DEPAREN(...) PP_DEPAREN_A(PP_DEPAREN_C __VA_ARGS__)
+//! \cond Implementation
+#define PP_DEPAREN_C(...) PP_DEPAREN_C __VA_ARGS__
+#define PP_DEPAREN_A(...) PP_DEPAREN_B(__VA_ARGS__)
+#define PP_DEPAREN_B(...) PP_DEPAREN_D_ ## __VA_ARGS__
+#define PP_DEPAREN_D_PP_DEPAREN_C
+//! \endcond
+
 //! Performs (non-lazy) conditional expansion.
 /*!
  * \param cond Condition; should expands to either \c PP_TRUE or \c PP_FALSE.
