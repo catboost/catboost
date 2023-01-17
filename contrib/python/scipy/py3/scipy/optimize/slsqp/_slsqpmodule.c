@@ -848,7 +848,7 @@ PyMODINIT_FUNC init_slsqp(void) {
 #else
   m = _slsqp_module = Py_InitModule("_slsqp", f2py_module_methods);
 #endif
-  Py_TYPE(&PyFortran_Type) = &PyType_Type;
+  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
   import_array();
   if (PyErr_Occurred())
     {PyErr_SetString(PyExc_ImportError, "can't initialize module _slsqp (failed to import numpy)"); return RETVAL;}
