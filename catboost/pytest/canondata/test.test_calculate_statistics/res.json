@@ -5,45 +5,39 @@
         [
           {
             "MaxValue":72,
-            "Mean":38.336633663366335,
             "MinValue":17,
             "ObjectCount":101,
-            "Sum":3872
+            "Sum":"3872"
           },
           {
             "MaxValue":749105,
-            "Mean":216334.57425742573,
             "MinValue":30226,
             "ObjectCount":101,
-            "Sum":21849792
+            "Sum":"21849792"
           },
           {
             "MaxValue":16,
-            "Mean":10.287128712871286,
             "MinValue":4,
             "ObjectCount":101,
-            "Sum":1039
+            "Sum":"1039"
           },
           {
             "MaxValue":20051,
-            "Mean":709.3564356435644,
             "MinValue":0,
             "ObjectCount":101,
-            "Sum":71645
+            "Sum":"71645"
           },
           {
             "MaxValue":2415,
-            "Mean":154.95049504950495,
             "MinValue":0,
             "ObjectCount":101,
-            "Sum":15650
+            "Sum":"15650"
           },
           {
             "MaxValue":80,
-            "Mean":38.930693069306933,
             "MinValue":7,
             "ObjectCount":101,
-            "Sum":3932
+            "Sum":"3932"
           }
         ]
     },
