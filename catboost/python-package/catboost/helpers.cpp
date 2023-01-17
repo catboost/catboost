@@ -10,10 +10,6 @@
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/target/data_providers.h>
 
-#include <util/system/guard.h>
-#include <util/system/info.h>
-#include <util/system/mutex.h>
-
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -298,26 +294,4 @@ void TrainEvalSplit(
     if (saveEvalDataset) {
         *evalDataProvider = getSubset(postShuffleTestIndices);
     }
-}
-
-TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount) {
-    static TMutex lock;
-    static TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> cachedExecutor;
-    
-    CB_ENSURE(threadsCount == -1 || 0 < threadsCount, "threadsCount should be positive or -1");    
-
-    if (threadsCount == -1) {
-        threadsCount = NSystemInfo::CachedNumberOfCpus();
-    }
-
-    with_lock (lock) {        
-        if (cachedExecutor && cachedExecutor->GetThreadCount() + 1 == threadsCount) {               
-            return cachedExecutor;
-        }                
-
-        cachedExecutor.Reset();
-        cachedExecutor = MakeAtomicShared<NPar::TTbbLocalExecutor<false>>(threadsCount);                
-
-        return cachedExecutor;
-    }    
 }

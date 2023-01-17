@@ -6942,7 +6942,10 @@
             }
         },
         "python": {
-            "formula": "build/platform/python/ymake_python2/resources.json",
+            "formula": {
+                "sandbox_id": 1277485811,
+                "match": "Python"
+            },
             "executable": {
                 "python": [
                     "python"
@@ -7144,7 +7147,16 @@
             }
         },
         "clang14": {
-            "formula": "build/platform/clang/clang14.json",
+            "formula": {
+                "sandbox_id": [
+                    1441176665,
+                    1432506119,
+                    1445478860,
+                    1445454611,
+                    1445513330
+                ],
+                "match": "CLANG"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -7523,7 +7535,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1528873774,
+                "sandbox_id": 1051903185,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -7903,20 +7915,18 @@
         },
         "kubectl": {
             "formula": {
-                "by_platform": {
-                    "linux": {
-                        "uri": "sbr:3752131478"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "ARCADIA_PROJECT_TGZ",
+                        "attributes": {
+                            "released": "stable",
+                            "type": "kubectl"
+                        },
+                        "owner": "RTC_INFRA"
                     },
-                    "linux-arm64": {
-                        "uri": "sbr:3752131406"
-                    },
-                    "darwin": {
-                        "uri": "sbr:3752131455"
-                    },
-                    "darwin-arm64": {
-                        "uri": "sbr:3752131456"
-                    }
-                }
+                    "update_interval": 86400
+                },
+                "match": "kubectl"
             },
             "executable": {
                 "kubectl": [
@@ -8317,7 +8327,10 @@
             }
         },
         "ya-tc": {
-            "formula": "build/external_resources/ya-tc/resources.json",
+            "formula": {
+                "sandbox_id": 1437768899,
+                "match": "ya-tc"
+            },
             "executable": {
                 "ya-tc": [
                     "ya-tc"
@@ -8367,7 +8380,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1529765349,
+                "sandbox_id": 1511641839,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8443,7 +8456,15 @@
             }
         },
         "golang": {
-            "formula": "build/external_resources/go_tools/resources.json",
+            "formula": {
+                "sandbox_id": [
+                    1455627161,
+                    1455627163,
+                    1455627162,
+                    1455627165
+                ],
+                "match": "GOLANG"
+            },
             "executable": {
                 "go": [
                     "bin",
@@ -8661,7 +8682,7 @@
         "coronerctl": {
             "formula": {
                 "sandbox_id": [
-                    1520884213
+                    1480926804
                 ],
                 "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
@@ -8762,7 +8783,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1513290950,
+                "sandbox_id": 1503822523,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -9024,7 +9045,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1522655739,
+                "sandbox_id": 1512970426,
                 "match": "bb_requester"
             },
             "executable": {
@@ -9145,7 +9166,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1527296954,
+                "sandbox_id": 1504710740,
                 "match": "lama"
             },
             "executable": {
@@ -9294,17 +9315,8 @@
         },
         "tasklet": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "TASKLET_TOOL_TGZ",
-                        "attributes": {
-                            "released": "stable"
-                        },
-                        "owner": "TASKLETS"
-                    },
-                    "update_interval": 86400,
-                    "ignore_platform": false
-                }
+                "sandbox_id": 1512817102,
+                "match": "tasklet-tool"
             },
             "executable": {
                 "tasklet": [

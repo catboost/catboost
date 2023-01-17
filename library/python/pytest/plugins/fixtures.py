@@ -2,7 +2,6 @@ import os
 import pytest
 import six
 
-from library.python.pytest.plugins.metrics import test_metrics
 
 MAX_ALLOWED_LINKS_COUNT = 10
 
@@ -16,9 +15,9 @@ def metrics(request):
             assert len(name) <= 128, "Length of the metric name must less than 128"
             assert type(value) in [int, float], "Metric value must be of type int or float"
             test_name = request.node.nodeid
-            if test_name not in test_metrics.metrics:
-                test_metrics[test_name] = {}
-            test_metrics[test_name][name] = value
+            if test_name not in request.config.test_metrics:
+                request.config.test_metrics[test_name] = {}
+            request.config.test_metrics[test_name][name] = value
 
         @classmethod
         def set_benchmark(cls, benchmark_values):
