@@ -3,7 +3,7 @@ LIBRARY()
 
 
 SRCS(
-    dataset_statistics_data_provider_builder.cpp
+    visitors.cpp
     histograms.cpp
     statistics_data_structures.cpp
 )

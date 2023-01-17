@@ -3,7 +3,7 @@
 #include "implementation_type_enum.h"
 
 #include <catboost/libs/data/data_provider.h>
-#include "catboost/libs/dataset_statistics/dataset_statistics_data_provider_builder.h"
+#include "catboost/libs/dataset_statistics/visitors.h"
 #include <catboost/private/libs/options/dataset_reading_params.h>
 
 #include <library/cpp/getopt/small/last_getopt_opts.h>
@@ -17,6 +17,7 @@ struct TCalculateStatisticsParams {
     TString OutputPath;
     NCatboostOptions::TDatasetReadingParams DatasetReadingParams;
     int ThreadCount = NSystemInfo::CachedNumberOfCpus();
+    bool OnlyGroupStatistics = false;
 
     void ProcessParams(int argc, const char *argv[], NLastGetopt::TOpts* parserPtr = nullptr);
 

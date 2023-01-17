@@ -1489,14 +1489,24 @@
             "uri": "file://test.test_cv_multiregression_Plain-inverted_/test.eval"
         }
     ],
-    "test.test_dataset_statistics[with_groups=False]": [
+    "test.test_dataset_statistics[group_stats_only=False-with_groups=False]": [
         {
-            "uri": "file://test.test_dataset_statistics_with_groups=False_/res.json"
+            "uri": "file://test.test_dataset_statistics_group_stats_only=False-with_groups=False_/res.json"
         }
     ],
-    "test.test_dataset_statistics[with_groups=True]": [
+    "test.test_dataset_statistics[group_stats_only=False-with_groups=True]": [
         {
-            "uri": "file://test.test_dataset_statistics_with_groups=True_/res.json"
+            "uri": "file://test.test_dataset_statistics_group_stats_only=False-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[group_stats_only=True-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_group_stats_only=True-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[group_stats_only=True-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_group_stats_only=True-with_groups=True_/res.json"
         }
     ],
     "test.test_deep_tree_classification[Ordered-4]": [
