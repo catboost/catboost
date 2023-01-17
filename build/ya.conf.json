@@ -8484,7 +8484,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    1411809641
+                    1421446096
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -9249,8 +9249,16 @@
         },
         "abcd": {
             "formula": {
-                "sandbox_id": 1391496425,
-                "match": "quota_mover"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "ABCD_CLI",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "abcd": [
