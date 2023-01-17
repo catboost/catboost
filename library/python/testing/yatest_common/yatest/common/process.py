@@ -438,6 +438,7 @@ def execute(
     collect_cores=True, check_sanitizer=True, preexec_fn=None, on_timeout=None,
     executor=_Execution,
     core_pattern=None,
+    popen_kwargs=None,
 ):
     """
     Executes a command
@@ -458,6 +459,7 @@ def execute(
     :param check_sanitizer: raise ExecutionError if stderr contains sanitize errors
     :param preexec_fn: subrpocess.Popen preexec_fn arg
     :param on_timeout: on_timeout(<execution object>, <timeout value>) callback
+    :param popen_kwargs: subrpocess.Popen args dictionary. Useful for python3-only arguments
 
     :return _Execution: Execution object
     """
@@ -480,6 +482,8 @@ def execute(
 
     if not wait and timeout is not None:
         raise ValueError("Incompatible arguments 'timeout' and wait=False")
+    if popen_kwargs is None:
+        popen_kwargs = {}
 
     # if subprocess.PIPE in [stdout, stderr]:
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
@@ -542,6 +546,7 @@ def execute(
         command, shell=shell, universal_newlines=True,
         stdout=out_file, stderr=err_file, stdin=in_file,
         cwd=cwd, env=env, creationflags=creationflags, close_fds=close_fds, preexec_fn=preexec_fn,
+        **popen_kwargs
     )
     yatest_logger.debug("Command pid: %s", process.pid)
 
