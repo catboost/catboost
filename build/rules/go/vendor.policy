@@ -900,6 +900,9 @@ ALLOW .* -> vendor/github.com/zclconf/go-cty/cty
 # CONTRIB-553
 ALLOW .* -> vendor/github.com/google/brotli/go/cbrotli
 
+# CONTRIB-2505
+ALLOW .* -> vendor/github.com/zeebo/bencode
+
 #
 # Tools
 #
