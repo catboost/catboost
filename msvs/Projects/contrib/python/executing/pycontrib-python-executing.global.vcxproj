@@ -79,8 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\executing\3a676328758a6c66e444115377.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\executing\b77f500e8964a54898bde3bd69.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\executing\c8c98d4c6932de99bcfd13d214.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\executing\b26995377e80c9d7258ebcbc9e.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\executing\be339d1057ffad47db1ae4318a.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
@@ -89,11 +89,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/b77f500e8964a54898bde3bd69.cpp" "_5f61850029adc5445df39353ce=py/namespace/77836e4523d2cb10051276de459c463d/contrib/python/executing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/b26995377e80c9d7258ebcbc9e.cpp" "_0a808d533740301f2615e2d2ad=py/namespace/eb9161a81d08eb3dddd7d73766d31494/contrib/python/executing"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/c8c98d4c6932de99bcfd13d214.cpp" "_b158fa5be769c4649d47af84d2=resfs/src/resfs/file/py/executing/__init__.py" "_b0018f7c4c9234a13573955afd=resfs/file/py/executing/__init__.py" "_cf17da9e667f2f5a3b6af7bafa=resfs/src/resfs/file/py/executing/__init__.py.yapyc3" "_69013b7b7d5ecd1ad9ac97939b=resfs/file/py/executing/__init__.py.yapyc3" "_978f4f1ca33c88f54f0b1d7fd9=resfs/src/resfs/file/py/executing/executing.py" "_7d22e49ae200ae2149e07c17ab=resfs/file/py/executing/executing.py" "_4609b53c63645a78fe7907a68e=resfs/src/resfs/file/py/executing/executing.py.yapyc3" "_b4c1caab5330a2ef7c4de1d9ff=resfs/file/py/executing/executing.py.yapyc3" "_b06000e6bc72ad1d56d6371733=resfs/src/resfs/file/py/executing/version.py" "_823b908b4c3ce046a1b914dd4c=resfs/file/py/executing/version.py" "_6fab749f9cec5dc6deab58091d=resfs/src/resfs/file/py/executing/version.py.yapyc3" "_1b801aed98fa8ea7e140a6f1d1=resfs/file/py/executing/version.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/be339d1057ffad47db1ae4318a.cpp" "_b158fa5be769c4649d47af84d2=resfs/src/resfs/file/py/executing/__init__.py" "_b0018f7c4c9234a13573955afd=resfs/file/py/executing/__init__.py" "_cf17da9e667f2f5a3b6af7bafa=resfs/src/resfs/file/py/executing/__init__.py.yapyc3" "_69013b7b7d5ecd1ad9ac97939b=resfs/file/py/executing/__init__.py.yapyc3" "_56808a45676dabbc733baf9dd7=resfs/src/resfs/file/py/executing/_exceptions.py" "_594cb063746b91e15ed15e607f=resfs/file/py/executing/_exceptions.py" "_324c8e4ed02f474bc19e772dd3=resfs/src/resfs/file/py/executing/_exceptions.py.yapyc3" "_aa93f8e1de2165026ee23154f7=resfs/file/py/executing/_exceptions.py.yapyc3" "_3a8d33899a109fab8239fbbea5=resfs/src/resfs/file/py/executing/_position_node_finder.py" "_0d39dd05d87d5f42ad5eb72311=resfs/file/py/executing/_position_node_finder.py" "_49d17576adf99568b39136e12a=resfs/src/resfs/file/py/executing/_position_node_finder.py.yapyc3" "_2f8d44754a1aec8a4bac807eac=resfs/file/py/executing/_position_node_finder.py.yapyc3" "_978f4f1ca33c88f54f0b1d7fd9=resfs/src/resfs/file/py/executing/executing.py" "_7d22e49ae200ae2149e07c17ab=resfs/file/py/executing/executing.py" "_4609b53c63645a78fe7907a68e=resfs/src/resfs/file/py/executing/executing.py.yapyc3" "_b4c1caab5330a2ef7c4de1d9ff=resfs/file/py/executing/executing.py.yapyc3" "_b06000e6bc72ad1d56d6371733=resfs/src/resfs/file/py/executing/version.py" "_823b908b4c3ce046a1b914dd4c=resfs/file/py/executing/version.py" "_6fab749f9cec5dc6deab58091d=resfs/src/resfs/file/py/executing/version.py.yapyc3" "_1b801aed98fa8ea7e140a6f1d1=resfs/file/py/executing/version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -108,11 +108,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/b77f500e8964a54898bde3bd69.cpp" "_5f61850029adc5445df39353ce=py/namespace/77836e4523d2cb10051276de459c463d/contrib/python/executing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/b26995377e80c9d7258ebcbc9e.cpp" "_0a808d533740301f2615e2d2ad=py/namespace/eb9161a81d08eb3dddd7d73766d31494/contrib/python/executing"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/c8c98d4c6932de99bcfd13d214.cpp" "_b158fa5be769c4649d47af84d2=resfs/src/resfs/file/py/executing/__init__.py" "_b0018f7c4c9234a13573955afd=resfs/file/py/executing/__init__.py" "_cf17da9e667f2f5a3b6af7bafa=resfs/src/resfs/file/py/executing/__init__.py.yapyc3" "_69013b7b7d5ecd1ad9ac97939b=resfs/file/py/executing/__init__.py.yapyc3" "_978f4f1ca33c88f54f0b1d7fd9=resfs/src/resfs/file/py/executing/executing.py" "_7d22e49ae200ae2149e07c17ab=resfs/file/py/executing/executing.py" "_4609b53c63645a78fe7907a68e=resfs/src/resfs/file/py/executing/executing.py.yapyc3" "_b4c1caab5330a2ef7c4de1d9ff=resfs/file/py/executing/executing.py.yapyc3" "_b06000e6bc72ad1d56d6371733=resfs/src/resfs/file/py/executing/version.py" "_823b908b4c3ce046a1b914dd4c=resfs/file/py/executing/version.py" "_6fab749f9cec5dc6deab58091d=resfs/src/resfs/file/py/executing/version.py.yapyc3" "_1b801aed98fa8ea7e140a6f1d1=resfs/file/py/executing/version.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/be339d1057ffad47db1ae4318a.cpp" "_b158fa5be769c4649d47af84d2=resfs/src/resfs/file/py/executing/__init__.py" "_b0018f7c4c9234a13573955afd=resfs/file/py/executing/__init__.py" "_cf17da9e667f2f5a3b6af7bafa=resfs/src/resfs/file/py/executing/__init__.py.yapyc3" "_69013b7b7d5ecd1ad9ac97939b=resfs/file/py/executing/__init__.py.yapyc3" "_56808a45676dabbc733baf9dd7=resfs/src/resfs/file/py/executing/_exceptions.py" "_594cb063746b91e15ed15e607f=resfs/file/py/executing/_exceptions.py" "_324c8e4ed02f474bc19e772dd3=resfs/src/resfs/file/py/executing/_exceptions.py.yapyc3" "_aa93f8e1de2165026ee23154f7=resfs/file/py/executing/_exceptions.py.yapyc3" "_3a8d33899a109fab8239fbbea5=resfs/src/resfs/file/py/executing/_position_node_finder.py" "_0d39dd05d87d5f42ad5eb72311=resfs/file/py/executing/_position_node_finder.py" "_49d17576adf99568b39136e12a=resfs/src/resfs/file/py/executing/_position_node_finder.py.yapyc3" "_2f8d44754a1aec8a4bac807eac=resfs/file/py/executing/_position_node_finder.py.yapyc3" "_978f4f1ca33c88f54f0b1d7fd9=resfs/src/resfs/file/py/executing/executing.py" "_7d22e49ae200ae2149e07c17ab=resfs/file/py/executing/executing.py" "_4609b53c63645a78fe7907a68e=resfs/src/resfs/file/py/executing/executing.py.yapyc3" "_b4c1caab5330a2ef7c4de1d9ff=resfs/file/py/executing/executing.py.yapyc3" "_b06000e6bc72ad1d56d6371733=resfs/src/resfs/file/py/executing/version.py" "_823b908b4c3ce046a1b914dd4c=resfs/file/py/executing/version.py" "_6fab749f9cec5dc6deab58091d=resfs/src/resfs/file/py/executing/version.py.yapyc3" "_1b801aed98fa8ea7e140a6f1d1=resfs/file/py/executing/version.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/executing/3a676328758a6c66e444115377.cpp	$B/contrib/python/executing/b77f500e8964a54898bde3bd69.cpp	$B/contrib/python/executing/c8c98d4c6932de99bcfd13d214.cpp	</Message>
+      <Message>$B/contrib/python/executing/3a676328758a6c66e444115377.cpp	$B/contrib/python/executing/b26995377e80c9d7258ebcbc9e.cpp	$B/contrib/python/executing/be339d1057ffad47db1ae4318a.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\executing\3a676328758a6c66e444115377.cpp;$(SolutionDir)$(Configuration)\contrib\python\executing\b77f500e8964a54898bde3bd69.cpp;$(SolutionDir)$(Configuration)\contrib\python\executing\c8c98d4c6932de99bcfd13d214.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\executing\3a676328758a6c66e444115377.cpp;$(SolutionDir)$(Configuration)\contrib\python\executing\b26995377e80c9d7258ebcbc9e.cpp;$(SolutionDir)$(Configuration)\contrib\python\executing\be339d1057ffad47db1ae4318a.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
