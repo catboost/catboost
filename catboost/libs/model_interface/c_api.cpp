@@ -777,6 +777,10 @@ CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetNumCatFeatures();
 }
 
+CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle) {
+    return FULL_MODEL_PTR(modelHandle)->GetNumTextFeatures();
+}
+
 CATBOOST_API size_t GetEmbeddingFeaturesCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetNumEmbeddingFeatures();
 }
