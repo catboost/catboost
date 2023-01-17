@@ -40,11 +40,13 @@ void TFloatFeatureHistogram::CalcUniformHistogram(
     const TVector<ui64>& count) {
     CB_ENSURE(count.empty() || count.size() == features.size());
     if (Borders.HistogramType == EHistogramType::Exact) {
-        for (auto feature: features) {
+        for (ui32 idx = 0; idx < features.size(); ++idx) {
+            float feature = features[idx];
+            ui32 inc = count.empty() ? 1 : count[idx];
             if (ProcessNotNummeric(feature)) {
                 continue;
             }
-            Borders.BitHistogram[float(feature)]++;
+            Borders.BitHistogram[float(feature)] += inc;
         }
         ConvertBitToUniformIfNeeded();
         return;
@@ -120,6 +122,7 @@ void TFloatFeatureHistogram::CalcHistogramWithBorders(
 NJson::TJsonValue TBorders::ToJson() const {
     NJson::TJsonValue result;
     InsertEnumType("HistogramType", HistogramType, &result);
+    result.InsertValue("OutOfDomainValuesCount", OutOfDomainValuesCount);
     switch (HistogramType) {
         case EHistogramType::Uniform:
             result.InsertValue("MaxBorderCount", MaxBorderCount);
@@ -190,13 +193,6 @@ NJson::TJsonValue THistograms::ToJson() const {
         histogram.push_back(item.ToJson());
     }
     result.InsertValue("FloatFeatureHistogram", VectorToJson(histogram));
-    if (TargetHistogram.Defined()) {
-        histogram.clear();
-        for (const auto& item : *TargetHistogram) {
-            histogram.push_back(item.ToJson());
-        }
-        result.InsertValue("TargetHistogram", VectorToJson(histogram));
-    }
     return result;
 }
 
@@ -205,24 +201,6 @@ void THistograms::Update(THistograms& histograms) {
     for (size_t idx = 0; idx < FloatFeatureHistogram.size(); ++idx) {
         FloatFeatureHistogram[idx].Update(histograms.FloatFeatureHistogram[idx]);
     }
-    CB_ENSURE(TargetHistogram.Defined() == histograms.TargetHistogram.Defined());
-    if (TargetHistogram.Defined()) {
-        for (size_t idx = 0; idx < TargetHistogram->size(); ++idx) {
-            TargetHistogram->at(idx).Update(histograms.TargetHistogram->at(idx));
-        }
-    }
-}
-
-void THistograms::AddTargetHistogram(
-    ui32 targetId,
-    TVector<float>* features
-) {
-    CB_ENSURE(TargetHistogram.Defined());
-    CB_ENSURE_INTERNAL(
-        targetId < TargetHistogram->size(),
-        "TargetId " << targetId << " is bigger then TargetHistogram size " << TargetHistogram->size()
-    );
-    TargetHistogram->at(targetId).CalcUniformHistogram(*features);
 }
 
 void THistograms::AddFloatFeatureUniformHistogram(
@@ -236,7 +214,7 @@ void THistograms::AddFloatFeatureUniformHistogram(
     FloatFeatureHistogram[featureId].CalcUniformHistogram(*features);
 }
 
-bool TBorders::operator==(const TBorders& rhs) {
+bool TBorders::operator==(const TBorders& rhs) const {
     if (HistogramType != rhs.HistogramType) {
         return false;
     }

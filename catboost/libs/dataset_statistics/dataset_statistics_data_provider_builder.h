@@ -28,13 +28,21 @@ public:
         , InProcess(false)
         , ResultTaken(false)
         , IsLocal(isLocal)
-        , FeatureCorrelationDocsToUse(1)
+        , FeatureCorrelationDocsToUse(0)
         , DocsCount(1)
     {}
 
     void SetTakenFraction(ui64 featureCorrelationDocsToUse, ui64 docsCount) {
         FeatureCorrelationDocsToUse = featureCorrelationDocsToUse;
         DocsCount = docsCount;
+    }
+
+    void SetCustomBorders(
+        const TVector<TMaybe<std::pair<float, float>>>& customBorders,
+        const TVector<TMaybe<std::pair<float, float>>>& targetCustomBorders
+    ) {
+        CustomBorders = customBorders;
+        TargetCustomBorders = targetCustomBorders;
     }
 
     void Start(
@@ -64,7 +72,8 @@ public:
         }
         ObjectCount = objectCount + prevTailSize;
         CatFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
-        DatasetStatistics.Init(metaInfo);
+        DatasetStatistics.Init(metaInfo, CustomBorders, TargetCustomBorders, FeatureCorrelationDocsToUse > 0);
+        FloatTarget.resize(metaInfo.TargetCount);
     }
 
     void StartNextBlock(ui32 blockSize) override {
@@ -198,6 +207,9 @@ public:
     }
     void AddTarget(ui32 localObjectIdx, float value) override {
         DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+        with_lock(TargetLock) {
+            FloatTarget[0].push_back(value);
+        }
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
@@ -206,6 +218,9 @@ public:
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
         DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
+        with_lock(TargetLock) {
+            FloatTarget[flatTargetIdx].push_back(value);
+        }
         Y_UNUSED(localObjectIdx);
     }
     void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) override {
@@ -284,13 +299,21 @@ private:
     bool IsLocal;
 
     TDatasetStatistics DatasetStatistics;
+    TVector<TVector<float>> FloatTarget;
+    TMutex TargetLock;
     TDataMetaInfo MetaInfo;
     ui64 FeatureCorrelationDocsToUse;
     ui64 DocsCount;
     ui32 CatFeatureCount;
 
+    TVector<TMaybe<std::pair<float, float>>> CustomBorders;
+    TVector<TMaybe<std::pair<float, float>>> TargetCustomBorders;
+
 public:
     void OutputResult(const TString& outputPath) const;
 
     const TDatasetStatistics& GetDatasetStatistics() const;
+    const TVector<TVector<float>>& GetFloatTarget() const {
+        return FloatTarget;
+    }
 };

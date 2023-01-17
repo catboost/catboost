@@ -37,103 +37,63 @@
             "CatFeatureCount":7
           }
         ],
-      "FloatFeaturePairwiseProductSum":
-        [
-          [
-            "168730",
-            "846098692",
-            "40135",
-            "3890894",
-            "666543",
-            "156385"
-          ],
-          [
-            "846098692",
-            "6.152885338e+12",
-            "226435579",
-            "1.143215304e+10",
-            "3347448880",
-            "852570371"
-          ],
-          [
-            "40135",
-            "226435579",
-            "11455",
-            "906971",
-            "194497",
-            "41079"
-          ],
-          [
-            "3890894",
-            "1.143215304e+10",
-            "906971",
-            "989813173",
-            "0",
-            "2937715"
-          ],
-          [
-            "666543",
-            "3347448880",
-            "194497",
-            "0",
-            "31250680",
-            "728240"
-          ],
-          [
-            "156385",
-            "852570371",
-            "41079",
-            "2937715",
-            "728240",
-            "163034"
-          ]
-        ],
       "FloatFeatureStatistics":
         [
           {
+            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":72,
             "MinValue":17,
             "ObjectCount":101,
+            "OutOfDomainValuesCount":0,
             "Sum":"3872",
             "SumSqr":"168730"
           },
           {
+            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":749105,
             "MinValue":30226,
             "ObjectCount":101,
+            "OutOfDomainValuesCount":0,
             "Sum":"21849792",
             "SumSqr":"6.152885338e+12"
           },
           {
+            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":16,
             "MinValue":4,
             "ObjectCount":101,
+            "OutOfDomainValuesCount":0,
             "Sum":"1039",
             "SumSqr":"11455"
           },
           {
+            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":20051,
             "MinValue":0,
             "ObjectCount":101,
+            "OutOfDomainValuesCount":0,
             "Sum":"71645",
             "SumSqr":"989813173"
           },
           {
+            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":2415,
             "MinValue":0,
             "ObjectCount":101,
+            "OutOfDomainValuesCount":0,
             "Sum":"15650",
             "SumSqr":"31250680"
           },
           {
+            "CustomMin":-1.7976931348623157e+308,
             "MaxValue":80,
             "MinValue":7,
             "ObjectCount":101,
+            "OutOfDomainValuesCount":0,
             "Sum":"3932",
             "SumSqr":"163034"
           }
         ],
-      "PairwiseProductDocsUsed":101,
       "TextFeaturesStatistics":
         [
         ]
