@@ -1,6 +1,6 @@
 RESOURCES_LIBRARY()
 
-# https://wiki.yandex-team.ru/devtools/cuda/
+# https://docs.yandex-team.ru/ya-make/manual/project_specific/cuda#cuda_host_compiler
 
 
 
