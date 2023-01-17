@@ -13,9 +13,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(14.0.4)
+VERSION(14.0.5)
 
-ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-14.0.4.tar.gz)
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/llvmorg-14.0.5.tar.gz)
 
 DISABLE(USE_LTO)
 
