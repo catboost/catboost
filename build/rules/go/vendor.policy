@@ -906,6 +906,9 @@ ALLOW .* -> vendor/github.com/zeebo/bencode
 # CONTRIB-2516
 ALLOW .* -> vendor/github.com/gocql/gocql
 
+# CONTRIB-2524
+ALLOW .* -> vendor/github.com/ryanrolds/sqlclosecheck
+
 #
 # Tools
 #
