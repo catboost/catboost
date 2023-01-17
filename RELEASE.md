@@ -1,20 +1,20 @@
 # Release 1.1.1
 ## New features
 * Support building for Linux on aarch64 from sources using CMake (no prebuilt binaries or PyPI packages yet). #1981
-* Support embedding features in C and C++ applier API. #2172
-* Full support for Apache Spark 3.3
-* Spark: Read/write PySpark's DataFrame-like API for Pool. #2030
-* Spark: Allow to specify trainingDriver and worker listening ports. #2181
-* Add text features to `utils.create_cd`. #2193
-* Add `GetModelUsedFeaturesNames` to C/C++ applier API. #2204.
+* [C/C++ applier] Support embedding features. #2172
+* [C/C++ applier] Add `GetModelUsedFeaturesNames`. #2204
+* [Python] Add text features to `utils.create_cd`. #2193
+* [Spark] Full support for Apache Spark 3.3
+* [Spark] Read/write PySpark's DataFrame-like API for Pool. #2030
+* [Spark] Allow to specify trainingDriver and worker listening ports. #2181
 
 ## Bugfixes
-* Fix catboost-common dependency version in catboost-prediction (Fixes JVM applier on macOS). #2121
 * Fix prediction dimension check for RMSEWithUncertainty and MultiQuantile. #2155
-* Update for pandas 1.5.0: iteritems -> items (Fixes annoying deprecation warning). #2179
-* Fix segmentation fault when target is `np.ndarray` with `dtype=object`. #2201
-* Fix specifying `feature_names` in `utils.create_cd`. #2211
-* Fix segmentation fault in prediction for multiple objects for multiple dimension models in C/C++ applier API.
+* [C/C++ applier] Fix segmentation fault in prediction for multiple objects for multiple dimension models.
+* [JVM applier] Fix catboost-common dependency version in catboost-prediction (Fixes JVM applier on macOS). #2121
+* [Python] Update for pandas 1.5.0: iteritems -> items (Fixes annoying deprecation warning). #2179
+* [Python] Fix segmentation fault when target is `np.ndarray` with `dtype=object`. #2201
+* [Python] Fix specifying `feature_names` in `utils.create_cd`. #2211
 
 
 # Release 1.1
