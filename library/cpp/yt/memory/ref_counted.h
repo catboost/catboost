@@ -65,13 +65,13 @@ public:
     int GetRefCount() const noexcept;
 
     //! Increments the strong reference counter.
-    void Ref() const noexcept;
+    void Ref(int n = 1) const noexcept;
 
     //! Increments the strong reference counter if it is not null.
     bool TryRef() const noexcept;
 
     //! Decrements the strong reference counter.
-    bool Unref() const;
+    bool Unref(int n = 1) const;
 
     //! Returns current number of weak references to the object.
     int GetWeakRefCount() const noexcept;
@@ -103,10 +103,10 @@ void DeallocateRefCounted(const T* obj);
 // API
 
 template <class T>
-void Ref(T* obj);
+void Ref(T* obj, int n = 1);
 
 template <class T>
-void Unref(T* obj);
+void Unref(T* obj, int n = 1);
 
 ////////////////////////////////////////////////////////////////////////////////
 

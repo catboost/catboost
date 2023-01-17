@@ -69,10 +69,10 @@ Y_FORCE_INLINE int TRefCounter::GetRefCount() const noexcept
     return StrongCount_.load(std::memory_order_acquire);
 }
 
-Y_FORCE_INLINE void TRefCounter::Ref() const noexcept
+Y_FORCE_INLINE void TRefCounter::Ref(int n) const noexcept
 {
     // It is safe to use relaxed here, since new reference is always created from another live reference.
-    StrongCount_.fetch_add(1, std::memory_order_relaxed);
+    StrongCount_.fetch_add(n, std::memory_order_relaxed);
 
     YT_ASSERT(WeakCount_.load(std::memory_order_relaxed) > 0);
 }
@@ -86,16 +86,16 @@ Y_FORCE_INLINE bool TRefCounter::TryRef() const noexcept
     return value != 0;
 }
 
-Y_FORCE_INLINE bool TRefCounter::Unref() const
+Y_FORCE_INLINE bool TRefCounter::Unref(int n) const
 {
     // We must properly synchronize last access to object with it destruction.
     // Otherwise compiler might reorder access to object past this decrement.
     //
     // See http://www.boost.org/doc/libs/1_55_0/doc/html/atomic/usage_examples.html#boost_atomic.usage_examples.example_reference_counters
     //
-    auto oldStrongCount = StrongCount_.fetch_sub(1, std::memory_order_release);
-    YT_ASSERT(oldStrongCount > 0);
-    if (oldStrongCount == 1) {
+    auto oldStrongCount = StrongCount_.fetch_sub(n, std::memory_order_release);
+    YT_ASSERT(oldStrongCount >= n);
+    if (oldStrongCount == n) {
         std::atomic_thread_fence(std::memory_order_acquire);
         return true;
     } else {
@@ -216,15 +216,15 @@ Y_FORCE_INLINE void DeallocateRefCounted(const T* obj)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-Y_FORCE_INLINE void Ref(T* obj)
+Y_FORCE_INLINE void Ref(T* obj, int n)
 {
-    GetRefCounter(obj)->Ref();
+    GetRefCounter(obj)->Ref(n);
 }
 
 template <class T>
-Y_FORCE_INLINE void Unref(T* obj)
+Y_FORCE_INLINE void Unref(T* obj, int n)
 {
-    if (GetRefCounter(obj)->Unref()) {
+    if (GetRefCounter(obj)->Unref(n)) {
         DestroyRefCounted(obj);
     }
 }
@@ -242,7 +242,6 @@ Y_FORCE_INLINE void TRefCounted::WeakUnref() const
         DeallocateRefCounted(this);
     }
 }
-
 
 template <class T>
 void TRefCounted::DestroyRefCountedImpl(T* ptr)

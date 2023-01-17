@@ -43,12 +43,12 @@ struct TIntricateObject
 
 typedef TIntrusivePtr<TIntricateObject> TIntricateObjectPtr;
 
-void Ref(TIntricateObject* obj)
+void Ref(TIntricateObject* obj, int /*n*/ = 1)
 {
     obj->Ref();
 }
 
-void Unref(TIntricateObject* obj)
+void Unref(TIntricateObject* obj, int /*n*/ = 1)
 {
     obj->Unref();
 }
