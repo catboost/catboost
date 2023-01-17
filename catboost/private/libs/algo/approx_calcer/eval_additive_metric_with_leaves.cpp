@@ -75,7 +75,8 @@ TMetricHolder EvalErrorsWithLeaves(
 
         const bool isObjectwise = error.GetErrorType() == EErrorType::PerObjectError;
         CB_ENSURE(isObjectwise || !queriesInfo.empty(), "Need queries to evaluate metric " + error.GetDescription());
-        int maxApproxBlockSize = 4096;
+        constexpr size_t MaxQueryBlockSize = 4096;
+        int maxApproxBlockSize = MaxQueryBlockSize;
         if (!isObjectwise) {
             const auto maxQuerySize = MaxElementBy(
                 queriesInfo.begin() + from,
@@ -86,7 +87,7 @@ TMetricHolder EvalErrorsWithLeaves(
         TVector<TVector<double>> approxDeltaBlock;
         ResizeRank2(approxDimension, maxApproxBlockSize, approxDeltaBlock);
 
-        TVector<TQueryInfo> localQueriesInfo(queriesInfo.begin(), queriesInfo.end());
+        TVector<TQueryInfo> queriesInfoBlock(MaxQueryBlockSize);
 
         TMetricHolder result;
         for (int idx = from; idx < to; /*see below*/) {
@@ -104,11 +105,12 @@ TMetricHolder EvalErrorsWithLeaves(
             targetBlock = To2DConstArrayRef<float>(target, approxBlockStart, approxBlockSize);
             const auto weightBlock = GetSlice(weight, approxBlockStart, approxBlockSize);
 
-            auto queriesInfoBlock = GetSlice(localQueriesInfo, idx, nextIdx - idx);
+            auto queriesInfoBlockRef = GetSlice(queriesInfoBlock, 0, nextIdx - idx);
             if (!isObjectwise) {
-                for (auto& query : queriesInfoBlock) {
-                    query.Begin -= approxBlockStart;
-                    query.End -= approxBlockStart;
+                for (auto queryIdx : xrange(idx, nextIdx)) {
+                    queriesInfoBlockRef[queryIdx - idx] = queriesInfo[queryIdx];
+                    queriesInfoBlockRef[queryIdx - idx].Begin -= approxBlockStart;
+                    queriesInfoBlockRef[queryIdx - idx].End -= approxBlockStart;
                 }
             }
 
@@ -118,7 +120,7 @@ TMetricHolder EvalErrorsWithLeaves(
                 isExpApprox,
                 targetBlock,
                 weightBlock,
-                queriesInfoBlock,
+                queriesInfoBlockRef,
                 error,
                 &sequentialExecutor);
             result.Add(blockResult);
