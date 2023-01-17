@@ -12,6 +12,8 @@ data-ui/idm
 data-ui/sandbox
 data-ui/unity
 data-ui/covid-board
+data-ui/intrasearch
+data-ui/intrasearch-components
 direct/frontend/services
 direct/frontend/packages
 drive/pyback
@@ -1438,3 +1440,4 @@ marketing/events/events-api
 marketing/events/events-admin-v2
 marketing/events/events-front
 taxi/frontend
+surfwax/frontend
