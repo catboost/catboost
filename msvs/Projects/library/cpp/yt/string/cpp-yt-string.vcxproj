@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\string\enum.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\string\format.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\string\guid.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\string\string.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\string\enum-inl.h"/>
