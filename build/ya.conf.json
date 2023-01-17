@@ -7439,7 +7439,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1287580403,
+                "sandbox_id": 1288395399,
                 "match": "horadric"
             },
             "executable": {
@@ -7582,7 +7582,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1287580204,
+                "sandbox_id": 1288394741,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8236,7 +8236,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1287579924,
+                "sandbox_id": 1288395319,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8247,7 +8247,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1287580563,
+                "sandbox_id": 1288395251,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8269,7 +8269,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1287580642,
+                "sandbox_id": 1288395137,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8315,7 +8315,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1287580102,
+                "sandbox_id": 1288395701,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8326,7 +8326,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1287579950,
+                "sandbox_id": 1288394344,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8370,7 +8370,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1287580058,
+                "sandbox_id": 1288394808,
                 "match": "profile_size_analyzer"
             },
             "executable": {
