@@ -23,7 +23,7 @@
   - sys/time.h:    contrib/libs/libpq/src/include/port/win32_msvc/sys/time.h
   - unistd.h:      contrib/libs/libpq/src/include/port/win32_msvc/unistd.h
 
-- source_filer: "^contrib/libs/postgresql/src"
+- source_filter: "^contrib/libs/postgresql/src|^ydb/library/yql/parser/pg_wrapper/postgresql/src"
   includes:
   - arpa/inet.h:   contrib/libs/postgresql/src/include/port/win32/arpa/inet.h
   - dirent.h:      contrib/libs/postgresql/src/include/port/win32_msvc/dirent.h
