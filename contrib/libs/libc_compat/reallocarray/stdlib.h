@@ -4,9 +4,9 @@
 #if defined(__GNUC__) || defined(__clang__)
     #include_next <stdlib.h>
 #else
-    #define Y_MSVC_INCLUDE_NEXT(x) <Y_UCRT_INCLUDE/x>
-    #include Y_MSVC_INCLUDE_NEXT(stdlib.h)
-    #undef Y_MSVC_INCLUDE_NEXT
+    #define Y_UCRT_INCLUDE_NEXT(x) <Y_UCRT_INCLUDE/x>
+    #include Y_UCRT_INCLUDE_NEXT(stdlib.h)
+    #undef Y_UCRT_INCLUDE_NEXT
 #endif
 
 #ifdef __cplusplus
