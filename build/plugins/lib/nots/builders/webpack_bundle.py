@@ -18,7 +18,7 @@ class WebpackBundlingError(RuntimeError):
 
 
 class WebpackBundleBuilder(BaseBuilder):
-    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, node_modules_bundle_path, script_path, ts_config_path, webpack_config_path, webpack_resource):
+    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, node_modules_bundle_path, webpack_resource, webpack_config_path, ts_config_path):
         super(WebpackBundleBuilder, self).__init__(
             build_root=build_root,
             build_path=build_path,
@@ -28,12 +28,12 @@ class WebpackBundleBuilder(BaseBuilder):
             copy_package_json=True,
             output_node_modules_path=constants.NODE_MODULES_WORKSPACE_BUNDLE_FILENAME,
         )
-        self.script_path = script_path
-        self.ts_config_curpath = ts_config_path
-        self.ts_config_binpath = os.path.join(build_path, os.path.basename(ts_config_path))
+        self.webpack_resource = webpack_resource
+        self.script_path = os.path.join(webpack_resource, ".bin", "webpack")
         self.webpack_config_curpath = webpack_config_path
         self.webpack_config_binpath = os.path.join(build_path, os.path.basename(webpack_config_path))
-        self.webpack_resource = webpack_resource
+        self.ts_config_curpath = ts_config_path
+        self.ts_config_binpath = os.path.join(build_path, os.path.basename(ts_config_path))
 
     def _build(self):
         self._prepare_bindir()
@@ -56,8 +56,7 @@ class WebpackBundleBuilder(BaseBuilder):
 
     def _exec_webpack(self):
         env = {
-            # https://nodejs.org/api/modules.html#loading-from-the-global-folders
-            "NODE_PATH": "{}:{}".format(self.webpack_resource, "./node_modules"),
+            "NODE_PATH": "{}:{}".format(self.webpack_resource, "node_modules"),
         }
 
         p = subprocess.Popen(
