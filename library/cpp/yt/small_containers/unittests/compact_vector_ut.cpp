@@ -12,9 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <yt/yt/core/test_framework/framework.h>
+#include <library/cpp/yt/small_containers/compact_vector.h>
 
-#include <yt/yt/core/misc/compact_vector.h>
+#include <library/cpp/testing/gtest/gtest.h>
+
+#include <util/string/cast.h>
 
 #include <algorithm>
 #include <list>
