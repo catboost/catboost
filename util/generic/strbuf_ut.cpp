@@ -49,6 +49,16 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         static_assert(str1.size() == str4.size());
     }
 
+    Y_UNIT_TEST(TestConstExprComparison) {
+        static constexpr TStringBuf str1("qwe\0rty"sv);
+        static constexpr TStringBuf str2("qw");
+
+        static_assert(str1 != str2);
+        static_assert(str1 >= str2);
+        static_assert(str1.StartsWith(str2));
+        static_assert(!str1.EndsWith(str2));
+    }
+
     Y_UNIT_TEST(TestAfter) {
         TStringBuf str("qwerty");
 
@@ -369,5 +379,7 @@ Y_UNIT_TEST_SUITE(TWtrBufTest) {
         UNIT_ASSERT_VALUES_EQUAL(str1, str4);
         static_assert(str1.data() == str4.data());
         static_assert(str1.size() == str4.size());
+
+        static_assert(str1 == str2);
     }
 }
