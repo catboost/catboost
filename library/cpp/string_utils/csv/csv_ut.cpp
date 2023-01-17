@@ -2,6 +2,38 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 namespace NCsvFormat {
+    Y_UNIT_TEST_SUITE(CSVSplitLines) {
+        Y_UNIT_TEST(Simple) {
+            TString s = "1,2,3";
+            TStringInput si(s);
+            TLinesSplitter splitter(si);
+            UNIT_ASSERT_VALUES_EQUAL(splitter.ConsumeLine(), "1,2,3");
+            UNIT_ASSERT(!splitter.ConsumeLine());
+        }
+        Y_UNIT_TEST(Empty) {
+            TString s = "";
+            TStringInput si(s);
+            TLinesSplitter splitter(si);
+            UNIT_ASSERT(!splitter.ConsumeLine());
+        }
+        Y_UNIT_TEST(SimpleEndl) {
+            TString s = "1,2,3\n";
+            TStringInput si(s);
+            TLinesSplitter splitter(si);
+            UNIT_ASSERT_VALUES_EQUAL(splitter.ConsumeLine(), "1,2,3");
+            UNIT_ASSERT_VALUES_EQUAL(splitter.ConsumeLine(), "");
+            UNIT_ASSERT(!splitter.ConsumeLine());
+        }
+        Y_UNIT_TEST(SimpleTwoLines) {
+            TString s = "1,2,3\n1,\"3\n\n\n\"\"4\"\n";
+            TStringInput si(s);
+            TLinesSplitter splitter(si);
+            UNIT_ASSERT_VALUES_EQUAL(splitter.ConsumeLine(), "1,2,3");
+            UNIT_ASSERT_VALUES_EQUAL(splitter.ConsumeLine(), "1,\"3\n\n\n\"\"4\"");
+            UNIT_ASSERT_VALUES_EQUAL(splitter.ConsumeLine(), "");
+            UNIT_ASSERT(!splitter.ConsumeLine());
+        }
+    }
     Y_UNIT_TEST_SUITE(CSVSplit) {
         Y_UNIT_TEST(CSVSplitSimple) {
             TString s = "1,2,3";

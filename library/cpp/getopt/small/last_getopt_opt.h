@@ -691,9 +691,9 @@ namespace NLastGetopt {
         }
 
         // Appends FromString<T>(arg) to *target for each argument
-        template <typename T>
-        TOpt& AppendTo(TVector<T>* target) {
-            return Handler1T<T>([target](auto&& value) { target->push_back(std::move(value)); });
+        template<class Container>
+        TOpt& AppendTo(Container* target) {
+            return Handler1T<typename Container::value_type>([target](auto&& value) { target->push_back(std::move(value)); });
         }
 
         // Appends FromString<T>(arg) to *target for each argument

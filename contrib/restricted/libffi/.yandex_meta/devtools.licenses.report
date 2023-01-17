@@ -155,10 +155,8 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
     Files with this license:
-        configs/armv7-apple-iphoneos/include/ffitarget.h [8:26]
         configs/armv7a-unknown-linux-androideabi16/include/ffitarget.h [8:26]
         configs/armv7a-unknown-linux-gnueabihf/include/ffitarget.h [8:26]
-        configs/i386-apple-iphonesimulator/include/ffitarget.h [8:26]
         configs/i386-microsoft-windows/include/ffitarget.h [8:26]
         configs/i686-pc-linux-android16/include/ffitarget.h [8:26]
         configs/powerpc64le-unknown-linux-gnu/include/ffitarget.h [8:26]
@@ -213,10 +211,8 @@ BELONGS ya.make
         configs/aarch64-apple-macos/include/ffi.h [5:23]
         configs/aarch64-unknown-linux-android21/include/ffi.h [5:23]
         configs/aarch64-unknown-linux-gnu/include/ffi.h [5:23]
-        configs/armv7-apple-iphoneos/include/ffi.h [5:23]
         configs/armv7a-unknown-linux-androideabi16/include/ffi.h [5:23]
         configs/armv7a-unknown-linux-gnueabihf/include/ffi.h [5:23]
-        configs/i386-apple-iphonesimulator/include/ffi.h [5:23]
         configs/i386-microsoft-windows/include/ffi.h [5:23]
         configs/i686-pc-linux-android16/include/ffi.h [5:23]
         configs/powerpc64le-unknown-linux-gnu/include/ffi.h [5:23]
