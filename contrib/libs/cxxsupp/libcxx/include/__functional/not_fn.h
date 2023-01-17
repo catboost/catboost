@@ -44,7 +44,7 @@ template<class _Fn, class = enable_if_t<
 >>
 _LIBCPP_HIDE_FROM_ABI
 _LIBCPP_CONSTEXPR_AFTER_CXX17 auto not_fn(_Fn&& __f) {
-    return __not_fn_t<decay_t<_Fn>>(tuple<>(), _VSTD::forward<_Fn>(__f));
+    return __not_fn_t<decay_t<_Fn>>(_VSTD::forward<_Fn>(__f));
 }
 
 #endif // _LIBCPP_STD_VER > 14

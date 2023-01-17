@@ -37,7 +37,7 @@ public:
     template <class ..._BoundArgs, class = enable_if_t<
         is_constructible_v<tuple<_Bound...>, _BoundArgs&&...>
     >>
-    explicit constexpr __perfect_forward_impl(tuple<>, _BoundArgs&& ...__bound)
+    explicit constexpr __perfect_forward_impl(_BoundArgs&& ...__bound)
         : __bound_(_VSTD::forward<_BoundArgs>(__bound)...)
     { }
 
