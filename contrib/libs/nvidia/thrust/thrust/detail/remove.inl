@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file remove.inl
- *  \brief Inline file for remove.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/remove.h>

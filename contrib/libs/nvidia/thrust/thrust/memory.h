@@ -18,8 +18,9 @@
  *  \brief Abstractions for Thrust's memory model.
  */
 
-#include <thrust/detail/config.h>
+#pragma once
 
+#include <thrust/detail/config.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/reference.h>
@@ -36,8 +37,7 @@ THRUST_NAMESPACE_BEGIN
  *
  */
 
-/** \addtogroup memory_management_classes Memory Management Classes
- *  \ingroup memory_management
+/** \addtogroup memory_management Memory Management
  *  \{
  */
 
@@ -81,7 +81,7 @@ template<typename Element, typename Tag, typename Reference = thrust::use_defaul
     /*! The type of the raw pointer
      */
     typedef typename super_t::base_type raw_pointer;
-    
+
     /*! \p pointer's default constructor initializes its encapsulated pointer to \c 0
      */
     __host__ __device__
@@ -111,7 +111,8 @@ template<typename Element, typename Tag, typename Reference = thrust::use_defaul
               pointer<Element,Tag,Reference,Derived>
             >::type * = 0);
 
-    /*! Assignment operator allows assigning from another pointer-like object with related type.
+    /*! Assignment operator allows assigning from another pointer-like object whose element type
+     *  is convertible to \c Element.
      *
      *  \param other The other pointer-like object to assign from.
      *  \return <tt>*this</tt>
@@ -136,141 +137,6 @@ template<typename Element, typename Tag, typename Reference = thrust::use_defaul
 };
 #endif
 
-// define pointer for the purpose of Doxygenating it
-// it is actually defined elsewhere
-#if 0
-/*! \p reference is a wrapped reference to an object stored in memory. \p reference generalizes
- *  \p device_reference by relaxing the type of pointer associated with the object. \p reference
- *  is the type of the result of dereferencing a tagged pointer-like object such as \p pointer, and
- *  intermediates operations on objects existing in a remote memory.
- *
- *  \tparam Element specifies the type of the referent object.
- *  \tparam Pointer specifies the type of the result of taking the address of \p reference.
- *  \tparam Derived allows the client to specify the name of the derived type when \p reference is used as
- *          a base class. This is useful to ensure that assignment to objects of the derived type return
- *          values of the derived type as a result. By default, this type is <tt>reference<Element,Pointer></tt>.
- */
-template<typename Element, typename Pointer, typename Derived = thrust::use_default>
-  class reference
-{
-  public:
-    /*! The type of this \p reference's wrapped pointers.
-     */
-    typedef Pointer                                              pointer;
-
-    /*! The \p value_type of this \p reference.
-     */
-    typedef typename thrust::detail::remove_const<Element>::type value_type;
-
-    /*! This copy constructor initializes this \p reference
-     *  to refer to an object pointed to by the given \p pointer. After
-     *  this \p reference is constructed, it shall refer to the
-     *  object pointed to by \p ptr.
-     *
-     *  \param ptr A \p pointer to copy from.
-     */
-    __host__ __device__
-    explicit reference(const pointer &ptr);
-
-    /*! This copy constructor accepts a const reference to another
-     *  \p reference of related type. After this \p reference is constructed,
-     *  it shall refer to the same object as \p other.
-     *  
-     *  \param other A \p reference to copy from.
-     *  \tparam OtherElement the element type of the other \p reference.
-     *  \tparam OtherPointer the pointer type of the other \p reference.
-     *  \tparam OtherDerived the derived type of the other \p reference.
-     *
-     *  \note This constructor is templated primarily to allow initialization of 
-     *  <tt>reference<const T,...></tt> from <tt>reference<T,...></tt>.
-     */
-    template<typename OtherElement, typename OtherPointer, typename OtherDerived>
-    __host__ __device__
-    reference(const reference<OtherElement,OtherPointer,OtherDerived> &other,
-              typename thrust::detail::enable_if_convertible<
-                typename reference<OtherElement,OtherPointer,OtherDerived>::pointer,
-                pointer
-              >::type * = 0);
-
-    /*! Copy assignment operator copy assigns from another \p reference.
-     *
-     *  \param other The other \p reference to assign from.
-     *  \return <tt>static_cast<derived_type&>(*this)</tt>
-     */
-    __host__ __device__
-    derived_type &operator=(const reference &other);
-
-    /*! Assignment operator copy assigns from another \p reference of related type.
-     *
-     *  \param other The other \p reference to assign from.
-     *  \return <tt>static_cast<derived_type&>(*this)</tt>
-     *
-     *  \tparam OtherElement the element type of the other \p reference.
-     *  \tparam OtherPointer the pointer type of the other \p reference.
-     *  \tparam OtherDerived the derived type of the other \p reference.
-     */
-    template<typename OtherElement, typename OtherPointer, typename OtherDerived>
-    __host__ __device__
-    derived_type &operator=(const reference<OtherElement,OtherPointer,OtherDerived> &other);
-
-    /*! Assignment operator assigns from a \p value_type.
-     *
-     *  \param x The \p value_type to assign from.
-     *  \return <tt>static_cast<derived_type&>(*this)</tt>.
-     */
-    __host__ __device__
-    derived_type &operator=(const value_type &x);
-
-    /*! Address-of operator returns a \p pointer pointing to the object
-     *  referenced by this \p reference. It does not return the address of this
-     *  \p reference.
-     *
-     *  \return A \p pointer pointing to the referenct object.
-     */
-    __host__ __device__
-    pointer operator&() const;
-
-    /*! Conversion operator converts this \p reference to \p value_type by
-     *  returning a copy of the referent object.
-     *  
-     *  \return A copy of the referent object.
-     */
-    __host__ __device__
-    operator value_type () const;
-
-    /*! Swaps the value of the referent object with another.
-     *
-     *  \param other The other \p reference with which to swap.
-     *  \note The argument is of type \p derived_type rather than \p reference.
-     */
-    __host__ __device__
-    void swap(derived_type &other);
-
-    /*! Prefix increment operator increments the referent object.
-     *
-     *  \return <tt>static_Cast<derived_type&>(*this)</tt>.
-     *
-     *  \note Documentation for other arithmetic operators omitted for brevity.
-     */
-    derived_type &operator++();
-};
-#endif
-
-/*! \}
- */
-
-/*!
- *  \addtogroup memory_management_functions Memory Management Functions
- *  \ingroup memory_management
- *  \{
- */
-
-
-/*! \addtogroup allocation_functions
- *  \{
- */
-
-
 /*! This version of \p malloc allocates untyped uninitialized storage associated with a given system.
  *
  *  \param system The Thrust system with which to associate the storage.
@@ -280,7 +146,7 @@ template<typename Element, typename Pointer, typename Derived = thrust::use_defa
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
  *
- *  \pre \p DerivedPolicy must be publically derived from <code>thrust::execution_policy<DerivedPolicy></code>.
+ *  \pre \p DerivedPolicy must be publically derived from <tt>thrust::execution_policy<DerivedPolicy></tt>.
  *
  *  The following code snippet demonstrates how to use \p malloc to allocate a range of memory
  *  associated with Thrust's device system.
@@ -318,7 +184,7 @@ pointer<void,DerivedPolicy> malloc(const thrust::detail::execution_policy_base<D
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
  *
- *  \pre \p DerivedPolicy must be publically derived from <code>thrust::execution_policy<DerivedPolicy></code>.
+ *  \pre \p DerivedPolicy must be publically derived from <tt>thrust::execution_policy<DerivedPolicy></tt>.
  *
  *  The following code snippet demonstrates how to use \p malloc to allocate a range of memory
  *  to accomodate integers associated with Thrust's device system.
@@ -362,7 +228,7 @@ pointer<T,DerivedPolicy> malloc(const thrust::detail::execution_policy_base<Deri
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
  *
- *  \pre \p DerivedPolicy must be publically derived from <code>thrust::execution_policy<DerivedPolicy></code>.
+ *  \pre \p DerivedPolicy must be publically derived from <tt>thrust::execution_policy<DerivedPolicy></tt>.
  *
  *  The following code snippet demonstrates how to use \p get_temporary_buffer to allocate a range of memory
  *  to accomodate integers associated with Thrust's device system.
@@ -398,16 +264,6 @@ template<typename T, typename DerivedPolicy>
 __host__ __device__
 thrust::pair<thrust::pointer<T,DerivedPolicy>, typename thrust::pointer<T,DerivedPolicy>::difference_type>
 get_temporary_buffer(const thrust::detail::execution_policy_base<DerivedPolicy> &system, typename thrust::pointer<T,DerivedPolicy>::difference_type n);
-
-
-/*! \} allocation_functions
- */
-
-
-/*! \addtogroup deallocation_functions
- *  \{
- */
-
 
 /*! \p free deallocates the storage previously allocated by \p thrust::malloc.
  *
@@ -488,10 +344,6 @@ __host__ __device__
 void return_temporary_buffer(const thrust::detail::execution_policy_base<DerivedPolicy> &system, Pointer p, std::ptrdiff_t n);
 
 
-/*! \} deallocation_functions
- */
-
-
 /*! \p raw_pointer_cast creates a "raw" pointer from a pointer-like type,
  *  simply returning the wrapped pointer, should it exist.
  *
@@ -538,8 +390,7 @@ __host__ __device__
 typename detail::raw_reference<const T>::type
   raw_reference_cast(const T &ref);
 
-
-/*! \}
+/*! \} // memory_management
  */
 
 THRUST_NAMESPACE_END

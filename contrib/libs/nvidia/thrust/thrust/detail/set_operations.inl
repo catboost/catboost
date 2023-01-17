@@ -14,9 +14,7 @@
  *  limitations under the License.
  */
 
-/*! \file set_operations.inl
- *  \brief Inline file for set_operations.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>

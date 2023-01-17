@@ -34,31 +34,11 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <iterator>
-#include <type_traits>
-
-#include "dispatch/dispatch_radix_sort.cuh"
-#include "../config.cuh"
+#include <cub/config.cuh>
+#include <cub/detail/choose_offset.cuh>
+#include <cub/device/dispatch/dispatch_radix_sort.cuh>
 
 CUB_NAMESPACE_BEGIN
-
-namespace detail {
-/** ChooseOffsetT checks NumItemsT, the type of the num_items parameter, and
- * selects the offset type based on it. */
-template <typename NumItemsT>
-struct ChooseOffsetT
-{
-    // NumItemsT must be an integral type (but not bool).
-    static_assert(std::is_integral<NumItemsT>::value &&
-                  !std::is_same<typename std::remove_cv<NumItemsT>::type, bool>::value,
-                  "NumItemsT must be an integral type, but not bool");
-
-    // Unsigned integer type for global offsets.
-    using Type = typename std::conditional<sizeof(NumItemsT) <= 4, uint32_t, unsigned long long>::type;
-};
-
-}  // namespace detail
 
 /**
  * \brief DeviceRadixSort provides device-wide, parallel operations for computing a radix sort across a sequence of data items residing within device-accessible memory. ![](sorting_logo.png)

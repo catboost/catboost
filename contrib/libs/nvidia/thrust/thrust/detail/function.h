@@ -42,7 +42,7 @@ struct wrapped_function
 
   __thrust_exec_check_disable__
   template <typename Argument>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   Result operator()(Argument& x) const
   {
     return static_cast<Result>(m_f(thrust::raw_reference_cast(x)));
@@ -50,7 +50,7 @@ struct wrapped_function
 
   __thrust_exec_check_disable__
   template <typename Argument>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   Result operator()(const Argument& x) const
   {
     return static_cast<Result>(m_f(thrust::raw_reference_cast(x)));
@@ -58,7 +58,7 @@ struct wrapped_function
 
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   Result operator()(Argument1& x, Argument2& y) const
   {
     return static_cast<Result>(m_f(thrust::raw_reference_cast(x),
@@ -67,7 +67,7 @@ struct wrapped_function
 
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   Result operator()(const Argument1& x, Argument2& y) const
   {
     return static_cast<Result>(m_f(thrust::raw_reference_cast(x),
@@ -76,7 +76,7 @@ struct wrapped_function
 
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   Result operator()(const Argument1& x, const Argument2& y) const
   {
     return static_cast<Result>(m_f(thrust::raw_reference_cast(x),
@@ -85,7 +85,7 @@ struct wrapped_function
 
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   Result operator()(Argument1& x, const Argument2& y) const
   {
     return static_cast<Result>(m_f(thrust::raw_reference_cast(x),
@@ -111,7 +111,7 @@ struct wrapped_function<Function, void>
 
   __thrust_exec_check_disable__
   template <typename Argument>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   void operator()(Argument& x) const
   {
     m_f(thrust::raw_reference_cast(x));
@@ -119,7 +119,7 @@ struct wrapped_function<Function, void>
 
   __thrust_exec_check_disable__
   template <typename Argument>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   void operator()(const Argument& x) const
   {
     m_f(thrust::raw_reference_cast(x));
@@ -127,7 +127,7 @@ struct wrapped_function<Function, void>
 
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   void operator()(Argument1& x, Argument2& y) const
   {
     m_f(thrust::raw_reference_cast(x), thrust::raw_reference_cast(y));
@@ -135,21 +135,21 @@ struct wrapped_function<Function, void>
 
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   void operator()(const Argument1& x, Argument2& y) const
   {
     m_f(thrust::raw_reference_cast(x), thrust::raw_reference_cast(y));
   }
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   void operator()(const Argument1& x, const Argument2& y) const
   {
     m_f(thrust::raw_reference_cast(x), thrust::raw_reference_cast(y));
   }
   __thrust_exec_check_disable__
   template <typename Argument1, typename Argument2>
-  inline __host__ __device__
+  __thrust_forceinline__ __host__ __device__
   void operator()(Argument1& x, const Argument2& y) const
   {
     m_f(thrust::raw_reference_cast(x), thrust::raw_reference_cast(y));

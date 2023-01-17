@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *  Copyright 2013 Filipe RNC Maia
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,16 +28,16 @@ std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, traits>&
   os << '(' << z.real() << ',' << z.imag() << ')';
   return os;
 }
-  
+
 template<typename ValueType, typename charT, class traits>
 std::basic_istream<charT, traits>&
 operator>>(std::basic_istream<charT, traits>& is, complex<ValueType>& z)
 {
   ValueType re, im;
-    
+
   charT ch;
   is >> ch;
-    
+
   if(ch == '(')
     {
       is >> re >> ch;

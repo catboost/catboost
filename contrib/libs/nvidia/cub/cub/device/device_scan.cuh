@@ -509,7 +509,7 @@ struct DeviceScan
      * \tparam KeysInputIteratorT      <b>[inferred]</b> Random-access input iterator type for reading scan keys inputs \iterator
      * \tparam ValuesInputIteratorT    <b>[inferred]</b> Random-access input iterator type for reading scan values inputs \iterator
      * \tparam ValuesOutputIteratorT   <b>[inferred]</b> Random-access output iterator type for writing scan values outputs \iterator
-     * \tparam EqualityOpT             <b>[inferred][/b] Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
+     * \tparam EqualityOpT             <b>[inferred]</b> Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
      *
      * [decoupled look-back]: https://research.nvidia.com/publication/single-pass-parallel-prefix-scan-decoupled-look-back
      */
@@ -625,7 +625,7 @@ struct DeviceScan
      * \tparam ValuesOutputIteratorT   <b>[inferred]</b> Random-access output iterator type for writing scan values outputs \iterator
      * \tparam ScanOp                  <b>[inferred]</b> Binary scan functor type having member <tt>T operator()(const T &a, const T &b)</tt>
      * \tparam InitValueT              <b>[inferred]</b> Type of the \p init_value value used in Binary scan functor type having member <tt>T operator()(const T &a, const T &b)</tt>
-     * \tparam EqualityOpT             <b>[inferred][/b] Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
+     * \tparam EqualityOpT             <b>[inferred]</b> Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
      *
      * [decoupled look-back]: https://research.nvidia.com/publication/single-pass-parallel-prefix-scan-decoupled-look-back
      */
@@ -711,7 +711,7 @@ struct DeviceScan
      * \tparam KeysInputIteratorT      <b>[inferred]</b> Random-access input iterator type for reading scan keys inputs \iterator
      * \tparam ValuesInputIteratorT    <b>[inferred]</b> Random-access input iterator type for reading scan values inputs \iterator
      * \tparam ValuesOutputIteratorT   <b>[inferred]</b> Random-access output iterator type for writing scan values outputs \iterator
-     * \tparam EqualityOpT             <b>[inferred][/b] Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
+     * \tparam EqualityOpT             <b>[inferred]</b> Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
      *
      * [decoupled look-back]: https://research.nvidia.com/publication/single-pass-parallel-prefix-scan-decoupled-look-back
      */
@@ -818,7 +818,7 @@ struct DeviceScan
      * \tparam ValuesInputIteratorT    <b>[inferred]</b> Random-access input iterator type for reading scan values inputs \iterator
      * \tparam ValuesOutputIteratorT   <b>[inferred]</b> Random-access output iterator type for writing scan values outputs \iterator
      * \tparam ScanOp                  <b>[inferred]</b> Binary scan functor type having member <tt>T operator()(const T &a, const T &b)</tt>
-     * \tparam EqualityOpT             <b>[inferred][/b] Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
+     * \tparam EqualityOpT             <b>[inferred]</b> Functor type having member <tt>T operator()(const T &a, const T &b)</tt> for binary operations that defines the equality of keys
      *
      * [decoupled look-back]: https://research.nvidia.com/publication/single-pass-parallel-prefix-scan-decoupled-look-back
      */

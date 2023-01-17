@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/adjacent_difference.h>
 #include <thrust/adjacent_difference.h>
@@ -56,17 +58,17 @@ OutputIterator adjacent_difference(thrust::execution_policy<DerivedPolicy> &exec
   if(first == last)
   {
     // empty range, nothing to do
-    return result; 
+    return result;
   }
-  else 
+  else
   {
     // an in-place operation is requested, copy the input and call the entry point
     // XXX a special-purpose kernel would be faster here since
     // only block boundaries need to be copied
     thrust::detail::temporary_array<InputType, DerivedPolicy> input_copy(exec, first, last);
-    
+
     *result = *first;
-    thrust::transform(exec, input_copy.begin() + 1, input_copy.end(), input_copy.begin(), result + 1, binary_op); 
+    thrust::transform(exec, input_copy.begin() + 1, input_copy.end(), input_copy.begin(), result + 1, binary_op);
   }
 
   return result + (last - first);

@@ -69,7 +69,6 @@ BELONGS ya.make
         cub/agent/agent_radix_sort_onesweep.cuh [4:24]
         cub/block/block_load.cuh [5:25]
         cub/config.cuh [4:24]
-        cub/device/device_radix_sort.cuh [6:26]
         cub/util_allocator.cuh [5:25]
         cub/util_arch.cuh [5:25]
         cub/util_debug.cuh [5:25]
@@ -139,6 +138,7 @@ BELONGS ya.make
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
         cub/device/device_merge_sort.cuh [4:24]
+        cub/device/device_radix_sort.cuh [6:26]
         cub/device/device_reduce.cuh [6:26]
     Scancode info:
         Original SPDX id: BSD-3-Clause
@@ -229,7 +229,7 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
-        README.md [186:214]
+        README.md [187:215]
 
 KEEP     Apache-2.0           94a56d4b63563bcf099d4003f1e185f0
 BELONGS ya.make
@@ -326,7 +326,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/free-unknown.LICENSE
     Files with this license:
-        README.md [188:188]
+        README.md [189:189]
 
 SKIP     LicenseRef-scancode-free-unknown de179e3244a6e84dfa40499d74c91da7
 BELONGS ya.make
@@ -339,7 +339,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/free-unknown.LICENSE
     Files with this license:
-        README.md [186:186]
+        README.md [187:187]
 
 KEEP     Apache-2.0           e4797b345a71973fae865e769e5543ba
 BELONGS ya.make
@@ -352,3 +352,14 @@ BELONGS ya.make
     Files with this license:
         cub/detail/device_double_buffer.cuh [4:14]
         cub/detail/device_synchronize.cuh [4:14]
+
+KEEP     BSD-3-Clause         e6d74368e0d0bd825efeff633db7bee5
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.05
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        cub/detail/choose_offset.cuh [4:24]

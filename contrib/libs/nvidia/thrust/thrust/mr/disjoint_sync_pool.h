@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-/*! \file disjoint_sync_pool.h
+/*! \file 
  *  \brief A mutex-synchronized version of \p disjoint_unsynchronized_pool_resource.
  */
 
@@ -33,10 +33,8 @@ THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
-/*! \addtogroup memory_management Memory Management
- *  \addtogroup memory_management_classes Memory Management Classes
- *  \addtogroup memory_resources Memory Resources
- *  \ingroup memory_resources
+/*! \addtogroup memory_resources Memory Resources
+ *  \ingroup memory_management
  *  \{
  */
 
@@ -109,7 +107,7 @@ private:
     unsync_pool upstream_pool;
 };
 
-/*! \}
+/*! \} // memory_resources
  */
 
 } // end mr

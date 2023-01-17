@@ -1,9 +1,9 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
- *  You may obtain a transform of the License at
+ *  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-/*! \file async/transform.h
- *  \brief Functions for asynchronously transforming a range.
+/*! \file
+ *  \brief Algorithms for asynchronously transforming a range.
  */
 
 #pragma once
@@ -36,6 +36,9 @@ THRUST_NAMESPACE_BEGIN
 
 namespace async
 {
+
+/*! \cond
+ */
 
 namespace unimplemented
 {
@@ -124,6 +127,9 @@ struct transform_fn final
 } // namespace tranform_detail
 
 THRUST_INLINE_CONSTANT transform_detail::transform_fn transform{};
+
+/*! \endcond
+ */
 
 } // namespace async
 

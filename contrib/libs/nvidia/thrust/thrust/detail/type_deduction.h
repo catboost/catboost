@@ -51,22 +51,38 @@
 /// \brief Expands to a function definition, including a trailing returning
 ///        type, that returns the expression \c __VA_ARGS__.
 ///
-#define THRUST_DECLTYPE_RETURNS(...)                                          \
-  noexcept(noexcept(__VA_ARGS__))                                             \
-  -> decltype(__VA_ARGS__)                                                    \
+// Trailing return types seem to confuse Doxygen, and cause it to interpret
+// parts of the function's body as new function signatures.
+#if defined(THRUST_DOXYGEN)
+  #define THRUST_DECLTYPE_RETURNS(...)                                        \
   { return (__VA_ARGS__); }                                                   \
   /**/
+#else
+  #define THRUST_DECLTYPE_RETURNS(...)                                        \
+    noexcept(noexcept(__VA_ARGS__))                                           \
+    -> decltype(__VA_ARGS__)                                                  \
+    { return (__VA_ARGS__); }                                                 \
+    /**/
+#endif
 
 /// \def THRUST_DECLTYPE_RETURNS_WITH_SFINAE_CONDITION(condition, ...)
 /// \brief Expands to a function definition, including a trailing returning
-///        type, that returns the expression \c __VA_ARGS__. It shall only 
+///        type, that returns the expression \c __VA_ARGS__. It shall only
 ///        participate in overload resolution if \c condition is \c true.
 ///
-#define THRUST_DECLTYPE_RETURNS_WITH_SFINAE_CONDITION(condition, ...)         \
-  noexcept(noexcept(__VA_ARGS__))                                             \
-  -> typename std::enable_if<condition, decltype(__VA_ARGS__)>::type          \
+// Trailing return types seem to confuse Doxygen, and cause it to interpret
+// parts of the function's body as new function signatures.
+#if defined(THRUST_DOXYGEN)
+  #define THRUST_DECLTYPE_RETURNS(...)                                        \
   { return (__VA_ARGS__); }                                                   \
   /**/
+#else
+  #define THRUST_DECLTYPE_RETURNS_WITH_SFINAE_CONDITION(condition, ...)       \
+    noexcept(noexcept(__VA_ARGS__))                                           \
+    -> typename std::enable_if<condition, decltype(__VA_ARGS__)>::type        \
+    { return (__VA_ARGS__); }                                                 \
+    /**/
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 

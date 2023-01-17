@@ -27,9 +27,10 @@
 
 #pragma once
 
-#include "../config.cuh"
-#include "../util_namespace.cuh"
-#include "dispatch/dispatch_adjacent_difference.cuh"
+#include <cub/config.cuh>
+#include <cub/detail/choose_offset.cuh>
+#include <cub/device/dispatch/dispatch_adjacent_difference.cuh>
+#include <cub/util_namespace.cuh>
 
 #include <thrust/detail/integer_traits.h>
 #include <thrust/detail/cstdint.h>
@@ -98,9 +99,9 @@ CUB_NAMESPACE_BEGIN
 struct DeviceAdjacentDifference
 {
 private:
-
-  template <bool in_place,
+  template <bool may_alias,
             bool read_left,
+            typename NumItemsT,
             typename InputIteratorT,
             typename OutputIteratorT,
             typename DifferenceOpT>
@@ -109,53 +110,28 @@ private:
                      std::size_t &temp_storage_bytes,
                      InputIteratorT d_input,
                      OutputIteratorT d_output,
-                     std::size_t num_items,
+                     NumItemsT num_items,
                      DifferenceOpT difference_op,
                      cudaStream_t stream,
                      bool debug_synchronous)
   {
-    const auto uint64_threshold = static_cast<std::size_t>(
-      THRUST_NS_QUALIFIER::detail::integer_traits<
-        THRUST_NS_QUALIFIER::detail::int32_t>::const_max);
+    using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
-    if (num_items <= uint64_threshold)
-    {
-      using OffsetT = std::uint32_t;
-      using DispatchT = DispatchAdjacentDifference<InputIteratorT,
-                                                   OutputIteratorT,
-                                                   DifferenceOpT,
-                                                   OffsetT,
-                                                   in_place,
-                                                   read_left>;
+    using DispatchT = DispatchAdjacentDifference<InputIteratorT,
+                                                 OutputIteratorT,
+                                                 DifferenceOpT,
+                                                 OffsetT,
+                                                 may_alias,
+                                                 read_left>;
 
-      return DispatchT::Dispatch(d_temp_storage,
-                                 temp_storage_bytes,
-                                 d_input,
-                                 d_output,
-                                 static_cast<OffsetT>(num_items),
-                                 difference_op,
-                                 stream,
-                                 debug_synchronous);
-    }
-    else
-    {
-      using OffsetT = std::uint64_t;
-      using DispatchT = DispatchAdjacentDifference<InputIteratorT,
-                                                   OutputIteratorT,
-                                                   DifferenceOpT,
-                                                   OffsetT,
-                                                   in_place,
-                                                   read_left>;
-
-      return DispatchT::Dispatch(d_temp_storage,
-                                 temp_storage_bytes,
-                                 d_input,
-                                 d_output,
-                                 static_cast<OffsetT>(num_items),
-                                 difference_op,
-                                 stream,
-                                 debug_synchronous);
-    }
+    return DispatchT::Dispatch(d_temp_storage,
+                               temp_storage_bytes,
+                               d_input,
+                               d_output,
+                               static_cast<OffsetT>(num_items),
+                               difference_op,
+                               stream,
+                               debug_synchronous);
   }
 
 public:
@@ -234,6 +210,8 @@ public:
    *   Its `result_type` is convertible to a type in `OutputIteratorT`'s set of
    *   `value_types`.
    *
+   * @tparam NumItemsT **[inferred]** Type of num_items
+   *
    * @param[in] d_temp_storage
    *   Device-accessible allocation of temporary storage. When `nullptr`, the
    *   required allocation size is written to `temp_storage_bytes` and no work
@@ -265,28 +243,29 @@ public:
    */
   template <typename InputIteratorT,
             typename OutputIteratorT,
-            typename DifferenceOpT = cub::Difference>
+            typename DifferenceOpT = cub::Difference,
+            typename NumItemsT = std::uint32_t>
   static CUB_RUNTIME_FUNCTION cudaError_t
   SubtractLeftCopy(void *d_temp_storage,
                    std::size_t &temp_storage_bytes,
                    InputIteratorT d_input,
                    OutputIteratorT d_output,
-                   std::size_t num_items,
+                   NumItemsT num_items,
                    DifferenceOpT difference_op = {},
                    cudaStream_t stream         = 0,
                    bool debug_synchronous      = false)
   {
-    constexpr bool in_place = false;
+    constexpr bool may_alias = false;
     constexpr bool read_left = true;
 
-    return AdjacentDifference<in_place, read_left>(d_temp_storage,
-                                                   temp_storage_bytes,
-                                                   d_input,
-                                                   d_output,
-                                                   num_items,
-                                                   difference_op,
-                                                   stream,
-                                                   debug_synchronous);
+    return AdjacentDifference<may_alias, read_left>(d_temp_storage,
+                                                    temp_storage_bytes,
+                                                    d_input,
+                                                    d_output,
+                                                    num_items,
+                                                    difference_op,
+                                                    stream,
+                                                    debug_synchronous);
   }
 
   /**
@@ -353,6 +332,8 @@ public:
    *   Its `result_type` is convertible to a type in `RandomAccessIteratorT`'s
    *   set of `value_types`.
    *
+   * @tparam NumItemsT **[inferred]** Type of num_items
+   *
    * @param[in] d_temp_storage
    *   Device-accessible allocation of temporary storage. When `nullptr`, the
    *   required allocation size is written to `temp_storage_bytes` and no work
@@ -380,27 +361,28 @@ public:
    *   be printed to the console. Default is `false`.
    */
   template <typename RandomAccessIteratorT,
-            typename DifferenceOpT = cub::Difference>
+            typename DifferenceOpT = cub::Difference,
+            typename NumItemsT = std::uint32_t>
   static CUB_RUNTIME_FUNCTION cudaError_t
   SubtractLeft(void *d_temp_storage,
                std::size_t &temp_storage_bytes,
                RandomAccessIteratorT d_input,
-               std::size_t num_items,
+               NumItemsT num_items,
                DifferenceOpT difference_op = {},
                cudaStream_t stream         = 0,
                bool debug_synchronous      = false)
   {
-    constexpr bool in_place = true;
+    constexpr bool may_alias = true;
     constexpr bool read_left = true;
 
-    return AdjacentDifference<in_place, read_left>(d_temp_storage,
-                                                   temp_storage_bytes,
-                                                   d_input,
-                                                   d_input,
-                                                   num_items,
-                                                   difference_op,
-                                                   stream,
-                                                   debug_synchronous);
+    return AdjacentDifference<may_alias, read_left>(d_temp_storage,
+                                                    temp_storage_bytes,
+                                                    d_input,
+                                                    d_input,
+                                                    num_items,
+                                                    difference_op,
+                                                    stream,
+                                                    debug_synchronous);
   }
 
   /**
@@ -477,6 +459,8 @@ public:
    *   Its `result_type` is convertible to a type in `RandomAccessIteratorT`'s
    *   set of `value_types`.
    *
+   * @tparam NumItemsT **[inferred]** Type of num_items
+   *
    * @param[in] d_temp_storage
    *   Device-accessible allocation of temporary storage. When `nullptr`, the
    *   required allocation size is written to `temp_storage_bytes` and no work
@@ -508,28 +492,29 @@ public:
    */
   template <typename InputIteratorT,
             typename OutputIteratorT,
-            typename DifferenceOpT = cub::Difference>
+            typename DifferenceOpT = cub::Difference,
+            typename NumItemsT = std::uint32_t>
   static CUB_RUNTIME_FUNCTION cudaError_t
   SubtractRightCopy(void *d_temp_storage,
                     std::size_t &temp_storage_bytes,
                     InputIteratorT d_input,
                     OutputIteratorT d_output,
-                    std::size_t num_items,
+                    NumItemsT num_items,
                     DifferenceOpT difference_op = {},
                     cudaStream_t stream         = 0,
                     bool debug_synchronous      = false)
   {
-    constexpr bool in_place  = false;
+    constexpr bool may_alias  = false;
     constexpr bool read_left = false;
 
-    return AdjacentDifference<in_place, read_left>(d_temp_storage,
-                                                   temp_storage_bytes,
-                                                   d_input,
-                                                   d_output,
-                                                   num_items,
-                                                   difference_op,
-                                                   stream,
-                                                   debug_synchronous);
+    return AdjacentDifference<may_alias, read_left>(d_temp_storage,
+                                                    temp_storage_bytes,
+                                                    d_input,
+                                                    d_output,
+                                                    num_items,
+                                                    difference_op,
+                                                    stream,
+                                                    debug_synchronous);
   }
 
   /**
@@ -586,6 +571,8 @@ public:
    *   Its `result_type` is convertible to a type in `RandomAccessIteratorT`'s
    *   set of `value_types`.
    *
+   * @tparam NumItemsT **[inferred]** Type of num_items
+   *
    * @param[in] d_temp_storage
    *   Device-accessible allocation of temporary storage. When `nullptr`, the
    *   required allocation size is written to `temp_storage_bytes` and no work
@@ -613,27 +600,28 @@ public:
    *  printed to the console. Default is `false`.
    */
   template <typename RandomAccessIteratorT,
-            typename DifferenceOpT = cub::Difference>
+            typename DifferenceOpT = cub::Difference,
+            typename NumItemsT = std::uint32_t>
   static CUB_RUNTIME_FUNCTION cudaError_t
   SubtractRight(void *d_temp_storage,
                 std::size_t &temp_storage_bytes,
                 RandomAccessIteratorT d_input,
-                std::size_t num_items,
+                NumItemsT num_items,
                 DifferenceOpT difference_op = {},
                 cudaStream_t stream         = 0,
                 bool debug_synchronous      = false)
   {
-    constexpr bool in_place = true;
+    constexpr bool may_alias = true;
     constexpr bool read_left = false;
 
-    return AdjacentDifference<in_place, read_left>(d_temp_storage,
-                                                   temp_storage_bytes,
-                                                   d_input,
-                                                   d_input,
-                                                   num_items,
-                                                   difference_op,
-                                                   stream,
-                                                   debug_synchronous);
+    return AdjacentDifference<may_alias, read_left>(d_temp_storage,
+                                                    temp_storage_bytes,
+                                                    d_input,
+                                                    d_input,
+                                                    num_items,
+                                                    difference_op,
+                                                    stream,
+                                                    debug_synchronous);
   }
 };
 

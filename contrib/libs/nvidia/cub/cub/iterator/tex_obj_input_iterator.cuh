@@ -306,6 +306,9 @@ public:
     /// ostream operator
     friend std::ostream& operator<<(std::ostream& os, const self_type& itr)
     {
+        os << "cub::TexObjInputIterator( ptr=" << itr.ptr
+           << ", offset=" << itr.tex_offset
+           << ", tex_obj=" << itr.tex_obj << " )";
         return os;
     }
 

@@ -1,4 +1,8 @@
 ====================Apache-2.0====================
+  some parts are distributed under the [Apache License v2.0] and the
+
+
+====================Apache-2.0====================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -85,20 +89,6 @@
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a fill of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
-
-
-====================Apache-2.0====================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a for_each of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -334,7 +324,25 @@ License, Version 2.0:
 
 
 ====================Apache-2.0====================
+[Apache License v2.0 with LLVM Exceptions]: https://llvm.org/LICENSE.txt
+[Apache License v2.0]: https://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+====================Apache-2.0====================
+[Apache License v2.0]: https://www.apache.org/licenses/LICENSE-2.0.txt
+
+
+====================Apache-2.0====================
 licenses. Any divergence from the Apache 2 license will be noted in the source
+
+
+====================Apache-2.0 WITH LLVM-exception====================
+Thrust is distributed under the [Apache License v2.0 with LLVM Exceptions];
+
+
+====================Apache-2.0 WITH LLVM-exception====================
+[Apache License v2.0 with LLVM Exceptions]: https://llvm.org/LICENSE.txt
+[Apache License v2.0]: https://www.apache.org/licenses/LICENSE-2.0.txt
 
 
 ====================BSD-2-Clause====================
@@ -485,6 +493,10 @@ licenses. Any divergence from the Apache 2 license will be noted in the source
 
 
 ====================BSL-1.0====================
+  [Boost License v1.0].
+
+
+====================BSL-1.0====================
  * Distributed under the Boost Software License, Version 1.0.
 
 
@@ -495,12 +507,11 @@ licenses. Any divergence from the Apache 2 license will be noted in the source
 
 
 ====================BSL-1.0====================
-//  Distributed under the Boost Software License, Version 1.0. (See accompanying
-//  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+// Distributed under the Boost Software License v1.0 (boost.org/LICENSE_1_0.txt)
 
 
 ====================BSL-1.0====================
-// Distributed under the Boost Software License v1.0 (boost.org/LICENSE_1_0.txt)
+[Boost License v1.0]: https://www.boost.org/LICENSE_1_0.txt
 
 
 ====================Bsd-Unmodified====================
@@ -578,11 +589,19 @@ licenses. Any divergence from the Apache 2 license will be noted in the source
 
 
 ====================COPYRIGHT====================
+ *  Copyright 2018-2021 NVIDIA Corporation
+
+
+====================COPYRIGHT====================
  *  Copyright 2019 NVIDIA Corporation
 
 
 ====================COPYRIGHT====================
  *  Copyright 2020 NVIDIA Corporation
+
+
+====================COPYRIGHT====================
+ *  Copyright 2020-2021 NVIDIA Corporation
 
 
 ====================COPYRIGHT====================
@@ -678,11 +697,6 @@ licenses. Any divergence from the Apache 2 license will be noted in the source
 
 ====================COPYRIGHT====================
 * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
-
-
-====================COPYRIGHT====================
-//  Copyright (c)      2018 NVIDIA Corporation
-//  Copyright (c) 2015-2018 Bryce Adelstein Lelbach aka wash
 
 
 ====================COPYRIGHT====================
@@ -1961,6 +1975,10 @@ THRUST_NAMESPACE_END
 
 #include <thrust/system/tbb/detail/copy_if.inl>
 
+
+
+====================LicenseRef-scancode-unknown-license-reference====================
+Thrust is distributed under the [Apache License v2.0 with LLVM Exceptions];
 
 
 ====================NCSA AND MIT====================

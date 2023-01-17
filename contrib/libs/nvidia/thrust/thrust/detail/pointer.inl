@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
+
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/type_traits.h>
 
@@ -31,7 +34,7 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
 template<typename Element, typename Tag, typename Reference, typename Derived>
   __host__ __device__
   pointer<Element,Tag,Reference,Derived>
-    ::pointer(decltype(nullptr))
+    ::pointer(std::nullptr_t)
       : super_t(static_cast<Element*>(nullptr))
 {} // end pointer::pointer
 
@@ -177,28 +180,28 @@ operator<<(std::basic_ostream<charT, traits> &os,
 // `std::unique_ptr`.
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator==(decltype(nullptr), pointer<Element, Tag, Reference, Derived> p)
+bool operator==(std::nullptr_t, pointer<Element, Tag, Reference, Derived> p)
 {
   return nullptr == p.get();
 }
 
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator==(pointer<Element, Tag, Reference, Derived> p, decltype(nullptr))
+bool operator==(pointer<Element, Tag, Reference, Derived> p, std::nullptr_t)
 {
   return nullptr == p.get();
 }
 
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator!=(decltype(nullptr), pointer<Element, Tag, Reference, Derived> p)
+bool operator!=(std::nullptr_t, pointer<Element, Tag, Reference, Derived> p)
 {
   return !(nullptr == p);
 }
 
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator!=(pointer<Element, Tag, Reference, Derived> p, decltype(nullptr))
+bool operator!=(pointer<Element, Tag, Reference, Derived> p, std::nullptr_t)
 {
   return !(nullptr == p);
 }

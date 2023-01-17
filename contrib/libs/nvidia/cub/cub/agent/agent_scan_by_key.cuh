@@ -32,15 +32,16 @@
 
 #pragma once
 
-#include <iterator>
+#include <cub/agent/single_pass_scan_operators.cuh>
+#include <cub/block/block_discontinuity.cuh>
+#include <cub/block/block_load.cuh>
+#include <cub/block/block_scan.cuh>
+#include <cub/block/block_store.cuh>
+#include <cub/config.cuh>
+#include <cub/iterator/cache_modified_input_iterator.cuh>
+#include <cub/util_type.cuh>
 
-#include "single_pass_scan_operators.cuh"
-#include "../block/block_load.cuh"
-#include "../block/block_store.cuh"
-#include "../block/block_scan.cuh"
-#include "../block/block_discontinuity.cuh"
-#include "../config.cuh"
-#include "../iterator/cache_modified_input_iterator.cuh"
+#include <iterator>
 
 
 CUB_NAMESPACE_BEGIN
@@ -138,7 +139,7 @@ struct AgentScanByKey
     using TilePrefixCallbackT = TilePrefixCallbackOp<SizeValuePairT, ReduceBySegmentOpT, ScanTileStateT>;
     using BlockScanT = BlockScan<SizeValuePairT, BLOCK_THREADS, AgentScanByKeyPolicyT::SCAN_ALGORITHM, 1, 1>;
 
-    union TempStorage
+    union TempStorage_
     {
         struct ScanStorage
         {
@@ -152,11 +153,13 @@ struct AgentScanByKey
         typename BlockStoreValuesT::TempStorage store_values;
     };
 
+    struct TempStorage : cub::Uninitialized<TempStorage_> {};
+
     //---------------------------------------------------------------------
     // Per-thread fields
     //---------------------------------------------------------------------
 
-    TempStorage &                 storage;
+    TempStorage_                 &storage;
     WrappedKeysInputIteratorT     d_keys_in;
     WrappedValuesInputIteratorT   d_values_in;
     ValuesOutputIteratorT         d_values_out;
@@ -414,7 +417,7 @@ struct AgentScanByKey
         ScanOpT               scan_op,
         InitValueT            init_value)
     : 
-        storage(storage),
+        storage(storage.Alias()),
         d_keys_in(d_keys_in),
         d_values_in(d_values_in),
         d_values_out(d_values_out),

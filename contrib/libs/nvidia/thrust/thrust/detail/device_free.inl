@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_free.inl
- *  \brief Inline file for device_free.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/device_free.h>

@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file sequence.inl
- *  \brief Inline file for sequence.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/sequence.h>

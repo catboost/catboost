@@ -159,7 +159,8 @@ struct AgentRadixSortHistogram
     __device__ __forceinline__
     void LoadTileKeys(OffsetT tile_offset, UnsignedBits (&keys)[ITEMS_PER_THREAD])    
     {
-        bool full_tile = tile_offset + TILE_ITEMS <= num_items;
+        // tile_offset < num_items always, hence the line below works
+        bool full_tile = num_items - tile_offset >= TILE_ITEMS;
         if (full_tile)
         {
             LoadDirectStriped<BLOCK_THREADS>(
@@ -236,11 +237,11 @@ struct AgentRadixSortHistogram
 
             // Process the tiles.
             OffsetT portion_offset = portion * MAX_PORTION_SIZE;
-            OffsetT portion_end =
-                portion_offset + CUB_MIN(MAX_PORTION_SIZE, num_items - portion_offset);
-            for (OffsetT tile_offset = portion_offset + blockIdx.x * TILE_ITEMS;
-                 tile_offset < portion_end; tile_offset += TILE_ITEMS * gridDim.x)
+            OffsetT portion_size = CUB_MIN(MAX_PORTION_SIZE, num_items - portion_offset);
+            for (OffsetT offset = blockIdx.x * TILE_ITEMS; offset < portion_size;
+                 offset += TILE_ITEMS * gridDim.x)
             {
+                OffsetT tile_offset = portion_offset + offset;
                 UnsignedBits keys[ITEMS_PER_THREAD];
                 LoadTileKeys(tile_offset, keys);
                 AccumulateSharedHistograms(tile_offset, keys);

@@ -75,13 +75,12 @@ template <
   typename DerivedPolicy
 , typename ForwardIt, typename Size, typename UnaryFunction
 >
-auto async_for_each_n(
+unique_eager_event async_for_each_n(
   execution_policy<DerivedPolicy>& policy,
   ForwardIt                        first,
   Size                             n,
   UnaryFunction                    func
-) -> unique_eager_event
-{
+) {
   unique_eager_event e;
 
   // Set up stream with dependencies.

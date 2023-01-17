@@ -79,7 +79,7 @@ __global__ void DeviceUniqueByKeySweepKernel(
         EqualityOpT,
         OffsetT>;
 
-    // Shared memory for AgentSelectIf
+    // Shared memory for AgentUniqueByKey
     __shared__ typename AgentUniqueByKeyT::TempStorage temp_storage;
 
     // Process tiles

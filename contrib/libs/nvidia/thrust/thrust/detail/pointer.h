@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,6 +14,11 @@
  *  limitations under the License.
  */
 
+/*! \file
+ *  \brief A pointer to a variable which resides in memory associated with a
+ *  system.
+ */
+
 #pragma once
 
 #include <thrust/detail/config.h>
@@ -24,6 +29,7 @@
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/reference_forward_declaration.h>
 #include <ostream>
+#include <cstddef>
 
 THRUST_NAMESPACE_BEGIN
 
@@ -150,7 +156,7 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
     // NOTE: This is needed so that Thrust smart pointers can be used in
     // `std::unique_ptr`.
     __host__ __device__
-    pointer(decltype(nullptr));
+    pointer(std::nullptr_t);
 
     // OtherValue shall be convertible to Value
     // XXX consider making the pointer implementation a template parameter which defaults to Element *
@@ -184,7 +190,7 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
     // NOTE: This is needed so that Thrust smart pointers can be used in
     // `std::unique_ptr`.
     __host__ __device__
-    derived_type& operator=(decltype(nullptr));
+    derived_type& operator=(std::nullptr_t);
 
     // OtherPointer's element_type shall be convertible to Element
     // OtherPointer's system shall be convertible to Tag
@@ -229,19 +235,19 @@ operator<<(std::basic_ostream<charT, traits> &os,
 // `std::unique_ptr`.
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator==(decltype(nullptr), pointer<Element, Tag, Reference, Derived> p);
+bool operator==(std::nullptr_t, pointer<Element, Tag, Reference, Derived> p);
 
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator==(pointer<Element, Tag, Reference, Derived> p, decltype(nullptr));
+bool operator==(pointer<Element, Tag, Reference, Derived> p, std::nullptr_t);
 
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator!=(decltype(nullptr), pointer<Element, Tag, Reference, Derived> p);
+bool operator!=(std::nullptr_t, pointer<Element, Tag, Reference, Derived> p);
 
 template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
-bool operator!=(pointer<Element, Tag, Reference, Derived> p, decltype(nullptr));
+bool operator!=(pointer<Element, Tag, Reference, Derived> p, std::nullptr_t);
 
 THRUST_NAMESPACE_END
 

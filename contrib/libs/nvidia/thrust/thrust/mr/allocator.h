@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-/*! \file allocator.h
- *  \brief Allocator types usable with NPA-based memory resources.
+/*! \file 
+ *  \brief Allocator types usable with \ref Memory Resources.
  */
 
 #pragma once
@@ -34,8 +34,7 @@ THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
-/*! \addtogroup memory_management Memory Management
- *  \addtogroup memory_management_classes Memory Management Classes
+/*! \addtogroup allocators Allocators
  *  \ingroup memory_management
  *  \{
  */
@@ -60,7 +59,7 @@ public:
     typedef T value_type;
     /*! The pointer type allocated by this allocator. Equivaled to the pointer type of \p MR rebound to \p T. */
     typedef typename thrust::detail::pointer_traits<void_pointer>::template rebind<T>::other pointer;
-    /*! The pointer to const type. Equivalent to a pointer type of \p MR reboud to <tt>const T</tt>. */
+    /*! The pointer to const type. Equivalent to a pointer type of \p MR rebound to <tt>const T</tt>. */
     typedef typename thrust::detail::pointer_traits<void_pointer>::template rebind<const T>::other const_pointer;
     /*! The reference to the type allocated by this allocator. Supports smart references. */
     typedef typename thrust::detail::pointer_traits<pointer>::reference reference;
@@ -92,7 +91,7 @@ public:
 
     /*! Calculates the maximum number of elements allocated by this allocator.
      *
-     *  \returns the maximum value of \p std::size_t, divided by the size of \p T.
+     *  \return the maximum value of \p std::size_t, divided by the size of \p T.
      */
     __thrust_exec_check_disable__
     __host__ __device__
@@ -120,7 +119,7 @@ public:
     /*! Allocates objects of type \p T.
      *
      *  \param n number of elements to allocate
-     *  \returns a pointer to the newly allocated storage.
+     *  \return a pointer to the newly allocated storage.
      */
     THRUST_NODISCARD
     __host__
@@ -142,7 +141,7 @@ public:
 
     /*! Extracts the memory resource used by this allocator.
      *
-     *  \returns the memory resource used by this allocator.
+     *  \return the memory resource used by this allocator.
      */
     __host__ __device__
     MR * resource() const
@@ -244,6 +243,9 @@ public:
     __host__ __device__
     ~stateless_resource_allocator() {}
 };
+
+/*! \} // allocators
+ */
 
 } // end mr
 THRUST_NAMESPACE_END

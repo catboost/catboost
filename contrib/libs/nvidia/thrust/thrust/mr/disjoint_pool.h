@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-/*! \file disjoint_pool.h
+/*! \file 
  *  \brief A caching and pooling memory resource adaptor which uses separate upstream resources for memory allocation
  *      and bookkeeping.
  */
@@ -39,7 +39,7 @@ namespace mr
 {
 
 /** \addtogroup memory_resources Memory Resources
- *  \ingroup memory_management_classes
+ *  \ingroup memory_management
  *  \{
  */
 
@@ -481,7 +481,7 @@ public:
     }
 };
 
-/*! \}
+/*! \} // memory_resource
  */
 
 } // end mr

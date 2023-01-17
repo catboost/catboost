@@ -658,7 +658,7 @@ public:
    *                                           thread_data,
    *                                           valid_items,
    *                                           -1);
-   * @endcod
+   * @endcode
    * @par
    * Suppose the input @p d_data is <tt>0, 1, 2, 3, 4, 5, ...</tt>, @p valid_items
    * is @p 5, and the out-of-bounds default is @p -1.

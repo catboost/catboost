@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file uninitialized_copy.inl
- *  \brief Inline file for uninitialized_copy.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 

@@ -129,10 +129,8 @@ struct DispatchSelectIf
      * Types and constants
      ******************************************************************************/
 
-    // The output value type
-    using OutputT =
-      cub::detail::non_void_value_t<SelectedOutputIteratorT,
-                                    cub::detail::value_t<InputIteratorT>>;
+    // The input value type
+    using InputT = cub::detail::value_t<InputIteratorT>;
 
     // The flag value type
     using FlagT = cub::detail::value_t<FlagsInputIteratorT>;
@@ -155,7 +153,7 @@ struct DispatchSelectIf
     {
         enum {
             NOMINAL_4B_ITEMS_PER_THREAD = 10,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(OutputT)))),
+            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(InputT)))),
         };
 
         typedef AgentSelectIfPolicy<

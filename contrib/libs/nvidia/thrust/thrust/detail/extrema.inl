@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/extrema.h>
@@ -139,7 +140,7 @@ ForwardIterator max_element(ForwardIterator first, ForwardIterator last,
 
 
 template <typename ForwardIterator>
-thrust::pair<ForwardIterator,ForwardIterator> 
+thrust::pair<ForwardIterator,ForwardIterator>
 minmax_element(ForwardIterator first, ForwardIterator last)
 {
   using thrust::system::detail::generic::select_system;
@@ -153,7 +154,7 @@ minmax_element(ForwardIterator first, ForwardIterator last)
 
 
 template <typename ForwardIterator, typename BinaryPredicate>
-thrust::pair<ForwardIterator,ForwardIterator> 
+thrust::pair<ForwardIterator,ForwardIterator>
 minmax_element(ForwardIterator first, ForwardIterator last, BinaryPredicate comp)
 {
   using thrust::system::detail::generic::select_system;

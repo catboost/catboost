@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/mismatch.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -55,12 +57,12 @@ __host__ __device__
   // Contributed by Erich Elsen
   typedef thrust::tuple<InputIterator1,InputIterator2> IteratorTuple;
   typedef thrust::zip_iterator<IteratorTuple>          ZipIterator;
-  
+
   ZipIterator zipped_first = thrust::make_zip_iterator(thrust::make_tuple(first1,first2));
   ZipIterator zipped_last  = thrust::make_zip_iterator(thrust::make_tuple(last1, first2));
-  
+
   ZipIterator result = thrust::find_if_not(exec, zipped_first, zipped_last, thrust::detail::tuple_binary_predicate<BinaryPredicate>(pred));
-  
+
   return thrust::make_pair(thrust::get<0>(result.get_iterator_tuple()),
                            thrust::get<1>(result.get_iterator_tuple()));
 } // end mismatch()

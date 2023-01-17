@@ -14,6 +14,11 @@
  *  limitations under the License.
  */
 
+/*! \file 
+ *  \brief A pointer to a variable which resides in memory associated with a
+ *  system.
+ */
+
 #pragma once
 
 #include <thrust/detail/config.h>
@@ -55,25 +60,29 @@ public:
 
   reference(reference&&) = default;
 
-  /*! Construct a \p reference from another \p reference of a related type.
-   *  After this \p reference is constructed, it shall refer to the same object
-   *  as \p other.
+  /*! Construct a \p reference from another \p reference whose pointer type is
+   *  convertible to \p pointer. After this \p reference is constructed, it
+   *  shall refer to the same object as \p other.
    *
-   *  \param  other        A \p reference to copy from.
    *  \tparam OtherElement The element type of the other \p reference.
    *  \tparam OtherPointer The pointer type of the other \p reference.
    *  \tparam OtherDerived The derived type of the other \p reference.
+   *  \param  other        A \p reference to copy from.
    */
   template <typename OtherElement, typename OtherPointer, typename OtherDerived>
   __host__ __device__
   reference(
     reference<OtherElement, OtherPointer, OtherDerived> const& other
+  /*! \cond
+   */
   , typename std::enable_if<
       std::is_convertible<
         typename reference<OtherElement, OtherPointer, OtherDerived>::pointer
       , pointer
       >::value
     >::type* = nullptr
+  /*! \endcond
+   */
   )
     : ptr(other.ptr)
   {}
@@ -102,24 +111,33 @@ public:
   }
 
   /*! Assign the object referred to by this \p reference with the object
-   *  referred to by another \p reference of related type.
+   *  referred to by another \p reference whose pointer type is convertible to
+   *  \p pointer.
    *
-   *  \param  other        The other \p reference to assign from.
    *  \tparam OtherElement The element type of the other \p reference.
    *  \tparam OtherPointer The pointer type of the other \p reference.
    *  \tparam OtherDerived The derived type of the other \p reference.
+   *  \param  other        The other \p reference to assign from.
    *
    *  \return <tt>*this</tt>.
    */
   template <typename OtherElement, typename OtherPointer, typename OtherDerived>
   __host__ __device__
+  /*! \cond
+   */
   typename std::enable_if<
     std::is_convertible<
       typename reference<OtherElement, OtherPointer, OtherDerived>::pointer
     , pointer
-    >::value
-  , derived_type&
+    >::value,
+  /*! \endcond
+   */
+    derived_type&
+  /*! \cond
+   */
   >::type
+  /*! \endcond
+   */
   operator=(reference<OtherElement, OtherPointer, OtherDerived> const& other)
   {
     assign_from(&other);
@@ -384,6 +402,9 @@ std::basic_ostream<CharT, Traits>& operator<<(
 template <typename Element, typename Tag>
 class tagged_reference;
 
+/*! \p tagged_reference acts as a reference-like wrapper for an object residing
+ *  in memory associated with system \p Tag that a \p pointer refers to.
+ */
 template <typename Element, typename Tag>
 class tagged_reference
   : public thrust::reference<
@@ -407,25 +428,17 @@ public:
 
   tagged_reference(tagged_reference&&) = default;
 
-  /*! Construct a \p tagged_reference from another \p tagged_reference of a
-   *  related type. After this \p tagged_reference is constructed, it shall
-   *  refer to the same object as \p other.
+  /*! Construct a \p tagged_reference from another \p tagged_reference whose
+   *  pointer type is convertible to \p pointer. After this \p tagged_reference
+   *  is constructed, it shall refer to the same object as \p other.
    *
-   *  \param  other        A \p tagged_reference to copy from.
    *  \tparam OtherElement The element type of the other \p tagged_reference.
    *  \tparam OtherTag     The tag type of the other \p tagged_reference.
+   *  \param  other        A \p tagged_reference to copy from.
    */
   template <typename OtherElement, typename OtherTag>
   __host__ __device__
-  tagged_reference(
-    tagged_reference<OtherElement, OtherTag> const& other
-  , typename std::enable_if<
-      std::is_convertible<
-        typename tagged_reference<OtherElement, OtherTag>::pointer
-      , pointer
-      >::value
-    >::type * = nullptr
-  )
+  tagged_reference(tagged_reference<OtherElement, OtherTag> const& other)
     : base_type(other)
   {}
 
@@ -453,23 +466,18 @@ public:
   }
 
   /*! Assign the object referred to by this \p tagged_reference with the object
-   *  referred to by another \p tagged_reference of related type.
+   *  referred to by another \p tagged_reference whose pointer type is
+   *  convertible to \p pointer.
    *
-   *  \param  other        The other \p tagged_reference to assign from.
    *  \tparam OtherElement The element type of the other \p tagged_reference.
    *  \tparam OtherTag     The tag type of the other \p tagged_reference.
+   *  \param  other        The other \p tagged_reference to assign from.
    *
    *  \return <tt>*this</tt>.
    */
   template <typename OtherElement, typename OtherTag>
   __host__ __device__
-  typename std::enable_if<
-    std::is_convertible<
-      typename tagged_reference<OtherElement, OtherTag>::pointer
-    , pointer
-    >::value
-  , tagged_reference&
-  >::type
+  tagged_reference&
   operator=(tagged_reference<OtherElement, OtherTag> const& other)
   {
     return base_type::operator=(other);

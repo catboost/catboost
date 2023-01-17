@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
+#pragma once
 
 #include <thrust/detail/config.h>
 
@@ -72,20 +74,20 @@ template<class T>
   typedef typename T::head_type type;
 };
 
-template <size_t N, class T> 
-  struct tuple_element<N, T const> 
+template <size_t N, class T>
+  struct tuple_element<N, T const>
 {
     using type = typename std::add_const<typename tuple_element<N, T>::type>::type;
 };
 
-template <size_t N, class T> 
-struct tuple_element<N, T volatile> 
+template <size_t N, class T>
+struct tuple_element<N, T volatile>
 {
     using type = typename std::add_volatile<typename tuple_element<N, T>::type>::type;
 };
 
-template <size_t N, class T> 
-  struct tuple_element<N, T const volatile> 
+template <size_t N, class T>
+  struct tuple_element<N, T const volatile>
 {
     using type = typename std::add_cv<typename tuple_element<N, T>::type>::type;
 };
@@ -211,7 +213,7 @@ struct get_class
     // XXX we may not need to deal with this for any compiler we care about -jph
     //return get_class<N-1>::BOOST_NESTED_TEMPLATE get<RET>(t.tail);
     return get_class<N-1>::template get<RET>(t.tail);
-    
+
     // gcc 4.3 couldn't compile this:
     //return get_class<N-1>::get<RET>(t.tail);
   }
@@ -640,7 +642,7 @@ inline typename access_traits<
 get(detail::cons<HT, TT>& c)
 {
   //return detail::get_class<N>::BOOST_NESTED_TEMPLATE
-  
+
   // gcc 4.3 couldn't compile this:
   //return detail::get_class<N>::
 

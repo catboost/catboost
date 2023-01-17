@@ -23,6 +23,7 @@
 
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
+#include <thrust/iterator/iterator_traits.h>
 #include <thrust/pair.h>
 
 THRUST_NAMESPACE_BEGIN
@@ -954,6 +955,180 @@ template<typename InputIterator1,
                      OutputIterator1 keys_result,
                      OutputIterator2 values_result,
                      BinaryPredicate binary_pred);
+
+
+/*! \p unique_count counts runs of equal elements in the range <tt>[first, last)</tt>
+ *  with the same value, 
+ *
+ *  This version of \p unique_count uses the function object \p binary_pred to test for equality.
+ *
+ *  The algorithm's execution is parallelized as determined by \p exec.
+ *
+ *  \param exec The execution policy to use for parallelization.
+ *  \param first The beginning of the input range.
+ *  \param last  The end of the input range.
+ *  \param binary_pred  The binary predicate used to determine equality.
+ *  \return The number of runs of equal elements in <tt>[first, new_last)</tt>
+ *
+ *  \tparam DerivedPolicy The name of the derived execution policy.
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
+ *          and \p ForwardIterator's \c value_type is convertible to \p BinaryPredicate's \c first_argument_type and to \p BinaryPredicate's \c second_argument_type.
+ *  \tparam BinaryPredicate is a model of <a href="https://en.cppreference.com/w/cpp/named_req/BinaryPredicate">Binary Predicate</a>.
+ *
+ *  The following code snippet demonstrates how to use \p unique_count to
+ *  determine a number of runs of equal elements using the \p thrust::host execution policy
+ *  for parallelization:
+ *
+ *  \code
+ *  #include <thrust/unique.h>
+ *  #include <thrust/execution_policy.h>
+ *  ...
+ *  const int N = 7;
+ *  int A[N] = {1, 3, 3, 3, 2, 2, 1};
+ *  int count = thrust::unique_count(thrust::host, A, A + N, thrust::equal_to<int>());
+ *  // count is now 4
+ *  \endcode
+ *
+ *  \see unique_copy
+ *  \see unique_by_key_copy
+ *  \see reduce_by_key_copy
+ */
+template<typename DerivedPolicy,
+         typename ForwardIterator,
+         typename BinaryPredicate>
+__host__ __device__
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred);
+
+
+/*! \p unique_count counts runs of equal elements in the range <tt>[first, last)</tt>
+ *  with the same value, 
+ *
+ *  This version of \p unique_count uses \c operator== to test for equality.
+ *
+ *  The algorithm's execution is parallelized as determined by \p exec.
+ *
+ *  \param exec The execution policy to use for parallelization.
+ *  \param first The beginning of the input range.
+ *  \param last  The end of the input range.
+ *  \param binary_pred  The binary predicate used to determine equality.
+ *  \return The number of runs of equal elements in <tt>[first, new_last)</tt>
+ *
+ *  \tparam DerivedPolicy The name of the derived execution policy.
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
+ *          and \p ForwardIterator's \c value_type is convertible to \p BinaryPredicate's \c first_argument_type and to \p BinaryPredicate's \c second_argument_type.
+ *  \tparam BinaryPredicate is a model of <a href="https://en.cppreference.com/w/cpp/named_req/BinaryPredicate">Binary Predicate</a>.
+ *
+ *  The following code snippet demonstrates how to use \p unique_count to
+ *  determine the number of runs of equal elements using the \p thrust::host execution policy
+ *  for parallelization:
+ *
+ *  \code
+ *  #include <thrust/unique.h>
+ *  #include <thrust/execution_policy.h>
+ *  ...
+ *  const int N = 7;
+ *  int A[N] = {1, 3, 3, 3, 2, 2, 1};
+ *  int count = thrust::unique_count(thrust::host, A, A + N);
+ *  // count is now 4
+ *  \endcode
+ *
+ *  \see unique_copy
+ *  \see unique_by_key_copy
+ *  \see reduce_by_key_copy
+ */
+template<typename DerivedPolicy,
+         typename ForwardIterator>
+__host__ __device__
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last);
+
+
+/*! \p unique_count counts runs of equal elements in the range <tt>[first, last)</tt>
+ *  with the same value, 
+ *
+ *  This version of \p unique_count uses the function object \p binary_pred to test for equality.
+ *
+ *  \param exec The execution policy to use for parallelization.
+ *  \param first The beginning of the input range.
+ *  \param last  The end of the input range.
+ *  \param binary_pred  The binary predicate used to determine equality.
+ *  \return The number of runs of equal elements in <tt>[first, new_last)</tt>
+ *
+ *  \tparam DerivedPolicy The name of the derived execution policy.
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
+ *          and \p ForwardIterator's \c value_type is convertible to \p BinaryPredicate's \c first_argument_type and to \p BinaryPredicate's \c second_argument_type.
+ *  \tparam BinaryPredicate is a model of <a href="https://en.cppreference.com/w/cpp/named_req/BinaryPredicate">Binary Predicate</a>.
+ *
+ *  The following code snippet demonstrates how to use \p unique_count to
+ *  determine the number of runs of equal elements:
+ *
+ *  \code
+ *  #include <thrust/unique.h>
+ *  #include <thrust/execution_policy.h>
+ *  ...
+ *  const int N = 7;
+ *  int A[N] = {1, 3, 3, 3, 2, 2, 1};
+ *  int count = thrust::unique_count(A, A + N, thrust::equal_to<int>());
+ *  // count is now 4
+ *  \endcode
+ *
+ *  \see unique_copy
+ *  \see unique_by_key_copy
+ *  \see reduce_by_key_copy
+ */
+template<typename ForwardIterator,
+         typename BinaryPredicate>
+__host__ __device__
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred);
+
+
+/*! \p unique_count counts runs of equal elements in the range <tt>[first, last)</tt>
+ *  with the same value, 
+ *
+ *  This version of \p unique_count uses \c operator== to test for equality.
+ *
+ *  \param exec The execution policy to use for parallelization.
+ *  \param first The beginning of the input range.
+ *  \param last  The end of the input range.
+ *  \param binary_pred  The binary predicate used to determine equality.
+ *  \return The number of runs of equal elements in <tt>[first, new_last)</tt>
+ *
+ *  \tparam DerivedPolicy The name of the derived execution policy.
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
+ *          and \p ForwardIterator's \c value_type is convertible to \p BinaryPredicate's \c first_argument_type and to \p BinaryPredicate's \c second_argument_type.
+ *  \tparam BinaryPredicate is a model of <a href="https://en.cppreference.com/w/cpp/named_req/BinaryPredicate">Binary Predicate</a>.
+ *
+ *  The following code snippet demonstrates how to use \p unique_count to
+ *  determine the number of runs of equal elements:
+ *
+ *  \code
+ *  #include <thrust/unique.h>
+ *  #include <thrust/execution_policy.h>
+ *  ...
+ *  const int N = 7;
+ *  int A[N] = {1, 3, 3, 3, 2, 2, 1};
+ *  int count = thrust::unique_count(thrust::host, A, A + N);
+ *  // count is now 4
+ *  \endcode
+ *
+ *  \see unique_copy
+ *  \see unique_by_key_copy
+ *  \see reduce_by_key_copy
+ */
+template<typename ForwardIterator>
+__host__ __device__
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(ForwardIterator first,
+                 ForwardIterator last);
 
 
 /*! \} // end stream_compaction

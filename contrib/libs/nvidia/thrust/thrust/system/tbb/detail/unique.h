@@ -49,6 +49,16 @@ template<typename ExecutionPolicy,
                              BinaryPredicate binary_pred);
 
 
+template<typename DerivedPolicy,
+         typename ForwardIterator,
+         typename BinaryPredicate>
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(execution_policy<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred);
+
+
 } // end namespace detail
 } // end namespace tbb 
 } // end namespace system
