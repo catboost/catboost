@@ -125,6 +125,16 @@ public:
 
         return it->second.data();
     }
+
+    inline TStringBuf FormFieldBuf(const TStringBuf name, size_t numOfValue = 0) const {
+        const_iterator it = Find(name, numOfValue);
+
+        if (it == end()) {
+            return nullptr;
+        }
+
+        return it->second.data();
+    }
 };
 
 template <typename TIter>

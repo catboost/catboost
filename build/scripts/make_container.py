@@ -28,12 +28,9 @@ def main(output_path, entry_path, input_paths, squashfs_path):
     program_path = other_paths[0]
     program_container_path = os.path.basename(program_path)
 
-    add_cmd = [ os.path.join(squashfs_path, 'mksquashfs') ]
-    add_cmd.extend([ program_path, 'program_layer'])
-    subprocess.run(add_cmd)
     os.symlink(program_container_path, 'entry')
     add_cmd = [ os.path.join(squashfs_path, 'mksquashfs') ]
-    add_cmd.extend(['entry', 'program_layer'])
+    add_cmd.extend([program_path, 'entry', 'program_layer'])
     subprocess.run(add_cmd)
 
     layer_paths.append('program_layer')
