@@ -2948,7 +2948,6 @@ migrations:
     - dict/tools/unicode_test/tests
     - dict/tools/untransliter/tests
     - dict/word2vec/tools/convert_model/tests
-    - dj/lib/shard2/yt_prepare/ut/run_test
     - dj/tools/rthub_profiles/profile_update_triggers/profile_update_trigger_rtmr/tests
     - entity/ontodb/robot/tests/integration
     - entity/ontodb/tasks/watson_converter/lib/ut
@@ -3461,7 +3460,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/t
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt
     - ads/sandbox_scripts/visibility_stats/fat
-    - ads/pytorch/lib/online_learning/production/model_folder/medium_ut
     - ads/pytorch/ads_pytorch_integration_test
     - ads/nirvana/online_learning/prepare_factorization_table/tsar_preprocessor/ut
     - ads/nirvana/automl/pipelines/mlmarines/medium_ut
