@@ -306,10 +306,10 @@
             "description": "Run saas2 cli"
         },
         "go": {
-            "description": "Run go tool (1.17.7)"
+            "description": "Run go tool (1.17.8)"
         },
         "gofmt": {
-            "description": "Run gofmt tool (1.17.7)"
+            "description": "Run gofmt tool (1.17.8)"
         },
         "go_1.18rc1": {
             "description": "Run go tool (1.18rc1)"
@@ -5047,18 +5047,18 @@
                 }
             ]
         },
-        "golang_1_17_7": {
+        "golang_1_17_8": {
             "tools": {
                 "golang": {
-                    "bottle": "golang_1.17.7",
+                    "bottle": "golang_1.17.8",
                     "executable": "golang"
                 },
                 "go": {
-                    "bottle": "golang_1.17.7",
+                    "bottle": "golang_1.17.8",
                     "executable": "go"
                 },
                 "gofmt": {
-                    "bottle": "golang_1.17.7",
+                    "bottle": "golang_1.17.8",
                     "executable": "gofmt"
                 }
             },
@@ -5091,7 +5091,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.17.7"
+                "version": "1.17.8"
             }
         },
         "golang_1_18rc1": {
@@ -7737,13 +7737,13 @@
                 ]
             }
         },
-        "golang_1.17.7": {
+        "golang_1.17.8": {
             "formula": {
                 "sandbox_id": [
-                    1217046835,
-                    1217047391,
-                    1217047830,
-                    1217048395
+                    1245612889,
+                    1245613360,
+                    1245613918,
+                    1245614433
                 ],
                 "match": "GOLANG"
             },
