@@ -1,4 +1,4 @@
-service: ci
+service: matrixnet
 title: catboost-python-package-ut-medium-gpu
 ci:
   secret: sec-01dqsrttc93hr0m4s6p87kzba4
