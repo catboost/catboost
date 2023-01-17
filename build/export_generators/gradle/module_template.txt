@@ -7,7 +7,30 @@ repositories {
 }
 
 dependencies{
-{% for library in consumer_link_library -%}
-{{library}}
+{% if hasTest -%}
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+
+    api("org.apache.commons:commons-math3:3.6.1")
+
+    implementation("com.google.guava:guava:31.0.1-jre")
+{% endif -%}
+}
+{% if hasTest %}
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+}
+{% endif -%}
+
+/*
+Libraries{
+{% for target in targets -%}
+{% for library in target.consumer_link_library -%}
+{% if target.isTestTarget -%}
+    library for test:{{ library }}
+{% else -%}
+    library:{{ library }}
+{% endif -%}
+{% endfor -%}
 {% endfor -%}
 }
+*/

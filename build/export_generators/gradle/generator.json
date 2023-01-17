@@ -26,6 +26,11 @@
     "KnownRootAttrs":
     [
       "add_library"
+    ],
+    "testSubdirs":
+    [
+      "/src/test",
+      "/src/test/java"
     ]
   }
 }
