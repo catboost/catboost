@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(2022-02-01)
+VERSION(2022-04-01)
 
-ORIGINAL_SOURCE(https://github.com/google/re2/archive/2022-02-01.tar.gz)
+ORIGINAL_SOURCE(https://github.com/google/re2/archive/2022-04-01.tar.gz)
 
 LICENSE(
     BSD-3-Clause AND
