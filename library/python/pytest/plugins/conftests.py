@@ -11,10 +11,10 @@ orig_getfile = inspect.getfile
 
 
 def getfile(object):
-    res = orig_getfile(object)
-    if inspect.ismodule(object):
-        if not res and getattr(object, '__orig_file__'):
-            res = object.__orig_file__
+    if inspect.ismodule(object) and getattr(object, '__orig_file__', None):
+        res = object.__orig_file__
+    else:
+        res = orig_getfile(object)
     return res
 
 inspect.getfile = getfile

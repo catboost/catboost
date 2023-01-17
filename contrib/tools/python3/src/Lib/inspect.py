@@ -655,13 +655,13 @@ def cleandoc(doc):
 def getfile(object):
     """Work out which source or compiled file an object was defined in."""
     if ismodule(object):
-        if getattr(object, '__file__', None) is not None:
+        if getattr(object, '__file__', None):
             return object.__file__
         raise TypeError('{!r} is a built-in module'.format(object))
     if isclass(object):
         if hasattr(object, '__module__'):
             module = sys.modules.get(object.__module__)
-            if getattr(module, '__file__', None) is not None:
+            if getattr(module, '__file__', None):
                 return module.__file__
         raise TypeError('{!r} is a built-in class'.format(object))
     if ismethod(object):
