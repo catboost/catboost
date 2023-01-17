@@ -330,7 +330,6 @@ library/python/cia_stuff
 portal/frontend/gitworker
 intranet/legacy/emission
 passport/backend/grants_configurator
-afisha/infra/projects/yandex-alet-logstore-stats
 data-ui/YaDB
 intranet/uhura
 intranet/viewer
