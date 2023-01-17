@@ -87,5 +87,6 @@ ci:
               create_pr: true
               branch_prefix: deploy-tools
               branch_suffix: ${context.version_info.full}
-              push_from_user: true
+              push_from_user: false
             sb_resources: ${(tasks.*.resources[])[?type == 'PLATFORM_MAPPING']}
+# Trigger

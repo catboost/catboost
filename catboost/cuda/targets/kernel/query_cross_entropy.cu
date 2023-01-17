@@ -2,13 +2,12 @@
 #include <library/cpp/cuda/wrappers/arch.cuh>
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 
 #include <util/generic/cast.h>
 
-#include _CUB_INCLUDE(cub/util_ptx.cuh)
+#include <contrib/libs/nvidia/cub/cub/util_ptx.cuh>
 
 
 #include <cooperative_groups.h>

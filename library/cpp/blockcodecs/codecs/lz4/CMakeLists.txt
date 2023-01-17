@@ -12,7 +12,6 @@ target_link_libraries(blockcodecs-codecs-lz4 INTERFACE
   contrib-libs-cxxsupp
   yutil
   contrib-libs-lz4
-  libs-lz4-generated
   cpp-blockcodecs-core
 )
 
@@ -21,7 +20,6 @@ target_link_libraries(blockcodecs-codecs-lz4.global PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-lz4
-  libs-lz4-generated
   cpp-blockcodecs-core
 )
 target_sources(blockcodecs-codecs-lz4.global PRIVATE

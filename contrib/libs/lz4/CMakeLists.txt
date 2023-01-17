@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(generated)
 
 add_library(contrib-libs-lz4)
 target_include_directories(contrib-libs-lz4 PRIVATE

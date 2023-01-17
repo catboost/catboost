@@ -4,10 +4,11 @@ LIBRARY()
 
 PEERDIR(
     contrib/libs/fastlz
-    contrib/libs/lz4
     contrib/libs/minilzo
     contrib/libs/quicklz
-    contrib/libs/snappy
+
+    library/cpp/streams/lz/snappy
+    library/cpp/streams/lz/lz4
 )
 
 SRCS(

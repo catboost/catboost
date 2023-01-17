@@ -1,7 +1,6 @@
 #pragma once
-#include <library/cpp/cuda/wrappers/cub_include.h>
-#include _CUB_INCLUDE(cub/thread/thread_load.cuh)
-#include _CUB_INCLUDE(cub/thread/thread_store.cuh)
+#include <contrib/libs/nvidia/cub/cub/thread/thread_load.cuh>
+#include <contrib/libs/nvidia/cub/cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
 

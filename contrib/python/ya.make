@@ -55,6 +55,7 @@ RECURSE(
     tomli
     tornado
     traitlets
+    types-protobuf
     typing
     wcwidth
 )

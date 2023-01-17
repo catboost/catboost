@@ -23,7 +23,6 @@ RECURSE(
     linux-headers
     linuxvdso
     lz4
-    lz4/generated
     lzma
     lzmasdk
     mimalloc

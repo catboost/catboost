@@ -4,14 +4,13 @@
 
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 
-#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/cuda_util/kernel/update_part_props.cuh>
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit.cuh>
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit_impl.cuh>
 
-#include _CUB_INCLUDE(cub/device/device_radix_sort.cuh)
+#include <contrib/libs/nvidia/cub/cub/device/device_radix_sort.cuh>
 
 namespace NKernel {
 

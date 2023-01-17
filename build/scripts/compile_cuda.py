@@ -54,7 +54,14 @@ def main():
         '-Wno-c++17-extensions',
         '-flto',
         '-faligned-allocation',
-        '-fsized-deallocation'
+        '-fsized-deallocation',
+        # While it might be reasonable to compile host part of .cu sources with these optimizations enabled,
+        # nvcc passes these options down towards cicc which lacks x86_64 extensions support.
+        '-msse2',
+        '-msse3',
+        '-mssse3',
+        '-msse4.1',
+        '-msse4.2',
     ]
 
     if skip_nocxxinc:
