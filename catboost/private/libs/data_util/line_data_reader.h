@@ -71,8 +71,6 @@ namespace NCB {
         */
         virtual bool ReadLine(TString* line, ui64* lineIdx = nullptr) = 0;
 
-        virtual bool ReadLine(TString*, TString*, ui64* lineIdx = nullptr) = 0;
-
         virtual ~ILineDataReader() = default;
     };
 
@@ -128,10 +126,6 @@ namespace NCB {
             }
             ++LineIndex;
             return IFStream.ReadLine(*line) != 0;
-        }
-
-        bool ReadLine(TString*, TString*, ui64*) override {
-            CB_ENSURE(false, "TFileLineDataReader: ReadLine(TString*, TString*, ui64*) is not implemented");
         }
 
     private:
