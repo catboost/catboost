@@ -29,4 +29,3 @@
     - sys/procfs.h: contrib/libs/breakpad/src/common/android/include/sys/procfs.h
     - sys/signal.h: contrib/libs/breakpad/src/common/android/include/sys/signal.h
     - sys/user.h:   contrib/libs/breakpad/src/common/android/include/sys/user.h
-    - ucontext.h:   contrib/libs/breakpad/src/common/android/include/ucontext.h
