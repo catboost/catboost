@@ -23,6 +23,7 @@ IF (NOT OS_WINDOWS)
     )
 ENDIF()
 
+DISABLE(PROVIDE_GETRANDOM_GETENTROPY)
 DISABLE(PROVIDE_REALLOCARRAY)
 
 # Android libc function appearance is documented here:
@@ -101,14 +102,12 @@ IF (OS_LINUX AND NOT MUSL)
         )
     ENDIF()
     IF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14" OR OS_SDK == "ubuntu-16")
-        ADDINCL(
-            GLOBAL contrib/libs/libc_compat/include/random
-        )
+        # getrandom and getentropy were added in glibc=2.25
+        ENABLE(PROVIDE_GETRANDOM_GETENTROPY)
+
         SRCS(
             # explicit_bzero was added in glibc=2.25
             explicit_bzero.c
-            # getrandom was added in glibc=2.25
-            getrandom.c
             # memfd_create was added in glibc=2.27
             memfd_create.c
         )
@@ -130,6 +129,16 @@ IF (PROVIDE_REALLOCARRAY)
     )
     ADDINCL(
         ONE_LEVEL contrib/libs/libc_compat/reallocarray
+    )
+ENDIF()
+
+IF (PROVIDE_GETRANDOM_GETENTROPY)
+    SRCS(
+        random/getrandom.c
+        random/getentropy.c
+    )
+    ADDINCL(
+        ONE_LEVEL contrib/libs/libc_compat/random
     )
 ENDIF()
 
