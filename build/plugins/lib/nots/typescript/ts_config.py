@@ -102,6 +102,45 @@ class TsConfig(object):
         if len(errors):
             raise TsValidationError(self.path, errors)
 
+    def transform_paths(self, build_path, sources_path):
+        """
+        Updates config with correct abs paths.
+        All source files/dirs will be mapped to `sources_path`, output files/dirs will be mapped to `build_path`.
+        :param build_path: module's build root
+        :type build_path: str
+        :param sources_path: module's source root
+        :type sources_path: str
+        """
+        opts = self.get_or_create_compiler_options()
+
+        sources_path_rel = lambda x: os.path.normpath(os.path.join(sources_path, x))
+        build_path_rel = lambda x: os.path.normpath(os.path.join(build_path, x))
+
+        root_dir = opts["rootDir"]
+        out_dir = opts["outDir"]
+
+        opts["rootDir"] = sources_path_rel(root_dir)
+        opts["outDir"] = build_path_rel(out_dir)
+
+        if opts.get("typeRoots"):
+            opts["typeRoots"] = list(map(sources_path_rel, opts["typeRoots"])) + list(map(build_path_rel, opts["typeRoots"]))
+
+        if opts.get("paths") is None:
+            opts["paths"] = {}
+
+        # See: https://st.yandex-team.ru/FBP-47#62b4750775525b18f08205c7
+        opts["paths"]["*"] = ["*", "./@types/*"]
+
+        opts["baseUrl"] = "./node_modules"
+
+        self.data["include"] = list(map(sources_path_rel, self.data.get("include", [])))
+        self.data["exclude"] = list(map(sources_path_rel, self.data.get("exclude", [])))
+
+        if opts.get("sourceMap"):
+            opts["sourceRoot"] = os.path.relpath(root_dir, out_dir)
+
+        opts["skipLibCheck"] = True
+
     def write(self, path=None):
         """
         :param path: tsconfig path, defaults to original path
