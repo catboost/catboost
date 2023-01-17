@@ -84,3 +84,4 @@ contest/devops/ansible
 hypercube/hardware/YHub10_STM32firmware
 data-ui/unipika
 market/ir/lib/ir-pattern-extractor
+data-ui/infra-components
