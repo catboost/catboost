@@ -13,7 +13,6 @@
 
 #include <util/stream/buffer.h>
 #include <util/memory/blob.h>
-#include <util/random/fast.h>
 
 using TOnlineHnswCloud = NOnlineHnsw::TOnlineHnswDenseVectorIndex<float, NHnsw::TL2SqrDistance<float>>;
 using THnswCloud = NHnsw::THnswDenseVectorIndex<float>;
@@ -98,19 +97,15 @@ namespace NCB {
             int totalDimension = 2,
             int numClasses = 2,
             ui32 closeNum = 5,
-            float samplingProbability = 1.0,
-            ui64 randSeed = 0,
             const TGuid& calcerId = CreateGuid()
         )
             : TEmbeddingFeatureCalcer(numClasses, calcerId)
             , TotalDimension(totalDimension)
             , NumClasses(numClasses)
             , CloseNum(closeNum)
-            , SamplingProbability(samplingProbability)
             , Size(0)
             , Cloud(MakeHolder<TKNNUpdatableCloud>(NOnlineHnsw::TOnlineHnswBuildOptions({CloseNum, 300}),
                                                    totalDimension))
-            , Rand(randSeed)
         {}
 
         void Compute(const TEmbeddingsArray& embed, TOutputFloatIterator outputFeaturesIterator) const override;
@@ -134,11 +129,9 @@ namespace NCB {
         int TotalDimension;
         int NumClasses;
         ui32 CloseNum;
-        float SamplingProbability;
         ui32 Size;
         TKNNCloudPtr Cloud;
         TVector<ui32> Targets;
-        TFastRng64 Rand;
 
     protected:
         friend class TKNNCalcerVisitor;

@@ -5,8 +5,6 @@
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 
-#include <util/generic/utility.h>
-
 namespace NCB {
 
     class TLDAEstimator final : public TEmbeddingBaseEstimator<TLinearDACalcer, TLinearDACalcerVisitor>{
@@ -89,11 +87,6 @@ namespace NCB {
             } else {
                 kNum = 5;
             }
-            if (options.Has("sampling_probability")) {
-                SamplingProbability = FromString<float>(options["sampling_probability"].GetString());
-            } else {
-                SamplingProbability = Max<float>(100000.f / float(learnEmbeddings->SamplesCount()), 1.0f);
-            }
         }
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
@@ -104,7 +97,7 @@ namespace NCB {
         }
 
         TKNNCalcer CreateFeatureCalcer() const override {
-            return TKNNCalcer(GetLearnDataset().GetDimension(), GetTarget().NumClasses, kNum, SamplingProbability);
+            return TKNNCalcer(GetLearnDataset().GetDimension(), GetTarget().NumClasses, kNum);
         }
 
         TKNNCalcerVisitor CreateCalcerVisitor() const override {
@@ -114,7 +107,6 @@ namespace NCB {
     private:
         ui32 ClassNum;
         ui32 kNum;
-        float SamplingProbability;
     };
 
     TVector<TOnlineFeatureEstimatorPtr> CreateEmbeddingEstimators(
