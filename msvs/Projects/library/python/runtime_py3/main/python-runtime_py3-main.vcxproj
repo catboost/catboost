@@ -82,6 +82,7 @@
     <ClCompile Include="$(SolutionDir)..\library\python\runtime_py3\main\main.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\library\python\runtime_py3\main\venv.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
