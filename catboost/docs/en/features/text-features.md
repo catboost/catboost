@@ -75,7 +75,7 @@ tokenizers = [{
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 #### dictionaries
 
@@ -129,7 +129,7 @@ dictionaries = [{
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 #### feature_calcers
 
@@ -177,7 +177,7 @@ feature_calcers = [
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 
 #### text_processing
@@ -210,7 +210,7 @@ Do not use this parameter with the following ones:
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 ### Additional classes
 
