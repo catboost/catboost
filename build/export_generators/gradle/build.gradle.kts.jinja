@@ -4,7 +4,7 @@ import com.google.protobuf.gradle.*
 val buildProtoDir = File("${buildDir}", "__proto__")
 
 plugins {
-    id("java")
+    id("java-library")
     id("com.google.protobuf") version "0.8.19"
 }
 
@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
 {% for library in targets[0].consumer_classpath -%}
-    implementation({{ library }})
+    api({{ library }})
 {% endfor -%}
 
 {% if targets[0].proto_namespace is defined -%}
