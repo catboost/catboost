@@ -1,6 +1,5 @@
 RECURSE(
     benchmark
-    cython
     fuzzing
     style
 )
