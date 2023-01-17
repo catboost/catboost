@@ -7180,7 +7180,7 @@
         "idea_style_config": {
             "formula": {
                 "sandbox_id": [
-                    874273162
+                    1562037399
                 ],
                 "match": "Intellij IDEA codestyle config"
             }
@@ -7340,7 +7340,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1553816860,
+                "sandbox_id": 1561957039,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -8143,7 +8143,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1560506661,
+                "sandbox_id": 1562795789,
                 "match": "app_host_launcher"
             },
             "executable": {
