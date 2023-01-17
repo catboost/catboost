@@ -18,6 +18,7 @@ class TLogTest: public TTestBase {
     UNIT_TEST(TestThreaded)
     UNIT_TEST(TestThreadedWithOverflow)
     UNIT_TEST(TestNoFlush)
+    UNIT_TEST(TestMetaFlags)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -27,6 +28,7 @@ private:
     void TestThreaded();
     void TestThreadedWithOverflow();
     void TestNoFlush();
+    void TestMetaFlags();
     void SetUp() override;
     void TearDown() override;
 };
@@ -180,6 +182,33 @@ void TLogTest::TestWrite() {
     }
 
     UNIT_ASSERT_EQUAL(data.Str(), test);
+}
+
+void TLogTest::TestMetaFlags() {
+    class TTestLogBackendStub: public TLogBackend {
+    public:
+        TTestLogBackendStub(TLogRecord::TMetaFlags& data)
+            : Data_(data)
+        {
+        }
+
+        void WriteData(const TLogRecord& record) override {
+            Data_ = record.MetaFlags;
+        }
+
+        void ReopenLog() override {
+        }
+
+    private:
+        TLogRecord::TMetaFlags& Data_;
+    };
+
+    TLogRecord::TMetaFlags metaFlags;
+    TLog log(MakeHolder<TTestLogBackendStub>(metaFlags));
+    log.Write(ELogPriority::TLOG_INFO, TString("message"), {{"key", "value"}});
+
+    TLogRecord::TMetaFlags expected{{"key", "value"}};
+    UNIT_ASSERT_EQUAL(metaFlags, expected);
 }
 
 void TLogTest::SetUp() {
