@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\0d2532d03412f1cba2c3b05e2e.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\1b450de614cb38132d72f22bf7.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\6107e88de3aa89bfbc8dd5f237.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/0d2532d03412f1cba2c3b05e2e.cpp" "_fd72a8184d92c531434d4551a8=/py_modules/library.python.pytest.plugins.ya" "_b8479bcaeb1b45f4cad175e553=resfs/src//py_modules/library.python.pytest.plugins.ya" "_ad6d60851308115b653f469c32=/py_code/library.python.pytest.plugins.ya" "_c0077441eb0357fa55ef503efb=/py_modules/library.python.pytest.plugins.collection" "_d08dcd9bd6dca4f1d2aae84364=resfs/src//py_modules/library.python.pytest.plugins.collection" "_ceae7cf57737e8d55aa3a1e410=/py_code/library.python.pytest.plugins.collection" "_fa57f8ce0bc8eead660f198dc4=/py_modules/library.python.pytest.plugins.conftests" "_fffad94ff68f0477bf3ee83cdd=resfs/src//py_modules/library.python.pytest.plugins.conftests" "_4f5a4b4b3f23db2fc66009d63e=/py_code/library.python.pytest.plugins.conftests" "_37007870ff05db7fbe64672586=/py_modules/library.python.pytest.plugins.fixtures" "_b6e8dcafc666843f9dcc267b66=resfs/src//py_modules/library.python.pytest.plugins.fixtures" "_635ddd9846f1ec4ec484f8641e=/py_code/library.python.pytest.plugins.fixtures"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp" "_df3d6b30eb7d48b6e6de2f8cab=/py_modules/library.python.pytest.plugins.fakeid_py2" "_bcff8c0273a5c2151413c9a8ea=resfs/src//py_modules/library.python.pytest.plugins.fakeid_py2" "_d5bd5aacb7a070a9a8aa0cef0a=/py_code/library.python.pytest.plugins.fakeid_py2"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp" "_df3d6b30eb7d48b6e6de2f8cab=/py_modules/library.python.pytest.plugins.fakeid_py2" "_bcff8c0273a5c2151413c9a8ea=resfs/src//py_modules/library.python.pytest.plugins.fakeid_py2" "_d5bd5aacb7a070a9a8aa0cef0a=/py_code/library.python.pytest.plugins.fakeid_py2"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/6107e88de3aa89bfbc8dd5f237.cpp" "_fd72a8184d92c531434d4551a8=/py_modules/library.python.pytest.plugins.ya" "_b8479bcaeb1b45f4cad175e553=resfs/src//py_modules/library.python.pytest.plugins.ya" "_ad6d60851308115b653f469c32=/py_code/library.python.pytest.plugins.ya" "_c0077441eb0357fa55ef503efb=/py_modules/library.python.pytest.plugins.collection" "_d08dcd9bd6dca4f1d2aae84364=resfs/src//py_modules/library.python.pytest.plugins.collection" "_ceae7cf57737e8d55aa3a1e410=/py_code/library.python.pytest.plugins.collection" "_fa57f8ce0bc8eead660f198dc4=/py_modules/library.python.pytest.plugins.conftests" "_fffad94ff68f0477bf3ee83cdd=resfs/src//py_modules/library.python.pytest.plugins.conftests" "_4f5a4b4b3f23db2fc66009d63e=/py_code/library.python.pytest.plugins.conftests" "_37007870ff05db7fbe64672586=/py_modules/library.python.pytest.plugins.fixtures" "_b6e8dcafc666843f9dcc267b66=resfs/src//py_modules/library.python.pytest.plugins.fixtures" "_635ddd9846f1ec4ec484f8641e=/py_code/library.python.pytest.plugins.fixtures" "_8077128e59eaddc845822b1153=/py_modules/library.python.pytest.plugins.metrics" "_4378b19830aa5c03895a15893d=resfs/src//py_modules/library.python.pytest.plugins.metrics" "_008303a6b372fab49da7edbacc=/py_code/library.python.pytest.plugins.metrics"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -99,11 +99,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/0d2532d03412f1cba2c3b05e2e.cpp" "_fd72a8184d92c531434d4551a8=/py_modules/library.python.pytest.plugins.ya" "_b8479bcaeb1b45f4cad175e553=resfs/src//py_modules/library.python.pytest.plugins.ya" "_ad6d60851308115b653f469c32=/py_code/library.python.pytest.plugins.ya" "_c0077441eb0357fa55ef503efb=/py_modules/library.python.pytest.plugins.collection" "_d08dcd9bd6dca4f1d2aae84364=resfs/src//py_modules/library.python.pytest.plugins.collection" "_ceae7cf57737e8d55aa3a1e410=/py_code/library.python.pytest.plugins.collection" "_fa57f8ce0bc8eead660f198dc4=/py_modules/library.python.pytest.plugins.conftests" "_fffad94ff68f0477bf3ee83cdd=resfs/src//py_modules/library.python.pytest.plugins.conftests" "_4f5a4b4b3f23db2fc66009d63e=/py_code/library.python.pytest.plugins.conftests" "_37007870ff05db7fbe64672586=/py_modules/library.python.pytest.plugins.fixtures" "_b6e8dcafc666843f9dcc267b66=resfs/src//py_modules/library.python.pytest.plugins.fixtures" "_635ddd9846f1ec4ec484f8641e=/py_code/library.python.pytest.plugins.fixtures"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp" "_df3d6b30eb7d48b6e6de2f8cab=/py_modules/library.python.pytest.plugins.fakeid_py2" "_bcff8c0273a5c2151413c9a8ea=resfs/src//py_modules/library.python.pytest.plugins.fakeid_py2" "_d5bd5aacb7a070a9a8aa0cef0a=/py_code/library.python.pytest.plugins.fakeid_py2"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp" "_df3d6b30eb7d48b6e6de2f8cab=/py_modules/library.python.pytest.plugins.fakeid_py2" "_bcff8c0273a5c2151413c9a8ea=resfs/src//py_modules/library.python.pytest.plugins.fakeid_py2" "_d5bd5aacb7a070a9a8aa0cef0a=/py_code/library.python.pytest.plugins.fakeid_py2"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/6107e88de3aa89bfbc8dd5f237.cpp" "_fd72a8184d92c531434d4551a8=/py_modules/library.python.pytest.plugins.ya" "_b8479bcaeb1b45f4cad175e553=resfs/src//py_modules/library.python.pytest.plugins.ya" "_ad6d60851308115b653f469c32=/py_code/library.python.pytest.plugins.ya" "_c0077441eb0357fa55ef503efb=/py_modules/library.python.pytest.plugins.collection" "_d08dcd9bd6dca4f1d2aae84364=resfs/src//py_modules/library.python.pytest.plugins.collection" "_ceae7cf57737e8d55aa3a1e410=/py_code/library.python.pytest.plugins.collection" "_fa57f8ce0bc8eead660f198dc4=/py_modules/library.python.pytest.plugins.conftests" "_fffad94ff68f0477bf3ee83cdd=resfs/src//py_modules/library.python.pytest.plugins.conftests" "_4f5a4b4b3f23db2fc66009d63e=/py_code/library.python.pytest.plugins.conftests" "_37007870ff05db7fbe64672586=/py_modules/library.python.pytest.plugins.fixtures" "_b6e8dcafc666843f9dcc267b66=resfs/src//py_modules/library.python.pytest.plugins.fixtures" "_635ddd9846f1ec4ec484f8641e=/py_code/library.python.pytest.plugins.fixtures" "_8077128e59eaddc845822b1153=/py_modules/library.python.pytest.plugins.metrics" "_4378b19830aa5c03895a15893d=resfs/src//py_modules/library.python.pytest.plugins.metrics" "_008303a6b372fab49da7edbacc=/py_code/library.python.pytest.plugins.metrics"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/plugins/0d2532d03412f1cba2c3b05e2e.cpp	$B/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp	</Message>
+      <Message>$B/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp	$B/library/python/pytest/plugins/6107e88de3aa89bfbc8dd5f237.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\0d2532d03412f1cba2c3b05e2e.cpp;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\1b450de614cb38132d72f22bf7.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\1b450de614cb38132d72f22bf7.cpp;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\6107e88de3aa89bfbc8dd5f237.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
