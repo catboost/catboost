@@ -78,9 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\32e2f871fc24b89a43da0490f4.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\41581cbbb3f7353f8562a5e449.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\44d92d4196baf42a3cb9444fe3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\8e9b9305f6f3266b303f2b22b7.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\join_a1f8bd9d027c4051bf1e2f61c1.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\_pytest\assertion\util.py.onzx.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -198,10 +198,6 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/32e2f871fc24b89a43da0490f4.cpp" "_beadca540673de887b573bc500=py/no_check_imports/cndlw3kyfiifoqimqtf3kfh56m"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/41581cbbb3f7353f8562a5e449.cpp" "_ce20fdc635b184cf83ff44ecfa=py/namespace/3274fd5435bc8854f2fd64d8f6ca0ea1/contrib/python/pytest/py3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
@@ -227,6 +223,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/7380b40febb51fa8a9f8006694.cpp" "_38dcdeb797d8e9a3ad22c8e110=resfs/src/resfs/file/py/_pytest/__init__.py" "_1985ee8b039a83ec77eced30ee=resfs/file/py/_pytest/__init__.py" "_c069603ae1b645fa2c6913350e=resfs/src/resfs/file/py/_pytest/__init__.py.yapyc3" "_858ddb0539462ac837c149bf23=resfs/file/py/_pytest/__init__.py.yapyc3" "_8a9cf57601b003ab330f80f549=resfs/src/resfs/file/py/_pytest/_argcomplete.py" "_2244b4b8532a25dc5b0d721cd5=resfs/file/py/_pytest/_argcomplete.py" "_64620a9cbf118ef7f30295795c=resfs/src/resfs/file/py/_pytest/_argcomplete.py.yapyc3" "_9489cc69a5645c794a5bfe43ca=resfs/file/py/_pytest/_argcomplete.py.yapyc3" "_5141a6fbef7b28a9a4dd5633ca=resfs/src/resfs/file/py/_pytest/_code/__init__.py" "_c68b28cecc87cb6a56af390ba1=resfs/file/py/_pytest/_code/__init__.py" "_3a2cc484abdb4c338716a363db=resfs/src/resfs/file/py/_pytest/_code/__init__.py.yapyc3" "_eff0a76ce3a96c3f5bfa9285cf=resfs/file/py/_pytest/_code/__init__.py.yapyc3" "_f0dfeffb0d43d55589985db8cb=resfs/src/resfs/file/py/_pytest/_code/code.py" "_71eca717ee5733feea542ffedb=resfs/file/py/_pytest/_code/code.py" "_fc332f2317e40c989c03592d1d=resfs/src/resfs/file/py/_pytest/_code/code.py.yapyc3" "_3541a999584d386349bd214f78=resfs/file/py/_pytest/_code/code.py.yapyc3" "_1f141e9713a95900794bfbf9e3=resfs/src/resfs/file/py/_pytest/_code/source.py" "_f73ac2d7db26343967e8c4eacc=resfs/file/py/_pytest/_code/source.py" "_02234426ff8c948dd80086bed2=resfs/src/resfs/file/py/_pytest/_code/source.py.yapyc3" "_e1aa860cf8b6e11100390ca7e4=resfs/file/py/_pytest/_code/source.py.yapyc3" "_89cfc0eb27a0273b04f1fca6d4=resfs/src/resfs/file/py/_pytest/_io/__init__.py" "_5bfb1472285fb79ac1e61e3505=resfs/file/py/_pytest/_io/__init__.py" "_cce4fae72b30c5577ae1bfcecf=resfs/src/resfs/file/py/_pytest/_io/__init__.py.yapyc3" "_b2d7efe4f96131c6a071e3161a=resfs/file/py/_pytest/_io/__init__.py.yapyc3" "_c8b3b1f35b50d3c3af6aec27da=resfs/src/resfs/file/py/_pytest/_io/saferepr.py" "_759349f9e673f3ef6913bf1166=resfs/file/py/_pytest/_io/saferepr.py" "_5252ef4888bea06c2891e20bf4=resfs/src/resfs/file/py/_pytest/_io/saferepr.py.yapyc3" "_05c151e174d7a75dd77a751eaa=resfs/file/py/_pytest/_io/saferepr.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/8e9b9305f6f3266b303f2b22b7.cpp" "_29f2344bd405303670c1a94d33=py/no_check_imports/se4fjxy3yp2cnlqfmgijisfttm"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
 if %errorlevel% neq 0 goto :cmEnd
@@ -257,10 +257,6 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/32e2f871fc24b89a43da0490f4.cpp" "_beadca540673de887b573bc500=py/no_check_imports/cndlw3kyfiifoqimqtf3kfh56m"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/41581cbbb3f7353f8562a5e449.cpp" "_ce20fdc635b184cf83ff44ecfa=py/namespace/3274fd5435bc8854f2fd64d8f6ca0ea1/contrib/python/pytest/py3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
@@ -289,6 +285,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/8e9b9305f6f3266b303f2b22b7.cpp" "_29f2344bd405303670c1a94d33=py/no_check_imports/se4fjxy3yp2cnlqfmgijisfttm"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/95a811f851dbad76fa5d74e163.cpp" "_4c5b89605386c153237280ee87=resfs/file/py/_pytest/freeze_support.py.yapyc3" "_b2a9b7611c2763c596dd386865=resfs/src/resfs/file/py/_pytest/helpconfig.py" "_7906cf1ec49461abb19fba8d0a=resfs/file/py/_pytest/helpconfig.py" "_a6cb1b0bf97e8fe1c01cc87255=resfs/src/resfs/file/py/_pytest/helpconfig.py.yapyc3" "_1038e919d4c36055763e281af3=resfs/file/py/_pytest/helpconfig.py.yapyc3" "_894e263c3ec73e6a3870fa8d28=resfs/src/resfs/file/py/_pytest/hookspec.py" "_6ae2a01589d10d45a1dbfffd6f=resfs/file/py/_pytest/hookspec.py" "_8aa3c17f79beaa93990fea33c0=resfs/src/resfs/file/py/_pytest/hookspec.py.yapyc3" "_7e923b7d880b404738086c3214=resfs/file/py/_pytest/hookspec.py.yapyc3" "_9454f6c59dac1825aae4299883=resfs/src/resfs/file/py/_pytest/junitxml.py" "_678dd7cbf6d109a9ed839e7761=resfs/file/py/_pytest/junitxml.py" "_713a4618c983135b86db73bd0d=resfs/src/resfs/file/py/_pytest/junitxml.py.yapyc3" "_c3a60f829f44cf050c3d6238ab=resfs/file/py/_pytest/junitxml.py.yapyc3" "_983deb2a364eed0f03585dd0a8=resfs/src/resfs/file/py/_pytest/legacypath.py" "_46f44733e95b50a0bb38cb7e38=resfs/file/py/_pytest/legacypath.py" "_c88b31f390874c37984b3a0238=resfs/src/resfs/file/py/_pytest/legacypath.py.yapyc3" "_9777c7603c4857971081c434c6=resfs/file/py/_pytest/legacypath.py.yapyc3" "_5eb74dd2ec4a94f54b7fa129da=resfs/src/resfs/file/py/_pytest/logging.py" "_6dbc51db537baad33b9446a496=resfs/file/py/_pytest/logging.py" "_4ec47ca2edb28db621ebcefaa9=resfs/src/resfs/file/py/_pytest/logging.py.yapyc3" "_9713c92a1f98fed44d63901efa=resfs/file/py/_pytest/logging.py.yapyc3" "_eaffb0481021b5bafd7fea0330=resfs/src/resfs/file/py/_pytest/main.py" "_a916477e367176a7d7c97fd9c1=resfs/file/py/_pytest/main.py" "_06aea62d5c464c33b551271a93=resfs/src/resfs/file/py/_pytest/main.py.yapyc3" "_481316d4d672b13a57dea69c2d=resfs/file/py/_pytest/main.py.yapyc3" "_4c15d3e9b6a5afde158088462d=resfs/src/resfs/file/py/_pytest/mark/__init__.py" "_d860c04a0ddb410daa9fffb78b=resfs/file/py/_pytest/mark/__init__.py" "_349c2c8fcf97c61862bac463ef=resfs/src/resfs/file/py/_pytest/mark/__init__.py.yapyc3" "_3ed4317db8acaff9615c7ba907=resfs/file/py/_pytest/mark/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
@@ -309,9 +309,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pytest/py3/11cd26a31e5b37be6528e931a9.cpp	$B/contrib/python/pytest/py3/32e2f871fc24b89a43da0490f4.cpp	$B/contrib/python/pytest/py3/41581cbbb3f7353f8562a5e449.cpp	$B/contrib/python/pytest/py3/44d92d4196baf42a3cb9444fe3.cpp	$B/contrib/python/pytest/py3/4f2d7ce1ed53bd0699dc3eb6af.cpp	$B/contrib/python/pytest/py3/59c37a31b7549da227f7559bd5.cpp	$B/contrib/python/pytest/py3/6b07074fce5121adacd2daf7f0.cpp	$B/contrib/python/pytest/py3/6f4ba90da6af9394352830e02e.cpp	$B/contrib/python/pytest/py3/7380b40febb51fa8a9f8006694.cpp	$B/contrib/python/pytest/py3/95a811f851dbad76fa5d74e163.cpp	$B/contrib/python/pytest/py3/9b6e794fd44da97b7296227999.cpp	$B/contrib/python/pytest/py3/adc9062396e54c3b221259ca34.cpp	$B/contrib/python/pytest/py3/f04529fb9284f558fbcbc5aebd.cpp	</Message>
+      <Message>$B/contrib/python/pytest/py3/11cd26a31e5b37be6528e931a9.cpp	$B/contrib/python/pytest/py3/41581cbbb3f7353f8562a5e449.cpp	$B/contrib/python/pytest/py3/44d92d4196baf42a3cb9444fe3.cpp	$B/contrib/python/pytest/py3/4f2d7ce1ed53bd0699dc3eb6af.cpp	$B/contrib/python/pytest/py3/59c37a31b7549da227f7559bd5.cpp	$B/contrib/python/pytest/py3/6b07074fce5121adacd2daf7f0.cpp	$B/contrib/python/pytest/py3/6f4ba90da6af9394352830e02e.cpp	$B/contrib/python/pytest/py3/7380b40febb51fa8a9f8006694.cpp	$B/contrib/python/pytest/py3/8e9b9305f6f3266b303f2b22b7.cpp	$B/contrib/python/pytest/py3/95a811f851dbad76fa5d74e163.cpp	$B/contrib/python/pytest/py3/9b6e794fd44da97b7296227999.cpp	$B/contrib/python/pytest/py3/adc9062396e54c3b221259ca34.cpp	$B/contrib/python/pytest/py3/f04529fb9284f558fbcbc5aebd.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\11cd26a31e5b37be6528e931a9.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\32e2f871fc24b89a43da0490f4.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\41581cbbb3f7353f8562a5e449.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\44d92d4196baf42a3cb9444fe3.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\4f2d7ce1ed53bd0699dc3eb6af.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\59c37a31b7549da227f7559bd5.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\6b07074fce5121adacd2daf7f0.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\6f4ba90da6af9394352830e02e.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\7380b40febb51fa8a9f8006694.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\95a811f851dbad76fa5d74e163.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\9b6e794fd44da97b7296227999.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\adc9062396e54c3b221259ca34.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\f04529fb9284f558fbcbc5aebd.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\11cd26a31e5b37be6528e931a9.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\41581cbbb3f7353f8562a5e449.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\44d92d4196baf42a3cb9444fe3.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\4f2d7ce1ed53bd0699dc3eb6af.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\59c37a31b7549da227f7559bd5.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\6b07074fce5121adacd2daf7f0.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\6f4ba90da6af9394352830e02e.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\7380b40febb51fa8a9f8006694.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\8e9b9305f6f3266b303f2b22b7.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\95a811f851dbad76fa5d74e163.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\9b6e794fd44da97b7296227999.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\adc9062396e54c3b221259ca34.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\f04529fb9284f558fbcbc5aebd.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
