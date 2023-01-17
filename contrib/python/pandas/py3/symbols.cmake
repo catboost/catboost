@@ -175,4 +175,5 @@ CFLAGS(
     -Duint_state_init=_pandas_uint_state_init
     -Dxstrtod=_pandas_xstrtod
     -DObject_newUnsignedLong=_pandas_Object_newUnsignedLong
+    -Dget_datetime_metadata_from_dtype=_pandas_get_datetime_metadata_from_dtype
 )
