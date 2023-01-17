@@ -124,7 +124,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/cpp/build_info/__args" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ob0" "/Od" /D_DEBUG "/MTd" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/cpp/build_info/__args" "python" "$(SolutionDir)../build/scripts/build_info_gen.py" "$(SolutionDir)$(Configuration)/library/cpp/build_info/buildinfo_data.h"
+"python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/cpp/build_info/__args" "$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/build_info_gen.py" "$(SolutionDir)$(Configuration)/library/cpp/build_info/buildinfo_data.h"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -139,7 +139,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/cpp/build_info/__args" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ox" "/Ob2" "/Oi" /DNDEBUG "/MT" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/cpp/build_info/__args" "python" "$(SolutionDir)../build/scripts/build_info_gen.py" "$(SolutionDir)$(Configuration)/library/cpp/build_info/buildinfo_data.h"
+"python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/cpp/build_info/__args" "$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/build_info_gen.py" "$(SolutionDir)$(Configuration)/library/cpp/build_info/buildinfo_data.h"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -148,7 +148,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/cpp/build_info/buildinfo_data.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\yield_line.py;$(SolutionDir)..\build\scripts\xargs.py;$(SolutionDir)..\build\scripts\build_info_gen.py;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\yield_line.py;$(SolutionDir)..\build\scripts\xargs.py;$(SolutionDir)..\build\scripts\build_info_gen.py;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\cpp\build_info\buildinfo_data.h;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\cpp\build_info\build_info.h"/>
@@ -158,6 +158,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
     </ProjectReference>
