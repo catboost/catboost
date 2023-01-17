@@ -8,14 +8,14 @@ namespace NCoro::NStack {
 
 namespace NDetails {
 
-    TStack::TStack(void* rawMemory, void* alignedMemory, uint64_t alignedSize, const char* /*name*/)
+    TStack::TStack(void* rawMemory, void* alignedMemory, size_t alignedSize, const char* /*name*/)
             : RawMemory_((char*)rawMemory)
             , AlignedMemory_((char*)alignedMemory)
             , Size_(alignedSize)
     {
         Y_ASSERT(AlignedMemory_ && RawMemory_ && Size_);
         Y_ASSERT(!(Size_ & PageSizeMask));
-        Y_ASSERT(!((uint64_t)AlignedMemory_ & PageSizeMask));
+        Y_ASSERT(!((size_t)AlignedMemory_ & PageSizeMask));
     }
 
     TStack::TStack(TStack&& rhs) noexcept

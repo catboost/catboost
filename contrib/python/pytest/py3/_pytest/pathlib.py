@@ -539,6 +539,9 @@ def import_path(
     ignore = os.environ.get("PY_IGNORE_IMPORTMISMATCH", "")
     if ignore != "1":
         module_file = mod.__file__
+        if module_file is None:
+            raise ImportPathMismatchError(module_name, module_file, path)
+
         if module_file.endswith((".pyc", ".pyo")):
             module_file = module_file[:-1]
         if module_file.endswith(os.path.sep + "__init__.py"):
@@ -561,7 +564,6 @@ if sys.platform.startswith("win"):
 
     def _is_same(f1: str, f2: str) -> bool:
         return Path(f1) == Path(f2) or os.path.samefile(f1, f2)
-
 
 else:
 
@@ -601,11 +603,20 @@ def insert_missing_modules(modules: Dict[str, ModuleType], module_name: str) -> 
     module_parts = module_name.split(".")
     while module_name:
         if module_name not in modules:
-            module = ModuleType(
-                module_name,
-                doc="Empty module created by pytest's importmode=importlib.",
-            )
-            modules[module_name] = module
+            try:
+                # If sys.meta_path is empty, calling import_module will issue
+                # a warning and raise ModuleNotFoundError. To avoid the
+                # warning, we check sys.meta_path explicitly and raise the error
+                # ourselves to fall back to creating a dummy module.
+                if not sys.meta_path:
+                    raise ModuleNotFoundError
+                importlib.import_module(module_name)
+            except ModuleNotFoundError:
+                module = ModuleType(
+                    module_name,
+                    doc="Empty module created by pytest's importmode=importlib.",
+                )
+                modules[module_name] = module
         module_parts.pop(-1)
         module_name = ".".join(module_parts)
 

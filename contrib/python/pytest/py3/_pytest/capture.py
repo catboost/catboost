@@ -68,8 +68,8 @@ def _colorama_workaround() -> None:
             pass
 
 
-def _py36_windowsconsoleio_workaround(stream: TextIO) -> None:
-    """Workaround for Windows Unicode console handling on Python>=3.6.
+def _windowsconsoleio_workaround(stream: TextIO) -> None:
+    """Workaround for Windows Unicode console handling.
 
     Python 3.6 implemented Unicode console handling for Windows. This works
     by reading/writing to the raw console handle using
@@ -112,7 +112,7 @@ def _py36_windowsconsoleio_workaround(stream: TextIO) -> None:
             buffering = -1
 
         return io.TextIOWrapper(
-            open(os.dup(f.fileno()), mode, buffering),  # type: ignore[arg-type]
+            open(os.dup(f.fileno()), mode, buffering),
             f.encoding,
             f.errors,
             f.newlines,
@@ -128,7 +128,7 @@ def _py36_windowsconsoleio_workaround(stream: TextIO) -> None:
 def pytest_load_initial_conftests(early_config: Config):
     ns = early_config.known_args_namespace
     if ns.capture == "fd":
-        _py36_windowsconsoleio_workaround(sys.stdout)
+        _windowsconsoleio_workaround(sys.stdout)
     _colorama_workaround()
     pluginmanager = early_config.pluginmanager
     capman = CaptureManager(ns.capture)

@@ -1,7 +1,6 @@
 """Command line options, ini-file and conftest.py processing."""
 import argparse
 import collections.abc
-import contextlib
 import copy
 import enum
 import inspect
@@ -353,13 +352,17 @@ class PytestPluginManager(PluginManager):
         import _pytest.assertion
 
         super().__init__("pytest")
-        # The objects are module objects, only used generically.
-        self._conftest_plugins: Set[types.ModuleType] = set()
 
-        # State related to local conftest plugins.
+        # -- State related to local conftest plugins.
+        # All loaded conftest modules.
+        self._conftest_plugins: Set[types.ModuleType] = set()
+        # All conftest modules applicable for a directory.
+        # This includes the directory's own conftest modules as well
+        # as those of its parent directories.
         self._dirpath2confmods: Dict[Path, List[types.ModuleType]] = {}
-        self._conftestpath2mod: Dict[Path, types.ModuleType] = {}
+        # Cutoff directory above which conftests are no longer discovered.
         self._confcutdir: Optional[Path] = None
+        # If set, conftest loading is skipped.
         self._noconftest = False
 
         # _getconftestmodules()'s call to _get_directory() causes a stat
@@ -528,6 +531,19 @@ class PytestPluginManager(PluginManager):
         if not foundanchor:
             self._try_load_conftest(current, namespace.importmode, rootpath)
 
+    def _is_in_confcutdir(self, path: Path) -> bool:
+        """Whether a path is within the confcutdir.
+
+        When false, should not load conftest.
+        """
+        if self._confcutdir is None:
+            return True
+        try:
+            path.relative_to(self._confcutdir)
+        except ValueError:
+            return False
+        return True
+
     def _try_load_conftest(
         self, anchor: Path, importmode: Union[str, ImportMode], rootpath: Path
     ) -> None:
@@ -540,7 +556,7 @@ class PytestPluginManager(PluginManager):
 
     def _getconftestmodules(
         self, path: Path, importmode: Union[str, ImportMode], rootpath: Path
-    ) -> List[types.ModuleType]:
+    ) -> Sequence[types.ModuleType]:
         if self._noconftest:
             return []
 
@@ -556,14 +572,12 @@ class PytestPluginManager(PluginManager):
         # and allow users to opt into looking into the rootdir parent
         # directories instead of requiring to specify confcutdir.
         clist = []
-        confcutdir_parents = self._confcutdir.parents if self._confcutdir else []
         for parent in reversed((directory, *directory.parents)):
-            if parent in confcutdir_parents:
-                continue
-            conftestpath = parent / "conftest.py"
-            if conftestpath.is_file():
-                mod = self._importconftest(conftestpath, importmode, rootpath)
-                clist.append(mod)
+            if self._is_in_confcutdir(parent):
+                conftestpath = parent / "conftest.py"
+                if conftestpath.is_file():
+                    mod = self._importconftest(conftestpath, importmode, rootpath)
+                    clist.append(mod)
         self._dirpath2confmods[directory] = clist
         return clist
 
@@ -585,15 +599,9 @@ class PytestPluginManager(PluginManager):
     def _importconftest(
         self, conftestpath: Path, importmode: Union[str, ImportMode], rootpath: Path
     ) -> types.ModuleType:
-        # Use a resolved Path object as key to avoid loading the same conftest
-        # twice with build systems that create build directories containing
-        # symlinks to actual files.
-        # Using Path().resolve() is better than py.path.realpath because
-        # it resolves to the correct path/drive in case-insensitive file systems (#5792)
-        key = conftestpath.resolve()
-
-        with contextlib.suppress(KeyError):
-            return self._conftestpath2mod[key]
+        existing = self.get_plugin(str(conftestpath))
+        if existing is not None:
+            return cast(types.ModuleType, existing)
 
         pkgpath = resolve_package_path(conftestpath)
         if pkgpath is None:
@@ -609,11 +617,10 @@ class PytestPluginManager(PluginManager):
         self._check_non_top_pytest_plugins(mod, conftestpath)
 
         self._conftest_plugins.add(mod)
-        self._conftestpath2mod[key] = mod
         dirpath = conftestpath.parent
         if dirpath in self._dirpath2confmods:
             for path, mods in self._dirpath2confmods.items():
-                if path and dirpath in path.parents or path == dirpath:
+                if dirpath in path.parents or path == dirpath:
                     assert mod not in mods
                     mods.append(mod)
         self.trace(f"loading conftestmodule {mod!r}")
@@ -1341,14 +1348,6 @@ class Config:
         if records:
             frame = sys._getframe(stacklevel - 1)
             location = frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name
-            self.hook.pytest_warning_captured.call_historic(
-                kwargs=dict(
-                    warning_message=records[0],
-                    when="config",
-                    item=None,
-                    location=location,
-                )
-            )
             self.hook.pytest_warning_recorded.call_historic(
                 kwargs=dict(
                     warning_message=records[0],
@@ -1448,6 +1447,7 @@ class Config:
             )
         except KeyError:
             return None
+        assert mod.__file__ is not None
         modpath = Path(mod.__file__).parent
         values: List[Path] = []
         for relroot in relroots:
@@ -1593,7 +1593,7 @@ def _strtobool(val: str) -> bool:
 @lru_cache(maxsize=50)
 def parse_warning_filter(
     arg: str, *, escape: bool
-) -> Tuple[str, str, Type[Warning], str, int]:
+) -> Tuple["warnings._ActionKind", str, Type[Warning], str, int]:
     """Parse a warnings filter string.
 
     This is copied from warnings._setoption with the following changes:
@@ -1635,7 +1635,7 @@ def parse_warning_filter(
         parts.append("")
     action_, message, category_, module, lineno_ = (s.strip() for s in parts)
     try:
-        action: str = warnings._getaction(action_)  # type: ignore[attr-defined]
+        action: "warnings._ActionKind" = warnings._getaction(action_)  # type: ignore[attr-defined]
     except warnings._OptionError as e:
         raise UsageError(error_template.format(error=str(e)))
     try:

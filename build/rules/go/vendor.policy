@@ -1071,6 +1071,9 @@ DENY .* -> vendor/github.com/anatol/luks.go;test
 DENY .* -> vendor/github.com/anatol/vmtest;test
 DENY .* -> vendor/github.com/anatol/devmapper.go;test
 
+# CONTRIB-2498
+ALLOW .* -> vendor/github.com/fatih/color
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #

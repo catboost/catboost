@@ -28,6 +28,8 @@ def onprocess_docs(unit, *args):
     if build_tool:
         if build_tool not in ['mkdocs', 'yfm']:
             unit.message(['error', 'Unsupported build tool {}'.format(build_tool)])
+        if build_tool == 'mkdocs' and not unit.get('MODDIR').startswith('devtools/ymake/tests'):
+            unit.message(['error', '`mkdocs` builder is prohibited to use in `DOCS` multimodule. Use `MKDOCS` multimodule instead of `DOCS`.'])
     else:
         build_tool = 'yfm'
         unit.ondocs_builder([build_tool])

@@ -13,7 +13,7 @@ namespace NCoro::NStack::Tests {
     protected:
         TPoolFixture() : Guard_(GetGuard<TGuard>()), Pool_(StackSize_, TPoolAllocatorSettings{1, 1, 8, 32}, Guard_) {}
 
-        const uint64_t StackSize_ = PageSize * 4;
+        const size_t StackSize_ = PageSize * 4;
         const TGuard& Guard_;
         TPool<TGuard> Pool_;
     };

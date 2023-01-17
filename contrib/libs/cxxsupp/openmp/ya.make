@@ -47,6 +47,17 @@ IF (SANITIZER_TYPE == memory)
     )
 ENDIF()
 
+# The KMP_DEBUG define enables OpenMP debugging support, including tracing (controlled by environment variables)
+# and debug asserts. The upstream version unconditionally enables KMP_DEBUG for Debug/RelWithDebInfo builds.
+# Instead, we make this opt-in via a `ymake` variable to avoid accidentally releasing a relwithdebinfo binary
+# with KMP_DEBUG enabled. Note that the `ymake` variable is called OPENMP_DEBUG for clarity, since no one
+# really knows what KMP is.
+IF (OPENMP_DEBUG)
+    CFLAGS(
+        -DKMP_DEBUG=1
+    )
+ENDIF()
+
 SRCS(
     kmp_affinity.cpp
     kmp_alloc.cpp

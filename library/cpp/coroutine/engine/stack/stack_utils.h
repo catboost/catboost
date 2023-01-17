@@ -10,18 +10,18 @@ namespace NCoro::NStack {
      * @param alignedPtr : pointer to beginning of first fully allocated page
      * @return : true on success
      */
-    bool GetAlignedMemory(uint64_t sizeInPages, char*& rawPtr, char*& alignedPtr) noexcept;
+    bool GetAlignedMemory(size_t sizeInPages, char*& rawPtr, char*& alignedPtr) noexcept;
 
     /*! Release mapped RSS memory.
      *  @param alignedPt : page-size aligned memory on which RSS memory should be freed
      *  @param numOfPages : number of pages to free from RSS memory
      */
-    void ReleaseRss(char* alignedPtr, uint64_t numOfPages) noexcept;
+    void ReleaseRss(char* alignedPtr, size_t numOfPages) noexcept;
 
     /*! Count pages with RSS memory
      * @param alignedPtr : pointer to page-aligned memory for which calculations would be done
      * @param numOfPages : number of pages to check
      * @return : number of pages with RSS memory
      */
-    uint64_t CountMapped(char* alignedPtr, uint64_t numOfPages) noexcept;
+    size_t CountMapped(char* alignedPtr, size_t numOfPages) noexcept;
 }

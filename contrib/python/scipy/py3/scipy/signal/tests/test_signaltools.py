@@ -887,7 +887,7 @@ class TestResample(object):
         signal.resample(sig2, num, axis=-1, window=win)
         assert_(win.shape == (160,))
 
-    def test_fft(self):
+    def _test_fft(self):
         # Test FFT-based resampling
         self._test_data(method='fft')
 

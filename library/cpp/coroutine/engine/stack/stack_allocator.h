@@ -18,8 +18,8 @@ namespace NCoro::NStack {
 
         //! Size should be page-aligned. Stack would be protected by guard, thus, actual
         //! workspace for stack = size - size of guard.
-        NDetails::TStack AllocStack(uint64_t size, const char* name) {
-            uint64_t alignedSize = (size + PageSize - 1) & ~PageSizeMask;
+        NDetails::TStack AllocStack(size_t size, const char* name) {
+            size_t alignedSize = (size + PageSize - 1) & ~PageSizeMask;
             Y_ASSERT(alignedSize < 10 * 1024 * PageSize); // more than 10K pages for stack - do you really need it?
 #if defined(_san_enabled_) || !defined(NDEBUG)
             alignedSize *= DebugOrSanStackMultiplier;
@@ -36,12 +36,12 @@ namespace NCoro::NStack {
         virtual TAllocatorStats GetStackStats() const noexcept = 0;
 
         // Stack helpers
-        virtual TArrayRef<char> GetStackWorkspace(void* stack, uint64_t size) noexcept = 0;
+        virtual TArrayRef<char> GetStackWorkspace(void* stack, size_t size) noexcept = 0;
         virtual bool CheckStackOverflow(void* stack) const noexcept = 0;
-        virtual bool CheckStackOverride(void* stack, uint64_t size) const noexcept = 0;
+        virtual bool CheckStackOverride(void* stack, size_t size) const noexcept = 0;
 
     private:
-        virtual NDetails::TStack DoAllocStack(uint64_t size, const char* name) = 0;
+        virtual NDetails::TStack DoAllocStack(size_t size, const char* name) = 0;
         virtual void DoFreeStack(NDetails::TStack& stack) noexcept = 0;
     };
 

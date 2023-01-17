@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pytest
-Version: 7.0.1
+Version: 7.1.0
 Summary: pytest: simple powerful testing with Python
 Home-page: https://docs.pytest.org/en/latest/
 Author: Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Florian Bruhin and others
@@ -23,7 +23,6 @@ Classifier: Operating System :: Microsoft :: Windows
 Classifier: Operating System :: POSIX
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
@@ -31,7 +30,7 @@ Classifier: Programming Language :: Python :: 3.10
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Software Development :: Testing
 Classifier: Topic :: Utilities
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 Requires-Dist: attrs (>=19.2.0)
@@ -154,7 +153,7 @@ Features
 - Can run `unittest <https://docs.pytest.org/en/stable/how-to/unittest.html>`_ (or trial),
   `nose <https://docs.pytest.org/en/stable/how-to/nose.html>`_ test suites out of the box
 
-- Python 3.6+ and PyPy3
+- Python 3.7+ or PyPy3
 
 - Rich plugin architecture, with over 850+ `external plugins <https://docs.pytest.org/en/latest/reference/plugin_list.html>`_ and thriving community
 

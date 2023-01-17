@@ -542,15 +542,21 @@ class TerminalReporter:
             if not running_xdist:
                 self.write_ensure_prefix(line, word, **markup)
                 if rep.skipped or hasattr(report, "wasxfail"):
-                    available_width = (
-                        (self._tw.fullwidth - self._tw.width_of_current_line)
-                        - len(" [100%]")
-                        - 1
-                    )
                     reason = _get_raw_skip_reason(rep)
-                    reason_ = _format_trimmed(" ({})", reason, available_width)
-                    if reason and reason_ is not None:
-                        self._tw.write(reason_)
+                    if self.config.option.verbose < 2:
+                        available_width = (
+                            (self._tw.fullwidth - self._tw.width_of_current_line)
+                            - len(" [100%]")
+                            - 1
+                        )
+                        formatted_reason = _format_trimmed(
+                            " ({})", reason, available_width
+                        )
+                    else:
+                        formatted_reason = f" ({reason})"
+
+                    if reason and formatted_reason is not None:
+                        self._tw.write(formatted_reason)
                 if self._show_progress_info:
                     self._write_progress_information_filling_space()
             else:
@@ -657,7 +663,7 @@ class TerminalReporter:
         errors = len(self.stats.get("error", []))
         skipped = len(self.stats.get("skipped", []))
         deselected = len(self.stats.get("deselected", []))
-        selected = self._numcollected - errors - skipped - deselected
+        selected = self._numcollected - deselected
         line = "collected " if final else "collecting "
         line += (
             str(self._numcollected) + " item" + ("" if self._numcollected == 1 else "s")
@@ -668,7 +674,7 @@ class TerminalReporter:
             line += " / %d deselected" % deselected
         if skipped:
             line += " / %d skipped" % skipped
-        if self._numcollected > selected > 0:
+        if self._numcollected > selected:
             line += " / %d selected" % selected
         if self.isatty:
             self.rewrite(line, bold=True, erase=True)
