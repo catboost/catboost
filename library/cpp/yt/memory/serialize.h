@@ -1,6 +1,6 @@
 #pragma once
 
-#include "new.h"
+#include "intrusive_ptr.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -8,27 +8,13 @@ template <class T>
 class TSerializer<NYT::TIntrusivePtr<T>>
 {
 public:
-    static inline void Save(IOutputStream* out, const NYT::TIntrusivePtr<T>& ptr)
-    {
-        bool hasValue = ptr.operator bool();
-        ::Save(out, hasValue);
-        if (hasValue) {
-            ::Save(out, *ptr);
-        }
-    }
+    static inline void Save(IOutputStream* output, const NYT::TIntrusivePtr<T>& ptr);
 
-    static inline void Load(IInputStream* in, NYT::TIntrusivePtr<T>& ptr)
-    {
-        bool hasValue;
-        ::Load(in, hasValue);
-        if (hasValue) {
-            auto tmp = NYT::New<T>();
-            ::Load(in, *tmp);
-            ptr = std::move(tmp);
-        } else {
-            ptr.Reset();
-        }
-    }
+    static inline void Load(IInputStream* input, NYT::TIntrusivePtr<T>& ptr);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+#define SERIALIZE_PTR_INL_H_
+#include "serialize-inl.h"
+#undef SERIALIZE_PTR_INL_H_
