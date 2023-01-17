@@ -1347,11 +1347,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
       <Project>F338AB33-66DB-B461-4311-08AAD87EAE63</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\win_unicode_console\pycontrib-python-win_unicode_console.global.vcxproj">
-      <Project>A9E801E9-4BFA-A066-F56A-14E6BE2E43CA</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\win-unicode-console\pycontrib-python-win-unicode-console.global.vcxproj">
+      <Project>B56D0DB3-AB14-AC37-6CC8-708CC7EF6812</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\win_unicode_console\pycontrib-python-win_unicode_console.vcxproj">
-      <Project>061E9694-0B95-09A8-3808-7FE0533E7E96</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\win-unicode-console\pycontrib-python-win-unicode-console.vcxproj">
+      <Project>E0A4F4E3-5649-0B2E-D28E-FB7D0B3909D2</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\algorithm\abseil-cpp-absl-algorithm.vcxproj">
       <Project>8B676919-4151-DE9D-5086-E1C01B68FA2B</Project>
