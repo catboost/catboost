@@ -102,7 +102,9 @@ class Ya(object):
         self._env_file = context_internal.get("env_file")
 
         if context:
-            self._context.update(context)
+            for k, v in context.items():
+                if k not in self._context or v is not None:
+                    self._context[k] = v
 
     @property
     def source_root(self):
