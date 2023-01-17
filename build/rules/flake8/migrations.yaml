@@ -325,7 +325,6 @@ migrations:
     - health/yamd/libs/utils
     - health/yamd/libs/utils/parsers
     - infra/awacs/vendor/awacs/pire/ut
-    - infra/callisto/controllers/viewer/lib2
     - infra/cqudp/src
     - infra/cqudp/src/eggs
     - infra/deploy/tools/yd_migrate/lib
@@ -368,7 +367,6 @@ migrations:
     - mail/yasm/lib/calendar/alerts
     - mail/yasm/lib/calendar/panels
     - mapreduce/yt/tools/du-yt
-    - maps/analyzer/pylibs/watchman_api/lib
     - maps/automotive/proxy/config_generator
     - maps/automotive/remote_access/autotests/tests/data_types
     - maps/b2bgeo/mvrp_solver/backend/tests_lib
@@ -726,7 +724,6 @@ migrations:
     - voicetech/asr/tools/asr_analyzer/lib
     - voicetech/common/voicetable/bin/filter_text
     - voicetech/common/voicetable/checks/bin/general_voicetable_check
-    - voicetech/infra/gdpr_proxy/service
     - voicetech/tts/vh/utils
     - weather/workers/warnings/general
     - yabs/analytics/anomaly_analyzer/src
@@ -798,7 +795,6 @@ migrations:
     - yweb/antispam/ytgr/viewer
     - yweb/blender/newsletter/unused_formulas
     - yweb/blender/scripts/blender_viewer/conveyor_experiments/utils
-    - yweb/blender/scripts/nirvana/jobs/calc_workflow_num_with_filters
     - yweb/blender/scripts/nirvana/jobs/join_features
     - yweb/blender/scripts/nirvana/jobs/train_sbs_model/utils
     - yweb/blogs/parsers/test
@@ -1017,7 +1013,6 @@ migrations:
     - robot/quality/samovar_conveyour/tools/get_samples
     - robot/quality/sendlink_conveyour/tools/max_rank_acceptance
     - robot/research/eval_nirvana_graph
-    - rt-research/multik/tools/jupyter
     - rtmapreduce/tests/recipes/rtmr_processing_recipe
     - saas/tools/devops/check_backup
     - saas/tools/devops/lib23
@@ -1393,7 +1388,6 @@ migrations:
     - sprav/tycoon/nirvana/mail/sync_subscriptions/lib
     - statbox/qb2
     - statbox/statkey/jam/actions
-    - statbox/statkey/jam/jobs/key_reports/desktop_retention
     - statbox/statkey/jam/jobs/tech_report/event_money_stat
     - statbox/statkey/jam/libs
     - tools/mkdocs_builder/lib
@@ -1636,8 +1630,6 @@ migrations:
     - aurora/library/Pyro4
     - aurora/library/serpent
     - balancer/production/x/yasm_errors_collector
-    - billing/agency_rewards/tests_platform/common
-    - billing/agency_rewards/tests_platform/generators
     - billing/balance
     - billing/balance_utils
     - billing/bcl/src
@@ -2721,7 +2713,6 @@ migrations:
     - voicetech/bio/pybio/train/tf_patched_models
     - voicetech/bio/tf_future
     - voicetech/common/kaldi_features_lib/python-package/kaldi_features
-    - voicetech/infra/gdpr_proxy/gdpr-filter
     - voicetech/infra/lingwarefactory/yaldi-apply-soundset
     - voicetech/infra/qa/speechbase-voiceproxy-logsv3-cleanup
     - voicetech/infra/qa/uniproxy-logs-gen-params
@@ -2956,7 +2947,6 @@ migrations:
     - antiadblock/cryprox/tests/functional
     - antiadblock/postgres_local/tests
     - april/mediaplan/mediaplan/forecaster/migrations
-    - billing/agency_rewards/tests
     - bindings/java/abt/abt-native/android/tests
     - build/scripts
     - cloud/ai/speechkit/stt/tests/data/model
@@ -3487,7 +3477,6 @@ migrations:
     - quality/mapreduce/tests/common
     - ads/factor_check/features/tests
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
-    - billing/agency_rewards/tests_platform
     - dict/mystem/tests
     - infra/walle/server/tests
     - market/forecaster/lite
