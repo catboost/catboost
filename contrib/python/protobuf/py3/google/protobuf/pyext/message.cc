@@ -822,7 +822,6 @@ bool CheckAndSetString(
 
 PyObject* ToStringObject(const FieldDescriptor* descriptor,
                          const TProtoStringType& value) {
-#if PY_MAJOR_VERSION >= 3
   if (descriptor->type() != FieldDescriptor::TYPE_STRING) {
     return PyBytes_FromStringAndSize(value.c_str(), value.length());
   }
@@ -837,9 +836,6 @@ PyObject* ToStringObject(const FieldDescriptor* descriptor,
     result = PyBytes_FromStringAndSize(value.c_str(), value.length());
   }
   return result;
-#else
-  return PyBytes_FromStringAndSize(value.c_str(), value.length());
-#endif
 }
 
 bool CheckFieldBelongsToMessage(const FieldDescriptor* field_descriptor,
