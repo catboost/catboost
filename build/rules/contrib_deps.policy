@@ -55,7 +55,7 @@ ALLOW contrib/python/gino -> library/python/pyscopg2
 ALLOW contrib/python/psycopg2/py2/tests -> mail/devpack
 ALLOW contrib/python/psycopg2/py3/tests -> mail/devpack
 ALLOW contrib/python/asn1crypto -> library/python/symbols/crypto
-ALLOW contrib/python/win_unicode_console -> library/python/symbols/win_unicode_console
+ALLOW contrib/python/win-unicode-console -> library/python/symbols/win_unicode_console
 ALLOW contrib/python/pycryptodome -> library/python/symbols/registry
 
 ALLOW contrib/tests/python -> library/python/fs

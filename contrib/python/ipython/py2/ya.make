@@ -23,7 +23,7 @@ PEERDIR(
 IF (OS_WINDOWS)
     PEERDIR(
         contrib/python/colorama
-        contrib/python/win_unicode_console
+        contrib/python/win-unicode-console
     )
 ELSE ()
     PEERDIR(
