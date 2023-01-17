@@ -1,21 +1,16 @@
 #include "event.h"
-#include "atomic.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/thread/pool.h>
 
+#include <atomic>
+
 namespace {
     struct TSharedData {
-        TSharedData()
-            : Counter(0)
-            , failed(false)
-        {
-        }
-
-        TAtomic Counter;
+        std::atomic<size_t> Counter = 0;
         TManualEvent event;
-        bool failed;
+        bool failed = false;
     };
 
     struct TThreadTask: public IObjectInQueue {
@@ -31,7 +26,7 @@ namespace {
 
             if (Id_ == 0) {
                 usleep(100);
-                bool cond = Data_.Counter == 0;
+                bool cond = Data_.Counter.load() == 0;
                 if (!cond) {
                     Data_.failed = true;
                 }
@@ -39,7 +34,7 @@ namespace {
             } else {
                 while (!Data_.event.WaitT(TDuration::Seconds(100))) {
                 }
-                AtomicAdd(Data_.Counter, Id_);
+                Data_.Counter += Id_;
             }
         }
 
@@ -91,7 +86,7 @@ Y_UNIT_TEST_SUITE(EventTest) {
             UNIT_ASSERT(queue.Add(new TThreadTask(data, i)));
         }
         queue.Stop();
-        UNIT_ASSERT(data.Counter == 10);
+        UNIT_ASSERT(data.Counter.load() == 10);
         UNIT_ASSERT(!data.failed);
     }
 

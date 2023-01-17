@@ -1,20 +1,20 @@
 #include "interrupt_signals.h"
 
-#include "atomic.h"
-
 #include <util/datetime/base.h>
 
 #include <library/cpp/testing/unittest/registar.h>
+
+#include <atomic>
 
 #ifdef _win_
     #include <windows.h>
 #endif
 
 Y_UNIT_TEST_SUITE(TTestInterruptSignals) {
-    static TAtomic HandledSigNum = 0;
+    static std::atomic<size_t> HandledSigNum = 0;
 
     static void Handler(int signum) {
-        AtomicSet(HandledSigNum, signum);
+        HandledSigNum.store(signum);
     }
 
     Y_UNIT_TEST(Test1) {
@@ -31,7 +31,7 @@ Y_UNIT_TEST_SUITE(TTestInterruptSignals) {
                 UNIT_FAIL("GenerateConsoleCtrlEvent failed: " << LastSystemErrorText());
             }
             Sleep(TDuration::MilliSeconds(100));
-            UNIT_ASSERT_VALUES_EQUAL(HandledSigNum, posixSigNum);
+            UNIT_ASSERT_VALUES_EQUAL(HandledSigNum.load(), posixSigNum);
         }
         */
         for (int signum : {SIGINT, SIGTERM}) {
@@ -40,7 +40,7 @@ Y_UNIT_TEST_SUITE(TTestInterruptSignals) {
 #endif
             std::raise(signum);
             Sleep(TDuration::MilliSeconds(100)); // give it time to handle an async signal
-            UNIT_ASSERT_VALUES_EQUAL(HandledSigNum, signum);
+            UNIT_ASSERT_VALUES_EQUAL(HandledSigNum.load(), signum);
         }
     }
 }

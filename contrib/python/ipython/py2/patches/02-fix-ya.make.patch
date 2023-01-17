@@ -1,13 +1,7 @@
 --- contrib/python/ipython/py2/ya.make	(index)
 +++ contrib/python/ipython/py2/ya.make	(working tree)
-@@ -13,7 +11,6 @@ PEERDIR(
-     contrib/python/backports.shutil-get-terminal-size
-     contrib/python/decorator
-     contrib/python/pathlib2
+@@ -16,1 +15,0 @@ PEERDIR(
 -    contrib/python/pexpect
-     contrib/python/pickleshare
-     contrib/python/prompt-toolkit
-     contrib/python/setuptools
 @@ -21,6 +18,23 @@ PEERDIR(
      contrib/python/traitlets
  )
