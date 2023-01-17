@@ -1,15 +1,13 @@
 .machine	"any"
+.abiversion	2
 .text
 
 .globl	sha512_block_ppc
 .type	sha512_block_ppc,@function
-.section	".opd","aw"
-.align	3
-sha512_block_ppc:
-.quad	.sha512_block_ppc,.TOC.@tocbase,0
-.previous
 .align	6
-.sha512_block_ppc:
+sha512_block_ppc:
+.localentry	sha512_block_ppc,0
+
 	stdu	1,-384(1)
 	mflr	0
 	sldi	5,5,7
@@ -133,8 +131,14 @@ sha512_block_ppc:
 .align	4
 .Lsha2_block_private:
 	ld	0,0(7)
-	lwz	5,0(31)
-	lwz	16,4(31)
+	lwz	3,0(31)
+	lwz	4,4(31)
+	rotlwi	5,3,8
+	rotlwi	16,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	16,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	16,4,24,16,23
 	insrdi	16,5,32,0
 	rotrdi	3,12,14
 	rotrdi	4,12,18
@@ -164,8 +168,14 @@ sha512_block_ppc:
 	add	15,15,3
 	add	15,15,5
 
-	lwz	5,8(31)
-	lwz	17,12(31)
+	lwz	3,8(31)
+	lwz	4,12(31)
+	rotlwi	5,3,8
+	rotlwi	17,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	17,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	17,4,24,16,23
 	insrdi	17,5,32,0
 	rotrdi	3,11,14
 	rotrdi	4,11,18
@@ -195,8 +205,14 @@ sha512_block_ppc:
 	add	14,14,3
 	add	14,14,5
 
-	lwz	5,16(31)
-	lwz	18,20(31)
+	lwz	3,16(31)
+	lwz	4,20(31)
+	rotlwi	5,3,8
+	rotlwi	18,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	18,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	18,4,24,16,23
 	insrdi	18,5,32,0
 	rotrdi	3,10,14
 	rotrdi	4,10,18
@@ -226,8 +242,14 @@ sha512_block_ppc:
 	add	6,6,3
 	add	6,6,5
 
-	lwz	5,24(31)
-	lwz	19,28(31)
+	lwz	3,24(31)
+	lwz	4,28(31)
+	rotlwi	5,3,8
+	rotlwi	19,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	19,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	19,4,24,16,23
 	insrdi	19,5,32,0
 	rotrdi	3,9,14
 	rotrdi	4,9,18
@@ -257,8 +279,14 @@ sha512_block_ppc:
 	add	12,12,3
 	add	12,12,5
 
-	lwz	5,32(31)
-	lwz	20,36(31)
+	lwz	3,32(31)
+	lwz	4,36(31)
+	rotlwi	5,3,8
+	rotlwi	20,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	20,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	20,4,24,16,23
 	insrdi	20,5,32,0
 	rotrdi	3,8,14
 	rotrdi	4,8,18
@@ -288,8 +316,14 @@ sha512_block_ppc:
 	add	11,11,3
 	add	11,11,5
 
-	lwz	5,40(31)
-	lwz	21,44(31)
+	lwz	3,40(31)
+	lwz	4,44(31)
+	rotlwi	5,3,8
+	rotlwi	21,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	21,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	21,4,24,16,23
 	insrdi	21,5,32,0
 	rotrdi	3,15,14
 	rotrdi	4,15,18
@@ -319,8 +353,14 @@ sha512_block_ppc:
 	add	10,10,3
 	add	10,10,5
 
-	lwz	5,48(31)
-	lwz	22,52(31)
+	lwz	3,48(31)
+	lwz	4,52(31)
+	rotlwi	5,3,8
+	rotlwi	22,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	22,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	22,4,24,16,23
 	insrdi	22,5,32,0
 	rotrdi	3,14,14
 	rotrdi	4,14,18
@@ -350,8 +390,14 @@ sha512_block_ppc:
 	add	9,9,3
 	add	9,9,5
 
-	lwz	5,56(31)
-	lwz	23,60(31)
+	lwz	3,56(31)
+	lwz	4,60(31)
+	rotlwi	5,3,8
+	rotlwi	23,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	23,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	23,4,24,16,23
 	insrdi	23,5,32,0
 	rotrdi	3,6,14
 	rotrdi	4,6,18
@@ -381,8 +427,14 @@ sha512_block_ppc:
 	add	8,8,3
 	add	8,8,5
 
-	lwz	5,64(31)
-	lwz	24,68(31)
+	lwz	3,64(31)
+	lwz	4,68(31)
+	rotlwi	5,3,8
+	rotlwi	24,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	24,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	24,4,24,16,23
 	insrdi	24,5,32,0
 	rotrdi	3,12,14
 	rotrdi	4,12,18
@@ -412,8 +464,14 @@ sha512_block_ppc:
 	add	15,15,3
 	add	15,15,5
 
-	lwz	5,72(31)
-	lwz	25,76(31)
+	lwz	3,72(31)
+	lwz	4,76(31)
+	rotlwi	5,3,8
+	rotlwi	25,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	25,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	25,4,24,16,23
 	insrdi	25,5,32,0
 	rotrdi	3,11,14
 	rotrdi	4,11,18
@@ -443,8 +501,14 @@ sha512_block_ppc:
 	add	14,14,3
 	add	14,14,5
 
-	lwz	5,80(31)
-	lwz	26,84(31)
+	lwz	3,80(31)
+	lwz	4,84(31)
+	rotlwi	5,3,8
+	rotlwi	26,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	26,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	26,4,24,16,23
 	insrdi	26,5,32,0
 	rotrdi	3,10,14
 	rotrdi	4,10,18
@@ -474,8 +538,14 @@ sha512_block_ppc:
 	add	6,6,3
 	add	6,6,5
 
-	lwz	5,88(31)
-	lwz	27,92(31)
+	lwz	3,88(31)
+	lwz	4,92(31)
+	rotlwi	5,3,8
+	rotlwi	27,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	27,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	27,4,24,16,23
 	insrdi	27,5,32,0
 	rotrdi	3,9,14
 	rotrdi	4,9,18
@@ -505,8 +575,14 @@ sha512_block_ppc:
 	add	12,12,3
 	add	12,12,5
 
-	lwz	5,96(31)
-	lwz	28,100(31)
+	lwz	3,96(31)
+	lwz	4,100(31)
+	rotlwi	5,3,8
+	rotlwi	28,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	28,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	28,4,24,16,23
 	insrdi	28,5,32,0
 	rotrdi	3,8,14
 	rotrdi	4,8,18
@@ -536,8 +612,14 @@ sha512_block_ppc:
 	add	11,11,3
 	add	11,11,5
 
-	lwz	5,104(31)
-	lwz	29,108(31)
+	lwz	3,104(31)
+	lwz	4,108(31)
+	rotlwi	5,3,8
+	rotlwi	29,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	29,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	29,4,24,16,23
 	insrdi	29,5,32,0
 	rotrdi	3,15,14
 	rotrdi	4,15,18
@@ -567,8 +649,14 @@ sha512_block_ppc:
 	add	10,10,3
 	add	10,10,5
 
-	lwz	5,112(31)
-	lwz	30,116(31)
+	lwz	3,112(31)
+	lwz	4,116(31)
+	rotlwi	5,3,8
+	rotlwi	30,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	30,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	30,4,24,16,23
 	insrdi	30,5,32,0
 	rotrdi	3,14,14
 	rotrdi	4,14,18
@@ -598,8 +686,14 @@ sha512_block_ppc:
 	add	9,9,3
 	add	9,9,5
 
-	lwz	5,120(31)
-	lwz	31,124(31)
+	lwz	3,120(31)
+	lwz	4,124(31)
+	rotlwi	5,3,8
+	rotlwi	31,4,8
+	rlwimi	5,3,24,0,7
+	rlwimi	31,4,24,0,7
+	rlwimi	5,3,24,16,23
+	rlwimi	31,4,24,16,23
 	insrdi	31,5,32,0
 	rotrdi	3,6,14
 	rotrdi	4,6,18
@@ -1327,8 +1421,7 @@ sha512_block_ppc:
 	blr	
 .long	0
 .byte	0,12,0x14,0,0,0,0,0
-.size	.sha512_block_ppc,.-.sha512_block_ppc
-.size	sha512_block_ppc,.-.sha512_block_ppc
+.size	sha512_block_ppc,.-sha512_block_ppc
 .align	6
 .LPICmeup:
 	mflr	0
@@ -1340,83 +1433,83 @@ sha512_block_ppc:
 .long	0
 .byte	0,12,0x14,0,0,0,0,0
 .space	28
-.long	0x428a2f98,0xd728ae22
-.long	0x71374491,0x23ef65cd
-.long	0xb5c0fbcf,0xec4d3b2f
-.long	0xe9b5dba5,0x8189dbbc
-.long	0x3956c25b,0xf348b538
-.long	0x59f111f1,0xb605d019
-.long	0x923f82a4,0xaf194f9b
-.long	0xab1c5ed5,0xda6d8118
-.long	0xd807aa98,0xa3030242
-.long	0x12835b01,0x45706fbe
-.long	0x243185be,0x4ee4b28c
-.long	0x550c7dc3,0xd5ffb4e2
-.long	0x72be5d74,0xf27b896f
-.long	0x80deb1fe,0x3b1696b1
-.long	0x9bdc06a7,0x25c71235
-.long	0xc19bf174,0xcf692694
-.long	0xe49b69c1,0x9ef14ad2
-.long	0xefbe4786,0x384f25e3
-.long	0x0fc19dc6,0x8b8cd5b5
-.long	0x240ca1cc,0x77ac9c65
-.long	0x2de92c6f,0x592b0275
-.long	0x4a7484aa,0x6ea6e483
-.long	0x5cb0a9dc,0xbd41fbd4
-.long	0x76f988da,0x831153b5
-.long	0x983e5152,0xee66dfab
-.long	0xa831c66d,0x2db43210
-.long	0xb00327c8,0x98fb213f
-.long	0xbf597fc7,0xbeef0ee4
-.long	0xc6e00bf3,0x3da88fc2
-.long	0xd5a79147,0x930aa725
-.long	0x06ca6351,0xe003826f
-.long	0x14292967,0x0a0e6e70
-.long	0x27b70a85,0x46d22ffc
-.long	0x2e1b2138,0x5c26c926
-.long	0x4d2c6dfc,0x5ac42aed
-.long	0x53380d13,0x9d95b3df
-.long	0x650a7354,0x8baf63de
-.long	0x766a0abb,0x3c77b2a8
-.long	0x81c2c92e,0x47edaee6
-.long	0x92722c85,0x1482353b
-.long	0xa2bfe8a1,0x4cf10364
-.long	0xa81a664b,0xbc423001
-.long	0xc24b8b70,0xd0f89791
-.long	0xc76c51a3,0x0654be30
-.long	0xd192e819,0xd6ef5218
-.long	0xd6990624,0x5565a910
-.long	0xf40e3585,0x5771202a
-.long	0x106aa070,0x32bbd1b8
-.long	0x19a4c116,0xb8d2d0c8
-.long	0x1e376c08,0x5141ab53
-.long	0x2748774c,0xdf8eeb99
-.long	0x34b0bcb5,0xe19b48a8
-.long	0x391c0cb3,0xc5c95a63
-.long	0x4ed8aa4a,0xe3418acb
-.long	0x5b9cca4f,0x7763e373
-.long	0x682e6ff3,0xd6b2b8a3
-.long	0x748f82ee,0x5defb2fc
-.long	0x78a5636f,0x43172f60
-.long	0x84c87814,0xa1f0ab72
-.long	0x8cc70208,0x1a6439ec
-.long	0x90befffa,0x23631e28
-.long	0xa4506ceb,0xde82bde9
-.long	0xbef9a3f7,0xb2c67915
-.long	0xc67178f2,0xe372532b
-.long	0xca273ece,0xea26619c
-.long	0xd186b8c7,0x21c0c207
-.long	0xeada7dd6,0xcde0eb1e
-.long	0xf57d4f7f,0xee6ed178
-.long	0x06f067aa,0x72176fba
-.long	0x0a637dc5,0xa2c898a6
-.long	0x113f9804,0xbef90dae
-.long	0x1b710b35,0x131c471b
-.long	0x28db77f5,0x23047d84
-.long	0x32caab7b,0x40c72493
-.long	0x3c9ebe0a,0x15c9bebc
-.long	0x431d67c4,0x9c100d4c
-.long	0x4cc5d4be,0xcb3e42b6
-.long	0x597f299c,0xfc657e2a
-.long	0x5fcb6fab,0x3ad6faec
-.long	0x6c44198c,0x4a475817
+.long	0xd728ae22,0x428a2f98
+.long	0x23ef65cd,0x71374491
+.long	0xec4d3b2f,0xb5c0fbcf
+.long	0x8189dbbc,0xe9b5dba5
+.long	0xf348b538,0x3956c25b
+.long	0xb605d019,0x59f111f1
+.long	0xaf194f9b,0x923f82a4
+.long	0xda6d8118,0xab1c5ed5
+.long	0xa3030242,0xd807aa98
+.long	0x45706fbe,0x12835b01
+.long	0x4ee4b28c,0x243185be
+.long	0xd5ffb4e2,0x550c7dc3
+.long	0xf27b896f,0x72be5d74
+.long	0x3b1696b1,0x80deb1fe
+.long	0x25c71235,0x9bdc06a7
+.long	0xcf692694,0xc19bf174
+.long	0x9ef14ad2,0xe49b69c1
+.long	0x384f25e3,0xefbe4786
+.long	0x8b8cd5b5,0x0fc19dc6
+.long	0x77ac9c65,0x240ca1cc
+.long	0x592b0275,0x2de92c6f
+.long	0x6ea6e483,0x4a7484aa
+.long	0xbd41fbd4,0x5cb0a9dc
+.long	0x831153b5,0x76f988da
+.long	0xee66dfab,0x983e5152
+.long	0x2db43210,0xa831c66d
+.long	0x98fb213f,0xb00327c8
+.long	0xbeef0ee4,0xbf597fc7
+.long	0x3da88fc2,0xc6e00bf3
+.long	0x930aa725,0xd5a79147
+.long	0xe003826f,0x06ca6351
+.long	0x0a0e6e70,0x14292967
+.long	0x46d22ffc,0x27b70a85
+.long	0x5c26c926,0x2e1b2138
+.long	0x5ac42aed,0x4d2c6dfc
+.long	0x9d95b3df,0x53380d13
+.long	0x8baf63de,0x650a7354
+.long	0x3c77b2a8,0x766a0abb
+.long	0x47edaee6,0x81c2c92e
+.long	0x1482353b,0x92722c85
+.long	0x4cf10364,0xa2bfe8a1
+.long	0xbc423001,0xa81a664b
+.long	0xd0f89791,0xc24b8b70
+.long	0x0654be30,0xc76c51a3
+.long	0xd6ef5218,0xd192e819
+.long	0x5565a910,0xd6990624
+.long	0x5771202a,0xf40e3585
+.long	0x32bbd1b8,0x106aa070
+.long	0xb8d2d0c8,0x19a4c116
+.long	0x5141ab53,0x1e376c08
+.long	0xdf8eeb99,0x2748774c
+.long	0xe19b48a8,0x34b0bcb5
+.long	0xc5c95a63,0x391c0cb3
+.long	0xe3418acb,0x4ed8aa4a
+.long	0x7763e373,0x5b9cca4f
+.long	0xd6b2b8a3,0x682e6ff3
+.long	0x5defb2fc,0x748f82ee
+.long	0x43172f60,0x78a5636f
+.long	0xa1f0ab72,0x84c87814
+.long	0x1a6439ec,0x8cc70208
+.long	0x23631e28,0x90befffa
+.long	0xde82bde9,0xa4506ceb
+.long	0xb2c67915,0xbef9a3f7
+.long	0xe372532b,0xc67178f2
+.long	0xea26619c,0xca273ece
+.long	0x21c0c207,0xd186b8c7
+.long	0xcde0eb1e,0xeada7dd6
+.long	0xee6ed178,0xf57d4f7f
+.long	0x72176fba,0x06f067aa
+.long	0xa2c898a6,0x0a637dc5
+.long	0xbef90dae,0x113f9804
+.long	0x131c471b,0x1b710b35
+.long	0x23047d84,0x28db77f5
+.long	0x40c72493,0x32caab7b
+.long	0x15c9bebc,0x3c9ebe0a
+.long	0x9c100d4c,0x431d67c4
+.long	0xcb3e42b6,0x4cc5d4be
+.long	0xfc657e2a,0x597f299c
+.long	0x3ad6faec,0x5fcb6fab
+.long	0x4a475817,0x6c44198c
