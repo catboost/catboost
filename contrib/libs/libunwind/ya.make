@@ -2,12 +2,6 @@
 
 LIBRARY()
 
-
-
-VERSION(2022-02-05)
-
-ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/2b9554b8850192bdd86c02eb671de1d866df8d87.tar.gz)
-
 LICENSE(
     Apache-2.0 AND
     Apache-2.0 WITH LLVM-exception AND
@@ -16,6 +10,12 @@ LICENSE(
 )
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+
+
+VERSION(2022-02-05)
+
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/2b9554b8850192bdd86c02eb671de1d866df8d87.tar.gz)
 
 DISABLE(USE_LTO)
 

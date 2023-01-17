@@ -2,15 +2,15 @@
 
 LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 
 
 VERSION(3.2.0)
 
 ORIGINAL_SOURCE(https://github.com/google/double-conversion/archive/v3.2.0.tar.gz)
-
-LICENSE(BSD-3-Clause)
-
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     GLOBAL contrib/libs/double-conversion

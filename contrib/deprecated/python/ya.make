@@ -6,3 +6,9 @@ RECURSE(
     faulthandler
     subprocess32
 )
+
+IF (OS_WINDOWS)
+    RECURSE(
+    win-unicode-console
+)
+ENDIF()
