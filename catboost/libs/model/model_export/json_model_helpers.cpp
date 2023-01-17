@@ -222,6 +222,7 @@ static TJsonValue ToJson(const TFloatFeature& floatFeature) {
     jsonValue.InsertValue("feature_index", floatFeature.Position.Index);
     jsonValue.InsertValue("flat_feature_index", floatFeature.Position.FlatIndex);
     jsonValue.InsertValue("borders", VectorToJson(floatFeature.Borders));
+    jsonValue.InsertValue("feature_id", floatFeature.FeatureId);
     switch (floatFeature.NanValueTreatment) {
         case TFloatFeature::ENanValueTreatment::AsIs:
             jsonValue.InsertValue("nan_value_treatment", "AsIs");
@@ -241,7 +242,8 @@ static TFloatFeature FloatFeatureFromJson(const TJsonValue& value) {
         value["has_nans"].GetBoolean(),
         value["feature_index"].GetInteger(),
         value["flat_feature_index"].GetInteger(),
-        JsonToVector<float>(value["borders"]));
+        JsonToVector<float>(value["borders"]),
+        value["feature_id"].GetString());
     feature.NanValueTreatment = FromString<TFloatFeature::ENanValueTreatment>(value["nan_value_treatment"].GetString());
     return feature;
 }
@@ -250,6 +252,7 @@ static TJsonValue ToJson(const TCatFeature& catFeature) {
     TJsonValue jsonValue;
     jsonValue.InsertValue("feature_index", catFeature.Position.Index);
     jsonValue.InsertValue("flat_feature_index", catFeature.Position.FlatIndex);
+    jsonValue.InsertValue("feature_id", catFeature.FeatureId);
     return jsonValue;
 }
 
@@ -257,6 +260,7 @@ static TCatFeature CatFeatureFromJson(const TJsonValue& value) {
     TCatFeature catFeature;
     catFeature.Position.Index = value["feature_index"].GetInteger();
     catFeature.Position.FlatIndex = value["flat_feature_index"].GetInteger();
+    catFeature.FeatureId = value["feature_id"].GetString();
     return catFeature;
 }
 

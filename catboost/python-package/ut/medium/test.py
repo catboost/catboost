@@ -5308,6 +5308,29 @@ def test_feature_names_from_model():
     return local_canonical_file(output_file)
 
 
+@pytest.mark.parametrize('format', ['cbm', 'json'])
+def test_feature_names_from_loaded_model(format):
+    df = DataFrame({
+        'a': np.random.choice(['X', 'Y', 'Z'], 100),
+        'b': np.random.randint(0, 10, 100),
+        'c': np.random.randint(0, 10, 100),
+        'target': np.random.randint(0, 10, 100),
+    })
+
+    feature_names = ['a', 'b', 'c']
+    cat_features = ['a']
+    pool = Pool(data=df[feature_names], label=df['target'], cat_features=cat_features, feature_names=feature_names)
+
+    model = CatBoostRegressor(iterations=10)
+    model.fit(pool)
+    assert model.feature_names_ == feature_names
+
+    model_file = test_output_path('model')
+    model.save_model(model_file, format=format, pool=pool)
+    loaded_model = CatBoostRegressor().load_model(model_file, format=format)
+    assert loaded_model.feature_names_ == feature_names
+
+
 Value_AcceptableAsEmpty = [
     ('', True),
     ('nan', True),
