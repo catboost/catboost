@@ -18,7 +18,6 @@ target_include_directories(contrib-libs-mimalloc PRIVATE
 )
 target_link_libraries(contrib-libs-mimalloc PUBLIC
   contrib-libs-cxxsupp
-  yutil
 )
 target_sources(contrib-libs-mimalloc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/mimalloc/src/static.c
