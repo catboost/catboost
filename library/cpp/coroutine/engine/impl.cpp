@@ -41,14 +41,18 @@ void TCont::PrintMe(IOutputStream& out) const noexcept {
         << ")";
 }
 
-bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
+bool TCont::Join(TCont* c, TInstant deadLine, std::function<void(TJoinWait&, TCont*)> forceStop) noexcept {
     TJoinWait ev(*this);
     c->Waiters_.PushBack(&ev);
 
     do {
         if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
             if (!ev.Empty()) {
-                c->Cancel();
+                if (forceStop) {
+                    forceStop(ev, c);
+                } else {
+                    c->Cancel();
+                }
 
                 do {
                     Switch();
@@ -108,7 +112,7 @@ void TCont::Cancel() noexcept {
 
 void TCont::Cancel(THolder<std::exception> exception) noexcept {
     if (!Cancelled()) {
-        Exception_ = std::move(exception);
+        SetException(std::move(exception));
         Cancel();
     }
 }
