@@ -410,6 +410,7 @@ namespace NCatboostCuda {
             bestSplit.BinId = 0;
             bestSplit.FeatureId = Options.FixedBinarySplits[depth];
             bestSplit.Score = -std::numeric_limits<float>::infinity();
+            bestSplit.Gain = -std::numeric_limits<float>::infinity();
             for (auto leafId : leavesToVisit) {
                 subsets->Leaves[leafId].UpdateBestSplit(bestSplit);
             }

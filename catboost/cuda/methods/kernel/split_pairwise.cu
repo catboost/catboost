@@ -277,32 +277,40 @@ namespace NKernel {
     template <int BLOCK_SIZE>
     __global__ void SelectBestSplitImpl(const float* scores,
                                         const TCBinFeature* binFeature, int size,
+                                        double scoreBeforeSplit, const float* featureWeights,
                                         int bestIndexBias, TBestSplitPropertiesWithIndex* best) {
         float maxScore = -INFINITY;
+        float maxGain = -INFINITY;
         int maxIdx = -1;
         int tid = threadIdx.x;
 
         #pragma unroll 8
         for (int i = tid; i < size; i += BLOCK_SIZE) {
             float score = scores[i];
-            if (score > maxScore) {
+            auto featureId = binFeature[i].FeatureId;
+            float gain = (score + scoreBeforeSplit) * __ldg(featureWeights + featureId); // scoreBeforeSplit is -score from some previous tree level
+            if (gain > maxGain) {
                 maxScore = score;
+                maxGain = gain;
                 maxIdx = i;
             }
         }
 
         __shared__ float vals[BLOCK_SIZE];
         __shared__ int inds[BLOCK_SIZE];
+        __shared__ float gains[BLOCK_SIZE];
 
         vals[tid] = maxScore;
         inds[tid] = maxIdx;
+        gains[tid] = maxGain;
         __syncthreads();
 
         for (int s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
             if (tid < s) {
-                if ( vals[tid] <  vals[tid + s] || (vals[tid] == vals[tid + s] && inds[tid] > inds[tid + s]) ) {
+                if ( gains[tid] <  gains[tid + s] || (gains[tid] == gains[tid + s] && inds[tid] > inds[tid + s]) ) {
                     vals[tid] = vals[tid + s];
                     inds[tid] = inds[tid + s];
+                    gains[tid] = gains[tid + s];
                 }
             }
             __syncthreads();
@@ -324,15 +332,20 @@ namespace NKernel {
             best->Score = -bestScore;
             best->BinId = bestFeature.BinId;
             best->FeatureId = bestFeature.FeatureId;
+            best->Gain = -gains[0];
         }
     }
 
     void SelectBestSplit(const float* scores,
                          const TCBinFeature* binFeature, int size,
+                         double scoreBeforeSplit, const float* featureWeights,
                          int bestIndexBias, TBestSplitPropertiesWithIndex* best,
                          TCudaStream stream) {
         const int blockSize = 1024;
-        SelectBestSplitImpl<blockSize><<<1, blockSize, 0, stream>>>(scores,  binFeature, size, bestIndexBias, best);
+        SelectBestSplitImpl<blockSize><<<1, blockSize, 0, stream>>>(
+            scores,  binFeature, size,
+            scoreBeforeSplit, featureWeights,
+            bestIndexBias, best);
     }
 
 

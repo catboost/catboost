@@ -85,6 +85,7 @@ namespace NCatboostCuda {
         TVector<float> leaves;
         TVector<double> weights;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
+        double scoreBeforeSplit = 0;
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
             NCudaLib::GetCudaManager().Barrier();
@@ -110,12 +111,12 @@ namespace NCatboostCuda {
 
             if (featuresScoreCalcer) {
                 bestSplitProp = TakeBest(bestSplitProp,
-                                         featuresScoreCalcer->FindOptimalSplit(readSolution));
+                                         featuresScoreCalcer->FindOptimalSplit(readSolution, scoreBeforeSplit));
             }
 
             if (simpleCtrScoreCalcer) {
                 bestSplitProp = TakeBest(bestSplitProp,
-                                         simpleCtrScoreCalcer->FindOptimalSplit(readSolution));
+                                         simpleCtrScoreCalcer->FindOptimalSplit(readSolution, scoreBeforeSplit));
             }
 
             CB_ENSURE(bestSplitProp.BestSplit.FeatureId != static_cast<ui32>(-1),
@@ -123,6 +124,7 @@ namespace NCatboostCuda {
 
             bestSplit = ToSplit(FeaturesManager, bestSplitProp.BestSplit);
             PrintBestScore(FeaturesManager, bestSplit, bestSplitProp.BestSplit.Score, depth);
+            scoreBeforeSplit = bestSplitProp.BestSplit.Score;
 
             if (((depth + 1) != TreeConfig.MaxDepth)) {
                 auto guard = profiler.Profile(TStringBuilder() << "Update subsets");

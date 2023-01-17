@@ -212,7 +212,9 @@ namespace NCatboostCuda {
         }
 
         TFindBestSplitsHelper& ComputeOptimalSplit(const TCudaBuffer<const TPartitionStatistics, NCudaLib::TMirrorMapping>& partStats,
-                                                   const TCudaBuffer<const float, TFeatureWeightsMapping>& featureWeights,
+                                                   const TCudaBuffer<const float, TFeatureWeightsMapping>& catFeatureWeights,
+                                                   const TMirrorBuffer<const float>& featureWeights,
+                                                   double scoreBeforeSplit,
                                                    const TComputeHistogramsHelper<TLayoutPolicy>& histCalcer,
                                                    double scoreStdDev = 0,
                                                    ui64 seed = 0) {
@@ -223,10 +225,12 @@ namespace NCatboostCuda {
             if (DataSet->GetGridSize(Policy)) {
                 auto guard = profiler.Profile(TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
                 FindOptimalSplit(DataSet->GetBinFeaturesForBestSplits(Policy),
+                                 catFeatureWeights,
                                  featureWeights,
                                  histograms,
                                  partStats,
                                  FoldCount,
+                                 scoreBeforeSplit,
                                  BestScores,
                                  ScoreFunction,
                                  L2,
@@ -244,9 +248,9 @@ namespace NCatboostCuda {
         TBestSplitProperties ReadOptimalSplit() {
             if (DataSet->GetGridSize(Policy)) {
                 auto split = BestSplit(BestScores, Stream);
-                return {split.FeatureId, split.BinId, split.Score};
+                return {split.FeatureId, split.BinId, split.Score, split.Gain};
             } else {
-                return {static_cast<ui32>(-1), 0, std::numeric_limits<float>::infinity()};
+                return {static_cast<ui32>(-1), 0, std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
             }
         }
 
@@ -308,7 +312,9 @@ namespace NCatboostCuda {
         }
 
         TFindBestSplitsHelper& ComputeOptimalSplit(const TMirrorBuffer<const TPartitionStatistics>& reducedStats,
+                                                   const TMirrorBuffer<const float>& catFeatureWeights,
                                                    const TMirrorBuffer<const float>& featureWeights,
+                                                   double scoreBeforeSplit,
                                                    TComputeHistogramsHelper<TDocParallelLayout>& histHelper,
                                                    double scoreStdDev = 0,
                                                    ui64 seed = 0);
@@ -318,9 +324,10 @@ namespace NCatboostCuda {
                 auto split = BestSplit(BestScores, Stream);
                 return {split.FeatureId,
                         split.BinId,
-                        split.Score};
+                        split.Score,
+                        split.Gain};
             } else {
-                return {static_cast<ui32>(-1), 0, std::numeric_limits<float>::infinity()};
+                return {static_cast<ui32>(-1), 0, std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
             }
         }
 
@@ -381,11 +388,15 @@ namespace NCatboostCuda {
         }
 
         TScoreHelper& ComputeOptimalSplit(const TCudaBuffer<const TPartitionStatistics, NCudaLib::TMirrorMapping>& partStats,
-                                          const TCudaBuffer<const float, TFeatureWeightsMapping>& featureWeights,
+                                          const TCudaBuffer<const float, TFeatureWeightsMapping>& catFeatureWeights,
+                                          const TMirrorBuffer<const float>& featureWeights,
+                                          double scoreBeforeSplit,
                                           double scoreStdDev = 0,
                                           ui64 seed = 0) {
             FindBestSplitsHelper.ComputeOptimalSplit(partStats,
+                                                     catFeatureWeights,
                                                      featureWeights,
+                                                     scoreBeforeSplit,
                                                      ComputeHistogramsHelper,
                                                      scoreStdDev,
                                                      seed);
