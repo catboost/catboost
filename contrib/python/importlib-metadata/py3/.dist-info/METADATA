@@ -1,12 +1,10 @@
 Metadata-Version: 2.1
 Name: importlib-metadata
-Version: 4.11.3
+Version: 4.11.4
 Summary: Read metadata from Python packages
 Home-page: https://github.com/python/importlib_metadata
 Author: Jason R. Coombs
 Author-email: jaraco@jaraco.com
-License: UNKNOWN
-Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: Apache Software License
@@ -113,5 +111,3 @@ Project details
  * Report bugs at: https://github.com/python/importlib_metadata/issues
  * Code hosting: https://github.com/python/importlib_metadata
  * Documentation: https://importlib_metadata.readthedocs.io/
-
-
