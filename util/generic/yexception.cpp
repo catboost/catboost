@@ -4,7 +4,9 @@
 #include <util/system/backtrace.h>
 #include <util/system/type_name.h>
 
-#include <cxxabi.h>
+#if defined(_linux_) || defined(_android_) || defined(_darwin_)
+    #include <cxxabi.h>
+#endif
 
 #include <stdexcept>
 
@@ -95,7 +97,7 @@ bool UncaughtException() noexcept {
 }
 
 std::string CurrentExceptionTypeName() {
-#if defined(_linux_) || defined(_darwin_)
+#if defined(_linux_) || defined(_android_) || defined(_darwin_)
     std::type_info* currentExceptionTypePtr = abi::__cxa_current_exception_type();
     if (currentExceptionTypePtr) {
         return TypeName(*currentExceptionTypePtr);
