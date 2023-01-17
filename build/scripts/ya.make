@@ -19,6 +19,7 @@ TEST_SRCS(
     compile_jsrc.py
     compile_pysrc.py
     configure_file.py
+    copy_docs_files.py
     copy_docs_files_to_dir.py
     copy_files_to_dir.py
     copy_to_dir.py
