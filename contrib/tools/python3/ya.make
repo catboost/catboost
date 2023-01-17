@@ -25,3 +25,8 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    pycc
+    src/Lib
+)
