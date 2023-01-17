@@ -557,6 +557,9 @@
         },
         "rm": {
             "description": "ReleaseMachine cmd tool"
+        },
+        "grut": {
+            "description": "Run GrUT CLI"
         }
     },
     "toolchain": {
@@ -6591,6 +6594,28 @@
                     "default": true
                 }
             ]
+        },
+        "grut": {
+            "tools": {
+                "grut": {
+                    "bottle": "grut",
+                    "executable": "grut"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -9129,6 +9154,9 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "ABCD_CLI",
+                        "attributes": {
+                            "released": "stable"
+                        },
                         "owner": "CAPACITY-PLANNING"
                     },
                     "update_interval": 86400
@@ -9160,6 +9188,25 @@
             "executable": {
                 "rm_tool": [
                     "rm_tool"
+                ]
+            }
+        },
+        "grut": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "GRUT_CLI_YA_TOOL",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "GRUT"
+                    },
+                    "update_interval": 86400
+                }
+            },
+            "executable": {
+                "grut": [
+                    "grut"
                 ]
             }
         }
