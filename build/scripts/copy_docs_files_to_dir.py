@@ -125,7 +125,8 @@ def main():
             rel_path = file_src[len(source_root):]
         elif file_src.startswith(build_root):
             # generated = True
-            rel_path = file_src[len(build_root):]
+            # rel_path = file_src[len(build_root):]
+            rel_path = None
         else:
             raise Exception('Unexpected file path [{}].'.format(file_src))
         assert not os.path.isabs(rel_path)
