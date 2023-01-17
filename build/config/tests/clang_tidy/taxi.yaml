@@ -4,10 +4,6 @@ Checks: >
   # See comment in config.yaml for the details.
   -bugprone-use-after-move,
   performance-implicit-conversion-in-loop,
-  -clang-diagnostic-unused-but-set-variable,
-  -modernize-return-braced-init-list,
-  -modernize-concat-nested-namespaces,
-  -google-readability-casting,
 #  arcadia-typeid-name-restriction,
 #  readability-identifier-naming,
 CheckOptions: []
