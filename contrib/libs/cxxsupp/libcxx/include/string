@@ -792,16 +792,13 @@ public:
         _NOEXCEPT;
 #endif
 
-#if _LIBCPP_STD_VER > 20
+#if _LIBCPP_STD_VER > 17
     basic_string(nullptr_t) = delete;
 #endif
 
     _LIBCPP_INLINE_VISIBILITY
     basic_string(basic_string&& __str, const allocator_type& __a);
 #endif // _LIBCPP_CXX03_LANG
-
-    _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
-    basic_string(nullptr_t) = delete;
 
     template <class = __enable_if_t<__is_allocator<_Allocator>::value, nullptr_t> >
     _LIBCPP_INLINE_VISIBILITY
