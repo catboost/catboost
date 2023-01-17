@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -32,8 +32,10 @@
 #endif
 #else
 #include <unistd.h>
+#if __unix__
 #if __linux__
 #include <sys/sysinfo.h>
+#endif
 #include <cstring>
 #include <sched.h>
 #include <cerrno>
@@ -53,7 +55,7 @@ namespace r1 {
 
 #if __TBB_USE_OS_AFFINITY_SYSCALL
 
-#if __linux__
+#if __unix__
 // Handlers for interoperation with libiomp
 static int (*libiomp_try_restoring_original_mask)();
 // Table for mapping to libiomp entry points
@@ -63,10 +65,10 @@ static const dynamic_link_descriptor iompLinkTable[] = {
 #endif
 
 static void set_thread_affinity_mask( std::size_t maskSize, const basic_mask_t* threadMask ) {
-#if __linux__
-    if( sched_setaffinity( 0, maskSize, threadMask ) )
-#else /* FreeBSD */
+#if __FreeBSD__ || __NetBSD__ || __OpenBSD__
     if( cpuset_setaffinity( CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, maskSize, threadMask ) )
+#else /* __unix__ */
+    if( sched_setaffinity( 0, maskSize, threadMask ) )
 #endif
         // Here and below the error severity is lowered from critical level
         // because it may happen during TBB library unload because of not
@@ -76,10 +78,10 @@ static void set_thread_affinity_mask( std::size_t maskSize, const basic_mask_t* 
 }
 
 static void get_thread_affinity_mask( std::size_t maskSize, basic_mask_t* threadMask ) {
-#if __linux__
-    if( sched_getaffinity( 0, maskSize, threadMask ) )
-#else /* FreeBSD */
+#if __FreeBSD__ || __NetBSD__ || __OpenBSD__
     if( cpuset_getaffinity( CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, maskSize, threadMask ) )
+#else /* __unix__ */
+    if( sched_getaffinity( 0, maskSize, threadMask ) )
 #endif
     runtime_warning( "getaffinity syscall failed" );
 }
@@ -88,9 +90,8 @@ static basic_mask_t* process_mask;
 static int num_masks;
 
 void destroy_process_mask() {
-    if( process_mask ) {
-        delete [] process_mask;
-    }
+    delete [] process_mask;
+    process_mask = nullptr;
 }
 
 #define curMaskSize sizeof(basic_mask_t) * num_masks
@@ -103,7 +104,7 @@ affinity_helper::~affinity_helper() {
     }
 }
 void affinity_helper::protect_affinity_mask( bool restore_process_mask ) {
-    if( threadMask == NULL && num_masks ) { // TODO: assert num_masks validity?
+    if( threadMask == nullptr && num_masks ) { // TODO: assert num_masks validity?
         threadMask = new basic_mask_t [num_masks];
         std::memset( threadMask, 0, curMaskSize );
         get_thread_affinity_mask( curMaskSize, threadMask );
@@ -119,10 +120,8 @@ void affinity_helper::protect_affinity_mask( bool restore_process_mask ) {
     }
 }
 void affinity_helper::dismiss() {
-    if( threadMask ) {
-        delete [] threadMask;
-        threadMask = NULL;
-    }
+    delete [] threadMask;
+    threadMask = nullptr;
     is_changed = 0;
 }
 #undef curMaskSize
@@ -135,35 +134,31 @@ static void initialize_hardware_concurrency_info () {
     int err;
     int availableProcs = 0;
     int numMasks = 1;
-#if __linux__
     int maxProcs = sysconf(_SC_NPROCESSORS_ONLN);
-    int pid = getpid();
-#else /* FreeBSD >= 7.1 */
-    int maxProcs = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
     basic_mask_t* processMask;
     const std::size_t BasicMaskSize =  sizeof(basic_mask_t);
     for (;;) {
         const int curMaskSize = BasicMaskSize * numMasks;
         processMask = new basic_mask_t[numMasks];
         std::memset( processMask, 0, curMaskSize );
-#if __linux__
-        err = sched_getaffinity( pid, curMaskSize, processMask );
-        if ( !err || errno != EINVAL || curMaskSize * CHAR_BIT >= 256 * 1024 )
-            break;
-#else /* FreeBSD >= 7.1 */
+#if __FreeBSD__ || __NetBSD__ || __OpenBSD__
         // CPU_LEVEL_WHICH - anonymous (current) mask, CPU_LEVEL_CPUSET - assigned mask
         err = cpuset_getaffinity( CPU_LEVEL_WHICH, CPU_WHICH_PID, -1, curMaskSize, processMask );
         if ( !err || errno != ERANGE || curMaskSize * CHAR_BIT >= 16 * 1024 )
             break;
-#endif /* FreeBSD >= 7.1 */
+#else /* __unix__ */
+        int pid = getpid();
+        err = sched_getaffinity( pid, curMaskSize, processMask );
+        if ( !err || errno != EINVAL || curMaskSize * CHAR_BIT >= 256 * 1024 )
+             break;
+#endif
         delete[] processMask;
         numMasks <<= 1;
     }
     if ( !err ) {
         // We have found the mask size and captured the process affinity mask into processMask.
         num_masks = numMasks; // do here because it's needed for affinity_helper to work
-#if __linux__
+#if __unix__
         // For better coexistence with libiomp which might have changed the mask already,
         // check for its presence and ask it to restore the mask.
         dynamic_link_handle libhandle;
@@ -196,7 +191,7 @@ static void initialize_hardware_concurrency_info () {
         delete[] processMask;
     }
     theNumProcs = availableProcs > 0 ? availableProcs : 1; // Fail safety strap
-    __TBB_ASSERT( theNumProcs <= sysconf(_SC_NPROCESSORS_ONLN), NULL );
+    __TBB_ASSERT( theNumProcs <= sysconf(_SC_NPROCESSORS_ONLN), nullptr);
 }
 
 int AvailableHwConcurrency() {
@@ -211,7 +206,7 @@ int AvailableHwConcurrency() {
 // Format of "present" file is: ([<int>-<int>|<int>],)+
 int AvailableHwConcurrency() {
     FILE *fp = fopen("/sys/devices/system/cpu/present", "r");
-    if (fp == NULL) return 1;
+    if (fp == nullptr) return 1;
     int num_args, lower, upper, num_cpus=0;
     while ((num_args = fscanf(fp, "%u-%u", &lower, &upper)) != EOF) {
         switch(num_args) {
@@ -262,15 +257,16 @@ int ProcessorGroupInfo::NumGroups = 1;
 int ProcessorGroupInfo::HoleIndex = 0;
 
 ProcessorGroupInfo theProcessorGroups[MaxProcessorGroups];
-
+int calculate_numa[MaxProcessorGroups];  //Array needed for FindProcessorGroupIndex to calculate Processor Group when number of threads > number of cores to distribute threads evenly between processor groups
+int numaSum;
 struct TBB_GROUP_AFFINITY {
     DWORD_PTR Mask;
     WORD   Group;
     WORD   Reserved[3];
 };
 
-static DWORD (WINAPI *TBB_GetActiveProcessorCount)( WORD groupIndex ) = NULL;
-static WORD (WINAPI *TBB_GetActiveProcessorGroupCount)() = NULL;
+static DWORD (WINAPI *TBB_GetActiveProcessorCount)( WORD groupIndex ) = nullptr;
+static WORD (WINAPI *TBB_GetActiveProcessorGroupCount)() = nullptr;
 static BOOL (WINAPI *TBB_SetThreadGroupAffinity)( HANDLE hThread,
                         const TBB_GROUP_AFFINITY* newAff, TBB_GROUP_AFFINITY *prevAff );
 static BOOL (WINAPI *TBB_GetThreadGroupAffinity)( HANDLE hThread, TBB_GROUP_AFFINITY* );
@@ -283,6 +279,7 @@ static const dynamic_link_descriptor ProcessorGroupsApiLinkTable[] = {
 };
 
 static void initialize_hardware_concurrency_info () {
+    suppress_unused_warning(TBB_ALL_PROCESSOR_GROUPS);
 #if __TBB_WIN8UI_SUPPORT
     // For these applications processor groups info is unavailable
     // Setting up a number of processors for one processor group
@@ -299,14 +296,14 @@ static void initialize_hardware_concurrency_info () {
         if ( pam & m )
             ++nproc;
     }
-    __TBB_ASSERT( nproc <= (int)si.dwNumberOfProcessors, NULL );
+    __TBB_ASSERT( nproc <= (int)si.dwNumberOfProcessors, nullptr);
     // By default setting up a number of processors for one processor group
     theProcessorGroups[0].numProcs = theProcessorGroups[0].numProcsRunningTotal = nproc;
     // Setting up processor groups in case the process does not restrict affinity mask and more than one processor group is present
     if ( nproc == (int)si.dwNumberOfProcessors && TBB_GetActiveProcessorCount ) {
         // The process does not have restricting affinity mask and multiple processor groups are possible
         ProcessorGroupInfo::NumGroups = (int)TBB_GetActiveProcessorGroupCount();
-        __TBB_ASSERT( ProcessorGroupInfo::NumGroups <= MaxProcessorGroups, NULL );
+        __TBB_ASSERT( ProcessorGroupInfo::NumGroups <= MaxProcessorGroups, nullptr);
         // Fail safety bootstrap. Release versions will limit available concurrency
         // level, while debug ones would assert.
         if ( ProcessorGroupInfo::NumGroups > MaxProcessorGroups )
@@ -316,15 +313,27 @@ static void initialize_hardware_concurrency_info () {
             if ( TBB_GetThreadGroupAffinity( GetCurrentThread(), &ga ) )
                 ProcessorGroupInfo::HoleIndex = ga.Group;
             int nprocs = 0;
+            int min_procs = INT_MAX;
             for ( WORD i = 0; i < ProcessorGroupInfo::NumGroups; ++i ) {
                 ProcessorGroupInfo  &pgi = theProcessorGroups[i];
                 pgi.numProcs = (int)TBB_GetActiveProcessorCount(i);
-                __TBB_ASSERT( pgi.numProcs <= (int)sizeof(DWORD_PTR) * CHAR_BIT, NULL );
+                if (pgi.numProcs < min_procs) min_procs = pgi.numProcs;  //Finding the minimum number of processors in the Processor Groups
+                calculate_numa[i] = pgi.numProcs;
+                __TBB_ASSERT( pgi.numProcs <= (int)sizeof(DWORD_PTR) * CHAR_BIT, nullptr);
                 pgi.mask = pgi.numProcs == sizeof(DWORD_PTR) * CHAR_BIT ? ~(DWORD_PTR)0 : (DWORD_PTR(1) << pgi.numProcs) - 1;
                 pgi.numProcsRunningTotal = nprocs += pgi.numProcs;
             }
-            __TBB_ASSERT( nprocs == (int)TBB_GetActiveProcessorCount( TBB_ALL_PROCESSOR_GROUPS ), NULL );
+            __TBB_ASSERT( nprocs == (int)TBB_GetActiveProcessorCount( TBB_ALL_PROCESSOR_GROUPS ), nullptr);
+
+            calculate_numa[0] = (calculate_numa[0] / min_procs)-1;
+            for (WORD i = 1; i < ProcessorGroupInfo::NumGroups; ++i) {
+                calculate_numa[i] = calculate_numa[i-1] + (calculate_numa[i] / min_procs);
+            }
+
+            numaSum = calculate_numa[ProcessorGroupInfo::NumGroups - 1];
+
         }
+
     }
 #endif /* __TBB_WIN8UI_SUPPORT */
 
@@ -339,38 +348,29 @@ int NumberOfProcessorGroups() {
     return ProcessorGroupInfo::NumGroups;
 }
 
-// Offset for the slot reserved for the first external thread
-#define HoleAdjusted(procIdx, grpIdx) (procIdx + (holeIdx <= grpIdx))
-
 int FindProcessorGroupIndex ( int procIdx ) {
-    // In case of oversubscription spread extra workers in a round robin manner
-    int holeIdx;
-    const int numProcs = theProcessorGroups[ProcessorGroupInfo::NumGroups - 1].numProcsRunningTotal;
-    if ( procIdx >= numProcs - 1 ) {
-        holeIdx = INT_MAX;
-        procIdx = (procIdx - numProcs + 1) % numProcs;
-    }
-    else
-        holeIdx = ProcessorGroupInfo::HoleIndex;
-    __TBB_ASSERT( hardware_concurrency_info == do_once_state::initialized, "FindProcessorGroupIndex is used before AvailableHwConcurrency" );
-    // Approximate the likely group index assuming all groups are of the same size
-    int i = procIdx / theProcessorGroups[0].numProcs;
-    // Make sure the approximation is a valid group index
-    if (i >= ProcessorGroupInfo::NumGroups) i = ProcessorGroupInfo::NumGroups-1;
-    // Now adjust the approximation up or down
-    if ( theProcessorGroups[i].numProcsRunningTotal > HoleAdjusted(procIdx, i) ) {
-        while ( theProcessorGroups[i].numProcsRunningTotal - theProcessorGroups[i].numProcs > HoleAdjusted(procIdx, i) ) {
-            __TBB_ASSERT( i > 0, NULL );
-            --i;
-        }
-    }
-    else {
+    int current_grp_idx = ProcessorGroupInfo::HoleIndex;
+    if (procIdx >= theProcessorGroups[current_grp_idx].numProcs  && procIdx < theProcessorGroups[ProcessorGroupInfo::NumGroups - 1].numProcsRunningTotal) {
+        procIdx = procIdx - theProcessorGroups[current_grp_idx].numProcs;
         do {
-            ++i;
-        } while ( theProcessorGroups[i].numProcsRunningTotal <= HoleAdjusted(procIdx, i) );
+            current_grp_idx = (current_grp_idx + 1) % (ProcessorGroupInfo::NumGroups);
+            procIdx = procIdx - theProcessorGroups[current_grp_idx].numProcs;
+
+        } while (procIdx >= 0);
     }
-    __TBB_ASSERT( i < ProcessorGroupInfo::NumGroups, NULL );
-    return i;
+    else if (procIdx >= theProcessorGroups[ProcessorGroupInfo::NumGroups - 1].numProcsRunningTotal) {
+        int temp_grp_index = 0;
+        procIdx = procIdx - theProcessorGroups[ProcessorGroupInfo::NumGroups - 1].numProcsRunningTotal; 
+        procIdx = procIdx % (numaSum+1);  //ProcIdx to stay between 0 and numaSum
+
+        while (procIdx - calculate_numa[temp_grp_index] > 0) {
+            temp_grp_index = (temp_grp_index + 1) % ProcessorGroupInfo::NumGroups;
+        }
+        current_grp_idx = temp_grp_index;
+    }
+    __TBB_ASSERT(current_grp_idx < ProcessorGroupInfo::NumGroups, nullptr);
+
+    return current_grp_idx;
 }
 
 void MoveThreadIntoProcessorGroup( void* hThread, int groupIndex ) {
@@ -378,7 +378,7 @@ void MoveThreadIntoProcessorGroup( void* hThread, int groupIndex ) {
     if ( !TBB_SetThreadGroupAffinity )
         return;
     TBB_GROUP_AFFINITY ga = { theProcessorGroups[groupIndex].mask, (WORD)groupIndex, {0,0,0} };
-    TBB_SetThreadGroupAffinity( hThread, &ga, NULL );
+    TBB_SetThreadGroupAffinity( hThread, &ga, nullptr);
 }
 
 int AvailableHwConcurrency() {

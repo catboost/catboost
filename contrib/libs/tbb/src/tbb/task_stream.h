@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,9 +25,8 @@
 //! would be suitable for critical tasks due to linear time complexity on its operations.
 
 #include "oneapi/tbb/detail/_utils.h"
-
-#include "oneapi/tbb/spin_mutex.h"
 #include "oneapi/tbb/cache_aligned_allocator.h"
+#include "oneapi/tbb/mutex.h"
 
 #include "scheduler_common.h"
 #include "misc.h" // for FastRandom
@@ -55,20 +54,20 @@ using population_t = uintptr_t;
 const population_t one = 1;
 
 inline void set_one_bit( std::atomic<population_t>& dest, int pos ) {
-    __TBB_ASSERT( pos>=0, NULL );
-    __TBB_ASSERT( pos<int(sizeof(population_t)*CHAR_BIT), NULL );
+    __TBB_ASSERT( pos>=0, nullptr);
+    __TBB_ASSERT( pos<int(sizeof(population_t)*CHAR_BIT), nullptr);
     dest.fetch_or( one<<pos );
 }
 
 inline void clear_one_bit( std::atomic<population_t>& dest, int pos ) {
-    __TBB_ASSERT( pos>=0, NULL );
-    __TBB_ASSERT( pos<int(sizeof(population_t)*CHAR_BIT), NULL );
+    __TBB_ASSERT( pos>=0, nullptr);
+    __TBB_ASSERT( pos<int(sizeof(population_t)*CHAR_BIT), nullptr);
     dest.fetch_and( ~(one<<pos) );
 }
 
 inline bool is_bit_set( population_t val, int pos ) {
-    __TBB_ASSERT( pos>=0, NULL );
-    __TBB_ASSERT( pos<int(sizeof(population_t)*CHAR_BIT), NULL );
+    __TBB_ASSERT( pos>=0, nullptr);
+    __TBB_ASSERT( pos<int(sizeof(population_t)*CHAR_BIT), nullptr);
     return (val & (one<<pos)) != 0;
 }
 
@@ -120,7 +119,7 @@ struct preceding_lane_selector : lane_selector_base {
 template<task_stream_accessor_type accessor>
 class task_stream_accessor : no_copy {
 protected:
-    using lane_t = queue_and_mutex <d1::task*, spin_mutex>;
+    using lane_t = queue_and_mutex <d1::task*, mutex>;
     d1::task* get_item( lane_t::queue_base_t& queue ) {
         d1::task* result = queue.front();
         queue.pop_front();
@@ -131,7 +130,7 @@ protected:
 template<>
 class task_stream_accessor< back_nonnull_accessor > : no_copy {
 protected:
-    using lane_t = queue_and_mutex <d1::task*, spin_mutex>;
+    using lane_t = queue_and_mutex <d1::task*, mutex>;
     d1::task* get_item( lane_t::queue_base_t& queue ) {
         d1::task* result = nullptr;
         __TBB_ASSERT(!queue.empty(), nullptr);
@@ -140,8 +139,6 @@ protected:
             result = queue.back();
             queue.pop_back();
         } while ( !result && !queue.empty() );
-
-        __TBB_ASSERT_RELEASE(result, nullptr);
         return result;
     }
 };
@@ -162,12 +159,12 @@ public:
 
         N = n_lanes >= max_lanes ? max_lanes : n_lanes > 2 ? 1 << (tbb::detail::log2(n_lanes - 1) + 1) : 2;
         __TBB_ASSERT( N == max_lanes || (N >= n_lanes && ((N - 1) & N) == 0), "number of lanes miscalculated" );
-        __TBB_ASSERT( N <= sizeof(population_t) * CHAR_BIT, NULL );
+        __TBB_ASSERT( N <= sizeof(population_t) * CHAR_BIT, nullptr);
         lanes = static_cast<lane_t*>(cache_aligned_allocate(sizeof(lane_t) * N));
         for (unsigned i = 0; i < N; ++i) {
             new (lanes + i) lane_t;
         }
-        __TBB_ASSERT( !population.load(std::memory_order_relaxed), NULL );
+        __TBB_ASSERT( !population.load(std::memory_order_relaxed), nullptr);
     }
 
     ~task_stream() {
@@ -194,7 +191,7 @@ public:
     //! updated inside lane selector.
     template<typename lane_selector_t>
     d1::task* pop( const lane_selector_t& next_lane ) {
-        d1::task* popped = NULL;
+        d1::task* popped = nullptr;
         unsigned lane = 0;
         do {
             lane = next_lane( /*out_of=*/N );
@@ -205,13 +202,13 @@ public:
 
     //! Try finding and popping a related task.
     d1::task* pop_specific( unsigned& last_used_lane, isolation_type isolation ) {
-        d1::task* result = NULL;
+        d1::task* result = nullptr;
         // Lane selection is round-robin in backward direction.
         unsigned idx = last_used_lane & (N-1);
         do {
             if( is_bit_set( population.load(std::memory_order_relaxed), idx ) ) {
                 lane_t& lane = lanes[idx];
-                spin_mutex::scoped_lock lock;
+                mutex::scoped_lock lock;
                 if( lock.try_acquire(lane.my_mutex) && !lane.my_queue.empty() ) {
                     result = look_specific( lane.my_queue, isolation );
                     if( lane.my_queue.empty() )
@@ -234,7 +231,7 @@ public:
 private:
     //! Returns true on successful push, otherwise - false.
     bool try_push(d1::task* source, unsigned lane_idx ) {
-        spin_mutex::scoped_lock lock;
+        mutex::scoped_lock lock;
         if( lock.try_acquire( lanes[lane_idx].my_mutex ) ) {
             lanes[lane_idx].my_queue.push_back( source );
             set_one_bit( population, lane_idx ); // TODO: avoid atomic op if the bit is already set
@@ -243,13 +240,13 @@ private:
         return false;
     }
 
-    //! Returns pointer to task on successful pop, otherwise - NULL.
+    //! Returns pointer to task on successful pop, otherwise - nullptr.
     d1::task* try_pop( unsigned lane_idx ) {
         if( !is_bit_set( population.load(std::memory_order_relaxed), lane_idx ) )
-            return NULL;
-        d1::task* result = NULL;
+            return nullptr;
+        d1::task* result = nullptr;
         lane_t& lane = lanes[lane_idx];
-        spin_mutex::scoped_lock lock;
+        mutex::scoped_lock lock;
         if( lock.try_acquire( lane.my_mutex ) && !lane.my_queue.empty() ) {
             result = this->get_item( lane.my_queue );
             if( lane.my_queue.empty() )
@@ -260,7 +257,7 @@ private:
 
     // TODO: unify '*_specific' logic with 'pop' methods above
     d1::task* look_specific( typename lane_t::queue_base_t& queue, isolation_type isolation ) {
-        __TBB_ASSERT( !queue.empty(), NULL );
+        __TBB_ASSERT( !queue.empty(), nullptr);
         // TODO: add a worst-case performance test and consider an alternative container with better
         // performance for isolation search.
         typename lane_t::queue_base_t::iterator curr = queue.end();
@@ -271,12 +268,12 @@ private:
                 if( queue.end() - curr == 1 )
                     queue.pop_back(); // a little of housekeeping along the way
                 else
-                    *curr = 0;      // grabbing task with the same isolation
+                    *curr = nullptr;      // grabbing task with the same isolation
                 // TODO: move one of the container's ends instead if the task has been found there
                 return result;
             }
         } while( curr != queue.begin() );
-        return NULL;
+        return nullptr;
     }
 
 }; // task_stream
