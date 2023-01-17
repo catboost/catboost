@@ -3370,6 +3370,17 @@
         "3454071022": "https://storage.mds.yandex.net/get-devtools-opensource/471749/3454071022", 
         "3454071119": "https://storage.mds.yandex.net/get-devtools-opensource/233854/3454071119", 
         "3454071259": "https://storage.mds.yandex.net/get-devtools-opensource/373962/3454071259", 
+        "3461470952": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461470952", 
+        "3461471109": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461471109", 
+        "3461471435": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461471435", 
+        "3461476201": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461476201", 
+        "3461476281": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461476281", 
+        "3461476393": "https://storage.mds.yandex.net/get-devtools-opensource/250854/3461476393", 
+        "3461781943": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461781943", 
+        "3461782010": "https://storage.mds.yandex.net/get-devtools-opensource/373962/3461782010", 
+        "3461782119": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461782119", 
+        "3461782212": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461782212", 
+        "3461782268": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3461782268", 
         "360916612": "https://storage.mds.yandex.net/get-devtools-opensource/233854/360916612", 
         "412716868": "https://storage.mds.yandex.net/get-devtools-opensource/233854/412716868", 
         "412720651": "https://storage.mds.yandex.net/get-devtools-opensource/233854/412720651", 
@@ -4400,6 +4411,13 @@
             "linux-ppc64le": "3412580378", 
             "linux_musl": "3412581136", 
             "win32": "3412579904"
+        }, 
+        "1419775644": {
+            "darwin": "3461781943", 
+            "darwin-arm64": "3461782119", 
+            "linux": "3461782268", 
+            "linux-ppc64le": "3461782010", 
+            "win32": "3461782212"
         }, 
         "220049371": {
             "Darwin-14.5.0-x86_64-i386-64bit": "499943029"
