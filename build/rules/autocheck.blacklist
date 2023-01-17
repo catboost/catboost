@@ -847,7 +847,6 @@ kinopoisk/php/mobile-api/source
 taxi/github/taximeter/android-calc-utils
 education/services/file-archiver
 statbox/jam/actions/mstat/market_analyst_yt_actions
-passport/backend/tools/as_data_generator
 education/schoolbook/services/mmo
 taxi/github/taximeter/android-price-calc
 portal/archive/betas
@@ -897,3 +896,6 @@ taxi/mobile/infra/dart-codegen
 taxi/github/rida/php
 alice/alice4business
 intranet/digiarch
+data-ui/infra-news-popup
+data-ui/logbroker
+classifieds/sitemap-monitor
