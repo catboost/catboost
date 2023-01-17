@@ -13,6 +13,7 @@ LICENSE(Python-2.0)
 PEERDIR(
     contrib/libs/expat
     contrib/libs/libbz2
+    contrib/libs/libc_compat
     contrib/libs/openssl
     contrib/libs/xz/liblzma
     contrib/libs/zlib

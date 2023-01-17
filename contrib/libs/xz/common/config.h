@@ -1,25 +1,21 @@
 #pragma once
 
-#include <util/system/platform.h>
-
-#if defined(_android_)
-#   if defined(_i386_)
-#       include "config-android-i386.h"
-#   elif defined(_x86_64_)
-#       include "config-linux.h"
-#   elif defined(_arm32_)
-#       include "config-android-arm32.h"
-#   elif defined(_arm64_)
-#       include "config-android-arm64.h"
-#   endif
-#elif defined(_linux_)
-#   include "config-linux.h"
-#elif defined(_darwin_)
-#   include "config-darwin.h"
-#elif defined(_windows_)
-#   include "config-windows.h"
+#if defined(__APPLE__)
+#   include "config-osx.h"
+#elif defined(_MSC_VER)
+#   include "config-win.h"
 #else
-#   error "Unsupported platform"
+#   include "config-linux.h"
 #endif
 
+#if defined(__ANDROID__) && defined(__arm__)
+#   include "config-android-arm.h"
+#endif
 
+#if defined(__ANDROID__) && defined(__aarch64__)
+#   include "config-android-arm64.h"
+#endif
+
+#if defined(__ANDROID__) && defined(__i686__)
+#   include "config-android-i686.h"
+#endif

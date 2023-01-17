@@ -33,7 +33,7 @@
 #	include <sha256.h>
 #elif defined(HAVE_SHA2_H)
 #	include <sys/types.h>
-#	include <sha2.h> //Y_IGNORE
+#	error #include <sha2.h>
 #endif
 
 #if defined(HAVE_INTERNAL_SHA256)
@@ -102,8 +102,8 @@ typedef struct {
 extern uint32_t lzma_crc32_table[1][256];
 extern void lzma_crc32_init(void);
 #else
-extern /* const */ uint32_t lzma_crc32_table[8][256];
-extern /* const */ uint64_t lzma_crc64_table[4][256];
+extern const uint32_t lzma_crc32_table[8][256];
+extern const uint64_t lzma_crc64_table[4][256];
 #endif
 
 
