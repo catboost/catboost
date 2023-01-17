@@ -18,7 +18,6 @@ SRCS(
     element_range.cpp
     equal.cpp
     exception.cpp
-    flatbuffers/guid.fbs
     guid.cpp
     hash.cpp
     int_cast.cpp
