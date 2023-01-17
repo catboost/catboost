@@ -885,7 +885,9 @@ pythia/apps/frontend
 pythia/apps/push-client
 pythia/apps/migrator/alerts
 portal/main
+portal/demo
 data-ui/forms-admin
 taxi/github/react-google-maps
 taxi/github/react-yandex-maps
 portal/tap-formatter-html
+intranet/idm_backend
