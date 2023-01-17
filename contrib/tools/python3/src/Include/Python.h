@@ -116,7 +116,7 @@
 #include "sliceobject.h"
 #include "cellobject.h"
 #include "iterobject.h"
-#include <contrib/tools/python3/src/Include/cpython/initconfig.h>
+#include "cpython/initconfig.h"
 #include "genobject.h"
 #include "descrobject.h"
 #include "genericaliasobject.h"
