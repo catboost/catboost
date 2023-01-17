@@ -492,6 +492,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.vcxproj">
       <Project>E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\subprocess32\pydeprecated-python-subprocess32.global.vcxproj">
+      <Project>9C2DB381-F799-1815-9F76-851209B5D6DB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\subprocess32\pydeprecated-python-subprocess32.vcxproj">
+      <Project>B40F58FE-3E5B-6C9A-E02D-4F3E2169ECCC</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
     </ProjectReference>
@@ -1274,12 +1280,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\stack-data\pycontrib-python-stack-data.vcxproj">
       <Project>4B818AEF-935C-1061-9F3C-26D873AF57E9</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\subprocess32\pycontrib-python-subprocess32.global.vcxproj">
-      <Project>610470B6-7435-6A0D-6E61-7D9830D7F79D</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\subprocess32\pycontrib-python-subprocess32.vcxproj">
-      <Project>972DE883-30AC-6E31-9991-03EE6F60C65E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py2\pypython-testpath-py2.global.vcxproj">
       <Project>3201F632-C4DA-6E71-FAFD-E7106D3F6D1B</Project>
