@@ -14,6 +14,7 @@ target_link_libraries(library-cpp-chromium_trace PUBLIC
   cpp-containers-stack_vector
   cpp-json-writer
   library-cpp-yson
+  cpp-deprecated-atomic
 )
 target_sources(library-cpp-chromium_trace PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/chromium_trace/blocking_queue.cpp

@@ -4,8 +4,9 @@ LIBRARY()
 
 GENERATE_ENUM_SERIALIZATION(priority.h)
 
-PEERDIR (
+PEERDIR(
     library/cpp/json
+    library/cpp/deprecated/atomic
 )
 
 SRCS(

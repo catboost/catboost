@@ -14,6 +14,7 @@ target_link_libraries(cpp-neh-asio PUBLIC
   contrib-libs-libc_compat
   cpp-coroutine-engine
   library-cpp-dns
+  cpp-deprecated-atomic
 )
 target_sources(cpp-neh-asio PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/neh/asio/asio.cpp

@@ -65,9 +65,11 @@ PEERDIR(
     library/cpp/malloc/api
     library/cpp/threading/local_executor
     library/cpp/fast_exp
+    library/cpp/deprecated/atomic
 )
 
 GENERATE_ENUM_SERIALIZATION(sparse_array.h)
+
 GENERATE_ENUM_SERIALIZATION(distribution_helpers.h)
 
 END()

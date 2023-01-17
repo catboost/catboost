@@ -17,6 +17,7 @@ PEERDIR(
     library/cpp/openssl/method
     library/cpp/threading/atomic
     library/cpp/threading/thread_local
+    library/cpp/deprecated/atomic
 )
 
 SRCS(
@@ -49,4 +50,6 @@ GENERATE_ENUM_SERIALIZATION(http_common.h)
 
 END()
 
-RECURSE_FOR_TESTS(ut)
+RECURSE_FOR_TESTS(
+    ut
+)

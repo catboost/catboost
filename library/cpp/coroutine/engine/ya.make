@@ -3,11 +3,13 @@ LIBRARY()
 
 
 GENERATE_ENUM_SERIALIZATION(poller.h)
+
 GENERATE_ENUM_SERIALIZATION(stack/stack_common.h)
 
 PEERDIR(
     contrib/libs/libc_compat
     library/cpp/containers/intrusive_rb_tree
+    library/cpp/deprecated/atomic
 )
 
 SRCS(

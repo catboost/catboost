@@ -32,6 +32,7 @@ PEERDIR(
     library/cpp/netliba/v12
     library/cpp/threading/atomic
     library/cpp/threading/local_executor
+    library/cpp/deprecated/atomic
 )
 
 END()

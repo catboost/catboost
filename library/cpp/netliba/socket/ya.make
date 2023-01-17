@@ -10,6 +10,7 @@ ENDIF()
 PEERDIR(
     contrib/libs/libc_compat
     library/cpp/threading/chunk_queue
+    library/cpp/deprecated/atomic
 )
 
 SRCS(

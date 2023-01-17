@@ -6,6 +6,7 @@ PEERDIR(
     contrib/libs/libc_compat
     library/cpp/coroutine/engine
     library/cpp/dns
+    library/cpp/deprecated/atomic
 )
 
 SRCS(

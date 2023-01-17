@@ -14,6 +14,7 @@ target_link_libraries(cpp-coroutine-engine PUBLIC
   tools-enum_parser-enum_serialization_runtime
   contrib-libs-libc_compat
   cpp-containers-intrusive_rb_tree
+  cpp-deprecated-atomic
 )
 target_sources(cpp-coroutine-engine PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/coroutine/engine/cont_poller.cpp

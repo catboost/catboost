@@ -18,6 +18,7 @@ SRCS(
 
 PEERDIR(
     library/cpp/malloc/api
+    library/cpp/deprecated/atomic
 )
 
 END()
