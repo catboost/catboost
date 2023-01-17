@@ -1016,17 +1016,18 @@ void TFullModel::Calc(
     GetCurrentEvaluator()->Calc(floatFeatures, catFeatures, treeStart, treeEnd, results, featureInfo);
 }
 
-void TFullModel::CalcWithHashedCatAndText(
+void TFullModel::CalcWithHashedCatAndTextAndEmbeddings(
     TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     TConstArrayRef<TConstArrayRef<int>> catFeatures,
     TConstArrayRef<TVector<TStringBuf>> textFeatures,
+    TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
     size_t treeStart,
     size_t treeEnd,
     TArrayRef<double> results,
     const TFeatureLayout* featureInfo
 ) const {
     TVector<TConstArrayRef<TStringBuf>> stringbufTextVecRefs{textFeatures.begin(), textFeatures.end()};
-    GetCurrentEvaluator()->CalcWithHashedCatAndText(floatFeatures, catFeatures, stringbufTextVecRefs, treeStart, treeEnd, results, featureInfo);
+    GetCurrentEvaluator()->CalcWithHashedCatAndTextAndEmbeddings(floatFeatures, catFeatures, stringbufTextVecRefs, embeddingFeatures, treeStart, treeEnd, results, featureInfo);
 }
 
 void TFullModel::Calc(
@@ -1039,6 +1040,21 @@ void TFullModel::Calc(
 ) const {
     TVector<TConstArrayRef<TStringBuf>> stringbufVecRefs{catFeatures.begin(), catFeatures.end()};
     GetCurrentEvaluator()->Calc(floatFeatures, stringbufVecRefs, treeStart, treeEnd, results, featureInfo);
+}
+
+void TFullModel::Calc(
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TVector<TStringBuf>> catFeatures,
+    TConstArrayRef<TVector<TStringBuf>> textFeatures,
+    TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results,
+    const TFeatureLayout* featureInfo
+) const {
+    TVector<TConstArrayRef<TStringBuf>> stringbufCatVecRefs{catFeatures.begin(), catFeatures.end()};
+    TVector<TConstArrayRef<TStringBuf>> stringbufTextVecRefs{textFeatures.begin(), textFeatures.end()};
+    GetCurrentEvaluator()->Calc(floatFeatures, stringbufCatVecRefs, stringbufTextVecRefs, embeddingFeatures, treeStart, treeEnd, results, featureInfo);
 }
 
 void TFullModel::Calc(

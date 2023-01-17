@@ -122,6 +122,36 @@ static jbyteArray JavaToStringUTF8(JNIEnv* jenv, const jstring& str) {
     return bytes;
 }
 
+class TJVMFloatArrayAsArrayRef {
+public:
+    TJVMFloatArrayAsArrayRef(JNIEnv* jenv, jfloatArray floatArray, size_t numElements)
+        : JEnv(jenv)
+        , FloatArray(floatArray)
+    {
+        jboolean isCopy = JNI_FALSE;
+        jfloat* floatArrayRaw = jenv->GetFloatArrayElements(floatArray, &isCopy);
+        CB_ENSURE(floatArrayRaw, "OutOfMemoryError");
+        Data = MakeArrayRef(floatArrayRaw, numElements);
+    }
+
+    TJVMFloatArrayAsArrayRef(JNIEnv* jenv, jfloatArray floatArray)
+         : TJVMFloatArrayAsArrayRef(jenv, floatArray, jenv->GetArrayLength(floatArray))
+    {}
+
+    ~TJVMFloatArrayAsArrayRef() {
+        JEnv->ReleaseFloatArrayElements(FloatArray, Data.data(), 0);
+    }
+
+    TArrayRef<float> Get() const {
+        return Data;
+    }
+
+private:
+    JNIEnv* JEnv;
+    jfloatArray FloatArray;
+    TArrayRef<float> Data;
+};
+
 class TJVMStringAsStringBuf {
 public:
     TJVMStringAsStringBuf(JNIEnv* jenv, jstring string)
@@ -208,6 +238,29 @@ static void GetTextFeatures(
         };
         textFeaturesStorage->push_back(TJVMStringAsStringBuf(jenv, jtextFeature));
         textFeatures->push_back(textFeaturesStorage->back().Get());
+    }
+}
+
+static void GetEmbeddingFeatures(
+    JNIEnv* const jenv,
+    const jobjectArray jembeddingFeatures,
+    const size_t jembeddingFeaturesSize,
+    TVector<TJVMFloatArrayAsArrayRef>* embeddingFeaturesStorage,
+    TVector<TConstArrayRef<float>>* embeddingFeatures) {
+
+    embeddingFeaturesStorage->clear();
+    embeddingFeatures->clear();
+
+    for (auto i : xrange(jembeddingFeaturesSize)) {
+        // NOTE: instead of C-style cast `dynamic_cast` should be used, but compiler complains that
+        // `_jobject` is not a polymorphic type
+        const auto jembeddingFeature = (jfloatArray)jenv->GetObjectArrayElement(jembeddingFeatures, i);
+        CB_ENSURE(jenv->IsSameObject(jembeddingFeature, NULL) == JNI_FALSE, "got null array element");
+        Y_SCOPE_EXIT(jenv, jembeddingFeature) {
+            jenv->DeleteLocalRef(jembeddingFeature);
+        };
+        embeddingFeaturesStorage->push_back(TJVMFloatArrayAsArrayRef(jenv, jembeddingFeature));
+        embeddingFeatures->push_back(embeddingFeaturesStorage->back().Get());
     }
 }
 
@@ -675,12 +728,11 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t minTextFeatureCount = model->GetNumTextFeatures();
     const size_t minEmbeddingFeatureCount = model->GetNumEmbeddingFeatures();
-    CB_ENSURE(!minEmbeddingFeatureCount, "Prediction with embedding features is not supported yet");
 
     const size_t numericFeatureCount = GetArraySize(jenv, jnumericFeatures);
     const size_t catFeatureCount = GetArraySize(jenv, jcatFeatures);
     const size_t textFeatureCount = GetArraySize(jenv, jtextFeatures);
-    Y_UNUSED(jembeddingFeatures);
+    const size_t embeddingFeatureCount = GetArraySize(jenv, jembeddingFeatures);
 
     CB_ENSURE(
         numericFeatureCount >= minNumericFeatureCount,
@@ -693,6 +745,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     CB_ENSURE(
         textFeatureCount >= minTextFeatureCount,
         LabeledOutput(textFeatureCount, minTextFeatureCount));
+
+    CB_ENSURE(
+        embeddingFeatureCount >= minEmbeddingFeatureCount,
+        LabeledOutput(textFeatureCount, minEmbeddingFeatureCount));
 
     CB_ENSURE(jprediction, "got null prediction");
     const size_t predictionSize = jenv->GetArrayLength(jprediction);
@@ -729,14 +785,22 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         GetTextFeatures(jenv, jtextFeatures, textFeatureCount, &textFeaturesStrorage, &textFeatures);
     }
 
+    TVector<TJVMFloatArrayAsArrayRef> embeddingFeaturesStorage;
+    TVector<TConstArrayRef<float>> embeddingFeatures;
+    if (embeddingFeatureCount) {
+        GetEmbeddingFeatures(jenv, jembeddingFeatures, embeddingFeatureCount, &embeddingFeaturesStorage, &embeddingFeatures);
+    }
+
     TVector<double> prediction;
     prediction.yresize(modelPredictionSize);
 
     TConstArrayRef<int> catFeaturesAsArrayRef(catFeatures);
-    model->CalcWithHashedCatAndText(
+    TConstArrayRef<TConstArrayRef<float>> embeddingFeaturesAsArrayRef(embeddingFeatures);
+    model->CalcWithHashedCatAndTextAndEmbeddings(
         MakeArrayRef(&numericFeatures, 1),
         MakeArrayRef(&catFeaturesAsArrayRef, 1),
         MakeArrayRef(&textFeatures, 1),
+        MakeArrayRef(&embeddingFeaturesAsArrayRef, 1),
         prediction);
 
     jenv->SetDoubleArrayRegion(jprediction, 0, modelPredictionSize, prediction.data());
@@ -803,11 +867,11 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t minTextFeatureCount = model->GetNumTextFeatures();
     const size_t minEmbeddingFeatureCount = model->GetNumEmbeddingFeatures();
-    CB_ENSURE(!minEmbeddingFeatureCount, "Prediction with embedding features is not supported yet");
 
     const size_t numericFeatureCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);
     const size_t catFeatureCount = GetMatrixColumnCount(jenv, jcatFeaturesMatrix);
     const size_t textFeatureCount = GetMatrixColumnCount(jenv, jtextFeaturesMatrix);
+    const size_t embeddingFeatureCount = GetMatrixColumnCount(jenv, jembeddingFeaturesMatrix);
 
     CB_ENSURE(
         numericFeatureCount >= minNumericFeatureCount,
@@ -820,6 +884,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     CB_ENSURE(
         textFeatureCount >= minTextFeatureCount,
         LabeledOutput(textFeatureCount, minTextFeatureCount));
+
+    CB_ENSURE(
+        embeddingFeatureCount >= minEmbeddingFeatureCount,
+        LabeledOutput(embeddingFeatureCount, minEmbeddingFeatureCount));
 
     const size_t predictionsSize = jenv->GetArrayLength(jpredictions);
     CB_ENSURE(
@@ -835,6 +903,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     TVector<TVector<TJVMStringAsStringBuf>> textFeatureMatrixStorage;
     TVector<TVector<TStringBuf>> textFeatureMatrixRows;
+
+    TVector<TVector<TJVMFloatArrayAsArrayRef>> embeddingFeatureMatrixStorage;
+    TVector<TVector<TConstArrayRef<float>>> embeddingFeatureMatrixRows;
+    TVector<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatureMatrixRowsAsRefs;
 
     Y_SCOPE_EXIT(jenv, &numericFeatureMatrixRowObjects, &numericFeatureMatrixRows) {
         const auto size = numericFeatureMatrixRows.size();
@@ -907,9 +979,35 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         }
     }
 
+    if (embeddingFeatureCount) {
+        embeddingFeatureMatrixStorage.resize(documentCount);
+        embeddingFeatureMatrixRows.resize(documentCount);
+        embeddingFeatureMatrixRowsAsRefs.resize(documentCount);
+        for (size_t i = 0; i < documentCount; ++i) {
+            const auto row = (jobjectArray)jenv->GetObjectArrayElement(
+                jembeddingFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
+            const size_t rowSize = jenv->GetArrayLength(row);
+            CB_ENSURE(
+                embeddingFeatureCount <= rowSize,
+                "text feature count doesn't match for row " << i << ": "
+                LabeledOutput(embeddingFeatureCount, rowSize));
+            GetEmbeddingFeatures(jenv, row, embeddingFeatureCount, &(embeddingFeatureMatrixStorage[i]), &(embeddingFeatureMatrixRows[i]));
+            embeddingFeatureMatrixRowsAsRefs[i] = TConstArrayRef<TConstArrayRef<float>>(embeddingFeatureMatrixRows[i]);
+        }
+    }
+
     TVector<double> predictions;
     predictions.yresize(documentCount * modelPredictionSize);
-    model->CalcWithHashedCatAndText(numericFeatureMatrixRows, catFeatureMatrixRows, textFeatureMatrixRows, predictions);
+    model->CalcWithHashedCatAndTextAndEmbeddings(
+        numericFeatureMatrixRows,
+        catFeatureMatrixRows,
+        textFeatureMatrixRows,
+        embeddingFeatureMatrixRowsAsRefs,
+        predictions);
 
     jenv->SetDoubleArrayRegion(jpredictions, 0, predictions.size(), predictions.data());
 
@@ -927,12 +1025,11 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t minTextFeatureCount = model->GetNumTextFeatures();
     const size_t minEmbeddingFeatureCount = model->GetNumEmbeddingFeatures();
-    CB_ENSURE(!minEmbeddingFeatureCount, "Prediction with embedding features is not supported yet");
 
     const size_t numericFeatureCount = GetArraySize(jenv, jnumericFeatures);
     const size_t catFeatureCount = GetArraySize(jenv, jcatFeatures);
     const size_t textFeatureCount = GetArraySize(jenv, jtextFeatures);
-    Y_UNUSED(jembeddingFeatures);
+    const size_t embeddingFeatureCount = GetArraySize(jenv, jembeddingFeatures);
 
     CB_ENSURE(
         numericFeatureCount >= minNumericFeatureCount,
@@ -945,6 +1042,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     CB_ENSURE(
         textFeatureCount >= minTextFeatureCount,
         LabeledOutput(textFeatureCount, minTextFeatureCount));
+
+    CB_ENSURE(
+        embeddingFeatureCount >= minEmbeddingFeatureCount,
+        LabeledOutput(embeddingFeatureCount, minEmbeddingFeatureCount));
 
     const size_t predictionSize = jenv->GetArrayLength(jprediction);
     CB_ENSURE(
@@ -991,12 +1092,21 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         GetTextFeatures(jenv, jtextFeatures, textFeatureCount, &textFeaturesStrorage, &textFeatures);
     }
 
+    TVector<TJVMFloatArrayAsArrayRef> embeddingFeaturesStorage;
+    TVector<TConstArrayRef<float>> embeddingFeatures;
+    TConstArrayRef<TConstArrayRef<float>> embeddingFeaturesAsRef;
+    if (embeddingFeatureCount) {
+        GetEmbeddingFeatures(jenv, jembeddingFeatures, embeddingFeatureCount, &embeddingFeaturesStorage, &embeddingFeatures);
+        embeddingFeaturesAsRef = TConstArrayRef<TConstArrayRef<float>>(embeddingFeatures);
+    }
+
     TVector<double> prediction;
     prediction.yresize(modelPredictionSize);
-    model->CalcWithHashedCatAndText(
+    model->CalcWithHashedCatAndTextAndEmbeddings(
         MakeArrayRef(&numericFeatures, 1),
         MakeArrayRef(&catFeatures, 1),
         MakeArrayRef(&textFeatures, 1),
+        MakeArrayRef(&embeddingFeaturesAsRef, 1),
         prediction);
 
     jenv->SetDoubleArrayRegion(jprediction, 0, modelPredictionSize, prediction.data());
@@ -1021,11 +1131,11 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t minTextFeatureCount = model->GetNumTextFeatures();
     const size_t minEmbeddingFeatureCount = model->GetNumEmbeddingFeatures();
-    CB_ENSURE(!minEmbeddingFeatureCount, "Prediction with embedding features is not supported yet");
 
     const size_t numericFeatureCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);
     const size_t catFeatureCount = GetMatrixColumnCount(jenv, jcatFeaturesMatrix);
     const size_t textFeatureCount = GetMatrixColumnCount(jenv, jtextFeaturesMatrix);
+    const size_t embeddingFeatureCount = GetMatrixColumnCount(jenv, jembeddingFeaturesMatrix);
 
     CB_ENSURE(
         numericFeatureCount >= minNumericFeatureCount,
@@ -1038,6 +1148,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
     CB_ENSURE(
         textFeatureCount >= minTextFeatureCount,
         LabeledOutput(textFeatureCount, minTextFeatureCount));
+
+    CB_ENSURE(
+        embeddingFeatureCount >= minEmbeddingFeatureCount,
+        LabeledOutput(embeddingFeatureCount, minEmbeddingFeatureCount));
 
     const size_t predictionsSize = jenv->GetArrayLength(jpredictions);
     CB_ENSURE(
@@ -1053,6 +1167,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     TVector<TVector<TJVMStringAsStringBuf>> textFeatureMatrixStorage;
     TVector<TVector<TStringBuf>> textFeatureMatrixRows;
+
+    TVector<TVector<TJVMFloatArrayAsArrayRef>> embeddingFeatureMatrixStorage;
+    TVector<TVector<TConstArrayRef<float>>> embeddingFeatureMatrixRows;
+    TVector<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatureMatrixRowsAsRefs;
 
     Y_SCOPE_EXIT(jenv, &numericFeatureMatrixRowObjects, &numericFeatureMatrixRows) {
         const auto size = numericFeatureMatrixRows.size();
@@ -1130,9 +1248,35 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         }
     }
 
+    if (embeddingFeatureCount) {
+        embeddingFeatureMatrixStorage.resize(documentCount);
+        embeddingFeatureMatrixRows.resize(documentCount);
+        embeddingFeatureMatrixRowsAsRefs.resize(documentCount);
+        for (size_t i = 0; i < documentCount; ++i) {
+            const auto row = (jobjectArray)jenv->GetObjectArrayElement(
+                jembeddingFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
+            const size_t rowSize = jenv->GetArrayLength(row);
+            CB_ENSURE(
+                embeddingFeatureCount <= rowSize,
+                "text feature count doesn't match for row " << i << ": "
+                LabeledOutput(embeddingFeatureCount, rowSize));
+            GetEmbeddingFeatures(jenv, row, embeddingFeatureCount, &(embeddingFeatureMatrixStorage[i]), &(embeddingFeatureMatrixRows[i]));
+            embeddingFeatureMatrixRowsAsRefs[i] = TConstArrayRef<TConstArrayRef<float>>(embeddingFeatureMatrixRows[i]);
+        }
+    }
+
     TVector<double> predictions;
     predictions.yresize(documentCount * modelPredictionSize);
-    model->CalcWithHashedCatAndText(numericFeatureMatrixRows, catFeatureMatrixRows, textFeatureMatrixRows, predictions);
+    model->CalcWithHashedCatAndTextAndEmbeddings(
+        numericFeatureMatrixRows,
+        catFeatureMatrixRows,
+        textFeatureMatrixRows,
+        embeddingFeatureMatrixRowsAsRefs,
+        predictions);
 
     jenv->SetDoubleArrayRegion(jpredictions, 0, predictions.size(), predictions.data());
 
