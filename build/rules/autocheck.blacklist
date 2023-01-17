@@ -155,3 +155,4 @@ partner/frontend/krush
 market/erp_axapta/libs/JsonHelper
 market/erp_axapta/libs/TelegramBotClientApi
 market/erp_axapta/libs/MailReader
+market/erp_axapta/libs/InventoryServices
