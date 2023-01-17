@@ -9,7 +9,7 @@ call :fix_env
 call :find_python
 if ERRORLEVEL 1 exit /b 1
 call :dbg Python: "%YA_BAT_PYTHON%"
-call "%YA_BAT_PYTHON%" "%YA_BAT_REAL%" %*
+call "%YA_BAT_PYTHON%" %YA_PY_KNOB% "%YA_BAT_REAL%" %*
 exit /b %ERRORLEVEL%
 
 :find_ya
@@ -35,6 +35,9 @@ for /f "delims=" %%F in ('where python 2^>nul') do (
     call :test_python %%~sF
     if not ERRORLEVEL 1 (
         set YA_BAT_PYTHON=%%F
+        if "%%F" == "C:\windows\py.exe" (
+            set YA_PY_KNOB=-3
+        )
         exit /b 0
     )
 )
@@ -43,6 +46,9 @@ for /f delims^=^=^"^ tokens^=2 %%F in ('ftype Python.File 2^>nul') do (
     call :test_python %%F
     if not ERRORLEVEL 1 (
         set YA_BAT_PYTHON=%%F
+        if "%%F" == "C:\windows\py.exe" (
+            set YA_PY_KNOB=-3
+        )
         exit /b 0
     )
 )
