@@ -15,16 +15,12 @@ public:
     {
     }
 
-    explicit operator bool() const noexcept {
-        return Defined();
-    }
-
-    bool Defined() const noexcept {
+    bool WasLazilyInitialized() const noexcept {
         return ValueHolder.Defined();
     }
 
     const T& GetRef() const {
-        if (!Defined()) {
+        if (!WasLazilyInitialized()) {
             InitDefault();
         }
         return *ValueHolder;
