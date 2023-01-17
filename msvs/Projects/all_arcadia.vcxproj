@@ -180,6 +180,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\ut\lib\data-ut-lib.vcxproj">
       <Project>9F866CA2-8F19-2A5C-6337-B8E5CDC176DC</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\dataset_statistics\catboost-libs-dataset_statistics.vcxproj">
+      <Project>9022A0F5-20EF-0F80-3572-634A8E80D3F6</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>4721D1FD-2700-CA2E-7C39-1340CCD203BE</Project>
     </ProjectReference>

@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\app\main.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_calc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\app\mode_dataset_statistics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_dump_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_eval_feature.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_eval_metrics.cpp"/>
@@ -177,6 +178,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>{262F6CF9-EB50-BD91-AC9B-1967CC6B84F7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\dataset_statistics\catboost-libs-dataset_statistics.vcxproj">
+      <Project>{9022A0F5-20EF-0F80-3572-634A8E80D3F6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
