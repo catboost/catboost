@@ -12,7 +12,7 @@
 #   include "buildinf-ios-arm64.h"
 #elif defined(__IOS__) && defined(__x86_64__)
 #   include "buildinf-ios-x86_64.h"
-#elif defined(__APPLE__) && defined(__arm64__)
+#elif defined(__APPLE__) && (defined(__aarch64__) || defined(_M_ARM64))
 #   include "buildinf-osx-arm64.h"
 #elif defined(__APPLE__)
 #   include "buildinf-osx.h"
