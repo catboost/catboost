@@ -1,7 +1,14 @@
 Checks: >
   -*,
   arcadia-typeid-name-restriction,
-  bugprone-use-after-move,
+  # bugprone-use-after-move is disabled as it does not treat . as a synchornization point, as guaranteed by C++17
+  # See the discussion in
+  # https://github.com/llvm/llvm-project/issues/57758
+  # and
+  # https://stackoverflow.com/questions/73729536/is-clang-tidy-version-14-right-with-bugprone-use-after-move-error-on-this-co
+  #
+  # This check should be re-enabled, once the upstream issue is solved.
+  -bugprone-use-after-move,
   performance-implicit-conversion-in-loop,
   readability-identifier-naming,
 CheckOptions:

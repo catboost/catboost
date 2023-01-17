@@ -1,9 +1,13 @@
 Checks: >
   -*,
   arcadia-typeid-name-restriction,
-  bugprone-use-after-move,
+  # bugprone-use-after-move is intentionally disabled.
+  # See comment in config.yaml for the details.
+  -bugprone-use-after-move,
   performance-implicit-conversion-in-loop,
   readability-identifier-naming,
+  -modernize-use-default-member-init,
+  -cppcoreguidelines-init-variables,
 CheckOptions:
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
