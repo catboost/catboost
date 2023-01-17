@@ -590,9 +590,14 @@ for-media/specprojects
 market/front/libs/export-static/export-static
 portal/archive/covers-static
 hypercube/museum
-afisha/infra/projects/deployer
 for-media/terminal-compare
 portal/frontend/mumu
 education/frontend-schools
 for-media/download-regions-linguistics
 market/front/libs/partner-release-checker
+trust/balance-payments
+taxi/github/dev.go.yandex
+ott/analytics/yql/git
+trust/balance-utils
+classifieds/infra/vertis-ansible
+billing/frontend/mdh
