@@ -402,11 +402,16 @@ def get_default_tidy_config(unit):
     return DEFAULT_TIDY_CONFIG
 
 
+oredered_tidy_map = None
+
+
 def get_project_tidy_config(unit):
-    tidy_map = get_tidy_config_map(unit, PROJECT_TIDY_CONFIG_MAP_PATH)
+    global oredered_tidy_map
+    if oredered_tidy_map is None:
+        oredered_tidy_map = reversed(sorted(get_tidy_config_map(unit, PROJECT_TIDY_CONFIG_MAP_PATH).items()))
     unit_path = get_norm_unit_path(unit)
 
-    for project_prefix, config_path in tidy_map.items():
+    for project_prefix, config_path in oredered_tidy_map:
         if unit_path.startswith(project_prefix):
             return config_path
     else:
