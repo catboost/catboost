@@ -118,36 +118,6 @@ def onall_resource_files(unit, *args):
         if '*' in arg or '?' in arg:
             ymake.report_configure_error('Wildcards in [[imp]]ALL_RESOURCE_FILES[[rst]] are not allowed')
 
-
-def on_declare_external_resource_by_json(unit, name, json_file):
-    platform = unit.get('CANONIZED_TARGET_PLATFORM')
-    json_file_path = _get_abs_path(unit, json_file)
-    with open(json_file_path) as f:
-        formula = json.load(f)
-    if 'by_platform' in formula:
-        by_platform = formula['by_platform']
-        if platform not in by_platform:
-            ymake.report_configure_error('platform "{}" not found in {}'.format(platform, json_file_path))
-        else:
-            unit.ondeclare_external_resource([name, by_platform[platform]['uri']])
-    else:
-        ymake.report_configure_error('Wrong format of "{}"'.format(json_file_path))
-
-
-def on_declare_external_host_resources_bundle_by_json(unit, name, json_file):
-    json_file_path = _get_abs_path(unit, json_file)
-    with open(json_file_path) as f:
-        formula = json.load(f)
-    if 'by_platform' in formula:
-        by_platform = formula['by_platform']
-        params = [name]
-        for platform, dest in sorted(by_platform.items()):
-            params.extend([dest['uri'], 'FOR', platform.upper()])
-        unit.ondeclare_external_host_resources_bundle(params)
-    else:
-        ymake.report_configure_error('Wrong format of "{}"'.format(json_file_path))
-
-
 def on_ya_conf_json(unit, conf_file):
     conf_abs_path = unit.resolve('$S/' + conf_file)
     if not os.path.exists(conf_abs_path):
@@ -174,7 +144,3 @@ def on_ya_conf_json(unit, conf_file):
                     ymake.report_configure_error('File "{}" (referenced from bottle "{}" in "{}") is not found'.format(abs_path, bottle_name, conf_abs_path))
             else:
                 ymake.report_configure_error('File "{}" (referenced from bottle "{}" in "{}") must be located in "{}" file tree'.format(formula, bottle_name, conf_file, conf_dir))
-
-
-def _get_abs_path(unit, path):
-    return unit.resolve(unit.resolve_arc_path(path))
