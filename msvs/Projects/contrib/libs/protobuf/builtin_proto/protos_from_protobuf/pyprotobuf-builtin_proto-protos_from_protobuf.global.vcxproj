@@ -226,7 +226,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_c77a98e79fdaf5d9a820fa0c2e.cpp" "--ya-start-command-file" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/63c54c286343d4672a2787a283.cpp" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/f527c55301c3b6bf55b05f2c7f.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_c77a98e79fdaf5d9a820fa0c2e.cpp" "--ya-start-command-file" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/63c54c286343d4672a2787a283.cpp" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/f527c55301c3b6bf55b05f2c7f.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -237,7 +237,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_c77a98e79fdaf5d9a820fa0c2e.cpp" "--ya-start-command-file" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/63c54c286343d4672a2787a283.cpp" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/f527c55301c3b6bf55b05f2c7f.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_c77a98e79fdaf5d9a820fa0c2e.cpp" "--ya-start-command-file" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/63c54c286343d4672a2787a283.cpp" "contrib/libs/protobuf/builtin_proto/protos_from_protobuf/f527c55301c3b6bf55b05f2c7f.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -246,7 +246,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_c77a98e79fdaf5d9a820fa0c2e.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\63c54c286343d4672a2787a283.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\f527c55301c3b6bf55b05f2c7f.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\63c54c286343d4672a2787a283.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\f527c55301c3b6bf55b05f2c7f.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\join_c77a98e79fdaf5d9a820fa0c2e.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
@@ -701,6 +701,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

@@ -87,7 +87,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util\charset
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -98,7 +98,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util\charset
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,7 +107,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/util/charset/all_charset.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\util\charset\generated\unidata.cpp;$(SolutionDir)..\util\charset\recode_result.cpp;$(SolutionDir)..\util\charset\unicode_table.cpp;$(SolutionDir)..\util\charset\unidata.cpp;$(SolutionDir)..\util\charset\utf8.cpp;$(SolutionDir)..\util\charset\wide.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\util\charset\generated\unidata.cpp;$(SolutionDir)..\util\charset\recode_result.cpp;$(SolutionDir)..\util\charset\unicode_table.cpp;$(SolutionDir)..\util\charset\unidata.cpp;$(SolutionDir)..\util\charset\utf8.cpp;$(SolutionDir)..\util\charset\wide.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\util\charset\all_charset.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\util\charset\recode_result.h"/>
@@ -120,6 +120,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
