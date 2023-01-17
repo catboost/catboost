@@ -15,7 +15,7 @@ PEERDIR(
 IF (PYTHON2)
     PEERDIR(
         contrib/python/scandir
-        contrib/python/typing
+        contrib/deprecated/python/typing
     )
 ENDIF()
 
