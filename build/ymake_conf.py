@@ -1423,24 +1423,24 @@ class GnuCompiler(Compiler):
         if self.tc.is_clang:
             self.sfdl_flags.append('-Qunused-arguments')
 
-            self.cxx_warnings += [
-                '-Wimport-preprocessor-directive-pedantic',
-                '-Wno-undefined-var-template',
-                '-Wno-return-std-move',
-                '-Wno-defaulted-function-deleted',
-                '-Wno-pessimizing-move',
-                '-Wno-range-loop-construct',
-                '-Wno-deprecated-anon-enum-enum-conversion',
-                '-Wno-deprecated-enum-enum-conversion',
-                '-Wno-deprecated-enum-float-conversion',
-                '-Wno-ambiguous-reversed-operator',
-                '-Wno-deprecated-volatile',
-            ]
-
             self.c_warnings += [
                 '-Wno-implicit-const-int-float-conversion',
                 # For nvcc to accept the above.
                 '-Wno-unknown-warning-option',
+            ]
+
+            self.cxx_warnings += [
+                '-Wimport-preprocessor-directive-pedantic',
+                '-Wno-ambiguous-reversed-operator',
+                '-Wno-defaulted-function-deleted',
+                '-Wno-deprecated-anon-enum-enum-conversion',
+                '-Wno-deprecated-enum-enum-conversion',
+                '-Wno-deprecated-enum-float-conversion',
+                '-Wno-deprecated-volatile',
+                '-Wno-pessimizing-move',
+                '-Wno-range-loop-construct',
+                '-Wno-return-std-move',
+                '-Wno-undefined-var-template',
             ]
 
         elif self.tc.is_gcc:
