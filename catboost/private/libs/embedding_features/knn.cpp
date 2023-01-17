@@ -3,6 +3,7 @@
 #include <catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h>
 
 #include <util/stream/length.h>
+#include <util/system/yassert.h>
 
 namespace NCB {
 
@@ -28,10 +29,19 @@ namespace NCB {
 
     void TKNNCalcer::Compute(const TEmbeddingsArray& embed,
                              TOutputFloatIterator iterator) const {
-        TVector<float> result(NumClasses, 0);
+        TVector<float> result(FeatureCount_, 0);
         auto neighbors = Cloud->GetNearestNeighbors(embed.data(), CloseNum);
-        for (size_t pos = 0; pos < neighbors.size(); ++pos) {
-            ++result[Targets.at(neighbors[pos])];
+        if (IsClassification) {
+           for (size_t pos = 0; pos < neighbors.size(); ++pos) {
+                ++result[TargetClasses.at(neighbors[pos])];
+            }
+        } else {
+            if (neighbors.size()) {
+                for (size_t pos = 0; pos < neighbors.size(); ++pos) {
+                    result[0] += Targets.at(neighbors[pos]);
+                }
+                result[0] /= (float)neighbors.size();
+            }
         }
         ForEachActiveFeature(
             [&result, &iterator](ui32 featureId){
@@ -41,7 +51,7 @@ namespace NCB {
         );
     }
 
-    void TKNNCalcerVisitor::Update(ui32 classId,
+    void TKNNCalcerVisitor::Update(float target,
                 const TEmbeddingsArray& embed,
                 TEmbeddingFeatureCalcer* featureCalcer) {
         auto knn = dynamic_cast<TKNNCalcer*>(featureCalcer);
@@ -49,7 +59,11 @@ namespace NCB {
         auto cloudPtr = dynamic_cast<TKNNUpdatableCloud*>(knn->Cloud.Get());
         Y_ASSERT(cloudPtr);
         cloudPtr->AddItem(embed.data());
-        knn->Targets.push_back(classId);
+        if (knn->IsClassification) {
+            knn->TargetClasses.push_back((ui32)target);
+        } else {
+            knn->Targets.push_back(target);
+        }
         ++knn->Size;
     }
 
@@ -59,9 +73,10 @@ namespace NCB {
         const auto& fbLDA = CreateTKNN(
             builder,
             TotalDimension,
-            NumClasses,
+            FeatureCount_,
             CloseNum,
-            Size
+            Size,
+            IsClassification
         );
         return TEmbeddingCalcerFbs(TAnyEmbeddingCalcer_TKNN, fbLDA.Union());
     }
@@ -69,13 +84,19 @@ namespace NCB {
     void TKNNCalcer::LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer* calcer) {
         auto fbKNN = calcer->FeatureCalcerImpl_as_TKNN();
         TotalDimension = fbKNN->TotalDimension();
-        NumClasses = fbKNN->NumClasses();
+        IsClassification = fbKNN->IsClassification();
+        FeatureCount_ = IsClassification ? fbKNN->NumClasses() : 1; // will always be 1 for regression
         CloseNum = fbKNN->KNum();
         Size = fbKNN->Size();
+        
     }
 
     void TKNNCalcer::SaveLargeParameters(IOutputStream* stream) const {
-        ::Save(stream, Targets);
+        if (IsClassification) {
+            ::Save(stream, TargetClasses);
+        } else {
+            ::Save(stream, Targets);
+        }
         if (auto updatableCloud = dynamic_cast<TKNNUpdatableCloud*>(Cloud.Get())) {
             NOnlineHnsw::TOnlineHnswIndexData indexData = updatableCloud->GetCloud().ConstructIndexData();
             auto expectedIndexSize = NOnlineHnsw::ExpectedSize(indexData);
@@ -98,7 +119,11 @@ namespace NCB {
     }
 
     void TKNNCalcer::LoadLargeParameters(IInputStream* stream) {
-        ::Load(stream, Targets);
+        if (IsClassification) {
+            ::Load(stream, TargetClasses);
+        } else {
+            ::Load(stream, Targets);
+        }
         size_t indexSize = ::LoadSize(stream);
         TLengthLimitedInput indexArrayStream(stream, indexSize);
         auto indexArray = TBlob::FromStream(indexArrayStream);

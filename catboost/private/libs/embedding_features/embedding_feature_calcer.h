@@ -86,7 +86,7 @@ namespace NCB {
 
     class IEmbeddingCalcerVisitor : public TThrRefBase {
     public:
-        virtual void Update(ui32 classId, const TEmbeddingsArray& vector, TEmbeddingFeatureCalcer* featureCalcer) = 0;
+        virtual void Update(float target, const TEmbeddingsArray& vector, TEmbeddingFeatureCalcer* featureCalcer) = 0;
     };
 
     using TEmbeddingFeatureCalcerPtr = TIntrusivePtr<TEmbeddingFeatureCalcer>;

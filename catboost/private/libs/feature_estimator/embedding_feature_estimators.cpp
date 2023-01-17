@@ -10,16 +10,20 @@ namespace NCB {
     class TLDAEstimator final : public TEmbeddingBaseEstimator<TLinearDACalcer, TLinearDACalcerVisitor>{
     public:
         TLDAEstimator(
-            TClassificationTargetPtr target,
+            TConstArrayRef<float> target,
+            TClassificationTargetPtr classificationTarget, // can be nullptr if regression
             TEmbeddingDataSetPtr learnEmbeddings,
             TArrayRef<TEmbeddingDataSetPtr> testEmbedding,
             const NJson::TJsonValue& options)
-            : TEmbeddingBaseEstimator(target, learnEmbeddings, testEmbedding)
+            : TEmbeddingBaseEstimator(target, classificationTarget, learnEmbeddings, testEmbedding)
         {
             if (options.Has("components")) {
                 ProjectionDim = FromString<int>(options["components"].GetString());
             } else {
-                ProjectionDim = Min(GetTarget().NumClasses - 1u, static_cast<ui32>(GetLearnDatasetPtr()->GetDimension()) - 1u);
+                ProjectionDim = Min(
+                    classificationTarget ? (classificationTarget->NumClasses - 1u) : 1u,
+                    static_cast<ui32>(GetLearnDatasetPtr()->GetDimension()) - 1u
+                );
             }
             if (options.Has("reg")) {
                 RegParam = FromString<float>(options["reg"].GetString());
@@ -32,8 +36,8 @@ namespace NCB {
                 Likehood = false;
             }
             FeaturesCount = ProjectionDim;
-            if (Likehood) {
-                FeaturesCount += GetTarget().NumClasses;
+            if (Likehood && classificationTarget) {
+                FeaturesCount += classificationTarget->NumClasses;
             }
             CB_ENSURE(
                 ProjectionDim > 0,
@@ -57,7 +61,9 @@ namespace NCB {
         }
 
         TLinearDACalcer CreateFeatureCalcer() const override {
-            return TLinearDACalcer(GetLearnDataset().GetDimension(), GetTarget().NumClasses,
+            auto classificationTarget = GetClassificationTarget();
+            return TLinearDACalcer(GetLearnDataset().GetDimension(), !!classificationTarget,
+                                   !!classificationTarget ? classificationTarget->NumClasses : 0,
                                    ProjectionDim, RegParam, Likehood);
         }
 
@@ -75,13 +81,18 @@ namespace NCB {
     class TKNNEstimator final : public TEmbeddingBaseEstimator<TKNNCalcer, TKNNCalcerVisitor>{
     public:
         TKNNEstimator(
-            TClassificationTargetPtr target,
+            TConstArrayRef<float> target,
+            TClassificationTargetPtr classificationTarget, // can be nullptr if regression
             TEmbeddingDataSetPtr learnEmbeddings,
             TArrayRef<TEmbeddingDataSetPtr> testEmbedding,
             const NJson::TJsonValue& options)
-            : TEmbeddingBaseEstimator(target, learnEmbeddings, testEmbedding)
+            : TEmbeddingBaseEstimator(target, classificationTarget, learnEmbeddings, testEmbedding)
         {
-            ClassNum = GetTarget().NumClasses;
+            if (classificationTarget) {
+                FeaturesCount = classificationTarget->NumClasses;
+            } else {
+                FeaturesCount = 1;
+            }
             if (options.Has("k")) {
                 kNum = FromString<int>(options["k"].GetString());
             } else {
@@ -91,13 +102,13 @@ namespace NCB {
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             TEstimatedFeaturesMeta meta;
-            meta.FeaturesCount = ClassNum;
+            meta.FeaturesCount = FeaturesCount;
             meta.Type.resize(meta.FeaturesCount, EFeatureCalcerType::KNN);
             return meta;
         }
 
         TKNNCalcer CreateFeatureCalcer() const override {
-            return TKNNCalcer(GetLearnDataset().GetDimension(), GetTarget().NumClasses, kNum);
+            return TKNNCalcer(GetLearnDataset().GetDimension(), !!GetClassificationTarget(), FeaturesCount, kNum);
         }
 
         TKNNCalcerVisitor CreateCalcerVisitor() const override {
@@ -105,13 +116,14 @@ namespace NCB {
         }
 
     private:
-        ui32 ClassNum;
+        ui32 FeaturesCount;
         ui32 kNum;
     };
 
     TVector<TOnlineFeatureEstimatorPtr> CreateEmbeddingEstimators(
         TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-        TClassificationTargetPtr target,
+        TConstArrayRef<float> target,
+        TClassificationTargetPtr classificationTarget,  // can be nullptr if regression
         TEmbeddingDataSetPtr learnEmbeddings,
         TArrayRef<TEmbeddingDataSetPtr> testEmbedding
     ) {
@@ -120,6 +132,7 @@ namespace NCB {
             if (calcerDescription.CalcerType == EFeatureCalcerType::LDA) {
                 estimators.emplace_back(MakeIntrusive<TLDAEstimator>(
                         target,
+                        classificationTarget,
                         learnEmbeddings,
                         testEmbedding,
                         calcerDescription.CalcerOptions
@@ -129,6 +142,7 @@ namespace NCB {
             if (calcerDescription.CalcerType == EFeatureCalcerType::KNN) {
                 estimators.emplace_back(MakeIntrusive<TKNNEstimator>(
                         target,
+                        classificationTarget,
                         learnEmbeddings,
                         testEmbedding,
                         calcerDescription.CalcerOptions
