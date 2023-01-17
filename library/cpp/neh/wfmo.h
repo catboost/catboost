@@ -5,6 +5,7 @@
 #include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/vector.h>
+#include <util/generic/scope.h>
 #include <library/cpp/deprecated/atomic/atomic.h>
 #include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/event.h>
@@ -61,22 +62,6 @@ namespace NNeh {
             TSpinLock M_;
         };
 
-        inline ~TWaitQueue() {
-            for (size_t i = 0; i < H_.size(); ++i) {
-                H_[i]->Register(nullptr);
-            }
-        }
-
-        inline void Register(TWaitHandle& ev) {
-            H_.push_back(&ev);
-            ev.Register(this);
-        }
-
-        template <class T>
-        inline void Register(const T& ev) {
-            Register(static_cast<TWaitHandle&>(*ev));
-        }
-
         inline bool Wait(const TInstant& deadLine) noexcept {
             return Q_.WaitD(deadLine);
         }
@@ -91,19 +76,12 @@ namespace NNeh {
 
     private:
         TBlockedQueue<TWaitHandle*> Q_;
-        TVector<TWaitHandle*> H_;
     };
 
     typedef TWaitQueue::TWaitHandle TWaitHandle;
 
-    template <class It, class T>
-    static inline void WaitForMultipleObj(It b, It e, const TInstant& deadLine, T& func) {
-        TWaitQueue hndl;
-
-        while (b != e) {
-            hndl.Register(*b++);
-        }
-
+    template <class T>
+    static inline void WaitForMultipleObj(TWaitQueue& hndl, const TInstant& deadLine, T& func) {
         do {
             TWaitHandle* ret = nullptr;
 
@@ -132,8 +110,14 @@ namespace NNeh {
 
     static inline bool WaitForOne(TWaitHandle& wh, const TInstant& deadLine) {
         TSignalled func;
+        TWaitQueue hndl;
+        wh.Register(&hndl);
 
-        WaitForMultipleObj(&wh, &wh + 1, deadLine, func);
+        Y_DEFER {
+            wh.Register(nullptr);
+        };
+
+        WaitForMultipleObj(hndl, deadLine, func);
 
         return func.Signalled;
     }
