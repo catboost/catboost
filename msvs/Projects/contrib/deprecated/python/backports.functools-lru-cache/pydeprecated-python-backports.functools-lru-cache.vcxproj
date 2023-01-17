@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{72CAF43F-970B-5E9F-7DD3-7C13627D483E}</ProjectGUID>
+    <ProjectGUID>{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-backports.functools-lru-cache</ProjectName>
+    <ProjectName>pydeprecated-python-backports.functools-lru-cache</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-backports.functools-lru-cache</TargetName>
+    <TargetName>pydeprecated-python-backports.functools-lru-cache</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\72CAF43F-970B-5E9F-7DD3-7C13627D483E\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_73975f76db98087ac148272e9f.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_48330ce07627306dedf091966e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,9 +91,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_73975f76db98087ac148272e9f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_73975f76db98087ac148272e9f.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_48330ce07627306dedf091966e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_48330ce07627306dedf091966e.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_afebea76ee6710b04c2007f65f.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_bce0235c5697c74702e6b34360.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -118,9 +118,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.obj" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,15 +128,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_afebea76ee6710b04c2007f65f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_afebea76ee6710b04c2007f65f.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_bce0235c5697c74702e6b34360.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_bce0235c5697c74702e6b34360.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports.functools-lru-cache/functools_lru_cache.py-" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/functools_lru_cache.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py-" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py.cmvg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -145,9 +145,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/backports.functools-lru-cache/functools_lru_cache.py-" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/functools_lru_cache.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py-" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py.cmvg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,15 +155,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports.functools-lru-cache/functools_lru_cache.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\backports.functools-lru-cache\functools_lru_cache.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\functools_lru_cache.py.yapyc;</Outputs>
+      <Message>$B/contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py.cmvg.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\deprecated\python\backports.functools-lru-cache\backports\functools_lru_cache.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\backports\functools_lru_cache.py.cmvg.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\backports.functools-lru-cache\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\deprecated\python\backports.functools-lru-cache\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.yasm" "-" "contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "_ec5ed576daec7b2c354db919ea.rodata" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_e1701384f5d2a32f77a78c08f4.rodata" "-" "contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_5388cee9a1a883731a2d24769c.rodata" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_abfea7966b3ee89a124b0927ae.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.yasm" "-" "contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "_5472604e30e954d5820cbd2473.rodata" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_b82512dcbf13aac452104f1080.rodata" "-" "contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_5b75cda77804d13f6d5e5772a9.rodata" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_e1d31dab35de8d273d51a8bc32.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -172,9 +172,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.yasm" "-" "contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "_ec5ed576daec7b2c354db919ea.rodata" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_e1701384f5d2a32f77a78c08f4.rodata" "-" "contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_5388cee9a1a883731a2d24769c.rodata" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_abfea7966b3ee89a124b0927ae.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.yasm" "-" "contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "_5472604e30e954d5820cbd2473.rodata" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_b82512dcbf13aac452104f1080.rodata" "-" "contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_5b75cda77804d13f6d5e5772a9.rodata" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_e1d31dab35de8d273d51a8bc32.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,15 +182,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports.functools-lru-cache/_afebea76ee6710b04c2007f65f.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\backports.functools-lru-cache\.dist-info\METADATA;$(SolutionDir)..\contrib\python\backports.functools-lru-cache\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_afebea76ee6710b04c2007f65f.yasm;$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_e1701384f5d2a32f77a78c08f4.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_abfea7966b3ee89a124b0927ae.rodata;</Outputs>
+      <Message>$B/contrib/deprecated/python/backports.functools-lru-cache/_48330ce07627306dedf091966e.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\deprecated\python\backports.functools-lru-cache\.dist-info\METADATA;$(SolutionDir)..\contrib\deprecated\python\backports.functools-lru-cache\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_48330ce07627306dedf091966e.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_b82512dcbf13aac452104f1080.rodata;$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_e1d31dab35de8d273d51a8bc32.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\backports.functools-lru-cache\functools_lru_cache.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\deprecated\python\backports.functools-lru-cache\backports\functools_lru_cache.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.yasm" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_754c9df4bab03163ec4fa68742.rodata" "-" "contrib/python/backports.functools-lru-cache/functools_lru_cache.py" "_849271b7881576212ff8f8c64e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/functools_lru_cache.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_2b293348a593212701cf207553.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.yasm" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_0affa02cf98c173f25f80db6a9.rodata" "-" "contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py" "_66d6327bdd80206feda14db551.rodata" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py.cmvg.yapyc" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_444835286b6f06f6fe9a3038bd.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -199,9 +199,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.yasm" "$(SolutionDir)../contrib/python/backports.functools-lru-cache/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_754c9df4bab03163ec4fa68742.rodata" "-" "contrib/python/backports.functools-lru-cache/functools_lru_cache.py" "_849271b7881576212ff8f8c64e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/functools_lru_cache.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/_2b293348a593212701cf207553.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.yasm" "$(SolutionDir)../contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_0affa02cf98c173f25f80db6a9.rodata" "-" "contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py" "_66d6327bdd80206feda14db551.rodata" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/backports/functools_lru_cache.py.cmvg.yapyc" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/_444835286b6f06f6fe9a3038bd.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,9 +209,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports.functools-lru-cache/_73975f76db98087ac148272e9f.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\backports.functools-lru-cache\functools_lru_cache.py;$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\functools_lru_cache.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_73975f76db98087ac148272e9f.yasm;$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_754c9df4bab03163ec4fa68742.rodata;$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\_2b293348a593212701cf207553.rodata;</Outputs>
+      <Message>$B/contrib/deprecated/python/backports.functools-lru-cache/_bce0235c5697c74702e6b34360.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\deprecated\python\backports.functools-lru-cache\backports\functools_lru_cache.py;$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\backports\functools_lru_cache.py.cmvg.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_bce0235c5697c74702e6b34360.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_0affa02cf98c173f25f80db6a9.rodata;$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\_444835286b6f06f6fe9a3038bd.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

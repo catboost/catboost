@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{1600D1CB-87D7-B743-B183-D410DB997543}</ProjectGUID>
+    <ProjectGUID>{ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-backports.functools-lru-cache.global</ProjectName>
+    <ProjectName>pydeprecated-python-backports.functools-lru-cache.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-backports.functools-lru-cache.global</TargetName>
+    <TargetName>pydeprecated-python-backports.functools-lru-cache.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\1600D1CB-87D7-B743-B183-D410DB997543\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\73975f76db98087ac148272e9f.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\afebea76ee6710b04c2007f65f.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\48330ce07627306dedf091966e.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\bce0235c5697c74702e6b34360.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/73975f76db98087ac148272e9f.cpp" "_754c9df4bab03163ec4fa68742=/py_modules/backports.functools_lru_cache" "_849271b7881576212ff8f8c64e=resfs/src//py_modules/backports.functools_lru_cache" "_2b293348a593212701cf207553=/py_code/backports.functools_lru_cache"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/48330ce07627306dedf091966e.cpp" "_5472604e30e954d5820cbd2473=resfs/src/resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "_b82512dcbf13aac452104f1080=resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "_5b75cda77804d13f6d5e5772a9=resfs/src/resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_e1d31dab35de8d273d51a8bc32=resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/afebea76ee6710b04c2007f65f.cpp" "_ec5ed576daec7b2c354db919ea=resfs/src/resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "_e1701384f5d2a32f77a78c08f4=resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "_5388cee9a1a883731a2d24769c=resfs/src/resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_abfea7966b3ee89a124b0927ae=resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/bce0235c5697c74702e6b34360.cpp" "_0affa02cf98c173f25f80db6a9=/py_modules/backports.functools_lru_cache" "_66d6327bdd80206feda14db551=resfs/src//py_modules/backports.functools_lru_cache" "_444835286b6f06f6fe9a3038bd=/py_code/backports.functools_lru_cache"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/73975f76db98087ac148272e9f.cpp" "_754c9df4bab03163ec4fa68742=/py_modules/backports.functools_lru_cache" "_849271b7881576212ff8f8c64e=resfs/src//py_modules/backports.functools_lru_cache" "_2b293348a593212701cf207553=/py_code/backports.functools_lru_cache"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/48330ce07627306dedf091966e.cpp" "_5472604e30e954d5820cbd2473=resfs/src/resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "_b82512dcbf13aac452104f1080=resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/METADATA" "_5b75cda77804d13f6d5e5772a9=resfs/src/resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_e1d31dab35de8d273d51a8bc32=resfs/file/contrib/deprecated/python/backports.functools-lru-cache/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/backports.functools-lru-cache/afebea76ee6710b04c2007f65f.cpp" "_ec5ed576daec7b2c354db919ea=resfs/src/resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "_e1701384f5d2a32f77a78c08f4=resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/METADATA" "_5388cee9a1a883731a2d24769c=resfs/src/resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt" "_abfea7966b3ee89a124b0927ae=resfs/file/contrib/python/backports.functools-lru-cache/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/backports.functools-lru-cache/bce0235c5697c74702e6b34360.cpp" "_0affa02cf98c173f25f80db6a9=/py_modules/backports.functools_lru_cache" "_66d6327bdd80206feda14db551=resfs/src//py_modules/backports.functools_lru_cache" "_444835286b6f06f6fe9a3038bd=/py_code/backports.functools_lru_cache"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/backports.functools-lru-cache/73975f76db98087ac148272e9f.cpp	$B/contrib/python/backports.functools-lru-cache/afebea76ee6710b04c2007f65f.cpp	</Message>
+      <Message>$B/contrib/deprecated/python/backports.functools-lru-cache/48330ce07627306dedf091966e.cpp	$B/contrib/deprecated/python/backports.functools-lru-cache/bce0235c5697c74702e6b34360.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\73975f76db98087ac148272e9f.cpp;$(SolutionDir)$(Configuration)\contrib\python\backports.functools-lru-cache\afebea76ee6710b04c2007f65f.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\48330ce07627306dedf091966e.cpp;$(SolutionDir)$(Configuration)\contrib\deprecated\python\backports.functools-lru-cache\bce0235c5697c74702e6b34360.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
