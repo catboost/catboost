@@ -53,7 +53,7 @@ GENERATE_ENUM_SERIALIZATION(model_metainfo_helpers.h)
 
 IF(OPENSOURCE)
     RESTRICT_LICENSES(
-        DENY REQUIRE_DISCLOSURE FORBIDDEN
+        DENY REQUIRE_DISCLOSURE FORBIDDEN PROTESTWARE
         EXCEPT
             contrib/libs/linux-headers # DTCC-725
             contrib/libs/intel/mkl # DTCC-730
