@@ -345,7 +345,7 @@
   includes:
     - matrix.h
 
-- source_filter: "^contrib/python/uwsgi"
+- source_filter: "^contrib/python/uWSGI"
   includes:
     - libxml/parser.h
     - libxml/tree.h
