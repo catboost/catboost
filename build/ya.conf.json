@@ -54,6 +54,10 @@
         "objcopy": {
             "description": "Run objcopy"
         },
+        "tt": {
+            "description": "Taxi tool",
+            "visible": false
+        },
         "svn": {
             "description": "Subversion command-line client"
         },
@@ -6660,6 +6664,28 @@
                 "objcopy": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-objcopy",
                 "gcc_version": "8.4.0"
             }
+        },
+        "tt": {
+            "tools": {
+                "tt": {
+                    "bottle": "tt",
+                    "executable": "tt"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -9249,6 +9275,14 @@
                     "riscv32-esp-elf",
                     "bin",
                     "riscv32-esp-elf-gcc"
+                ]
+            }
+        },
+        "tt": {
+            "formula": "build/external_resources/taxitool/resources.json",
+            "executable": {
+                "tt": [
+                    "taxi_tool"
                 ]
             }
         }
