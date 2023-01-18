@@ -1417,7 +1417,6 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         asm/android/arm/crypto/aes/bsaes-armv7.S [1:1]
-        asm/ios/armv7/crypto/aes/bsaes-armv7.S [1:1]
         ssl/ssl_conf.c [2:2]
         ssl/t1_trce.c [2:2]
 
@@ -2147,9 +2146,6 @@ BELONGS ya.make
         asm/android/arm/crypto/aes/aes-armv4.S [1:1]
         asm/android/arm/crypto/sha/sha256-armv4.S [1:1]
         asm/android/arm/crypto/sha/sha512-armv4.S [1:1]
-        asm/ios/armv7/crypto/aes/aes-armv4.S [1:1]
-        asm/ios/armv7/crypto/sha/sha256-armv4.S [1:1]
-        asm/ios/armv7/crypto/sha/sha512-armv4.S [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL cf09c285133d644c8cd89957e89ab0a6
 BELONGS crypto/ya.make

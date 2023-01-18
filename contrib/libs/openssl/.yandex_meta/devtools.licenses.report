@@ -116,8 +116,6 @@ BELONGS ya.make
     Files with this license:
         asm/android/arm/crypto/sha/sha256-armv4.S [11:15]
         asm/android/arm/crypto/sha/sha512-armv4.S [11:15]
-        asm/ios/armv7/crypto/sha/sha256-armv4.S [11:15]
-        asm/ios/armv7/crypto/sha/sha512-armv4.S [11:15]
     Scancode info:
         Original SPDX id: BSD-3-Clause
         Score           : 100.00
@@ -126,8 +124,6 @@ BELONGS ya.make
     Files with this license:
         asm/android/arm/crypto/sha/sha256-armv4.S [11:15]
         asm/android/arm/crypto/sha/sha512-armv4.S [11:15]
-        asm/ios/armv7/crypto/sha/sha256-armv4.S [11:15]
-        asm/ios/armv7/crypto/sha/sha512-armv4.S [11:15]
     Scancode info:
         Original SPDX id: GPL-1.0-or-later
         Score           : 100.00
@@ -136,8 +132,6 @@ BELONGS ya.make
     Files with this license:
         asm/android/arm/crypto/sha/sha256-armv4.S [11:15]
         asm/android/arm/crypto/sha/sha512-armv4.S [11:15]
-        asm/ios/armv7/crypto/sha/sha256-armv4.S [11:15]
-        asm/ios/armv7/crypto/sha/sha512-armv4.S [11:15]
 
 KEEP     OpenSSL              1ded2fc956b8126dc4f656e6c170f657
 BELONGS crypto/ya.make
@@ -1307,7 +1301,6 @@ BELONGS ya.make
         Links           : http://www.gnu.org/licenses/old-licenses/gpl-1.0-standalone.html, https://spdx.org/licenses/GPL-1.0-or-later
     Files with this license:
         asm/android/arm/crypto/aes/bsaes-armv7.S [16:16]
-        asm/ios/armv7/crypto/aes/bsaes-armv7.S [16:16]
 
 KEEP     OpenSSL              373d2beb824e0a87b7fb600d7d84f173
 BELONGS ya.make
@@ -1335,7 +1328,7 @@ FILE_INCLUDE LICENSE found in files: crypto/bn/asm/bn-c64xplus.asm at line 5
 
 KEEP     OpenSSL              3b7fed22d1d1fda745747381daea44eb
 BELONGS ya.make
-FILE_INCLUDE LICENSE found in files: asm/android/arm/crypto/aes/aes-armv4.S at line 5, asm/android/arm/crypto/aes/bsaes-armv7.S at line 5, asm/android/arm/crypto/sha/sha256-armv4.S at line 5, asm/android/arm/crypto/sha/sha512-armv4.S at line 5, asm/ios/armv7/crypto/aes/aes-armv4.S at line 5, asm/ios/armv7/crypto/aes/bsaes-armv7.S at line 5, asm/ios/armv7/crypto/sha/sha256-armv4.S at line 5, asm/ios/armv7/crypto/sha/sha512-armv4.S at line 5
+FILE_INCLUDE LICENSE found in files: asm/android/arm/crypto/aes/aes-armv4.S at line 5, asm/android/arm/crypto/aes/bsaes-armv7.S at line 5, asm/android/arm/crypto/sha/sha256-armv4.S at line 5, asm/android/arm/crypto/sha/sha512-armv4.S at line 5
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: OpenSSL
@@ -1347,10 +1340,6 @@ FILE_INCLUDE LICENSE found in files: asm/android/arm/crypto/aes/aes-armv4.S at l
         asm/android/arm/crypto/aes/bsaes-armv7.S [3:6]
         asm/android/arm/crypto/sha/sha256-armv4.S [3:6]
         asm/android/arm/crypto/sha/sha512-armv4.S [3:6]
-        asm/ios/armv7/crypto/aes/aes-armv4.S [3:6]
-        asm/ios/armv7/crypto/aes/bsaes-armv7.S [3:6]
-        asm/ios/armv7/crypto/sha/sha256-armv4.S [3:6]
-        asm/ios/armv7/crypto/sha/sha512-armv4.S [3:6]
 
 SKIP     BSD-3-Clause         3c9254745a51b0118ac21b65aaa4f0d4
 BELONGS crypto/ya.make
@@ -1545,8 +1534,6 @@ BELONGS ya.make
     Files with this license:
         asm/android/arm/crypto/aes/aes-armv4.S [11:13]
         asm/android/arm/crypto/aes/bsaes-armv7.S [11:13]
-        asm/ios/armv7/crypto/aes/aes-armv4.S [11:13]
-        asm/ios/armv7/crypto/aes/bsaes-armv7.S [11:13]
     Scancode info:
         Original SPDX id: BSD-3-Clause
         Score           : 100.00
@@ -1555,8 +1542,6 @@ BELONGS ya.make
     Files with this license:
         asm/android/arm/crypto/aes/aes-armv4.S [11:13]
         asm/android/arm/crypto/aes/bsaes-armv7.S [11:13]
-        asm/ios/armv7/crypto/aes/aes-armv4.S [11:13]
-        asm/ios/armv7/crypto/aes/bsaes-armv7.S [11:13]
 
 KEEP     OpenSSL              74f908f5901de6d04081580b1f2d9183
 BELONGS apps/ya.make
