@@ -1,4 +1,4 @@
-additional_requirements:
+requirements:
   - contrib/libs/cblas
 mark_as_cython_c:
   - sklearn/__check_build/*.pyx

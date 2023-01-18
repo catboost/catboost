@@ -1,4 +1,4 @@
-additional_requirements:
+requirements:
   - library/python/symbols/win_unicode_console
 exclude:
   - run.py

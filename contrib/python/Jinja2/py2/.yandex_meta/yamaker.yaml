@@ -2,7 +2,7 @@ exclude:
   - examples/basic/test.py
   - jinja2/asyncfilters.py
   - jinja2/asyncsupport.py
-additional_requirements:
+requirements:
   - setuptools
 mark_as_sources:
   - jinja2/tests.py
