@@ -151,10 +151,3 @@ class PackageJson(object):
                 pj_queue.append((dep_pj, depth + 1))
 
         return ws_deps
-
-    def get_dep_paths_by_names(self):
-        """
-        Returns dict of {dependency_name: dependency_path}
-        """
-        ws_map = self.get_workspace_map()
-        return {pj.get_name(): path for path, (pj, _) in ws_map.items()}

@@ -1,12 +1,7 @@
-import copy
 import os
 import json
 
 from .ts_errors import TsError, TsValidationError
-
-from ..package_manager.base import utils
-
-DEFAULT_TS_CONFIG_FILE = "tsconfig.json"
 
 
 class TsConfig(object):
@@ -36,97 +31,9 @@ class TsConfig(object):
         except Exception as e:
             raise TsError("Failed to read tsconfig {}: {}".format(self.path, e))
 
-    def merge(self, rel_path, base_tsconfig):
-        """
-        :param rel_path: relative path to the configuration file we are merging in.
-        It is required to set the relative paths correctly.
-        :type rel_path: str
-        :param base_tsconfig: base TsConfig we are merging with our TsConfig instance
-        :type base_tsconfig: dict
-        """
-        if not base_tsconfig.data:
-            return
-
-        def relative_path(p):
-            return os.path.normpath(os.path.join(rel_path, p))
-
-        base_config_data = copy.deepcopy(base_tsconfig.data)
-
-        parameter_section_labels = ["compilerOptions", "typeAcquisition", "watchOptions"]
-        for opt_label in parameter_section_labels:
-            base_options = base_config_data.get(opt_label)
-            if not base_options:
-                continue
-
-            new_options = self.data.get(opt_label)
-            for key in base_options:
-                val = base_options[key]
-
-                # lists of paths
-                if key in ["extends", "outDir", "rootDir", "baseUrl", "include"]:
-                    val = relative_path(val)
-
-                # path string
-                elif key in ["rootDirs", "excludeDirectories", "excludeFiles"]:
-                    val = map(relative_path, val)
-
-                # dicts having paths as values
-                elif key in ["paths"]:
-                    new_paths = new_options.get(key)
-                    val = map(relative_path, val) + (new_paths if new_paths else [])
-
-                base_options[key] = val
-
-            if new_options and base_options:
-                base_options.update(new_options)
-                self.data[opt_label] = base_options
-
-        base_config_data.update(self.data)
-        self.data = base_config_data
-
-    def inline_extend(self, dep_paths):
-        """
-        Merges the tsconfig parameters from configuration file referred by "extends" if any.
-        Relative paths are adjusted, current parameter values are prioritized higer than
-        those coming from extension file (according to TSC mergin rules).
-        Returns list of file paths for config files merged into the current configuration
-        :param dep_paths: dict of dependency names to their paths
-        :type dep_paths: dict
-        :rtype: list of str
-        """
-        ext_value = self.data.get("extends")
-        if not ext_value:
-            return []
-
-        if ext_value.startswith("."):
-            base_config_path = ext_value
-
-        else:
-            dep_name = utils.extract_package_name_from_path(ext_value)
-            # the rest part is the ext config path
-            file_path_start = len(dep_name) + 1
-            file_path = ext_value[file_path_start:]
-            dep_path = dep_paths.get(dep_name)
-            if dep_path is None:
-                raise Exception(
-                    "referenceing from {}, data: {}\n: Dependency '{}' not found in dep_paths: {}"
-                    .format(self.path, str(self.data), dep_name, dep_paths)
-                )
-            base_config_path = os.path.join(dep_path, file_path)
-
-        rel_path = os.path.dirname(base_config_path)
-        tsconfig_curdir_path = os.path.join(os.path.dirname(self.path), base_config_path)
-        if os.path.isdir(tsconfig_curdir_path):
-            base_config_path = os.path.join(base_config_path, DEFAULT_TS_CONFIG_FILE)
-
-        # processing the base file recursively
-        base_config = TsConfig.load(os.path.join(os.path.dirname(self.path), base_config_path))
-        paths = [base_config_path] + base_config.inline_extend(dep_paths)
-
-        self.merge(rel_path, base_config)
-        del self.data["extends"]
-
-        return paths
+    def get_extended_paths(self):
+        ext_path = self.data.get("extends")
+        return [ext_path] if ext_path else []
 
     def get_or_create_compiler_options(self):
         """

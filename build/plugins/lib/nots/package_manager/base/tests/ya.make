@@ -4,7 +4,6 @@ PY23_TEST()
 
 TEST_SRCS(
     package_json.py
-    utils.py
 )
 
 PEERDIR(
