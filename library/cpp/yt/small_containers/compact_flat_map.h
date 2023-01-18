@@ -21,7 +21,7 @@ namespace NYT {
  *  Because of the latter, one should be very careful with iterators: virtually
  *  any call to insert or erase may potentially invalidate all iterators.
  */
-template <class K, class V, unsigned N>
+template <class K, class V, size_t N>
 class TCompactFlatMap
 {
 public:
@@ -62,17 +62,21 @@ public:
 
     iterator begin();
     const_iterator begin() const;
+    const_iterator cbegin() const;
 
     iterator end();
     const_iterator end() const;
+    const_iterator cend() const;
 
     void reserve(size_type n);
 
     size_type size() const;
     int ssize() const;
 
-    bool empty() const;
+    [[nodiscard]] bool empty() const;
     void clear();
+
+    void shrink_to_small();
 
     iterator find(const K& k);
     const_iterator find(const K& k) const;
@@ -80,6 +84,7 @@ public:
     bool contains(const K& k) const;
 
     std::pair<iterator, bool> insert(const value_type& value);
+    std::pair<iterator, bool> insert(value_type&& value);
 
     template <class TInputIterator>
     void insert(TInputIterator begin, TInputIterator end);
@@ -94,10 +99,13 @@ public:
     void erase(iterator b, iterator e);
 
 private:
-    std::pair<iterator, iterator> EqualRange(const K& k);
-    std::pair<const_iterator, const_iterator> EqualRange(const K& k) const;
-
     TStorage Storage_;
+
+    std::pair<iterator, iterator> equal_range(const K& k);
+    std::pair<const_iterator, const_iterator> equal_range(const K& k) const;
+
+    template <class TArg>
+    std::pair<iterator, bool> do_insert(TArg&& value);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

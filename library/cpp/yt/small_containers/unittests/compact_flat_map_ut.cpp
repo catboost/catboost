@@ -18,14 +18,14 @@ TMap CreateMap()
     return {data.begin(), data.end()};
 }
 
-TEST(CompactFlatMapTest, DefaultEmpty)
+TEST(TCompactFlatMapTest, DefaultEmpty)
 {
     TMap m;
     EXPECT_TRUE(m.empty());
     EXPECT_EQ(m.begin(), m.end());
 }
 
-TEST(CompactFlatMapTest, Reserve)
+TEST(TCompactFlatMapTest, Reserve)
 {
     // No real way to test reserve - just use it and wiggle about.
     auto m1 = CreateMap();
@@ -35,7 +35,7 @@ TEST(CompactFlatMapTest, Reserve)
     EXPECT_EQ(m1.size(), m2.size());
 }
 
-TEST(CompactFlatMapTest, Size)
+TEST(TCompactFlatMapTest, Size)
 {
     auto m = CreateMap();
 
@@ -53,7 +53,7 @@ TEST(CompactFlatMapTest, Size)
     EXPECT_EQ(m.ssize(), 4);
 }
 
-TEST(CompactFlatMapTest, ClearAndEmpty)
+TEST(TCompactFlatMapTest, ClearAndEmpty)
 {
     auto m = CreateMap();
 
@@ -71,7 +71,7 @@ TEST(CompactFlatMapTest, ClearAndEmpty)
     EXPECT_NE(m.begin(), m.end());
 }
 
-TEST(CompactFlatMapTest, FindMutable)
+TEST(TCompactFlatMapTest, FindMutable)
 {
     auto m = CreateMap();
     {
@@ -91,7 +91,7 @@ TEST(CompactFlatMapTest, FindMutable)
     }
 }
 
-TEST(CompactFlatMapTest, FindConst)
+TEST(TCompactFlatMapTest, FindConst)
 {
     const auto& m = CreateMap();
     {
@@ -105,7 +105,7 @@ TEST(CompactFlatMapTest, FindConst)
     }
 }
 
-TEST(CompactFlatMapTest, Insert)
+TEST(TCompactFlatMapTest, Insert)
 {
     auto m = CreateMap();
 
@@ -129,7 +129,7 @@ TEST(CompactFlatMapTest, Insert)
     EXPECT_EQ(m.find("and")->second, "trunkless");
 }
 
-TEST(CompactFlatMapTest, Emplace)
+TEST(TCompactFlatMapTest, Emplace)
 {
     auto m = CreateMap();
 
@@ -147,7 +147,7 @@ TEST(CompactFlatMapTest, Emplace)
     EXPECT_EQ(it->second, "place");
 }
 
-TEST(CompactFlatMapTest, Subscript)
+TEST(TCompactFlatMapTest, Subscript)
 {
     auto m = CreateMap();
 
@@ -158,7 +158,7 @@ TEST(CompactFlatMapTest, Subscript)
     EXPECT_EQ(m.ssize(), 5);
 }
 
-TEST(CompactFlatMapTest, Erase)
+TEST(TCompactFlatMapTest, Erase)
 {
     auto m = CreateMap();
 
@@ -172,7 +172,7 @@ TEST(CompactFlatMapTest, Erase)
     EXPECT_TRUE(m.empty());
 }
 
-TEST(CompactFlatMapTest, GrowShrink)
+TEST(TCompactFlatMapTest, GrowShrink)
 {
     TMap m;
     m.insert({"Two", "vast"});
@@ -192,7 +192,7 @@ TEST(CompactFlatMapTest, GrowShrink)
     // Must not crash or trigger asan.
 }
 
-TEST(CompactFlatMapTest, GrowShrinkGrow)
+TEST(TCompactFlatMapTest, GrowShrinkGrow)
 {
     TMap m;
     m.insert({"Two", "vast"});
