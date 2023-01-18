@@ -217,7 +217,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\python-dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.xWivjRZP8U/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_b7db1007f2e6e5242796d8500d.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/e9f05bd75d0a4df0a826289956.cpp" "contrib/python/python-dateutil/6eebb1ea8a069b8df90a4ecde8.cpp" "--ya-end-command-file"
+"/tmp/tmp.9yMBRh2wQZ/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_b7db1007f2e6e5242796d8500d.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/e9f05bd75d0a4df0a826289956.cpp" "contrib/python/python-dateutil/6eebb1ea8a069b8df90a4ecde8.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -228,7 +228,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\python-dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.xWivjRZP8U/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_b7db1007f2e6e5242796d8500d.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/e9f05bd75d0a4df0a826289956.cpp" "contrib/python/python-dateutil/6eebb1ea8a069b8df90a4ecde8.cpp" "--ya-end-command-file"
+"/tmp/tmp.9yMBRh2wQZ/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_b7db1007f2e6e5242796d8500d.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/e9f05bd75d0a4df0a826289956.cpp" "contrib/python/python-dateutil/6eebb1ea8a069b8df90a4ecde8.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
