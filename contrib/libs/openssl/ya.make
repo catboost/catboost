@@ -344,9 +344,7 @@ ENDIF()
 
 END()
 
-IF (NOT DLL_FOR AND NOT OS_IOS)
-    RECURSE(
+RECURSE(
     apps
-    dynamic
+    crypto
 )
-ENDIF()
