@@ -4,15 +4,26 @@ PY23_LIBRARY()
 
 
 
-VERSION(0.13.9)
+VERSION(0.13.11)
 
 LICENSE(BSD-3-Clause)
 
 PEERDIR(
     contrib/python/decorator
     contrib/python/ipython
-    contrib/python/setuptools
 )
+
+IF (PYTHON2)
+    PEERDIR(
+        contrib/python/toml
+    )
+ENDIF()
+
+IF (PYTHON3)
+    PEERDIR(
+        contrib/python/tomli
+    )
+ENDIF()
 
 NO_LINT()
 

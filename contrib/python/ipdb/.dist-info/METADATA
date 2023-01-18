@@ -1,13 +1,12 @@
 Metadata-Version: 2.1
 Name: ipdb
-Version: 0.13.9
+Version: 0.13.11
 Summary: IPython-enabled pdb
 Home-page: https://github.com/gotcha/ipdb
 Author: Godefroid Chapelle
 Author-email: gotcha@bubblenet.be
 License: BSD
 Keywords: pdb ipython
-Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.4
@@ -15,28 +14,35 @@ Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Operating System :: MacOS :: MacOS X
 Classifier: Operating System :: POSIX :: Linux
 Classifier: Operating System :: Microsoft :: Windows
 Classifier: Topic :: Software Development :: Debuggers
 Classifier: License :: OSI Approved :: BSD License
-Requires-Python: >=2.7
-Requires-Dist: setuptools
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
+License-File: COPYING.txt
+License-File: AUTHORS
 Requires-Dist: ipython (<6.0.0,>=5.1.0) ; python_version == "2.7"
 Requires-Dist: toml (>=0.10.2) ; python_version == "2.7"
 Requires-Dist: decorator (<5.0.0) ; python_version == "2.7"
+Requires-Dist: pathlib ; python_version == "2.7"
 Requires-Dist: ipython (<7.0.0,>=6.0.0) ; python_version == "3.4"
 Requires-Dist: toml (>=0.10.2) ; python_version == "3.4"
 Requires-Dist: decorator (<5.0.0) ; python_version == "3.4"
 Requires-Dist: ipython (<7.10.0,>=7.0.0) ; python_version == "3.5"
 Requires-Dist: toml (>=0.10.2) ; python_version == "3.5"
 Requires-Dist: decorator ; python_version == "3.5"
-Requires-Dist: ipython (<7.17.0,>=7.10.0) ; python_version == "3.6"
-Requires-Dist: toml (>=0.10.2) ; python_version == "3.6"
+Requires-Dist: ipython (<7.17.0,>=7.16.3) ; python_version == "3.6"
+Requires-Dist: tomli ; python_version == "3.6"
 Requires-Dist: decorator ; python_version == "3.6"
-Requires-Dist: ipython (>=7.17.0) ; python_version > "3.6"
-Requires-Dist: toml (>=0.10.2) ; python_version > "3.6"
-Requires-Dist: decorator ; python_version > "3.6"
+Requires-Dist: ipython (>=7.31.1) ; python_version > "3.6" and python_version < "3.11"
+Requires-Dist: tomli ; python_version > "3.6" and python_version < "3.11"
+Requires-Dist: decorator ; python_version > "3.6" and python_version < "3.11"
+Requires-Dist: ipython (>=7.31.1) ; python_version >= "3.11"
+Requires-Dist: decorator ; python_version >= "3.11"
 
 IPython `pdb`
 =============
@@ -235,6 +241,31 @@ instead of ``pdb``. (It does not depend on ``ipdb`` anymore).
 
 Changelog
 =========
+
+0.13.11 (2022-12-13)
+--------------------
+
+- Better exception handling when looking for config.
+  [bignose-debian]
+
+
+0.13.10 (2022-12-13)
+--------------------
+
+- Better toml support (use tomlib for 3.11, tomli for 3.6 to 3.10).
+  [salty-horse, mgorny]
+
+- Minimal PEP 517 support.
+  [cpcloud]
+
+- 3.11 support for run as module and run as script.
+  [nphilipp, gotcha]
+
+- Based on OSV:PYSEC-2022-12 change ipython dependencies,
+  for users using python 3.6, install 7.16.3 <= IPython < 7.17.0,
+  for users using python>3.6, install IPython >= 7.31.1.
+  [malkstar]
+
 
 0.13.9 (2021-06-02)
 -------------------
@@ -582,5 +613,3 @@ Changelog
 ----------------
 
 - First "non dev" release.
-
-

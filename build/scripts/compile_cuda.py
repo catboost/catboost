@@ -90,9 +90,6 @@ def main():
         def good(arg):
             if arg.startswith('--target='):
                 return False
-            if arg in ('-Wno-exceptions',
-                       '-Wno-inconsistent-missing-override'):
-                return False
             return True
         cflags = filter(good, cflags)
 

@@ -51,6 +51,7 @@ RECURSE(
     stack-data
     testpath
     threadpoolctl
+    toml
     tomli
     tornado
     traitlets
