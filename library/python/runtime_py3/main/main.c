@@ -79,6 +79,7 @@ static int pymain(int argc, char** argv) {
     if (IsYaIdeVenv()) {
         return Py_BytesMain(argc, argv);
     }
+
     PyStatus status = _PyRuntime_Initialize();
     if (PyStatus_Exception(status)) {
         Py_ExitStatusException(status);
@@ -87,14 +88,11 @@ static int pymain(int argc, char** argv) {
     int i, sts = 1;
     char* oldloc = NULL;
     wchar_t** argv_copy = NULL;
-    /* We need a second copies, as Python might modify the first one. */
-    wchar_t** argv_copy2 = NULL;
     char* entry_point_copy = NULL;
 
     if (argc > 0) {
         argv_copy = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
-        argv_copy2 = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
-        if (!argv_copy || !argv_copy2) {
+        if (!argv_copy) {
             fprintf(stderr, "out of memory\n");
             goto error;
         }
@@ -118,7 +116,6 @@ static int pymain(int argc, char** argv) {
     setlocale(LC_ALL, "");
     for (i = 0; i < argc; i++) {
         argv_copy[i] = Py_DecodeLocale(argv[i], NULL);
-        argv_copy2[i] = argv_copy[i];
         if (!argv_copy[i]) {
             fprintf(stderr, "Unable to decode the command line argument #%i\n",
                             i + 1);
@@ -225,11 +222,6 @@ static int pymain(int argc, char** argv) {
 error:
     free(entry_point_copy);
     PyMem_RawFree(argv_copy);
-    if (argv_copy2) {
-        for (i = 0; i < argc; i++)
-            PyMem_RawFree(argv_copy2[i]);
-        PyMem_RawFree(argv_copy2);
-    }
     PyMem_RawFree(oldloc);
     return sts;
 }
