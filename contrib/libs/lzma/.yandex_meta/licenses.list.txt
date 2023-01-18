@@ -94,3 +94,7 @@ of promoting the sharing and reuse of software generally.
 ====================Public-Domain====================
 //  This file has been put into the public domain.
 //  You can do whatever you want with this file.
+
+
+====================Public-Domain====================
+/// and the public domain code from https://github.com/rawrunprotected/crc

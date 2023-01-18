@@ -138,6 +138,8 @@ Information to packagers of XZ Utils
         --enable-checks
         --enable-small (*)
         --disable-threads (*)
+        --disable-microlzma (*)
+        --disable-lzip-decoder (*)
 
     (*) These are OK when building xzdec and lzmadec as described
         in INSTALL.

@@ -225,7 +225,7 @@ BELONGS ya.make
         liblzma/check/check.h [8:9]
         liblzma/check/crc32_fast.c [14:15]
         liblzma/check/crc32_table.c [8:9]
-        liblzma/check/crc64_fast.c [12:13]
+        liblzma/check/crc64_fast.c [26:27]
         liblzma/check/crc64_table.c [8:9]
         liblzma/check/crc_macros.h [8:9]
         liblzma/check/sha256.c [19:20]
@@ -251,6 +251,7 @@ BELONGS ya.make
         liblzma/common/easy_encoder_memusage.c [8:9]
         liblzma/common/easy_preset.c [8:9]
         liblzma/common/easy_preset.h [8:9]
+        liblzma/common/file_info.c [8:9]
         liblzma/common/filter_buffer_decoder.c [8:9]
         liblzma/common/filter_buffer_encoder.c [8:9]
         liblzma/common/filter_common.c [8:9]
@@ -266,22 +267,29 @@ BELONGS ya.make
         liblzma/common/index.c [8:9]
         liblzma/common/index.h [8:9]
         liblzma/common/index_decoder.c [8:9]
+        liblzma/common/index_decoder.h [8:9]
         liblzma/common/index_encoder.c [8:9]
         liblzma/common/index_encoder.h [8:9]
         liblzma/common/index_hash.c [8:9]
+        liblzma/common/lzip_decoder.c [9:10]
+        liblzma/common/lzip_decoder.h [8:9]
         liblzma/common/memcmplen.h [8:9]
+        liblzma/common/microlzma_decoder.c [8:9]
+        liblzma/common/microlzma_encoder.c [8:9]
         liblzma/common/outqueue.c [8:9]
         liblzma/common/outqueue.h [8:9]
         liblzma/common/stream_buffer_decoder.c [8:9]
         liblzma/common/stream_buffer_encoder.c [8:9]
         liblzma/common/stream_decoder.c [8:9]
         liblzma/common/stream_decoder.h [8:9]
+        liblzma/common/stream_decoder_mt.c [9:10]
         liblzma/common/stream_encoder.c [8:9]
         liblzma/common/stream_encoder_mt.c [8:9]
         liblzma/common/stream_flags_common.c [8:9]
         liblzma/common/stream_flags_common.h [8:9]
         liblzma/common/stream_flags_decoder.c [8:9]
         liblzma/common/stream_flags_encoder.c [8:9]
+        liblzma/common/string_conversion.c [8:9]
         liblzma/common/vli_decoder.c [8:9]
         liblzma/common/vli_encoder.c [8:9]
         liblzma/common/vli_size.c [8:9]
@@ -317,6 +325,7 @@ BELONGS ya.make
         liblzma/rangecoder/range_decoder.h [9:10]
         liblzma/rangecoder/range_encoder.h [9:10]
         liblzma/simple/arm.c [9:10]
+        liblzma/simple/arm64.c [18:19]
         liblzma/simple/armthumb.c [9:10]
         liblzma/simple/ia64.c [9:10]
         liblzma/simple/powerpc.c [9:10]
@@ -477,6 +486,18 @@ BELONGS ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [37:37]
+
+KEEP     Public-Domain        c1a07f044cdb7e843b741e6236100ea3
+BELONGS ya.make
+    License text:
+        /// and the public domain code from https://github.com/rawrunprotected/crc
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        liblzma/check/crc64_fast.c [14:14]
 
 KEEP     Public-Domain        c33979a7487464a4ed9a827e0debed09
 BELONGS ya.make

@@ -142,12 +142,10 @@ XZ Utils Installation
 
     If it is enough to build liblzma (no command line tools):
 
-      - There is experimental CMake support. As it is, it should be
-        good enough to build static liblzma with Visual Studio.
-        Building liblzma.dll might work too (if it doesn't, it should
-        be fixed). The CMake support may work with MinGW or MinGW-w64.
-        Read the comment in the beginning of CMakeLists.txt before
-        running CMake!
+      - There is CMake support. It should be good enough to build
+        static liblzma or liblzma.dll with Visual Studio. The CMake
+        support may work with MinGW or MinGW-w64. Read the comment
+        in the beginning of CMakeLists.txt before running CMake!
 
       - There are Visual Studio project files under the "windows"
         directory. See windows/INSTALL-MSVC.txt. In the future the
@@ -316,6 +314,18 @@ XZ Utils Installation
                             | xz -v -0 -Csha256 > foo.xz
                         time xz --test foo.xz
 
+    --disable-microlzma
+                Don't build MicroLZMA encoder and decoder. This omits
+                lzma_microlzma_encoder() and lzma_microlzma_decoder()
+                API functions from liblzma. These functions are needed
+                by specific applications only. They were written for
+                erofs-utils but they may be used by others too.
+
+    --disable-lzip-decoder
+                Disable decompression support for .lz (lzip) files.
+                This omits the API function lzma_lzip_decoder() from
+                liblzma and .lz support from the xz tool.
+
     --disable-xz
     --disable-xzdec
     --disable-lzmadec
@@ -358,16 +368,45 @@ XZ Utils Installation
                 pre-i686 systems, you may want to disable the assembler
                 code.
 
+    --disable-clmul-crc
+                Disable the use carryless multiplication for CRC
+                calculation even if compiler support for it is detected.
+                The code uses runtime detection of SSSE3, SSE4.1, and
+                CLMUL instructions on x86. On 32-bit x86 this currently
+                is used only if --disable-assembler is used (this might
+                be fixed in the future). The code works on E2K too.
+
+                If using compiler options that unconditionally allow the
+                required extensions (-msse4.1 -mpclmul) then runtime
+                detection isn't used and the generic code is omitted.
+
     --enable-unaligned-access
-                Allow liblzma to use unaligned memory access for 16-bit
-                and 32-bit loads and stores. This should be enabled only
-                when the hardware supports this, i.e. when unaligned
-                access is fast. Some operating system kernels emulate
-                unaligned access, which is extremely slow. This option
-                shouldn't be used on systems that rely on such emulation.
+                Allow liblzma to use unaligned memory access for 16-bit,
+                32-bit, and 64-bit loads and stores. This should be
+                enabled only when the hardware supports this, that is,
+                when unaligned access is fast. Some operating system
+                kernels emulate unaligned access, which is extremely
+                slow. This option shouldn't be used on systems that
+                rely on such emulation.
 
                 Unaligned access is enabled by default on x86, x86-64,
-                and big endian PowerPC.
+                big endian PowerPC, some ARM, and some ARM64 systems.
+
+    --enable-unsafe-type-punning
+                This enables use of code like
+
+                    uint8_t *buf8 = ...;
+                    *(uint32_t *)buf8 = ...;
+
+                which violates strict aliasing rules and may result
+                in broken code. There should be no need to use this
+                option with recent GCC or Clang versions on any
+                arch as just as fast code can be generated in a safe
+                way too (using __builtin_assume_aligned + memcpy).
+
+                However, this option might improve performance in some
+                other cases, especially with old compilers (for example,
+                GCC 3 and early 4.x on x86, GCC < 6 on ARMv6 and ARMv7).
 
     --enable-small
                 Reduce the size of liblzma by selecting smaller but
@@ -427,7 +466,9 @@ XZ Utils Installation
 
                         no      Disable threading support. This is the
                                 same as using --disable-threads.
-                                NOTE: If combined with --enable-small, the
+                                NOTE: If combined with --enable-small
+                                and the compiler doesn't support
+                                __attribute__((__constructor__)), the
                                 resulting liblzma won't be thread safe,
                                 that is, if a multi-threaded application
                                 calls any liblzma functions from more than
@@ -447,6 +488,7 @@ XZ Utils Installation
                         auto    Look for a supported sandboxing method
                                 and use it if found. If no method is
                                 found, then sandboxing isn't used.
+                                This is the default.
 
                         no      Disable sandboxing support.
 
@@ -454,6 +496,10 @@ XZ Utils Installation
                                 Use Capsicum (FreeBSD >= 10) for
                                 sandboxing. If no Capsicum support
                                 is found, configure will give an error.
+
+                        pledge  Use pledge(2) (OpenBSD >= 5.9) for
+                                sandboxing. If pledge(2) isn't found,
+                                configure will give an error.
 
     --enable-symbol-versions
                 Use symbol versioning for liblzma. This is enabled by
@@ -517,7 +563,7 @@ XZ Utils Installation
         liblzma, pass --enable-small to configure.
 
       - Tell the compiler to optimize for size instead of speed.
-        E.g. with GCC, put -Os into CFLAGS.
+        For example, with GCC, put -Os into CFLAGS.
 
       - xzdec and lzmadec will never use multithreading capabilities of
         liblzma. You can avoid dependency on libpthread by passing
