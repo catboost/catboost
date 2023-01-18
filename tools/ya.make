@@ -33,6 +33,7 @@ RECURSE(
     domschemec
     domschemec/ut
     drawrichtree
+    dummy_linter
     dsindexer
     easyparser
     enforce_fsync

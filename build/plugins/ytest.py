@@ -1114,3 +1114,66 @@ def _get_external_resources_from_canon_data(data):
 
 def _get_canonical_data_resources_v2(filename, unit_path):
     return (_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)), [filename])
+
+
+def on_add_linter_check(unit, *args):
+    source_root_from_prefix = '${ARCADIA_ROOT}/'
+    source_root_to_prefix = '$S/'
+    unlimited = -1
+
+    if unit.get('_NO_LINT_VALUE') in ("none", "none_internal"):
+        return
+
+    keywords = {"DEPENDS": unlimited, "FILES": unlimited}
+    flat_args, spec_args = _common.sort_by_keywords(keywords, args)
+    if len(flat_args) != 2:
+        unit.message(['ERROR', '_ADD_LINTER_CHECK params: expected 2 free parameters'])
+        return
+
+    deps = []
+
+    lint_name, linter = flat_args
+    deps.append(os.path.dirname(linter))
+
+    test_files = []
+    for path in spec_args.get('FILES', []):
+        if path.startswith(source_root_from_prefix):
+            test_files.append(path.replace(source_root_from_prefix, source_root_to_prefix, 1))
+    if not test_files:
+        unit.message(['WARN', 'No files to lint for {}'.format(lint_name)])
+        return
+
+    deps += spec_args.get('DEPENDS', [])
+
+    for dep in deps:
+        unit.ondepends(dep)
+
+    test_record = {
+        'TEST-NAME': lint_name,
+        'SCRIPT-REL-PATH': 'custom_lint',
+        'TESTED-PROJECT-NAME': unit.name(),
+        'SOURCE-FOLDER-PATH': get_norm_unit_path(unit),
+        'CUSTOM-DEPENDENCIES': " ".join(deps),
+        'TEST-DATA': '',
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
+        'TEST-TIMEOUT': '',
+        'SPLIT-FACTOR': '',
+        'TEST_PARTITION': 'SEQUENTIAL',
+        'FORK-MODE': '',
+        'FORK-TEST-FILES': '',
+        'SIZE': 'SMALL',
+        'TAG': '',
+        'USE_ARCADIA_PYTHON': unit.get('USE_ARCADIA_PYTHON') or '',
+        'OLD_PYTEST': 'no',
+        'PYTHON-PATHS': '',
+        # TODO remove FILES, see DEVTOOLS-7052
+        'FILES': serialize_list(test_files),
+        'TEST-FILES': serialize_list(test_files),
+        # Linter specific parameters
+        'LINT-NAME': lint_name,
+        'LINTER': linter,
+    }
+    data = dump_test(unit, test_record)
+    if data:
+        unit.set_property(["DART_DATA", data])
+        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
