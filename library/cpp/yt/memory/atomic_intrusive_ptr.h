@@ -59,7 +59,7 @@ private:
     // LocalRefCount is incremented in Acquire method.
     // When localRefCount exceeds ReservedRefCount / 2 a new portion of refs are required globally.
     // This field is marked mutable in order to make Acquire const-qualified in accordance to its semantics.
-    mutable std::atomic<char*> Ptr_ = nullptr;
+    mutable std::atomic<void*> Ptr_ = nullptr;
 
     constexpr static int CounterBits = 64 - PtrBits;
     constexpr static int ReservedRefCount = (1 << CounterBits) - 1;
@@ -67,7 +67,7 @@ private:
     // Consume ref if ownership is transferred.
     // AcquireObject(ptr.Release(), true)
     // AcquireObject(ptr.Get(), false)
-    static char* AcquireObject(T* obj, bool consumeRef = false);
+    static void* AcquireObject(T* obj, bool consumeRef = false);
     static void ReleaseObject(void* packedPtr);
     static void DoRelease(T* obj, int refs);
 };
