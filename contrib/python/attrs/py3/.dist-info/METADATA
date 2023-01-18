@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: attrs
-Version: 22.1.0
+Version: 22.2.0
 Summary: Classes Without Boilerplate
 Home-page: https://www.attrs.org/
 Author: Hynek Schlawack
@@ -15,7 +15,7 @@ Project-URL: Source Code, https://github.com/python-attrs/attrs
 Project-URL: Funding, https://github.com/sponsors/hynek
 Project-URL: Tidelift, https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=pypi
 Project-URL: Ko-fi, https://ko-fi.com/the_hynek
-Keywords: class,attribute,boilerplate
+Keywords: class,attribute,boilerplate,dataclass
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: Natural Language :: English
@@ -23,7 +23,6 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
@@ -33,102 +32,148 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
-Requires-Python: >=3.5
-Description-Content-Type: text/x-rst
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
 License-File: LICENSE
-License-File: AUTHORS.rst
+Provides-Extra: cov
+Requires-Dist: attrs[tests] ; extra == 'cov'
+Requires-Dist: coverage-enable-subprocess ; extra == 'cov'
+Requires-Dist: coverage[toml] (>=5.3) ; extra == 'cov'
 Provides-Extra: dev
-Requires-Dist: coverage[toml] (>=5.0.2) ; extra == 'dev'
-Requires-Dist: hypothesis ; extra == 'dev'
-Requires-Dist: pympler ; extra == 'dev'
-Requires-Dist: pytest (>=4.3.0) ; extra == 'dev'
-Requires-Dist: mypy (!=0.940,>=0.900) ; extra == 'dev'
-Requires-Dist: pytest-mypy-plugins ; extra == 'dev'
-Requires-Dist: zope.interface ; extra == 'dev'
-Requires-Dist: furo ; extra == 'dev'
-Requires-Dist: sphinx ; extra == 'dev'
-Requires-Dist: sphinx-notfound-page ; extra == 'dev'
-Requires-Dist: pre-commit ; extra == 'dev'
-Requires-Dist: cloudpickle ; (platform_python_implementation == "CPython") and extra == 'dev'
+Requires-Dist: attrs[docs,tests] ; extra == 'dev'
 Provides-Extra: docs
 Requires-Dist: furo ; extra == 'docs'
 Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: myst-parser ; extra == 'docs'
 Requires-Dist: zope.interface ; extra == 'docs'
 Requires-Dist: sphinx-notfound-page ; extra == 'docs'
+Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
+Requires-Dist: towncrier ; extra == 'docs'
 Provides-Extra: tests
-Requires-Dist: coverage[toml] (>=5.0.2) ; extra == 'tests'
-Requires-Dist: hypothesis ; extra == 'tests'
-Requires-Dist: pympler ; extra == 'tests'
-Requires-Dist: pytest (>=4.3.0) ; extra == 'tests'
-Requires-Dist: mypy (!=0.940,>=0.900) ; extra == 'tests'
-Requires-Dist: pytest-mypy-plugins ; extra == 'tests'
+Requires-Dist: attrs[tests-no-zope] ; extra == 'tests'
 Requires-Dist: zope.interface ; extra == 'tests'
-Requires-Dist: cloudpickle ; (platform_python_implementation == "CPython") and extra == 'tests'
+Provides-Extra: tests-no-zope
+Requires-Dist: hypothesis ; extra == 'tests-no-zope'
+Requires-Dist: pympler ; extra == 'tests-no-zope'
+Requires-Dist: pytest (>=4.3.0) ; extra == 'tests-no-zope'
+Requires-Dist: pytest-xdist[psutil] ; extra == 'tests-no-zope'
+Requires-Dist: cloudpickle ; (platform_python_implementation == "CPython") and extra == 'tests-no-zope'
+Requires-Dist: mypy (<0.990,>=0.971) ; (platform_python_implementation == "CPython") and extra == 'tests-no-zope'
+Requires-Dist: pytest-mypy-plugins ; (platform_python_implementation == "CPython" and python_version < "3.11") and extra == 'tests-no-zope'
 Provides-Extra: tests_no_zope
-Requires-Dist: coverage[toml] (>=5.0.2) ; extra == 'tests_no_zope'
 Requires-Dist: hypothesis ; extra == 'tests_no_zope'
 Requires-Dist: pympler ; extra == 'tests_no_zope'
 Requires-Dist: pytest (>=4.3.0) ; extra == 'tests_no_zope'
-Requires-Dist: mypy (!=0.940,>=0.900) ; extra == 'tests_no_zope'
-Requires-Dist: pytest-mypy-plugins ; extra == 'tests_no_zope'
+Requires-Dist: pytest-xdist[psutil] ; extra == 'tests_no_zope'
 Requires-Dist: cloudpickle ; (platform_python_implementation == "CPython") and extra == 'tests_no_zope'
+Requires-Dist: mypy (<0.990,>=0.971) ; (platform_python_implementation == "CPython") and extra == 'tests_no_zope'
+Requires-Dist: pytest-mypy-plugins ; (platform_python_implementation == "CPython" and python_version < "3.11") and extra == 'tests_no_zope'
+
+<p align="center">
+  <a href="https://www.attrs.org/">
+    <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/docs/_static/attrs_logo.svg" width="35%" alt="attrs" />
+  </a>
+</p>
 
 
-.. image:: https://www.attrs.org/en/stable/_static/attrs_logo.png
-   :alt: attrs logo
-   :align: center
+<p align="center">
+   <a href="https://www.attrs.org/en/stable/">
+       <img src="https://img.shields.io/badge/Docs-RTD-black" alt="Documentation" />
+   </a>
+   <a href="https://github.com/python-attrs/attrs/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/license-MIT-C06524" alt="License: MIT" />
+   </a>
+   <a href="https://bestpractices.coreinfrastructure.org/projects/6482"><img src="https://bestpractices.coreinfrastructure.org/projects/6482/badge"></a>
+   <a href="https://pypi.org/project/attrs/">
+      <img src="https://img.shields.io/pypi/v/attrs" />
+   </a>
+   <a href="https://pepy.tech/project/attrs">
+      <img src="https://static.pepy.tech/personalized-badge/attrs?period=month&units=international_system&left_color=grey&right_color=blue&left_text=Downloads%20/%20Month" alt="Downloads per month" />
+   </a>
+   <a href="https://zenodo.org/badge/latestdoi/29918975"><img src="https://zenodo.org/badge/29918975.svg" alt="DOI"></a>
+</p>
 
+<!-- teaser-begin -->
 
-``attrs`` is the Python package that will bring back the **joy** of **writing classes** by relieving you from the drudgery of implementing object protocols (aka `dunder methods <https://www.attrs.org/en/latest/glossary.html#term-dunder-methods>`_).
-`Trusted by NASA <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/personalizing-your-profile#list-of-qualifying-repositories-for-mars-2020-helicopter-contributor-achievement>`_ for Mars missions since 2020!
+*attrs* is the Python package that will bring back the **joy** of **writing classes** by relieving you from the drudgery of implementing object protocols (aka [dunder methods](https://www.attrs.org/en/latest/glossary.html#term-dunder-methods)).
+[Trusted by NASA](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/personalizing-your-profile#list-of-qualifying-repositories-for-mars-2020-helicopter-contributor-achievement) for Mars missions since 2020!
 
 Its main goal is to help you to write **concise** and **correct** software without slowing down your code.
 
-.. teaser-end
 
-For that, it gives you a class decorator and a way to declaratively define the attributes on that class:
+## Sponsors
 
-.. -code-begin-
+*attrs* would not be possible without our [amazing sponsors](https://github.com/sponsors/hynek).
+Especially those generously supporting us at the *The Organization* tier and higher:
 
-.. code-block:: pycon
+<p align="center">
+   <a href="https://www.variomedia.de/">
+      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/Variomedia.svg" width="200" height="60"></img>
+   </a>
 
-   >>> from attrs import asdict, define, make_class, Factory
+   <a href="https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=referral&utm_campaign=enterprise&utm_term=repo">
+      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/Tidelift.svg" width="200" height="60"></img>
+   </a>
 
-   >>> @define
-   ... class SomeClass:
-   ...     a_number: int = 42
-   ...     list_of_numbers: list[int] = Factory(list)
-   ...
-   ...     def hard_math(self, another_number):
-   ...         return self.a_number + sum(self.list_of_numbers) * another_number
+   <a href="https://sentry.io/">
+      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/Sentry.svg" width="200" height="60"></img>
+   </a>
+
+   <a href="https://filepreviews.io/">
+      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/FilePreviews.svg" width="200" height="60"></img>
+   </a>
+</p>
+
+<p align="center">
+   <strong>Please consider <a href="https://github.com/sponsors/hynek">joining them</a> to help make <em>attrs</em>’s maintenance more sustainable!</strong>
+</p>
+
+<!-- teaser-end -->
+
+## Example
+
+*attrs* gives you a class decorator and a way to declaratively define the attributes on that class:
+
+<!-- code-begin -->
+
+```pycon
+>>> from attrs import asdict, define, make_class, Factory
+
+>>> @define
+... class SomeClass:
+...     a_number: int = 42
+...     list_of_numbers: list[int] = Factory(list)
+...
+...     def hard_math(self, another_number):
+...         return self.a_number + sum(self.list_of_numbers) * another_number
 
 
-   >>> sc = SomeClass(1, [1, 2, 3])
-   >>> sc
-   SomeClass(a_number=1, list_of_numbers=[1, 2, 3])
+>>> sc = SomeClass(1, [1, 2, 3])
+>>> sc
+SomeClass(a_number=1, list_of_numbers=[1, 2, 3])
 
-   >>> sc.hard_math(3)
-   19
-   >>> sc == SomeClass(1, [1, 2, 3])
-   True
-   >>> sc != SomeClass(2, [3, 2, 1])
-   True
+>>> sc.hard_math(3)
+19
+>>> sc == SomeClass(1, [1, 2, 3])
+True
+>>> sc != SomeClass(2, [3, 2, 1])
+True
 
-   >>> asdict(sc)
-   {'a_number': 1, 'list_of_numbers': [1, 2, 3]}
+>>> asdict(sc)
+{'a_number': 1, 'list_of_numbers': [1, 2, 3]}
 
-   >>> SomeClass()
-   SomeClass(a_number=42, list_of_numbers=[])
+>>> SomeClass()
+SomeClass(a_number=42, list_of_numbers=[])
 
-   >>> C = make_class("C", ["a", "b"])
-   >>> C("foo", "bar")
-   C(a='foo', b='bar')
+>>> C = make_class("C", ["a", "b"])
+>>> C("foo", "bar")
+C(a='foo', b='bar')
+```
 
-
-After *declaring* your attributes, ``attrs`` gives you:
+After *declaring* your attributes, *attrs* gives you:
 
 - a concise and explicit overview of the class's attributes,
-- a nice human-readable ``__repr__``,
+- a nice human-readable `__repr__`,
 - equality-checking methods,
 - an initializer,
 - and much more,
@@ -137,104 +182,97 @@ After *declaring* your attributes, ``attrs`` gives you:
 
 **Hate type annotations**!?
 No problem!
-Types are entirely **optional** with ``attrs``.
-Simply assign ``attrs.field()`` to the attributes instead of annotating them with types.
+Types are entirely **optional** with *attrs*.
+Simply assign `attrs.field()` to the attributes instead of annotating them with types.
 
-----
+---
 
-This example uses ``attrs``'s modern APIs that have been introduced in version 20.1.0, and the ``attrs`` package import name that has been added in version 21.3.0.
-The classic APIs (``@attr.s``, ``attr.ib``, plus their serious-business aliases) and the ``attr`` package import name will remain **indefinitely**.
+This example uses *attrs*'s modern APIs that have been introduced in version 20.1.0, and the *attrs* package import name that has been added in version 21.3.0.
+The classic APIs (`@attr.s`, `attr.ib`, plus their serious-business aliases) and the `attr` package import name will remain **indefinitely**.
 
-Please check out `On The Core API Names <https://www.attrs.org/en/latest/names.html>`_ for a more in-depth explanation.
+Please check out [*On The Core API Names*](https://www.attrs.org/en/latest/names.html) for a more in-depth explanation.
 
 
-Data Classes
-============
+## Data Classes
 
-On the tin, ``attrs`` might remind you of ``dataclasses`` (and indeed, ``dataclasses`` `are a descendant <https://hynek.me/articles/import-attrs/>`_ of ``attrs``).
+On the tin, *attrs* might remind you of `dataclasses` (and indeed, `dataclasses` [are a descendant](https://hynek.me/articles/import-attrs/) of *attrs*).
 In practice it does a lot more and is more flexible.
-For instance it allows you to define `special handling of NumPy arrays for equality checks <https://www.attrs.org/en/stable/comparison.html#customization>`_, or allows more ways to `plug into the initialization process <https://www.attrs.org/en/stable/init.html#hooking-yourself-into-initialization>`_.
+For instance it allows you to define [special handling of NumPy arrays for equality checks](https://www.attrs.org/en/stable/comparison.html#customization), or allows more ways to [plug into the initialization process](https://www.attrs.org/en/stable/init.html#hooking-yourself-into-initialization).
 
-For more details, please refer to our `comparison page <https://www.attrs.org/en/stable/why.html#data-classes>`_.
-
-.. -project-information-
-
-Project Information
-===================
-
-- **License**: `MIT <https://choosealicense.com/licenses/mit/>`_
-- **PyPI**: https://pypi.org/project/attrs/
-- **Source Code**: https://github.com/python-attrs/attrs
-- **Documentation**:  https://www.attrs.org/
-- **Changelog**: https://www.attrs.org/en/stable/changelog.html
-- **Get Help**: please use the ``python-attrs`` tag on `StackOverflow <https://stackoverflow.com/questions/tagged/python-attrs>`_
-- **Third-party Extensions**: https://github.com/python-attrs/attrs/wiki/Extensions-to-attrs
-- **Supported Python Versions**: 3.5 and later (last 2.7-compatible release is `21.4.0 <https://pypi.org/project/attrs/21.4.0/>`_)
-
-If you'd like to contribute to ``attrs`` you're most welcome and we've written `a little guide <https://github.com/python-attrs/attrs/blob/main/.github/CONTRIBUTING.md>`_ to get you started!
+For more details, please refer to our [comparison page](https://www.attrs.org/en/stable/why.html#data-classes).
 
 
-``attrs`` for Enterprise
-------------------------
+## Project Information
+
+- [**Changelog**](https://www.attrs.org/en/stable/changelog.html)
+- [**Documentation**](https://www.attrs.org/)
+- [**PyPI**](https://pypi.org/project/attrs/)
+- [**Source Code**](https://github.com/python-attrs/attrs)
+- [**Contributing**](https://github.com/python-attrs/attrs/blob/main/.github/CONTRIBUTING.md)
+- [**Third-party Extensions**](https://github.com/python-attrs/attrs/wiki/Extensions-to-attrs)
+- **License**: [MIT](https://www.attrs.org/en/latest/license.html)
+- **Get Help**: please use the `python-attrs` tag on [StackOverflow](https://stackoverflow.com/questions/tagged/python-attrs)
+- **Supported Python Versions**: 3.6 and later
+
+
+### *attrs* for Enterprise
 
 Available as part of the Tidelift Subscription.
 
-The maintainers of ``attrs`` and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source packages you use to build your applications.
+The maintainers of *attrs* and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source packages you use to build your applications.
 Save time, reduce risk, and improve code health, while paying the maintainers of the exact packages you use.
-`Learn more. <https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=referral&utm_campaign=enterprise&utm_term=repo>`_
+[Learn more.](https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
 
 
-Release Information
-===================
+## Changes in This Release
 
-22.1.0 (2022-07-28)
--------------------
+### Backwards-incompatible Changes
 
-Backwards-incompatible Changes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Python 2.7 is not supported anymore.
-
-  Dealing with Python 2.7 tooling has become too difficult for a volunteer-run project.
-
-  We have supported Python 2 more than 2 years after it was officially discontinued and feel that we have paid our dues.
-  All version up to 21.4.0 from December 2021 remain fully functional, of course.
-  `#936 <https://github.com/python-attrs/attrs/issues/936>`_
-- The deprecated ``cmp`` attribute of ``attrs.Attribute`` has been removed.
-  This does not affect the *cmp* argument to ``attr.s`` that can be used as a shortcut to set *eq* and *order* at the same time.
-  `#939 <https://github.com/python-attrs/attrs/issues/939>`_
+- Python 3.5 is not supported anymore.
+  [#988](https://github.com/python-attrs/attrs/issues/988)
 
 
-Changes
-^^^^^^^
+### Deprecations
 
-- Instantiation of frozen slotted classes is now faster.
-  `#898 <https://github.com/python-attrs/attrs/issues/898>`_
-- If an ``eq`` key is defined, it is also used before hashing the attribute.
-  `#909 <https://github.com/python-attrs/attrs/issues/909>`_
-- Added ``attrs.validators.min_len()``.
-  `#916 <https://github.com/python-attrs/attrs/issues/916>`_
-- ``attrs.validators.deep_iterable()``'s *member_validator* argument now also accepts a list of validators and wraps them in an ``attrs.validators.and_()``.
-  `#925 <https://github.com/python-attrs/attrs/issues/925>`_
-- Added missing type stub re-imports for ``attrs.converters`` and ``attrs.filters``.
-  `#931 <https://github.com/python-attrs/attrs/issues/931>`_
-- Added missing stub for ``attr(s).cmp_using()``.
-  `#949 <https://github.com/python-attrs/attrs/issues/949>`_
-- ``attrs.validators._in()``'s ``ValueError`` is not missing the attribute, expected options, and the value it got anymore.
-  `#951 <https://github.com/python-attrs/attrs/issues/951>`_
-- Python 3.11 is now officially supported.
-  `#969 <https://github.com/python-attrs/attrs/issues/969>`_
+- Python 3.6 is now deprecated and support will be removed in the next release.
+  [#1017](https://github.com/python-attrs/attrs/issues/1017)
 
-`Full changelog <https://www.attrs.org/en/stable/changelog.html>`_.
 
-Credits
-=======
+### Changes
 
-``attrs`` is written and maintained by `Hynek Schlawack <https://hynek.me/>`_.
+- `attrs.field()` now supports an *alias* option for explicit `__init__` argument names.
 
-The development is kindly supported by `Variomedia AG <https://www.variomedia.de/>`_.
+  Get `__init__` signatures matching any taste, peculiar or plain!
+  The [PEP 681 compatible](https://peps.python.org/pep-0681/#field-specifier-parameters) *alias* option can be use to override private attribute name mangling, or add other arbitrary field argument name overrides.
+  [#950](https://github.com/python-attrs/attrs/issues/950)
+- `attrs.NOTHING` is now an enum value, making it possible to use with e.g. [`typing.Literal`](https://docs.python.org/3/library/typing.html#typing.Literal).
+  [#983](https://github.com/python-attrs/attrs/issues/983)
+- Added missing re-import of `attr.AttrsInstance` to the `attrs` namespace.
+  [#987](https://github.com/python-attrs/attrs/issues/987)
+- Fix slight performance regression in classes with custom `__setattr__` and speedup even more.
+  [#991](https://github.com/python-attrs/attrs/issues/991)
+- Class-creation performance improvements by switching performance-sensitive templating operations to f-strings.
 
-A full list of contributors can be found in `GitHub's overview <https://github.com/python-attrs/attrs/graphs/contributors>`_.
+  You can expect an improvement of about 5% -- even for very simple classes.
+  [#995](https://github.com/python-attrs/attrs/issues/995)
+- `attrs.has()` is now a [`TypeGuard`](https://docs.python.org/3/library/typing.html#typing.TypeGuard) for `AttrsInstance`.
+  That means that type checkers know a class is an instance of an `attrs` class if you check it using `attrs.has()` (or `attr.has()`) first.
+  [#997](https://github.com/python-attrs/attrs/issues/997)
+- Made `attrs.AttrsInstance` stub available at runtime and fixed type errors related to the usage of `attrs.AttrsInstance` in *Pyright*.
+  [#999](https://github.com/python-attrs/attrs/issues/999)
+- On Python 3.10 and later, call [`abc.update_abstractmethods()`](https://docs.python.org/3/library/abc.html#abc.update_abstractmethods) on dict classes after creation.
+  This improves the detection of abstractness.
+  [#1001](https://github.com/python-attrs/attrs/issues/1001)
+- *attrs*'s pickling methods now use dicts instead of tuples.
+  That is safer and more robust across different versions of a class.
+  [#1009](https://github.com/python-attrs/attrs/issues/1009)
+- Added `attrs.validators.not_(wrapped_validator)` to logically invert *wrapped_validator* by accepting only values where *wrapped_validator* rejects the value with a `ValueError` or `TypeError` (by default, exception types configurable).
+  [#1010](https://github.com/python-attrs/attrs/issues/1010)
+- The type stubs for `attrs.cmp_using()` now have default values.
+  [#1027](https://github.com/python-attrs/attrs/issues/1027)
+- To conform with [PEP 681](https://peps.python.org/pep-0681/), `attr.s()` and `attrs.define()` now accept *unsafe_hash* in addition to *hash*.
+  [#1065](https://github.com/python-attrs/attrs/issues/1065)
 
-It’s the spiritual successor of `characteristic <https://characteristic.readthedocs.io/>`_ and aspires to fix some of it clunkiness and unfortunate decisions.
-Both were inspired by Twisted’s `FancyEqMixin <https://docs.twisted.org/en/stable/api/twisted.python.util.FancyEqMixin.html>`_ but both are implemented using class decorators because `subclassing is bad for you <https://www.youtube.com/watch?v=3MNVP9-hglc>`_, m’kay?
+---
+
+[Full changelog](https://www.attrs.org/en/stable/changelog.html)

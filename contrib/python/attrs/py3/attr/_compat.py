@@ -12,17 +12,8 @@ from collections.abc import Mapping, Sequence  # noqa
 
 
 PYPY = platform.python_implementation() == "PyPy"
-PY36 = sys.version_info[:2] >= (3, 6)
-HAS_F_STRINGS = PY36
 PY310 = sys.version_info[:2] >= (3, 10)
-
-
-if PYPY or PY36:
-    ordered_dict = dict
-else:
-    from collections import OrderedDict
-
-    ordered_dict = OrderedDict
+PY_3_12_PLUS = sys.version_info[:2] >= (3, 12)
 
 
 def just_warn(*args, **kw):

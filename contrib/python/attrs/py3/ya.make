@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(22.1.0)
+VERSION(22.2.0)
 
 LICENSE(MIT)
 
@@ -21,6 +21,7 @@ PY_SRCS(
     attr/_funcs.py
     attr/_make.py
     attr/_next_gen.py
+    attr/_typing_compat.pyi
     attr/_version_info.py
     attr/_version_info.pyi
     attr/converters.py

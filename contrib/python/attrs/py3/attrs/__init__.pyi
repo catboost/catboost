@@ -23,6 +23,7 @@ from attr import __version_info__ as __version_info__
 from attr import _FilterType
 from attr import assoc as assoc
 from attr import Attribute as Attribute
+from attr import AttrsInstance as AttrsInstance
 from attr import cmp_using as cmp_using
 from attr import converters as converters
 from attr import define as define

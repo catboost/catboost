@@ -331,9 +331,7 @@ def assoc(inst, **changes):
         a = getattr(attrs, k, NOTHING)
         if a is NOTHING:
             raise AttrsAttributeNotFoundError(
-                "{k} is not an attrs attribute on {cl}.".format(
-                    k=k, cl=new.__class__
-                )
+                f"{k} is not an attrs attribute on {new.__class__}."
             )
         _obj_setattr(new, k, v)
     return new
@@ -361,7 +359,7 @@ def evolve(inst, **changes):
         if not a.init:
             continue
         attr_name = a.name  # To deal with private attributes.
-        init_name = attr_name if attr_name[0] != "_" else attr_name[1:]
+        init_name = a.alias
         if init_name not in changes:
             changes[init_name] = getattr(inst, attr_name)
 

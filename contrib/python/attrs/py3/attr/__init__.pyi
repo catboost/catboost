@@ -1,9 +1,9 @@
+import enum
 import sys
 
 from typing import (
     Any,
     Callable,
-    ClassVar,
     Dict,
     Generic,
     List,
@@ -25,7 +25,13 @@ from . import filters as filters
 from . import setters as setters
 from . import validators as validators
 from ._cmp import cmp_using as cmp_using
+from ._typing_compat import AttrsInstance_
 from ._version_info import VersionInfo
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
 
 __version__: str
 __version_info__: VersionInfo
@@ -42,30 +48,33 @@ _T = TypeVar("_T")
 _C = TypeVar("_C", bound=type)
 
 _EqOrderType = Union[bool, Callable[[Any], Any]]
-_ValidatorType = Callable[[Any, Attribute[_T], _T], Any]
+_ValidatorType = Callable[[Any, "Attribute[_T]", _T], Any]
 _ConverterType = Callable[[Any], Any]
-_FilterType = Callable[[Attribute[_T], _T], bool]
+_FilterType = Callable[["Attribute[_T]", _T], bool]
 _ReprType = Callable[[Any], str]
 _ReprArgType = Union[bool, _ReprType]
-_OnSetAttrType = Callable[[Any, Attribute[Any], Any], Any]
+_OnSetAttrType = Callable[[Any, "Attribute[Any]", Any], Any]
 _OnSetAttrArgType = Union[
     _OnSetAttrType, List[_OnSetAttrType], setters._NoOpType
 ]
 _FieldTransformer = Callable[
-    [type, List[Attribute[Any]]], List[Attribute[Any]]
+    [type, List["Attribute[Any]"]], List["Attribute[Any]"]
 ]
 # FIXME: in reality, if multiple validators are passed they must be in a list
 # or tuple, but those are invariant and so would prevent subtypes of
 # _ValidatorType from working when passed in a list or tuple.
 _ValidatorArgType = Union[_ValidatorType[_T], Sequence[_ValidatorType[_T]]]
 
-# A protocol to be able to statically accept an attrs class.
-class AttrsInstance(Protocol):
-    __attrs_attrs__: ClassVar[Any]
+# We subclass this here to keep the protocol's qualified name clean.
+class AttrsInstance(AttrsInstance_, Protocol):
+    pass
 
 # _make --
 
-NOTHING: object
+class _Nothing(enum.Enum):
+    NOTHING = enum.auto()
+
+NOTHING = _Nothing.NOTHING
 
 # NOTE: Factory lies about its return type to make this possible:
 # `x: List[int] # = Factory(list)`
@@ -125,6 +134,8 @@ class Attribute(Generic[_T]):
     type: Optional[Type[_T]]
     kw_only: bool
     on_setattr: _OnSetAttrType
+    alias: Optional[str]
+
     def evolve(self, **changes: Any) -> "Attribute[Any]": ...
 
 # NOTE: We had several choices for the annotation to use for type arg:
@@ -167,6 +178,7 @@ def attrib(
     eq: Optional[_EqOrderType] = ...,
     order: Optional[_EqOrderType] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> Any: ...
 
 # This form catches an explicit None or no default and infers the type from the
@@ -187,6 +199,7 @@ def attrib(
     eq: Optional[_EqOrderType] = ...,
     order: Optional[_EqOrderType] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> _T: ...
 
 # This form catches an explicit default argument.
@@ -206,6 +219,7 @@ def attrib(
     eq: Optional[_EqOrderType] = ...,
     order: Optional[_EqOrderType] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> _T: ...
 
 # This form covers type=non-Type: e.g. forward references (str), Any
@@ -225,6 +239,7 @@ def attrib(
     eq: Optional[_EqOrderType] = ...,
     order: Optional[_EqOrderType] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> Any: ...
 @overload
 def field(
@@ -241,6 +256,7 @@ def field(
     eq: Optional[bool] = ...,
     order: Optional[bool] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> Any: ...
 
 # This form catches an explicit None or no default and infers the type from the
@@ -260,6 +276,7 @@ def field(
     eq: Optional[_EqOrderType] = ...,
     order: Optional[_EqOrderType] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> _T: ...
 
 # This form catches an explicit default argument.
@@ -278,6 +295,7 @@ def field(
     eq: Optional[_EqOrderType] = ...,
     order: Optional[_EqOrderType] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> _T: ...
 
 # This form covers type=non-Type: e.g. forward references (str), Any
@@ -296,6 +314,7 @@ def field(
     eq: Optional[_EqOrderType] = ...,
     order: Optional[_EqOrderType] = ...,
     on_setattr: Optional[_OnSetAttrArgType] = ...,
+    alias: Optional[str] = ...,
 ) -> Any: ...
 @overload
 @__dataclass_transform__(order_default=True, field_descriptors=(attrib, field))
@@ -323,6 +342,7 @@ def attrs(
     on_setattr: Optional[_OnSetAttrArgType] = ...,
     field_transformer: Optional[_FieldTransformer] = ...,
     match_args: bool = ...,
+    unsafe_hash: Optional[bool] = ...,
 ) -> _C: ...
 @overload
 @__dataclass_transform__(order_default=True, field_descriptors=(attrib, field))
@@ -350,6 +370,7 @@ def attrs(
     on_setattr: Optional[_OnSetAttrArgType] = ...,
     field_transformer: Optional[_FieldTransformer] = ...,
     match_args: bool = ...,
+    unsafe_hash: Optional[bool] = ...,
 ) -> Callable[[_C], _C]: ...
 @overload
 @__dataclass_transform__(field_descriptors=(attrib, field))
@@ -358,6 +379,7 @@ def define(
     *,
     these: Optional[Dict[str, Any]] = ...,
     repr: bool = ...,
+    unsafe_hash: Optional[bool] = ...,
     hash: Optional[bool] = ...,
     init: bool = ...,
     slots: bool = ...,
@@ -383,6 +405,7 @@ def define(
     *,
     these: Optional[Dict[str, Any]] = ...,
     repr: bool = ...,
+    unsafe_hash: Optional[bool] = ...,
     hash: Optional[bool] = ...,
     init: bool = ...,
     slots: bool = ...,
@@ -470,7 +493,7 @@ def astuple(
     tuple_factory: Type[Sequence[Any]] = ...,
     retain_collection_types: bool = ...,
 ) -> Tuple[Any, ...]: ...
-def has(cls: type) -> bool: ...
+def has(cls: type) -> TypeGuard[Type[AttrsInstance]]: ...
 def assoc(inst: _T, **changes: Any) -> _T: ...
 def evolve(inst: _T, **changes: Any) -> _T: ...
 
