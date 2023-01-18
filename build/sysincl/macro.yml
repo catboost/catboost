@@ -1,15 +1,15 @@
 # This file contains the most frequently used macros from the whole arcadia
 - includes:
-  - OPENSSL_UNISTD: 
+  - OPENSSL_UNISTD:
     - $U/unistd.h
-  - HASH_MAP_H: 
+  - HASH_MAP_H:
     - $U/unordered_map
-  - HASH_SET_H: 
+  - HASH_SET_H:
     - $U/unordered_set
-  - STR_STREAM: 
+  - STR_STREAM:
      - $U/sstream
      - $U/strstream
-  - BACKTRACE_HEADER: 
+  - BACKTRACE_HEADER:
     - $U/execinfo.h
 #  - IMPL_GENERATOR:
 #    FIXME: these 2 resolvings require further dependencies to work properly
@@ -20,109 +20,109 @@
     - contrib/libs/openmpi/opal/mca/event/external/external.h
   - PMIX_EVENT2_THREAD_HEADER:
     - contrib/libs/openmpi/opal/mca/event/external/external.h
-  - FT_CONFIG_CONFIG_H: 
+  - FT_CONFIG_CONFIG_H:
     - contrib/libs/freetype/include/freetype/config/ftconfig.h
-  - FT_CONFIG_STANDARD_LIBRARY_H: 
+  - FT_CONFIG_STANDARD_LIBRARY_H:
     - contrib/libs/freetype/include/freetype/config/ftstdlib.h
-  - FT_CONFIG_OPTIONS_H: 
+  - FT_CONFIG_OPTIONS_H:
     - contrib/libs/freetype/include/freetype/config/ftoption.h
-  - FT_CONFIG_MODULES_H: 
+  - FT_CONFIG_MODULES_H:
     - contrib/libs/freetype/include/freetype/config/ftmodule.h
-  - FT_FREETYPE_H: 
+  - FT_FREETYPE_H:
     - contrib/libs/freetype/include/freetype/freetype.h
-  - FT_OUTLINE_H: 
+  - FT_OUTLINE_H:
     - contrib/libs/freetype/include/freetype/ftoutln.h
-  - FT_MODULE_H: 
+  - FT_MODULE_H:
     - contrib/libs/freetype/include/freetype/ftmodapi.h
-  - FT_GLYPH_H: 
+  - FT_GLYPH_H:
     - contrib/libs/freetype/include/freetype/ftglyph.h
-  - FT_BBOX_H: 
+  - FT_BBOX_H:
     - contrib/libs/freetype/include/freetype/ftbbox.h
-  - FT_XFREE86_H: 
+  - FT_XFREE86_H:
     - contrib/libs/freetype/include/freetype/ftfntfmt.h
-  - FT_SYNTHESIS_H: 
+  - FT_SYNTHESIS_H:
     - contrib/libs/freetype/include/freetype/ftsynth.h
-  - FT_IMAGE_H: 
+  - FT_IMAGE_H:
     - contrib/libs/freetype/include/freetype/ftimage.h
-  - FT_BITMAP_H: 
+  - FT_BITMAP_H:
     - contrib/libs/freetype/include/freetype/ftbitmap.h
-  - FT_TRUETYPE_TABLES_H: 
-    - contrib/libs/freetype/include/freetype/tttables.h  
-  - FT_MULTIPLE_MASTERS_H: 
+  - FT_TRUETYPE_TABLES_H:
+    - contrib/libs/freetype/include/freetype/tttables.h
+  - FT_MULTIPLE_MASTERS_H:
     - contrib/libs/freetype/include/freetype/ftmm.h
-  - FT_LCD_FILTER_H: 
+  - FT_LCD_FILTER_H:
     - contrib/libs/freetype/include/freetype/ftlcdfil.h
-  - FT_STROKER_H: 
+  - FT_STROKER_H:
     - contrib/libs/freetype/include/freetype/ftstroke.h
-  - FT_ERRORS_H: 
+  - FT_ERRORS_H:
     - contrib/libs/freetype/include/freetype/fterrors.h
-  - FT_MODULE_ERRORS_H: 
+  - FT_MODULE_ERRORS_H:
     - contrib/libs/freetype/include/freetype/ftmoderr.h
-  - FT_SYSTEM_H: 
+  - FT_SYSTEM_H:
     - contrib/libs/freetype/include/freetype/ftsystem.h
-  - FT_TYPES_H: 
+  - FT_TYPES_H:
     - contrib/libs/freetype/include/freetype/fttypes.h
-  - FT_LIST_H: 
+  - FT_LIST_H:
     - contrib/libs/freetype/include/freetype/ftlist.h
-  - FT_SIZES_H: 
+  - FT_SIZES_H:
     - contrib/libs/freetype/include/freetype/ftsizes.h
-  - FT_RENDER_H: 
+  - FT_RENDER_H:
     - contrib/libs/freetype/include/freetype/ftrender.h
-  - FT_TYPE1_TABLES_H: 
+  - FT_TYPE1_TABLES_H:
     - contrib/libs/freetype/include/freetype/t1tables.h
-  - FT_TRUETYPE_IDS_H: 
+  - FT_TRUETYPE_IDS_H:
     - contrib/libs/freetype/include/freetype/ttnameid.h
-  - FT_TRUETYPE_TAGS_H: 
+  - FT_TRUETYPE_TAGS_H:
     - contrib/libs/freetype/include/freetype/tttags.h
-  - FT_BDF_H: 
+  - FT_BDF_H:
     - contrib/libs/freetype/include/freetype/ftbdf.h
-  - FT_CID_H: 
+  - FT_CID_H:
     - contrib/libs/freetype/include/freetype/ftcid.h
-  - FT_GZIP_H: 
+  - FT_GZIP_H:
     - contrib/libs/freetype/include/freetype/ftgzip.h
-  - FT_LZW_H: 
+  - FT_LZW_H:
     - contrib/libs/freetype/include/freetype/ftlzw.h
-  - FT_BZIP2_H: 
+  - FT_BZIP2_H:
     - contrib/libs/freetype/include/freetype/ftbzip2.h
-  - FT_WINFONTS_H: 
+  - FT_WINFONTS_H:
     - contrib/libs/freetype/include/freetype/ftwinfnt.h
-  - FT_GLYPH_H: 
+  - FT_GLYPH_H:
     - contrib/libs/freetype/include/freetype/ftglyph.h
-  - FT_WINFONTS_H: 
+  - FT_WINFONTS_H:
     - contrib/libs/freetype/include/freetype/ftwinfnt.h
-  - FT_CACHE_H: 
+  - FT_CACHE_H:
     - contrib/libs/freetype/include/freetype/ftcache.h
-  - FT_WINFONTS_H: 
+  - FT_WINFONTS_H:
     - contrib/libs/freetype/include/freetype/ftwinfnt.h
-  - FT_MAC_H: 
+  - FT_MAC_H:
     - contrib/libs/freetype/include/freetype/ftmac.h
-  - FT_SFNT_NAMES_H: 
+  - FT_SFNT_NAMES_H:
     - contrib/libs/freetype/include/freetype/ftsnames.h
-  - FT_OPENTYPE_VALIDATE_H: 
+  - FT_OPENTYPE_VALIDATE_H:
     - contrib/libs/freetype/include/freetype/ftotval.h
-  - FT_GX_VALIDATE_H: 
+  - FT_GX_VALIDATE_H:
     - contrib/libs/freetype/include/freetype/ftgxval.h
-  - FT_PFR_H: 
+  - FT_PFR_H:
     - contrib/libs/freetype/include/freetype/ftpfr.h
-  - FT_STROKER_H: 
+  - FT_STROKER_H:
     - contrib/libs/freetype/include/freetype/ftstroke.h
-  - FT_SYNTHESIS_H: 
+  - FT_SYNTHESIS_H:
     - contrib/libs/freetype/include/freetype/ftsynth.h
-  - FT_FONT_FORMATS_H: 
+  - FT_FONT_FORMATS_H:
     - contrib/libs/freetype/include/freetype/ftfntfmt.h
-  - FT_TRIGONOMETRY_H: 
+  - FT_TRIGONOMETRY_H:
     - contrib/libs/freetype/include/freetype/fttrigon.h
-  - FT_LCD_FILTER_H: 
+  - FT_LCD_FILTER_H:
     - contrib/libs/freetype/include/freetype/ftlcdfil.h
-  - FT_INCREMENTAL_H: 
+  - FT_INCREMENTAL_H:
     - contrib/libs/freetype/include/freetype/ftincrem.h
-  - FT_GASP_H: 
+  - FT_GASP_H:
     - contrib/libs/freetype/include/freetype/ftgasp.h
-  - FT_ADVANCES_H: 
+  - FT_ADVANCES_H:
     - contrib/libs/freetype/include/freetype/ftadvanc.h
-  - FT_COLOR_H: 
+  - FT_COLOR_H:
     - contrib/libs/freetype/include/freetype/ftcolor.h
-  - FT_OTSVG_H: 
+  - FT_OTSVG_H:
     - contrib/libs/freetype/include/freetype/otsvg.h
 
 - source_filter: "^contrib/restricted/abseil-cpp-tstring/y_absl/debugging"
@@ -185,16 +185,16 @@
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_aarch32.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_aarch64.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_alpha.hpp
-      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_arm.hpp 
+      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_arm.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_ppc.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_sparc.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_gcc_x86.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_msvc_arm.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_arch_msvc_x86.hpp
-      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_gcc_atomic.hpp 
-      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_gcc_sync.hpp 
-      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_linux_arm.hpp 
-      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_windows.hpp 
+      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_gcc_atomic.hpp
+      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_gcc_sync.hpp
+      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_linux_arm.hpp
+      - contrib/restricted/boost/atomic/include/boost/atomic/detail/caps_windows.hpp
     - BOOST_ATOMIC_DETAIL_EXTRA_FP_BACKEND_HEADER(boost/atomic/detail/extra_fp_ops_):
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/extra_fp_operations.hpp
       - contrib/restricted/boost/atomic/include/boost/atomic/detail/extra_fp_operations_fwd.hpp

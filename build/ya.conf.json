@@ -328,6 +328,12 @@
         "saas2": {
             "description": "Run saas2 cli"
         },
+        "rex": {
+            "description": "Run rex toolkit"
+        },
+        "rex-cli": {
+            "description": "Run rex cli"
+        },
         "go": {
             "description": "Run go tool (1.18.4)"
         },
@@ -5557,6 +5563,38 @@
                 }
             ]
         },
+        "rex": {
+            "tools": {
+                "rex": {
+                    "bottle": "rex",
+                    "executable": "rex"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "rex-cli": {
+            "tools": {
+                "rex-cli": {
+                    "bottle": "rex-cli",
+                    "executable": "rex-cli"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "golang": {
             "tools": {
                 "go": {
@@ -6798,7 +6836,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": 1467412818,
+                "sandbox_id": 1585071610,
                 "match": "yo"
             },
             "executable": {
@@ -6838,7 +6876,7 @@
         "delve": {
             "formula": {
                 "sandbox_id": [
-                    1468078368
+                    1585177828
                 ],
                 "platform_replacements": {},
                 "match": "delve"
@@ -7610,7 +7648,8 @@
             "formula": {
                 "sandbox_id": [
                     1539936704,
-                    1539939628
+                    1539939628,
+                    1585069683
                 ],
                 "platform_replacements": {},
                 "match": "GDB"
@@ -8333,6 +8372,44 @@
             "executable": {
                 "saas2": [
                     "cli/saas2"
+                ]
+            }
+        },
+        "rex": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "REX_TOOLKIT",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "REX"
+                    },
+                    "update_interval": 86400
+                }
+            },
+            "executable": {
+                "rex": [
+                    "toolkit/toolkit"
+                ]
+            }
+        },
+        "rex-cli": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "REX_CLI",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "REX"
+                    },
+                    "update_interval": 86400
+                }
+            },
+            "executable": {
+                "rex-cli": [
+                    "client/rex"
                 ]
             }
         },

@@ -199,7 +199,7 @@ class TsConfig(object):
         if len(errors):
             raise TsValidationError(self.path, errors)
 
-    def transform_paths(self, build_path, sources_path):
+    def transform_paths(self, build_path, sources_path, package_rel_path):
         """
         Updates config with correct abs paths.
         All source files/dirs will be mapped to `sources_path`, output files/dirs will be mapped to `build_path`.
@@ -207,6 +207,8 @@ class TsConfig(object):
         :type build_path: str
         :param sources_path: module's source root
         :type sources_path: str
+        :param package_rel_path: module's rel path to package root
+        :type package_rel_path: str
         """
         opts = self.get_or_create_compiler_options()
 
@@ -231,10 +233,15 @@ class TsConfig(object):
         # See: https://st.yandex-team.ru/FBP-47#62b4750775525b18f08205c7
         opts["paths"]["*"] = ["*", "./@types/*"]
 
-        opts["baseUrl"] = "./node_modules"
+        opts["baseUrl"] = os.path.normpath(os.path.join(package_rel_path, "node_modules"))
 
-        self.data["include"] = list(map(sources_path_rel, self.data.get("include", [])))
-        self.data["exclude"] = list(map(sources_path_rel, self.data.get("exclude", [])))
+        include_dir_list = self.data.get("include")
+        if include_dir_list:
+            self.data["include"] = list(map(sources_path_rel, include_dir_list))
+
+        exclude_dir_list = self.data.get("exclude")
+        if exclude_dir_list:
+            self.data["exclude"] = list(map(sources_path_rel, exclude_dir_list))
 
         if opts.get("sourceMap"):
             opts["sourceRoot"] = os.path.relpath(root_dir, out_dir)
