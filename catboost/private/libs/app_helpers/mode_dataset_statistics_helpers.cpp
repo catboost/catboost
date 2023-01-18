@@ -44,8 +44,14 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
                 }
                 CB_ENSURE(tokens.size() == 3, "Inappropriate feature limits description: " << TString(ignoredFeature));
                 ui32 featureId = FromString<ui32>(tokens[0]);
-                double minValue = FromString<double>(tokens[1]);
-                double maxValue = FromString<double>(tokens[2]);
+                double minValue = -std::numeric_limits<float>::infinity();
+                double maxValue = std::numeric_limits<float>::infinity();
+                if (tokens[1] != "-inf") {
+                    minValue = FromString<double>(tokens[1]);
+                }
+                if (tokens[2] != "inf") {
+                    maxValue = FromString<double>(tokens[2]);
+                }
                 CB_ENSURE(minValue <= maxValue, "Inappropriate feature limits description: " << TString(ignoredFeature));
                 CB_ENSURE(FeatureLimits.find(featureId) == FeatureLimits.end(),
                           "Duplicate feature " << featureId << "in custom-feature-limits");
