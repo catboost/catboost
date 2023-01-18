@@ -21,3 +21,9 @@ def build_nm_path(p):
 
 def build_nm_bundle_path(p):
     return os.path.join(p, NODE_MODULES_BUNDLE_FILENAME)
+
+
+def extract_package_name_from_path(p):
+    # if we have scope prefix then we are using the first two tokens, otherwise - only the first one
+    parts = p.split("/", 2)
+    return "/".join(parts[:2]) if p.startswith("@") else parts[0]

@@ -2,7 +2,11 @@ import fnmatch
 import os
 import ytest
 
-from _common import to_yesno, strip_roots, rootrel_arc_src
+from _common import to_yesno, rootrel_arc_src
+
+
+def _build_cmd_input_paths(paths, hide=False):
+    return " ".join(["${{input{}:\"{}\"}}".format(";hide" if hide else "", p) for p in paths])
 
 
 def _create_pm(unit):
@@ -47,6 +51,8 @@ def onnode_modules(unit):
 
 
 def on_ts_configure(unit, tsconfig_path):
+    from lib.nots.package_manager.base import PackageJson
+    from lib.nots.package_manager.base.utils import build_pj_path
     from lib.nots.typescript import TsConfig
 
     abs_tsconfig_path = unit.resolve(unit.resolve_arc_path(tsconfig_path))
@@ -54,14 +60,16 @@ def on_ts_configure(unit, tsconfig_path):
         raise Exception("tsconfig not found: {}".format(tsconfig_path))
 
     tsconfig = TsConfig.load(abs_tsconfig_path)
+    cur_dir = unit.get("TS_TEST_FOR_PATH") if unit.get("TS_TEST_FOR") else unit.get("MODDIR")
+    pj_path = build_pj_path(unit.resolve(unit.resolve_arc_path(cur_dir)))
+    dep_paths = PackageJson.load(pj_path).get_dep_paths_by_names()
+
+    config_files = tsconfig.inline_extend(dep_paths)
     tsconfig.validate()
-    root_dir = tsconfig.compiler_option("rootDir")
-    out_dir = tsconfig.compiler_option("outDir")
 
-    unit.onsrcs(tsconfig.get_extended_paths())
-
-    unit.set(["TS_CONFIG_ROOT_DIR", root_dir])
-    unit.set(["TS_CONFIG_OUT_DIR", out_dir])
+    unit.set(["TS_CONFIG_FILES", _build_cmd_input_paths(config_files, hide=True)])
+    unit.set(["TS_CONFIG_ROOT_DIR", tsconfig.compiler_option("rootDir")])
+    unit.set(["TS_CONFIG_OUT_DIR", tsconfig.compiler_option("outDir")])
     unit.set(["TS_CONFIG_SOURCE_MAP", to_yesno(tsconfig.compiler_option("sourceMap"))])
     unit.set(["TS_CONFIG_DECLARATION", to_yesno(tsconfig.compiler_option("declaration"))])
     unit.set(["TS_CONFIG_DECLARATION_MAP", to_yesno(tsconfig.compiler_option("declarationMap"))])
