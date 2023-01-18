@@ -127,8 +127,12 @@ static int pymain(int argc, char** argv) {
     PyMem_RawFree(oldloc);
     oldloc = NULL;
 
-    if (argc >= 1)
-        Py_SetProgramName(argv_copy[0]);
+    if (argc > 0 && argv) {
+        status = PyConfig_SetBytesString(&config, &config.program_name, argv[0]);
+        if (PyStatus_Exception(status)) {
+            goto error;
+        }
+    }
 
     const char* entry_point = getenv(env_entry_point);
     if (entry_point) {
