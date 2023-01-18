@@ -144,9 +144,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3contrib-python-dateutil.vcxproj">
-      <Project>{D274033C-8742-EABF-10AB-335A323CB8E0}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3\numpy\random\pypy3-numpy-random.vcxproj">
       <Project>{DC98EAE1-4D76-69B0-D9BF-98DDC47441E4}</Project>
     </ProjectReference>
@@ -158,6 +155,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\py3\pypython-pandas-py3.vcxproj">
       <Project>{4E179DE3-F1A3-B598-12B4-F08CBB65C765}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\py3contrib-python-python-dateutil.vcxproj">
+      <Project>{A31EE7E3-D064-7F46-2534-AE6E7387D21C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\py3contrib-python-pytz.vcxproj">
       <Project>{5257C446-B594-693C-C2C7-E97834CB951E}</Project>

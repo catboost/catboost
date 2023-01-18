@@ -516,9 +516,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\pycontrib-python-MarkupSafe.vcxproj">
       <Project>{FC1C3945-FBD5-32DC-1DC6-99EC399ECD60}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.vcxproj">
-      <Project>{93FEFA8F-C6D9-6274-11D6-7594A15DEF5F}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py2\pypython-graphviz-py2.vcxproj">
       <Project>{FDE78ED0-DC0B-B114-3744-5D6070EBF94A}</Project>
     </ProjectReference>
@@ -551,6 +548,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\pycontrib-python-pandas.vcxproj">
       <Project>{50ABD1DF-7FBD-F57F-B784-76CA0F88E2F8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\pycontrib-python-python-dateutil.vcxproj">
+      <Project>{4F4B5893-556E-B7D6-C8F2-7C5A21996B71}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.vcxproj">
       <Project>{45CA8061-AE16-9692-4CE9-60B4968D9B52}</Project>

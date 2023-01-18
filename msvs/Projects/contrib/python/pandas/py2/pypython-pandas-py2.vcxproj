@@ -2870,9 +2870,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\pycontrib-python-MarkupSafe.vcxproj">
       <Project>{FC1C3945-FBD5-32DC-1DC6-99EC399ECD60}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.vcxproj">
-      <Project>{93FEFA8F-C6D9-6274-11D6-7594A15DEF5F}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\pycore-src-multiarray.vcxproj">
       <Project>{6515DD6B-BC89-50EC-5FCA-6FEF911562B9}</Project>
     </ProjectReference>
@@ -2893,6 +2890,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\pycontrib-python-numpy.vcxproj">
       <Project>{A9555690-440C-5A55-6598-B6D1DB12B3ED}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\pycontrib-python-python-dateutil.vcxproj">
+      <Project>{4F4B5893-556E-B7D6-C8F2-7C5A21996B71}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.vcxproj">
       <Project>{45CA8061-AE16-9692-4CE9-60B4968D9B52}</Project>

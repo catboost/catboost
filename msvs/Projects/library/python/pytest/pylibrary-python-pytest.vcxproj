@@ -350,9 +350,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\pycontrib-python-contextlib2.vcxproj">
       <Project>{76AD5AB3-EDE1-7BAC-90B7-9BA08DC851AD}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.vcxproj">
-      <Project>{93FEFA8F-C6D9-6274-11D6-7594A15DEF5F}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.vcxproj">
       <Project>{6EA24443-979F-2752-E4D4-FAB10E178335}</Project>
     </ProjectReference>
@@ -421,6 +418,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\pycontrib-python-pytest.vcxproj">
       <Project>{FA513E53-9CE5-854C-5402-D210B2FFD326}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\pycontrib-python-python-dateutil.vcxproj">
+      <Project>{4F4B5893-556E-B7D6-C8F2-7C5A21996B71}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
       <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>

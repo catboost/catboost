@@ -225,7 +225,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.L5c5NPVd1N/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
+"/tmp/tmp.GZJViKnV4V/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,7 +236,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.L5c5NPVd1N/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
+"/tmp/tmp.GZJViKnV4V/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -717,9 +717,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3contrib-python-dateutil.vcxproj">
-      <Project>{D274033C-8742-EABF-10AB-335A323CB8E0}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py3\pypython-graphviz-py3.vcxproj">
       <Project>{36BED28F-165D-7F2F-F290-96288A3E77C6}</Project>
     </ProjectReference>
@@ -740,6 +737,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\py3contrib-python-pandas.vcxproj">
       <Project>{19857ED0-7E0A-9EB9-3613-E37F9152CC67}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\py3contrib-python-python-dateutil.vcxproj">
+      <Project>{A31EE7E3-D064-7F46-2534-AE6E7387D21C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\py3contrib-python-pytz.vcxproj">
       <Project>{5257C446-B594-693C-C2C7-E97834CB951E}</Project>

@@ -813,18 +813,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\pycontrib-python-contextlib2.vcxproj">
       <Project>76AD5AB3-EDE1-7BAC-90B7-9BA08DC851AD</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3contrib-python-dateutil.global.vcxproj">
-      <Project>52998C9B-98CF-0A7C-791C-62BBE3A2F357</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3contrib-python-dateutil.vcxproj">
-      <Project>D274033C-8742-EABF-10AB-335A323CB8E0</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.global.vcxproj">
-      <Project>28BC0A92-3221-62FA-F608-FBCCA255765A</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pycontrib-python-dateutil.vcxproj">
-      <Project>93FEFA8F-C6D9-6274-11D6-7594A15DEF5F</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\py3contrib-python-decorator.global.vcxproj">
       <Project>7A615C49-54FB-FC5B-3AF1-FFFF42F416EC</Project>
     </ProjectReference>
@@ -1196,6 +1184,18 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\pycontrib-python-pytest.vcxproj">
       <Project>FA513E53-9CE5-854C-5402-D210B2FFD326</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\py3contrib-python-python-dateutil.global.vcxproj">
+      <Project>94F4112B-828B-5582-DDD2-C4273FDBC29B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\py3contrib-python-python-dateutil.vcxproj">
+      <Project>A31EE7E3-D064-7F46-2534-AE6E7387D21C</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\pycontrib-python-python-dateutil.global.vcxproj">
+      <Project>7D2B9598-F5A7-04F6-CEA4-42FEEA8BB524</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\pycontrib-python-python-dateutil.vcxproj">
+      <Project>4F4B5893-556E-B7D6-C8F2-7C5A21996B71</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\py3contrib-python-pytz.global.vcxproj">
       <Project>B28B657D-BD66-D54A-B775-7F7800C63E1C</Project>
