@@ -12,31 +12,6 @@ export NVM_DIR="$HOME/.nvm"
 set -x
 set -e
 
-
-############################################################################
-# Temporary build static model interface using ya until proper CMake support
-############################################################################
-
-if [[ -z "${CUDA_ARG}" ]]; then
-  echo 'missing CUDA_ARG variable, should be something like "-DCUDA_ROOT=/usr/local/cuda-9.1/"'
-fi
-
-function os_sdk {
-    python_version=`python_version python`
-    case `uname -s` in
-        Linux) echo "-DOS_SDK=ubuntu-12 -DUSE_SYSTEM_PYTHON=$python_version" ;;
-        *) echo "-DOS_SDK=local" ;;
-    esac
-}
-
-
-lnx_common_flags="-DNO_DEBUGINFO $CUDA_ARG"
-
-python ya make -r $lnx_common_flags $(os_sdk) $YA_MAKE_EXTRA_ARGS -o . catboost/libs/model_interface/static
-
-############################################################################
-
-
 CMAKE_COMMON_ARGS="./catboost/ -G \"Ninja\" -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PWD/catboost/clang.toolchain $CMAKE_EXTRA_ARGS"
 
 src_root_dir=$PWD
@@ -53,12 +28,8 @@ cmake $CMAKE_COMMON_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=On -B $build_dir_pic
 cd $build_dir_nopic && make catboost
 
 # model interface
-
-# Temporary build static model interface using ya until proper CMake support
-#cd $build_dir_nopic && make libcatboostmodel
-
+cd $build_dir_nopic && make libcatboostmodel
 cd $build_dir_pic && make catboostmodel
-
 
 cd $src_root_dir
 

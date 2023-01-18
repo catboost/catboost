@@ -12,6 +12,7 @@ import hashlib
 
 from base64 import urlsafe_b64encode
 from argparse import ArgumentParser
+from enum import Enum
 
 sys.dont_write_bytecode = True
 
@@ -27,6 +28,10 @@ PL_MACOS_ARM64 = ['macosx_11_0_arm64', 'macosx_12_0_arm64']
 PL_MACOS_UNIVERSAL = ['macosx_10_6_universal2']
 PL_WIN = ['win_amd64']
 
+class BUILD_SYSTEM(Enum):
+    CMAKE = 1
+    YA = 2
+
 
 class PythonVersion(object):
     def __init__(self, major, minor, from_sandbox=False):
@@ -36,7 +41,8 @@ class PythonVersion(object):
 
 
 class PythonTrait(object):
-    def __init__(self, arc_root, out_root, tail_args):
+    def __init__(self, build_system, arc_root, out_root, tail_args):
+        self.build_system = build_system
         self.arc_root = arc_root
         self.out_root = out_root
         self.tail_args = tail_args
@@ -44,15 +50,32 @@ class PythonTrait(object):
         self.platform_tag_string = mine_platform_tag_string(self.tail_args)
         self.py_config, self.lang = self.get_python_info()
 
-    def gen_cmd(self, arc_path):
-        cmd = [
-            sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, arc_path),
-            '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO', '-DOS_SDK=local',
-        ]
+    def gen_cmd(self, arc_path, module_name, task_type):
+        if self.build_system == BUILD_SYSTEM.CMAKE:
+            cmd = ([
+                'cd', arc_root,
+                'cmake',
+                '-B', self.out_root,
+                '-G', '"Unix Makefiles"',
+                '-DCMAKE_BUILD_TYPE=Release',
+                '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(self.arc_root, 'catboost', 'clang.toolchain'),
+                '-DCMAKE_POSITION_INDEPENDENT_CODE=On'
+            ] + self.tail_args + [
+                '&&'
+                'cd', self.tmp_build_dir,
+                '&&',
+                'make', module_name
+            ])
+        elif self.build_system == BUILD_SYSTEM.YA:
+            cmd = [
+                sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, arc_path),
+                '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO', '-DOS_SDK=local',
+                '-DHAVE_CUDA=yes' if task_type == 'GPU' else '-DHAVE_CUDA=no'
+            ]
 
-        if not self.python_version.from_sandbox:
-            cmd += ['-DUSE_ARCADIA_PYTHON=no']
-            cmd += extra_opts(self._on_win())
+            if not self.python_version.from_sandbox:
+                cmd += ['-DUSE_ARCADIA_PYTHON=no']
+                cmd += extra_opts(self._on_win())
 
         cmd += self.tail_args
         return cmd
@@ -66,7 +89,16 @@ class PythonTrait(object):
             lang = 'cp3' + str(self.python_version.minor)
         return py_config, lang
 
-    def so_name(self, module_name):
+    def built_so_name(self, module_name):
+        if self._on_win():
+            return module_name + '.pyd'
+
+        if self.build_system == BUILD_SYSTEM.CMAKE:
+            return 'lib' + module_name + '.so'
+        elif self.build_system == BUILD_SYSTEM.YA:
+            return module_name + '.so'
+
+    def dst_so_name(self, module_name):
         if self._on_win():
             return module_name + '.pyd'
 
@@ -207,7 +239,7 @@ def make_record(dir_path, dist_info_dir):
                 record.write(item[tmp_dir_length:] + ',,\n')
 
 
-def make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build_widget):
+def make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules, should_build_widget):
     with tempfile.TemporaryDirectory() as dir_path:
         # Create py files
         os.makedirs(os.path.join(dir_path, pkg_name))
@@ -235,10 +267,10 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build
             shutil.copy(src, dst)
 
         # Create so files
-        py_trait = PythonTrait('', '', [])
-        for module_name, (so_path, dst_subdir) in dst_so_modules.items():
-            so_name = py_trait.so_name(module_name)
-            shutil.copy(so_path, os.path.join(dir_path, pkg_name, dst_subdir, so_name))
+        py_trait = PythonTrait(build_system, '', '', [])
+        for module_name, (built_so_path, dst_subdir) in dst_so_modules.items():
+            dst_so_name = py_trait.dst_so_name(module_name)
+            shutil.copy(built_so_path, os.path.join(dir_path, pkg_name, dst_subdir, dst_so_name))
 
         # Create metadata
         dist_info_dir = os.path.join(dir_path, '{}-{}.dist-info'.format(pkg_name, ver))
@@ -304,18 +336,14 @@ def build_widget(arc_root):
         shutil.rmtree(directory, ignore_errors=True)
 
 
-def build(arc_root, out_root, tail_args, should_build_widget):
+def build(build_system, arc_root, out_root, tail_args, should_build_widget, should_build_with_cuda):
     os.chdir(os.path.join(arc_root, 'catboost', 'python-package', 'catboost'))
 
-    py_trait = PythonTrait(arc_root, out_root, tail_args)
+    py_trait = PythonTrait(build_system, arc_root, out_root, tail_args)
     ver = get_version(os.path.join(os.getcwd(), 'version.py'))
     pkg_name = os.environ.get('CATBOOST_PACKAGE_NAME', 'catboost')
 
-    try_to_build_gpu_version = True
-    if '-DHAVE_CUDA=no' in tail_args:
-        try_to_build_gpu_version = False
-
-    for task_type in (['GPU', 'CPU'] if try_to_build_gpu_version else ['CPU']):
+    for task_type in (['GPU', 'CPU'] if should_build_with_cuda else ['CPU']):
         try:
             print('Trying to build {} version'.format(task_type), file=sys.stderr)
 
@@ -326,11 +354,11 @@ def build(arc_root, out_root, tail_args, should_build_widget):
             ):
                 print('Trying to build {} native library'.format(module_name), file=sys.stderr)
 
-                cmd = py_trait.gen_cmd(arc_path) + (['-DHAVE_CUDA=yes'] if task_type == 'GPU' else ['-DHAVE_CUDA=no'])
+                cmd = py_trait.gen_cmd(arc_path, module_name, task_type)
                 print(' '.join(cmd), file=sys.stderr)
                 subprocess.check_call(cmd)
                 print('Build {} native library: OK'.format(module_name), file=sys.stderr)
-                src = os.path.join(py_trait.out_root, arc_path, py_trait.so_name(module_name))
+                src = os.path.join(py_trait.out_root, arc_path, py_trait.built_so_name(module_name))
                 dst = '.'.join([src, task_type])
                 shutil.move(src, dst)
                 dst_so_modules[module_name] = (dst, dst_subdir)
@@ -340,7 +368,7 @@ def build(arc_root, out_root, tail_args, should_build_widget):
                 build_widget(arc_root)
             wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package',
                                       '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform_tag_string))
-            make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build_widget)
+            make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules, should_build_widget)
             return wheel_name
         except Exception as e:
             print('{} version build failed: {}'.format(task_type, e), file=sys.stderr)
@@ -350,10 +378,13 @@ def build(arc_root, out_root, tail_args, should_build_widget):
 if __name__ == '__main__':
     arc_root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
     with tempfile.TemporaryDirectory() as out_root:
-        widget_args_parser = ArgumentParser()
-        widget_args_parser.add_argument('--build-widget', choices=['yes', 'no'], default='yes')
-        widget_args, catboost_args = widget_args_parser.parse_known_args()
-        should_build_widget = widget_args.build_widget == 'yes'
+        args_parser = ArgumentParser()
+        args_parser.add_argument('--build-with-cuda', choices=['yes', 'no'], default='yes')
+        args_parser.add_argument('--build-widget', choices=['yes', 'no'], default='yes')
+        args_parser.add_argument('--build-system', choices=['CMAKE', 'YA'], default='CMAKE')
 
-        wheel_name = build(arc_root, out_root, catboost_args, should_build_widget)
+        args, tail_args = args_parser.parse_known_args()
+        build_system = BUILD_SYSTEM(args.build_system)
+
+        wheel_name = build(build_system, arc_root, out_root, tail_args, args.build_widget == 'yes', args.build_with_cuda == 'yes')
         print(wheel_name)
