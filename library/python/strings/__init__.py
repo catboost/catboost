@@ -3,8 +3,10 @@
 from .strings import (
     DEFAULT_ENCODING,
     ENCODING_ERRORS_POLICY,
+    Whence,
     encode,
     ensure_str_deep,
+    fix_utf8,
     fs_encoding,
     get_stream_encoding,
     guess_default_encoding,
@@ -14,5 +16,6 @@ from .strings import (
     to_basestring,
     to_str,
     to_unicode,
+    truncate,
     unicodize_deep,
 )

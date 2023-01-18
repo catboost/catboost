@@ -8,4 +8,6 @@ PEERDIR(
     library/python/strings
 )
 
+STYLE_PYTHON()
+
 END()

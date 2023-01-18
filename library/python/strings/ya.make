@@ -13,4 +13,10 @@ PEERDIR(
     contrib/python/six
 )
 
+STYLE_PYTHON()
+
 END()
+
+RECURSE(
+    ut
+)

@@ -136,3 +136,40 @@ def encode(value, encoding=DEFAULT_ENCODING):
     if isinstance(value, six.binary_type):
         value = value.decode(encoding, errors='ignore')
     return value.encode(encoding)
+
+
+class Whence(object):
+    Start = 0
+    End = 1
+    Middle = 2
+
+
+def truncate(data, limit, whence=None, msg=None):
+    msg = "..." if msg is None else msg
+    msg = six.ensure_binary(msg)
+    whence = Whence.End if whence is None else whence
+    data = six.ensure_binary(data)
+
+    if len(data) <= limit:
+        return six.ensure_str(data)
+    text_limit = limit - len(msg)
+    assert text_limit >= 0
+
+    if whence == Whence.Start:
+        data = msg + data[-text_limit:]
+    elif whence == Whence.End:
+        data = data[:text_limit] + msg
+    elif whence == Whence.Middle:
+        headpos = limit // 2 - len(msg) // 2
+        tailpos = len(data) - (text_limit - headpos)
+        data = data[:headpos] + msg + data[tailpos:]
+    else:
+        raise AssertionError("Unknown whence: %s" % str(whence))
+    return fix_utf8(data)
+
+
+def fix_utf8(data):
+    # type: (six.string_types) -> str
+    # remove destroyed symbol code
+    udata = six.ensure_text(data, 'utf-8', 'ignore')
+    return six.ensure_str(udata, 'utf-8', errors='ignore')
