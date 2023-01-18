@@ -1,6 +1,5 @@
 - source_filter: "^contrib(?!/restricted/gstreamer/gst/parse)"
   includes:
-    - port.h
     - types.h
     - stat.h
 
@@ -247,9 +246,19 @@
   - BaseTsd.h
   - iphlpapi.h
 
-- source_filter: "^(?!contrib/python/line-profiler/)"
+- source_filter: "^contrib/(libs/(apache|httpd|libuv)|python/uWSGI)"
+  includes:
+  - port.h
+
+- source_filter: "^contrib/libs/poco"
   includes:
   - timers.h
+
+- source_filter: "^(contrib/libs/curl|taxi/external/curl)"
+  includes:
+  - lwip/init.h
+  - lwip/netdb.h
+  - lwip/sockets.h
 
 - includes:
   - cpu-features.h
@@ -594,9 +603,6 @@
   - hasht.h
   - ldap_ssl.h
   - librtmp/rtmp.h
-  - lwip/init.h
-  - lwip/netdb.h
-  - lwip/sockets.h
   - nettle/des.h
   - nettle/md4.h
   - nettle/md5.h
