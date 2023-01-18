@@ -486,3 +486,9 @@
 - source_filter: "^contrib/libs/gdal"
   includes:
     - io.h: contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h
+
+# disable checks for Python 3.11-specific files
+# needed to allow to use Arcadia's Cython with non-Arcadia python in open source builds
+- source_filter: "^contrib/tools/cython/Cython/Utility"
+  includes:
+    - internal/pycore_frame.h

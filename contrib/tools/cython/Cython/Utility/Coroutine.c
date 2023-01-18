@@ -494,7 +494,7 @@ static int __pyx_Generator_init(void); /*proto*/
   #ifndef Py_BUILD_CORE
     #define Py_BUILD_CORE 1
   #endif
-  #error #include "internal/pycore_frame.h"
+  #include "internal/pycore_frame.h"
 #endif
 
 #define __Pyx_Coroutine_Undelegate(gen) Py_CLEAR((gen)->yieldfrom)
