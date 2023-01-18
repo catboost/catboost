@@ -207,7 +207,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\python-dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.R4UtglsEck/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_657fead4ddabbc0763becf596f.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/d1a9ad8a2c4ef920729b1fddf5.cpp" "contrib/python/python-dateutil/737e48b9a75a3bb3492f6970f8.cpp" "contrib/python/python-dateutil/51f0a2de026a76d32e9b2acf10.cpp" "--ya-end-command-file"
+"/tmp/tmp.ZDO1OE0tgg/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_657fead4ddabbc0763becf596f.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/d1a9ad8a2c4ef920729b1fddf5.cpp" "contrib/python/python-dateutil/737e48b9a75a3bb3492f6970f8.cpp" "contrib/python/python-dateutil/51f0a2de026a76d32e9b2acf10.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -218,7 +218,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\python-dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.R4UtglsEck/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_657fead4ddabbc0763becf596f.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/d1a9ad8a2c4ef920729b1fddf5.cpp" "contrib/python/python-dateutil/737e48b9a75a3bb3492f6970f8.cpp" "contrib/python/python-dateutil/51f0a2de026a76d32e9b2acf10.cpp" "--ya-end-command-file"
+"/tmp/tmp.ZDO1OE0tgg/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_657fead4ddabbc0763becf596f.cpp" "--ya-start-command-file" "contrib/python/python-dateutil/d1a9ad8a2c4ef920729b1fddf5.cpp" "contrib/python/python-dateutil/737e48b9a75a3bb3492f6970f8.cpp" "contrib/python/python-dateutil/51f0a2de026a76d32e9b2acf10.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
