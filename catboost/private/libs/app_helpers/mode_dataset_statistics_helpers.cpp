@@ -1,11 +1,13 @@
 #include "mode_dataset_statistics_helpers.h"
 
+#include <catboost/libs/data/proceed_pool_in_blocks.h>
 #include <catboost/libs/helpers/array_subset.h>
 
 #include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/ptr.h>
+#include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/system/info.h>
 
@@ -22,6 +24,14 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .OptionalValue("true", "bool")
         .Handler1T<TString>([&](const TString& param) {
             OnlyGroupStatistics = FromString<bool>(param);
+        });
+    parser.AddLongOption("histograms-path", "output result path")
+        .StoreResult(&HistogramPath)
+        .DefaultValue("histograms.json");
+    parser.AddLongOption("only-light-statistics")
+        .OptionalValue("true", "bool")
+        .Handler1T<TString>([&](const TString& param) {
+            OnlyLightStatistics = FromString<bool>(param);
         });
     parser.AddLongOption("custom-feature-limits", "comma separated list of feature limits description in format <feature_id>:<min>:<max>,"
                                                   "for example: 0:0:1,10:-2.1:-1")
@@ -112,16 +122,10 @@ static THolder<ILineDataReader> GetSpotsLineDataReader(
     }
 }
 
-
-void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
-    NPar::TLocalExecutor localExecutor;
-
-    int threadCount = (calculateStatisticsParams.ThreadCount == -1) ?
-        SafeIntegerCast<int>(NSystemInfo::CachedNumberOfCpus())
-        : calculateStatisticsParams.ThreadCount;
-
-    localExecutor.RunAdditionalThreads(threadCount - 1);
-
+static THolder<IDatasetLoader> GetDatasetLoader(
+    const TCalculateStatisticsParams& calculateStatisticsParams,
+    NPar::TLocalExecutor* localExecutor
+) {
     const int blockSize = Max<int>(
         10000, 10000 // ToDo: meaningful estimation
     );
@@ -147,7 +151,7 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
             NCB::TDatasetSubset::MakeColumns(),
             /*LoadColumnsAsString*/ false,
             params.ForceUnitAutoPairWeights,
-            &localExecutor};
+            localExecutor};
     };
 
     auto spotsLineDataReader = GetSpotsLineDataReader(
@@ -175,6 +179,63 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
             NCB::TDatasetLoaderPullArgs{params.PoolPath, getDatasetLoaderCommonArgs()});
     }
 
+    return std::move(datasetLoader);
+}
+
+static void CalculateHistogram(
+    const TCalculateStatisticsParams& calculateStatisticsParams,
+    const TFeatureStatistics& featuresStatistics,
+    NPar::TLocalExecutor* localExecutor
+) {
+    THistograms histograms;
+
+    auto floatFeatureCount = featuresStatistics.FloatFeatureStatistics.size();
+    if (floatFeatureCount > 0) {
+        // 2nd pass
+        auto datasetLoader = GetDatasetLoader(calculateStatisticsParams, localExecutor);
+
+        TVector<size_t> borderCounts(floatFeatureCount, calculateStatisticsParams.BorderCount);
+
+        histograms = InitHistograms(borderCounts, featuresStatistics);
+
+        ReadAndProceedPoolInBlocks(
+            std::move(datasetLoader),
+            calculateStatisticsParams.DatasetReadingParams.PairsFilePath.Inited(),
+            [&] (TDataProviderPtr dataProvider) {
+                if (const auto* rawObjectsDataProvider
+                        = dynamic_cast<const TRawObjectsDataProvider*>(dataProvider->ObjectsData.Get()))
+                {
+                    for (auto floatFeatureIdx : xrange(floatFeatureCount)) {
+                        auto floatFeatureData = rawObjectsDataProvider->GetFloatFeature(floatFeatureIdx);
+                        if (floatFeatureData.Defined()) {
+                            auto values = (*floatFeatureData)->ExtractValues(localExecutor);
+                            histograms.AddFloatFeatureUniformHistogram(floatFeatureIdx, *values);
+                        }
+                    }
+                } else {
+                    CB_ENSURE(false, "Non-raw pool formats are not yet supported for dataset histograms calculation");
+                }
+            },
+            localExecutor
+        );
+    }
+
+    TFileOutput histOutput(calculateStatisticsParams.HistogramPath);
+    WriteJsonWithCatBoostPrecision(histograms.ToJson(), false, &histOutput);
+}
+
+
+void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
+    NPar::TLocalExecutor localExecutor;
+
+    int threadCount = (calculateStatisticsParams.ThreadCount == -1) ?
+        SafeIntegerCast<int>(NSystemInfo::CachedNumberOfCpus())
+        : calculateStatisticsParams.ThreadCount;
+
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    auto datasetLoader = GetDatasetLoader(calculateStatisticsParams, &localExecutor);
+
     if (calculateStatisticsParams.OnlyGroupStatistics) {
         auto visitor = MakeHolder<TDatasetStatisticsOnlyGroupVisitor>(/*isLocal*/ true);
 
@@ -192,5 +253,21 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
         datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(visitor.Get()));
 
         visitor->OutputResult(calculateStatisticsParams.OutputPath);
+
+        if (!calculateStatisticsParams.OnlyLightStatistics) {
+            CATBOOST_INFO_LOG << "Calculate statistics histogram" << Endl;
+
+            TFeatureStatistics featureStatistics = visitor->GetDatasetStatistics().FeatureStatistics;
+
+            // clean up resources before 2nd pass
+            visitor.Destroy();
+            datasetLoader.Destroy();
+
+            CalculateHistogram(
+                calculateStatisticsParams,
+                featureStatistics,
+                &localExecutor
+            );
+        }
     }
 }

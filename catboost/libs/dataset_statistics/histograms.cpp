@@ -1,4 +1,5 @@
 #include "histograms.h"
+#include "statistics_data_structures.h"
 
 #include <util/generic/algorithm.h>
 #include <util/generic/size_literals.h>
@@ -36,7 +37,7 @@ void TFloatFeatureHistogram::Update(TFloatFeatureHistogram& histograms) {
 }
 
 void TFloatFeatureHistogram::CalcUniformHistogram(
-    const TVector<float>& features,
+    TConstArrayRef<float> features,
     const TVector<ui64>& count) {
     CB_ENSURE(count.empty() || count.size() == features.size());
     if (Borders.HistogramType == EHistogramType::Exact) {
@@ -222,13 +223,13 @@ void THistograms::Update(THistograms& histograms) {
 
 void THistograms::AddFloatFeatureUniformHistogram(
     ui32 featureId,
-    TVector<float>* features
+    TConstArrayRef<float> features
 ) {
     CB_ENSURE_INTERNAL(
         featureId < FloatFeatureHistogram.size(),
         "FeaturedId " << featureId << " is bigger then FloatFeatureHistogram size " << FloatFeatureHistogram.size()
     );
-    FloatFeatureHistogram[featureId].CalcUniformHistogram(*features);
+    FloatFeatureHistogram[featureId].CalcUniformHistogram(features);
 }
 
 bool TBorders::operator==(const TBorders& rhs) const {
@@ -311,4 +312,21 @@ TVector<ui64> TBorders::GetExactHistogram() const {
         histogram.push_back(imap.second);
     }
     return histogram;
+}
+
+THistograms NCB::InitHistograms(const TVector<size_t>& borderCounts, const TFeatureStatistics& featuresStatistics) {
+    auto floatFeatureCount = featuresStatistics.FloatFeatureStatistics.size();
+
+    TVector<TBorders> borders;
+    borders.reserve(floatFeatureCount);
+    for (size_t idx = 0; idx < floatFeatureCount; ++idx) {
+        const TFloatFeatureStatistics& featureStatistics = featuresStatistics.FloatFeatureStatistics.at(idx);
+        borders.emplace_back(TBorders(
+            borderCounts.at(idx),
+            featureStatistics.ObjectCount ? featureStatistics.MinValue : featureStatistics.CustomMin,
+            featureStatistics.ObjectCount ? featureStatistics.MaxValue : featureStatistics.CustomMax
+        ));
+    }
+
+    return THistograms(borders);
 }

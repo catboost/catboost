@@ -19,9 +19,11 @@ using namespace NCB;
 
 struct TCalculateStatisticsParams {
     TString OutputPath;
+    TString HistogramPath;
     NCatboostOptions::TDatasetReadingParams DatasetReadingParams;
     int ThreadCount = -1; // -1 means undefined, set to CPU core count by default
     bool OnlyGroupStatistics = false;
+    bool OnlyLightStatistics = false;
     size_t BorderCount = 64;
     TFeatureCustomBorders FeatureLimits;
     ui32 SpotSize = 0;

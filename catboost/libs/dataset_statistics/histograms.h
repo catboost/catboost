@@ -6,6 +6,7 @@
 
 #include <library/cpp/binsaver/bin_saver.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/map.h>
 #include <util/ysaveload.h>
@@ -14,6 +15,10 @@
 
 
 namespace  NCB {
+
+struct TFeatureStatistics;
+
+
 enum class EHistogramType {
     Uniform,   // (-inf, MinValue], (MinValue, MinValue + step], ... , (MaxValue - step, MaxValue]
     Exact,
@@ -121,7 +126,7 @@ public:
 
     void Update(TFloatFeatureHistogram &histograms);
 
-    void CalcUniformHistogram(const TVector<float>& features, const TVector<ui64>& count={});
+    void CalcUniformHistogram(TConstArrayRef<float> features, const TVector<ui64>& count={});
 
     void CalcHistogramWithBorders(const TVector<float>& featureColumn);
 
@@ -186,7 +191,7 @@ public:
 
     void AddFloatFeatureUniformHistogram(
         ui32 featureId,
-        TVector<float>* features
+        TConstArrayRef<float> features
     );
 
     Y_SAVELOAD_DEFINE(
@@ -211,4 +216,7 @@ public:
 public:
     TVector<TFloatFeatureHistogram> FloatFeatureHistogram;
 };
+
+THistograms InitHistograms(const TVector<size_t>& borderCounts, const TFeatureStatistics& featuresStatistics);
+
 }
