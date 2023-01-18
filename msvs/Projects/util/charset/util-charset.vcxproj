@@ -87,7 +87,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util\charset
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -98,7 +98,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util\charset
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "--ya-start-command-file" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
