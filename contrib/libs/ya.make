@@ -97,3 +97,9 @@ IF (MUSL)
     
 )
 ENDIF()
+
+IF (ARCH_RISCV32)
+    RECURSE(
+    
+)
+ENDIF()

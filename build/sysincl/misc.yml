@@ -493,3 +493,41 @@
 - source_filter: "^contrib/tools/cython/Cython/Utility"
   includes:
     - internal/pycore_frame.h: contrib/libs/python/Include/internal/pycore_frame.h
+
+- source_filter: "^contrib/libs/esp-idf"
+  includes:
+    # newlib
+    - assert.h: contrib/libs/esp-idf/components/newlib/platform_include/assert.h
+    - endian.h: contrib/libs/esp-idf/components/newlib/platform_include/endian.h
+    - errno.h: contrib/libs/esp-idf/components/newlib/platform_include/errno.h
+    - esp_newlib.h: contrib/libs/esp-idf/components/newlib/platform_include/esp_newlib.h
+    - net/if.h: contrib/libs/esp-idf/components/newlib/platform_include/net/if.h
+    - pthread.h: contrib/libs/esp-idf/components/newlib/platform_include/pthread.h
+    - sys/dirent.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/dirent.h
+    - sys/ioctl.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/ioctl.h
+    - sys/lock.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/lock.h
+    - sys/poll.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/poll.h
+    - sys/random.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/random.h
+    - sys/reent.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/reent.h
+    - sys/select.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/select.h
+    - sys/termios.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/termios.h
+    - sys/time.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/time.h
+    - sys/uio.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/uio.h
+    - sys/un.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/un.h
+    - sys/unistd.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/unistd.h
+    - sys/utime.h: contrib/libs/esp-idf/components/newlib/platform_include/sys/utime.h
+    - time.h: contrib/libs/esp-idf/components/newlib/platform_include/time.h
+    # wpa_supplicant
+    - byteswap.h: contrib/libs/esp-idf/components/wpa_supplicant/port/include/byteswap.h
+    - endian.h: contrib/libs/esp-idf/components/wpa_supplicant/port/include/endian.h
+    # espcoredump
+    - elf.h: contrib/libs/esp-idf/components/espcoredump/include_core_dump/elf.h
+
+- source_filter: "^contrib/libs/esp-idf(?!/components/cbor)"
+  includes:
+    # lwip
+    - arpa/inet.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/arpa/inet.h
+    - netinet/in.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/netinet/in.h
+    - netinet/tcp.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/netinet/tcp.h
+    - sys/socket.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/sys/socket.h
+    - netdb.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/netdb.h
