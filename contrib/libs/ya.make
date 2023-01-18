@@ -52,12 +52,6 @@ RECURSE(
     zstd06
 )
 
-IF (OS_FREEBSD OR OS_LINUX)
-    RECURSE(
-    
-)
-ENDIF()
-
 IF (OS_DARWIN)
     RECURSE(
     
