@@ -48,12 +48,10 @@ Y_UNIT_TEST_SUITE(TMvsThresholdCalculationTest) {
                     prefix.resize(1);
                     float prefixSum = 0;
                     ui32 rightPart = 0;
-                    float sum = 0;
 
                     for (ui32 j = idx * TILE_SIZE; j < idx * TILE_SIZE + blockSize && j < size; ++j) {
                         float v = vecCpu[j];
                         prefix.push_back(prefix.back() + v);
-                        sum += v;
                         if (v < thresholds[idx]) {
                             prefixSum += v;
                         } else {

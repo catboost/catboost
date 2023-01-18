@@ -65,13 +65,11 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                 auto learnSlice = TSlice(0, learnSize);
 
                 TVector<float> cpuWeights;
-                float totalWeight = 0;
 
                 for (ui32 i = 0; i < size; ++i) {
                     auto weight = i < learnSize ? 1.0f / (1 << (rand.NextUniformL() % 4)) : 0.0f;
                     //                    auto weight = i < learnSize ? 1.0f : 0.0f;
                     cpuWeights.push_back(weight);
-                    totalWeight += cpuWeights.back();
                 }
                 weights.Write(cpuWeights);
 
@@ -192,13 +190,11 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                 auto learnSlice = TSlice(0, learnSize);
 
                 TVector<float> cpuWeights;
-                float totalWeight = 0;
 
                 for (ui32 i = 0; i < size; ++i) {
                     auto weight = i < learnSize ? 1.0f / (1 << (rand.NextUniformL() % 4)) : 0.0f;
                     //                    auto weight = i < learnSize ? 1.0f : 0.0f;
                     cpuWeights.push_back(weight);
-                    totalWeight += cpuWeights.back();
                 }
                 weights.Write(cpuWeights);
 
