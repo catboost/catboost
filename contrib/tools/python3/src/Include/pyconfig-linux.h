@@ -1564,7 +1564,7 @@
 #define PY_FORMAT_SIZE_T "z"
 
 /* Define to 1 to build the sqlite module with loadable extensions support. */
-/* #undef PY_SQLITE_ENABLE_LOAD_EXTENSION */
+#define PY_SQLITE_ENABLE_LOAD_EXTENSION 1
 
 /* Define if SQLite was compiled with the serialize API */
 /* #undef PY_SQLITE_HAVE_SERIALIZE */
