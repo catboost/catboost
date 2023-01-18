@@ -86,6 +86,11 @@ pyenv install -s $PY310
 pyenv shell $PY310
 python mk_wheel.py --build-system CMAKE
 
+PY311=3.11.0
+pyenv install -s $PY311
+pyenv shell $PY311
+python mk_wheel.py --build-system CMAKE
+
 
 # JVM prediction native shared library
 
