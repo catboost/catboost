@@ -58,7 +58,6 @@ ENDIF()
 
 IF (OS_WINDOWS)
     CFLAGS(
-        -D_USE_MATH_DEFINES
         -DNO_TIMER=1
     )
 ENDIF()
