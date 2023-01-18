@@ -3463,7 +3463,7 @@
                     },
                     "default": true
                 },
-                {    
+                {
                     "host": {
                         "os": "LINUX",
                         "arch": "aarch64"
@@ -8330,7 +8330,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1585818487,
+                "sandbox_id": 1587194120,
                 "match": "app_host_launcher"
             },
             "executable": {
