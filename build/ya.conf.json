@@ -3358,6 +3358,13 @@
                         "arch": "ppc64le"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": true
                 }
             ],
             "env": {
@@ -3398,6 +3405,13 @@
                         "arch": "ppc64le"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -3420,6 +3434,13 @@
                         "os": "DARWIN"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": true
                 }
             ],
             "env": {
@@ -3439,6 +3460,13 @@
                 {
                     "host": {
                         "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {    
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
                     },
                     "default": true
                 }
@@ -7628,7 +7656,8 @@
                     1037272933,
                     1032891985,
                     717207102,
-                    1032896450
+                    1032896450,
+                    1585069683
                 ],
                 "match": "GDB"
             },
@@ -8175,7 +8204,7 @@
         },
         "python3": {
             "formula": {
-                "sandbox_id": 1577780231,
+                "sandbox_id": 1586098562,
                 "match": "python3"
             },
             "executable": {
@@ -9129,7 +9158,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1585557757,
+                "sandbox_id": 1586099457,
                 "match": "lama"
             },
             "executable": {
