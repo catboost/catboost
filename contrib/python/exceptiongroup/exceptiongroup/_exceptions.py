@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from functools import partial
 from inspect import getmro, isclass
-from typing import TYPE_CHECKING, Any, Generic, Type, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Generic, Type, TypeVar, cast, overload
 
 if TYPE_CHECKING:
     from typing import Self
@@ -67,14 +67,22 @@ class BaseExceptionGroup(BaseException, Generic[_BaseExceptionT_co]):
             if all(isinstance(exc, Exception) for exc in __exceptions):
                 cls = ExceptionGroup
 
-        return super().__new__(cls, __message, __exceptions)
+        if issubclass(cls, Exception):
+            for exc in __exceptions:
+                if not isinstance(exc, Exception):
+                    if cls is ExceptionGroup:
+                        raise TypeError(
+                            "Cannot nest BaseExceptions in an ExceptionGroup"
+                        )
+                    else:
+                        raise TypeError(
+                            f"Cannot nest BaseExceptions in {cls.__name__!r}"
+                        )
 
-    def __init__(
-        self, __message: str, __exceptions: Sequence[_BaseExceptionT_co], *args: Any
-    ):
-        super().__init__(__message, __exceptions, *args)
-        self._message = __message
-        self._exceptions = __exceptions
+        instance = super().__new__(cls, __message, __exceptions)
+        instance._message = __message
+        instance._exceptions = __exceptions
+        return instance
 
     def add_note(self, note: str) -> None:
         if not isinstance(note, str):
@@ -219,15 +227,7 @@ class BaseExceptionGroup(BaseException, Generic[_BaseExceptionT_co]):
 
 class ExceptionGroup(BaseExceptionGroup[_ExceptionT_co], Exception):
     def __new__(cls, __message: str, __exceptions: Sequence[_ExceptionT_co]) -> Self:
-        instance: ExceptionGroup[_ExceptionT_co] = super().__new__(
-            cls, __message, __exceptions
-        )
-        if cls is ExceptionGroup:
-            for exc in __exceptions:
-                if not isinstance(exc, Exception):
-                    raise TypeError("Cannot nest BaseExceptions in an ExceptionGroup")
-
-        return instance
+        return super().__new__(cls, __message, __exceptions)
 
     if TYPE_CHECKING:
 
