@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: importlib-metadata
-Version: 5.1.0
+Version: 5.2.0
 Summary: Read metadata from Python packages
 Home-page: https://github.com/python/importlib_metadata
 Author: Jason R. Coombs
@@ -18,6 +18,7 @@ Requires-Dist: sphinx (>=3.5) ; extra == 'docs'
 Requires-Dist: jaraco.packaging (>=9) ; extra == 'docs'
 Requires-Dist: rst.linker (>=1.9) ; extra == 'docs'
 Requires-Dist: furo ; extra == 'docs'
+Requires-Dist: sphinx-lint ; extra == 'docs'
 Requires-Dist: jaraco.tidelift (>=1.4) ; extra == 'docs'
 Provides-Extra: perf
 Requires-Dist: ipython ; extra == 'perf'
