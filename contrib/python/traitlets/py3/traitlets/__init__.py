@@ -8,6 +8,16 @@ from .utils.bunch import Bunch
 from .utils.decorators import signature_has_traits
 from .utils.importstring import import_item
 
+__all__ = [
+    "traitlets",
+    "__version__",
+    "version_info",
+    "Bunch",
+    "signature_has_traits",
+    "import_item",
+    "Sentinel",
+]
+
 
 class Sentinel(traitlets.Sentinel):  # type:ignore[name-defined]
     def __init__(self, *args, **kwargs):

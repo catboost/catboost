@@ -558,6 +558,9 @@ class TraitType(BaseDescriptor):
         if read_only is not None:
             self.read_only = read_only
         self.help = help if help is not None else ""
+        if self.help:
+            # define __doc__ so that inspectors like autodoc find traits
+            self.__doc__ = self.help
 
         if len(kwargs) > 0:
             stacklevel = 1
@@ -2625,6 +2628,13 @@ class Bool(TraitType):
     def subclass_init(self, cls):
         pass  # fully opt out of instance_init
 
+    def argcompleter(self, **kwargs):
+        """Completion hints for argcomplete"""
+        completions = ["true", "1", "false", "0"]
+        if self.allow_none:
+            completions.append("None")
+        return completions
+
 
 class CBool(Bool):
     """A casting version of the boolean trait."""
@@ -2678,6 +2688,10 @@ class Enum(TraitType):
 
     def subclass_init(self, cls):
         pass  # fully opt out of instance_init
+
+    def argcompleter(self, **kwargs):
+        """Completion hints for argcomplete"""
+        return [str(v) for v in self.values]
 
 
 class CaselessStrEnum(Enum):

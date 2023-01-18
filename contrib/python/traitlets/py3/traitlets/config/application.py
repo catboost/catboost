@@ -400,7 +400,7 @@ class Application(SingletonConfigurable):
     # this must be a dict of two-tuples,
     # the first element being the application class/import string
     # and the second being the help string for the subcommand
-    subcommands: t.Union[t.Dict[str, t.Tuple[str, str]], Dict] = Dict()
+    subcommands: t.Union[t.Dict[str, t.Tuple[t.Any, str]], Dict] = Dict()
     # parse_command_line will initialize a subapp, if requested
     subapp = Instance("traitlets.config.application.Application", allow_none=True)
 
@@ -525,6 +525,7 @@ class Application(SingletonConfigurable):
             for c in cls.mro()[:-3]:
                 classdict[c.__name__] = c
 
+        fhelp: t.Optional[str]
         for alias, longname in self.aliases.items():
             try:
                 if isinstance(longname, tuple):
@@ -786,11 +787,58 @@ class Application(SingletonConfigurable):
     def _create_loader(self, argv, aliases, flags, classes):
         return KVArgParseConfigLoader(argv, aliases, flags, classes=classes, log=self.log)
 
+    @classmethod
+    def _get_sys_argv(cls, check_argcomplete: bool = False) -> t.List[str]:
+        """Get `sys.argv` or equivalent from `argcomplete`
+
+        `argcomplete`'s strategy is to call the python script with no arguments,
+        so ``len(sys.argv) == 1``, and run until the `ArgumentParser` is constructed
+        and determine what completions are available.
+
+        On the other hand, `traitlet`'s subcommand-handling strategy is to check
+        ``sys.argv[1]`` and see if it matches a subcommand, and if so then dynamically
+        load the subcommand app and initialize it with ``sys.argv[1:]``.
+
+        This helper method helps to take the current tokens for `argcomplete` and pass
+        them through as `argv`.
+        """
+        if check_argcomplete and "_ARGCOMPLETE" in os.environ:
+            try:
+                from traitlets.config.argcomplete_config import get_argcomplete_cwords
+
+                cwords = get_argcomplete_cwords()
+                assert cwords is not None
+                return cwords
+            except (ImportError, ModuleNotFoundError):
+                pass
+        return sys.argv
+
+    @classmethod
+    def _handle_argcomplete_for_subcommand(cls):
+        """Helper for `argcomplete` to recognize `traitlets` subcommands
+
+        `argcomplete` does not know that `traitlets` has already consumed subcommands,
+        as it only "sees" the final `argparse.ArgumentParser` that is constructed.
+        (Indeed `KVArgParseConfigLoader` does not get passed subcommands at all currently.)
+        We explicitly manipulate the environment variables used internally by `argcomplete`
+        to get it to skip over the subcommand tokens.
+        """
+        if "_ARGCOMPLETE" not in os.environ:
+            return
+
+        try:
+            from traitlets.config.argcomplete_config import increment_argcomplete_index
+
+            increment_argcomplete_index()
+        except (ImportError, ModuleNotFoundError):
+            pass
+
     @catch_config_error
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         assert not isinstance(argv, str)
-        argv = sys.argv[1:] if argv is None else argv
+        if argv is None:
+            argv = self._get_sys_argv(check_argcomplete=bool(self.subcommands))[1:]
         self.argv = [cast_unicode(arg) for arg in argv]
 
         if argv and argv[0] == "help":
@@ -802,6 +850,7 @@ class Application(SingletonConfigurable):
             subc, subargv = argv[0], argv[1:]
             if re.match(r"^\w(\-?\w)*$", subc) and subc in self.subcommands:
                 # it's a subcommand, and *not* a flag or class parameter
+                self._handle_argcomplete_for_subcommand()
                 return self.initialize_subcommand(subc, subargv)
 
         # Arguments after a '--' argument are for the script IPython may be

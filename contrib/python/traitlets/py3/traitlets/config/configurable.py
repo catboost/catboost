@@ -24,7 +24,6 @@ from traitlets.utils.text import indent, wrap_paragraphs
 
 from .loader import Config, DeferredConfig, LazyConfigValue, _is_section_key
 
-
 # -----------------------------------------------------------------------------
 # Helper classes for Configurables
 # -----------------------------------------------------------------------------
@@ -559,7 +558,7 @@ class SingletonConfigurable(LoggingConfigurable):
             return cls._instance
         else:
             raise MultipleInstanceError(
-                "An incompatible sibling of '%s' is already instanciated"
+                "An incompatible sibling of '%s' is already instantiated"
                 " as singleton: %s" % (cls.__name__, type(cls._instance).__name__)
             )
 

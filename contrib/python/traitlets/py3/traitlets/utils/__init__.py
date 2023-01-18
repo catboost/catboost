@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 
 # vestigal things from IPython_genutils.
@@ -51,6 +52,8 @@ def filefind(filename, path_dirs=None):
         path_dirs = ("",)
     elif isinstance(path_dirs, str):
         path_dirs = (path_dirs,)
+    elif isinstance(path_dirs, pathlib.Path):
+        path_dirs = (str(path_dirs),)
 
     for path in path_dirs:
         if path == ".":

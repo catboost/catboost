@@ -6,7 +6,7 @@ PROVIDES(python_traitlets)
 
 
 
-VERSION(5.7.1)
+VERSION(5.8.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -18,6 +18,7 @@ PY_SRCS(
     traitlets/_version.py
     traitlets/config/__init__.py
     traitlets/config/application.py
+    traitlets/config/argcomplete_config.py
     traitlets/config/configurable.py
     traitlets/config/loader.py
     traitlets/config/manager.py

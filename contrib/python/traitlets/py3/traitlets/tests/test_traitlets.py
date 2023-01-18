@@ -1046,7 +1046,7 @@ class TestType(TestCase):
         class A(HasTraits):
             klass = Type("traitlets.config.Config")
 
-        from traitlets.config import Config  # type:ignore
+        from traitlets.config import Config
 
         a = A()
         a.klass = Config
@@ -1059,7 +1059,7 @@ class TestType(TestCase):
             klass = Type()
 
         a = A(klass="traitlets.config.Config")
-        from traitlets.config import Config  # type:ignore
+        from traitlets.config import Config
 
         self.assertEqual(a.klass, Config)
 
