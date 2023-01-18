@@ -150,6 +150,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\easy_preset.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\file_info.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\filter_buffer_decoder.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -189,6 +192,15 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\index_hash.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\lzip_decoder.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\microlzma_decoder.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\microlzma_encoder.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\outqueue.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -199,6 +211,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\stream_decoder.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\stream_decoder_mt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\stream_encoder.c">
@@ -214,6 +229,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\stream_flags_encoder.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\string_conversion.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\vli_decoder.c">
@@ -271,6 +289,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\simple\arm.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\simple\arm64.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\simple\armthumb.c">
@@ -340,7 +361,9 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\filter_decoder.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\filter_encoder.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\index.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\index_decoder.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\index_encoder.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\lzip_decoder.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\memcmplen.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\outqueue.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzma\liblzma\common\stream_decoder.h"/>
