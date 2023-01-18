@@ -6,6 +6,7 @@
 
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 
+#include <util/generic/maybe.h>
 #include <util/system/info.h>
 
 namespace NLastGetopt {
@@ -29,6 +30,7 @@ namespace NCB {
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();
 
         ECalcTypeShapValues ShapCalcType = ECalcTypeShapValues::Regular;
+        TMaybe<double> BinClassLogitThreshold;
 
         void BindParserOpts(NLastGetopt::TOpts& parser);
     };
