@@ -1,6 +1,5 @@
 
 # WARNING: Do not edit this .pyx file directly, it is generated from its .pyx.tp
-cimport numpy as np
 
 cdef class WeightVector64(object):
     cdef readonly double[::1] w

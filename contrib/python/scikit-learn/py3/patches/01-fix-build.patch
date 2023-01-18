@@ -323,3 +323,13 @@
  
  typedef unsigned char uint8_t;
  typedef unsigned long uint32_t;
+--- contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm/libsvm_helper.c	(cc71676758f0cd5de59a523f0b6d53743556bed0)
++++ contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm/libsvm_helper.c	(5482762e50a083f3d773b3eca7866b589bee3b1a)
+@@ -237,1 +237,1 @@ npy_intp get_nr(struct svm_model *model)
+-void copy_n_iter(char *data, struct svm_model *model)
++static void copy_n_iter(char *data, struct svm_model *model)
+--- contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm/libsvm_sparse_helper.c	(5482762e50a083f3d773b3eca7866b589bee3b1a)
++++ contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm/libsvm_sparse_helper.c	(5482762e50a083f3d773b3eca7866b589bee3b1a)
+@@ -369,1 +368,1 @@ void copy_sv_coef(char *data, struct svm_csr_model *model)
+-void copy_n_iter(char *data, struct svm_csr_model *model)
++static void copy_n_iter(char *data, struct svm_csr_model *model)

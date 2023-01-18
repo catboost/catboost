@@ -1,5 +1,12 @@
 requirements:
   - contrib/libs/cblas
+cython_directive:
+  - boundscheck=False
+  - cdivision=True
+  - initializedcheck=False
+  - language_level=3
+  - nonecheck=False
+  - wraparound=False
 mark_as_cython_c:
   - sklearn/__check_build/*.pyx
   - sklearn/_isotonic.pyx
@@ -13,7 +20,7 @@ mark_as_cython_c:
   - sklearn/datasets/*.pyx
   - sklearn/decomposition/*.pyx
   - sklearn/ensemble/*.pyx
-  - sklearn/feature_extraction/*.pyx
+  # C++ - sklearn/feature_extraction/_hashing_fast.pyx
   - sklearn/linear_model/*.pyx
   - sklearn/manifold/*.pyx
   - sklearn/metrics/*.pyx
@@ -26,7 +33,10 @@ mark_as_cython_c:
   - sklearn/svm/_libsvm.pyx
   - sklearn/svm/_libsvm_sparse.pyx
   # C++ - sklearn/svm/_newrand.pyx
-  - sklearn/tree/*.pyx
+  - sklearn/tree/_criterion.pyx
+  - sklearn/tree/_splitter.pyx
+  # C++ - sklearn/tree/_tree.pyx
+  - sklearn/tree/_utils.pyx
   - sklearn/utils/_cython_blas.pyx
   # C++ - sklearn/utils/_fast_dict.pyx
   - sklearn/utils/_logistic_sigmoid.pyx
@@ -47,5 +57,14 @@ exclude_from_macros:
   - sklearn/svm/src/libsvm/libsvm_sparse_helper.c
   - sklearn/svm/src/libsvm/LIBSVM_CHANGES
   - sklearn/svm/src/liblinear/COPYRIGHT
+  # Exclude cython templates.
+  # They should be processed by Tempita during postprocess.py 
+  # (should be invoked manually)
+  - postprocess.py
+  - sklearn/**/*.pxd.tp
+  - sklearn/**/*.pyx.tp
+keep:
+  # Invoke this script manually upon update in order to get generate Cython sources from templates
+  - postprocess.py
 exclude:
   - sklearn/*setup.py

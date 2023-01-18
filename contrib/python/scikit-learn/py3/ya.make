@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(1.0.2)
+VERSION(1.2.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -57,6 +57,8 @@ PY_SRCS(
     sklearn/_distributor_init.py
     sklearn/_loss/__init__.py
     sklearn/_loss/glm_distribution.py
+    sklearn/_loss/link.py
+    sklearn/_loss/loss.py
     sklearn/_min_dependencies.py
     sklearn/base.py
     sklearn/calibration.py
@@ -65,6 +67,7 @@ PY_SRCS(
     sklearn/cluster/_agglomerative.py
     sklearn/cluster/_bicluster.py
     sklearn/cluster/_birch.py
+    sklearn/cluster/_bisect_k_means.py
     sklearn/cluster/_dbscan.py
     sklearn/cluster/_feature_agglomeration.py
     sklearn/cluster/_kmeans.py
@@ -83,6 +86,7 @@ PY_SRCS(
     sklearn/cross_decomposition/__init__.py
     sklearn/cross_decomposition/_pls.py
     sklearn/datasets/__init__.py
+    sklearn/datasets/_arff_parser.py
     sklearn/datasets/_base.py
     sklearn/datasets/_california_housing.py
     sklearn/datasets/_covtype.py
@@ -122,7 +126,6 @@ PY_SRCS(
     sklearn/ensemble/_hist_gradient_boosting/binning.py
     sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
     sklearn/ensemble/_hist_gradient_boosting/grower.py
-    sklearn/ensemble/_hist_gradient_boosting/loss.py
     sklearn/ensemble/_hist_gradient_boosting/predictor.py
     sklearn/ensemble/_iforest.py
     sklearn/ensemble/_stacking.py
@@ -139,7 +142,6 @@ PY_SRCS(
     sklearn/externals/_packaging/__init__.py
     sklearn/externals/_packaging/_structures.py
     sklearn/externals/_packaging/version.py
-    sklearn/externals/_pilutil.py
     sklearn/feature_extraction/__init__.py
     sklearn/feature_extraction/_dict_vectorizer.py
     sklearn/feature_extraction/_hash.py
@@ -164,8 +166,10 @@ PY_SRCS(
     sklearn/impute/_knn.py
     sklearn/inspection/__init__.py
     sklearn/inspection/_partial_dependence.py
+    sklearn/inspection/_pd_utils.py
     sklearn/inspection/_permutation_importance.py
     sklearn/inspection/_plot/__init__.py
+    sklearn/inspection/_plot/decision_boundary.py
     sklearn/inspection/_plot/partial_dependence.py
     sklearn/isotonic.py
     sklearn/kernel_approximation.py
@@ -175,10 +179,11 @@ PY_SRCS(
     sklearn/linear_model/_bayes.py
     sklearn/linear_model/_coordinate_descent.py
     sklearn/linear_model/_glm/__init__.py
+    sklearn/linear_model/_glm/_newton_solver.py
     sklearn/linear_model/_glm/glm.py
-    sklearn/linear_model/_glm/link.py
     sklearn/linear_model/_huber.py
     sklearn/linear_model/_least_angle.py
+    sklearn/linear_model/_linear_loss.py
     sklearn/linear_model/_logistic.py
     sklearn/linear_model/_omp.py
     sklearn/linear_model/_passive_aggressive.py
@@ -198,11 +203,14 @@ PY_SRCS(
     sklearn/metrics/__init__.py
     sklearn/metrics/_base.py
     sklearn/metrics/_classification.py
+    sklearn/metrics/_pairwise_distances_reduction/__init__.py
+    sklearn/metrics/_pairwise_distances_reduction/_dispatcher.py
     sklearn/metrics/_plot/__init__.py
     sklearn/metrics/_plot/base.py
     sklearn/metrics/_plot/confusion_matrix.py
     sklearn/metrics/_plot/det_curve.py
     sklearn/metrics/_plot/precision_recall_curve.py
+    sklearn/metrics/_plot/regression.py
     sklearn/metrics/_plot/roc_curve.py
     sklearn/metrics/_ranking.py
     sklearn/metrics/_regression.py
@@ -217,6 +225,7 @@ PY_SRCS(
     sklearn/mixture/_bayesian_mixture.py
     sklearn/mixture/_gaussian_mixture.py
     sklearn/model_selection/__init__.py
+    sklearn/model_selection/_plot.py
     sklearn/model_selection/_search.py
     sklearn/model_selection/_search_successive_halving.py
     sklearn/model_selection/_split.py
@@ -262,17 +271,23 @@ PY_SRCS(
     sklearn/tree/_reingold_tilford.py
     sklearn/utils/__init__.py
     sklearn/utils/_arpack.py
+    sklearn/utils/_array_api.py
+    sklearn/utils/_available_if.py
+    sklearn/utils/_bunch.py
     sklearn/utils/_encode.py
     sklearn/utils/_estimator_html_repr.py
     sklearn/utils/_joblib.py
     sklearn/utils/_mask.py
     sklearn/utils/_mocking.py
+    sklearn/utils/_param_validation.py
     sklearn/utils/_pprint.py
+    sklearn/utils/_set_output.py
     sklearn/utils/_show_versions.py
     sklearn/utils/_tags.py
     sklearn/utils/_testing.py
     sklearn/utils/class_weight.py
     sklearn/utils/deprecation.py
+    sklearn/utils/discovery.py
     sklearn/utils/estimator_checks.py
     sklearn/utils/extmath.py
     sklearn/utils/fixes.py
@@ -284,6 +299,18 @@ PY_SRCS(
     sklearn/utils/sparsefuncs.py
     sklearn/utils/stats.py
     sklearn/utils/validation.py
+    CYTHON_DIRECTIVE
+    boundscheck=False
+    CYTHON_DIRECTIVE
+    cdivision=True
+    CYTHON_DIRECTIVE
+    initializedcheck=False
+    CYTHON_DIRECTIVE
+    language_level=3
+    CYTHON_DIRECTIVE
+    nonecheck=False
+    CYTHON_DIRECTIVE
+    wraparound=False
     CYTHON_C
     sklearn/__check_build/_check_build.pyx
     sklearn/_isotonic.pyx
@@ -298,19 +325,15 @@ PY_SRCS(
     sklearn/ensemble/_hist_gradient_boosting/_binning.pyx
     sklearn/ensemble/_hist_gradient_boosting/_bitset.pyx
     sklearn/ensemble/_hist_gradient_boosting/_gradient_boosting.pyx
-    sklearn/ensemble/_hist_gradient_boosting/_loss.pyx
     sklearn/ensemble/_hist_gradient_boosting/_predictor.pyx
     sklearn/ensemble/_hist_gradient_boosting/common.pyx
     sklearn/ensemble/_hist_gradient_boosting/histogram.pyx
     sklearn/ensemble/_hist_gradient_boosting/splitting.pyx
     sklearn/ensemble/_hist_gradient_boosting/utils.pyx
-    sklearn/feature_extraction/_hashing_fast.pyx
     sklearn/linear_model/_cd_fast.pyx
-    sklearn/linear_model/_sag_fast.pyx
     sklearn/linear_model/_sgd_fast.pyx
     sklearn/manifold/_barnes_hut_tsne.pyx
     sklearn/manifold/_utils.pyx
-    sklearn/metrics/_dist_metrics.pyx
     sklearn/metrics/_pairwise_fast.pyx
     sklearn/metrics/cluster/_expected_mutual_info_fast.pyx
     sklearn/neighbors/_ball_tree.pyx
@@ -322,25 +345,42 @@ PY_SRCS(
     sklearn/svm/_libsvm_sparse.pyx
     sklearn/tree/_criterion.pyx
     sklearn/tree/_splitter.pyx
-    sklearn/tree/_tree.pyx
     sklearn/tree/_utils.pyx
     sklearn/utils/_cython_blas.pyx
     sklearn/utils/_logistic_sigmoid.pyx
     sklearn/utils/_openmp_helpers.pyx
     sklearn/utils/_random.pyx
     sklearn/utils/_readonly_array_wrapper.pyx
-    sklearn/utils/_seq_dataset.pyx
     sklearn/utils/_typedefs.pyx
-    sklearn/utils/_weight_vector.pyx
     sklearn/utils/arrayfuncs.pyx
     sklearn/utils/murmurhash.pyx
     sklearn/utils/sparsefuncs_fast.pyx
     CYTHON_CPP
     sklearn/cluster/_dbscan_inner.pyx
     sklearn/cluster/_hierarchical_fast.pyx
+    sklearn/feature_extraction/_hashing_fast.pyx
     sklearn/neighbors/_partition_nodes.pyx
     sklearn/svm/_newrand.pyx
+    sklearn/tree/_tree.pyx
     sklearn/utils/_fast_dict.pyx
+    sklearn/utils/_heap.pyx
+    sklearn/utils/_isfinite.pyx
+    sklearn/utils/_sorting.pyx
+    sklearn/utils/_vector_sentinel.pyx
+
+    CYTHON_C
+    sklearn/metrics/_dist_metrics.pyx
+
+    CYTHON_CPP
+    sklearn/_loss/_loss.pyx
+    sklearn/linear_model/_sag_fast.pyx
+    sklearn/metrics/_pairwise_distances_reduction/_argkmin.pyx
+    sklearn/metrics/_pairwise_distances_reduction/_base.pyx
+    sklearn/metrics/_pairwise_distances_reduction/_datasets_pair.pyx
+    sklearn/metrics/_pairwise_distances_reduction/_middle_term_computer.pyx
+    sklearn/metrics/_pairwise_distances_reduction/_radius_neighbors.pyx
+    sklearn/utils/_seq_dataset.pyx
+    sklearn/utils/_weight_vector.pyx
 )
 
 RESOURCE_FILES(
@@ -349,14 +389,13 @@ RESOURCE_FILES(
     .dist-info/top_level.txt
     sklearn/datasets/data/boston_house_prices.csv
     sklearn/datasets/data/breast_cancer.csv
-    sklearn/datasets/data/diabetes_data.csv.gz
+    sklearn/datasets/data/diabetes_data_raw.csv.gz
     sklearn/datasets/data/diabetes_target.csv.gz
     sklearn/datasets/data/digits.csv.gz
     sklearn/datasets/data/iris.csv
     sklearn/datasets/data/linnerud_exercise.csv
     sklearn/datasets/data/linnerud_physiological.csv
     sklearn/datasets/data/wine_data.csv
-    sklearn/datasets/descr/boston_house_prices.rst
     sklearn/datasets/descr/breast_cancer.rst
     sklearn/datasets/descr/california_housing.rst
     sklearn/datasets/descr/covtype.rst
@@ -374,11 +413,6 @@ RESOURCE_FILES(
     sklearn/datasets/images/china.jpg
     sklearn/datasets/images/flower.jpg
     sklearn/externals/README
-    sklearn/linear_model/_sag_fast.pyx.tp
-    sklearn/utils/_seq_dataset.pxd.tp
-    sklearn/utils/_seq_dataset.pyx.tp
-    sklearn/utils/_weight_vector.pxd.tp
-    sklearn/utils/_weight_vector.pyx.tp
 )
 
 END()
