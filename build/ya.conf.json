@@ -6626,6 +6626,40 @@
                     "default": true
                 }
             ]
+        },
+        "gcc840-riscv32-esp-elf": {
+            "tools": {
+                "cc": {
+                    "bottle": "gcc840-riscv32-esp-elf",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc840-riscv32-esp-elf",
+                    "executable": "c++"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "NONE",
+                        "arch": "riscv32_esp"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-gcc",
+                "cxx_compiler": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-g++",
+                "ar": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-ar",
+                "objcopy": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-objcopy",
+                "gcc_version": "8.4.0"
+            }
         }
     },
     "bottles": {
@@ -9192,6 +9226,21 @@
             "executable": {
                 "nots": [
                     "bootstrap"
+                ]
+            }
+        },
+        "gcc840-riscv32-esp-elf": {
+            "formula": "build/platform/gcc/gcc840-riscv32-esp-elf.json",
+            "executable": {
+                "c++": [
+                    "riscv32-esp-elf",
+                    "bin",
+                    "riscv32-esp-elf-g++"
+                ],
+                "cc": [
+                    "riscv32-esp-elf",
+                    "bin",
+                    "riscv32-esp-elf-gcc"
                 ]
             }
         }

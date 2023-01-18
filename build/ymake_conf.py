@@ -62,6 +62,9 @@ class Platform(object):
         self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
         self.is_armv7hf = self.arch in ('armv7ahf', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
+        self.is_rv32imc = self.arch in ('riscv32_esp',)
+        self.is_riscv32 = self.is_rv32imc
+
         self.is_nds32 = self.arch in ('nds32le_elf_mculib_v5f',)
 
         self.armv7_float_abi = None
@@ -80,7 +83,7 @@ class Platform(object):
         self.is_power9le = self.arch == 'power9le'
         self.is_powerpc = self.is_power8le or self.is_power9le
 
-        self.is_32_bit = self.is_x86 or self.is_armv7 or self.is_armv8m or self.is_nds32
+        self.is_32_bit = self.is_x86 or self.is_armv7 or self.is_armv8m or self.is_riscv32 or self.is_nds32
         self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_powerpc
 
         assert self.is_32_bit or self.is_64_bit
@@ -158,6 +161,7 @@ class Platform(object):
             (self.is_powerpc, 'ARCH_PPC64LE'),
             (self.is_power8le, 'ARCH_POWER8LE'),
             (self.is_power9le, 'ARCH_POWER9LE'),
+            (self.is_riscv32, 'ARCH_RISCV32'),
             (self.is_nds32, 'ARCH_NDS32'),
             (self.is_32_bit, 'ARCH_TYPE_32'),
             (self.is_64_bit, 'ARCH_TYPE_64'),
@@ -1247,6 +1251,9 @@ class GnuToolchain(Toolchain):
             # On linux, ARM and PPC default to unsigned char
             # However, Arcadia requires char to be signed
             self.c_flags_platform.append('-fsigned-char')
+
+        if target.is_rv32imc:
+            self.c_flags_platform.append('-march=rv32imc')
 
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
