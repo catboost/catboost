@@ -8,9 +8,9 @@
    :target: https://dev.azure.com/joblib/joblib/_build?definitionId=3&_a=summary&branchFilter=40
    :alt: Azure CI status
 
-.. |ReadTheDocs| image:: https://readthedocs.org/projects/pip/badge/?version=latest
-   :target: https://joblib.readthedocs.io/en/latest/
-   :alt: Doc status
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/joblib/badge/?version=latest
+    :target: https://joblib.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 .. |Codecov| image:: https://codecov.io/gh/joblib/joblib/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/joblib/joblib
@@ -48,7 +48,7 @@ Dependencies
 ============
 
 - Joblib has no mandatory dependencies besides Python (supported versions are
-  3.6+).
+  3.7+).
 - Joblib has an optional dependency on Numpy (at least version 1.6.1) for array
   manipulation.
 - Joblib includes its own vendored copy of

@@ -431,10 +431,22 @@ class MultiprocessingBackend(PoolManagerMixin, AutoBatchingMixin,
         if mp.current_process().daemon:
             # Daemonic processes cannot have children
             if n_jobs != 1:
-                warnings.warn(
-                    'Multiprocessing-backed parallel loops cannot be nested,'
-                    ' setting n_jobs=1',
-                    stacklevel=3)
+                if inside_dask_worker():
+                    msg = (
+                        "Inside a Dask worker with daemon=True, "
+                        "setting n_jobs=1.\nPossible work-arounds:\n"
+                        "- dask.config.set("
+                        "{'distributed.worker.daemon': False})"
+                        "- set the environment variable "
+                        "DASK_DISTRIBUTED__WORKER__DAEMON=False\n"
+                        "before creating your Dask cluster."
+                    )
+                else:
+                    msg = (
+                        'Multiprocessing-backed parallel loops '
+                        'cannot be nested, setting n_jobs=1'
+                    )
+                warnings.warn(msg, stacklevel=3)
             return 1
 
         if process_executor._CURRENT_DEPTH > 0:
@@ -509,10 +521,23 @@ class LokyBackend(AutoBatchingMixin, ParallelBackendBase):
         elif mp.current_process().daemon:
             # Daemonic processes cannot have children
             if n_jobs != 1:
-                warnings.warn(
-                    'Loky-backed parallel loops cannot be called in a'
-                    ' multiprocessing, setting n_jobs=1',
-                    stacklevel=3)
+                if inside_dask_worker():
+                    msg = (
+                        "Inside a Dask worker with daemon=True, "
+                        "setting n_jobs=1.\nPossible work-arounds:\n"
+                        "- dask.config.set("
+                        "{'distributed.worker.daemon': False})\n"
+                        "- set the environment variable "
+                        "DASK_DISTRIBUTED__WORKER__DAEMON=False\n"
+                        "before creating your Dask cluster."
+                    )
+                else:
+                    msg = (
+                        'Loky-backed parallel loops cannot be called in a'
+                        ' multiprocessing, setting n_jobs=1'
+                    )
+                warnings.warn(msg, stacklevel=3)
+
             return 1
         elif not (self.in_main_thread() or self.nesting_level == 0):
             # Prevent posix fork inside in non-main posix threads
@@ -608,3 +633,21 @@ class FallbackToBackend(Exception):
 
     def __init__(self, backend):
         self.backend = backend
+
+
+def inside_dask_worker():
+    """Check whether the current function is executed inside a Dask worker.
+    """
+    # This function can not be in joblib._dask because there would be a
+    # circular import:
+    # _dask imports _parallel_backend that imports _dask ...
+    try:
+        from distributed import get_worker
+    except ImportError:
+        return False
+
+    try:
+        get_worker()
+        return True
+    except ValueError:
+        return False

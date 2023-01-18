@@ -12,11 +12,13 @@ from .parallel import AutoBatchingMixin, ParallelBackendBase, BatchedCalls
 from .parallel import parallel_backend
 
 try:
+    import dask
     import distributed
 except ImportError:
+    dask = None
     distributed = None
 
-if distributed is not None:
+if dask is not None and distributed is not None:
     from dask.utils import funcname, itemgetter
     from dask.sizeof import sizeof
     from dask.distributed import (
@@ -24,9 +26,11 @@ if distributed is not None:
         as_completed,
         get_client,
         secede,
-        rejoin
+        rejoin,
+        get_worker
     )
     from distributed.utils import thread_state
+
 
     try:
         # asyncio.TimeoutError, Python3-only error thrown by recent versions of

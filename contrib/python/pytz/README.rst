@@ -519,9 +519,10 @@ Internationalization - i18n/l10n
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pytz is an interface to the IANA database, which uses ASCII names. The `Unicode  Consortium's Unicode Locales (CLDR) <http://cldr.unicode.org>`_
-project provides translations. Thomas Khyn's
-`l18n <https://pypi.org/project/l18n/>`_ package can be used to access
-these translations from Python.
+project provides translations. Python packages such as
+`Babel <https://babel.pocoo.org/en/latest/api/dates.html#timezone-functionality>`
+and Thomas Khyn's `l18n <https://pypi.org/project/l18n/>`_ package can be used
+to access these translations from Python.
 
 
 License

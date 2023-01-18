@@ -8135,7 +8135,7 @@
         },
         "python3": {
             "formula": {
-                "sandbox_id": 1447597827,
+                "sandbox_id": 1577780231,
                 "match": "python3"
             },
             "executable": {
@@ -8261,7 +8261,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1576442801,
+                "sandbox_id": 1577342770,
                 "match": "app_host_launcher"
             },
             "executable": {

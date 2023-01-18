@@ -1,9 +1,9 @@
 --- contrib/python/joblib/joblib/externals/loky/backend/fork_exec.py	(index)
 +++ contrib/python/joblib/joblib/externals/loky/backend/fork_exec.py	(working tree)
-@@ -39,6 +39,7 @@ def fork_exec(cmd, keep_fds, env=None):
-     env = {} if env is None else env
-     child_env = os.environ.copy()
-     child_env.update(env)
+@@ -33,6 +33,7 @@ def fork_exec(cmd, keep_fds, env=None):
+     # copy the environment variables to set in the child process
+     env = env or {}
+     child_env = {**os.environ, **env}
 +    child_env['Y_PYTHON_ENTRY_POINT'] = ':main'
  
      pid = os.fork()

@@ -50,9 +50,10 @@ def check_subprocess_call(cmd, timeout=5, stdout_regex=None,
         warnings.warn("Timeout running {}".format(cmd))
         proc.kill()
 
-    timer = threading.Timer(timeout, kill_process)
     try:
-        timer.start()
+        if timeout is not None:
+            timer = threading.Timer(timeout, kill_process)
+            timer.start()
         stdout, stderr = proc.communicate()
         stdout, stderr = stdout.decode(), stderr.decode()
         if proc.returncode != 0:
@@ -74,4 +75,5 @@ def check_subprocess_call(cmd, timeout=5, stdout_regex=None,
                     stderr_regex, stderr))
 
     finally:
-        timer.cancel()
+        if timeout is not None:
+            timer.cancel()

@@ -14,6 +14,7 @@ mp = int(os.environ.get('JOBLIB_MULTIPROCESSING', 1)) or None
 if mp:
     try:
         import multiprocessing as mp
+        import _multiprocessing  # noqa
     except ImportError:
         mp = None
 

@@ -4,7 +4,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(2022.6)
+VERSION(2022.7)
 
 LICENSE(MIT)
 
@@ -123,6 +123,7 @@ RESOURCE_FILES(
     pytz/zoneinfo/America/Cayman
     pytz/zoneinfo/America/Chicago
     pytz/zoneinfo/America/Chihuahua
+    pytz/zoneinfo/America/Ciudad_Juarez
     pytz/zoneinfo/America/Coral_Harbour
     pytz/zoneinfo/America/Cordoba
     pytz/zoneinfo/America/Costa_Rica
