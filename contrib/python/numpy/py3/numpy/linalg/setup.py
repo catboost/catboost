@@ -70,7 +70,7 @@ def configuration(parent_package='', top_path=None):
     # umath_linalg module
     config.add_extension(
         '_umath_linalg',
-        sources=['umath_linalg.c.src', get_lapack_lite_sources],
+        sources=['umath_linalg.cpp', get_lapack_lite_sources],
         depends=['lapack_lite/f2c.h'],
         extra_info=lapack_info,
         extra_cxx_compile_args=NPY_CXX_FLAGS,

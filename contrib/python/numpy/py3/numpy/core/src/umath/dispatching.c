@@ -78,7 +78,7 @@ NPY_NO_EXPORT int
 PyUFunc_AddLoop(PyUFuncObject *ufunc, PyObject *info, int ignore_duplicate)
 {
     /*
-     * Validate the info object, this should likely move to to a different
+     * Validate the info object, this should likely move to a different
      * entry-point in the future (and is mostly unnecessary currently).
      */
     if (!PyTuple_CheckExact(info) || PyTuple_GET_SIZE(info) != 2) {
@@ -914,8 +914,13 @@ promote_and_get_ufuncimpl(PyUFuncObject *ufunc,
             signature[i] = (PyArray_DTypeMeta *)PyTuple_GET_ITEM(all_dtypes, i);
             Py_INCREF(signature[i]);
         }
-        else {
-            assert((PyObject *)signature[i] == PyTuple_GET_ITEM(all_dtypes, i));
+        else if ((PyObject *)signature[i] != PyTuple_GET_ITEM(all_dtypes, i)) {
+            /*
+             * If signature is forced the cache may contain an incompatible
+             * loop found via promotion (signature not enforced).  Reject it.
+             */
+            raise_no_loop_found_error(ufunc, (PyObject **)op_dtypes);
+            return NULL;
         }
     }
 

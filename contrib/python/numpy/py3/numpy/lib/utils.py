@@ -25,8 +25,7 @@ def get_include():
 
     Notes
     -----
-    When using ``distutils``, for example in ``setup.py``.
-    ::
+    When using ``distutils``, for example in ``setup.py``::
 
         import numpy as np
         ...
@@ -429,7 +428,7 @@ def _makenamedict(module='numpy'):
     return thedict, dictlist
 
 
-def _info(obj, output=sys.stdout):
+def _info(obj, output=None):
     """Provide information about ndarray obj.
 
     Parameters
@@ -454,6 +453,9 @@ def _info(obj, output=sys.stdout):
     nm = getattr(cls, '__name__', cls)
     strides = obj.strides
     endian = obj.dtype.byteorder
+
+    if output is None:
+        output = sys.stdout
 
     print("class: ", nm, file=output)
     print("shape: ", obj.shape, file=output)
@@ -481,7 +483,7 @@ def _info(obj, output=sys.stdout):
 
 
 @set_module('numpy')
-def info(object=None, maxwidth=76, output=sys.stdout, toplevel='numpy'):
+def info(object=None, maxwidth=76, output=None, toplevel='numpy'):
     """
     Get help information for a function, class, or module.
 
@@ -496,7 +498,8 @@ def info(object=None, maxwidth=76, output=sys.stdout, toplevel='numpy'):
         Printing width.
     output : file like object, optional
         File like object that the output is written to, default is
-        ``stdout``.  The object has to be opened in 'w' or 'a' mode.
+        ``None``, in which case ``sys.stdout`` will be used.
+        The object has to be opened in 'w' or 'a' mode.
     toplevel : str, optional
         Start search at this level.
 
@@ -540,6 +543,9 @@ def info(object=None, maxwidth=76, output=sys.stdout, toplevel='numpy'):
         object = object._ppimport_module
     elif hasattr(object, '_ppimport_attr'):
         object = object._ppimport_attr
+
+    if output is None:
+        output = sys.stdout
 
     if object is None:
         info(info)
@@ -901,8 +907,12 @@ def _lookfor_generate_cache(module, import_modules, regenerate):
                             finally:
                                 sys.stdout = old_stdout
                                 sys.stderr = old_stderr
-                        # Catch SystemExit, too
-                        except (Exception, SystemExit):
+                        except KeyboardInterrupt:
+                            # Assume keyboard interrupt came from a user
+                            raise
+                        except BaseException:
+                            # Ignore also SystemExit and pytests.importorskip
+                            # `Skipped` (these are BaseExceptions; gh-22345)
                             continue
 
             for n, v in _getmembers(item):
@@ -960,6 +970,12 @@ def safe_eval(source):
 
     Evaluate a string containing a Python literal expression without
     allowing the execution of arbitrary non-literal code.
+
+    .. warning::
+
+        This function is identical to :py:meth:`ast.literal_eval` and
+        has the same security implications.  It may not always be safe
+        to evaluate large input strings.
 
     Parameters
     ----------

@@ -5,8 +5,10 @@ import itertools
 import pytest
 import sys
 import os
+import operator
 from fractions import Fraction
 from functools import reduce
+from collections import namedtuple
 
 import numpy.core.umath as ncu
 from numpy.core import _umath_tests as ncu_tests
@@ -17,18 +19,64 @@ from numpy.testing import (
     assert_array_max_ulp, assert_allclose, assert_no_warnings, suppress_warnings,
     _gen_alignment_data, assert_array_almost_equal_nulp
     )
-
-def get_glibc_version():
-    try:
-        ver = os.confstr('CS_GNU_LIBC_VERSION').rsplit(' ')[1]
-    except Exception as inst:
-        ver = '0.0'
-
-    return ver
+from numpy.testing._private.utils import _glibc_older_than
 
 
-glibcver = get_glibc_version()
-glibc_older_than = lambda x: (glibcver != '0.0' and glibcver < x)
+def interesting_binop_operands(val1, val2, dtype):
+    """
+    Helper to create "interesting" operands to cover common code paths:
+    * scalar inputs
+    * only first "values" is an array (e.g. scalar division fast-paths)
+    * Longer array (SIMD) placing the value of interest at different positions
+    * Oddly strided arrays which may not be SIMD compatible
+
+    It does not attempt to cover unaligned access or mixed dtypes.
+    These are normally handled by the casting/buffering machinery.
+
+    This is not a fixture (currently), since I believe a fixture normally
+    only yields once?
+    """
+    fill_value = 1  # could be a parameter, but maybe not an optional one?
+
+    arr1 = np.full(10003, dtype=dtype, fill_value=fill_value)
+    arr2 = np.full(10003, dtype=dtype, fill_value=fill_value)
+
+    arr1[0] = val1
+    arr2[0] = val2
+
+    extractor = lambda res: res
+    yield arr1[0], arr2[0], extractor, "scalars"
+
+    extractor = lambda res: res
+    yield arr1[0, ...], arr2[0, ...], extractor, "scalar-arrays"
+
+    # reset array values to fill_value:
+    arr1[0] = fill_value
+    arr2[0] = fill_value
+
+    for pos in [0, 1, 2, 3, 4, 5, -1, -2, -3, -4]:
+        arr1[pos] = val1
+        arr2[pos] = val2
+
+        extractor = lambda res: res[pos]
+        yield arr1, arr2, extractor, f"off-{pos}"
+        yield arr1, arr2[pos], extractor, f"off-{pos}-with-scalar"
+
+        arr1[pos] = fill_value
+        arr2[pos] = fill_value
+
+    for stride in [-1, 113]:
+        op1 = arr1[::stride]
+        op2 = arr2[::stride]
+        op1[10] = val1
+        op2[10] = val2
+
+        extractor = lambda res: res[10]
+        yield op1, op2, extractor, f"stride-{stride}"
+
+        op1[10] = fill_value
+        op2[10] = fill_value
+
 
 def on_powerpc():
     """ True if we are running on a Power PC platform."""
@@ -37,12 +85,17 @@ def on_powerpc():
 
 
 def bad_arcsinh():
-    """The blocklisted trig functions are not accurate on aarch64 for
+    """The blocklisted trig functions are not accurate on aarch64/PPC for
     complex256. Rather than dig through the actual problem skip the
     test. This should be fixed when we can move past glibc2.17
     which is the version in manylinux2014
     """
-    x = 1.78e-10
+    if platform.machine() == 'aarch64':
+        x = 1.78e-10
+    elif on_powerpc():
+        x = 2.16e-10
+    else:
+        return False
     v1 = np.arcsinh(np.float128(x))
     v2 = np.arcsinh(np.complex256(x)).real
     # The eps for float128 is 1-e33, so this is way bigger
@@ -50,10 +103,10 @@ def bad_arcsinh():
 
 
 class _FilterInvalids:
-    def setup(self):
+    def setup_method(self):
         self.olderr = np.seterr(invalid='ignore')
 
-    def teardown(self):
+    def teardown_method(self):
         np.seterr(**self.olderr)
 
 
@@ -231,6 +284,14 @@ class TestComparisons:
         a = np.array([np.nan], dtype=object)
         assert_equal(np.not_equal(a, a), [True])
 
+    def test_error_in_equal_reduce(self):
+        # gh-20929
+        # make sure np.equal.reduce raises a TypeError if an array is passed
+        # without specifying the dtype
+        a = np.array([0, 0])
+        assert_equal(np.equal.reduce(a, dtype=bool), True)
+        assert_raises(TypeError, np.equal.reduce, a)
+
 
 class TestAdd:
     def test_reduce_alignment(self):
@@ -291,7 +352,9 @@ class TestDivision:
         a_lst, b_lst = a.tolist(), b.tolist()
 
         c_div = lambda n, d: (
-            0 if d == 0 or (n and n == fo.min and d == -1) else n//d
+            0 if d == 0 else (
+                fo.min if (n and n == fo.min and d == -1) else n//d
+            )
         )
         with np.errstate(divide='ignore'):
             ac = a.copy()
@@ -306,7 +369,7 @@ class TestDivision:
 
         for divisor in divisors:
             ac = a.copy()
-            with np.errstate(divide='ignore'):
+            with np.errstate(divide='ignore', over='ignore'):
                 div_a = a // divisor
                 ac //= divisor
             div_lst = [c_div(i, divisor) for i in a_lst]
@@ -314,21 +377,25 @@ class TestDivision:
             assert all(div_a == div_lst), msg
             assert all(ac == div_lst), msg_eq
 
-        with np.errstate(divide='raise'):
-            if 0 in b or (fo.min and -1 in b and fo.min in a):
+        with np.errstate(divide='raise', over='raise'):
+            if 0 in b:
                 # Verify overflow case
-                with pytest.raises(FloatingPointError):
+                with pytest.raises(FloatingPointError,
+                        match="divide by zero encountered in floor_divide"):
                     a // b
             else:
                 a // b
             if fo.min and fo.min in a:
-                with pytest.raises(FloatingPointError):
+                with pytest.raises(FloatingPointError,
+                        match='overflow encountered in floor_divide'):
                     a // -1
             elif fo.min:
                 a // -1
-            with pytest.raises(FloatingPointError):
+            with pytest.raises(FloatingPointError,
+                    match="divide by zero encountered in floor_divide"):
                 a // 0
-            with pytest.raises(FloatingPointError):
+            with pytest.raises(FloatingPointError,
+                    match="divide by zero encountered in floor_divide"):
                 ac = a.copy()
                 ac //= 0
 
@@ -356,11 +423,13 @@ class TestDivision:
         msg = "Reduce floor integer division check"
         assert div_a == div_lst, msg
 
-        with np.errstate(divide='raise'):
-            with pytest.raises(FloatingPointError):
+        with np.errstate(divide='raise', over='raise'):
+            with pytest.raises(FloatingPointError,
+                    match="divide by zero encountered in reduce"):
                 np.floor_divide.reduce(np.arange(-100, 100, dtype=dtype))
             if fo.min:
-                with pytest.raises(FloatingPointError):
+                with pytest.raises(FloatingPointError,
+                        match='overflow encountered in reduce'):
                     np.floor_divide.reduce(
                         np.array([fo.min, 1, -1], dtype=dtype)
                     )
@@ -696,6 +765,140 @@ class TestRemainder:
                 assert_(np.isnan(fmod), 'dt: %s, fmod: %s' % (dt, rem))
 
 
+class TestDivisionIntegerOverflowsAndDivideByZero:
+    result_type = namedtuple('result_type',
+            ['nocast', 'casted'])
+    helper_lambdas = {
+        'zero': lambda dtype: 0,
+        'min': lambda dtype: np.iinfo(dtype).min,
+        'neg_min': lambda dtype: -np.iinfo(dtype).min,
+        'min-zero': lambda dtype: (np.iinfo(dtype).min, 0),
+        'neg_min-zero': lambda dtype: (-np.iinfo(dtype).min, 0),
+    }
+    overflow_results = {
+        np.remainder: result_type(
+            helper_lambdas['zero'], helper_lambdas['zero']),
+        np.fmod: result_type(
+            helper_lambdas['zero'], helper_lambdas['zero']),
+        operator.mod: result_type(
+            helper_lambdas['zero'], helper_lambdas['zero']),
+        operator.floordiv: result_type(
+            helper_lambdas['min'], helper_lambdas['neg_min']),
+        np.floor_divide: result_type(
+            helper_lambdas['min'], helper_lambdas['neg_min']),
+        np.divmod: result_type(
+            helper_lambdas['min-zero'], helper_lambdas['neg_min-zero'])
+    }
+
+    @pytest.mark.parametrize("dtype", np.typecodes["Integer"])
+    def test_signed_division_overflow(self, dtype):
+        to_check = interesting_binop_operands(np.iinfo(dtype).min, -1, dtype)
+        for op1, op2, extractor, operand_identifier in to_check:
+            with pytest.warns(RuntimeWarning, match="overflow encountered"):
+                res = op1 // op2
+
+            assert res.dtype == op1.dtype
+            assert extractor(res) == np.iinfo(op1.dtype).min
+
+            # Remainder is well defined though, and does not warn:
+            res = op1 % op2
+            assert res.dtype == op1.dtype
+            assert extractor(res) == 0
+            # Check fmod as well:
+            res = np.fmod(op1, op2)
+            assert extractor(res) == 0
+
+            # Divmod warns for the division part:
+            with pytest.warns(RuntimeWarning, match="overflow encountered"):
+                res1, res2 = np.divmod(op1, op2)
+
+            assert res1.dtype == res2.dtype == op1.dtype
+            assert extractor(res1) == np.iinfo(op1.dtype).min
+            assert extractor(res2) == 0
+
+    @pytest.mark.parametrize("dtype", np.typecodes["AllInteger"])
+    def test_divide_by_zero(self, dtype):
+        # Note that the return value cannot be well defined here, but NumPy
+        # currently uses 0 consistently.  This could be changed.
+        to_check = interesting_binop_operands(1, 0, dtype)
+        for op1, op2, extractor, operand_identifier in to_check:
+            with pytest.warns(RuntimeWarning, match="divide by zero"):
+                res = op1 // op2
+
+            assert res.dtype == op1.dtype
+            assert extractor(res) == 0
+
+            with pytest.warns(RuntimeWarning, match="divide by zero"):
+                res1, res2 = np.divmod(op1, op2)
+
+            assert res1.dtype == res2.dtype == op1.dtype
+            assert extractor(res1) == 0
+            assert extractor(res2) == 0
+
+    @pytest.mark.parametrize("dividend_dtype",
+            np.sctypes['int'])
+    @pytest.mark.parametrize("divisor_dtype",
+            np.sctypes['int'])
+    @pytest.mark.parametrize("operation",
+            [np.remainder, np.fmod, np.divmod, np.floor_divide,
+             operator.mod, operator.floordiv])
+    @np.errstate(divide='warn', over='warn')
+    def test_overflows(self, dividend_dtype, divisor_dtype, operation):
+        # SIMD tries to perform the operation on as many elements as possible
+        # that is a multiple of the register's size. We resort to the
+        # default implementation for the leftover elements.
+        # We try to cover all paths here.
+        arrays = [np.array([np.iinfo(dividend_dtype).min]*i,
+                           dtype=dividend_dtype) for i in range(1, 129)]
+        divisor = np.array([-1], dtype=divisor_dtype)
+        # If dividend is a larger type than the divisor (`else` case),
+        # then, result will be a larger type than dividend and will not
+        # result in an overflow for `divmod` and `floor_divide`.
+        if np.dtype(dividend_dtype).itemsize >= np.dtype(
+                divisor_dtype).itemsize and operation in (
+                        np.divmod, np.floor_divide, operator.floordiv):
+            with pytest.warns(
+                    RuntimeWarning,
+                    match="overflow encountered in"):
+                result = operation(
+                            dividend_dtype(np.iinfo(dividend_dtype).min),
+                            divisor_dtype(-1)
+                        )
+                assert result == self.overflow_results[operation].nocast(
+                        dividend_dtype)
+
+            # Arrays
+            for a in arrays:
+                # In case of divmod, we need to flatten the result
+                # column first as we get a column vector of quotient and
+                # remainder and a normal flatten of the expected result.
+                with pytest.warns(
+                        RuntimeWarning,
+                        match="overflow encountered in"):
+                    result = np.array(operation(a, divisor)).flatten('f')
+                    expected_array = np.array(
+                            [self.overflow_results[operation].nocast(
+                                dividend_dtype)]*len(a)).flatten()
+                    assert_array_equal(result, expected_array)
+        else:
+            # Scalars
+            result = operation(
+                        dividend_dtype(np.iinfo(dividend_dtype).min),
+                        divisor_dtype(-1)
+                    )
+            assert result == self.overflow_results[operation].casted(
+                    dividend_dtype)
+
+            # Arrays
+            for a in arrays:
+                # See above comment on flatten
+                result = np.array(operation(a, divisor)).flatten('f')
+                expected_array = np.array(
+                        [self.overflow_results[operation].casted(
+                            dividend_dtype)]*len(a)).flatten()
+                assert_array_equal(result, expected_array)
+
+
 class TestCbrt:
     def test_cbrt_scalar(self):
         assert_almost_equal((np.cbrt(np.float32(-2.5)**3)), -2.5)
@@ -1005,16 +1208,17 @@ class TestExp:
 
 class TestSpecialFloats:
     def test_exp_values(self):
-        x = [np.nan,  np.nan, np.inf, 0.]
-        y = [np.nan, -np.nan, np.inf, -np.inf]
-        for dt in ['f', 'd', 'g']:
-            xf = np.array(x, dtype=dt)
-            yf = np.array(y, dtype=dt)
-            assert_equal(np.exp(yf), xf)
+        with np.errstate(under='raise', over='raise'):
+            x = [np.nan,  np.nan, np.inf, 0.]
+            y = [np.nan, -np.nan, np.inf, -np.inf]
+            for dt in ['f', 'd', 'g']:
+                xf = np.array(x, dtype=dt)
+                yf = np.array(y, dtype=dt)
+                assert_equal(np.exp(yf), xf)
 
     # See: https://github.com/numpy/numpy/issues/19192
     @pytest.mark.xfail(
-        glibc_older_than("2.17"),
+        _glibc_older_than("2.17"),
         reason="Older glibc versions may not raise appropriate FP exceptions"
     )
     def test_exp_exceptions(self):
@@ -1262,6 +1466,11 @@ class TestSpecialFloats:
                     assert_raises(FloatingPointError, np.arctanh,
                                   np.array(value, dtype=dt))
 
+    # See: https://github.com/numpy/numpy/issues/20448
+    @pytest.mark.xfail(
+        _glibc_older_than("2.17"),
+        reason="Older glibc versions may not raise appropriate FP exceptions"
+    )
     def test_exp2(self):
         with np.errstate(all='ignore'):
             in_ = [np.nan, -np.nan, np.inf, -np.inf]
@@ -1397,7 +1606,7 @@ class TestAVXFloat32Transcendental:
         M = np.int_(N/20)
         index = np.random.randint(low=0, high=N, size=M)
         x_f32 = np.float32(np.random.uniform(low=-100.,high=100.,size=N))
-        if not glibc_older_than("2.17"):
+        if not _glibc_older_than("2.17"):
             # test coverage for elements > 117435.992f for which glibc is used
             # this is known to be problematic on old glibc, so skip it there
             x_f32[index] = np.float32(10E+10*np.random.rand(M))
@@ -1733,6 +1942,27 @@ class TestMaximum(_FilterInvalids):
         assert_equal(np.maximum(arr1[:6:2], arr2[::3], out=out[::3]), np.array([-2.0, 10., np.nan]))
         assert_equal(out, out_maxtrue)
 
+    def test_precision(self):
+        dtypes = [np.float16, np.float32, np.float64, np.longdouble]
+
+        for dt in dtypes:
+            dtmin = np.finfo(dt).min
+            dtmax = np.finfo(dt).max
+            d1 = dt(0.1)
+            d1_next = np.nextafter(d1, np.inf)
+
+            test_cases = [
+                # v1    v2          expected
+                (dtmin, -np.inf,    dtmin),
+                (dtmax, -np.inf,    dtmax),
+                (d1,    d1_next,    d1_next),
+                (dtmax, np.nan,     np.nan),
+            ]
+
+            for v1, v2, expected in test_cases:
+                assert_equal(np.maximum([v1], [v2]), [expected])
+                assert_equal(np.maximum.reduce([v1, v2]), expected)
+
 
 class TestMinimum(_FilterInvalids):
     def test_reduce(self):
@@ -1804,6 +2034,28 @@ class TestMinimum(_FilterInvalids):
         assert_equal(np.minimum(arr1[:6:2], arr2[::3], out=out[::3]), np.array([-4.0, 1.0, np.nan]))
         assert_equal(out, out_mintrue)
 
+    def test_precision(self):
+        dtypes = [np.float16, np.float32, np.float64, np.longdouble]
+
+        for dt in dtypes:
+            dtmin = np.finfo(dt).min
+            dtmax = np.finfo(dt).max
+            d1 = dt(0.1)
+            d1_next = np.nextafter(d1, np.inf)
+
+            test_cases = [
+                # v1    v2          expected
+                (dtmin, np.inf,     dtmin),
+                (dtmax, np.inf,     dtmax),
+                (d1,    d1_next,    d1),
+                (dtmin, np.nan,     np.nan),
+            ]
+
+            for v1, v2, expected in test_cases:
+                assert_equal(np.minimum([v1], [v2]), [expected])
+                assert_equal(np.minimum.reduce([v1, v2]), expected)
+
+
 class TestFmax(_FilterInvalids):
     def test_reduce(self):
         dflt = np.typecodes['AllFloat']
@@ -1844,6 +2096,27 @@ class TestFmax(_FilterInvalids):
             arg2 = np.array([cnan, 0, cnan], dtype=complex)
             out = np.array([0,    0, nan], dtype=complex)
             assert_equal(np.fmax(arg1, arg2), out)
+
+    def test_precision(self):
+        dtypes = [np.float16, np.float32, np.float64, np.longdouble]
+
+        for dt in dtypes:
+            dtmin = np.finfo(dt).min
+            dtmax = np.finfo(dt).max
+            d1 = dt(0.1)
+            d1_next = np.nextafter(d1, np.inf)
+
+            test_cases = [
+                # v1    v2          expected
+                (dtmin, -np.inf,    dtmin),
+                (dtmax, -np.inf,    dtmax),
+                (d1,    d1_next,    d1_next),
+                (dtmax, np.nan,     dtmax),
+            ]
+
+            for v1, v2, expected in test_cases:
+                assert_equal(np.fmax([v1], [v2]), [expected])
+                assert_equal(np.fmax.reduce([v1, v2]), expected)
 
 
 class TestFmin(_FilterInvalids):
@@ -1886,6 +2159,27 @@ class TestFmin(_FilterInvalids):
             arg2 = np.array([cnan, 0, cnan], dtype=complex)
             out = np.array([0,    0, nan], dtype=complex)
             assert_equal(np.fmin(arg1, arg2), out)
+
+    def test_precision(self):
+        dtypes = [np.float16, np.float32, np.float64, np.longdouble]
+
+        for dt in dtypes:
+            dtmin = np.finfo(dt).min
+            dtmax = np.finfo(dt).max
+            d1 = dt(0.1)
+            d1_next = np.nextafter(d1, np.inf)
+
+            test_cases = [
+                # v1    v2          expected
+                (dtmin, np.inf,     dtmin),
+                (dtmax, np.inf,     dtmax),
+                (d1,    d1_next,    d1),
+                (dtmin, np.nan,     dtmin),
+            ]
+
+            for v1, v2, expected in test_cases:
+                assert_equal(np.fmin([v1], [v2]), [expected])
+                assert_equal(np.fmin.reduce([v1, v2]), expected)
 
 
 class TestBool:
@@ -3434,10 +3728,10 @@ class TestComplexFunctions:
         x_basic = np.logspace(-2.999, 0, 10, endpoint=False)
 
         if dtype is np.longcomplex:
-            if (platform.machine() == 'aarch64' and bad_arcsinh()):
+            if bad_arcsinh():
                 pytest.skip("Trig functions of np.longcomplex values known "
-                            "to be inaccurate on aarch64 for some compilation "
-                            "configurations.")
+                            "to be inaccurate on aarch64 and PPC for some "
+                            "compilation configurations.")
             # It's not guaranteed that the system-provided arc functions
             # are accurate down to a few epsilons. (Eg. on Linux 64-bit)
             # So, give more leeway for long complex tests here:

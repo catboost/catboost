@@ -7,8 +7,9 @@ from io import BytesIO
 import numpy as np
 from numpy.testing import (
     assert_, assert_array_equal, assert_raises, assert_raises_regex,
-    assert_warns,
+    assert_warns, IS_PYPY,
     )
+from numpy.testing._private.utils import requires_memory
 from numpy.lib import format
 
 import yatest.common
@@ -184,6 +185,7 @@ def test_long_str():
     assert_array_equal(long_str_arr, long_str_arr2)
 
 
+@pytest.mark.slow
 def test_memmap_roundtrip(tmpdir):
     for i, arr in enumerate(basic_arrays + record_arrays):
         if arr.dtype.hasobject:
@@ -392,7 +394,7 @@ def test_version_2_0():
     assert_(len(header) % format.ARRAY_ALIGN == 0)
 
     f.seek(0)
-    n = format.read_array(f)
+    n = format.read_array(f, max_header_size=200000)
     assert_array_equal(d, n)
 
     # 1.0 requested but data cannot be saved this way
@@ -414,7 +416,7 @@ def test_version_2_0_memmap(tmpdir):
                             shape=d.shape, version=(2, 0))
     ma[...] = d
     ma.flush()
-    ma = format.open_memmap(tf1, mode='r')
+    ma = format.open_memmap(tf1, mode='r', max_header_size=200000)
     assert_array_equal(ma, d)
 
     with warnings.catch_warnings(record=True) as w:
@@ -425,9 +427,49 @@ def test_version_2_0_memmap(tmpdir):
         ma[...] = d
         ma.flush()
 
-    ma = format.open_memmap(tf2, mode='r')
+    ma = format.open_memmap(tf2, mode='r', max_header_size=200000)
+
     assert_array_equal(ma, d)
 
+@pytest.mark.parametrize("mmap_mode", ["r", None])
+def test_huge_header(tmpdir, mmap_mode):
+    f = os.path.join(tmpdir, f'large_header.npy')
+    arr = np.array(1, dtype="i,"*10000+"i")
+
+    with pytest.warns(UserWarning, match=".*format 2.0"):
+        np.save(f, arr)
+    
+    with pytest.raises(ValueError, match="Header.*large"):
+        np.load(f, mmap_mode=mmap_mode)
+
+    with pytest.raises(ValueError, match="Header.*large"):
+        np.load(f, mmap_mode=mmap_mode, max_header_size=20000)
+
+    res = np.load(f, mmap_mode=mmap_mode, allow_pickle=True)
+    assert_array_equal(res, arr)
+
+    res = np.load(f, mmap_mode=mmap_mode, max_header_size=180000)
+    assert_array_equal(res, arr)
+
+def test_huge_header_npz(tmpdir):
+    f = os.path.join(tmpdir, f'large_header.npz')
+    arr = np.array(1, dtype="i,"*10000+"i")
+
+    with pytest.warns(UserWarning, match=".*format 2.0"):
+        np.savez(f, arr=arr)
+    
+    # Only getting the array from the file actually reads it
+    with pytest.raises(ValueError, match="Header.*large"):
+        np.load(f)["arr"]
+
+    with pytest.raises(ValueError, match="Header.*large"):
+        np.load(f, max_header_size=20000)["arr"]
+
+    res = np.load(f, allow_pickle=True)["arr"]
+    assert_array_equal(res, arr)
+
+    res = np.load(f, max_header_size=180000)["arr"]
+    assert_array_equal(res, arr)
 
 def test_write_version():
     f = BytesIO()
@@ -605,11 +647,13 @@ def test_large_file_support(tmpdir):
 @pytest.mark.skipif(np.dtype(np.intp).itemsize < 8,
                     reason="test requires 64-bit system")
 @pytest.mark.slow
+@requires_memory(free_bytes=2 * 2**30)
 def test_large_archive(tmpdir):
     # Regression test for product of saving arrays with dimensions of array
     # having a product that doesn't fit in int32.  See gh-7598 for details.
+    shape = (2**30, 2)
     try:
-        a = np.empty((2**30, 2), dtype=np.uint8)
+        a = np.empty(shape, dtype=np.uint8)
     except MemoryError:
         pytest.skip("Could not create large file")
 
@@ -618,10 +662,12 @@ def test_large_archive(tmpdir):
     with open(fname, "wb") as f:
         np.savez(f, arr=a)
 
+    del a
+
     with open(fname, "rb") as f:
         new_a = np.load(f)["arr"]
 
-    assert_(a.shape == new_a.shape)
+    assert new_a.shape == shape
 
 
 def test_empty_npz(tmpdir):
@@ -666,6 +712,8 @@ def test_unicode_field_names(tmpdir):
         float, np.dtype({'names': ['c'], 'formats': [np.dtype(int, metadata={})]})
     ]}), False)
     ])
+@pytest.mark.skipif(IS_PYPY and sys.implementation.version <= (7, 3, 8),
+        reason="PyPy bug in error formatting")
 def test_metadata_dtype(dt, fail):
     # gh-14142
     arr = np.ones(10, dtype=dt)

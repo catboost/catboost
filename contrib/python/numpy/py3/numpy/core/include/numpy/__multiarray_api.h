@@ -112,7 +112,7 @@ NPY_NO_EXPORT  char * PyArray_Zero \
        (PyArrayObject *);
 NPY_NO_EXPORT  char * PyArray_One \
        (PyArrayObject *);
-NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) NPY_GCC_NONNULL(2) PyObject * PyArray_CastToType \
+NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) PyObject * PyArray_CastToType \
        (PyArrayObject *, PyArray_Descr *, int);
 NPY_NO_EXPORT  int PyArray_CastTo \
        (PyArrayObject *, PyArrayObject *);
@@ -168,9 +168,9 @@ NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) PyObject * PyArray_FromIter \
        (PyObject *, PyArray_Descr *, npy_intp);
 NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(1) PyObject * PyArray_Return \
        (PyArrayObject *);
-NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) NPY_GCC_NONNULL(2) PyObject * PyArray_GetField \
+NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) PyObject * PyArray_GetField \
        (PyArrayObject *, PyArray_Descr *, int);
-NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) NPY_GCC_NONNULL(2) int PyArray_SetField \
+NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) int PyArray_SetField \
        (PyArrayObject *, PyArray_Descr *, int, PyObject *);
 NPY_NO_EXPORT  PyObject * PyArray_Byteswap \
        (PyArrayObject *, npy_bool);
@@ -184,7 +184,7 @@ NPY_NO_EXPORT  int PyArray_CopyAnyInto \
        (PyArrayObject *, PyArrayObject *);
 NPY_NO_EXPORT  int PyArray_CopyObject \
        (PyArrayObject *, PyObject *);
-NPY_NO_EXPORT NPY_GCC_NONNULL(1) PyObject * PyArray_NewCopy \
+NPY_NO_EXPORT  PyObject * PyArray_NewCopy \
        (PyArrayObject *, NPY_ORDER);
 NPY_NO_EXPORT  PyObject * PyArray_ToList \
        (PyArrayObject *);
@@ -200,9 +200,9 @@ NPY_NO_EXPORT  int PyArray_ValidType \
        (int);
 NPY_NO_EXPORT  void PyArray_UpdateFlags \
        (PyArrayObject *, int);
-NPY_NO_EXPORT NPY_GCC_NONNULL(1) PyObject * PyArray_New \
+NPY_NO_EXPORT  PyObject * PyArray_New \
        (PyTypeObject *, int, npy_intp const *, int, npy_intp const *, void *, int, int, PyObject *);
-NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) NPY_GCC_NONNULL(1) NPY_GCC_NONNULL(2) PyObject * PyArray_NewFromDescr \
+NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(2) PyObject * PyArray_NewFromDescr \
        (PyTypeObject *, PyArray_Descr *, int, npy_intp const *, npy_intp const *, void *, int, PyObject *);
 NPY_NO_EXPORT  PyArray_Descr * PyArray_DescrNew \
        (PyArray_Descr *);
@@ -568,7 +568,7 @@ NPY_NO_EXPORT  npy_bool PyArray_CanCastTypeTo \
        (PyArray_Descr *, PyArray_Descr *, NPY_CASTING);
 NPY_NO_EXPORT  PyArrayObject * PyArray_EinsteinSum \
        (char *, npy_intp, PyArrayObject **, PyArray_Descr *, NPY_ORDER, NPY_CASTING, PyArrayObject *);
-NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(3) NPY_GCC_NONNULL(1) PyObject * PyArray_NewLikeArray \
+NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(3) PyObject * PyArray_NewLikeArray \
        (PyArrayObject *, NPY_ORDER, PyArray_Descr *, int);
 NPY_NO_EXPORT  int PyArray_GetArrayParamsFromObject \
        (PyObject *NPY_UNUSED(op), PyArray_Descr *NPY_UNUSED(requested_dtype), npy_bool NPY_UNUSED(writeable), PyArray_Descr **NPY_UNUSED(out_dtype), int *NPY_UNUSED(out_ndim), npy_intp *NPY_UNUSED(out_dims), PyArrayObject **NPY_UNUSED(out_arr), PyObject *NPY_UNUSED(context));
@@ -614,7 +614,7 @@ NPY_NO_EXPORT  int PyArray_SelectkindConverter \
        (PyObject *, NPY_SELECTKIND *);
 NPY_NO_EXPORT  void * PyDataMem_NEW_ZEROED \
        (size_t, size_t);
-NPY_NO_EXPORT NPY_GCC_NONNULL(1) int PyArray_CheckAnyScalarExact \
+NPY_NO_EXPORT  int PyArray_CheckAnyScalarExact \
        (PyObject *);
 NPY_NO_EXPORT  PyObject * PyArray_MapIterArrayCopyIfOverlap \
        (PyArrayObject *, PyObject *, int, PyArrayObject *);

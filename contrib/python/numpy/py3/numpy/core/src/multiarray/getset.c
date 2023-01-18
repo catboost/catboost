@@ -384,7 +384,10 @@ array_data_set(PyArrayObject *self, PyObject *op, void *NPY_UNUSED(ignored))
     }
     if (PyArray_FLAGS(self) & NPY_ARRAY_OWNDATA) {
         PyArray_XDECREF(self);
-        size_t nbytes = PyArray_NBYTES_ALLOCATED(self);
+        size_t nbytes = PyArray_NBYTES(self);
+        if (nbytes == 0) {
+            nbytes = 1;
+        }
         PyObject *handler = PyArray_HANDLER(self);
         if (handler == NULL) {
             /* This can happen if someone arbitrarily sets NPY_ARRAY_OWNDATA */
@@ -396,12 +399,10 @@ array_data_set(PyArrayObject *self, PyObject *op, void *NPY_UNUSED(ignored))
         Py_CLEAR(((PyArrayObject_fields *)self)->mem_handler);
     }
     if (PyArray_BASE(self)) {
-        if ((PyArray_FLAGS(self) & NPY_ARRAY_WRITEBACKIFCOPY) ||
-            (PyArray_FLAGS(self) & NPY_ARRAY_UPDATEIFCOPY)) {
+        if (PyArray_FLAGS(self) & NPY_ARRAY_WRITEBACKIFCOPY) {
             PyArray_ENABLEFLAGS((PyArrayObject *)PyArray_BASE(self),
                                                 NPY_ARRAY_WRITEABLE);
             PyArray_CLEARFLAGS(self, NPY_ARRAY_WRITEBACKIFCOPY);
-            PyArray_CLEARFLAGS(self, NPY_ARRAY_UPDATEIFCOPY);
         }
         Py_DECREF(PyArray_BASE(self));
         ((PyArrayObject_fields *)self)->base = NULL;
@@ -498,9 +499,6 @@ array_descr_set(PyArrayObject *self, PyObject *arg, void *NPY_UNUSED(ignored))
 
     /* Changing the size of the dtype results in a shape change */
     if (newtype->elsize != PyArray_DESCR(self)->elsize) {
-        int axis;
-        npy_intp newdim;
-
         /* forbidden cases */
         if (PyArray_NDIM(self) == 0) {
             PyErr_SetString(PyExc_ValueError,
@@ -515,31 +513,21 @@ array_descr_set(PyArrayObject *self, PyObject *arg, void *NPY_UNUSED(ignored))
             goto fail;
         }
 
-        /* determine which axis to resize */
-        if (PyArray_IS_C_CONTIGUOUS(self)) {
-            axis = PyArray_NDIM(self) - 1;
-        }
-        else if (PyArray_IS_F_CONTIGUOUS(self)) {
-            /* 2015-11-27 1.11.0, gh-6747 */
-            if (DEPRECATE(
-                        "Changing the shape of an F-contiguous array by "
-                        "descriptor assignment is deprecated. To maintain the "
-                        "Fortran contiguity of a multidimensional Fortran "
-                        "array, use 'a.T.view(...).T' instead") < 0) {
-                goto fail;
-            }
-            axis = 0;
-        }
-        else {
-            /* Don't mention the deprecated F-contiguous support */
+        /* resize on last axis only */
+        int axis = PyArray_NDIM(self) - 1;
+        if (PyArray_DIMS(self)[axis] != 1 &&
+                PyArray_SIZE(self) != 0 &&
+                PyArray_STRIDES(self)[axis] != PyArray_DESCR(self)->elsize) {
             PyErr_SetString(PyExc_ValueError,
-                    "To change to a dtype of a different size, the array must "
-                    "be C-contiguous");
+                    "To change to a dtype of a different size, the last axis "
+                    "must be contiguous");
             goto fail;
         }
 
+        npy_intp newdim;
+
         if (newtype->elsize < PyArray_DESCR(self)->elsize) {
-            /* if it is compatible, increase the size of the relevant axis */
+            /* if it is compatible, increase the size of the last axis */
             if (newtype->elsize == 0 ||
                     PyArray_DESCR(self)->elsize % newtype->elsize != 0) {
                 PyErr_SetString(PyExc_ValueError,
@@ -551,7 +539,7 @@ array_descr_set(PyArrayObject *self, PyObject *arg, void *NPY_UNUSED(ignored))
             PyArray_DIMS(self)[axis] *= newdim;
             PyArray_STRIDES(self)[axis] = newtype->elsize;
         }
-        else if (newtype->elsize > PyArray_DESCR(self)->elsize) {
+        else /* newtype->elsize > PyArray_DESCR(self)->elsize */ {
             /* if it is compatible, decrease the size of the relevant axis */
             newdim = PyArray_DIMS(self)[axis] * PyArray_DESCR(self)->elsize;
             if ((newdim % newtype->elsize) != 0) {
@@ -626,7 +614,7 @@ array_struct_get(PyArrayObject *self, void *NPY_UNUSED(ignored))
         inter->flags = inter->flags & ~NPY_ARRAY_WRITEABLE;
     }
     /* reset unused flags */
-    inter->flags &= ~(NPY_ARRAY_WRITEBACKIFCOPY | NPY_ARRAY_UPDATEIFCOPY |NPY_ARRAY_OWNDATA);
+    inter->flags &= ~(NPY_ARRAY_WRITEBACKIFCOPY | NPY_ARRAY_OWNDATA);
     if (PyArray_ISNOTSWAPPED(self)) inter->flags |= NPY_ARRAY_NOTSWAPPED;
     /*
      * Copy shape and strides over since these can be reset
@@ -945,15 +933,6 @@ array_transpose_get(PyArrayObject *self, void *NPY_UNUSED(ignored))
     return PyArray_Transpose(self, NULL);
 }
 
-/* If this is None, no function call is made
-   --- default sub-class behavior
-*/
-static PyObject *
-array_finalize_get(PyArrayObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
-{
-    Py_RETURN_NONE;
-}
-
 NPY_NO_EXPORT PyGetSetDef array_getsetlist[] = {
     {"ndim",
         (getter)array_ndim_get,
@@ -1025,10 +1004,6 @@ NPY_NO_EXPORT PyGetSetDef array_getsetlist[] = {
         NULL, NULL},
     {"__array_priority__",
         (getter)array_priority_get,
-        NULL,
-        NULL, NULL},
-    {"__array_finalize__",
-        (getter)array_finalize_get,
         NULL,
         NULL, NULL},
     {NULL, NULL, NULL, NULL, NULL},  /* Sentinel */

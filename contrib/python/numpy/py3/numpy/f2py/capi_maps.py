@@ -170,6 +170,7 @@ f2cmap_all = {'real': {'': 'float', '4': 'float', '8': 'double',
 
 f2cmap_default = copy.deepcopy(f2cmap_all)
 
+f2cmap_mapped = []
 
 def load_f2cmap_file(f2cmap_file):
     global f2cmap_all
@@ -190,7 +191,7 @@ def load_f2cmap_file(f2cmap_file):
     try:
         outmess('Reading f2cmap from {!r} ...\n'.format(f2cmap_file))
         with open(f2cmap_file, 'r') as f:
-            d = eval(f.read(), {}, {})
+            d = eval(f.read().lower(), {}, {})
         for k, d1 in d.items():
             for k1 in d1.keys():
                 d1[k1.lower()] = d1[k1]
@@ -206,6 +207,7 @@ def load_f2cmap_file(f2cmap_file):
                     f2cmap_all[k][k1] = d[k][k1]
                     outmess('\tMapping "%s(kind=%s)" to "%s"\n' %
                             (k, k1, d[k][k1]))
+                    f2cmap_mapped.append(d[k][k1])
                 else:
                     errmess("\tIgnoring map {'%s':{'%s':'%s'}}: '%s' must be in %s\n" % (
                         k, k1, d[k][k1], d[k][k1], list(c2py_map.keys())))
@@ -504,7 +506,8 @@ def sign2map(a, var):
     varname,ctype,atype
     init,init.r,init.i,pytype
     vardebuginfo,vardebugshowvalue,varshowvalue
-    varrfromat
+    varrformat
+
     intent
     """
     out_a = a

@@ -65,7 +65,7 @@ cdef object random_raw(bitgen_t *bitgen, object lock, object size, object output
 
     Notes
     -----
-    This method directly exposes the the raw underlying pseudo-random
+    This method directly exposes the raw underlying pseudo-random
     number generator. All values are returned as unsigned 64-bit
     values irrespective of the number of bits produced by the PRNG.
 
@@ -172,8 +172,23 @@ cdef object prepare_ctypes(bitgen_t *bitgen):
     return _ctypes
 
 cdef double kahan_sum(double *darr, np.npy_intp n):
+    """
+    Parameters
+    ----------
+    darr : reference to double array
+        Address of values to sum
+    n : intp
+        Length of d
+    
+    Returns
+    -------
+    float
+        The sum. 0.0 if n <= 0.
+    """
     cdef double c, y, t, sum
     cdef np.npy_intp i
+    if n <= 0:
+        return 0.0
     sum = darr[0]
     c = 0.0
     for i in range(1, n):
@@ -377,6 +392,9 @@ cdef int check_array_constraint(np.ndarray val, object name, constraint_type con
     elif cons == CONS_BOUNDED_GT_0_1:
         if not np.all(np.greater(val, 0)) or not np.all(np.less_equal(val, 1)):
             raise ValueError("{0} <= 0, {0} > 1 or {0} contains NaNs".format(name))
+    elif cons == CONS_BOUNDED_LT_0_1:
+        if not np.all(np.greater_equal(val, 0)) or not np.all(np.less(val, 1)):
+            raise ValueError("{0} < 0, {0} >= 1 or {0} contains NaNs".format(name))
     elif cons == CONS_GT_1:
         if not np.all(np.greater(val, 1)):
             raise ValueError("{0} <= 1 or {0} contains NaNs".format(name))
@@ -400,10 +418,10 @@ cdef int check_array_constraint(np.ndarray val, object name, constraint_type con
 cdef int check_constraint(double val, object name, constraint_type cons) except -1:
     cdef bint is_nan
     if cons == CONS_NON_NEGATIVE:
-        if not np.isnan(val) and np.signbit(val):
+        if not npmath.isnan(val) and npmath.signbit(val):
             raise ValueError(name + " < 0")
     elif cons == CONS_POSITIVE or cons == CONS_POSITIVE_NOT_NAN:
-        if cons == CONS_POSITIVE_NOT_NAN and np.isnan(val):
+        if cons == CONS_POSITIVE_NOT_NAN and npmath.isnan(val):
             raise ValueError(name + " must not be NaN")
         elif val <= 0:
             raise ValueError(name + " <= 0")
@@ -413,6 +431,9 @@ cdef int check_constraint(double val, object name, constraint_type cons) except 
     elif cons == CONS_BOUNDED_GT_0_1:
         if not val >0 or not val <= 1:
             raise ValueError("{0} <= 0, {0} > 1 or {0} contains NaNs".format(name))
+    elif cons == CONS_BOUNDED_LT_0_1:
+        if not (val >= 0) or not (val < 1):
+            raise ValueError("{0} < 0, {0} >= 1 or {0} is NaN".format(name))
     elif cons == CONS_GT_1:
         if not (val > 1):
             raise ValueError("{0} <= 1 or {0} is NaN".format(name))

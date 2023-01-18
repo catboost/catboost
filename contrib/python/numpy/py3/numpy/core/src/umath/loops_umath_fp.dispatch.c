@@ -22,37 +22,6 @@
 #line 16
 #line 20
 static void
-simd_tanh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
-                        npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
-{
-    const int vstep = npyv_nlanes_f32;
-    for (; len > 0; len -= vstep, src += ssrc*vstep, dst += sdst*vstep) {
-        npyv_f32 x;
-        #if 0
-            if (ssrc == 1) {
-                x = npyv_load_till_f32(src, len, 0);
-            } else {
-                x = npyv_loadn_till_f32(src, ssrc, len, 0);
-            }
-        #else
-            if (ssrc == 1) {
-                x = npyv_load_tillz_f32(src, len);
-            } else {
-                x = npyv_loadn_tillz_f32(src, ssrc, len);
-            }
-        #endif
-        npyv_f32 out = __svml_tanhf16(x);
-        if (sdst == 1) {
-            npyv_store_till_f32(dst, len, out);
-        } else {
-            npyv_storen_till_f32(dst, sdst, len, out);
-        }
-    }
-    npyv_cleanup();
-}
-
-#line 20
-static void
 simd_exp2_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
 {
@@ -518,37 +487,6 @@ simd_atanh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
 
 
 #line 16
-#line 20
-static void
-simd_tanh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
-                        npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
-{
-    const int vstep = npyv_nlanes_f64;
-    for (; len > 0; len -= vstep, src += ssrc*vstep, dst += sdst*vstep) {
-        npyv_f64 x;
-        #if 0
-            if (ssrc == 1) {
-                x = npyv_load_till_f64(src, len, 0);
-            } else {
-                x = npyv_loadn_till_f64(src, ssrc, len, 0);
-            }
-        #else
-            if (ssrc == 1) {
-                x = npyv_load_tillz_f64(src, len);
-            } else {
-                x = npyv_loadn_tillz_f64(src, ssrc, len);
-            }
-        #endif
-        npyv_f64 out = __svml_tanh8(x);
-        if (sdst == 1) {
-            npyv_store_till_f64(dst, len, out);
-        } else {
-            npyv_storen_till_f64(dst, sdst, len, out);
-        }
-    }
-    npyv_cleanup();
-}
-
 #line 20
 static void
 simd_exp2_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
@@ -1066,31 +1004,6 @@ simd_cos_f64(const double *src, npy_intp ssrc,
 
 #line 85
 #line 89
-NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_tanh)
-(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
-{
-#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
-    const npy_double *src = (npy_double*)args[0];
-          npy_double *dst = (npy_double*)args[1];
-    const int lsize = sizeof(src[0]);
-    const npy_intp ssrc = steps[0] / lsize;
-    const npy_intp sdst = steps[1] / lsize;
-    const npy_intp len = dimensions[0];
-    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
-    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
-        npyv_loadable_stride_f64(ssrc) &&
-        npyv_storable_stride_f64(sdst)) {
-        simd_tanh_f64(src, ssrc, dst, sdst, len);
-        return;
-    }
-#endif
-    UNARY_LOOP {
-        const npy_double in1 = *(npy_double *)ip1;
-        *(npy_double *)op1 = npy_tanh(in1);
-    }
-}
-
-#line 89
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_exp2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1467,31 +1380,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctanh)
 
 
 #line 85
-#line 89
-NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_tanh)
-(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
-{
-#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
-    const npy_float *src = (npy_float*)args[0];
-          npy_float *dst = (npy_float*)args[1];
-    const int lsize = sizeof(src[0]);
-    const npy_intp ssrc = steps[0] / lsize;
-    const npy_intp sdst = steps[1] / lsize;
-    const npy_intp len = dimensions[0];
-    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
-    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
-        npyv_loadable_stride_f32(ssrc) &&
-        npyv_storable_stride_f32(sdst)) {
-        simd_tanh_f32(src, ssrc, dst, sdst, len);
-        return;
-    }
-#endif
-    UNARY_LOOP {
-        const npy_float in1 = *(npy_float *)ip1;
-        *(npy_float *)op1 = npy_tanhf(in1);
-    }
-}
-
 #line 89
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_exp2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))

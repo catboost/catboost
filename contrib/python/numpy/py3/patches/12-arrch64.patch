@@ -1,0 +1,171 @@
+--- contrib/python/numpy/py3/numpy/core/src/_simd/_simd.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/_simd/_simd.dispatch.h	(working tree)
+@@ -10,8 +10,13 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512_SKX)), AVX512_SKX, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512F)), AVX512F, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX)&&CHK(F16C)&&CHK(FMA3)&&CHK(AVX2)), FMA3__AVX2, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(SSE)&&CHK(SSE2)&&CHK(SSE3)&&CHK(SSSE3)&&CHK(SSE41)&&CHK(POPCNT)&&CHK(SSE42)), SSE42, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/_umath_tests.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/_umath_tests.dispatch.h	(working tree)
+@@ -10,6 +10,11 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX)&&CHK(F16C)&&CHK(AVX2)), AVX2, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(SSE)&&CHK(SSE2)&&CHK(SSE3)&&CHK(SSSE3)&&CHK(SSE41)), SSE41, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(ASIMD)&&CHK(ASIMDHP)), ASIMDHP, __VA_ARGS__))
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/loops_arithm_fp.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/loops_arithm_fp.dispatch.h	(working tree)
+@@ -10,6 +10,11 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512F)), AVX512F, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX)&&CHK(F16C)&&CHK(AVX2)), AVX2, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/loops_arithmetic.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/loops_arithmetic.dispatch.h	(working tree)
+@@ -10,8 +10,13 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512_SKX)), AVX512_SKX, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512F)), AVX512F, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX)&&CHK(F16C)&&CHK(AVX2)), AVX2, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(SSE)&&CHK(SSE2)&&CHK(SSE3)&&CHK(SSSE3)&&CHK(SSE41)), SSE41, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/loops_exponent_log.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/loops_exponent_log.dispatch.h	(working tree)
+@@ -10,7 +10,12 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512_SKX)), AVX512_SKX, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512F)), AVX512F, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX)&&CHK(F16C)&&CHK(FMA3)&&CHK(AVX2)), FMA3__AVX2, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/loops_trigonometric.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/loops_trigonometric.dispatch.h	(working tree)
+@@ -10,6 +10,11 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512F)), AVX512F, __VA_ARGS__)) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX)&&CHK(F16C)&&CHK(FMA3)&&CHK(AVX2)), FMA3__AVX2, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/loops_umath_fp.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/loops_umath_fp.dispatch.h	(working tree)
+@@ -10,5 +10,10 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512_SKX)), AVX512_SKX, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/loops_unary_fp.dispatch.h	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/loops_unary_fp.dispatch.h	(working tree)
+@@ -10,5 +10,10 @@
+ #undef NPY__CPU_DISPATCH_CALL
+ #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
++#if defined(__x86_64__) || defined(_M_X64)
+ #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+ 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(SSE)&&CHK(SSE2)&&CHK(SSE3)&&CHK(SSSE3)&&CHK(SSE41)), SSE41, __VA_ARGS__))
++#elif defined(__aarch64__)
++#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
++
++#endif
+--- contrib/python/numpy/py3/numpy/core/src/umath/_umath_tests.dispatch.asimdhp.c	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/_umath_tests.dispatch.asimdhp.c	(working tree)
+@@ -0,0 +1,12 @@
++/**
++ * AUTOGENERATED DON'T EDIT
++ * Please make changes to the code generator              (distutils/ccompiler_opt.py)
++ */
++#define NPY__CPU_TARGET_MODE
++#define NPY__CPU_TARGET_CURRENT ASIMDHP
++#define NPY__CPU_TARGET_NEON
++#define NPY__CPU_TARGET_NEON_FP16
++#define NPY__CPU_TARGET_NEON_VFPV4
++#define NPY__CPU_TARGET_ASIMD
++#define NPY__CPU_TARGET_ASIMDHP
++#include "_umath_tests.dispatch.c"
+--- contrib/python/numpy/py3/numpy/distutils/include/npy_cpu_dispatch_config.aarch64.h	(index)
++++ contrib/python/numpy/py3/numpy/distutils/include/npy_cpu_dispatch_config.aarch64.h	(working tree)
+@@ -0,0 +1,38 @@
++/*
++ * AUTOGENERATED DON'T EDIT
++ * Please make changes to the code generator (distutils/ccompiler_opt.py)
++*/
++#define NPY_WITH_CPU_BASELINE  "NEON NEON_FP16 NEON_VFPV4 ASIMD"
++#define NPY_WITH_CPU_DISPATCH  "ASIMDHP ASIMDDP"
++#define NPY_WITH_CPU_BASELINE_N 4
++#define NPY_WITH_CPU_DISPATCH_N 2
++#define NPY_WITH_CPU_EXPAND_(X) X
++#define NPY_WITH_CPU_BASELINE_CALL(MACRO_TO_CALL, ...) \
++	NPY_WITH_CPU_EXPAND_(MACRO_TO_CALL(NEON, __VA_ARGS__)) \
++	NPY_WITH_CPU_EXPAND_(MACRO_TO_CALL(NEON_FP16, __VA_ARGS__)) \
++	NPY_WITH_CPU_EXPAND_(MACRO_TO_CALL(NEON_VFPV4, __VA_ARGS__)) \
++	NPY_WITH_CPU_EXPAND_(MACRO_TO_CALL(ASIMD, __VA_ARGS__))
++#define NPY_WITH_CPU_DISPATCH_CALL(MACRO_TO_CALL, ...) \
++	NPY_WITH_CPU_EXPAND_(MACRO_TO_CALL(ASIMDHP, __VA_ARGS__)) \
++	NPY_WITH_CPU_EXPAND_(MACRO_TO_CALL(ASIMDDP, __VA_ARGS__))
++/******* baseline features *******/
++	/** NEON **/
++	#define NPY_HAVE_NEON 1
++	#include <arm_neon.h>
++	/** NEON_FP16 **/
++	#define NPY_HAVE_NEON_FP16 1
++	/** NEON_VFPV4 **/
++	#define NPY_HAVE_NEON_VFPV4 1
++	/** ASIMD **/
++	#define NPY_HAVE_ASIMD 1
++
++/******* dispatch features *******/
++#ifdef NPY__CPU_TARGET_ASIMDHP
++	/** ASIMDHP **/
++	#define NPY_HAVE_ASIMDHP 1
++#endif /*NPY__CPU_TARGET_ASIMDHP*/
++#ifdef NPY__CPU_TARGET_ASIMDDP
++	/** ASIMDDP **/
++	#define NPY_HAVE_ASIMDDP 1
++#endif /*NPY__CPU_TARGET_ASIMDDP*/
++

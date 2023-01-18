@@ -147,7 +147,7 @@ class TestMultinomial:
 
 class TestMultivariateHypergeometric:
 
-    def setup(self):
+    def setup_method(self):
         self.seed = 8675309
 
     def test_argument_validation(self):
@@ -280,7 +280,7 @@ class TestMultivariateHypergeometric:
 
 
 class TestSetState:
-    def setup(self):
+    def setup_method(self):
         self.seed = 1234567890
         self.rg = Generator(MT19937(self.seed))
         self.bit_generator = self.rg.bit_generator
@@ -707,7 +707,7 @@ class TestRandomDist:
     # Make sure the random distribution returns the correct value for a
     # given seed
 
-    def setup(self):
+    def setup_method(self):
         self.seed = 1234567890
 
     def test_integers(self):
@@ -1020,6 +1020,13 @@ class TestRandomDist:
         arr = np.ones((3, 2))
         assert_raises(np.AxisError, random.shuffle, arr, 2)
 
+    def test_shuffle_not_writeable(self):
+        random = Generator(MT19937(self.seed))
+        a = np.zeros(5)
+        a.flags.writeable = False
+        with pytest.raises(ValueError, match='read-only'):
+            random.shuffle(a)
+
     def test_permutation(self):
         random = Generator(MT19937(self.seed))
         alist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
@@ -1115,6 +1122,12 @@ class TestRandomDist:
         x = np.ones((3, 5))
         with pytest.raises(TypeError, match='Cannot cast'):
             random.permuted(x, axis=1, out=out)
+
+    def test_permuted_not_writeable(self):
+        x = np.zeros((2, 5))
+        x.flags.writeable = False
+        with pytest.raises(ValueError, match='read-only'):
+            random.permuted(x, axis=1, out=x)
 
     def test_beta(self):
         random = Generator(MT19937(self.seed))
@@ -1350,10 +1363,22 @@ class TestRandomDist:
                             [5, 1]])
         assert_array_equal(actual, desired)
 
-    def test_logseries_exceptions(self):
-        with np.errstate(invalid='ignore'):
-            assert_raises(ValueError, random.logseries, np.nan)
-            assert_raises(ValueError, random.logseries, [np.nan] * 10)
+    def test_logseries_zero(self):
+        random = Generator(MT19937(self.seed))
+        assert random.logseries(0) == 1
+
+    @pytest.mark.parametrize("value", [np.nextafter(0., -1), 1., np.nan, 5.])
+    def test_logseries_exceptions(self, value):
+        random = Generator(MT19937(self.seed))
+        with np.errstate(invalid="ignore"):
+            with pytest.raises(ValueError):
+                random.logseries(value)
+            with pytest.raises(ValueError):
+                # contiguous path:
+                random.logseries(np.array([value] * 10))
+            with pytest.raises(ValueError):
+                # non-contiguous path:
+                random.logseries(np.array([value] * 10)[::2])
 
     def test_multinomial(self):
         random = Generator(MT19937(self.seed))
@@ -1471,6 +1496,13 @@ class TestRandomDist:
         # Verify that p=0 raises an exception.
         with assert_raises(ValueError):
             x = random.negative_binomial(1, 0)
+
+    def test_negative_binomial_invalid_p_n_combination(self):
+        # Verify that values of p and n that would result in an overflow
+        # or infinite loop raise an exception.
+        with np.errstate(invalid='ignore'):
+            assert_raises(ValueError, random.negative_binomial, 2**62, 0.1)
+            assert_raises(ValueError, random.negative_binomial, [2**62], [0.1])
 
     def test_noncentral_chisquare(self):
         random = Generator(MT19937(self.seed))
@@ -1803,7 +1835,7 @@ class TestRandomDist:
 class TestBroadcast:
     # tests that functions that broadcast behave
     # correctly when presented with non-scalar arguments
-    def setup(self):
+    def setup_method(self):
         self.seed = 123456789
 
 
@@ -2416,7 +2448,7 @@ class TestBroadcast:
 
 class TestThread:
     # make sure each state produces the same sequence even in threads
-    def setup(self):
+    def setup_method(self):
         self.seeds = range(4)
 
     def check_function(self, function, sz):
@@ -2462,7 +2494,7 @@ class TestThread:
 
 # See Issue #4263
 class TestSingleEltArrayInput:
-    def setup(self):
+    def setup_method(self):
         self.argOne = np.array([2])
         self.argTwo = np.array([3])
         self.argThree = np.array([4])
@@ -2550,7 +2582,7 @@ class TestSingleEltArrayInput:
 def test_jumped(config):
     # Each config contains the initial seed, a number of raw steps
     # the sha256 hashes of the initial and the final states' keys and
-    # the position of of the initial and the final state.
+    # the position of the initial and the final state.
     # These were produced using the original C implementation.
     seed = config["seed"]
     steps = config["steps"]

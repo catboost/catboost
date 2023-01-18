@@ -1073,13 +1073,15 @@ check_for_trivial_loop(PyArrayMethodObject *ufuncimpl,
         int must_copy = !PyArray_ISALIGNED(op[i]);
 
         if (dtypes[i] != PyArray_DESCR(op[i])) {
-            NPY_CASTING safety = PyArray_GetCastSafety(
-                    PyArray_DESCR(op[i]), dtypes[i], NULL);
+            npy_intp view_offset;
+            NPY_CASTING safety = PyArray_GetCastInfo(
+                    PyArray_DESCR(op[i]), dtypes[i], NULL, &view_offset);
             if (safety < 0 && PyErr_Occurred()) {
                 /* A proper error during a cast check, should be rare */
                 return -1;
             }
-            if (!(safety & _NPY_CAST_IS_VIEW)) {
+            if (view_offset != 0) {
+                /* NOTE: Could possibly implement non-zero view offsets */
                 must_copy = 1;
             }
 
@@ -1204,6 +1206,7 @@ prepare_ufunc_output(PyUFuncObject *ufunc,
  * cannot broadcast any other array (as it requires a single stride).
  * The function accepts all 1-D arrays, and N-D arrays that are either all
  * C- or all F-contiguous.
+ * NOTE: Broadcast outputs are implicitly rejected in the overlap detection.
  *
  * Returns -2 if a trivial loop is not possible, 0 on success and -1 on error.
  */
@@ -1240,7 +1243,7 @@ try_trivial_single_output_loop(PyArrayMethod_Context *context,
         int op_ndim = PyArray_NDIM(op[iop]);
 
         /* Special case 0-D since we can handle broadcasting using a 0-stride */
-        if (op_ndim == 0) {
+        if (op_ndim == 0 && iop < nin) {
             fixed_strides[iop] = 0;
             continue;
         }
@@ -1251,7 +1254,7 @@ try_trivial_single_output_loop(PyArrayMethod_Context *context,
             operation_shape = PyArray_SHAPE(op[iop]);
         }
         else if (op_ndim != operation_ndim) {
-            return -2;  /* dimension mismatch (except 0-d ops) */
+            return -2;  /* dimension mismatch (except 0-d input ops) */
         }
         else if (!PyArray_CompareLists(
                 operation_shape, PyArray_DIMS(op[iop]), op_ndim)) {
@@ -1319,6 +1322,10 @@ try_trivial_single_output_loop(PyArrayMethod_Context *context,
      */
     char *data[NPY_MAXARGS];
     npy_intp count = PyArray_MultiplyList(operation_shape, operation_ndim);
+    if (count == 0) {
+        /* Nothing to do */
+        return 0;
+    }
     NPY_BEGIN_THREADS_DEF;
 
     PyArrayMethod_StridedLoop *strided_loop;
@@ -2702,7 +2709,7 @@ PyUFunc_GenericFunction(PyUFuncObject *NPY_UNUSED(ufunc),
  * @param out_descrs New references to the resolved descriptors (on success).
  * @param method The ufunc method, "reduce", "reduceat", or "accumulate".
 
- * @returns ufuncimpl The `ArrayMethod` implemention to use. Or NULL if an
+ * @returns ufuncimpl The `ArrayMethod` implementation to use. Or NULL if an
  *          error occurred.
  */
 static PyArrayMethodObject *
@@ -2817,7 +2824,7 @@ reduce_loop(PyArrayMethod_Context *context,
         npy_intp const *countptr, NpyIter_IterNextFunc *iternext,
         int needs_api, npy_intp skip_first_count)
 {
-    int retval;
+    int retval = 0;
     char *dataptrs_copy[4];
     npy_intp strides_copy[4];
     npy_bool masked;
@@ -2847,19 +2854,20 @@ reduce_loop(PyArrayMethod_Context *context,
                     count = 0;
                 }
             }
+            if (count > 0) {
+                /* Turn the two items into three for the inner loop */
+                dataptrs_copy[0] = dataptrs[0];
+                dataptrs_copy[1] = dataptrs[1];
+                dataptrs_copy[2] = dataptrs[0];
+                strides_copy[0] = strides[0];
+                strides_copy[1] = strides[1];
+                strides_copy[2] = strides[0];
 
-            /* Turn the two items into three for the inner loop */
-            dataptrs_copy[0] = dataptrs[0];
-            dataptrs_copy[1] = dataptrs[1];
-            dataptrs_copy[2] = dataptrs[0];
-            strides_copy[0] = strides[0];
-            strides_copy[1] = strides[1];
-            strides_copy[2] = strides[0];
-
-            retval = strided_loop(context,
-                    dataptrs_copy, &count, strides_copy, auxdata);
-            if (retval < 0) {
-                goto finish_loop;
+                retval = strided_loop(context,
+                        dataptrs_copy, &count, strides_copy, auxdata);
+                if (retval < 0) {
+                    goto finish_loop;
+                }
             }
 
             /* Advance loop, and abort on error (or finish) */
@@ -4538,8 +4546,10 @@ resolve_descriptors(int nop,
 
     if (ufuncimpl->resolve_descriptors != &wrapped_legacy_resolve_descriptors) {
         /* The default: use the `ufuncimpl` as nature intended it */
+        npy_intp view_offset = NPY_MIN_INTP;  /* currently ignored */
+
         NPY_CASTING safety = ufuncimpl->resolve_descriptors(ufuncimpl,
-                signature, original_dtypes, dtypes);
+                signature, original_dtypes, dtypes, &view_offset);
         if (safety < 0) {
             goto finish;
         }

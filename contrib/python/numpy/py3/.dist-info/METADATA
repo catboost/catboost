@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: numpy
-Version: 1.22.4
+Version: 1.23.5
 Summary: NumPy is the fundamental package for array computing with Python.
 Home-page: https://www.numpy.org
 Author: Travis E. Oliphant et al.
@@ -9,7 +9,7 @@ Maintainer-email: numpy-discussion@python.org
 License: BSD
 Download-URL: https://pypi.python.org/pypi/numpy
 Project-URL: Bug Tracker, https://github.com/numpy/numpy/issues
-Project-URL: Documentation, https://numpy.org/doc/1.22
+Project-URL: Documentation, https://numpy.org/doc/1.23
 Project-URL: Source Code, https://github.com/numpy/numpy
 Platform: Windows
 Platform: Linux
@@ -26,6 +26,7 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Topic :: Software Development
@@ -36,6 +37,8 @@ Classifier: Operating System :: POSIX
 Classifier: Operating System :: Unix
 Classifier: Operating System :: MacOS
 Requires-Python: >=3.8
+License-File: LICENSE.txt
+License-File: LICENSES_bundled.txt
 
 It provides:
 
@@ -51,6 +54,11 @@ defined. This allows NumPy to seamlessly and speedily integrate with a wide
 variety of databases.
 
 All NumPy wheels distributed on PyPI are BSD licensed.
+
+NumPy requires ``pytest`` and ``hypothesis``.  Tests can then be run after
+installation with::
+
+    python -c 'import numpy; numpy.test()'
 
 
 

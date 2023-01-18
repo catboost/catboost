@@ -20,7 +20,6 @@ PY_SRCS(
     crackfortran.py
     diagnose.py
     f2py2e.py
-    f2py_testing.py
     f90mod_rules.py
     func2subr.py
     rules.py

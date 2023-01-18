@@ -25,7 +25,7 @@ def build_and_import_extension(
     functions : list of fragments
         Each fragment is a sequence of func_name, calling convention, snippet.
     prologue : string
-        Code to preceed the rest, usually extra ``#include`` or ``#define``
+        Code to precede the rest, usually extra ``#include`` or ``#define``
         macros.
     build_dir : pathlib.Path
         Where to build the module, usually a temporary directory
@@ -102,7 +102,7 @@ def compile_extension_module(
     dirname = builddir / name
     dirname.mkdir(exist_ok=True)
     cfile = _convert_str_to_file(source_string, dirname)
-    include_dirs = [sysconfig.get_config_var('INCLUDEPY')] + include_dirs
+    include_dirs = include_dirs + [sysconfig.get_config_var('INCLUDEPY')]
 
     return _c_compile(
         cfile, outputfilename=dirname / modname,

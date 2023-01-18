@@ -67,8 +67,8 @@
  *
  * The code here avoid multiple conversion of array-like objects (including
  * sequences). These objects are cached after conversion, which will require
- * additional memory, but can drastically speed up coercion from from array
- * like objects.
+ * additional memory, but can drastically speed up coercion from array like
+ * objects.
  */
 
 
@@ -228,6 +228,16 @@ npy_discover_dtype_from_pytype(PyTypeObject *pytype)
     }
     assert(PyObject_TypeCheck(DType, (PyTypeObject *)&PyArrayDTypeMeta_Type));
     return (PyArray_DTypeMeta *)DType;
+}
+
+/*
+ * Note: This function never fails, but will return `NULL` for unknown scalars
+ *       and `None` for known array-likes (e.g. tuple, list, ndarray).
+ */
+NPY_NO_EXPORT PyObject *
+PyArray_DiscoverDTypeFromScalarType(PyTypeObject *pytype)
+{
+    return (PyObject *)npy_discover_dtype_from_pytype(pytype);
 }
 
 

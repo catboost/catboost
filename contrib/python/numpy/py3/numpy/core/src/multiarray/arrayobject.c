@@ -75,36 +75,19 @@ PyArray_Size(PyObject *op)
     }
 }
 
-/*NUMPY_API
- *
- * Precondition: 'arr' is a copy of 'base' (though possibly with different
- * strides, ordering, etc.). This function sets the UPDATEIFCOPY flag and the
- * ->base pointer on 'arr', so that when 'arr' is destructed, it will copy any
- * changes back to 'base'. DEPRECATED, use PyArray_SetWritebackIfCopyBase
- *
- * Steals a reference to 'base'.
- *
- * Returns 0 on success, -1 on failure.
- */
+/*NUMPY_API */
 NPY_NO_EXPORT int
 PyArray_SetUpdateIfCopyBase(PyArrayObject *arr, PyArrayObject *base)
 {
-    int ret;
-    /* 2017-Nov  -10 1.14 (for PyPy only) */
-    /* 2018-April-21 1.15 (all Python implementations) */
-    if (DEPRECATE("PyArray_SetUpdateIfCopyBase is deprecated, use "
-              "PyArray_SetWritebackIfCopyBase instead, and be sure to call "
-              "PyArray_ResolveWritebackIfCopy before the array is deallocated, "
-              "i.e. before the last call to Py_DECREF. If cleaning up from an "
-              "error, PyArray_DiscardWritebackIfCopy may be called instead to "
-              "throw away the scratch buffer.") < 0)
-        return -1;
-    ret = PyArray_SetWritebackIfCopyBase(arr, base);
-    if (ret >=0) {
-        PyArray_ENABLEFLAGS(arr, NPY_ARRAY_UPDATEIFCOPY);
-        PyArray_CLEARFLAGS(arr, NPY_ARRAY_WRITEBACKIFCOPY);
-    }
-    return ret;
+    /* 2021-Dec-15 1.23*/
+    PyErr_SetString(PyExc_RuntimeError,
+        "PyArray_SetUpdateIfCopyBase is disabled, use "
+        "PyArray_SetWritebackIfCopyBase instead, and be sure to call "
+        "PyArray_ResolveWritebackIfCopy before the array is deallocated, "
+        "i.e. before the last call to Py_DECREF. If cleaning up from an "
+        "error, PyArray_DiscardWritebackIfCopy may be called instead to "
+        "throw away the scratch buffer.");
+    return -1;
 }
 
 /*NUMPY_API
@@ -377,9 +360,9 @@ PyArray_ResolveWritebackIfCopy(PyArrayObject * self)
 {
     PyArrayObject_fields *fa = (PyArrayObject_fields *)self;
     if (fa && fa->base) {
-        if ((fa->flags & NPY_ARRAY_UPDATEIFCOPY) || (fa->flags & NPY_ARRAY_WRITEBACKIFCOPY)) {
+        if (fa->flags & NPY_ARRAY_WRITEBACKIFCOPY) {
             /*
-             * UPDATEIFCOPY or WRITEBACKIFCOPY means that fa->base's data
+             * WRITEBACKIFCOPY means that fa->base's data
              * should be updated with the contents
              * of self.
              * fa->base->flags is not WRITEABLE to protect the relationship
@@ -388,7 +371,6 @@ PyArray_ResolveWritebackIfCopy(PyArrayObject * self)
             int retval = 0;
             PyArray_ENABLEFLAGS(((PyArrayObject *)fa->base),
                                                     NPY_ARRAY_WRITEABLE);
-            PyArray_CLEARFLAGS(self, NPY_ARRAY_UPDATEIFCOPY);
             PyArray_CLEARFLAGS(self, NPY_ARRAY_WRITEBACKIFCOPY);
             retval = PyArray_CopyAnyInto((PyArrayObject *)fa->base, self);
             Py_DECREF(fa->base);
@@ -462,25 +444,6 @@ array_dealloc(PyArrayObject *self)
                 PyErr_Clear();
             }
         }
-        if (PyArray_FLAGS(self) & NPY_ARRAY_UPDATEIFCOPY) {
-            /* DEPRECATED, remove once the flag is removed */
-            char const * msg = "UPDATEIFCOPY detected in array_dealloc. "
-                " Required call to PyArray_ResolveWritebackIfCopy or "
-                "PyArray_DiscardWritebackIfCopy is missing";
-            /*
-             * prevent reaching 0 twice and thus recursing into dealloc.
-             * Increasing sys.gettotalrefcount, but path should not be taken.
-             */
-            Py_INCREF(self);
-            /* 2017-Nov-10 1.14 */
-            WARN_IN_DEALLOC(PyExc_DeprecationWarning, msg);
-            retval = PyArray_ResolveWritebackIfCopy(self);
-            if (retval < 0)
-            {
-                PyErr_Print();
-                PyErr_Clear();
-            }
-        }
         /*
          * If fa->base is non-NULL, it is something
          * to DECREF -- either a view or a buffer object
@@ -505,10 +468,6 @@ array_dealloc(PyArrayObject *self)
             free(fa->data);
         }
         else {
-            /*
-             * In theory `PyArray_NBYTES_ALLOCATED`, but differs somewhere?
-             * So instead just use the knowledge that 0 is impossible.
-             */
             size_t nbytes = PyArray_NBYTES(self);
             if (nbytes == 0) {
                 nbytes = 1;
@@ -572,8 +531,6 @@ PyArray_DebugPrint(PyArrayObject *obj)
         printf(" NPY_ALIGNED");
     if (fobj->flags & NPY_ARRAY_WRITEABLE)
         printf(" NPY_WRITEABLE");
-    if (fobj->flags & NPY_ARRAY_UPDATEIFCOPY)
-        printf(" NPY_UPDATEIFCOPY");
     if (fobj->flags & NPY_ARRAY_WRITEBACKIFCOPY)
         printf(" NPY_WRITEBACKIFCOPY");
     printf("\n");
@@ -661,15 +618,15 @@ array_might_be_written(PyArrayObject *obj)
 
 /*NUMPY_API
  *
- * This function does nothing if obj is writeable, and raises an exception
- * (and returns -1) if obj is not writeable. It may also do other
- * house-keeping, such as issuing warnings on arrays which are transitioning
- * to become views. Always call this function at some point before writing to
- * an array.
+ *  This function does nothing and returns 0 if *obj* is writeable.
+ *  It raises an exception and returns -1 if *obj* is not writeable.
+ *  It may also do other house-keeping, such as issuing warnings on
+ *  arrays which are transitioning to become views. Always call this
+ *  function at some point before writing to an array.
  *
- * 'name' is a name for the array, used to give better error
- * messages. Something like "assignment destination", "output array", or even
- * just "array".
+ *  *name* is a name for the array, used to give better error messages.
+ *  It can be something like "assignment destination", "output array",
+ *  or even just "array".
  */
 NPY_NO_EXPORT int
 PyArray_FailUnlessWriteable(PyArrayObject *obj, const char *name)
@@ -1068,35 +1025,85 @@ static PyObject *
 _void_compare(PyArrayObject *self, PyArrayObject *other, int cmp_op)
 {
     if (!(cmp_op == Py_EQ || cmp_op == Py_NE)) {
-        PyErr_SetString(PyExc_ValueError,
+        PyErr_SetString(PyExc_TypeError,
                 "Void-arrays can only be compared for equality.");
         return NULL;
     }
-    if (PyArray_HASFIELDS(self)) {
-        PyObject *res = NULL, *temp, *a, *b;
-        PyObject *key, *value, *temp2;
-        PyObject *op;
-        Py_ssize_t pos = 0;
+    if (PyArray_TYPE(other) != NPY_VOID) {
+        PyErr_SetString(PyExc_TypeError,
+                "Cannot compare structured or void to non-void arrays.");
+        return NULL;
+    }
+    if (PyArray_HASFIELDS(self) && PyArray_HASFIELDS(other)) {
+        PyArray_Descr *self_descr = PyArray_DESCR(self);
+        PyArray_Descr *other_descr = PyArray_DESCR(other);
+
+        /* Use promotion to decide whether the comparison is valid */
+        PyArray_Descr *promoted = PyArray_PromoteTypes(self_descr, other_descr);
+        if (promoted == NULL) {
+            PyErr_SetString(PyExc_TypeError,
+                    "Cannot compare structured arrays unless they have a "
+                    "common dtype.  I.e. `np.result_type(arr1, arr2)` must "
+                    "be defined.");
+            return NULL;
+        }
+        Py_DECREF(promoted);
+
         npy_intp result_ndim = PyArray_NDIM(self) > PyArray_NDIM(other) ?
                             PyArray_NDIM(self) : PyArray_NDIM(other);
 
-        op = (cmp_op == Py_EQ ? n_ops.logical_and : n_ops.logical_or);
-        while (PyDict_Next(PyArray_DESCR(self)->fields, &pos, &key, &value)) {
-            if (NPY_TITLE_KEY(key, value)) {
-                continue;
-            }
-            a = array_subscript_asarray(self, key);
+        int field_count = PyTuple_GET_SIZE(self_descr->names);
+        if (field_count != PyTuple_GET_SIZE(other_descr->names)) {
+            PyErr_SetString(PyExc_TypeError,
+                    "Cannot compare structured dtypes with different number of "
+                    "fields.  (unreachable error please report to NumPy devs)");
+            return NULL;
+        }
+
+        PyObject *op = (cmp_op == Py_EQ ? n_ops.logical_and : n_ops.logical_or);
+        PyObject *res = NULL;
+        for (int i = 0; i < field_count; ++i) {
+            PyObject *fieldname, *temp, *temp2;
+
+            fieldname = PyTuple_GET_ITEM(self_descr->names, i);
+            PyArrayObject *a = (PyArrayObject *)array_subscript_asarray(
+                    self, fieldname);
             if (a == NULL) {
                 Py_XDECREF(res);
                 return NULL;
             }
-            b = array_subscript_asarray(other, key);
+            fieldname = PyTuple_GET_ITEM(other_descr->names, i);
+            PyArrayObject *b = (PyArrayObject *)array_subscript_asarray(
+                    other, fieldname);
             if (b == NULL) {
                 Py_XDECREF(res);
                 Py_DECREF(a);
                 return NULL;
             }
-            temp = array_richcompare((PyArrayObject *)a,b,cmp_op);
+            /*
+             * If the fields were subarrays, the dimensions may have changed.
+             * In that case, the new shape (subarray part) must match exactly.
+             * (If this is 0, there is no subarray.)
+             */
+            int field_dims_a = PyArray_NDIM(a) - PyArray_NDIM(self);
+            int field_dims_b = PyArray_NDIM(b) - PyArray_NDIM(other);
+            if (field_dims_a != field_dims_b || (
+                    field_dims_a != 0 &&  /* neither is subarray */
+                    /* Compare only the added (subarray) dimensions: */
+                    !PyArray_CompareLists(
+                            PyArray_DIMS(a) + PyArray_NDIM(self),
+                            PyArray_DIMS(b) + PyArray_NDIM(other),
+                            field_dims_a))) {
+                PyErr_SetString(PyExc_TypeError,
+                        "Cannot compare subarrays with different shapes. "
+                        "(unreachable error, please report to NumPy devs.)");
+                Py_DECREF(a);
+                Py_DECREF(b);
+                Py_XDECREF(res);
+                return NULL;
+            }
+
+            temp = array_richcompare(a, (PyObject *)b, cmp_op);
             Py_DECREF(a);
             Py_DECREF(b);
             if (temp == NULL) {
@@ -1181,7 +1188,24 @@ _void_compare(PyArrayObject *self, PyArrayObject *other, int cmp_op)
         }
         return res;
     }
+    else if (PyArray_HASFIELDS(self) || PyArray_HASFIELDS(other)) {
+        PyErr_SetString(PyExc_TypeError,
+                "Cannot compare structured with unstructured void arrays. "
+                "(unreachable error, please report to NumPy devs.)");
+        return NULL;
+    }
     else {
+        /*
+         * Since arrays absorb subarray descriptors, this path can only be
+         * reached when both arrays have unstructured voids "V<len>" dtypes.
+         */
+        if (PyArray_ITEMSIZE(self) != PyArray_ITEMSIZE(other)) {
+            PyErr_SetString(PyExc_TypeError,
+                    "cannot compare unstructured voids of different length. "
+                    "Use bytes to compare. "
+                    "(This may return array of False in the future.)");
+            return NULL;
+        }
         /* compare as a string. Assumes self and other have same descr->type */
         return _strings_richcompare(self, other, cmp_op, 0);
     }
@@ -1366,8 +1390,6 @@ array_richcompare(PyArrayObject *self, PyObject *other, int cmp_op)
          */
 
         if (PyArray_TYPE(self) == NPY_VOID) {
-            int _res;
-
             array_other = (PyArrayObject *)PyArray_FROM_O(other);
             /*
              * If not successful, indicate that the items cannot be compared
@@ -1384,28 +1406,7 @@ array_richcompare(PyArrayObject *self, PyObject *other, int cmp_op)
                 return Py_NotImplemented;
             }
 
-            _res = PyArray_CheckCastSafety(
-                    NPY_EQUIV_CASTING,
-                    PyArray_DESCR(self), PyArray_DESCR(array_other), NULL);
-            if (_res < 0) {
-                PyErr_Clear();
-                _res = 0;
-            }
-            if (_res == 0) {
-                /* 2015-05-07, 1.10 */
-                Py_DECREF(array_other);
-                if (DEPRECATE_FUTUREWARNING(
-                        "elementwise == comparison failed and returning scalar "
-                        "instead; this will raise an error or perform "
-                        "elementwise comparison in the future.") < 0) {
-                    return NULL;
-                }
-                Py_INCREF(Py_False);
-                return Py_False;
-            }
-            else {
-                result = _void_compare(self, array_other, cmp_op);
-            }
+            result = _void_compare(self, array_other, cmp_op);
             Py_DECREF(array_other);
             return result;
         }
@@ -1421,8 +1422,6 @@ array_richcompare(PyArrayObject *self, PyObject *other, int cmp_op)
          */
 
         if (PyArray_TYPE(self) == NPY_VOID) {
-            int _res;
-
             array_other = (PyArrayObject *)PyArray_FROM_O(other);
             /*
              * If not successful, indicate that the items cannot be compared
@@ -1439,29 +1438,8 @@ array_richcompare(PyArrayObject *self, PyObject *other, int cmp_op)
                 return Py_NotImplemented;
             }
 
-            _res = PyArray_CheckCastSafety(
-                    NPY_EQUIV_CASTING,
-                    PyArray_DESCR(self), PyArray_DESCR(array_other), NULL);
-            if (_res < 0) {
-                PyErr_Clear();
-                _res = 0;
-            }
-            if (_res == 0) {
-                /* 2015-05-07, 1.10 */
-                Py_DECREF(array_other);
-                if (DEPRECATE_FUTUREWARNING(
-                        "elementwise != comparison failed and returning scalar "
-                        "instead; this will raise an error or perform "
-                        "elementwise comparison in the future.") < 0) {
-                    return NULL;
-                }
-                Py_INCREF(Py_True);
-                return Py_True;
-            }
-            else {
-                result = _void_compare(self, array_other, cmp_op);
-                Py_DECREF(array_other);
-            }
+            result = _void_compare(self, array_other, cmp_op);
+            Py_DECREF(array_other);
             return result;
         }
 

@@ -379,6 +379,18 @@ PyArray_GetField(PyArrayObject *self, PyArray_Descr *typed, int offset)
     static PyObject *checkfunc = NULL;
     int self_elsize, typed_elsize;
 
+    if (self == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+            "self is NULL in PyArray_GetField");
+        return NULL;
+    }
+
+    if (typed == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+            "typed is NULL in PyArray_GetField");
+        return NULL;
+    }
+
     /* check that we are not reinterpreting memory containing Objects. */
     if (_may_have_objects(PyArray_DESCR(self)) || _may_have_objects(typed)) {
         npy_cache_import("numpy.core._internal", "_getfield_is_safe",
@@ -456,6 +468,18 @@ PyArray_SetField(PyArrayObject *self, PyArray_Descr *dtype,
 {
     PyObject *ret = NULL;
     int retval = 0;
+
+    if (self == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+            "self is NULL in PyArray_SetField");
+        return -1;
+    }
+
+    if (dtype == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+            "dtype is NULL in PyArray_SetField");
+        return -1;
+    }
 
     if (PyArray_FailUnlessWriteable(self, "assignment destination") < 0) {
         Py_DECREF(dtype);
@@ -859,7 +883,7 @@ array_astype(PyArrayObject *self,
      * and it's not a subtype if subok is False, then we
      * can skip the copy.
      */
-    if (forcecopy != NPY_COPY_ALWAYS && 
+    if (forcecopy != NPY_COPY_ALWAYS &&
                     (order == NPY_KEEPORDER ||
                     (order == NPY_ANYORDER &&
                         (PyArray_IS_C_CONTIGUOUS(self) ||
@@ -881,7 +905,7 @@ array_astype(PyArrayObject *self,
         Py_DECREF(dtype);
         return NULL;
     }
-    
+
     if (!PyArray_CanCastArrayTo(self, dtype, casting)) {
         PyErr_Clear();
         npy_set_invalid_cast_error(
@@ -923,6 +947,13 @@ array_astype(PyArrayObject *self,
 }
 
 /* default sub-type implementation */
+
+
+static PyObject *
+array_finalizearray(PyArrayObject *self, PyObject *obj)
+{
+    Py_RETURN_NONE;
+}
 
 
 static PyObject *
@@ -1571,17 +1602,17 @@ array_searchsorted(PyArrayObject *self,
     return PyArray_Return((PyArrayObject *)PyArray_SearchSorted(self, keys, side, sorter));
 }
 
-static void
+static int
 _deepcopy_call(char *iptr, char *optr, PyArray_Descr *dtype,
                PyObject *deepcopy, PyObject *visit)
 {
     if (!PyDataType_REFCHK(dtype)) {
-        return;
+        return 0;
     }
     else if (PyDataType_HASFIELDS(dtype)) {
         PyObject *key, *value, *title = NULL;
         PyArray_Descr *new;
-        int offset;
+        int offset, res;
         Py_ssize_t pos = 0;
         while (PyDict_Next(dtype->fields, &pos, &key, &value)) {
             if (NPY_TITLE_KEY(key, value)) {
@@ -1589,10 +1620,13 @@ _deepcopy_call(char *iptr, char *optr, PyArray_Descr *dtype,
             }
             if (!PyArg_ParseTuple(value, "Oi|O", &new, &offset,
                                   &title)) {
-                return;
+                return -1;
             }
-            _deepcopy_call(iptr + offset, optr + offset, new,
-                           deepcopy, visit);
+            res = _deepcopy_call(iptr + offset, optr + offset, new,
+                                 deepcopy, visit);
+            if (res < 0) {
+                return -1;
+            }
         }
     }
     else {
@@ -1600,13 +1634,20 @@ _deepcopy_call(char *iptr, char *optr, PyArray_Descr *dtype,
         PyObject *res;
         memcpy(&itemp, iptr, sizeof(itemp));
         memcpy(&otemp, optr, sizeof(otemp));
-        Py_XINCREF(itemp);
+        if (itemp == NULL) {
+            itemp = Py_None;
+        }
+        Py_INCREF(itemp);
         /* call deepcopy on this argument */
         res = PyObject_CallFunctionObjArgs(deepcopy, itemp, visit, NULL);
-        Py_XDECREF(itemp);
+        Py_DECREF(itemp);
+        if (res == NULL) {
+            return -1;
+        }
         Py_XDECREF(otemp);
         memcpy(optr, &res, sizeof(res));
     }
+    return 0;
 
 }
 
@@ -1623,6 +1664,7 @@ array_deepcopy(PyArrayObject *self, PyObject *args)
     npy_intp *strideptr, *innersizeptr;
     npy_intp stride, count;
     PyObject *copy, *deepcopy;
+    int deepcopy_res;
 
     if (!PyArg_ParseTuple(args, "O:__deepcopy__", &visit)) {
         return NULL;
@@ -1673,8 +1715,12 @@ array_deepcopy(PyArrayObject *self, PyObject *args)
                 stride = *strideptr;
                 count = *innersizeptr;
                 while (count--) {
-                    _deepcopy_call(data, data, PyArray_DESCR(copied_array),
-                                   deepcopy, visit);
+                    deepcopy_res = _deepcopy_call(data, data, PyArray_DESCR(copied_array),
+                                                  deepcopy, visit);
+                    if (deepcopy_res == -1) {
+                        return NULL;
+                    }
+
                     data += stride;
                 }
             } while (iternext(iter));
@@ -1992,7 +2038,10 @@ array_setstate(PyArrayObject *self, PyObject *args)
      * since fa could be a 0-d or scalar, and then
      * PyDataMem_UserFREE will be confused
      */
-    size_t n_tofree = PyArray_NBYTES_ALLOCATED(self);
+    size_t n_tofree = PyArray_NBYTES(self);
+    if (n_tofree == 0) {
+        n_tofree = 1;
+    }
     Py_XDECREF(PyArray_DESCR(self));
     fa->descr = typecode;
     Py_INCREF(typecode);
@@ -2098,7 +2147,6 @@ array_setstate(PyArrayObject *self, PyObject *args)
     fa->base = NULL;
 
     PyArray_CLEARFLAGS(self, NPY_ARRAY_WRITEBACKIFCOPY);
-    PyArray_CLEARFLAGS(self, NPY_ARRAY_UPDATEIFCOPY);
 
     if (PyArray_DIMS(self) != NULL) {
         npy_free_cache_dim_array(self);
@@ -2130,7 +2178,10 @@ array_setstate(PyArrayObject *self, PyObject *args)
         /* Bytes should always be considered immutable, but we just grab the
          * pointer if they are large, to save memory. */
         if (!IsAligned(self) || swap || (len <= 1000)) {
-            npy_intp num = PyArray_NBYTES_ALLOCATED(self);
+            npy_intp num = PyArray_NBYTES(self);
+            if (num == 0) {
+                num = 1;
+            }
             /* Store the handler in case the default is modified */
             Py_XDECREF(fa->mem_handler);
             fa->mem_handler = PyDataMem_GetHandler();
@@ -2193,7 +2244,10 @@ array_setstate(PyArrayObject *self, PyObject *args)
         }
     }
     else {
-        npy_intp num = PyArray_NBYTES_ALLOCATED(self);
+        npy_intp num = PyArray_NBYTES(self);
+        if (num == 0) {
+            num = 1;
+        }
 
         /* Store the functions in case the default handler is modified */
         Py_XDECREF(fa->mem_handler);
@@ -2652,7 +2706,6 @@ array_setflags(PyArrayObject *self, PyObject *args, PyObject *kwds)
         }
         else {
             PyArray_CLEARFLAGS(self, NPY_ARRAY_WRITEBACKIFCOPY);
-            PyArray_CLEARFLAGS(self, NPY_ARRAY_UPDATEIFCOPY);
             Py_XDECREF(fa->base);
             fa->base = NULL;
         }
@@ -2776,7 +2829,7 @@ array_class_getitem(PyObject *cls, PyObject *args)
     Py_ssize_t args_len;
 
     args_len = PyTuple_Check(args) ? PyTuple_Size(args) : 1;
-    if (args_len != 2) {
+    if ((args_len > 2) || (args_len == 0)) {
         return PyErr_Format(PyExc_TypeError,
                             "Too %s arguments for %s",
                             args_len > 2 ? "many" : "few",
@@ -2800,6 +2853,9 @@ NPY_NO_EXPORT PyMethodDef array_methods[] = {
     {"__array_prepare__",
         (PyCFunction)array_preparearray,
         METH_VARARGS, NULL},
+    {"__array_finalize__",
+        (PyCFunction)array_finalizearray,
+        METH_O, NULL},
     {"__array_wrap__",
         (PyCFunction)array_wraparray,
         METH_VARARGS, NULL},

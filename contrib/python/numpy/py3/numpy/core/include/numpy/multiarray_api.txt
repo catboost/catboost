@@ -2278,7 +2278,6 @@ validate this!
 If an axis flagged for removal has a shape larger than one,
 the aligned flag (and in the future the contiguous flags),
 may need explicit update.
-(check also NPY_RELAXED_STRIDES_CHECKING)
 
 For example, this can be used to remove the reduction axes
 from a reduction result once its computation is complete.
@@ -2297,30 +2296,21 @@ low-level C issues.
   PyArray_FailUnlessWriteable(PyArrayObject *obj, const char *name)
 
 
-This function does nothing if obj is writeable, and raises an exception
-(and returns -1) if obj is not writeable. It may also do other
-house-keeping, such as issuing warnings on arrays which are transitioning
-to become views. Always call this function at some point before writing to
-an array.
+This function does nothing and returns 0 if *obj* is writeable.
+It raises an exception and returns -1 if *obj* is not writeable.
+It may also do other house-keeping, such as issuing warnings on
+arrays which are transitioning to become views. Always call this
+function at some point before writing to an array.
 
-'name' is a name for the array, used to give better error
-messages. Something like "assignment destination", "output array", or even
-just "array".
+name* is a name for the array, used to give better error messages.
+It can be something like "assignment destination", "output array",
+or even just "array".
 
 ::
 
   int
   PyArray_SetUpdateIfCopyBase(PyArrayObject *arr, PyArrayObject *base)
 
-
-Precondition: 'arr' is a copy of 'base' (though possibly with different
-strides, ordering, etc.). This function sets the UPDATEIFCOPY flag and the
-->base pointer on 'arr', so that when 'arr' is destructed, it will copy any
-changes back to 'base'. DEPRECATED, use PyArray_SetWritebackIfCopyBase
-
-Steals a reference to 'base'.
-
-Returns 0 on success, -1 on failure.
 
 ::
 
@@ -2367,6 +2357,8 @@ thread.  The hook should be written to be reentrant, if it performs
 operations that might cause new allocation events (such as the
 creation/destruction numpy objects, or creating/destroying Python
 objects which might cause a gc)
+
+Deprecated in 1.23
 
 ::
 
@@ -2437,7 +2429,7 @@ Allocates zeroed memory for array data.
   int
   PyArray_CheckAnyScalarExact(PyObject *obj)
 
-return true an object is exactly a numpy scalar
+return 1 if an object is exactly a numpy scalar
 
 ::
 
@@ -2453,7 +2445,7 @@ Same as PyArray_MapIterArray, but:
 If copy_if_overlap != 0, check if `a` has memory overlap with any of the
 arrays in `index` and with `extra_op`. If yes, make copies as appropriate
 to avoid problems if `a` is modified during the iteration.
-`iter->array` may contain a copied array (UPDATEIFCOPY/WRITEBACKIFCOPY set).
+`iter->array` may contain a copied array (WRITEBACKIFCOPY set).
 
 ::
 

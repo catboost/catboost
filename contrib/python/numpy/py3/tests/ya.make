@@ -5,6 +5,7 @@ SIZE(MEDIUM)
 PEERDIR(
     contrib/python/numpy
     contrib/python/hypothesis
+    contrib/python/typing-extensions
 )
 
 DATA(
@@ -21,9 +22,11 @@ TEST_SRCS(
     array_api/tests/__init__.py
     array_api/tests/test_array_object.py
     array_api/tests/test_creation_functions.py
+    array_api/tests/test_data_type_functions.py
     array_api/tests/test_elementwise_functions.py
     array_api/tests/test_set_functions.py
     array_api/tests/test_sorting_functions.py
+    array_api/tests/test_validation.py
     compat/tests/__init__.py
     compat/tests/test_compat.py
     conftest.py
@@ -34,6 +37,7 @@ TEST_SRCS(
     core/tests/test_api.py
     core/tests/test_argparse.py
     core/tests/test_array_coercion.py
+    #core/tests/test_array_interface.py
     core/tests/test_arraymethod.py
     core/tests/test_arrayprint.py
     core/tests/test_casting_unittests.py
@@ -111,6 +115,8 @@ TEST_SRCS(
     #f2py/tests/test_common.py
     #f2py/tests/test_compile_function.py
     #f2py/tests/test_crackfortran.py
+    #f2py/tests/test_f2cmap.py
+    #f2py/tests/test_f2py2e.py
     #f2py/tests/test_kind.py
     #f2py/tests/test_mixed.py
     #f2py/tests/test_module_doc.py
@@ -143,6 +149,7 @@ TEST_SRCS(
     lib/tests/test_histograms.py
     lib/tests/test_index_tricks.py
     lib/tests/test_io.py
+    lib/tests/test_loadtxt.py
     lib/tests/test_mixins.py
     lib/tests/test_nanfunctions.py
     lib/tests/test_packbits.py
@@ -218,6 +225,6 @@ TEST_SRCS(
 
 NO_LINT()
 
-REQUIREMENTS(ram:10)
+REQUIREMENTS(ram:25)
 
 END()

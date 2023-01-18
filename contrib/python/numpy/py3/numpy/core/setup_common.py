@@ -45,22 +45,12 @@ C_ABI_VERSION = 0x01000009
 # 0x0000000e - 1.20.x
 # 0x0000000e - 1.21.x
 # 0x0000000f - 1.22.x
-C_API_VERSION = 0x0000000f
+# 0x00000010 - 1.23.x
+C_API_VERSION = 0x00000010
 
 class MismatchCAPIWarning(Warning):
     pass
 
-def is_released(config):
-    """Return True if a released version of numpy is detected."""
-    from distutils.version import LooseVersion
-
-    v = config.get_version('../_version.py')
-    if v is None:
-        raise ValueError("Could not get version")
-    pv = LooseVersion(vstring=v).version
-    if len(pv) > 3:
-        return False
-    return True
 
 def get_api_versions(apiversion, codegen_dir):
     """
@@ -151,7 +141,9 @@ OPTIONAL_HEADERS = [
                 "immintrin.h",  # AVX
                 "features.h",  # for glibc version linux
                 "xlocale.h",  # see GH#8367
-                "dlfcn.h", # dladdr
+                "dlfcn.h",  # dladdr
+                "execinfo.h",  # backtrace
+                "libunwind.h",  # backtrace for LLVM/Clang using libunwind
                 "sys/mman.h", #madvise
 ]
 
@@ -193,6 +185,8 @@ OPTIONAL_FUNCTION_ATTRIBUTES = [('__attribute__((optimize("unroll-loops")))',
                                 'attribute_optimize_unroll_loops'),
                                 ('__attribute__((optimize("O3")))',
                                  'attribute_optimize_opt_3'),
+                                ('__attribute__((optimize("O2")))',
+                                 'attribute_optimize_opt_2'),
                                 ('__attribute__((nonnull (1)))',
                                  'attribute_nonnull'),
                                 ('__attribute__((target ("avx")))',

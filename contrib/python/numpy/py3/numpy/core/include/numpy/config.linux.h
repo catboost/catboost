@@ -27,15 +27,16 @@
 #define HAVE_TRUNC 1
 #define HAVE_EXP2 1
 #define HAVE_LOG2 1
+#define HAVE_HYPOT 1
 #define HAVE_ATAN2 1
 #define HAVE_POW 1
+#define HAVE_COPYSIGN 1
 #define HAVE_NEXTAFTER 1
 #define HAVE_STRTOLL 1
 #if !defined(__CYGWIN__)
 #define HAVE_STRTOULL 1
 #endif
 #define HAVE_CBRT 1
-#define HAVE_STRTOLD_L 1
 #define HAVE_FALLOCATE 1
 /* breake test_extension_incref_elide and test_extension_incref_elide_stack
 #define HAVE_BACKTRACE 1
@@ -48,7 +49,9 @@
 #endif
 #define HAVE_FEATURES_H 1
 #define HAVE_DLFCN_H 1
+#define HAVE_EXECINFO_H 1
 #define HAVE_SYS_MMAN_H 1
+#define HAVE_STRTOLD_L 1
 #define HAVE___BUILTIN_ISNAN 1
 #define HAVE___BUILTIN_ISINF 1
 #define HAVE___BUILTIN_ISFINITE 1
@@ -72,6 +75,7 @@
 #endif
 #define HAVE_ATTRIBUTE_OPTIMIZE_UNROLL_LOOPS 1
 #define HAVE_ATTRIBUTE_OPTIMIZE_OPT_3 1
+#define HAVE_ATTRIBUTE_OPTIMIZE_OPT_2 1
 #define HAVE_ATTRIBUTE_NONNULL 1
 #if defined(_x86_64_)
 #define HAVE_ATTRIBUTE_TARGET_AVX 1
@@ -153,7 +157,10 @@
 #define HAVE_COPYSIGNL 1
 #define HAVE_NEXTAFTERL 1
 #define HAVE_CBRTL 1
+#define HAVE_DECL_ISNAN
+#define HAVE_DECL_ISINF
 #define HAVE_DECL_SIGNBIT
+#define HAVE_DECL_ISFINITE
 #define HAVE_COMPLEX_H 1
 #define HAVE_CABS 1
 #define HAVE_CACOS 1
@@ -222,7 +229,6 @@
 #define HAVE_CTANL 1
 #define HAVE_CTANHL 1
 #define NPY_RESTRICT restrict
-#define NPY_RELAXED_STRIDES_CHECKING 1
 #define NPY_RELAXED_STRIDES_DEBUG 0
 #if defined(_x86_64_)
 #define HAVE_LDOUBLE_INTEL_EXTENDED_16_BYTES_LE 1

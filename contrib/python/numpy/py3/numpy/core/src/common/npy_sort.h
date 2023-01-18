@@ -28,6 +28,11 @@ static NPY_INLINE int npy_get_msb(npy_uintp unum)
     return depth_limit;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 
 /*
  *****************************************************************************
@@ -36,7 +41,7 @@ static NPY_INLINE int npy_get_msb(npy_uintp unum)
  */
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_bool(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_bool(void *vec, npy_intp cnt, void *null);
@@ -48,7 +53,7 @@ NPY_NO_EXPORT int amergesort_bool(void *vec, npy_intp *ind, npy_intp cnt, void *
 NPY_NO_EXPORT int atimsort_bool(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_byte(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_byte(void *vec, npy_intp cnt, void *null);
@@ -60,7 +65,7 @@ NPY_NO_EXPORT int amergesort_byte(void *vec, npy_intp *ind, npy_intp cnt, void *
 NPY_NO_EXPORT int atimsort_byte(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_ubyte(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_ubyte(void *vec, npy_intp cnt, void *null);
@@ -72,7 +77,7 @@ NPY_NO_EXPORT int amergesort_ubyte(void *vec, npy_intp *ind, npy_intp cnt, void 
 NPY_NO_EXPORT int atimsort_ubyte(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_short(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_short(void *vec, npy_intp cnt, void *null);
@@ -84,7 +89,7 @@ NPY_NO_EXPORT int amergesort_short(void *vec, npy_intp *ind, npy_intp cnt, void 
 NPY_NO_EXPORT int atimsort_short(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_ushort(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_ushort(void *vec, npy_intp cnt, void *null);
@@ -96,7 +101,7 @@ NPY_NO_EXPORT int amergesort_ushort(void *vec, npy_intp *ind, npy_intp cnt, void
 NPY_NO_EXPORT int atimsort_ushort(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_int(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_int(void *vec, npy_intp cnt, void *null);
@@ -108,7 +113,7 @@ NPY_NO_EXPORT int amergesort_int(void *vec, npy_intp *ind, npy_intp cnt, void *n
 NPY_NO_EXPORT int atimsort_int(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_uint(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_uint(void *vec, npy_intp cnt, void *null);
@@ -120,7 +125,7 @@ NPY_NO_EXPORT int amergesort_uint(void *vec, npy_intp *ind, npy_intp cnt, void *
 NPY_NO_EXPORT int atimsort_uint(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_long(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_long(void *vec, npy_intp cnt, void *null);
@@ -132,7 +137,7 @@ NPY_NO_EXPORT int amergesort_long(void *vec, npy_intp *ind, npy_intp cnt, void *
 NPY_NO_EXPORT int atimsort_long(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_ulong(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_ulong(void *vec, npy_intp cnt, void *null);
@@ -144,7 +149,7 @@ NPY_NO_EXPORT int amergesort_ulong(void *vec, npy_intp *ind, npy_intp cnt, void 
 NPY_NO_EXPORT int atimsort_ulong(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_longlong(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_longlong(void *vec, npy_intp cnt, void *null);
@@ -156,7 +161,7 @@ NPY_NO_EXPORT int amergesort_longlong(void *vec, npy_intp *ind, npy_intp cnt, vo
 NPY_NO_EXPORT int atimsort_longlong(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_ulonglong(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_ulonglong(void *vec, npy_intp cnt, void *null);
@@ -168,7 +173,7 @@ NPY_NO_EXPORT int amergesort_ulonglong(void *vec, npy_intp *ind, npy_intp cnt, v
 NPY_NO_EXPORT int atimsort_ulonglong(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_half(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_half(void *vec, npy_intp cnt, void *null);
@@ -180,7 +185,7 @@ NPY_NO_EXPORT int amergesort_half(void *vec, npy_intp *ind, npy_intp cnt, void *
 NPY_NO_EXPORT int atimsort_half(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_float(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_float(void *vec, npy_intp cnt, void *null);
@@ -192,7 +197,7 @@ NPY_NO_EXPORT int amergesort_float(void *vec, npy_intp *ind, npy_intp cnt, void 
 NPY_NO_EXPORT int atimsort_float(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_double(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_double(void *vec, npy_intp cnt, void *null);
@@ -204,7 +209,7 @@ NPY_NO_EXPORT int amergesort_double(void *vec, npy_intp *ind, npy_intp cnt, void
 NPY_NO_EXPORT int atimsort_double(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_longdouble(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_longdouble(void *vec, npy_intp cnt, void *null);
@@ -216,7 +221,7 @@ NPY_NO_EXPORT int amergesort_longdouble(void *vec, npy_intp *ind, npy_intp cnt, 
 NPY_NO_EXPORT int atimsort_longdouble(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_cfloat(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_cfloat(void *vec, npy_intp cnt, void *null);
@@ -228,7 +233,7 @@ NPY_NO_EXPORT int amergesort_cfloat(void *vec, npy_intp *ind, npy_intp cnt, void
 NPY_NO_EXPORT int atimsort_cfloat(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_cdouble(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_cdouble(void *vec, npy_intp cnt, void *null);
@@ -240,7 +245,7 @@ NPY_NO_EXPORT int amergesort_cdouble(void *vec, npy_intp *ind, npy_intp cnt, voi
 NPY_NO_EXPORT int atimsort_cdouble(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_clongdouble(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_clongdouble(void *vec, npy_intp cnt, void *null);
@@ -252,7 +257,7 @@ NPY_NO_EXPORT int amergesort_clongdouble(void *vec, npy_intp *ind, npy_intp cnt,
 NPY_NO_EXPORT int atimsort_clongdouble(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_datetime(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_datetime(void *vec, npy_intp cnt, void *null);
@@ -264,7 +269,7 @@ NPY_NO_EXPORT int amergesort_datetime(void *vec, npy_intp *ind, npy_intp cnt, vo
 NPY_NO_EXPORT int atimsort_datetime(void *vec, npy_intp *ind, npy_intp cnt, void *null);
 
 
-#line 35
+#line 40
 
 NPY_NO_EXPORT int quicksort_timedelta(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int heapsort_timedelta(void *vec, npy_intp cnt, void *null);
@@ -277,7 +282,7 @@ NPY_NO_EXPORT int atimsort_timedelta(void *vec, npy_intp *ind, npy_intp cnt, voi
 
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -288,7 +293,7 @@ NPY_NO_EXPORT int aradixsort_bool(void *vec, npy_intp *ind, npy_intp cnt, void *
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -299,7 +304,7 @@ NPY_NO_EXPORT int aradixsort_byte(void *vec, npy_intp *ind, npy_intp cnt, void *
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -310,7 +315,7 @@ NPY_NO_EXPORT int aradixsort_ubyte(void *vec, npy_intp *ind, npy_intp cnt, void 
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -321,7 +326,7 @@ NPY_NO_EXPORT int aradixsort_short(void *vec, npy_intp *ind, npy_intp cnt, void 
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -332,7 +337,7 @@ NPY_NO_EXPORT int aradixsort_ushort(void *vec, npy_intp *ind, npy_intp cnt, void
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -343,7 +348,7 @@ NPY_NO_EXPORT int aradixsort_int(void *vec, npy_intp *ind, npy_intp cnt, void *n
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -354,7 +359,7 @@ NPY_NO_EXPORT int aradixsort_uint(void *vec, npy_intp *ind, npy_intp cnt, void *
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -365,7 +370,7 @@ NPY_NO_EXPORT int aradixsort_long(void *vec, npy_intp *ind, npy_intp cnt, void *
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -376,7 +381,7 @@ NPY_NO_EXPORT int aradixsort_ulong(void *vec, npy_intp *ind, npy_intp cnt, void 
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -387,7 +392,7 @@ NPY_NO_EXPORT int aradixsort_longlong(void *vec, npy_intp *ind, npy_intp cnt, vo
 #endif
 
 
-#line 52
+#line 57
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -408,7 +413,7 @@ NPY_NO_EXPORT int aradixsort_ulonglong(void *vec, npy_intp *ind, npy_intp cnt, v
  */
 
 
-#line 76
+#line 81
 
 NPY_NO_EXPORT int quicksort_string(void *vec, npy_intp cnt, void *arr);
 NPY_NO_EXPORT int heapsort_string(void *vec, npy_intp cnt, void *arr);
@@ -420,7 +425,7 @@ NPY_NO_EXPORT int amergesort_string(void *vec, npy_intp *ind, npy_intp cnt, void
 NPY_NO_EXPORT int atimsort_string(void *vec, npy_intp *ind, npy_intp cnt, void *arr);
 
 
-#line 76
+#line 81
 
 NPY_NO_EXPORT int quicksort_unicode(void *vec, npy_intp cnt, void *arr);
 NPY_NO_EXPORT int heapsort_unicode(void *vec, npy_intp cnt, void *arr);
@@ -449,6 +454,10 @@ NPY_NO_EXPORT int npy_aquicksort(void *vec, npy_intp *ind, npy_intp cnt, void *a
 NPY_NO_EXPORT int npy_aheapsort(void *vec, npy_intp *ind, npy_intp cnt, void *arr);
 NPY_NO_EXPORT int npy_amergesort(void *vec, npy_intp *ind, npy_intp cnt, void *arr);
 NPY_NO_EXPORT int npy_atimsort(void *vec, npy_intp *ind, npy_intp cnt, void *arr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -574,11 +574,16 @@ beginpattern90 = re.compile(
 groupends = (r'end|endprogram|endblockdata|endmodule|endpythonmodule|'
              r'endinterface|endsubroutine|endfunction')
 endpattern = re.compile(
-    beforethisafter % ('', groupends, groupends, r'[\w\s]*'), re.I), 'end'
-endifs = r'(end\s*(if|do|where|select|while|forall|associate|block|critical|enum|team))|(module\s*procedure)'
+    beforethisafter % ('', groupends, groupends, r'.*'), re.I), 'end'
+endifs = r'end\s*(if|do|where|select|while|forall|associate|block|' + \
+         r'critical|enum|team)'
 endifpattern = re.compile(
     beforethisafter % (r'[\w]*?', endifs, endifs, r'[\w\s]*'), re.I), 'endif'
 #
+moduleprocedures = r'module\s*procedure'
+moduleprocedurepattern = re.compile(
+    beforethisafter % ('', moduleprocedures, moduleprocedures, r'.*'), re.I), \
+    'moduleprocedure'
 implicitpattern = re.compile(
     beforethisafter % ('', 'implicit', 'implicit', '.*'), re.I), 'implicit'
 dimensionpattern = re.compile(beforethisafter % (
@@ -727,7 +732,8 @@ def crackline(line, reset=0):
                 callpattern, usepattern, containspattern,
                 entrypattern,
                 f2pyenhancementspattern,
-                multilinepattern
+                multilinepattern,
+                moduleprocedurepattern
                 ]:
         m = pat[0].match(line)
         if m:
@@ -797,6 +803,8 @@ def crackline(line, reset=0):
         expectbegin = 0
     elif pat[1] == 'endif':
         pass
+    elif pat[1] == 'moduleprocedure':
+        analyzeline(m, pat[1], line)
     elif pat[1] == 'contains':
         if ignorecontains:
             return
@@ -884,8 +892,14 @@ def appenddecl(decl, decl2, force=1):
 
 selectpattern = re.compile(
     r'\s*(?P<this>(@\(@.*?@\)@|\*[\d*]+|\*\s*@\(@.*?@\)@|))(?P<after>.*)\Z', re.I)
+typedefpattern = re.compile(
+    r'(?:,(?P<attributes>[\w(),]+))?(::)?(?P<name>\b[a-z$_][\w$]*\b)'
+    r'(?:\((?P<params>[\w,]*)\))?\Z', re.I)
 nameargspattern = re.compile(
     r'\s*(?P<name>\b[\w$]+\b)\s*(@\(@\s*(?P<args>[\w\s,]*)\s*@\)@|)\s*((result(\s*@\(@\s*(?P<result>\b[\w$]+\b)\s*@\)@|))|(bind\s*@\(@\s*(?P<bind>.*)\s*@\)@))*\s*\Z', re.I)
+operatorpattern = re.compile(
+    r'\s*(?P<scheme>(operator|assignment))'
+    r'@\(@\s*(?P<name>[^)]+)\s*@\)@\s*\Z', re.I)
 callnameargspattern = re.compile(
     r'\s*(?P<name>\b[\w$]+\b)\s*@\(@\s*(?P<args>.*)\s*@\)@\s*\Z', re.I)
 real16pattern = re.compile(
@@ -903,11 +917,26 @@ def _is_intent_callback(vdecl):
     return 0
 
 
+def _resolvetypedefpattern(line):
+    line = ''.join(line.split())  # removes whitespace
+    m1 = typedefpattern.match(line)
+    print(line, m1)
+    if m1:
+        attrs = m1.group('attributes')
+        attrs = [a.lower() for a in attrs.split(',')] if attrs else []
+        return m1.group('name'), attrs, m1.group('params')
+    return None, [], None
+
+
 def _resolvenameargspattern(line):
     line = markouterparen(line)
     m1 = nameargspattern.match(line)
     if m1:
         return m1.group('name'), m1.group('args'), m1.group('result'), m1.group('bind')
+    m1 = operatorpattern.match(line)
+    if m1:
+        name = m1.group('scheme') + '(' + m1.group('name') + ')'
+        return name, [], None, None
     m1 = callnameargspattern.match(line)
     if m1:
         return m1.group('name'), m1.group('args'), None, None
@@ -947,7 +976,13 @@ def analyzeline(m, case, line):
             block = 'python module'
         elif re.match(r'abstract\s*interface', block, re.I):
             block = 'abstract interface'
-        name, args, result, bind = _resolvenameargspattern(m.group('after'))
+        if block == 'type':
+            name, attrs, _ = _resolvetypedefpattern(m.group('after'))
+            groupcache[groupcounter]['vars'][name] = dict(attrspec = attrs)
+            args = []
+            result = None
+        else:
+            name, args, result, _ = _resolvenameargspattern(m.group('after'))
         if name is None:
             if block == 'block data':
                 name = '_BLOCK_DATA_'
@@ -1151,6 +1186,9 @@ def analyzeline(m, case, line):
                     continue
             else:
                 k = rmbadname1(m1.group('name'))
+            if case in ['public', 'private'] and \
+               (k == 'operator' or k == 'assignment'):
+                k += m1.group('after')
             if k not in edecl:
                 edecl[k] = {}
             if case == 'dimension':
@@ -1193,6 +1231,9 @@ def analyzeline(m, case, line):
         groupcache[groupcounter]['vars'] = edecl
         if last_name is not None:
             previous_context = ('variable', last_name, groupcounter)
+    elif case == 'moduleprocedure':
+        groupcache[groupcounter]['implementedby'] = \
+            [x.strip() for x in m.group('after').split(',')]
     elif case == 'parameter':
         edecl = groupcache[groupcounter]['vars']
         ll = m.group('after').strip()[1:-1]
@@ -2105,7 +2146,8 @@ def analyzebody(block, args, tab=''):
         else:
             as_ = args
         b = postcrack(b, as_, tab=tab + '\t')
-        if b['block'] in ['interface', 'abstract interface'] and not b['body']:
+        if b['block'] in ['interface', 'abstract interface'] and \
+           not b['body'] and not b.get('implementedby'):
             if 'f2pyenhancements' not in b:
                 continue
         if b['block'].replace(' ', '') == 'pythonmodule':
@@ -2387,8 +2429,15 @@ def get_parameters(vars, global_params={}):
                 outmess(f'get_parameters[TODO]: '
                         f'implement evaluation of complex expression {v}\n')
 
+            # Handle _dp for gh-6624
+            # Also fixes gh-20460
+            if real16pattern.search(v):
+                v = 8
+            elif real8pattern.search(v):
+                v = 4
             try:
                 params[n] = eval(v, g_params, params)
+
             except Exception as msg:
                 params[n] = v
                 outmess('get_parameters: got "%s" on %s\n' % (msg, repr(v)))
@@ -2647,7 +2696,7 @@ def analyzevars(block):
             n_checks = []
             n_is_input = l_or(isintent_in, isintent_inout,
                               isintent_inplace)(vars[n])
-            if 'dimension' in vars[n]:  # n is array
+            if isarray(vars[n]):  # n is array
                 for i, d in enumerate(vars[n]['dimension']):
                     coeffs_and_deps = dimension_exprs.get(d)
                     if coeffs_and_deps is None:
@@ -2658,15 +2707,22 @@ def analyzevars(block):
                         # may define variables used in dimension
                         # specifications.
                         for v, (solver, deps) in coeffs_and_deps.items():
+                            def compute_deps(v, deps):
+                                for v1 in coeffs_and_deps.get(v, [None, []])[1]:
+                                    if v1 not in deps:
+                                        deps.add(v1)
+                                        compute_deps(v1, deps)
+                            all_deps = set()
+                            compute_deps(v, all_deps)
                             if ((v in n_deps
                                  or '=' in vars[v]
                                  or 'depend' in vars[v])):
                                 # Skip a variable that
                                 # - n depends on
                                 # - has user-defined initialization expression
-                                # - has user-defined dependecies
+                                # - has user-defined dependencies
                                 continue
-                            if solver is not None:
+                            if solver is not None and v not in all_deps:
                                 # v can be solved from d, hence, we
                                 # make it an optional argument with
                                 # initialization expression:

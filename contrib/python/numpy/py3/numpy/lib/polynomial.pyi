@@ -1,12 +1,10 @@
 from typing import (
     Literal as L,
-    List,
     overload,
     Any,
     SupportsInt,
     SupportsIndex,
     TypeVar,
-    Tuple,
     NoReturn,
 )
 
@@ -25,7 +23,7 @@ from numpy import (
     object_,
 )
 
-from numpy.typing import (
+from numpy._typing import (
     NDArray,
     ArrayLike,
     _ArrayLikeBool_co,
@@ -38,8 +36,8 @@ from numpy.typing import (
 
 _T = TypeVar("_T")
 
-_2Tup = Tuple[_T, _T]
-_5Tup = Tuple[
+_2Tup = tuple[_T, _T]
+_5Tup = tuple[
     _T,
     NDArray[float64],
     NDArray[int32],
@@ -47,7 +45,7 @@ _5Tup = Tuple[
     NDArray[float64],
 ]
 
-__all__: List[str]
+__all__: list[str]
 
 def poly(seq_of_zeros: ArrayLike) -> NDArray[floating[Any]]: ...
 

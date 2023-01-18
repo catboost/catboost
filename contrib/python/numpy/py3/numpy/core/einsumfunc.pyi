@@ -1,4 +1,5 @@
-from typing import List, TypeVar, Optional, Any, overload, Union, Tuple, Sequence, Literal
+from collections.abc import Sequence
+from typing import TypeVar, Any, overload, Union, Literal
 
 from numpy import (
     ndarray,
@@ -11,7 +12,7 @@ from numpy import (
     number,
     _OrderKACF,
 )
-from numpy.typing import (
+from numpy._typing import (
     _ArrayLikeBool_co,
     _ArrayLikeUInt_co,
     _ArrayLikeInt_co,
@@ -30,13 +31,11 @@ _ArrayType = TypeVar(
     bound=ndarray[Any, dtype[Union[bool_, number[Any]]]],
 )
 
-_OptimizeKind = Union[
-    None, bool, Literal["greedy", "optimal"], Sequence[Any]
-]
+_OptimizeKind = None | bool | Literal["greedy", "optimal"] | Sequence[Any]
 _CastingSafe = Literal["no", "equiv", "safe", "same_kind"]
 _CastingUnsafe = Literal["unsafe"]
 
-__all__: List[str]
+__all__: list[str]
 
 # TODO: Properly handle the `casting`-based combinatorics
 # TODO: We need to evaluate the content `__subscripts` in order
@@ -46,89 +45,89 @@ __all__: List[str]
 # Something like `is_scalar = bool(__subscripts.partition("->")[-1])`
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: _ArrayLikeBool_co,
     out: None = ...,
-    dtype: Optional[_DTypeLikeBool] = ...,
+    dtype: None | _DTypeLikeBool = ...,
     order: _OrderKACF = ...,
     casting: _CastingSafe = ...,
     optimize: _OptimizeKind = ...,
 ) -> Any: ...
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: _ArrayLikeUInt_co,
     out: None = ...,
-    dtype: Optional[_DTypeLikeUInt] = ...,
+    dtype: None | _DTypeLikeUInt = ...,
     order: _OrderKACF = ...,
     casting: _CastingSafe = ...,
     optimize: _OptimizeKind = ...,
 ) -> Any: ...
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: _ArrayLikeInt_co,
     out: None = ...,
-    dtype: Optional[_DTypeLikeInt] = ...,
+    dtype: None | _DTypeLikeInt = ...,
     order: _OrderKACF = ...,
     casting: _CastingSafe = ...,
     optimize: _OptimizeKind = ...,
 ) -> Any: ...
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: _ArrayLikeFloat_co,
     out: None = ...,
-    dtype: Optional[_DTypeLikeFloat] = ...,
+    dtype: None | _DTypeLikeFloat = ...,
     order: _OrderKACF = ...,
     casting: _CastingSafe = ...,
     optimize: _OptimizeKind = ...,
 ) -> Any: ...
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: _ArrayLikeComplex_co,
     out: None = ...,
-    dtype: Optional[_DTypeLikeComplex] = ...,
+    dtype: None | _DTypeLikeComplex = ...,
     order: _OrderKACF = ...,
     casting: _CastingSafe = ...,
     optimize: _OptimizeKind = ...,
 ) -> Any: ...
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: Any,
     casting: _CastingUnsafe,
-    dtype: Optional[_DTypeLikeComplex_co] = ...,
+    dtype: None | _DTypeLikeComplex_co = ...,
     out: None = ...,
     order: _OrderKACF = ...,
     optimize: _OptimizeKind = ...,
 ) -> Any: ...
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: _ArrayLikeComplex_co,
     out: _ArrayType,
-    dtype: Optional[_DTypeLikeComplex_co] = ...,
+    dtype: None | _DTypeLikeComplex_co = ...,
     order: _OrderKACF = ...,
     casting: _CastingSafe = ...,
     optimize: _OptimizeKind = ...,
 ) -> _ArrayType: ...
 @overload
 def einsum(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: Any,
     out: _ArrayType,
     casting: _CastingUnsafe,
-    dtype: Optional[_DTypeLikeComplex_co] = ...,
+    dtype: None | _DTypeLikeComplex_co = ...,
     order: _OrderKACF = ...,
     optimize: _OptimizeKind = ...,
 ) -> _ArrayType: ...
@@ -138,8 +137,8 @@ def einsum(
 # NOTE: In practice the list consists of a `str` (first element)
 # and a variable number of integer tuples.
 def einsum_path(
-    subscripts: str,
+    subscripts: str | _ArrayLikeInt_co,
     /,
     *operands: _ArrayLikeComplex_co,
     optimize: _OptimizeKind = ...,
-) -> Tuple[List[Any], str]: ...
+) -> tuple[list[Any], str]: ...

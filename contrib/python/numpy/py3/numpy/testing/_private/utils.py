@@ -810,7 +810,7 @@ def assert_array_compare(comparison, x, y, err_msg='', verbose=True, header='',
                 'Mismatched elements: {} / {} ({:.3g}%)'.format(
                     n_mismatch, n_elements, percent_mismatch)]
 
-            with errstate(invalid='ignore', divide='ignore'):
+            with errstate(all='ignore'):
                 # ignore errors for non-numeric types
                 with contextlib.suppress(TypeError):
                     error = abs(x - y)
@@ -1341,9 +1341,6 @@ def assert_raises_regex(exception_class, expected_regexp, *args, **kwargs):
     args and keyword arguments kwargs.
 
     Alternatively, can be used as a context manager like `assert_raises`.
-
-    Name of this function adheres to Python 3.2+ reference, but should work in
-    all versions down to 2.6.
 
     Notes
     -----
@@ -2518,3 +2515,16 @@ def _no_tracing(func):
             finally:
                 sys.settrace(original_trace)
         return wrapper
+
+
+def _get_glibc_version():
+    try:
+        ver = os.confstr('CS_GNU_LIBC_VERSION').rsplit(' ')[1]
+    except Exception as inst:
+        ver = '0.0'
+
+    return ver
+
+
+_glibcver = _get_glibc_version()
+_glibc_older_than = lambda x: (_glibcver != '0.0' and _glibcver < x)

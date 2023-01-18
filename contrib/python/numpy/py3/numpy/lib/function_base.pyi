@@ -1,19 +1,12 @@
 import sys
+from collections.abc import Sequence, Iterator, Callable, Iterable
 from typing import (
     Literal as L,
-    List,
-    Type,
-    Sequence,
-    Tuple,
-    Union,
     Any,
     TypeVar,
-    Iterator,
     overload,
-    Callable,
     Protocol,
     SupportsIndex,
-    Iterable,
     SupportsInt,
 )
 
@@ -25,7 +18,6 @@ else:
 from numpy import (
     vectorize as vectorize,
     ufunc,
-    dtype,
     generic,
     floating,
     complexfloating,
@@ -38,15 +30,14 @@ from numpy import (
     _OrderKACF,
 )
 
-from numpy.typing import (
+from numpy._typing import (
     NDArray,
     ArrayLike,
     DTypeLike,
     _ShapeLike,
     _ScalarLike_co,
-    _SupportsDType,
-    _FiniteNestedSequence,
-    _SupportsArray,
+    _DTypeLike,
+    _ArrayLike,
     _ArrayLikeInt_co,
     _ArrayLikeFloat_co,
     _ArrayLikeComplex_co,
@@ -73,13 +64,7 @@ _T_co = TypeVar("_T_co", covariant=True)
 _SCT = TypeVar("_SCT", bound=generic)
 _ArrayType = TypeVar("_ArrayType", bound=NDArray[Any])
 
-_2Tuple = Tuple[_T, _T]
-_ArrayLike = _FiniteNestedSequence[_SupportsArray[dtype[_SCT]]]
-_DTypeLike = Union[
-    dtype[_SCT],
-    Type[_SCT],
-    _SupportsDType[dtype[_SCT]],
-]
+_2Tuple = tuple[_T, _T]
 
 class _TrimZerosSequence(Protocol[_T_co]):
     def __len__(self) -> int: ...
@@ -90,7 +75,7 @@ class _SupportsWriteFlush(Protocol):
     def write(self, s: str, /) -> object: ...
     def flush(self) -> object: ...
 
-__all__: List[str]
+__all__: list[str]
 
 # NOTE: This is in reality a re-export of `np.core.umath._add_newdoc_ufunc`
 def add_newdoc_ufunc(ufunc: ufunc, new_docstring: str, /) -> None: ...
@@ -99,13 +84,13 @@ def add_newdoc_ufunc(ufunc: ufunc, new_docstring: str, /) -> None: ...
 def rot90(
     m: _ArrayLike[_SCT],
     k: int = ...,
-    axes: Tuple[int, int] = ...,
+    axes: tuple[int, int] = ...,
 ) -> NDArray[_SCT]: ...
 @overload
 def rot90(
     m: ArrayLike,
     k: int = ...,
-    axes: Tuple[int, int] = ...,
+    axes: tuple[int, int] = ...,
 ) -> NDArray[Any]: ...
 
 @overload
@@ -125,6 +110,7 @@ def average(
     axis: None = ...,
     weights: None | _ArrayLikeFloat_co= ...,
     returned: L[False] = ...,
+    keepdims: L[False] = ...,
 ) -> floating[Any]: ...
 @overload
 def average(
@@ -132,6 +118,7 @@ def average(
     axis: None = ...,
     weights: None | _ArrayLikeComplex_co = ...,
     returned: L[False] = ...,
+    keepdims: L[False] = ...,
 ) -> complexfloating[Any, Any]: ...
 @overload
 def average(
@@ -139,6 +126,7 @@ def average(
     axis: None = ...,
     weights: None | Any = ...,
     returned: L[False] = ...,
+    keepdims: L[False] = ...,
 ) -> Any: ...
 @overload
 def average(
@@ -146,6 +134,7 @@ def average(
     axis: None = ...,
     weights: None | _ArrayLikeFloat_co= ...,
     returned: L[True] = ...,
+    keepdims: L[False] = ...,
 ) -> _2Tuple[floating[Any]]: ...
 @overload
 def average(
@@ -153,6 +142,7 @@ def average(
     axis: None = ...,
     weights: None | _ArrayLikeComplex_co = ...,
     returned: L[True] = ...,
+    keepdims: L[False] = ...,
 ) -> _2Tuple[complexfloating[Any, Any]]: ...
 @overload
 def average(
@@ -160,6 +150,7 @@ def average(
     axis: None = ...,
     weights: None | Any = ...,
     returned: L[True] = ...,
+    keepdims: L[False] = ...,
 ) -> _2Tuple[Any]: ...
 @overload
 def average(
@@ -167,6 +158,7 @@ def average(
     axis: None | _ShapeLike = ...,
     weights: None | Any = ...,
     returned: L[False] = ...,
+    keepdims: bool = ...,
 ) -> Any: ...
 @overload
 def average(
@@ -174,6 +166,7 @@ def average(
     axis: None | _ShapeLike = ...,
     weights: None | Any = ...,
     returned: L[True] = ...,
+    keepdims: bool = ...,
 ) -> _2Tuple[Any]: ...
 
 @overload
@@ -201,6 +194,8 @@ def asarray_chkfinite(
     order: _OrderKACF = ...,
 ) -> NDArray[Any]: ...
 
+# TODO: Use PEP 612 `ParamSpec` once mypy supports `Concatenate`
+# xref python/mypy#8645
 @overload
 def piecewise(
     x: _ArrayLike[_SCT],
@@ -294,11 +289,13 @@ def interp(
 ) -> NDArray[complex128]: ...
 
 @overload
-def angle(z: _ArrayLikeFloat_co, deg: bool = ...) -> floating[Any]: ...
+def angle(z: _ComplexLike_co, deg: bool = ...) -> floating[Any]: ...
 @overload
-def angle(z: _ArrayLikeComplex_co, deg: bool = ...) -> complexfloating[Any, Any]: ...
+def angle(z: object_, deg: bool = ...) -> Any: ...
 @overload
-def angle(z: _ArrayLikeObject_co, deg: bool = ...) -> Any: ...
+def angle(z: _ArrayLikeComplex_co, deg: bool = ...) -> NDArray[floating[Any]]: ...
+@overload
+def angle(z: _ArrayLikeObject_co, deg: bool = ...) -> NDArray[object_]: ...
 
 @overload
 def unwrap(
@@ -654,7 +651,7 @@ def meshgrid(
     copy: bool = ...,
     sparse: bool = ...,
     indexing: L["xy", "ij"] = ...,
-) -> List[NDArray[Any]]: ...
+) -> list[NDArray[Any]]: ...
 
 @overload
 def delete(

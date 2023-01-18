@@ -81,7 +81,11 @@ FLOAT_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
         npy_intp i;
-        npy_float res = 0.;
+        /*
+         * Start with -0 to preserve -0 values.  The reason is that summing
+         * only -0 should return -0, but `0 + -0 == 0` while `-0 + -0 == -0`.
+         */
+        npy_float res = -0.0;
 
         for (i = 0; i < n; i++) {
             res += (*((npy_float*)(a + i * stride)));
@@ -152,7 +156,11 @@ DOUBLE_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
         npy_intp i;
-        npy_double res = 0.;
+        /*
+         * Start with -0 to preserve -0 values.  The reason is that summing
+         * only -0 should return -0, but `0 + -0 == 0` while `-0 + -0 == -0`.
+         */
+        npy_double res = -0.0;
 
         for (i = 0; i < n; i++) {
             res += (*((npy_double*)(a + i * stride)));
@@ -223,7 +231,11 @@ LONGDOUBLE_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
         npy_intp i;
-        npy_longdouble res = 0.;
+        /*
+         * Start with -0 to preserve -0 values.  The reason is that summing
+         * only -0 should return -0, but `0 + -0 == 0` while `-0 + -0 == -0`.
+         */
+        npy_longdouble res = -0.0;
 
         for (i = 0; i < n; i++) {
             res += (*((npy_longdouble*)(a + i * stride)));
@@ -294,7 +306,11 @@ HALF_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
         npy_intp i;
-        npy_float res = 0.;
+        /*
+         * Start with -0 to preserve -0 values.  The reason is that summing
+         * only -0 should return -0, but `0 + -0 == 0` while `-0 + -0 == -0`.
+         */
+        npy_float res = -0.0;
 
         for (i = 0; i < n; i++) {
             res += npy_half_to_float(*((npy_half*)(a + i * stride)));
@@ -354,7 +370,7 @@ HALF_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 
 
 
-#line 150
+#line 154
 /* similar to pairwise sum of real floats */
 static NPY_INLINE void
 CFLOAT_pairwise_sum(npy_float *rr, npy_float * ri, char * a, npy_intp n,
@@ -364,8 +380,8 @@ CFLOAT_pairwise_sum(npy_float *rr, npy_float * ri, char * a, npy_intp n,
     if (n < 8) {
         npy_intp i;
 
-        *rr = 0.;
-        *ri = 0.;
+        *rr = -0.0;
+        *ri = -0.0;
         for (i = 0; i < n; i += 2) {
             *rr += *((npy_float *)(a + i * stride + 0));
             *ri += *((npy_float *)(a + i * stride + sizeof(npy_float)));
@@ -428,7 +444,7 @@ CFLOAT_pairwise_sum(npy_float *rr, npy_float * ri, char * a, npy_intp n,
     }
 }
 
-#line 150
+#line 154
 /* similar to pairwise sum of real floats */
 static NPY_INLINE void
 CDOUBLE_pairwise_sum(npy_double *rr, npy_double * ri, char * a, npy_intp n,
@@ -438,8 +454,8 @@ CDOUBLE_pairwise_sum(npy_double *rr, npy_double * ri, char * a, npy_intp n,
     if (n < 8) {
         npy_intp i;
 
-        *rr = 0.;
-        *ri = 0.;
+        *rr = -0.0;
+        *ri = -0.0;
         for (i = 0; i < n; i += 2) {
             *rr += *((npy_double *)(a + i * stride + 0));
             *ri += *((npy_double *)(a + i * stride + sizeof(npy_double)));
@@ -502,7 +518,7 @@ CDOUBLE_pairwise_sum(npy_double *rr, npy_double * ri, char * a, npy_intp n,
     }
 }
 
-#line 150
+#line 154
 /* similar to pairwise sum of real floats */
 static NPY_INLINE void
 CLONGDOUBLE_pairwise_sum(npy_longdouble *rr, npy_longdouble * ri, char * a, npy_intp n,
@@ -512,8 +528,8 @@ CLONGDOUBLE_pairwise_sum(npy_longdouble *rr, npy_longdouble * ri, char * a, npy_
     if (n < 8) {
         npy_intp i;
 
-        *rr = 0.;
-        *ri = 0.;
+        *rr = -0.0;
+        *ri = -0.0;
         for (i = 0; i < n; i += 2) {
             *rr += *((npy_longdouble *)(a + i * stride + 0));
             *ri += *((npy_longdouble *)(a + i * stride + sizeof(npy_longdouble)));

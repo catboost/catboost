@@ -187,6 +187,7 @@
 - source_filter: "^contrib/python/numpy/py3"
   includes:
     - numpy/random.pxd
+    - alloc.h: contrib/python/numpy/include/numpy/core/src/multiarray/alloc.h
 
 - source_filter: "^contrib/tools/python/src/Objects/exceptions.c"
   includes:

@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Any, List, TypeVar
+from typing import Any, TypeVar
 from pathlib import Path
 
 import numpy as np
@@ -17,8 +17,8 @@ AR_u1: npt.NDArray[np.uint8]
 AR_m: npt.NDArray[np.timedelta64]
 AR_M: npt.NDArray[np.datetime64]
 
-AR_LIKE_f: List[float]
-AR_LIKE_i: List[int]
+AR_LIKE_f: list[float]
+AR_LIKE_i: list[int]
 
 m: np.timedelta64
 M: np.datetime64

@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_equal
 from numpy.f2py.crackfortran import markinnerspaces
 from . import util
 from numpy.f2py import crackfortran
@@ -10,163 +9,118 @@ import textwrap
 class TestNoSpace(util.F2PyTest):
     # issue gh-15035: add handling for endsubroutine, endfunction with no space
     # between "end" and the block name
-    code = """
-        subroutine subb(k)
-          real(8), intent(inout) :: k(:)
-          k=k+1
-        endsubroutine
-
-        subroutine subc(w,k)
-          real(8), intent(in) :: w(:)
-          real(8), intent(out) :: k(size(w))
-          k=w+1
-        endsubroutine
-
-        function t0(value)
-          character value
-          character t0
-          t0 = value
-        endfunction
-    """
+    sources = [util.getpath("tests", "src", "crackfortran", "gh15035.f")]
 
     def test_module(self):
         k = np.array([1, 2, 3], dtype=np.float64)
         w = np.array([1, 2, 3], dtype=np.float64)
         self.module.subb(k)
-        assert_array_equal(k, w + 1)
+        assert np.allclose(k, w + 1)
         self.module.subc([w, k])
-        assert_array_equal(k, w + 1)
-        assert self.module.t0(23) == b'2'
+        assert np.allclose(k, w + 1)
+        assert self.module.t0(23) == b"2"
 
 
-class TestPublicPrivate():
-
-    def test_defaultPrivate(self, tmp_path):
-        f_path = tmp_path / "mod.f90"
-        with f_path.open('w') as ff:
-            ff.write(textwrap.dedent("""\
-            module foo
-              private
-              integer :: a
-              public :: setA
-              integer :: b
-            contains
-              subroutine setA(v)
-                integer, intent(in) :: v
-                a = v
-              end subroutine setA
-            end module foo
-            """))
-        mod = crackfortran.crackfortran([str(f_path)])
+class TestPublicPrivate:
+    def test_defaultPrivate(self):
+        fpath = util.getpath("tests", "src", "crackfortran", "privatemod.f90")
+        mod = crackfortran.crackfortran([str(fpath)])
         assert len(mod) == 1
         mod = mod[0]
-        assert 'private' in mod['vars']['a']['attrspec']
-        assert 'public' not in mod['vars']['a']['attrspec']
-        assert 'private' in mod['vars']['b']['attrspec']
-        assert 'public' not in mod['vars']['b']['attrspec']
-        assert 'private' not in mod['vars']['seta']['attrspec']
-        assert 'public' in mod['vars']['seta']['attrspec']
+        assert "private" in mod["vars"]["a"]["attrspec"]
+        assert "public" not in mod["vars"]["a"]["attrspec"]
+        assert "private" in mod["vars"]["b"]["attrspec"]
+        assert "public" not in mod["vars"]["b"]["attrspec"]
+        assert "private" not in mod["vars"]["seta"]["attrspec"]
+        assert "public" in mod["vars"]["seta"]["attrspec"]
 
     def test_defaultPublic(self, tmp_path):
-        f_path = tmp_path / "mod.f90"
-        with f_path.open('w') as ff:
-            ff.write(textwrap.dedent("""\
-            module foo
-              public
-              integer, private :: a
-              public :: setA
-            contains
-              subroutine setA(v)
-                integer, intent(in) :: v
-                a = v
-              end subroutine setA
-            end module foo
-            """))
-        mod = crackfortran.crackfortran([str(f_path)])
+        fpath = util.getpath("tests", "src", "crackfortran", "publicmod.f90")
+        mod = crackfortran.crackfortran([str(fpath)])
         assert len(mod) == 1
         mod = mod[0]
-        assert 'private' in mod['vars']['a']['attrspec']
-        assert 'public' not in mod['vars']['a']['attrspec']
-        assert 'private' not in mod['vars']['seta']['attrspec']
-        assert 'public' in mod['vars']['seta']['attrspec']
+        assert "private" in mod["vars"]["a"]["attrspec"]
+        assert "public" not in mod["vars"]["a"]["attrspec"]
+        assert "private" not in mod["vars"]["seta"]["attrspec"]
+        assert "public" in mod["vars"]["seta"]["attrspec"]
+
+    def test_access_type(self, tmp_path):
+        fpath = util.getpath("tests", "src", "crackfortran", "accesstype.f90")
+        mod = crackfortran.crackfortran([str(fpath)])
+        assert len(mod) == 1
+        tt = mod[0]['vars']
+        assert set(tt['a']['attrspec']) == {'private', 'bind(c)'}
+        assert set(tt['b_']['attrspec']) == {'public', 'bind(c)'}
+        assert set(tt['c']['attrspec']) == {'public'}
+
+
+class TestModuleProcedure():
+    def test_moduleOperators(self, tmp_path):
+        fpath = util.getpath("tests", "src", "crackfortran", "operators.f90")
+        mod = crackfortran.crackfortran([str(fpath)])
+        assert len(mod) == 1
+        mod = mod[0]
+        assert "body" in mod and len(mod["body"]) == 9
+        assert mod["body"][1]["name"] == "operator(.item.)"
+        assert "implementedby" in mod["body"][1]
+        assert mod["body"][1]["implementedby"] == \
+            ["item_int", "item_real"]
+        assert mod["body"][2]["name"] == "operator(==)"
+        assert "implementedby" in mod["body"][2]
+        assert mod["body"][2]["implementedby"] == ["items_are_equal"]
+        assert mod["body"][3]["name"] == "assignment(=)"
+        assert "implementedby" in mod["body"][3]
+        assert mod["body"][3]["implementedby"] == \
+            ["get_int", "get_real"]
 
 
 class TestExternal(util.F2PyTest):
     # issue gh-17859: add external attribute support
-    code = """
-        integer(8) function external_as_statement(fcn)
-        implicit none
-        external fcn
-        integer(8) :: fcn
-        external_as_statement = fcn(0)
-        end
-
-        integer(8) function external_as_attribute(fcn)
-        implicit none
-        integer(8), external :: fcn
-        external_as_attribute = fcn(0)
-        end
-    """
+    sources = [util.getpath("tests", "src", "crackfortran", "gh17859.f")]
 
     def test_external_as_statement(self):
         def incr(x):
             return x + 123
+
         r = self.module.external_as_statement(incr)
         assert r == 123
 
     def test_external_as_attribute(self):
         def incr(x):
             return x + 123
+
         r = self.module.external_as_attribute(incr)
         assert r == 123
 
 
 class TestCrackFortran(util.F2PyTest):
-
-    suffix = '.f90'
-
-    code = textwrap.dedent("""
-      subroutine gh2848( &
-        ! first 2 parameters
-        par1, par2,&
-        ! last 2 parameters
-        par3, par4)
-
-        integer, intent(in)  :: par1, par2
-        integer, intent(out) :: par3, par4
-
-        par3 = par1
-        par4 = par2
-
-      end subroutine gh2848
-    """)
+    # gh-2848: commented lines between parameters in subroutine parameter lists
+    sources = [util.getpath("tests", "src", "crackfortran", "gh2848.f90")]
 
     def test_gh2848(self):
         r = self.module.gh2848(1, 2)
         assert r == (1, 2)
 
 
-class TestMarkinnerspaces():
-    # issue #14118: markinnerspaces does not handle multiple quotations
+class TestMarkinnerspaces:
+    # gh-14118: markinnerspaces does not handle multiple quotations
 
     def test_do_not_touch_normal_spaces(self):
         test_list = ["a ", " a", "a b c", "'abcdefghij'"]
         for i in test_list:
-            assert_equal(markinnerspaces(i), i)
+            assert markinnerspaces(i) == i
 
     def test_one_relevant_space(self):
-        assert_equal(markinnerspaces("a 'b c' \\\' \\\'"), "a 'b@_@c' \\' \\'")
-        assert_equal(markinnerspaces(r'a "b c" \" \"'), r'a "b@_@c" \" \"')
+        assert markinnerspaces("a 'b c' \\' \\'") == "a 'b@_@c' \\' \\'"
+        assert markinnerspaces(r'a "b c" \" \"') == r'a "b@_@c" \" \"'
 
     def test_ignore_inner_quotes(self):
-        assert_equal(markinnerspaces('a \'b c" " d\' e'),
-                     "a 'b@_@c\"@_@\"@_@d' e")
-        assert_equal(markinnerspaces('a "b c\' \' d" e'),
-                     "a \"b@_@c'@_@'@_@d\" e")
+        assert markinnerspaces("a 'b c\" \" d' e") == "a 'b@_@c\"@_@\"@_@d' e"
+        assert markinnerspaces("a \"b c' ' d\" e") == "a \"b@_@c'@_@'@_@d\" e"
 
     def test_multiple_relevant_spaces(self):
-        assert_equal(markinnerspaces("a 'b c' 'd e'"), "a 'b@_@c' 'd@_@e'")
-        assert_equal(markinnerspaces(r'a "b c" "d e"'), r'a "b@_@c" "d@_@e"')
+        assert markinnerspaces("a 'b c' 'd e'") == "a 'b@_@c' 'd@_@e'"
+        assert markinnerspaces(r'a "b c" "d e"') == r'a "b@_@c" "d@_@e"'
 
 
 class TestDimSpec(util.F2PyTest):
@@ -200,7 +154,7 @@ class TestDimSpec(util.F2PyTest):
 
     """
 
-    suffix = '.f90'
+    suffix = ".f90"
 
     code_template = textwrap.dedent("""
       function get_arr_size_{count}(a, n) result (length)
@@ -228,7 +182,7 @@ class TestDimSpec(util.F2PyTest):
     nonlinear_dimspecs = ["2*n:3*n*n+2*n"]
     all_dimspecs = linear_dimspecs + nonlinear_dimspecs
 
-    code = ''
+    code = ""
     for count, dimspec in enumerate(all_dimspecs):
         lst = [(d.split(":")[0] if ":" in d else "1") for d in dimspec.split(',')]
         code += code_template.format(
@@ -237,22 +191,22 @@ class TestDimSpec(util.F2PyTest):
             first=", ".join(lst),
         )
 
-    @pytest.mark.parametrize('dimspec', all_dimspecs)
+    @pytest.mark.parametrize("dimspec", all_dimspecs)
     def test_array_size(self, dimspec):
 
         count = self.all_dimspecs.index(dimspec)
-        get_arr_size = getattr(self.module, f'get_arr_size_{count}')
+        get_arr_size = getattr(self.module, f"get_arr_size_{count}")
 
         for n in [1, 2, 3, 4, 5]:
             sz, a = get_arr_size(n)
             assert a.size == sz
 
-    @pytest.mark.parametrize('dimspec', all_dimspecs)
+    @pytest.mark.parametrize("dimspec", all_dimspecs)
     def test_inv_array_size(self, dimspec):
 
         count = self.all_dimspecs.index(dimspec)
-        get_arr_size = getattr(self.module, f'get_arr_size_{count}')
-        get_inv_arr_size = getattr(self.module, f'get_inv_arr_size_{count}')
+        get_arr_size = getattr(self.module, f"get_arr_size_{count}")
+        get_inv_arr_size = getattr(self.module, f"get_inv_arr_size_{count}")
 
         for n in [1, 2, 3, 4, 5]:
             sz, a = get_arr_size(n)
@@ -271,18 +225,9 @@ class TestDimSpec(util.F2PyTest):
             assert sz == sz1, (n, n1, sz, sz1)
 
 
-class TestModuleDeclaration():
+class TestModuleDeclaration:
     def test_dependencies(self, tmp_path):
-        f_path = tmp_path / "mod.f90"
-        with f_path.open('w') as ff:
-            ff.write(textwrap.dedent("""\
-            module foo
-              type bar
-                character(len = 4) :: text
-              end type bar
-              type(bar), parameter :: abar = bar('abar')
-            end module foo
-            """))
-        mod = crackfortran.crackfortran([str(f_path)])
+        fpath = util.getpath("tests", "src", "crackfortran", "foo_deps.f90")
+        mod = crackfortran.crackfortran([str(fpath)])
         assert len(mod) == 1
-        assert mod[0]['vars']['abar']['='] == "bar('abar')"
+        assert mod[0]["vars"]["abar"]["="] == "bar('abar')"

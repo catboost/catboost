@@ -492,6 +492,15 @@ class TestUfunc:
         with pytest.raises(TypeError):
             np.ldexp(1., np.uint64(3), signature=(None, None, "d"))
 
+    def test_partial_signature_mismatch_with_cache(self):
+        with pytest.raises(TypeError):
+            np.add(np.float16(1), np.uint64(2), sig=("e", "d", None))
+        # Ensure e,d->None is in the dispatching cache (double loop)
+        np.add(np.float16(1), np.float64(2))
+        # The error must still be raised:
+        with pytest.raises(TypeError):
+            np.add(np.float16(1), np.uint64(2), sig=("e", "d", None))
+
     def test_use_output_signature_for_all_arguments(self):
         # Test that providing only `dtype=` or `signature=(None, None, dtype)`
         # is sufficient if falling back to a homogeneous signature works.
@@ -798,6 +807,20 @@ class TestUfunc:
         umt.inner1d(arr, arr, out=out)
         # the result would be just a scalar `5`, but is broadcast fully:
         assert (out == 5).all()
+
+    @pytest.mark.parametrize(["arr", "out"], [
+                ([2], np.empty(())),
+                ([1, 2], np.empty(1)),
+                (np.ones((4, 3)), np.empty((4, 1)))],
+            ids=["(1,)->()", "(2,)->(1,)", "(4, 3)->(4, 1)"])
+    def test_out_broadcast_errors(self, arr, out):
+        # Output is (currently) allowed to broadcast inputs, but it cannot be
+        # smaller than the actual result.
+        with pytest.raises(ValueError, match="non-broadcastable"):
+            np.positive(arr, out=out)
+
+        with pytest.raises(ValueError, match="non-broadcastable"):
+            np.add(np.ones(()), arr, out=out)
 
     def test_type_cast(self):
         msg = "type cast"
@@ -2198,8 +2221,7 @@ class TestUfunc:
         arr_le = np.arange(10, dtype="<i8")
 
         assert np.add.reduce(arr_be) == np.add.reduce(arr_le)
-        assert_array_equal(
-            np.add.accumulate(arr_be), np.add.accumulate(arr_le))
+        assert_array_equal(np.add.accumulate(arr_be), np.add.accumulate(arr_le))
         assert_array_equal(
             np.add.reduceat(arr_be, [1]), np.add.reduceat(arr_le, [1]))
 
@@ -2522,3 +2544,57 @@ def test_ufunc_methods_floaterrors(method):
     with np.errstate(all="raise"):
         with pytest.raises(FloatingPointError):
             method(arr)
+
+
+def _check_neg_zero(value):
+    if value != 0.0:
+        return False
+    if not np.signbit(value.real):
+        return False
+    if value.dtype.kind == "c":
+        return np.signbit(value.imag)
+    return True
+
+@pytest.mark.parametrize("dtype", np.typecodes["AllFloat"])
+def test_addition_negative_zero(dtype):
+    dtype = np.dtype(dtype)
+    if dtype.kind == "c":
+        neg_zero = dtype.type(complex(-0.0, -0.0))
+    else:
+        neg_zero = dtype.type(-0.0)
+
+    arr = np.array(neg_zero)
+    arr2 = np.array(neg_zero)
+
+    assert _check_neg_zero(arr + arr2)
+    # In-place ops may end up on a different path (reduce path) see gh-21211
+    arr += arr2
+    assert _check_neg_zero(arr)
+
+
+@pytest.mark.parametrize("dtype", np.typecodes["AllFloat"])
+@pytest.mark.parametrize("use_initial", [True, False])
+def test_addition_reduce_negative_zero(dtype, use_initial):
+    dtype = np.dtype(dtype)
+    if dtype.kind == "c":
+        neg_zero = dtype.type(complex(-0.0, -0.0))
+    else:
+        neg_zero = dtype.type(-0.0)
+
+    kwargs = {}
+    if use_initial:
+        kwargs["initial"] = neg_zero
+    else:
+        pytest.xfail("-0. propagation in sum currently requires initial")
+
+    # Test various length, in case SIMD paths or chunking play a role.
+    # 150 extends beyond the pairwise blocksize; probably not important.
+    for i in range(0, 150):
+        arr = np.array([neg_zero] * i, dtype=dtype)
+        res = np.sum(arr, **kwargs)
+        if i > 0 or use_initial:
+            assert _check_neg_zero(res)
+        else:
+            # `sum([])` should probably be 0.0 and not -0.0 like `sum([-0.0])`
+            assert not np.signbit(res.real)
+            assert not np.signbit(res.imag)

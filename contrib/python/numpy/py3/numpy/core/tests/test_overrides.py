@@ -431,12 +431,13 @@ class TestNumPyFunctions:
 
 
 class TestArrayLike:
-    def setup(self):
+    def setup_method(self):
         class MyArray():
             def __init__(self, function=None):
                 self.function = function
 
             def __array_function__(self, func, types, args, kwargs):
+                assert func is getattr(np, func.__name__)
                 try:
                     my_func = getattr(self, func.__name__)
                 except AttributeError:

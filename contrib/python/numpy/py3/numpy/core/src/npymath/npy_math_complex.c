@@ -1696,7 +1696,7 @@ npy_catanhf(npy_cfloat z)
     if (ax < SQRT_3_EPSILON / 2 && ay < SQRT_3_EPSILON / 2) {
         /*
          * z = 0 was filtered out above.  All other cases must raise
-         * inexact, but this is the only only that needs to do it
+         * inexact, but this is the only one that needs to do it
          * explicitly.
          */
         raise_inexact();
@@ -3361,7 +3361,7 @@ npy_catanh(npy_cdouble z)
     if (ax < SQRT_3_EPSILON / 2 && ay < SQRT_3_EPSILON / 2) {
         /*
          * z = 0 was filtered out above.  All other cases must raise
-         * inexact, but this is the only only that needs to do it
+         * inexact, but this is the only one that needs to do it
          * explicitly.
          */
         raise_inexact();
@@ -5026,7 +5026,7 @@ npy_catanhl(npy_clongdouble z)
     if (ax < SQRT_3_EPSILON / 2 && ay < SQRT_3_EPSILON / 2) {
         /*
          * z = 0 was filtered out above.  All other cases must raise
-         * inexact, but this is the only only that needs to do it
+         * inexact, but this is the only one that needs to do it
          * explicitly.
          */
         raise_inexact();

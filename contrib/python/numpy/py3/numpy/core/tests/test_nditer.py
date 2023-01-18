@@ -828,7 +828,7 @@ def test_iter_nbo_align_contig():
                         casting='equiv',
                         op_dtypes=[np.dtype('f4')])
     with i:
-        # context manager triggers UPDATEIFCOPY on i at exit
+        # context manager triggers WRITEBACKIFCOPY on i at exit
         assert_equal(i.dtypes[0].byteorder, a.dtype.byteorder)
         assert_equal(i.operands[0].dtype.byteorder, a.dtype.byteorder)
         assert_equal(i.operands[0], a)
@@ -1990,13 +1990,13 @@ def test_iter_buffered_cast_structured_type_failure_with_cleanup():
     a = np.array([(1, 2, 3), (4, 5, 6)], dtype=sdt1)
 
     for intent in ["readwrite", "readonly", "writeonly"]:
-        # If the following assert fails, the place where the error is raised
-        # within nditer may change. That is fine, but it may make sense for
-        # a new (hard to design) test to replace it. The `simple_arr` is
-        # designed to require a multi-step cast (due to having fields).
-        assert np.can_cast(a.dtype, sdt2, casting="unsafe")
+        # This test was initially designed to test an error at a different
+        # place, but will now raise earlier to to the cast not being possible:
+        # `assert np.can_cast(a.dtype, sdt2, casting="unsafe")` fails.
+        # Without a faulty DType, there is probably no reliable
+        # way to get the initial tested behaviour.
         simple_arr = np.array([1, 2], dtype="i,i")  # requires clean up
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             nditer((simple_arr, a), ['buffered', 'refs_ok'], [intent, intent],
                    casting='unsafe', op_dtypes=["f,f", sdt2])
 
@@ -3134,7 +3134,6 @@ def test_warn_noclose():
 @pytest.mark.skip
 @pytest.mark.skipif(sys.version_info[:2] == (3, 9) and sys.platform == "win32",
                     reason="Errors with Python 3.9 on Windows")
-@pytest.mark.skipif(not HAS_REFCOUNT, reason="Python lacks refcounts")
 @pytest.mark.parametrize(["in_dtype", "buf_dtype"],
         [("i", "O"), ("O", "i"),  # most simple cases
          ("i,O", "O,O"),  # structured partially only copying O
@@ -3142,9 +3141,14 @@ def test_warn_noclose():
          ])
 @pytest.mark.parametrize("steps", [1, 2, 3])
 def test_partial_iteration_cleanup(in_dtype, buf_dtype, steps):
-    value = 123  # relies on python cache (leak-check will still find it)
+    """
+    Checks for reference counting leaks during cleanup.  Using explicit
+    reference counts lead to occasional false positives (at least in parallel
+    test setups).  This test now should still test leaks correctly when
+    run e.g. with pytest-valgrind or pytest-leaks
+    """
+    value = 2**30 + 1  # just a random value that Python won't intern
     arr = np.full(int(np.BUFSIZE * 2.5), value).astype(in_dtype)
-    count = sys.getrefcount(value)
 
     it = np.nditer(arr, op_dtypes=[np.dtype(buf_dtype)],
             flags=["buffered", "external_loop", "refs_ok"], casting="unsafe")
@@ -3152,11 +3156,7 @@ def test_partial_iteration_cleanup(in_dtype, buf_dtype, steps):
         # The iteration finishes in 3 steps, the first two are partial
         next(it)
 
-    # Note that resetting does not free references
-    del it
-    break_cycles()
-    break_cycles()
-    assert count == sys.getrefcount(value)
+    del it  # not necessary, but we test the cleanup
 
     # Repeat the test with `iternext`
     it = np.nditer(arr, op_dtypes=[np.dtype(buf_dtype)],
@@ -3164,11 +3164,7 @@ def test_partial_iteration_cleanup(in_dtype, buf_dtype, steps):
     for step in range(steps):
         it.iternext()
 
-    del it  # should ensure cleanup
-    break_cycles()
-    break_cycles()
-    assert count == sys.getrefcount(value)
-
+    del it  # not necessary, but we test the cleanup
 
 @pytest.mark.skipif(not HAS_REFCOUNT, reason="Python lacks refcounts")
 @pytest.mark.parametrize(["in_dtype", "buf_dtype"],

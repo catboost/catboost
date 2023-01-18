@@ -15,6 +15,7 @@ from numpy.core.multiarray import normalize_axis_index
 
 from .c_distributions cimport *
 from libc cimport string
+from libc.math cimport sqrt
 from libc.stdint cimport (uint8_t, uint16_t, uint32_t, uint64_t,
                           int32_t, int64_t, INT64_MAX, SIZE_MAX)
 from ._bounded_integers cimport (_rand_bool, _rand_int32, _rand_int64,
@@ -24,7 +25,7 @@ from ._pcg64 import PCG64
 from numpy.random cimport bitgen_t
 from ._common cimport (POISSON_LAM_MAX, CONS_POSITIVE, CONS_NONE,
             CONS_NON_NEGATIVE, CONS_BOUNDED_0_1, CONS_BOUNDED_GT_0_1,
-            CONS_GT_1, CONS_POSITIVE_NOT_NAN, CONS_POISSON,
+            CONS_BOUNDED_LT_0_1, CONS_GT_1, CONS_POSITIVE_NOT_NAN, CONS_POISSON,
             double_fill, cont, kahan_sum, cont_broadcast_3, float_fill, cont_f,
             check_array_constraint, check_constraint, disc, discrete_broadcast_iii,
             validate_output_shape
@@ -32,6 +33,8 @@ from ._common cimport (POISSON_LAM_MAX, CONS_POSITIVE, CONS_NONE,
 
 cdef extern from "numpy/arrayobject.h":
     int PyArray_ResolveWritebackIfCopy(np.ndarray)
+    int PyArray_FailUnlessWriteable(np.PyArrayObject *obj,
+                                    const char *name) except -1
     object PyArray_FromArray(np.PyArrayObject *, np.PyArray_Descr *, int)
 
     enum:
@@ -2995,6 +2998,22 @@ cdef class Generator:
         then the probability distribution of the number of non-"1"s that
         appear before the third "1" is a negative binomial distribution.
 
+        Because this method internally calls ``Generator.poisson`` with an
+        intermediate random value, a ValueError is raised when the choice of 
+        :math:`n` and :math:`p` would result in the mean + 10 sigma of the sampled
+        intermediate distribution exceeding the max acceptable value of the 
+        ``Generator.poisson`` method. This happens when :math:`p` is too low 
+        (a lot of failures happen for every success) and :math:`n` is too big (
+        a lot of sucesses are allowed).
+        Therefore, the :math:`n` and :math:`p` values must satisfy the constraint:
+
+        .. math:: n\\frac{1-p}{p}+10n\\sqrt{n}\\frac{1-p}{p}<2^{63}-1-10\\sqrt{2^{63}-1},
+
+        Where the left side of the equation is the derived mean + 10 sigma of
+        a sample from the gamma distribution internally used as the :math:`lam`
+        parameter of a poisson sample, and the right side of the equation is
+        the constraint for maximum value of :math:`lam` in ``Generator.poisson``.
+
         References
         ----------
         .. [1] Weisstein, Eric W. "Negative Binomial Distribution." From
@@ -3019,9 +3038,41 @@ cdef class Generator:
         ...    print(i, "wells drilled, probability of one success =", probability)
 
         """
+
+        cdef bint is_scalar = True
+        cdef double *_dn
+        cdef double *_dp
+        cdef double _dmax_lam
+
+        p_arr = <np.ndarray>np.PyArray_FROM_OTF(p, np.NPY_DOUBLE, np.NPY_ALIGNED)
+        is_scalar = is_scalar and np.PyArray_NDIM(p_arr) == 0
+        n_arr = <np.ndarray>np.PyArray_FROM_OTF(n, np.NPY_DOUBLE, np.NPY_ALIGNED)
+        is_scalar = is_scalar and np.PyArray_NDIM(n_arr) == 0
+
+        if not is_scalar:
+            check_array_constraint(n_arr, 'n', CONS_POSITIVE_NOT_NAN)
+            check_array_constraint(p_arr, 'p', CONS_BOUNDED_GT_0_1)
+            # Check that the choice of negative_binomial parameters won't result in a
+            # call to the poisson distribution function with a value of lam too large.
+            max_lam_arr = (1 - p_arr) / p_arr * (n_arr + 10 * np.sqrt(n_arr))
+            if np.any(np.greater(max_lam_arr, POISSON_LAM_MAX)):
+                raise ValueError("n too large or p too small, see Generator.negative_binomial Notes")
+
+        else:
+            _dn = <double*>np.PyArray_DATA(n_arr)
+            _dp = <double*>np.PyArray_DATA(p_arr)
+
+            check_constraint(_dn[0], 'n', CONS_POSITIVE_NOT_NAN)
+            check_constraint(_dp[0], 'p', CONS_BOUNDED_GT_0_1)
+            # Check that the choice of negative_binomial parameters won't result in a
+            # call to the poisson distribution function with a value of lam too large.
+            _dmax_lam = (1 - _dp[0]) / _dp[0] * (_dn[0] + 10 * sqrt(_dn[0]))
+            if _dmax_lam > POISSON_LAM_MAX:
+                raise ValueError("n too large or p too small, see Generator.negative_binomial Notes")
+
         return disc(&random_negative_binomial, &self._bitgen, size, self.lock, 2, 0,
-                    n, 'n', CONS_POSITIVE_NOT_NAN,
-                    p, 'p', CONS_BOUNDED_GT_0_1,
+                    n_arr, 'n', CONS_NONE,
+                    p_arr, 'p', CONS_NONE,
                     0.0, '', CONS_NONE)
 
     def poisson(self, lam=1.0, size=None):
@@ -3386,12 +3437,12 @@ cdef class Generator:
         Draw samples from a logarithmic series distribution.
 
         Samples are drawn from a log series distribution with specified
-        shape parameter, 0 < ``p`` < 1.
+        shape parameter, 0 <= ``p`` < 1.
 
         Parameters
         ----------
         p : float or array_like of floats
-            Shape parameter for the distribution.  Must be in the range (0, 1).
+            Shape parameter for the distribution.  Must be in the range [0, 1).
         size : int or tuple of ints, optional
             Output shape.  If the given shape is, e.g., ``(m, n, k)``, then
             ``m * n * k`` samples are drawn.  If size is ``None`` (default),
@@ -3455,7 +3506,7 @@ cdef class Generator:
 
         """
         return disc(&random_logseries, &self._bitgen, size, self.lock, 1, 0,
-                 p, 'p', CONS_BOUNDED_0_1,
+                 p, 'p', CONS_BOUNDED_LT_0_1,
                  0.0, '', CONS_NONE,
                  0.0, '', CONS_NONE)
 
@@ -3572,12 +3623,35 @@ cdef class Generator:
         >>> y.shape
         (3, 3, 2)
 
-        The following is probably true, given that 0.6 is roughly twice the
-        standard deviation:
+        Here we generate 800 samples from the bivariate normal distribution
+        with mean [0, 0] and covariance matrix [[6, -3], [-3, 3.5]].  The
+        expected variances of the first and second components of the sample
+        are 6 and 3.5, respectively, and the expected correlation
+        coefficient is -3/sqrt(6*3.5) ≈ -0.65465.
 
-        >>> list((x[0,0,:] - mean) < 0.6)
-        [True, True] # random
+        >>> cov = np.array([[6, -3], [-3, 3.5]])
+        >>> pts = rng.multivariate_normal([0, 0], cov, size=800)
 
+        Check that the mean, covariance, and correlation coefficient of the
+        sample are close to the expected values:
+
+        >>> pts.mean(axis=0)
+        array([ 0.0326911 , -0.01280782])  # may vary
+        >>> np.cov(pts.T)
+        array([[ 5.96202397, -2.85602287],
+               [-2.85602287,  3.47613949]])  # may vary
+        >>> np.corrcoef(pts.T)[0, 1]
+        -0.6273591314603949  # may vary
+
+        We can visualize this data with a scatter plot.  The orientation
+        of the point cloud illustrates the negative correlation of the
+        components of this sample.
+
+        >>> import matplotlib.pyplot as plt
+        >>> plt.plot(pts[:, 0], pts[:, 1], '.', alpha=0.5)
+        >>> plt.axis('equal')
+        >>> plt.grid()
+        >>> plt.show()
         """
         if method not in {'eigh', 'svd', 'cholesky'}:
             raise ValueError(
@@ -4355,6 +4429,12 @@ cdef class Generator:
         --------
         shuffle
         permutation
+        
+        Notes
+        -----
+        An important distinction between methods ``shuffle``  and ``permuted`` is 
+        how they both treat the ``axis`` parameter which can be found at 
+        :ref:`generator-handling-axis-parameter`.
 
         Examples
         --------
@@ -4416,6 +4496,7 @@ cdef class Generator:
         else:
             if type(out) is not np.ndarray:
                 raise TypeError('out must be a numpy array')
+            PyArray_FailUnlessWriteable(<np.PyArrayObject *>out, "out")
             if out.shape != x.shape:
                 raise ValueError('out must have the same shape as x')
             np.copyto(out, x, casting='safe')
@@ -4496,15 +4577,32 @@ cdef class Generator:
         -------
         None
 
+        See Also
+        --------
+        permuted
+        permutation
+
+        Notes
+        -----
+        An important distinction between methods ``shuffle``  and ``permuted`` is 
+        how they both treat the ``axis`` parameter which can be found at 
+        :ref:`generator-handling-axis-parameter`.
+
         Examples
         --------
         >>> rng = np.random.default_rng()
         >>> arr = np.arange(10)
+        >>> arr
+        array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         >>> rng.shuffle(arr)
         >>> arr
-        [1 7 5 2 9 4 3 6 0 8] # random
+        array([2, 0, 7, 5, 1, 4, 8, 9, 3, 6]) # random
 
         >>> arr = np.arange(9).reshape((3, 3))
+        >>> arr
+        array([[0, 1, 2],
+               [3, 4, 5],
+               [6, 7, 8]])
         >>> rng.shuffle(arr)
         >>> arr
         array([[3, 4, 5], # random
@@ -4512,6 +4610,10 @@ cdef class Generator:
                [0, 1, 2]])
 
         >>> arr = np.arange(9).reshape((3, 3))
+        >>> arr
+        array([[0, 1, 2],
+               [3, 4, 5],
+               [6, 7, 8]])
         >>> rng.shuffle(arr, axis=1)
         >>> arr
         array([[2, 0, 1], # random
@@ -4524,6 +4626,8 @@ cdef class Generator:
             char* buf_ptr
 
         if isinstance(x, np.ndarray):
+            if not x.flags.writeable:
+                raise ValueError('array is read-only')
             # Only call ndim on ndarrays, see GH 18142
             axis = normalize_axis_index(axis, np.ndim(x))
 
