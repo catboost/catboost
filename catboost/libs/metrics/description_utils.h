@@ -37,7 +37,7 @@ template <>
 inline TString BuildDescription(const char* fmt, const TMetricParam<TVector<double>>& param) {
     if (param.IsUserDefined() && param.Get().size() > 0) {
         TStringBuilder description;
-        description << param.GetName() << "=" << Sprintf(fmt, param.Get()[0]) << ",";
+        description << param.GetName() << "=" << Sprintf(fmt, param.Get()[0]);
         for (auto idx : xrange<size_t>(1, param.Get().size(), 1)) {
             description << "," << Sprintf(fmt, param.Get()[idx]);
         }
