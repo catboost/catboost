@@ -79,7 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Modules\_sqlite\_sqlite3.reg3.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\cache.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\blob.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\connection.c">
@@ -133,7 +133,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Modules\_sqlite\_sqlite3.reg3.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\cache.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\blob.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\clinic\blob.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\clinic\connection.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\clinic\cursor.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\clinic\module.c.h"/>

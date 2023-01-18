@@ -183,7 +183,13 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\semaphore.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\sha3.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\sha3module.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre\sre.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_xxtestfuzz\_xxtestfuzz.c">
@@ -264,9 +270,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_lzmamodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_math.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_opcode.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -280,9 +283,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_randommodule.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl.c">
@@ -301,6 +301,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_tracemalloc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_typingmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_weakref.c">
@@ -343,6 +346,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\getbuildinfo.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\getpath.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\itertoolsmodule.c">
@@ -402,7 +408,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\zlibmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_blake2\blake2ns.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_blake2\blake2module.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_blake2\clinic\blake2b_impl.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_blake2\clinic\blake2s_impl.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_blake2\impl\blake2-config.h"/>
@@ -449,14 +455,12 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\clinic\semaphore.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\multiprocessing.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\clinic\sha3module.c.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakHash.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakP-1600-SnP-opt32.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakP-1600-SnP-opt64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakP-1600-SnP.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakP-1600-opt64-config.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakSponge.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\SnP-Relaned.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\align.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\sha3.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre\clinic\sre.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre\sre.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre\sre_constants.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre\sre_lib.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre\sre_targets.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl\clinic\cert.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data.h"/>
@@ -481,6 +485,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_codecsmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_collectionsmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_contextvarsmodule.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_csv.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_datetimemodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_elementtree.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_hashopenssl.c.h"/>
@@ -493,11 +498,11 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_pickle.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_queuemodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_randommodule.c.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_sre.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_ssl.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_statisticsmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_struct.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_tracemalloc.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_typingmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_weakref.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_winapi.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\arraymodule.c.h"/>
@@ -516,6 +521,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\sha256module.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\sha512module.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\signalmodule.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\socketmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\symtablemodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\unicodedata.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\zlibmodule.c.h"/>
@@ -523,9 +529,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\posixmodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\rotatingtree.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\socketmodule.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\sre.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\sre_constants.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\sre_lib.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\unicodedata_db.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\unicodename_db.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\winreparse.h"/>

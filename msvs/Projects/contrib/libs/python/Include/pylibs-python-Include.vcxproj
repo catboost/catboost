@@ -85,6 +85,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\datetime.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\descrobject.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\frameobject.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\internal\pycore_frame.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\longintrepr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\pyconfig.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\pymem.h"/>
