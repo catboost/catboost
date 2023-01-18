@@ -104,6 +104,8 @@ BELONGS ya.make
         onnx/defs/logical/old.cc [2:2]
         onnx/defs/math/defs.cc [2:2]
         onnx/defs/math/old.cc [2:2]
+        onnx/defs/math/utils.cc [2:2]
+        onnx/defs/math/utils.h [2:2]
         onnx/defs/nn/defs.cc [2:2]
         onnx/defs/nn/old.cc [2:2]
         onnx/defs/object_detection/defs.cc [2:2]
@@ -113,6 +115,7 @@ BELONGS ya.make
         onnx/defs/operator_sets_preview.h [2:2]
         onnx/defs/operator_sets_training.h [2:2]
         onnx/defs/optional/defs.cc [2:2]
+        onnx/defs/optional/old.cc [2:2]
         onnx/defs/parser.cc [2:2]
         onnx/defs/parser.h [2:2]
         onnx/defs/printer.cc [2:2]
@@ -121,6 +124,8 @@ BELONGS ya.make
         onnx/defs/quantization/old.cc [2:2]
         onnx/defs/reduction/defs.cc [2:2]
         onnx/defs/reduction/old.cc [2:2]
+        onnx/defs/reduction/utils.cc [2:2]
+        onnx/defs/reduction/utils.h [2:2]
         onnx/defs/rnn/defs.cc [2:2]
         onnx/defs/rnn/old.cc [2:2]
         onnx/defs/schema.cc [2:2]
@@ -141,9 +146,6 @@ BELONGS ya.make
         onnx/onnx-data_pb.h [2:2]
         onnx/onnx-operators_pb.h [2:2]
         onnx/onnx_pb.h [2:2]
-        onnx/onnxifi.h [2:2]
-        onnx/onnxifi_utils.cc [2:2]
-        onnx/onnxifi_utils.h [2:2]
         onnx/proto_utils.h [2:2]
         onnx/py_utils.h [2:2]
         onnx/shape_inference/implementation.cc [2:2]
@@ -177,6 +179,7 @@ BELONGS ya.make
         onnx/version_converter/adapters/softmax_12_13.h [2:2]
         onnx/version_converter/adapters/split_12_13.h [2:2]
         onnx/version_converter/adapters/split_13_12.h [2:2]
+        onnx/version_converter/adapters/split_17_18.h [2:2]
         onnx/version_converter/adapters/sum_8_7.h [2:2]
         onnx/version_converter/adapters/topk_9_10.h [2:2]
         onnx/version_converter/adapters/transformers.h [2:2]
@@ -201,7 +204,7 @@ BELONGS ya.make
         Match type      : TAG
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        README.md [278:280]
+        README.md [275:277]
 
 KEEP     Apache-2.0           2b42edef8fa55315f34f2370b4715ca9
 BELONGS ya.make
@@ -230,9 +233,9 @@ BELONGS ya.make
         onnx/defs/__init__.py [1:1]
         onnx/external_data_helper.py [1:1]
         onnx/helper.py [1:1]
-        onnx/mapping.py [1:1]
         onnx/numpy_helper.py [1:1]
         onnx/parser.py [1:1]
+        onnx/printer.py [1:1]
         onnx/shape_inference.py [1:1]
         onnx/utils.py [1:1]
         onnx/version_converter.py [1:1]

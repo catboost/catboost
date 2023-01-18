@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(1.12.0)
+VERSION(1.13.0)
 
-ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/v1.12.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/v1.13.0.tar.gz)
 
 LICENSE(
     Apache-2.0 AND
@@ -51,17 +51,20 @@ SRCS(
     onnx/defs/logical/old.cc
     onnx/defs/math/defs.cc
     onnx/defs/math/old.cc
+    onnx/defs/math/utils.cc
     onnx/defs/nn/defs.cc
     onnx/defs/nn/old.cc
     onnx/defs/object_detection/defs.cc
     onnx/defs/object_detection/old.cc
     onnx/defs/optional/defs.cc
+    onnx/defs/optional/old.cc
     onnx/defs/parser.cc
     onnx/defs/printer.cc
     onnx/defs/quantization/defs.cc
     onnx/defs/quantization/old.cc
     onnx/defs/reduction/defs.cc
     onnx/defs/reduction/old.cc
+    onnx/defs/reduction/utils.cc
     onnx/defs/rnn/defs.cc
     onnx/defs/rnn/old.cc
     onnx/defs/schema.cc
@@ -75,7 +78,6 @@ SRCS(
     onnx/defs/traditionalml/defs.cc
     onnx/defs/traditionalml/old.cc
     onnx/defs/training/defs.cc
-    onnx/onnxifi_utils.cc
     onnx/shape_inference/implementation.cc
     onnx/version_converter/convert.cc
     onnx/version_converter/helper.cc
