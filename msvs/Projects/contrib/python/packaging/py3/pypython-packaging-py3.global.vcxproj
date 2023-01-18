@@ -190,7 +190,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/join_c2ad30f411157054b160249171.cpp" "--ya-start-command-file" "contrib/python/packaging/py3/02017ebbc8b47cafaabc653f3d.cpp" "contrib/python/packaging/py3/afb0d08fc65c93f9d1ba3e189b.cpp" "--ya-end-command-file"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/join_c2ad30f411157054b160249171.cpp" "--ya-start-command-file" "contrib/python/packaging/py3/02017ebbc8b47cafaabc653f3d.cpp" "contrib/python/packaging/py3/afb0d08fc65c93f9d1ba3e189b.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/join_c2ad30f411157054b160249171.cpp" "--ya-start-command-file" "contrib/python/packaging/py3/02017ebbc8b47cafaabc653f3d.cpp" "contrib/python/packaging/py3/afb0d08fc65c93f9d1ba3e189b.cpp" "--ya-end-command-file"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py3/join_c2ad30f411157054b160249171.cpp" "--ya-start-command-file" "contrib/python/packaging/py3/02017ebbc8b47cafaabc653f3d.cpp" "contrib/python/packaging/py3/afb0d08fc65c93f9d1ba3e189b.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
