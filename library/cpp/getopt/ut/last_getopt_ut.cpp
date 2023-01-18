@@ -736,15 +736,21 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
 
     Y_UNIT_TEST(TestAppendTo) {
         TVector<int> ints;
+        std::vector<std::string> strings;
 
         TOptsNoDefault opts;
         opts.AddLongOption("size").AppendTo(&ints);
+        opts.AddLongOption("value").AppendTo(&strings);
 
-        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--size=17", "--size=19"}));
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--size=17", "--size=19", "--value=v1", "--value=v2"}));
 
         UNIT_ASSERT_VALUES_EQUAL(size_t(2), ints.size());
         UNIT_ASSERT_VALUES_EQUAL(17, ints.at(0));
         UNIT_ASSERT_VALUES_EQUAL(19, ints.at(1));
+
+        UNIT_ASSERT_VALUES_EQUAL(size_t(2), strings.size());
+        UNIT_ASSERT_VALUES_EQUAL("v1", strings.at(0));
+        UNIT_ASSERT_VALUES_EQUAL("v2", strings.at(1));
     }
 
     Y_UNIT_TEST(TestEmplaceTo) {
