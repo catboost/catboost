@@ -9,11 +9,7 @@ from unittest import TestCase
 from pytest import mark
 
 from traitlets.config.application import Application
-from traitlets.config.configurable import (
-    Configurable,
-    LoggingConfigurable,
-    SingletonConfigurable,
-)
+from traitlets.config.configurable import Configurable, LoggingConfigurable, SingletonConfigurable
 from traitlets.config.loader import Config
 from traitlets.log import get_logger
 from traitlets.traitlets import (

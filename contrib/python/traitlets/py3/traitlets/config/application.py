@@ -355,14 +355,20 @@ class Application(SingletonConfigurable):
 
     #: the alias map for configurables
     #: Keys might strings or tuples for additional options; single-letter alias accessed like `-v`.
-    #: Values might be like "Class.trait" strings of two-tuples: (Class.trait, help-text).
-    aliases: t.Dict[str, t.Any] = {"log-level": "Application.log_level"}
+    #: Values might be like "Class.trait" strings of two-tuples: (Class.trait, help-text),
+    #  or just the "Class.trait" string, in which case the help text is inferred from the
+    #  corresponding trait
+    aliases: t.Dict[t.Union[str, t.Tuple[str, ...]], t.Union[str, t.Tuple[str, str]]] = {
+        "log-level": "Application.log_level"
+    }
 
     # flags for loading Configurables or store_const style flags
     # flags are loaded from this dict by '--key' flags
     # this must be a dict of two-tuples, the first element being the Config/dict
     # and the second being the help string for the flag
-    flags: t.Dict[str, t.Any] = {
+    flags: t.Dict[
+        t.Union[str, t.Tuple[str, ...]], t.Tuple[t.Union[t.Dict[str, t.Any], Config], str]
+    ] = {
         "debug": (
             {
                 "Application": {
@@ -533,12 +539,13 @@ class Application(SingletonConfigurable):
                 fhelp = cls.class_get_trait_help(trait, helptext=fhelp).splitlines()
 
                 if not isinstance(alias, tuple):
-                    alias = (alias,)  # type:ignore[assignment]
+                    alias = (alias,)
                 alias = sorted(alias, key=len)  # type:ignore[assignment]
                 alias = ", ".join(("--%s" if len(m) > 1 else "-%s") % m for m in alias)
 
                 # reformat first line
-                fhelp[0] = fhelp[0].replace("--" + longname, alias)
+                assert fhelp is not None
+                fhelp[0] = fhelp[0].replace("--" + longname, alias)  # type:ignore
                 yield from fhelp
                 yield indent("Equivalent to: [--%s]" % longname)
             except Exception as ex:
@@ -557,7 +564,7 @@ class Application(SingletonConfigurable):
         for flags, (cfg, fhelp) in self.flags.items():
             try:
                 if not isinstance(flags, tuple):
-                    flags = (flags,)  # type:ignore[assignment]
+                    flags = (flags,)
                 flags = sorted(flags, key=len)  # type:ignore[assignment]
                 flags = ", ".join(("--%s" if len(m) > 1 else "-%s") % m for m in flags)
                 yield flags
@@ -744,7 +751,7 @@ class Application(SingletonConfigurable):
         for alias, longname in self.aliases.items():
             if isinstance(longname, tuple):
                 longname, _ = longname
-            cls, trait = longname.split(".", 1)
+            cls, trait = longname.split(".", 1)  # type:ignore
             children = mro_tree[cls]  # type:ignore[index]
             if len(children) == 1:
                 # exactly one descendent, promote alias
@@ -759,7 +766,7 @@ class Application(SingletonConfigurable):
         flags = {}
         for key, (flagdict, help) in self.flags.items():
             newflag: t.Dict[t.Any, t.Any] = {}
-            for cls, subdict in flagdict.items():
+            for cls, subdict in flagdict.items():  # type:ignore
                 children = mro_tree[cls]  # type:ignore[index]
                 # exactly one descendent, promote flag section
                 if len(children) == 1:
@@ -771,7 +778,7 @@ class Application(SingletonConfigurable):
                     newflag[cls] = subdict
 
             if not isinstance(key, tuple):
-                key = (key,)  # type:ignore[assignment]
+                key = (key,)
             for k in key:
                 flags[k] = (newflag, help)
         return flags, aliases
@@ -948,7 +955,7 @@ class Application(SingletonConfigurable):
         """generate default config file from Configurables"""
         lines = ["# Configuration file for %s." % self.name]
         lines.append("")
-        lines.append("c = get_config()  # noqa")
+        lines.append("c = get_config()  #" + "noqa")
         lines.append("")
         classes = self.classes if classes is None else classes
         config_classes = list(self._classes_with_config_traits(classes))

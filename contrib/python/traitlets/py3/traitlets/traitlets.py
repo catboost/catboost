@@ -499,7 +499,15 @@ class BaseDescriptor:
         self.name = name
 
     def subclass_init(self, cls):
-        pass
+        # Instead of HasDescriptors.setup_instance calling
+        # every instance_init, we opt in by default.
+        # This gives descriptors a change to opt out for
+        # performance reasons.
+        # Because most traits do not need instance_init,
+        # and it will otherwise be called for every HasTrait instance
+        # beging created, this otherwise gives a significant performance
+        # pentalty. Most TypeTraits in traitlets opt out.
+        cls._instance_inits.append(self.instance_init)
 
     def instance_init(self, obj):
         """Part of the initialization which may depend on the underlying
@@ -654,8 +662,14 @@ class TraitType(BaseDescriptor):
                     DeprecationWarning,
                     stacklevel=2,
                 )
-            with obj.cross_validation_lock:
+            # Using a context manager has a large runtime overhead, so we
+            # write out the obj.cross_validation_lock call here.
+            _cross_validation_lock = obj._cross_validation_lock
+            try:
+                obj._cross_validation_lock = True
                 value = self._validate(obj, default)
+            finally:
+                obj._cross_validation_lock = _cross_validation_lock
             obj._trait_values[self.name] = value
             obj._notify_observers(
                 Bunch(
@@ -666,9 +680,9 @@ class TraitType(BaseDescriptor):
                 )
             )
             return value
-        except Exception:
+        except Exception as e:
             # This should never be reached.
-            raise TraitError("Unexpected error in TraitType: default value not set properly")
+            raise TraitError("Unexpected error in TraitType: default value not set properly") from e
         else:
             return value
 
@@ -934,7 +948,7 @@ class MetaHasDescriptors(type):
     instantiated and sets their name attribute.
     """
 
-    def __new__(mcls, name, bases, classdict):
+    def __new__(mcls, name, bases, classdict):  # noqa
         """Create the HasDescriptors class."""
         for k, v in classdict.items():
             # ----------------------------------------------------------------
@@ -964,6 +978,8 @@ class MetaHasDescriptors(type):
         BaseDescriptor in the class dict of the newly created ``cls`` before
         calling their :attr:`class_init` method.
         """
+        cls._descriptors = []
+        cls._instance_inits = []
         for k, v in classdict.items():
             if isinstance(v, BaseDescriptor):
                 v.class_init(cls, k)
@@ -971,14 +987,89 @@ class MetaHasDescriptors(type):
         for _, v in getmembers(cls):
             if isinstance(v, BaseDescriptor):
                 v.subclass_init(cls)
+                cls._descriptors.append(v)
 
 
 class MetaHasTraits(MetaHasDescriptors):
     """A metaclass for HasTraits."""
 
-    def setup_class(cls, classdict):
+    def setup_class(cls, classdict):  # noqa
+        # for only the current class
         cls._trait_default_generators = {}
+        # also looking at base classes
+        cls._all_trait_default_generators = {}
+        cls._traits = {}
+        cls._static_immutable_initial_values = {}
+
         super().setup_class(classdict)
+
+        mro = cls.mro()
+
+        for name in dir(cls):
+            value = getattr(cls, name)
+            if isinstance(value, TraitType):
+                cls._traits[name] = value
+                trait = value
+                default_method_name = "_%s_default" % name
+                try:
+                    mro_trait = mro[: mro.index(trait.this_class) + 1]  # type:ignore[arg-type]
+                except ValueError:
+                    # this_class not in mro
+                    pass
+                for c in mro_trait:
+                    if default_method_name in c.__dict__:
+                        cls._all_trait_default_generators[name] = c.__dict__[default_method_name]
+                        break
+                    if name in c.__dict__.get("_trait_default_generators", {}):
+                        cls._all_trait_default_generators[name] = c._trait_default_generators[name]  # type: ignore[attr-defined]
+                        break
+                else:
+                    # We don't have a dynamic default generator using @default etc.
+                    # Now if the default value is not dynamic and immutable (string, number)
+                    # and does not require any validation, we keep them in a dict
+                    # of initial values to speed up instance creation.
+                    # This is a very specific optimization, but a very common scenario in
+                    # for instance ipywidgets.
+                    none_ok = trait.default_value is None and trait.allow_none
+                    if (
+                        type(trait) in [CInt, Int]
+                        and trait.min is None  # type: ignore[attr-defined]
+                        and trait.max is None  # type: ignore[attr-defined]
+                        and (isinstance(trait.default_value, int) or none_ok)
+                    ):
+                        cls._static_immutable_initial_values[name] = trait.default_value
+                    elif (
+                        type(trait) in [CFloat, Float]
+                        and trait.min is None  # type: ignore[attr-defined]
+                        and trait.max is None  # type: ignore[attr-defined]
+                        and (isinstance(trait.default_value, float) or none_ok)
+                    ):
+                        cls._static_immutable_initial_values[name] = trait.default_value
+                    elif type(trait) in [CBool, Bool] and (
+                        isinstance(trait.default_value, bool) or none_ok
+                    ):
+                        cls._static_immutable_initial_values[name] = trait.default_value
+                    elif type(trait) in [CUnicode, Unicode] and (
+                        isinstance(trait.default_value, str) or none_ok
+                    ):
+                        cls._static_immutable_initial_values[name] = trait.default_value
+                    elif type(trait) == Any and (
+                        isinstance(trait.default_value, (str, int, float, bool)) or none_ok
+                    ):
+                        cls._static_immutable_initial_values[name] = trait.default_value
+                    elif type(trait) == Union and trait.default_value is None:
+                        cls._static_immutable_initial_values[name] = None
+                    elif (
+                        isinstance(trait, Instance)
+                        and trait.default_args is None
+                        and trait.default_kwargs is None
+                        and trait.allow_none
+                    ):
+                        cls._static_immutable_initial_values[name] = None
+
+                    # we always add it, because a class may change when we call add_trait
+                    # and then the instance may not have all the _static_immutable_initial_values
+                    cls._all_trait_default_generators[name] = trait.default
 
 
 def observe(*names: t.Union[Sentinel, str], type: str = "change") -> "ObserveHandler":
@@ -1193,31 +1284,33 @@ class HasDescriptors(metaclass=MetaHasDescriptors):
 
         self._cross_validation_lock = False  # type:ignore[attr-defined]
         cls = self.__class__
-        for key in dir(cls):
-            # Some descriptors raise AttributeError like zope.interface's
-            # __provides__ attributes even though they exist.  This causes
-            # AttributeErrors even though they are listed in dir(cls).
-            try:
-                value = getattr(cls, key)
-            except AttributeError:
-                pass
-            else:
-                if isinstance(value, BaseDescriptor):
-                    value.instance_init(self)
+        # Let descriptors performance initialization when a HasDescriptor
+        # instance is created. This allows registration of observers and
+        # default creations or other bookkeepings.
+        # Note that descriptors can opt-out of this behavior by overriding
+        # subclass_init.
+        for init in cls._instance_inits:
+            init(self)
 
 
 class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
     _trait_values: t.Dict[str, t.Any]
+    _static_immutable_initial_values: t.Dict[str, t.Any]
     _trait_notifiers: t.Dict[str, t.Any]
     _trait_validators: t.Dict[str, t.Any]
     _cross_validation_lock: bool
+    _traits: t.Dict[str, t.Any]
+    _all_trait_default_generators: t.Dict[str, t.Any]
 
     def setup_instance(*args, **kwargs):
         # Pass self as args[0] to allow "self" as keyword argument
         self = args[0]
         args = args[1:]
 
-        self._trait_values = {}
+        # although we'd prefer to set only the initial values not present
+        # in kwargs, we will overwrite them in `__init__`, and simply making
+        # a copy of a dict is faster than checking for each key.
+        self._trait_values = self._static_immutable_initial_values.copy()
         self._trait_notifiers = {}
         self._trait_validators = {}
         self._cross_validation_lock = False
@@ -1229,13 +1322,41 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         # notifications.
         super_args = args
         super_kwargs = {}
-        with self.hold_trait_notifications():
+
+        if kwargs:
+            # this is a simplified (and faster) version of
+            # the hold_trait_notifications(self) context manager
+            def ignore(*_ignore_args):
+                pass
+
+            self.notify_change = ignore  # type:ignore[assignment]
+            self._cross_validation_lock = True
+            changes = {}
             for key, value in kwargs.items():
                 if self.has_trait(key):
                     setattr(self, key, value)
+                    changes[key] = Bunch(
+                        name=key,
+                        old=None,
+                        new=value,
+                        owner=self,
+                        type="change",
+                    )
                 else:
                     # passthrough args that don't set traits to super
                     super_kwargs[key] = value
+            # notify and cross validate all trait changes that were set in kwargs
+            changed = set(kwargs) & set(self._traits)
+            for key in changed:
+                value = self._traits[key]._cross_validate(self, getattr(self, key))
+                self.set_trait(key, value)
+                changes[key]['new'] = value
+            self._cross_validation_lock = False
+            # Restore method retrieval from class
+            del self.notify_change
+            for key in changed:
+                self.notify_change(changes[key])
+
         try:
             super().__init__(*super_args, **super_kwargs)
         except TypeError as e:
@@ -1390,21 +1511,23 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         if not isinstance(event, Bunch):
             # cast to bunch if given a dict
             event = Bunch(event)
-        name, type = event.name, event.type
+        name, type = event['name'], event['type']
 
         callables = []
-        callables.extend(self._trait_notifiers.get(name, {}).get(type, []))
-        callables.extend(self._trait_notifiers.get(name, {}).get(All, []))
-        callables.extend(
-            self._trait_notifiers.get(All, {}).get(type, [])  # type:ignore[call-overload]
-        )
-        callables.extend(
-            self._trait_notifiers.get(All, {}).get(All, [])  # type:ignore[call-overload]
-        )
+        if name in self._trait_notifiers:
+            callables.extend(self._trait_notifiers.get(name, {}).get(type, []))
+            callables.extend(self._trait_notifiers.get(name, {}).get(All, []))
+        if All in self._trait_notifiers:  # type:ignore[comparison-overlap]
+            callables.extend(
+                self._trait_notifiers.get(All, {}).get(type, [])  # type:ignore[call-overload]
+            )
+            callables.extend(
+                self._trait_notifiers.get(All, {}).get(All, [])  # type:ignore[call-overload]
+            )
 
         # Now static ones
         magic_name = "_%s_changed" % name
-        if event.type == "change" and hasattr(self, magic_name):
+        if event['type'] == "change" and hasattr(self, magic_name):
             class_value = getattr(self.__class__, magic_name)
             if not isinstance(class_value, ObserveHandler):
                 _deprecated_method(
@@ -1634,7 +1757,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         the output.  If a metadata key doesn't exist, None will be passed
         to the function.
         """
-        traits = dict([memb for memb in getmembers(cls) if isinstance(memb[1], TraitType)])
+        traits = cls._traits.copy()
 
         if len(metadata) == 0:
             return traits
@@ -1666,7 +1789,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
 
     def has_trait(self, name):
         """Returns True if the object has a trait with the specified name."""
-        return isinstance(getattr(self.__class__, name, None), TraitType)
+        return name in self._traits
 
     def trait_has_value(self, name):
         """Returns True if the specified trait has a value.
@@ -1720,22 +1843,9 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         method_name = "_%s_default" % name
         if method_name in self.__dict__:
             return getattr(self, method_name)
-        cls = self.__class__
-        trait = getattr(cls, name)
-        assert isinstance(trait, TraitType)
-        # truncate mro to the class on which the trait is defined
-        mro = cls.mro()
-        try:
-            mro = mro[: mro.index(trait.this_class) + 1]  # type:ignore[arg-type]
-        except ValueError:
-            # this_class not in mro
-            pass
-        for c in mro:
-            if method_name in c.__dict__:
-                return getattr(c, method_name)
-            if name in c.__dict__.get("_trait_default_generators", {}):
-                return c._trait_default_generators[name]  # type:ignore[attr-defined]
-        return trait.default
+        if method_name in self.__class__.__dict__:
+            return getattr(self.__class__, method_name)
+        return self._all_trait_default_generators[name]
 
     def trait_defaults(self, *names, **metadata):
         """Return a trait's default value or a dictionary of them
@@ -1777,9 +1887,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         the output.  If a metadata key doesn't exist, None will be passed
         to the function.
         """
-        traits = dict(
-            [memb for memb in getmembers(self.__class__) if isinstance(memb[1], TraitType)]
-        )
+        traits = self._traits.copy()
 
         if len(metadata) == 0:
             return traits
@@ -1800,10 +1908,10 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         """Get metadata values for trait by key."""
         try:
             trait = getattr(self.__class__, traitname)
-        except AttributeError:
+        except AttributeError as e:
             raise TraitError(
                 f"Class {self.__class__.__name__} does not have a trait named {traitname}"
-            )
+            ) from e
         metadata_name = "_" + traitname + "_metadata"
         if hasattr(self, metadata_name) and key in getattr(self, metadata_name):
             return getattr(self, metadata_name).get(key, default)
@@ -1924,11 +2032,11 @@ class Type(ClassBasedTraitType):
         if isinstance(value, str):
             try:
                 value = self._resolve_string(value)
-            except ImportError:
+            except ImportError as e:
                 raise TraitError(
                     "The '%s' trait of %s instance must be a type, but "
                     "%r could not be imported" % (self.name, obj, value)
-                )
+                ) from e
         try:
             if issubclass(value, self.klass):  # type:ignore[arg-type]
                 return value
@@ -1949,8 +2057,9 @@ class Type(ClassBasedTraitType):
         return result
 
     def instance_init(self, obj):
+        # we can't do this in subclass_init because that
+        # might be called before all imports are done.
         self._resolve_classes()
-        super().instance_init(obj)
 
     def _resolve_classes(self):
         if isinstance(self.klass, str):
@@ -2041,8 +2150,9 @@ class Instance(ClassBasedTraitType):
         return result
 
     def instance_init(self, obj):
+        # we can't do this in subclass_init because that
+        # might be called before all imports are done.
         self._resolve_classes()
-        super().instance_init(obj)
 
     def _resolve_classes(self):
         if isinstance(self.klass, str):
@@ -2166,10 +2276,11 @@ class Union(TraitType):
             trait_type.class_init(cls, None)
         super().class_init(cls, name)
 
-    def instance_init(self, obj):
+    def subclass_init(self, cls):
         for trait_type in reversed(self.trait_types):
-            trait_type.instance_init(obj)
-        super().instance_init(obj)
+            trait_type.subclass_init(cls)
+        # explicitly not calling super().subclass_init(cls)
+        # to opt out of instance_init
 
     def validate(self, obj, value):
         with obj.cross_validation_lock:
@@ -2211,6 +2322,9 @@ class Any(TraitType):
     default_value: t.Optional[t.Any] = None
     allow_none = True
     info_text = "any value"
+
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
 
 
 def _validate_bounds(trait, obj, value):
@@ -2260,6 +2374,9 @@ class Int(TraitType):
             return None
         return int(s)
 
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
+
 
 class CInt(Int):
     """A casting version of the int trait."""
@@ -2299,6 +2416,9 @@ class Float(TraitType):
             return None
         return float(s)
 
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
+
 
 class CFloat(Float):
     """A casting version of the float trait."""
@@ -2328,6 +2448,9 @@ class Complex(TraitType):
         if self.allow_none and s == "None":
             return None
         return complex(s)
+
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
 
 
 class CComplex(Complex):
@@ -2371,6 +2494,9 @@ class Bytes(TraitType):
                     break
         return s.encode("utf8")
 
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
+
 
 class CBytes(Bytes):
     """A casting version of the byte string trait."""
@@ -2394,9 +2520,9 @@ class Unicode(TraitType):
         if isinstance(value, bytes):
             try:
                 return value.decode("ascii", "strict")
-            except UnicodeDecodeError:
+            except UnicodeDecodeError as e:
                 msg = "Could not decode {!r} for unicode trait '{}' of {} instance."
-                raise TraitError(msg.format(value, self.name, class_of(obj)))
+                raise TraitError(msg.format(value, self.name, class_of(obj))) from e
         self.error(obj, value)
 
     def from_string(self, s):
@@ -2415,6 +2541,9 @@ class Unicode(TraitType):
                         FutureWarning,
                     )
         return s
+
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
 
 
 class CUnicode(Unicode):
@@ -2487,6 +2616,9 @@ class Bool(TraitType):
         else:
             raise ValueError("%r is not 1, 0, true, or false")
 
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
+
 
 class CBool(Bool):
     """A casting version of the boolean trait."""
@@ -2537,6 +2669,9 @@ class Enum(TraitType):
             return self.validate(None, s)
         except TraitError:
             return _safe_literal_eval(s)
+
+    def subclass_init(self, cls):
+        pass  # fully opt out of instance_init
 
 
 class CaselessStrEnum(Enum):
@@ -2735,10 +2870,11 @@ class Container(Instance):
             self._trait.class_init(cls, None)
         super().class_init(cls, name)
 
-    def instance_init(self, obj):
+    def subclass_init(self, cls):
         if isinstance(self._trait, TraitType):
-            self._trait.instance_init(obj)
-        super().instance_init(obj)
+            self._trait.subclass_init(cls)
+        # explicitly not calling super().subclass_init(cls)
+        # to opt out of instance_init
 
     def from_string(self, s):
         """Load value from a single string"""
@@ -3039,11 +3175,12 @@ class Tuple(Container):
                 trait.class_init(cls, None)
         super(Container, self).class_init(cls, name)
 
-    def instance_init(self, obj):
+    def subclass_init(self, cls):
         for trait in self._traits:
             if isinstance(trait, TraitType):
-                trait.instance_init(obj)
-        super(Container, self).instance_init(obj)
+                trait.subclass_init(cls)
+        # explicitly not calling super().subclass_init(cls)
+        # to opt out of instance_init
 
 
 class Dict(Instance):
@@ -3241,15 +3378,16 @@ class Dict(Instance):
                 trait.class_init(cls, None)
         super().class_init(cls, name)
 
-    def instance_init(self, obj):
+    def subclass_init(self, cls):
         if isinstance(self._value_trait, TraitType):
-            self._value_trait.instance_init(obj)
+            self._value_trait.subclass_init(cls)
         if isinstance(self._key_trait, TraitType):
-            self._key_trait.instance_init(obj)
+            self._key_trait.subclass_init(cls)
         if self._per_key_traits is not None:
             for trait in self._per_key_traits.values():
-                trait.instance_init(obj)
-        super().instance_init(obj)
+                trait.subclass_init(cls)
+        # explicitly not calling super().subclass_init(cls)
+        # to opt out of instance_init
 
     def from_string(self, s):
         """Load value from a single string"""

@@ -366,24 +366,24 @@ class CSub(CBase):
 
 
 class TestArgParseKVCL(TestKeyValueCL):
-    klass = KVArgParseConfigLoader
+    klass = KVArgParseConfigLoader  # type:ignore
 
     def test_no_cast_literals(self):
-        cl = self.klass(log=log)
+        cl = self.klass(log=log)  # type:ignore
         # test ipython -c 1 doesn't cast to int
         argv = ["-c", "1"]
         config = cl.load_config(argv, aliases=dict(c="IPython.command_to_run"))
         assert config.IPython.command_to_run == "1"
 
     def test_int_literals(self):
-        cl = self.klass(log=log)
+        cl = self.klass(log=log)  # type:ignore
         # test ipython -c 1 doesn't cast to int
         argv = ["-c", "1"]
         config = cl.load_config(argv, aliases=dict(c="IPython.command_to_run"))
         assert config.IPython.command_to_run == "1"
 
     def test_unicode_alias(self):
-        cl = self.klass(log=log)
+        cl = self.klass(log=log)  # type:ignore
         argv = ["--a=épsîlön"]
         config = cl.load_config(argv, aliases=dict(a="A.a"))
         print(dict(config))
@@ -392,7 +392,7 @@ class TestArgParseKVCL(TestKeyValueCL):
         self.assertEqual(config.A.a, "épsîlön")
 
     def test_expanduser2(self):
-        cl = self.klass(log=log)
+        cl = self.klass(log=log)  # type:ignore
         argv = ["-a", "~/1/2/3", "--b", "'~/1/2/3'"]
         config = cl.load_config(argv, aliases=dict(a="A.a", b="A.b"))
 
@@ -405,13 +405,13 @@ class TestArgParseKVCL(TestKeyValueCL):
         self.assertEqual(a.b, "~/1/2/3")
 
     def test_eval(self):
-        cl = self.klass(log=log)
+        cl = self.klass(log=log)  # type:ignore
         argv = ["-c", "a=5"]
         config = cl.load_config(argv, aliases=dict(c="A.c"))
         self.assertEqual(config.A.c, "a=5")
 
     def test_seq_traits(self):
-        cl = self.klass(log=log, classes=(CBase, CSub))
+        cl = self.klass(log=log, classes=(CBase, CSub))  # type:ignore
         aliases = {"a3": "CBase.c", "a5": "CSub.e"}
         argv = (
             "--CBase.a A --CBase.a 2 --CBase.b 1 --CBase.b 3 --a3 AA --CBase.c BB "
@@ -427,14 +427,14 @@ class TestArgParseKVCL(TestKeyValueCL):
         assert config.CSub.e == ("1", "bcd")
 
     def test_seq_traits_single_empty_string(self):
-        cl = self.klass(log=log, classes=(CBase,))
+        cl = self.klass(log=log, classes=(CBase,))  # type:ignore
         aliases = {"seqopt": "CBase.c"}
         argv = ["--seqopt", ""]
         config = cl.load_config(argv, aliases=aliases)
         self.assertEqual(config.CBase.c, [""])
 
     def test_dict_traits(self):
-        cl = self.klass(log=log, classes=(CBase, CSub))
+        cl = self.klass(log=log, classes=(CBase, CSub))  # type:ignore
         aliases = {"D": "CBase.adict", "E": "CSub.bdict"}
         argv = ["-D", "k1=v1", "-D=k2=2", "-D", "k3=v 3", "-E", "k=v", "-E", "22=222"]
         config = cl.load_config(argv, aliases=aliases)
@@ -444,13 +444,13 @@ class TestArgParseKVCL(TestKeyValueCL):
 
     def test_mixed_seq_positional(self):
         aliases = {"c": "Class.trait"}
-        cl = self.klass(log=log, aliases=aliases)
+        cl = self.klass(log=log, aliases=aliases)  # type:ignore
         assignments = [("-c", "1"), ("--Class.trait=2",), ("--c=3",), ("--Class.trait", "4")]
         positionals = ["a", "b", "c"]
         # test with positionals at any index
         for idx in range(len(assignments) + 1):
             argv_parts = assignments[:]
-            argv_parts[idx:idx] = (positionals,)
+            argv_parts[idx:idx] = (positionals,)  # type:ignore
             argv = list(chain(*argv_parts))
 
             config = cl.load_config(argv)
@@ -459,7 +459,7 @@ class TestArgParseKVCL(TestKeyValueCL):
 
     def test_split_positional(self):
         """Splitting positionals across flags is no longer allowed in traitlets 5"""
-        cl = self.klass(log=log)
+        cl = self.klass(log=log)  # type:ignore
         argv = ["a", "--Class.trait=5", "b"]
         with pytest.raises(SystemExit):
             cl.load_config(argv)

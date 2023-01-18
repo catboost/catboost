@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: traitlets
-Version: 5.6.0
+Version: 5.7.0
 Summary: Traitlets Python configuration system
 Project-URL: Homepage, https://github.com/ipython/traitlets
 Author-email: IPython Development Team <ipython-dev@python.org>
@@ -81,9 +81,15 @@ Provides-Extra: docs
 Requires-Dist: myst-parser; extra == 'docs'
 Requires-Dist: pydata-sphinx-theme; extra == 'docs'
 Requires-Dist: sphinx; extra == 'docs'
+Provides-Extra: lint
+Requires-Dist: black>=22.6.0; extra == 'lint'
+Requires-Dist: mdformat>0.7; extra == 'lint'
+Requires-Dist: ruff>=0.0.156; extra == 'lint'
 Provides-Extra: test
 Requires-Dist: pre-commit; extra == 'test'
 Requires-Dist: pytest; extra == 'test'
+Provides-Extra: typing
+Requires-Dist: mypy>=0.990; extra == 'typing'
 Description-Content-Type: text/markdown
 
 # Traitlets

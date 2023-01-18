@@ -9,8 +9,8 @@ def get_output_error_code(cmd):
     env["Y_PYTHON_ENTRY_POINT"] = ":main"
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, env=env)
     out, err = p.communicate()
-    out = out.decode("utf8", "replace")
-    err = err.decode("utf8", "replace")
+    out = out.decode("utf8", "replace")  # type:ignore
+    err = err.decode("utf8", "replace")  # type:ignore
     return out, err, p.returncode
 
 
