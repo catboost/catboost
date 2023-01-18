@@ -355,7 +355,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\joblib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.iAr2GuEELL/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/joblib/join_ed6ce8352cbbcd77767364c367.cpp" "--ya-start-command-file" "contrib/python/joblib/3b2eff5a81b86dc6fdf900dced.cpp" "contrib/python/joblib/d47e0d7163eacb54467ed42b09.cpp" "contrib/python/joblib/9b34f18887503156106f73b45f.cpp" "contrib/python/joblib/60b8acdb6303bd3bab5e03183a.cpp" "contrib/python/joblib/fdf87351bbb3d3465e85a01310.cpp" "contrib/python/joblib/dc7bcd692cfd177a714335524b.cpp" "contrib/python/joblib/73e1241330702753f54c9e6495.cpp" "contrib/python/joblib/31519de9dd94cdf8791545b989.cpp" "--ya-end-command-file"
+"/tmp/tmp.bHImIR6L7b/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/joblib/join_ed6ce8352cbbcd77767364c367.cpp" "--ya-start-command-file" "contrib/python/joblib/3b2eff5a81b86dc6fdf900dced.cpp" "contrib/python/joblib/d47e0d7163eacb54467ed42b09.cpp" "contrib/python/joblib/9b34f18887503156106f73b45f.cpp" "contrib/python/joblib/60b8acdb6303bd3bab5e03183a.cpp" "contrib/python/joblib/fdf87351bbb3d3465e85a01310.cpp" "contrib/python/joblib/dc7bcd692cfd177a714335524b.cpp" "contrib/python/joblib/73e1241330702753f54c9e6495.cpp" "contrib/python/joblib/31519de9dd94cdf8791545b989.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -366,7 +366,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\joblib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.iAr2GuEELL/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/joblib/join_ed6ce8352cbbcd77767364c367.cpp" "--ya-start-command-file" "contrib/python/joblib/3b2eff5a81b86dc6fdf900dced.cpp" "contrib/python/joblib/d47e0d7163eacb54467ed42b09.cpp" "contrib/python/joblib/9b34f18887503156106f73b45f.cpp" "contrib/python/joblib/60b8acdb6303bd3bab5e03183a.cpp" "contrib/python/joblib/fdf87351bbb3d3465e85a01310.cpp" "contrib/python/joblib/dc7bcd692cfd177a714335524b.cpp" "contrib/python/joblib/73e1241330702753f54c9e6495.cpp" "contrib/python/joblib/31519de9dd94cdf8791545b989.cpp" "--ya-end-command-file"
+"/tmp/tmp.bHImIR6L7b/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/joblib/join_ed6ce8352cbbcd77767364c367.cpp" "--ya-start-command-file" "contrib/python/joblib/3b2eff5a81b86dc6fdf900dced.cpp" "contrib/python/joblib/d47e0d7163eacb54467ed42b09.cpp" "contrib/python/joblib/9b34f18887503156106f73b45f.cpp" "contrib/python/joblib/60b8acdb6303bd3bab5e03183a.cpp" "contrib/python/joblib/fdf87351bbb3d3465e85a01310.cpp" "contrib/python/joblib/dc7bcd692cfd177a714335524b.cpp" "contrib/python/joblib/73e1241330702753f54c9e6495.cpp" "contrib/python/joblib/31519de9dd94cdf8791545b989.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
