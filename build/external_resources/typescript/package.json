@@ -2,6 +2,7 @@
     "name": "typescript",
     "version": "4.6.2",
     "description": "typescript compiler bundle",
+    "comment": "Warning: обратите внимание, что меняя версию typescript необходимо поменять её и в ../webpack ресурсе",
     "dependencies": {
         "ts-patch": "2.0.2",
         "typescript": "4.6.2"
