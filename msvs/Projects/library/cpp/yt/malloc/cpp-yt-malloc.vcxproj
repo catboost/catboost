@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\malloc\dummy_malloc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\malloc\malloc.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\malloc\malloc.h"/>
   </ItemGroup>
