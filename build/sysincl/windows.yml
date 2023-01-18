@@ -215,6 +215,7 @@
   - shlguid.h
   - shlobj.h
   - shlwapi.h
+  - shobjidl.h
   - specstrings.h
   - specstrings_strict.h
   - specstrings_undef.h

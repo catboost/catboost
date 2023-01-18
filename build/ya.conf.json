@@ -8839,8 +8839,16 @@
         },
         "skotty": {
             "formula": {
-                "sandbox_id": 1540880007,
-                "match": "launcher"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "SKOTTY_LAUNCHER",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "SECURITY"
+                    },
+                    "update_interval": 86400
+                }
             },
             "executable": {
                 "launcher": [
@@ -9017,7 +9025,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1570886682,
+                "sandbox_id": 1571840420,
                 "match": "lama"
             },
             "executable": {
