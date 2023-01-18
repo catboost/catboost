@@ -2,6 +2,65 @@
 Cython Changelog
 ================
 
+0.29.33 (2023-01-06)
+====================
+
+Features added
+--------------
+
+* The ``cythonize`` and ``cython`` commands have a new option ``-M`` / ``--depfile``
+  to generate ``.dep`` dependency files for the compilation unit.  This can be used
+  by external build tools to track these dependencies.
+  The ``cythonize`` option was already available in Cython :ref:`0.29.27`.
+  Patches by Evgeni Burovski and Eli Schwartz.  (Github issue :issue:`1214`)
+
+Bugs fixed
+----------
+
+* ``const`` fused types could not be used with memory views.
+  Patch by Thomas Vincent.  (Github issue :issue:`1772`)
+
+* ``wstr`` usage was removed in Python 3.12 and later (PEP-623).
+  (Github issue :issue:`5145`)
+
+* A type check assertion for Cython functions failed in debug Python builds.
+  (Github issue :issue:`5031`)
+
+* Fixed various compiler warnings.
+  Patches by Lisandro Dalcin et al.  (Github issues :issue:`4948`, :issue:`5086`)
+
+* Fixed error when calculating complex powers of negative numbers.
+  (Github issue :issue:`5014`)
+  
+* Corrected a small mis-formatting of exception messages on Python 2.
+  (Github issue :issue:`5018`)
+
+* The ``PyUnicode_AsUTF8AndSize()`` C-API function was missing from the CPython declarations.
+  (Github issue :issue:`5163`)
+
+* A performance problem in the compiler was resolved when nesting conditional expressions.
+  (Github issue :issue:`5197`)
+
+* Test suite problems with recent NumPy and CPython versions were resolved.
+  (Github issues :issue:`5183`, :issue:`5190`)
+
+Other changes
+-------------
+  
+* The undocumented, untested and apparently useless syntax
+  ``from somemodule cimport class/struct/union somename`` was deprecated
+  in anticipation of its removal in Cython 3.  The type
+  modifier is not needed here and a plain ``cimport`` of the name will do.
+  (Github issue :issue:`4905`)
+  
+* Properly disable generation of descriptor docstrings on PyPy since they cause crashes.
+  It was previously disabled, but only accidentally via a typo.
+  Patch by Matti Picus.  (Github issue :issue:`5083`)
+
+* The ``cpow`` directive of Cython 3.0 is available as a no-op.
+  (Github issue :issue:`5016`)
+
+
 0.29.32 (2022-07-29)
 ====================
 

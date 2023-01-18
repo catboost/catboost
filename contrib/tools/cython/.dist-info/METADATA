@@ -1,11 +1,16 @@
 Metadata-Version: 2.1
 Name: Cython
-Version: 0.29.32
+Version: 0.29.33
 Summary: The Cython compiler for writing C extensions for the Python language.
 Home-page: http://cython.org/
 Author: Robert Bradshaw, Stefan Behnel, Dag Seljebotn, Greg Ewing, et al.
 Author-email: cython-devel@python.org
 License: Apache
+Project-URL: Documentation, https://cython.readthedocs.io/
+Project-URL: Donate, https://cython.readthedocs.io/en/latest/src/donating.html
+Project-URL: Source Code, https://github.com/cython/cython
+Project-URL: Bug Tracker, https://github.com/cython/cython/issues
+Project-URL: User Group, https://groups.google.com/g/cython-users
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: Apache Software License
