@@ -381,6 +381,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.global.vcxproj">
       <Project>{DBA6354E-4A60-1922-EC62-1291EF2B35E3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\toml\pycontrib-python-toml.global.vcxproj">
+      <Project>{F1671FF9-F1B0-4570-2ADB-86C4C1AD25F9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py2\pypython-traitlets-py2.global.vcxproj">
       <Project>{CC326F0E-AD85-9087-4F85-A0C250A1716C}</Project>
     </ProjectReference>

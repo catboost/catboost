@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{14B5C251-696E-FF67-4EA3-1EB09DA2DF8E}</ProjectGUID>
+    <ProjectGUID>{F1671FF9-F1B0-4570-2ADB-86C4C1AD25F9}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-ipdb.global</ProjectName>
+    <ProjectName>pycontrib-python-toml.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-ipdb.global</TargetName>
+    <TargetName>pycontrib-python-toml.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\ipdb\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\14B5C251-696E-FF67-4EA3-1EB09DA2DF8E\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\toml\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F1671FF9-F1B0-4570-2ADB-86C4C1AD25F9\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,22 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\9ca8ffabc7df4a969881963434.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\toml\2f223fc92618c7380d7d944cd6.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\toml\b457d89f34a8c5a9bae2f7700a.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp" "_a0cdeacbc22da3049240cd77be=py/no_check_imports/dmmkwu6axsepmrs7s2ne5ddhzi"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/2f223fc92618c7380d7d944cd6.cpp" "_92a99a501459db034ab3697cce=resfs/src/resfs/file/contrib/python/toml/.dist-info/METADATA" "_5d5c5476e2f9966ced99fc9d1d=resfs/file/contrib/python/toml/.dist-info/METADATA" "_1b04d97b4f1c23c341c54ed014=resfs/src/resfs/file/contrib/python/toml/.dist-info/top_level.txt" "_fcd79ef608625109f04f2e16d0=resfs/file/contrib/python/toml/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp" "_6c75df66d9a48384d5905fd7ae=/py_modules/ipdb.__init__" "_404cddb1e11041fb7b0989df77=resfs/src//py_modules/ipdb.__init__" "_14d688afc518b626fdde199a22=/py_code/ipdb.__init__" "_cbca4247ba867c8133cf03c9f4=/py_modules/ipdb.__main__" "_5979fa9835ff6fdaef09c8c3e0=resfs/src//py_modules/ipdb.__main__" "_f3bece81c981c507eaabf57c35=/py_code/ipdb.__main__" "_e28c8407ba17b81f8306073b68=/py_modules/ipdb.stdout" "_be0d4c6a42ed2e3cd3d4fe18ea=resfs/src//py_modules/ipdb.stdout" "_56fde4ee4b5f15cc62982bf8e9=/py_code/ipdb.stdout"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_864bcd094894c2a3f28de0cf72=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_12371b35c4ff6341d283324ef4=resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/b457d89f34a8c5a9bae2f7700a.cpp" "_ab2bb3b34fddb6f7ad8db8146c=/py_modules/toml.__init__" "_d282cf650733ed90f589b5790e=resfs/src//py_modules/toml.__init__" "_a93e36b180a40028be6ee5d95e=/py_code/toml.__init__" "_7e5d5bc4253acf4638a3b79d9e=/py_modules/toml.decoder" "_353f12fb1814ca65660f7e9370=resfs/src//py_modules/toml.decoder" "_81bea0710f9acae784020f2fd4=/py_code/toml.decoder" "_8124a2fb89bbe6ef8a82b40bea=/py_modules/toml.encoder" "_bfd6912ac4b46274c976d64ffb=resfs/src//py_modules/toml.encoder" "_a926f4c486d016f7abeeb9c5a5=/py_code/toml.encoder" "_59cbb03a28732d86f1b8103285=/py_modules/toml.ordered" "_1e9198e51ec5ad0b2b97e74b71=resfs/src//py_modules/toml.ordered" "_5fbd84b248318fb75e11459d44=/py_code/toml.ordered" "_d5c1c2fd22a587fb8f726cf05b=/py_modules/toml.tz" "_2e83c987a2f85376bae6960210=resfs/src//py_modules/toml.tz" "_36ca7afc86a28cceb9ffd38246=/py_code/toml.tz"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,17 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp" "_a0cdeacbc22da3049240cd77be=py/no_check_imports/dmmkwu6axsepmrs7s2ne5ddhzi"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/2f223fc92618c7380d7d944cd6.cpp" "_92a99a501459db034ab3697cce=resfs/src/resfs/file/contrib/python/toml/.dist-info/METADATA" "_5d5c5476e2f9966ced99fc9d1d=resfs/file/contrib/python/toml/.dist-info/METADATA" "_1b04d97b4f1c23c341c54ed014=resfs/src/resfs/file/contrib/python/toml/.dist-info/top_level.txt" "_fcd79ef608625109f04f2e16d0=resfs/file/contrib/python/toml/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
+cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp" "_6c75df66d9a48384d5905fd7ae=/py_modules/ipdb.__init__" "_404cddb1e11041fb7b0989df77=resfs/src//py_modules/ipdb.__init__" "_14d688afc518b626fdde199a22=/py_code/ipdb.__init__" "_cbca4247ba867c8133cf03c9f4=/py_modules/ipdb.__main__" "_5979fa9835ff6fdaef09c8c3e0=resfs/src//py_modules/ipdb.__main__" "_f3bece81c981c507eaabf57c35=/py_code/ipdb.__main__" "_e28c8407ba17b81f8306073b68=/py_modules/ipdb.stdout" "_be0d4c6a42ed2e3cd3d4fe18ea=resfs/src//py_modules/ipdb.stdout" "_56fde4ee4b5f15cc62982bf8e9=/py_code/ipdb.stdout"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_864bcd094894c2a3f28de0cf72=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_12371b35c4ff6341d283324ef4=resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/toml/b457d89f34a8c5a9bae2f7700a.cpp" "_ab2bb3b34fddb6f7ad8db8146c=/py_modules/toml.__init__" "_d282cf650733ed90f589b5790e=resfs/src//py_modules/toml.__init__" "_a93e36b180a40028be6ee5d95e=/py_code/toml.__init__" "_7e5d5bc4253acf4638a3b79d9e=/py_modules/toml.decoder" "_353f12fb1814ca65660f7e9370=resfs/src//py_modules/toml.decoder" "_81bea0710f9acae784020f2fd4=/py_code/toml.decoder" "_8124a2fb89bbe6ef8a82b40bea=/py_modules/toml.encoder" "_bfd6912ac4b46274c976d64ffb=resfs/src//py_modules/toml.encoder" "_a926f4c486d016f7abeeb9c5a5=/py_code/toml.encoder" "_59cbb03a28732d86f1b8103285=/py_modules/toml.ordered" "_1e9198e51ec5ad0b2b97e74b71=resfs/src//py_modules/toml.ordered" "_5fbd84b248318fb75e11459d44=/py_code/toml.ordered" "_d5c1c2fd22a587fb8f726cf05b=/py_modules/toml.tz" "_2e83c987a2f85376bae6960210=resfs/src//py_modules/toml.tz" "_36ca7afc86a28cceb9ffd38246=/py_code/toml.tz"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp	$B/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp	$B/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp	</Message>
+      <Message>$B/contrib/python/toml/2f223fc92618c7380d7d944cd6.cpp	$B/contrib/python/toml/b457d89f34a8c5a9bae2f7700a.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\9ca8ffabc7df4a969881963434.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\toml\2f223fc92618c7380d7d944cd6.cpp;$(SolutionDir)$(Configuration)\contrib\python\toml\b457d89f34a8c5a9bae2f7700a.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -133,24 +124,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.functools-lru-cache\pydeprecated-python-backports.functools-lru-cache.vcxproj">
-      <Project>{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.vcxproj">
-      <Project>{B1908B71-AB54-E981-2D53-A2B8C8086C94}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\enum34\pydeprecated-python-enum34.vcxproj">
-      <Project>{DAC01015-4A7E-39B7-6C6C-6D8121B7840C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.vcxproj">
-      <Project>{944B2EE5-2BBB-4616-601E-6CE952A871A4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.vcxproj">
-      <Project>{EDC2245C-D90A-1ACB-5E90-63335B5E6CA2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.vcxproj">
-      <Project>{74C19432-1A4D-B2CC-4E7B-CF48FEE610A8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
@@ -191,63 +164,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py2\pypython-Pygments-py2.vcxproj">
-      <Project>{96EAF5F3-D2AE-8E4D-1359-29CB5B4C311A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\pycontrib-python-Pygments.vcxproj">
-      <Project>{7EDE6894-1D47-C37C-76A4-6A58521F895C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\pycontrib-python-colorama.vcxproj">
-      <Project>{A57B9434-ED18-2180-9A04-9087641653EF}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.vcxproj">
-      <Project>{6EA24443-979F-2752-E4D4-FAB10E178335}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython-genutils\pycontrib-python-ipython-genutils.vcxproj">
-      <Project>{8AC6D0DA-E9CE-8CC5-04B0-B0313A92FE5E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\py2\pypython-ipython-py2.vcxproj">
-      <Project>{2C2EB937-C925-5BAC-08C0-2793AABB6C61}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython\pycontrib-python-ipython.vcxproj">
-      <Project>{9FAEC26D-0991-B9F6-A63C-ABE29C2D36E8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
-      <Project>{09B94D29-C8D9-195E-BE7A-2CF5517C1312}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\pycontrib-python-pickleshare.vcxproj">
-      <Project>{19043F21-DFA6-9A42-5EE5-EEAD938C9242}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py2\pypython-prompt-toolkit-py2.vcxproj">
-      <Project>{44F46013-3EC8-EF76-35CB-8F6A62BF2F33}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\pycontrib-python-prompt-toolkit.vcxproj">
-      <Project>{047EB5F9-148B-0639-CD34-387A52108769}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
-      <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
-      <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\simplegeneric\pycontrib-python-simplegeneric.vcxproj">
-      <Project>{385D1895-3509-B2E4-6BD0-DEFB1D334808}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
-      <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\toml\pycontrib-python-toml.vcxproj">
-      <Project>{A65376C6-E27B-B015-FEF3-B6A2A74BF644}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py2\pypython-traitlets-py2.vcxproj">
-      <Project>{7BBB0F36-76C1-B54C-7DDB-4AACF35E219C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\pycontrib-python-traitlets.vcxproj">
-      <Project>{1DBCB73E-225F-19E4-30C7-41861F222A71}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
-      <Project>{F338AB33-66DB-B461-4311-08AAD87EAE63}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -272,9 +188,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
-      <Project>{37AC15B4-A170-D4C8-25DC-6474572B40BA}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
     </ProjectReference>
@@ -289,9 +202,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\win_unicode_console\python-symbols-win_unicode_console.vcxproj">
-      <Project>{19A0C8A5-35FB-EAF6-49AD-2103AE839D74}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
       <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>

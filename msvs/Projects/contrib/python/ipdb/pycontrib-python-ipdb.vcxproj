@@ -395,6 +395,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\toml\pycontrib-python-toml.vcxproj">
+      <Project>{A65376C6-E27B-B015-FEF3-B6A2A74BF644}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py2\pypython-traitlets-py2.vcxproj">
       <Project>{7BBB0F36-76C1-B54C-7DDB-4AACF35E219C}</Project>
     </ProjectReference>
